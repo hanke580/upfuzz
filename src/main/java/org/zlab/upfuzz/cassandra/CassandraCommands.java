@@ -1,6 +1,7 @@
 package org.zlab.upfuzz.cassandra;
 
 import org.zlab.upfuzz.*;
+import org.zlab.upfuzz.utils.PAIRType;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -22,6 +23,8 @@ public class CassandraCommands {
         // key: TEXTType parameter columnName; value: any user defined type
         final LinkedHashMap<Parameter, Parameter> colName2Type = new LinkedHashMap<>();
 
+        final Parameter columns;
+
         final LinkedHashMap<Parameter, Parameter> primaryColName2Type = new LinkedHashMap<>();
 
         final Parameter IF_NOT_EXIST;
@@ -31,12 +34,12 @@ public class CassandraCommands {
         public CREATETABLE(CassandraState state) {
 
             // constraints are specified here
-            tableName = new Parameter(CassandraTypes.TEXTType.instance) {
+            tableName = new Parameter.NormalParameter(CassandraTypes.TEXTType.instance) {
                 @Override
                 public void generateValue(State state, Command currCmd) {
-                    value = type.constructRandomValue();
+                    value = ((ParameterType.NormalType) type).constructRandomValue();
                     while (isValid(state, currCmd)) {
-                        value = type.constructRandomValue();
+                        value = ((ParameterType.NormalType) type).constructRandomValue();
                     }
                 }
 
@@ -48,6 +51,41 @@ public class CassandraCommands {
                 }
             };
             tableName.generateValue(state, this);
+
+            columns = new Parameter.TemplatedParameter(CassandraTypes.LISTType.instance, PAIRType.instance) {
+                @Override
+                public void generateValue(State state, Command currCmd) {
+
+                    // value of a LISTType parameter is a list of parameters.
+                    value = new ArrayList<Parameter>();
+
+                    int bound = 10; // specified by user
+                    int len = new Random().nextInt(bound);
+                    // everything above might be put in LISTType.generateRandomValue() function.
+
+                    for (int i = 0; i < len; i++) {
+
+                        // For this specific list = columns - each parameter is a Pair<String, Type>.
+                        Parameter p1 =
+                            new TemplatedParameter(PAIRType.instance,
+                                CassandraTypes.TEXTType.instance,
+                                CassandraTypes.TYPEType.instance) {
+                            @Override
+                            public void generateValue(State state, Command currCmd) {
+                                // p1's value doesn't exist in currCmd.colName2Type.keySet();
+                                // This might cause concurrent modification to columns! Need to check.
+                                // There is a way to use iterator to do concurrent modification.
+
+//                                Pair<Parameter, Parameter>
+                            }
+                        };
+
+                        p1.generateValue(state, currCmd);
+                        ((List) value).add(p1);
+                    }
+                }
+            };
+            columns.generateValue(state, this);
 
             int bound = 10; // specified by user
             int len = new Random().nextInt(bound);

@@ -5,7 +5,7 @@ import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 
-public class TypeParameter extends Parameter {
+public class TypeParameter extends Parameter.NormalParameter {
 
   public TypeParameter() {
     super(CassandraTypes.TYPEType.instance);
@@ -13,6 +13,6 @@ public class TypeParameter extends Parameter {
 
   @Override
   public void generateValue(State state, Command currCmd) {
-    value = type.constructRandomValue();
+//    value = type.constructRandomValue();
   }
 }

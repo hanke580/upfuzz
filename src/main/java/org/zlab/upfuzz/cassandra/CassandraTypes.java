@@ -19,8 +19,7 @@ public class CassandraTypes {
     typesWithTemplate.add(LISTType.instance);
   }
 
-
-  public static class TEXTType implements ParameterType {
+  public static class TEXTType implements ParameterType.NormalType {
 
       public static final TEXTType instance = new TEXTType();
       public static final String signature = "java.lang.String";
@@ -40,7 +39,7 @@ public class CassandraTypes {
       }
   }
 
-  public static class LISTType implements ParameterType {
+  public static class LISTType implements ParameterType.TemplatedType {
 
     public static final LISTType instance = new LISTType();
     public static final String signature = "java.util.List";
@@ -48,20 +47,32 @@ public class CassandraTypes {
     private LISTType() {}
 
     @Override
-    public Object constructRandomValue() {
-      Object ret = "RandomString"; // TODO: Generate a random string.
-      // assert ret.type == TEXTType.instance;
-      // [1,2,3]
-      return ret;
-    }
-
-    @Override
     public String generateStringValue(Object value) {
       return (String) value;
     }
+
+    @Override
+    public Object constructRandomValue(ParameterType typeInTemplate) {
+      return null;
+    }
   }
 
-  public static class TYPEType implements ParameterType {
+//  public static class PAIRType implements ParameterType.TemplatedType {
+//    public static final PAIRType instance = new PAIRType();
+//    public static final String signature = "org.zlab.upfuzz.PAIR";
+//
+//    @Override
+//    public String generateStringValue(Object value) {
+//      return null;
+//    }
+//
+//    @Override
+//    public Object constructRandomValue(ParameterType typeInTemplate) {
+//      return null;
+//    }
+//  }
+
+  public static class TYPEType implements ParameterType.NormalType {
     public static final TYPEType instance = new TYPEType();
     public static final String signature = "org.zlab.upfuzz.TYPE";
     @Override
