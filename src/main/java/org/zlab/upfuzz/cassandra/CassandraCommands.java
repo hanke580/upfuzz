@@ -35,14 +35,17 @@ public class CassandraCommands {
                 @Override
                 public void generateValue(State state, Command currCmd) {
                     value = type.constructRandomValue();
-                    Set<String> tableNames =
-                            ((CassandraState) state).tables.stream().map(s -> s.name).collect(Collectors.toSet());
-                    while (tableNames.contains(value)) {
+                    while (isValid(state, currCmd)) {
                         value = type.constructRandomValue();
                     }
                 }
 
-
+                @Override
+                public boolean isValid(State state, Command currCmd) {
+                    Set<String> tableNames =
+                        ((CassandraState) state).tables.stream().map(s -> s.name).collect(Collectors.toSet());
+                    return !tableNames.contains(value);
+                }
             };
             tableName.generateValue(state, this);
 

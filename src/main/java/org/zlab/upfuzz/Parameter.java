@@ -22,6 +22,14 @@ public abstract class Parameter {
         return true;
     }
 
+    // TODO: think about this interface
+    public void mutate(State state, Command currCmd) {
+        value = type.constructRandomValue();
+        while (!isValid(state, currCmd)) {
+            value = type.constructRandomValue();
+        }
+    }
+
     @Override
     public String toString() {
         if (strValue == null) {
