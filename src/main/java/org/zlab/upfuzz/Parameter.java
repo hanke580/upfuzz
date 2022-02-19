@@ -18,6 +18,10 @@ public abstract class Parameter {
      */
     public abstract void generateValue(State state, Command currCmd);
 
+    public boolean isValid(State state, Command currCmd) {
+        return true;
+    }
+
     @Override
     public String toString() {
         if (strValue == null) {

@@ -20,38 +20,58 @@ public class CassandraCommands {
 
         // LinkedHashMap is a list of pairs.
         // key: TEXTType parameter columnName; value: any user defined type
-        final LinkedHashMap<Parameter, Parameter> colName2Type;
+        final LinkedHashMap<Parameter, Parameter> colName2Type = new LinkedHashMap<>();
 
-        final LinkedHashMap<Parameter, Parameter> primaryColName2Type;
+        final LinkedHashMap<Parameter, Parameter> primaryColName2Type = new LinkedHashMap<>();
 
         final Parameter IF_NOT_EXIST;
 
         // final Command ...; // Nested commands need to be constructed first.
 
-        public CREATETABLE(CassandraValidState state) {
+        public CREATETABLE(CassandraState state) {
 
             // constraints are specified here
-            tableName = new Parameter(TEXTType.instance) {
+            tableName = new Parameter(CassandraTypes.TEXTType.instance) {
                 @Override
                 public void generateValue(State state, Command currCmd) {
                     value = type.constructRandomValue();
                     Set<String> tableNames =
-                            ((CassandraValidState) state).tables.stream().map(s -> s.name).collect(Collectors.toSet());
+                            ((CassandraState) state).tables.stream().map(s -> s.name).collect(Collectors.toSet());
                     while (tableNames.contains(value)) {
                         value = type.constructRandomValue();
                     }
                 }
+
+
             };
             tableName.generateValue(state, this);
 
+            int bound = 10; // specified by user
+            int len = new Random().nextInt(bound);
 
-            colName2Type = null;
-            primaryColName2Type = null;
+            for (int i = 0; i < len; i++) {
+
+                Parameter p1 = new Parameter(CassandraTypes.TEXTType.instance) {
+                    @Override
+                    public void generateValue(State state, Command currCmd) {
+                        // p1's value doesn't exist in currCmd.colName2Type.keySet();
+                        // This might cause concurrent modification to colName2Type!
+                        // There is a way to use iterator to do concurrent modification.
+                    }
+                };
+                p1.generateValue(state, this);
+
+                Parameter p2 = new TypeParameter();
+                p2.generateValue(state, this);
+                this.colName2Type.put(p1, p2);
+            }
+
+
             IF_NOT_EXIST = null;
         }
 
         @Override
-        public String constructCommand() {
+        public String constructCommandString() {
             return null;
         }
 
@@ -63,7 +83,7 @@ public class CassandraCommands {
 
     public static class INSERT implements Command {
         @Override
-        public String constructCommand() {
+        public String constructCommandString() {
             return null;
         }
 
