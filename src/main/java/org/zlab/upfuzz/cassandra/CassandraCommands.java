@@ -1,11 +1,9 @@
 package org.zlab.upfuzz.cassandra;
 
-import org.zlab.upfuzz.Command;
-import org.zlab.upfuzz.Parameter;
-import org.zlab.upfuzz.ParameterFactory;
-import org.zlab.upfuzz.SharedVPolicy;
+import org.zlab.upfuzz.*;
 
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class CassandraCommands {
 
@@ -14,19 +12,39 @@ public class CassandraCommands {
         // parameters used in this command
         // they are generated following user-specified constraints
 
-        final TEXTTypeFactory.TEXTType tableName;
-        final IntegerType len;
-        final Map<String, ParameterFactory> colName2Type;
-        final Map<String, ParameterFactory> primaryColName2Type;
-        final TEXTTypeFactory.TEXTType IF_NOT_EXIST;
-        // final Command ...;
+        // a parameter should correspond to one variable in the text format of this command.
+        // mutating a parameter could depend on and the state updated by all nested internal commands and other parameters.
+        // Note: Thus, we need to be careful to not have cyclic dependency among parameters.
+
+        final Parameter tableName;
+
+        // LinkedHashMap is a list of pairs.
+        // key: TEXTType parameter columnName; value: any user defined type
+        final LinkedHashMap<Parameter, Parameter> colName2Type;
+
+        final LinkedHashMap<Parameter, Parameter> primaryColName2Type;
+
+        final Parameter IF_NOT_EXIST;
+
+        // final Command ...; // Nested commands need to be constructed first.
 
         public CREATETABLE(CassandraValidState state) {
-            // constraints are specified here
-            SharedVPolicy policy = new SharedVPolicy<TEXTTypeFactory.TEXTType>();
-            tableName = (TEXTTypeFactory.TEXTType) policy.chooseExcept(state.tables, 1).get(0);
 
-            len = IntegerTypeFactory.constructRandom(); // IntegerType obj;
+            // constraints are specified here
+            tableName = new Parameter(TEXTType.instance) {
+                @Override
+                public void generateValue(State state, Command currCmd) {
+                    value = type.constructRandomValue();
+                    Set<String> tableNames =
+                            ((CassandraValidState) state).tables.stream().map(s -> s.name).collect(Collectors.toSet());
+                    while (tableNames.contains(value)) {
+                        value = type.constructRandomValue();
+                    }
+                }
+            };
+            tableName.generateValue(state, this);
+
+
             colName2Type = null;
             primaryColName2Type = null;
             IF_NOT_EXIST = null;

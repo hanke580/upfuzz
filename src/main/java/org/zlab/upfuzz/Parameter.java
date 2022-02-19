@@ -1,13 +1,28 @@
 package org.zlab.upfuzz;
 
-import java.util.HashMap;
-import java.util.Map;
+public abstract class Parameter {
 
-public class Parameter {
-    static Map<java.lang.Class, ParameterFactory> map;
+    public final ParameterType type;
+    public Object value;
+    public String strValue;
 
-    static {
-        map = new HashMap<>();
+    public Parameter(ParameterType type) {
+        this.type = type;
     }
 
+    /**
+     * generateValue() follows rules to generate a value for this parameter.
+     * @param state
+     * @param currCmd
+     *  these rules might use the state and other parameters in the current command.
+     */
+    public abstract void generateValue(State state, Command currCmd);
+
+    @Override
+    public String toString() {
+        if (strValue == null) {
+            strValue = type.generateStringValue(value);
+        }
+        return strValue;
+    }
 }
