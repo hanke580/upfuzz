@@ -1,5 +1,6 @@
 package org.zlab.upfuzz.utils;
 
+import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.cassandra.CassandraTypes;
 
@@ -13,7 +14,7 @@ public class PAIRType implements ParameterType.TemplatedType {
   }
 
   @Override
-  public Object constructRandomValue(ParameterType typeInTemplate) {
+  public Object constructRandomValue(Parameter.TemplatedParameter parameter) {
     return null;
   }
 }

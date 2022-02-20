@@ -8,6 +8,9 @@ public interface ParameterType {
     }
 
     public static interface TemplatedType extends ParameterType {
+        /* The types in the template are stored in the corresponding parameter. */
+        Object constructRandomValue(Parameter.TemplatedParameter parameter);
         Object constructRandomValue(ParameterType typeInTemplate);
     }
+
 }

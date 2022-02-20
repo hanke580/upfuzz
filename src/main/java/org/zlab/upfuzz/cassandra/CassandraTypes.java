@@ -1,7 +1,10 @@
 package org.zlab.upfuzz.cassandra;
 
+import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
+import org.zlab.upfuzz.State;
+import org.zlab.upfuzz.utils.PAIRType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,25 +55,38 @@ public class CassandraTypes {
     }
 
     @Override
-    public Object constructRandomValue(ParameterType typeInTemplate) {
+    public Object constructRandomValue(Parameter.TemplatedParameter parameter) {
+      // This parameter should be the list itself.
+
+      // value of a LISTType parameter is a list of parameters.
+      List<Parameter> value = new ArrayList<>();
+
+      int bound = 10; // specified by user
+      int len = new Random().nextInt(bound);
+
+      for (int i = 0; i < len; i++) {
+
+        // For this specific list = columns - each parameter is a Pair<String, Type>.
+        Parameter p1 =
+            new Parameter.TemplatedParameter(PAIRType.instance,
+                CassandraTypes.TEXTType.instance,
+                CassandraTypes.TYPEType.instance) {
+              @Override
+              public void generateValue(State state, Command currCmd) {
+                // p1's value doesn't exist in currCmd.colName2Type.keySet();
+                // This might cause concurrent modification to columns! Need to check.
+                // There is a way to use iterator to do concurrent modification.
+
+//                                Pair<Parameter, Parameter>
+              }
+            };
+
+        value.add(p1);
+      }
+
       return null;
     }
   }
-
-//  public static class PAIRType implements ParameterType.TemplatedType {
-//    public static final PAIRType instance = new PAIRType();
-//    public static final String signature = "org.zlab.upfuzz.PAIR";
-//
-//    @Override
-//    public String generateStringValue(Object value) {
-//      return null;
-//    }
-//
-//    @Override
-//    public Object constructRandomValue(ParameterType typeInTemplate) {
-//      return null;
-//    }
-//  }
 
   public static class TYPEType implements ParameterType.NormalType {
     public static final TYPEType instance = new TYPEType();
