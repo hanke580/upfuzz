@@ -17,5 +17,10 @@ public class PAIRType implements ParameterType.TemplatedType {
   public Object constructRandomValue(Parameter.TemplatedParameter parameter) {
     return null;
   }
+
+  @Override
+  public Object constructRandomValue(ParameterType typeInTemplate) {
+    return null;
+  }
 }
 

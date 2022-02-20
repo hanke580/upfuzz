@@ -86,6 +86,11 @@ public class CassandraTypes {
 
       return null;
     }
+
+    @Override
+    public Object constructRandomValue(ParameterType typeInTemplate) {
+      return null;
+    }
   }
 
   public static class TYPEType implements ParameterType.NormalType {
