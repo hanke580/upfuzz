@@ -7,6 +7,9 @@ import org.zlab.upfuzz.State;
 
 import java.util.*;
 
+/**
+ * TODO: Need to implement mutate() function and isValid() function.
+ */
 public class CassandraTypes {
 
   public static List<ParameterType> types = new ArrayList<>();
@@ -42,7 +45,7 @@ public class CassandraTypes {
     }
   }
 
-  public static class LISTType extends ParameterType.GenericType {
+  public static class LISTType extends ParameterType.GenericTypeOne {
     // templated types are not singleton!
     // This is just a hack to be used in TYPEType.
     public static final LISTType instance = new LISTType();
@@ -66,7 +69,8 @@ public class CassandraTypes {
         value.add(t.generateRandomParameter(s, c));
       }
 
-      Parameter ret = new Parameter(this, value);
+      ConcreteType type = ConcreteGenericType.constructConcreteGenericType(instance, t); // LIST<WhateverType>
+      Parameter ret = new Parameter(type, value);
 
       return ret;
     }
@@ -77,53 +81,45 @@ public class CassandraTypes {
     }
   }
 
+  /**
+   * TODO: This TYPEType should also be able to enumerate user defined types in Cassandra.
+   *   It is feasible by using the current state: find the user defined types and use an instance of UnionType to represent them.
+   */
   public static class TYPEType extends ParameterType.ConcreteType {
     public static final TYPEType instance = new TYPEType();
     public static final String signature = "org.zlab.upfuzz.TYPE";
-    @Override
-    public Object constructRandomValue() {
-      // TODO:
-      //  Theoretically, template is an expression that could contain multiple types.
-      //  For now, we only consider the case where there is one type.
-      //  Because we did not see any Cassandra commands with complicated template expressions.
-      List<ParameterType> type = new ArrayList<>();
 
-      int typeIdx = new Random().nextInt(CassandraTypes.types.size());
-      ParameterType t = CassandraTypes.types.get(typeIdx); // Need to enumerate this set.
-      type.add(t);
-
-      while (CassandraTypes.genericTypes.contains(t)) {
-        new Random().nextInt(CassandraTypes.types.size());
-        t = CassandraTypes.types.get(typeIdx);
-        type.add(t);
-      }
-      return type;
-    }
-
-    @Override
-    public String generateStringValue(Object value) {
-      assert value instanceof List;
-      assert !((List) value).isEmpty();
-      assert !(((List) value).get(0) instanceof ParameterType);
-
-      StringBuilder sb = new StringBuilder(((List) value).get(0).toString());
-      for (int i = 1; i < ((List) value).size(); i++) {
-        sb.append("<");
-        sb.append(((List) value).get(i).toString());
-      }
-      for (int i = 1; i < ((List) value).size(); i++) {
-        sb.append(">");
-      }
-
-      return sb.toString();
-    }
+//    @Override
+//    public String generateStringValue(Object value) {
+//      assert value instanceof List;
+//      assert !((List) value).isEmpty();
+//      assert !(((List) value).get(0) instanceof ParameterType);
+//
+//      StringBuilder sb = new StringBuilder(((List) value).get(0).toString());
+//      for (int i = 1; i < ((List) value).size(); i++) {
+//        sb.append("<");
+//        sb.append(((List) value).get(i).toString());
+//      }
+//      for (int i = 1; i < ((List) value).size(); i++) {
+//        sb.append(">");
+//      }
+//
+//      return sb.toString();
+//    }
 
     private ParameterType selectRandomType() {
       int typeIdx = new Random().nextInt(CassandraTypes.types.size());
       return CassandraTypes.types.get(typeIdx);
     }
+
     private ConcreteType generateRandomType(GenericType g) {
-      if ()
+      if (g instanceof GenericTypeOne) {
+        return new ConcreteGenericTypeOne(g, generateRandomType());
+      } else if (g instanceof GenericTypeTwo) {
+        return new ConcreteGenericTypeTwo(g, generateRandomType(), generateRandomType());
+      }
+      assert false;
+      return null; // should not happen.
     }
 
     private ConcreteType generateRandomType() {
@@ -131,9 +127,10 @@ public class CassandraTypes {
       if (t instanceof ConcreteType) {
         return (ConcreteType) t;
       } else if (t instanceof GenericType) {
-        return new TemplatedType((ConcreteType) t, selectRandomType());
+        return generateRandomType((GenericType) t);
       }
-      return (ConcreteType) t;
+      assert false;
+      return null; // should not happen.
     }
 
     /**
@@ -149,33 +146,12 @@ public class CassandraTypes {
     @Override
     public Parameter generateRandomParameter(State s, Command c) {
 
-      ParameterType t = selectRandomType();
+      // Should limit how complicated the type could get...
+      // TODO: Limit the number of recursions/iterations
+      //  Change the recursive method to a iterative loop using stack or queue and limit loop.
+      //  Or count how deep the recursion is and limit it.
+      return new Parameter(this, generateRandomType());
 
-      Queue<ParameterType> q = new LinkedList<>();
-      q.add(t);
-      while (!q.isEmpty()) {
-        if (t instanceof TemplatedTypeOne) {
-          // generate one more
-
-        } else if (t instanceof TemplatedTypeTwo) {
-
-        }
-      }
-
-      if (t instanceof ConcreteType) {
-        return new Parameter(this, t);
-      } else if (t instanceof GenericType) {
-        return new Parameter(this, new TemplatedType(t, selectRandomType()));
-      } else if (t instanceof TemplatedTypeTwo) {
-        return new Parameter(this, new )
-      }
-
-      while (CassandraTypes.genericTypes.contains(t)) {
-        new Random().nextInt(CassandraTypes.types.size());
-        t = CassandraTypes.types.get(typeIdx);
-        type.add(t);
-      }
-      return null;
     }
 
     @Override

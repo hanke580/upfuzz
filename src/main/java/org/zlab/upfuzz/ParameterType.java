@@ -30,46 +30,16 @@ public abstract class ParameterType {
 
     }
 
+    public static abstract class GenericTypeOne extends GenericType { }
+    public static abstract class GenericTypeTwo extends GenericType { }
 
-    // TODO: Name should be ConcreteGenericType
-    public static class TemplatedType extends ConcreteType {
-
-        // Use cache so that we won't construct duplicated types.
-        public static HashMap<TemplatedType, TemplatedType> cache = new HashMap<>();
-
-        public static TemplatedType constructTemplatedType(GenericType t, ConcreteType t1) {
-            TemplatedType ret = new TemplatedType(t, t1);
-            if (!cache.keySet().contains(ret)) {
-                cache.put(ret, ret);
-            }
-            return cache.get(ret);
-        }
-
-        public static TemplatedType constructTemplatedType(GenericType t, ConcreteType t1, ConcreteType t2) {
-            TemplatedType ret = new TemplatedType(t, t1, t2);
-            if (!cache.keySet().contains(ret)) {
-                cache.put(ret, ret);
-            }
-            return cache.get(ret);
-        }
-
+    public abstract static class ConcreteGenericType extends ConcreteType {
         // Support a variable number of templates. E.g., Pair<K, V>.
         public GenericType t;
         public List<ConcreteType> typesInTemplate = new ArrayList<>();
 
-        public TemplatedType(GenericType t, ConcreteType t1) {
-            this.t = t;
-            this.typesInTemplate.add(t1);
-        }
-
-        public TemplatedType(GenericType t, ConcreteType t1, ConcreteType t2) {
-            this.t = t;
-            this.typesInTemplate.add(t1);
-            this.typesInTemplate.add(t2);
-        }
 
         public Parameter generateRandomParameter(State s, Command c) {
-
             return t.generateRandomParameter(s, c, typesInTemplate);
         }
 
@@ -80,8 +50,8 @@ public abstract class ParameterType {
 
         @Override
         public boolean equals(Object obj) {
-            if (!(obj instanceof TemplatedType)) return false;
-            TemplatedType other = (TemplatedType) obj;
+            if (!(obj instanceof ConcreteGenericTypeOne)) return false;
+            ConcreteGenericTypeOne other = (ConcreteGenericTypeOne) obj;
             return Objects.equals(this.t, other.t)
                 // TODO: Check: Do we need to compare every item in the list?
                 && Objects.equals(this.typesInTemplate, other.typesInTemplate);
@@ -91,5 +61,43 @@ public abstract class ParameterType {
         public String generateStringValue(Parameter p) {
             return t.generateStringValue(p, typesInTemplate);
         }
+
+        // Use cache so that we won't construct duplicated types.
+        public static HashMap<ConcreteGenericType, ConcreteGenericType> cache = new HashMap<>();
+
+        public static ConcreteGenericType constructConcreteGenericType(GenericType t, ConcreteType t1) {
+            ConcreteGenericType ret = new ConcreteGenericTypeOne(t, t1);
+            if (!cache.keySet().contains(ret)) {
+                cache.put(ret, ret);
+            }
+            return cache.get(ret);
+        }
+
+        public static ConcreteGenericType constructConcreteGenericType(GenericType t, ConcreteType t1, ConcreteType t2) {
+            ConcreteGenericType ret = new ConcreteGenericTypeTwo(t, t1, t2);
+            if (!cache.keySet().contains(ret)) {
+                cache.put(ret, ret);
+            }
+            return cache.get(ret);
+        }
+    }
+
+    public static class ConcreteGenericTypeOne extends ConcreteGenericType {
+
+        public ConcreteGenericTypeOne(GenericType t, ConcreteType t1) {
+            this.t = t;
+            this.typesInTemplate.add(t1);
+        }
+
+    }
+
+    public static class ConcreteGenericTypeTwo extends ConcreteGenericType {
+
+        public ConcreteGenericTypeTwo(GenericType t, ConcreteType t1, ConcreteType t2) {
+            this.t = t;
+            this.typesInTemplate.add(t1);
+            this.typesInTemplate.add(t2);
+        }
+
     }
 }
