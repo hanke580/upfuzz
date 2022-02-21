@@ -92,7 +92,7 @@ public class CassandraCommands {
 
             for (int i = 0; i < len; i++) {
 
-                Parameter p1 = new Parameter(CassandraTypes.TEXTType.instance) {
+                Parameter p1 = new Parameter(CassandraTypes.TEXTType.instance, value) {
                     @Override
                     public void generateValue(State state, Command currCmd) {
                         // p1's value doesn't exist in currCmd.colName2Type.keySet();

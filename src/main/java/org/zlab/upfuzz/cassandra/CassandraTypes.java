@@ -8,6 +8,7 @@ import org.zlab.upfuzz.utils.PAIRType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 public class CassandraTypes {
@@ -17,83 +18,74 @@ public class CassandraTypes {
 
   static {
     types.add(TEXTType.instance);
-    types.add(LISTType.instance);
-
-    typesWithTemplate.add(LISTType.instance);
+//    types.add(LISTType.instance);
+//    typesWithTemplate.add(LISTType.instance);
   }
 
-  public static class TEXTType implements ParameterType.NormalType {
+  public static class TEXTType extends ParameterType.NormalType {
 
       public static final TEXTType instance = new TEXTType();
       public static final String signature = "java.lang.String";
 
       private TEXTType() {}
 
-      @Override
-      public Object constructRandomValue() {
-          Object ret = "RandomString"; // TODO: Generate a random string.
-          // assert ret.type == TEXTType.instance;
-          return ret;
-      }
-
-      @Override
-      public String generateStringValue(Object value) {
-          return (String) value;
-      }
-  }
-
-  public static class LISTType implements ParameterType.TemplatedType {
-
-    public static final LISTType instance = new LISTType();
-    public static final String signature = "java.util.List";
-
-    private LISTType() {}
-
     @Override
-    public String generateStringValue(Object value) {
-      return (String) value;
+    public Parameter generateRandomParameter(State s, Command c) {
+        // TODO: generate a random string.
+      return null;
     }
 
     @Override
-    public Object constructRandomValue(Parameter.TemplatedParameter parameter) {
-      // This parameter should be the list itself.
+    public String generateStringValue(Parameter p) {
+      assert Objects.equals(p.type, instance);
+      assert p.value instanceof String;
+      return (String) p.value;
+    }
+  }
 
-      // value of a LISTType parameter is a list of parameters.
+  // Can we use generics to implement this?
+  // A parameter has a type, this type can be a generic!
+  // E.g., List<Pair<Text, AnyType>>:
+  // LISTType<PAIRType<TEXTType, ANYType>>.
+  // In LISTType:
+  //  - it has an instance of itself.
+  //  - it uses its template to call its instance's generateRandomParameter function. 
+
+  public static class LISTType extends ParameterType.TemplatedType {
+    // templated types are not singleton!
+    // TODO: we could optimize it by remembering all templated typee.
+    public static final String signature = "java.util.List";
+
+    public LISTType(ParameterType t) { // type in template
+      super(t);
+    }
+
+    @Override
+    public Parameter generateRandomParameter(State s, Command c) {
+
       List<Parameter> value = new ArrayList<>();
 
       int bound = 10; // specified by user
       int len = new Random().nextInt(bound);
 
+      ParameterType t = typesInTemplate.get(0);
+
       for (int i = 0; i < len; i++) {
-
-        // For this specific list = columns - each parameter is a Pair<String, Type>.
-        Parameter p1 =
-            new Parameter.TemplatedParameter(PAIRType.instance,
-                CassandraTypes.TEXTType.instance,
-                CassandraTypes.TYPEType.instance) {
-              @Override
-              public void generateValue(State state, Command currCmd) {
-                // p1's value doesn't exist in currCmd.colName2Type.keySet();
-                // This might cause concurrent modification to columns! Need to check.
-                // There is a way to use iterator to do concurrent modification.
-
-//                                Pair<Parameter, Parameter>
-              }
-            };
-
-        value.add(p1);
+        value.add(t.generateRandomParameter(s, c));
       }
 
-      return null;
+      Parameter ret = new Parameter(this, value);
+
+      return ret;
     }
 
     @Override
-    public Object constructRandomValue(ParameterType typeInTemplate) {
+    public String generateStringValue(Parameter p) {
       return null;
     }
   }
 
-  public static class TYPEType implements ParameterType.NormalType {
+  public static class TYPEType extends ParameterType.NormalType {
     public static final TYPEType instance = new TYPEType();
     public static final String signature = "org.zlab.upfuzz.TYPE";
     @Override
@@ -132,6 +124,23 @@ public class CassandraTypes {
       }
 
       return sb.toString();
+    }
+
+    /**
+     * TYPEType refers to a String that defines a type in Cassandra.
+     * E.g., CREATE TABLE command could use a text, or Set<text>, a user defined type.
+     * @param s // current state
+     * @param c // current command
+     * @return
+     */
+    @Override
+    public Parameter generateRandomParameter(State s, Command c) {
+      return null;
+    }
+
+    @Override
+    public String generateStringValue(Parameter p) {
+      return null;
     }
   }
 
