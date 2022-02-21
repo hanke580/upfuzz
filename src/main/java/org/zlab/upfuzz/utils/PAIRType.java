@@ -6,7 +6,7 @@ import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.cassandra.CassandraTypes;
 
-public class PAIRType extends ParameterType.TemplatedType {
+public class PAIRType extends ParameterType.TemplatedTypeTwo {
 //  public static final PAIRType instance = new PAIRType();
   public static final String signature = "org.zlab.upfuzz.utils.Pair";
 

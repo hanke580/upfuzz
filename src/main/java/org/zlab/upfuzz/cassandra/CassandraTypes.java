@@ -20,6 +20,9 @@ public class CassandraTypes {
     types.add(TEXTType.instance);
 //    types.add(LISTType.instance);
 //    typesWithTemplate.add(LISTType.instance);
+
+    // Because of templated types - template types are dynamically generated - we do not have a fixed list.
+    // When generating a TYPEType, we pick among a list of
   }
 
   public static class TEXTType extends ParameterType.NormalType {

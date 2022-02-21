@@ -26,12 +26,18 @@ public abstract class ParameterType {
     public static abstract class TemplatedType extends ParameterType {
         // Support a variable number of templates. E.g., Pair<K, V>.
         public List<ParameterType> typesInTemplate = new ArrayList<>();
+    }
 
-        public TemplatedType(ParameterType t) {
+    public static abstract class TemplatedTypeOne extends TemplatedType {
+
+        public TemplatedTypeOne(ParameterType t) {
             this.typesInTemplate.add(t);
         }
+    }
 
-        public TemplatedType(ParameterType t1, ParameterType t2) {
+    public static abstract class TemplatedTypeTwo extends TemplatedType {
+
+        public TemplatedTypeTwo(ParameterType t1, ParameterType t2) {
             this.typesInTemplate.add(t1);
             this.typesInTemplate.add(t2);
         }
