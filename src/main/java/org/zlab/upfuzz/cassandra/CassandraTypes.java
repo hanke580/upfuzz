@@ -4,6 +4,7 @@ import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
+import org.zlab.upfuzz.utils.PAIRType;
 
 import java.util.*;
 
@@ -18,6 +19,7 @@ public class CassandraTypes {
   static {
     types.add(TEXTType.instance);
     types.add(LISTType.instance);
+    types.add(PAIRType.instance);
     genericTypes.add(LISTType.instance);
 
     // Because of templated types - template types are dynamically generated - we do not have a fixed list.
@@ -57,7 +59,7 @@ public class CassandraTypes {
 
     @Override
     public Parameter generateRandomParameter(State s, Command c, List<ConcreteType> typesInTemplate) {
-
+      // (Pair<TEXT,TYPE>)
       List<Parameter> value = new ArrayList<>();
 
       int bound = 10; // specified by user
@@ -121,6 +123,7 @@ public class CassandraTypes {
       assert false;
       return null; // should not happen.
     }
+
 
     private ConcreteType generateRandomType() {
       ParameterType t = selectRandomType();

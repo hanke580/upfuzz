@@ -15,8 +15,8 @@ public class PAIRType extends ParameterType.GenericTypeTwo {
   @Override
   public Parameter generateRandomParameter(State s, Command c, List<ConcreteType> types) {
 
-    ConcreteType t1 = types.get(0);
-    ConcreteType t2 = types.get(1);
+    ConcreteType t1 = types.get(0); // TEXTType
+    ConcreteType t2 = types.get(1); // TYPEType
 
     Pair<Parameter, Parameter> value =
         new Pair<>(t1.generateRandomParameter(s, c), t2.generateRandomParameter(s, c));

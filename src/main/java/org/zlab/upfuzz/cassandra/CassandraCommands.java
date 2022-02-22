@@ -41,7 +41,7 @@ public class CassandraCommands {
 
         final Parameter tableName; // TEXTType
 
-        final Parameter columns; // LIST<PAIR<TEXT,TYPE>>
+        final Parameter columns; // LIST<PAIR<TEXTType,TYPE>>
 
         final Parameter primaryColumns;
 
@@ -106,6 +106,8 @@ public class CassandraCommands {
      *   weight text,
      *   height text
      * );
+     *
+     * // UnionType {1,2,3,4}
      */
 
 }

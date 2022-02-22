@@ -45,6 +45,14 @@ public abstract class ParameterType {
         }
     }
 
+    // columns; // List<Pair<Text, Type>>
+    // NotInCollectionType t = new NotInCollectionType(Pair<Text, Type>, cmd.columns.value, Parameter p -> p.value.left )
+    // List<t(Pair<Text, Type>)> columns;
+
+    // t = Pair<TEXT, TYPE>
+    // s = List<Pair<TEXT, Type>>
+    // t.left not exist in s.stream().map(p -> p.left).collect(Collectors.toSet())
+
     public static class NotInCollectionType <T,U> extends ConfigurableType {
 
         public final Function<T, U> mapFunc;
@@ -58,7 +66,7 @@ public abstract class ParameterType {
 
         @Override
         public Parameter generateRandomParameter(State s, Command c) {
-            Parameter ret = t.generateRandomParameter(s, c);
+            Parameter ret = t.generateRandomParameter(s, c); // ((Pair<TEXTType, TYPEType>)ret.value).left
             while (((Collection<T>) configuration).stream().map(mapFunc).collect(Collectors.toSet()).contains(ret)) {
                 ret = t.generateRandomParameter(s, c);
             }
@@ -75,6 +83,8 @@ public abstract class ParameterType {
     public static abstract class GenericTypeOne extends GenericType { }
     public static abstract class GenericTypeTwo extends GenericType { }
 
+    // ConcreteGenericType: List<Pair<Text, Type>>
+    // ConcreteGenericType: (Pair<Text, Type>)
     public abstract static class ConcreteGenericType extends ConcreteType {
         // Support a variable number of templates. E.g., Pair<K, V>.
         public GenericType t;
