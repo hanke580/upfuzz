@@ -6,8 +6,30 @@ import org.zlab.upfuzz.utils.PAIRType;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * TODO:
+ *   1. nested commands & scope // we could do it in a simple way without scope first...
+ *   2. mutate() & isValid() // we implemented generateValue() for each type
+ *   3. user defined type // we need to implement a UnionType, each instance of a UnionType could be a user defined type
+ */
 public class CassandraCommands {
 
+
+    /**
+     * CREATE (TABLE | COLUMNFAMILY) <tablename>
+     * ('<column-definition>' , '<column-definition>')
+     * (WITH <option> AND <option>)
+     *
+     * E.g.,
+     *
+     * CREATE TABLE emp(
+     *    emp_id int PRIMARY KEY,
+     *    emp_name text,
+     *    emp_city text,
+     *    emp_sal varint,
+     *    emp_phone varint
+     *    );
+     */
     public static class CREATETABLE implements Command {
 
         // parameters used in this command
@@ -19,13 +41,9 @@ public class CassandraCommands {
 
         final Parameter tableName; // TEXTType
 
-        // LinkedHashMap is a list of pairs.
-        // key: TEXTType parameter columnName; value: any user defined type
-        final LinkedHashMap<Parameter, Parameter> colName2Type = new LinkedHashMap<>();
+        final Parameter columns; // LIST<PAIR<TEXT,TYPE>>
 
-        final Parameter columns;
-
-        final LinkedHashMap<Parameter, Parameter> primaryColName2Type = new LinkedHashMap<>();
+        final Parameter primaryColumns;
 
         final Parameter IF_NOT_EXIST;
 
@@ -33,16 +51,17 @@ public class CassandraCommands {
 
         public CREATETABLE(CassandraState state) {
 
-            tableName = CassandraTypes.TEXTType.instance.generateRandomParameter(state, this);
+            ParameterType.ConcreteType tableNameType = CassandraTypes.TEXTType.instance; // TEXTType
+            tableName = tableNameType.generateRandomParameter(state, this);
 
             ParameterType.ConcreteType columnsType = // LIST<PAIR<TEXT,TYPE>>
                 ParameterType.ConcreteGenericType.constructConcreteGenericType(
                     CassandraTypes.LISTType.instance,
                     ParameterType.ConcreteGenericType.constructConcreteGenericType(PAIRType.instance,
                         CassandraTypes.TEXTType.instance, CassandraTypes.TYPEType.instance));
-
             columns = columnsType.generateRandomParameter(state, this);
 
+            primaryColumns = null;
             IF_NOT_EXIST = null;
         }
 
@@ -57,6 +76,17 @@ public class CassandraCommands {
         }
     }
 
+    /**
+     * INSERT INTO [keyspace_name.] table_name (column_list)
+     * VALUES (column_values)
+     * [IF NOT EXISTS]
+     * [USING TTL seconds | TIMESTAMP epoch_in_microseconds]
+     *
+     * E.g.,
+     * INSERT INTO cycling.cyclist_name (id, lastname, firstname)
+     *    VALUES (c4b65263-fe58-4846-83e8-f0e1c13d518f, 'RATTO', 'Rissella')
+     * IF NOT EXISTS;
+     */
     public static class INSERT implements Command {
         @Override
         public String constructCommandString() {
@@ -68,5 +98,14 @@ public class CassandraCommands {
 
         }
     }
+
+    /**
+     * CREATE TYPE cycling.basic_info (
+     *   birthday timestamp,
+     *   nationality text,
+     *   weight text,
+     *   height text
+     * );
+     */
 
 }

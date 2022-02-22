@@ -1,9 +1,8 @@
 package org.zlab.upfuzz;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * How a parameter can be generated is only defined in its type.
@@ -29,6 +28,49 @@ public abstract class ParameterType {
         public abstract String generateStringValue(Parameter p, List<ConcreteType> types); // Maybe this should be in Parameter class? It has the concrete type anyways.
 
     }
+
+    /**
+     * ConfigurableType uses its concrete type to generate values,
+     * but it adds extra rules/constraints using configuration.
+     * TODO: Need more reasoning to finish this.
+     */
+    public static abstract class ConfigurableType extends ConcreteType {
+        public final ConcreteType t;
+        public final Object configuration;
+
+        public ConfigurableType(ConcreteType t, Object configuration) {
+
+            this.t = t;
+            this.configuration = configuration;
+        }
+    }
+
+    public static class NotInCollectionType <T,U> extends ConfigurableType {
+
+        public final Function<T, U> mapFunc;
+
+        // Example of mapFunc:
+        // Parameter p -> p.value.left // p's ParameterType is Pair<TEXT, TEXTType>
+        public NotInCollectionType(ConcreteType t, Collection<T> configuration, Function<T, U> mapFunc) {
+            super(t, configuration);
+            this.mapFunc = mapFunc;
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c) {
+            Parameter ret = t.generateRandomParameter(s, c);
+            while (((Collection<T>) configuration).stream().map(mapFunc).collect(Collectors.toSet()).contains(ret)) {
+                ret = t.generateRandomParameter(s, c);
+            }
+            return ret;
+        }
+
+        @Override
+        public String generateStringValue(Parameter p) {
+            return null;
+        }
+    }
+
 
     public static abstract class GenericTypeOne extends GenericType { }
     public static abstract class GenericTypeTwo extends GenericType { }
@@ -85,6 +127,7 @@ public abstract class ParameterType {
     public static class ConcreteGenericTypeOne extends ConcreteGenericType {
 
         public ConcreteGenericTypeOne(GenericType t, ConcreteType t1) {
+            assert t instanceof GenericTypeOne; // This is ugly... Might need to change design... Leave it for now.
             this.t = t;
             this.typesInTemplate.add(t1);
         }
@@ -94,6 +137,7 @@ public abstract class ParameterType {
     public static class ConcreteGenericTypeTwo extends ConcreteGenericType {
 
         public ConcreteGenericTypeTwo(GenericType t, ConcreteType t1, ConcreteType t2) {
+            assert t instanceof GenericTypeTwo; // This is ugly...
             this.t = t;
             this.typesInTemplate.add(t1);
             this.typesInTemplate.add(t2);
