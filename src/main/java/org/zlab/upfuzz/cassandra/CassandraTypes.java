@@ -55,7 +55,7 @@ public class CassandraTypes {
     // TODO: we could optimize it by remembering all templated typee.
     public static final String signature = "java.util.List";
 
-    private LISTType() {}
+    public LISTType() {}
 
     @Override
     public Parameter generateRandomParameter(State s, Command c, List<ConcreteType> typesInTemplate) {

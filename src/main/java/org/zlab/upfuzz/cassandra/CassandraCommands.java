@@ -41,6 +41,11 @@ public class CassandraCommands {
 
         final Parameter tableName; // TEXTType
 
+        /**
+         * List<Pair<ColumnName, CassandraDataType>>
+         * - ColumnName must be unique from each other.
+         * - CassandraDataType can be randomly chosen from the Cassandra Type.
+         */
         final Parameter columns; // LIST<PAIR<TEXTType,TYPE>>
 
         final Parameter primaryColumns;

@@ -4,6 +4,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.zlab.upfuzz.cassandra.CassandraTypes.LISTType;
+
 /**
  * How a parameter can be generated is only defined in its type.
  * If you want special rules for a parameter, you need to implement a type class for it.
@@ -49,6 +51,26 @@ public abstract class ParameterType {
     // NotInCollectionType t = new NotInCollectionType(Pair<Text, Type>, cmd.columns.value, Parameter p -> p.value.left )
     // List<t(Pair<Text, Type>)> columns;
 
+    /**
+     * Case: If for columns, there are constraints for both text and type, 
+     * e.g. both of them cannot be from a specific set, can this impl do that?
+     * 
+     * columns; // List<Pair<Text, Type>>
+     * - NotInCollectionType t = new NotInCollectionType(Pair<Text, Type>, cmd.columns.value, Parameter p -> p.value.left )
+     * - NotInCollectionType tt = new NotInCollectionType(t, cmd.columns.value_, Parameter p -> p.value.left )
+     * 
+     * 2 problems
+     * 1. Nested Collection Type
+     * - If there are multiple constraints on one parameter, can it handle it?
+     * - Yes.
+     * 
+     * Case: If for columns, there are constraints for both text and type, 
+     * e.g. both of them cannot be from a specific set, can this impl do that?
+     * columns; // List<Pair<Text, Type>>
+     * - NotInCollectionType t = new NotInCollectionType(Pair<Text, Type>, cmd.columns.value, Parameter p -> p.value.left )
+     * - NotInCollectionType tt = new NotInCollectionType(t, cmd.columns.value_, Parameter p -> p.value.left )
+     */
+
     // t = Pair<TEXT, TYPE>
     // s = List<Pair<TEXT, Type>>
     // t.left not exist in s.stream().map(p -> p.left).collect(Collectors.toSet())
@@ -77,6 +99,115 @@ public abstract class ParameterType {
         public String generateStringValue(Parameter p) {
             return null;
         }
+    }
+
+    public static class SubsetType <T,U> extends ConfigurableType {
+
+        public SubsetType(ConcreteType t, Collection<T> configuration) { // change to concreteGenericType
+            /**
+             * In this case, the ConcreteType should be List<Pair<xxx>>.
+             * The set we select from will be the target set targetSet. Let's suppose it's also List<Pair<TEXT, TYPEType>>
+             * - we rewrite the generateRandomParameter() in this concreteGenericType
+             * - Instead of calling t.generateValue function, it should now construct values by select from targetSet.
+             * - Do it by anonymous class extends List, and we write the subset generateRandomParameter() for it.
+             */
+            super(t, configuration);
+            //TODO Auto-generated constructor stub
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c) {
+            /**
+             * Current t should be concrete generic type List<xxx>
+             * - Select from collection set
+             */
+            assert t instanceof ConcreteGenericTypeOne;
+
+            if (t instanceof ConcreteGenericTypeOne) {
+                ConcreteGenericType cGenericType = (ConcreteGenericType) t;
+                if (cGenericType.t instanceof LISTType) {
+
+                    LISTType lType = new LISTType() {
+
+                        @Override
+                        public Parameter generateRandomParameter(State s, Command c, java.util.List<ConcreteType> typesInTemplate) {
+                            List<T> targetSet = new ArrayList<>((Collection<T>) configuration);
+                            List<Parameter> value = new ArrayList<>();
+
+                            Random rand = new Random();
+                            int setSize = rand.nextInt(targetSet.size()); // specified by user
+
+                            List<Integer> indexArray = new ArrayList<>();
+                            for (int i = 0; i < targetSet.size(); i++) {
+                                indexArray.add(i);
+                            }
+                            Collections.shuffle(indexArray);
+                      
+                            for (int i = 0; i < setSize; i++) {
+                              value.add((Parameter) targetSet.get(indexArray.get(i))); // The targetSet should also store Parameter
+                            }
+                      
+                            ConcreteType type = ConcreteGenericType.constructConcreteGenericType(instance, t); // LIST<WhateverType>
+                            Parameter ret = new Parameter(type, value);
+                      
+                            return ret;
+                        };
+                    };
+
+                    return lType.generateRandomParameter(s, c, null);
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public String generateStringValue(Parameter p) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+    }
+
+
+    public static class UniqueType <T,U> extends ConfigurableType {
+
+        public UniqueType(ConcreteType t, Collection<T> configuration) {
+            /**
+             * In this case, the ConcreteType should be List<Pair<xxx>>.
+             * The set we select from will be the target set targetSet. Let's suppose it's also List<Pair<TEXT, TYPEType>>
+             * - we rewrite the generateRandomParameter() in this concreteGenericType
+             * - Instead of calling t.generateValue function, it should now construct values by select from targetSet.
+             * - Do it by anonymous class extends List, and we write the subset generateRandomParameter() for it.
+             */
+            super(t, configuration);
+            //TODO Auto-generated constructor stub
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c) {
+            // TODO Auto-generated method stub
+            // An option to check which value to keep unique (Using map function)
+
+            Parameter ret = t.generateRandomParameter(s, c);
+            while() {
+                ret = t.generateRandomParameter(s, c);
+            }
+
+            /**
+             * If value is List type, we want to make sure there are not duplicated values.
+             */
+
+            
+
+            return null;
+        }
+
+        @Override
+        public String generateStringValue(Parameter p) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
     }
 
 
