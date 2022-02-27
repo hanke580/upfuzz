@@ -5,6 +5,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.zlab.upfuzz.cassandra.CassandraTypes.LISTType;
+import org.zlab.upfuzz.utils.PAIRType;
+import org.zlab.upfuzz.utils.Pair;
 
 /**
  * How a parameter can be generated is only defined in its type.
@@ -151,7 +153,7 @@ public abstract class ParameterType {
                             Parameter ret = new Parameter(type, value);
                       
                             return ret;
-                        };
+                        }
                     };
 
                     return lType.generateRandomParameter(s, c, null);
@@ -188,17 +190,9 @@ public abstract class ParameterType {
             // TODO Auto-generated method stub
             // An option to check which value to keep unique (Using map function)
 
-            Parameter ret = t.generateRandomParameter(s, c);
-            while() {
-                ret = t.generateRandomParameter(s, c);
-            }
-
             /**
              * If value is List type, we want to make sure there are not duplicated values.
              */
-
-            
-
             return null;
         }
 

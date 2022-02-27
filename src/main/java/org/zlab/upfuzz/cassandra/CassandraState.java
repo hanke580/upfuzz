@@ -8,4 +8,7 @@ import java.util.Set;
 public class CassandraState implements State {
     public Set<CassandraTable> tables = new HashSet<>();
 
+    void addTable(CassandraTable table) {
+        tables.add(table);
+    }
 }

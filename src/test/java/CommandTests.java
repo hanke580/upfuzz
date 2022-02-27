@@ -8,6 +8,10 @@ public class CommandTests {
     @Test
     public void testCreateCommandGeneration() {
         CassandraState s = new CassandraState();
+
         Command cmd = new CassandraCommands.CREATETABLE(s);
+
+        assert 1 == 0;
+
     }
 }

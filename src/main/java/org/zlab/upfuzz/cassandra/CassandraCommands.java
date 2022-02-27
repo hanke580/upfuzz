@@ -2,9 +2,9 @@ package org.zlab.upfuzz.cassandra;
 
 import org.zlab.upfuzz.*;
 import org.zlab.upfuzz.utils.PAIRType;
+import org.zlab.upfuzz.utils.FIXSTRINGType;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * TODO:
@@ -13,8 +13,6 @@ import java.util.stream.Collectors;
  *   3. user defined type // we need to implement a UnionType, each instance of a UnionType could be a user defined type
  */
 public class CassandraCommands {
-
-
     /**
      * CREATE (TABLE | COLUMNFAMILY) <tablename>
      * ('<column-definition>' , '<column-definition>')
@@ -61,23 +59,37 @@ public class CassandraCommands {
 
             ParameterType.ConcreteType columnsType = // LIST<PAIR<TEXT,TYPE>>
                 ParameterType.ConcreteGenericType.constructConcreteGenericType(
-                    CassandraTypes.LISTType.instance,
+                    CassandraTypes.MapLikeListType.instance,
                     ParameterType.ConcreteGenericType.constructConcreteGenericType(PAIRType.instance,
                         CassandraTypes.TEXTType.instance, CassandraTypes.TYPEType.instance));
             columns = columnsType.generateRandomParameter(state, this);
 
-            primaryColumns = null;
-            IF_NOT_EXIST = null;
+            ParameterType.ConcreteType primaryColumnsType =
+                    new ParameterType.SubsetType(
+                            columnsType,
+                            (Collection) columns
+                    );
+
+            primaryColumns = primaryColumnsType.generateRandomParameter(state, this);
+            ParameterType.ConcreteType IF_NOT_EXISTType = new FIXSTRINGType("IF NOT EXIST");
+
+            IF_NOT_EXIST = IF_NOT_EXISTType.generateRandomParameter(state, this);
         }
 
         @Override
         public String constructCommandString() {
-            return null;
+            String ret = "CREATE TABLE " + IF_NOT_EXIST.toString() + tableName.toString() + "(" +
+                    columns.toString() +
+                    primaryColumns.toString() +
+                    ");";
+            return ret;
         }
 
         @Override
-        public void updateState() {
-
+        public void updateState(CassandraState state) {
+            assert state instanceof CassandraState;
+            CassandraTable table = new CassandraTable(tableName, columns, primaryColumns);
+            ((CassandraState) state).addTable(table);
         }
     }
 
@@ -92,17 +104,17 @@ public class CassandraCommands {
      *    VALUES (c4b65263-fe58-4846-83e8-f0e1c13d518f, 'RATTO', 'Rissella')
      * IF NOT EXISTS;
      */
-    public static class INSERT implements Command {
-        @Override
-        public String constructCommandString() {
-            return null;
-        }
-
-        @Override
-        public void updateState() {
-
-        }
-    }
+//    public static class INSERT implements Command {
+//        @Override
+//        public String constructCommandString() {
+//            return null;
+//        }
+//
+//        @Override
+//        public void updateState() {
+//
+//        }
+//    }
 
     /**
      * CREATE TYPE cycling.basic_info (

@@ -5,6 +5,8 @@ import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.utils.PAIRType;
+import org.zlab.upfuzz.utils.Pair;
+import org.zlab.upfuzz.utils.STRINGType;
 
 import java.util.*;
 
@@ -26,24 +28,21 @@ public class CassandraTypes {
     // When generating a TYPEType, we pick among a list of
   }
 
-  public static class TEXTType extends ParameterType.ConcreteType {
+  public static class TEXTType extends STRINGType {
+    /**
+     * The difference between TEXTType and STRINGType is generateSTringValue func,
+     * For TEXT, it needs to be enclosed by ''.
+     */
+    public static final TEXTType instance = new TEXTType();
+    public static final String signature = ""; // TODO: Choose the right signature
 
-      public static final TEXTType instance = new TEXTType();
-      public static final String signature = "java.lang.String";
-
-      private TEXTType() {}
-
-    @Override
-    public Parameter generateRandomParameter(State s, Command c) {
-        // TODO: generate a random string.
-      return null;
-    }
+    private TEXTType() {}
 
     @Override
     public String generateStringValue(Parameter p) {
       assert Objects.equals(p.type, instance);
       assert p.value instanceof String;
-      return (String) p.value;
+      return  "'" + p.value + "'";
     }
   }
 
@@ -72,13 +71,52 @@ public class CassandraTypes {
       }
 
       ConcreteType type = ConcreteGenericType.constructConcreteGenericType(instance, t); // LIST<WhateverType>
-      Parameter ret = new Parameter(type, value);
-
-      return ret;
+      return new Parameter(type, value);
     }
 
     @Override
     public String generateStringValue(Parameter p, List<ConcreteType> typesInTemplate) {
+      return null;
+    }
+  }
+
+  /**
+   * Type will be List<Pair<Parameter, Parameter>>, but it requires the Pair.first must be unique
+   */
+  public static class MapLikeListType extends LISTType {
+    // Example of mapFunc:
+    // Parameter p -> p.value.left // p's ParameterType is Pair<TEXT, TEXTType>
+
+    public MapLikeListType() {}
+
+    @Override
+    public Parameter generateRandomParameter(State s, Command c, List<ConcreteType> typesInTemplate) {
+
+      List<Pair<Parameter, Parameter>> value = new ArrayList<>();
+      Set<Parameter> leftSet = new HashSet<>();
+
+      int bound = 10; // specified by user
+      int len = new Random().nextInt(bound);
+
+      ConcreteType t = typesInTemplate.get(0);
+
+
+      for (int i = 0; i < len; i++) {
+        Pair<Parameter, Parameter> val = (Pair<Parameter, Parameter>) t.generateRandomParameter(s, c).value;
+        while (leftSet.contains(val.left)) {
+          val = (Pair<Parameter, Parameter>) t.generateRandomParameter(s, c).value;
+        }
+        value.add(val);
+        leftSet.add(val.left);
+      }
+
+      ConcreteType type = ConcreteGenericType.constructConcreteGenericType(instance, t); // LIST<WhateverType>
+
+      return new Parameter(type, value);
+    }
+
+    @Override
+    public String generateStringValue(Parameter p, List<ConcreteType> types) {
       return null;
     }
   }
@@ -142,9 +180,6 @@ public class CassandraTypes {
      * Its value should be a ParameterType!
      * It could either be a normal type or a templated type.
      * If it is a templated type, we need to continue generating generic types in templates.
-     * @param s // current state
-     * @param c // current command
-     * @return
      */
     @Override
     public Parameter generateRandomParameter(State s, Command c) {
