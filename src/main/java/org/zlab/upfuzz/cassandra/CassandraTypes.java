@@ -73,6 +73,15 @@ public class CassandraTypes {
       ConcreteType type = ConcreteGenericType.constructConcreteGenericType(instance, t); // LIST<WhateverType>
       return new Parameter(type, value);
     }
+//
+//    @Override
+//    void mutate() {
+//      /**
+//       * List mutation
+//       * 1. Regenerate list
+//       * 2. Pick one item, mutate it! (t.mutate())
+//       */
+//    }
 
     @Override
     public String generateStringValue(Parameter p, List<ConcreteType> typesInTemplate) {

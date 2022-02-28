@@ -9,8 +9,10 @@ import java.util.*;
 /**
  * TODO:
  *   1. nested commands & scope // we could do it in a simple way without scope first...
- *   2. mutate() & isValid() // we implemented generateValue() for each type
+ *   2. mutate() & isValid() // we implemented generateRandomParameter() for each type
  *   3. user defined type // we need to implement a UnionType, each instance of a UnionType could be a user defined type
+ *
+ *   4. Sequence Class:
  */
 public class CassandraCommands {
     /**
@@ -87,9 +89,8 @@ public class CassandraCommands {
 
         @Override
         public void updateState(CassandraState state) {
-            assert state instanceof CassandraState;
             CassandraTable table = new CassandraTable(tableName, columns, primaryColumns);
-            ((CassandraState) state).addTable(table);
+            state.addTable(table);
         }
     }
 

@@ -22,5 +22,13 @@ public class STRINGType extends ParameterType.ConcreteType {
         return null;
     }
 
+//    void mutate() {
+//        /**
+//         * 1. Regenerate
+//         * 2. Resize
+//         * 3. Flip/Add/Del bit/byte/word
+//         */
+//    }
+
 }
 
