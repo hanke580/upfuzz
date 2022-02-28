@@ -4,6 +4,7 @@ import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
+import org.zlab.upfuzz.utils.INTType;
 import org.zlab.upfuzz.utils.PAIRType;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.STRINGType;
@@ -15,14 +16,19 @@ import java.util.*;
  */
 public class CassandraTypes {
 
-  public static List<ParameterType> types = new ArrayList<>();
-  public static List<ParameterType.GenericType> genericTypes = new ArrayList<>();
+  public static Map<ParameterType, String> type2String = new HashMap<>();
+  public static Map<ParameterType, String> genericType2String = new HashMap<>();
+
+  // public static List<ParameterType> types = new ArrayList<>();
+  // public static List<ParameterType.GenericType> genericTypes = new ArrayList<>();
 
   static {
-    types.add(TEXTType.instance);
-    types.add(LISTType.instance);
-    types.add(PAIRType.instance);
-    genericTypes.add(LISTType.instance);
+    type2String.put(TEXTType.instance, "TEXT");
+    type2String.put(INTType.instance, "INT");
+
+//    types.add(LISTType.instance);
+//    types.add(PAIRType.instance);
+    genericType2String.put(LISTType.instance, "LIST");
 
     // Because of templated types - template types are dynamically generated - we do not have a fixed list.
     // When generating a TYPEType, we pick among a list of
@@ -30,7 +36,7 @@ public class CassandraTypes {
 
   public static class TEXTType extends STRINGType {
     /**
-     * The difference between TEXTType and STRINGType is generateSTringValue func,
+     * The difference between TEXTType and STRINGType is generateStringValue func,
      * For TEXT, it needs to be enclosed by ''.
      */
     public static final TEXTType instance = new TEXTType();
@@ -51,7 +57,7 @@ public class CassandraTypes {
     // This is just a hack to be used in TYPEType.
     public static final LISTType instance = new LISTType();
 
-    // TODO: we could optimize it by remembering all templated typee.
+    // TODO: we could optimize it by remembering all templated type.
     public static final String signature = "java.util.List";
 
     public LISTType() {}
@@ -85,7 +91,30 @@ public class CassandraTypes {
 
     @Override
     public String generateStringValue(Parameter p, List<ConcreteType> typesInTemplate) {
-      return null;
+      StringBuilder sb = new StringBuilder();
+
+      ConcreteType t = typesInTemplate.get(0);
+      if (t instanceof ConcreteGenericTypeTwo) {
+        ConcreteGenericTypeTwo concreteGenericTypeTwo = (ConcreteGenericTypeTwo) t;
+        if (concreteGenericTypeTwo.t instanceof PAIRType) {
+          List<Pair<Parameter, Parameter>> value = (List<Pair<Parameter, Parameter>>) p.value;
+          for (int i = 0; i < value.size(); i++) {
+            sb.append(value.get(i).left.toString());
+            sb.append(" ");
+            sb.append(value.get(i).right.toString());
+            if (i < value.size() - 1)
+              sb.append(",");
+          }
+        }
+      } else {
+        List<Parameter> value = (List<Parameter>) p.value;
+        for (int i = 0; i < value.size(); i++) {
+          sb.append(value.get(i).toString());
+          if (i < value.size() - 1)
+            sb.append(",");
+        }
+      }
+      return sb.toString();
     }
   }
 
@@ -95,6 +124,8 @@ public class CassandraTypes {
   public static class MapLikeListType extends LISTType {
     // Example of mapFunc:
     // Parameter p -> p.value.left // p's ParameterType is Pair<TEXT, TEXTType>
+
+    public static final MapLikeListType instance = new MapLikeListType();
 
     public MapLikeListType() {}
 
@@ -109,7 +140,6 @@ public class CassandraTypes {
 
       ConcreteType t = typesInTemplate.get(0);
 
-
       for (int i = 0; i < len; i++) {
         Pair<Parameter, Parameter> val = (Pair<Parameter, Parameter>) t.generateRandomParameter(s, c).value;
         while (leftSet.contains(val.left)) {
@@ -123,11 +153,6 @@ public class CassandraTypes {
 
       return new Parameter(type, value);
     }
-
-    @Override
-    public String generateStringValue(Parameter p, List<ConcreteType> types) {
-      return null;
-    }
   }
 
   /**
@@ -138,8 +163,16 @@ public class CassandraTypes {
     public static final TYPEType instance = new TYPEType();
     public static final String signature = "org.zlab.upfuzz.TYPE";
 
-//    @Override
-//    public String generateStringValue(Object value) {
+    @Override
+    public String generateStringValue(Parameter p) {
+      /**
+       * For now, we first only construct single concrete type here.
+       * TODO: Implement the nested type.
+       */
+//      List<ParameterType> types = (List) type2String.values();
+
+      return type2String.get(p.value);
+
 //      assert value instanceof List;
 //      assert !((List) value).isEmpty();
 //      assert !(((List) value).get(0) instanceof ParameterType);
@@ -154,11 +187,13 @@ public class CassandraTypes {
 //      }
 //
 //      return sb.toString();
-//    }
+    }
 
     private ParameterType selectRandomType() {
-      int typeIdx = new Random().nextInt(CassandraTypes.types.size());
-      return CassandraTypes.types.get(typeIdx);
+      // Can avoid this transform by storing a separate List
+      List<ParameterType> types =  new ArrayList<ParameterType>(type2String.keySet());
+      int typeIdx = new Random().nextInt(types.size());
+      return types.get(typeIdx);
     }
 
     private ConcreteType generateRandomType(GenericType g) {
@@ -176,7 +211,7 @@ public class CassandraTypes {
       ParameterType t = selectRandomType();
       if (t instanceof ConcreteType) {
         return (ConcreteType) t;
-      } else if (t instanceof GenericType) {
+      } else if (t instanceof GenericType) { // Shouldn't happen for now.
         return generateRandomType((GenericType) t);
       }
       assert false;
@@ -199,11 +234,6 @@ public class CassandraTypes {
       //  Or count how deep the recursion is and limit it.
       return new Parameter(this, generateRandomType());
 
-    }
-
-    @Override
-    public String generateStringValue(Parameter p) {
-      return null;
     }
   }
 

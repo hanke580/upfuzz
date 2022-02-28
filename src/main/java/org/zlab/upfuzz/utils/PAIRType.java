@@ -22,14 +22,19 @@ public class PAIRType extends ParameterType.GenericTypeTwo {
         new Pair<>(t1.generateRandomParameter(s, c), t2.generateRandomParameter(s, c));
 
     ConcreteType type = ConcreteGenericType.constructConcreteGenericType(instance, t1, t2);
-    Parameter ret = new Parameter(type, value);
 
-    return ret;
+    return new Parameter(type, value);
   }
 
   @Override
   public String generateStringValue(Parameter p, List<ConcreteType> types) {
-    return null;
+    StringBuilder sb = new StringBuilder();
+
+    Pair<Parameter, Parameter> value = (Pair<Parameter, Parameter>) p.value;
+    sb.append(value.left.toString());
+    sb.append(" ");
+    sb.append(value.right.toString());
+    return sb.toString();
   }
 }
 

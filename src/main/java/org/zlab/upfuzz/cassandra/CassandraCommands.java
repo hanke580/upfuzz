@@ -3,6 +3,8 @@ package org.zlab.upfuzz.cassandra;
 import org.zlab.upfuzz.*;
 import org.zlab.upfuzz.utils.PAIRType;
 import org.zlab.upfuzz.utils.FIXSTRINGType;
+import org.zlab.upfuzz.utils.Pair;
+import org.zlab.upfuzz.utils.STRINGType;
 
 import java.util.*;
 
@@ -63,16 +65,18 @@ public class CassandraCommands {
                 ParameterType.ConcreteGenericType.constructConcreteGenericType(
                     CassandraTypes.MapLikeListType.instance,
                     ParameterType.ConcreteGenericType.constructConcreteGenericType(PAIRType.instance,
-                        CassandraTypes.TEXTType.instance, CassandraTypes.TYPEType.instance));
+                            STRINGType.instance, CassandraTypes.TYPEType.instance));
             columns = columnsType.generateRandomParameter(state, this);
 
             ParameterType.ConcreteType primaryColumnsType =
                     new ParameterType.SubsetType(
                             columnsType,
-                            (Collection) columns
+                            (Collection) columns.value,
+                            p -> ((Pair) p).left
                     );
 
             primaryColumns = primaryColumnsType.generateRandomParameter(state, this);
+
             ParameterType.ConcreteType IF_NOT_EXISTType = new FIXSTRINGType("IF NOT EXIST");
 
             IF_NOT_EXIST = IF_NOT_EXISTType.generateRandomParameter(state, this);
@@ -80,10 +84,13 @@ public class CassandraCommands {
 
         @Override
         public String constructCommandString() {
-            String ret = "CREATE TABLE " + IF_NOT_EXIST.toString() + tableName.toString() + "(" +
-                    columns.toString() +
-                    primaryColumns.toString() +
+            // TODO: Need a helper function, add space between all strings
+
+            String ret = "CREATE TABLE " + IF_NOT_EXIST.toString() + " " + tableName.toString() + "(" +
+                    columns.toString() + "\n WITH PRIMARY KEY (" +
+                    primaryColumns.toString() + " )" +
                     ");";
+
             return ret;
         }
 
