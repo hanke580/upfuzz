@@ -45,10 +45,17 @@ public class CassandraTypes {
     private TEXTType() {}
 
     @Override
+    public Parameter generateRandomParameter(State s, Command c) {
+      // TODO: generate a random string.
+      return new Parameter(TEXTType.instance, generateRandomString());
+    }
+
+    @Override
     public String generateStringValue(Parameter p) {
       assert Objects.equals(p.type, instance);
       assert p.value instanceof String;
-      return  "'" + p.value + "'";
+      return  "'" + (String) p.value + "'";
+
     }
   }
 

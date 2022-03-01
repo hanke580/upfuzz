@@ -10,6 +10,7 @@ public class Parameter {
     public Parameter(ParameterType.ConcreteType type, Object value) {
         this.type = type;
         this.value = value;
+        this.strValue = null;
     }
 
     @Override

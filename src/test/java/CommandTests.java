@@ -3,14 +3,20 @@ import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.cassandra.CassandraCommands;
 import org.zlab.upfuzz.cassandra.CassandraState;
 
+import java.lang.reflect.InvocationTargetException;
+
 public class CommandTests {
 
     @Test
-    public void testCreateCommandGeneration() {
+    public void testCreateCommandGeneration() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
 
         CassandraState s = new CassandraState();
-        Command cmd = new CassandraCommands.CREATETABLE(s);
+        CassandraCommands.CREATETABLE cmd = new CassandraCommands.CREATETABLE(s);
         System.out.println(cmd.constructCommandString());
+        cmd.mutate(s);
 
+        String i = "hsdf";
+        String ii = "'" + i + "'";
+        System.out.println(ii);
     }
 }

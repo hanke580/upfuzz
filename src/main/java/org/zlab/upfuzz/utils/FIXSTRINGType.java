@@ -3,6 +3,7 @@ package org.zlab.upfuzz.utils;
 import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.State;
+import java.util.Random;
 
 public class FIXSTRINGType extends STRINGType {
     /**
@@ -25,6 +26,12 @@ public class FIXSTRINGType extends STRINGType {
 
     public FIXSTRINGType(String fixString) {
         this.fixString = fixString;
+        Random rand = new Random();
+        if (rand.nextBoolean()) {
+            isEmpty = true;
+        } else {
+            isEmpty = false;
+        }
     }
 
     @Override
@@ -39,7 +46,7 @@ public class FIXSTRINGType extends STRINGType {
 
     @Override
     public String generateStringValue(Parameter p) {
-        return fixString;
+        return (String) p.value;
     }
 
 }

@@ -8,16 +8,12 @@ import org.zlab.upfuzz.State;
 import java.util.Random;
 
 public class STRINGType extends ParameterType.ConcreteType {
-
     public static final int MAX_LEN = 30;
 
     public static final STRINGType instance = new STRINGType();
     public static final String signature = "java.lang.String";
 
-
-    @Override
-    public Parameter generateRandomParameter(State s, Command c) {
-        // TODO: generate a random string.
+    public static String generateRandomString() {
         String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         StringBuilder sb = new StringBuilder();
         Random random = new Random();
@@ -29,8 +25,13 @@ public class STRINGType extends ParameterType.ConcreteType {
             sb.append(randomChar);
         }
         String randomString = sb.toString();
+        return randomString;
+    }
 
-        return new Parameter(STRINGType.instance, randomString);
+    @Override
+    public Parameter generateRandomParameter(State s, Command c) {
+        // TODO: generate a random string.
+        return new Parameter(STRINGType.instance, generateRandomString());
     }
 
     @Override

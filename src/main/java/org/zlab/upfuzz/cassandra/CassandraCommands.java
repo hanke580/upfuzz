@@ -65,13 +65,17 @@ public class CassandraCommands {
 
         public CREATETABLE(CassandraState state) {
 
-            ParameterType.ConcreteType tableNameType = CassandraTypes.TEXTType.instance; // TEXTType
-            tableName = tableNameType.generateRandomParameter(state, this);
+            ParameterType.ConcreteType tableNameType = STRINGType.instance; // TEXTType
+            tableName = tableNameType.generateRandomParameter(state, this); //
+
+            /**
+             * TODO: Optional Parameters, need to be impl in a more general way.
+             */
 
             ParameterType.ConcreteType columnsType = // LIST<PAIR<TEXT,TYPE>>
                 ParameterType.ConcreteGenericType.constructConcreteGenericType(
                     CassandraTypes.MapLikeListType.instance,
-                    ParameterType.ConcreteGenericType.constructConcreteGenericType(PAIRType.instance,
+                        ParameterType.ConcreteGenericType.constructConcreteGenericType(PAIRType.instance,
                             STRINGType.instance, CassandraTypes.TYPEType.instance));
             columns = columnsType.generateRandomParameter(state, this);
 
@@ -106,8 +110,6 @@ public class CassandraCommands {
             CassandraTable table = new CassandraTable(tableName, columns, primaryColumns);
             ((CassandraState) state).addTable(table);
         }
-
-
 
     }
 

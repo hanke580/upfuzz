@@ -14,6 +14,7 @@ import org.zlab.upfuzz.utils.Pair;
  */
 public abstract class ParameterType {
 
+//    public abstract void mutate(State state, Object value);
 
     public static abstract class ConcreteType extends ParameterType {
         /**
