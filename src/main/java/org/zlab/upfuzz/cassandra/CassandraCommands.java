@@ -6,6 +6,9 @@ import org.zlab.upfuzz.utils.FIXSTRINGType;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.STRINGType;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -13,8 +16,12 @@ import java.util.*;
  *   1. nested commands & scope // we could do it in a simple way without scope first...
  *   2. mutate() & isValid() // we implemented generateRandomParameter() for each type
  *   3. user defined type // we need to implement a UnionType, each instance of a UnionType could be a user defined type
+ *   4. mutate methods.
+ *   - Shouldn't be operated by user.
+ *   - When we call the command.mutate, (Conduct param level mutation)
+ *   - It should pick one parameter defined in this command, and call its mutation method.
+ *   - Then for the rest command, it should run check() method to do the minor modification or not.
  *
- *   4. Sequence Class:
  */
 public class CassandraCommands {
     /**
@@ -32,7 +39,7 @@ public class CassandraCommands {
      *    emp_phone varint
      *    );
      */
-    public static class CREATETABLE implements Command {
+    public static class CREATETABLE extends Command {
 
         // parameters used in this command
         // they are generated following user-specified constraints
@@ -95,10 +102,13 @@ public class CassandraCommands {
         }
 
         @Override
-        public void updateState(CassandraState state) {
+        public void updateState(State state) {
             CassandraTable table = new CassandraTable(tableName, columns, primaryColumns);
-            state.addTable(table);
+            ((CassandraState) state).addTable(table);
         }
+
+
+
     }
 
     /**

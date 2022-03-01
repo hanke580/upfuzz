@@ -20,4 +20,8 @@ public class Parameter {
         return strValue;
     }
 
+    public void mutate() {
+        System.out.println("hello mutation");
+    }
+
 }

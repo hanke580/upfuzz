@@ -148,7 +148,6 @@ public abstract class ParameterType {
             // TODO Auto-generated method stub
             return "[TO IMPL]";
         }
-
     }
 
     public static abstract class GenericTypeOne extends GenericType { }
