@@ -15,7 +15,9 @@ public class CommandSequence {
     public final List<Class<? extends Command>> commandClassList;
     public final Class<? extends State> stateClass;
 
-    public CommandSequence(List<Command> commands, List<Class<? extends Command>> commandClassList, Class<? extends State> stateClazz) {
+    public CommandSequence(List<Command> commands,
+                           List<Class<? extends Command>> commandClassList,
+                           Class<? extends State> stateClazz) {
         this.commands = commands;
         this.commandClassList = commandClassList;
         this.stateClass = stateClazz;
@@ -44,12 +46,8 @@ public class CommandSequence {
              * - Opt1: Save the state for each command.
              *      - PRO: Eliminate the overhead computing state from 0 to i - 1
              *      - CON: Takes more space
-             * - Opt2: Re-compute from beginning. Takes more time, but save space. (Use this for now)
-             *
-             * E.g. Insert a command at pos i
-             * - Pick one command class, feed the state[i - 1].
-             * - Might use reflection to implement that.
-             *      - Input: Command
+             * - Opt2: Re-compute from beginning. Takes more time, but save space.
+             *      - (Use this for now)
              */
 
             assert commands.size() > 0;
@@ -70,7 +68,6 @@ public class CommandSequence {
 
             // generate a new command
             /**
-             *
              * Two options
              * 1. Purely random generate one from this state.
              * 2. (TODO) Pick command from the command pool
@@ -96,14 +93,16 @@ public class CommandSequence {
             cmd.updateState(state);
             commands.add(pos, cmd);
 
-            // Run the check() function from the beginning
+            // Invoke check() function from the that position
+            for (int i = pos + 1; i < commands.size(); i++) {
+                commands.get(i).check(state);
+            }
         } else if (choice == 1) {
             // Replace a command
         } else {
             // Delete a command
         }
-
-        return null;
+        return this;
     }
 
     /**

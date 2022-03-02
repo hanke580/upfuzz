@@ -3,6 +3,8 @@ package org.zlab.upfuzz;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -12,19 +14,30 @@ import java.util.Random;
  */
 public abstract class Command {
 
+    public List<Parameter> params;
+
     public abstract String constructCommandString();
     public abstract void updateState(State state);
 
     public void mutate(State state) throws
             IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-        // Use reflection to pick one parameter for mutation.
-        Field[] fields = this.getClass().getDeclaredFields();
         Random rand = new Random();
-        int mutateParamIdx = rand.nextInt(fields.length);
-        Field fieldDef = fields[mutateParamIdx];
-        fieldDef.setAccessible(true);
-        Object fieldVal = fieldDef.get(this);
-        Method m = fieldVal.getClass().getDeclaredMethod("mutate", new Class[]{});
-        m.invoke(fieldVal);
+        int mutateParamIdx = rand.nextInt(params.size());
+        params.get(mutateParamIdx).mutate();
+    }
+
+    public void check(State state) {
+        /**
+         * Run check on each existing parameters in order.
+         * It will includes
+         * - Parameter.isValid()
+         * - Parameter.fixIfNotValid()
+         * Two functions
+         */
+        for (Parameter param : params) {
+            if (!param.isValid(state)) {
+                param.fixIfNotValid(state);
+            }
+        }
     }
 }

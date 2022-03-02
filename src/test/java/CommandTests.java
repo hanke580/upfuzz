@@ -15,8 +15,5 @@ public class CommandTests {
         System.out.println(cmd.constructCommandString());
         cmd.mutate(s);
 
-        String i = "hsdf";
-        String ii = "'" + i + "'";
-        System.out.println(ii);
     }
 }

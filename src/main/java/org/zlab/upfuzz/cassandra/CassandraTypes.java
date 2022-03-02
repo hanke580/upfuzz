@@ -196,6 +196,16 @@ public class CassandraTypes {
 //      return sb.toString();
     }
 
+    @Override
+    public boolean isValid(State state, Object value) {
+      return false;
+    }
+
+    @Override
+    public void fixIfNotValid(State state, Object value) {
+
+    }
+
     private ParameterType selectRandomType() {
       // Can avoid this transform by storing a separate List
       List<ParameterType> types =  new ArrayList<ParameterType>(type2String.keySet());

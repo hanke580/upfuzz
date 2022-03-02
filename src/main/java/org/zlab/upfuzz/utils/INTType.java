@@ -24,4 +24,14 @@ public class INTType extends ParameterType.ConcreteType {
         assert p.type instanceof INTType;
         return String.valueOf((int) p.value);
     }
+
+    @Override
+    public boolean isValid(State state, Object value) {
+        return false;
+    }
+
+    @Override
+    public void fixIfNotValid(State state, Object value) {
+
+    }
 }

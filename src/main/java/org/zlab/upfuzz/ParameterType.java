@@ -2,11 +2,9 @@ package org.zlab.upfuzz;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.zlab.upfuzz.cassandra.CassandraTypes.LISTType;
-import org.zlab.upfuzz.utils.Pair;
 
 /**
  * How a parameter can be generated is only defined in its type.
@@ -25,13 +23,15 @@ public abstract class ParameterType {
          */
         public abstract Parameter generateRandomParameter(State s, Command c);
         public abstract String generateStringValue(Parameter p); // Maybe this should be in Parameter class? It has the concrete type anyways.
+
+        public abstract boolean isValid(State state, Object value);
+        public abstract void fixIfNotValid(State state, Object value);
     }
 
     public static abstract class GenericType extends ParameterType {
         // generic type cannot generate value without concrete types
         public abstract Parameter generateRandomParameter(State s, Command c, List<ConcreteType> types);
         public abstract String generateStringValue(Parameter p, List<ConcreteType> types); // Maybe this should be in Parameter class? It has the concrete type anyways.
-
     }
 
     /**
@@ -50,6 +50,16 @@ public abstract class ParameterType {
 //            this.mapFunc = mapFunc;
         }
     }
+
+    /**
+     *
+     * while()
+     *      val = type.generate()
+     *      list.add(val)
+     *
+     * inCollection(
+     *      (not inCollection
+     */
 
     public static class NotInCollectionType <T,U> extends ConfigurableType {
 
@@ -74,6 +84,17 @@ public abstract class ParameterType {
         @Override
         public String generateStringValue(Parameter p) {
             return null;
+        }
+
+        @Override
+        public boolean isValid(State state, Object value) {
+            // TODO: impl
+            return false;
+        }
+
+        @Override
+        public void fixIfNotValid(State state, Object value) {
+            // TODO: impl
         }
     }
 
@@ -149,6 +170,16 @@ public abstract class ParameterType {
             // TODO Auto-generated method stub
             return "[TO IMPL]";
         }
+
+        @Override
+        public boolean isValid(State state, Object value) {
+            return false;
+        }
+
+        @Override
+        public void fixIfNotValid(State state, Object value) {
+
+        }
     }
 
     public static abstract class GenericTypeOne extends GenericType { }
@@ -208,11 +239,21 @@ public abstract class ParameterType {
     public static class ConcreteGenericTypeOne extends ConcreteGenericType {
 
         public ConcreteGenericTypeOne(GenericType t, ConcreteType t1) {
-            assert t instanceof GenericTypeOne; // This is ugly... Might need to change design... Leave it for now.
+            // TODO: This is ugly... Might need to change design... Leave it for now.
+            assert t instanceof GenericTypeOne;
             this.t = t;
             this.typesInTemplate.add(t1);
         }
 
+        @Override
+        public boolean isValid(State state, Object value) {
+            return false;
+        }
+
+        @Override
+        public void fixIfNotValid(State state, Object value) {
+
+        }
     }
 
     public static class ConcreteGenericTypeTwo extends ConcreteGenericType {
@@ -224,5 +265,14 @@ public abstract class ParameterType {
             this.typesInTemplate.add(t2);
         }
 
+        @Override
+        public boolean isValid(State state, Object value) {
+            return false;
+        }
+
+        @Override
+        public void fixIfNotValid(State state, Object value) {
+
+        }
     }
 }

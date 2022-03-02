@@ -42,45 +42,45 @@ public class CassandraCommands {
         commandClassList.add(CREATETABLE.class);
     }
 
+    /**
+     * TODO: Optional Parameters, need to be impl in a more general way.
+     */
     public static class CREATETABLE extends Command {
-
-        // parameters used in this command
-        // they are generated following user-specified constraints
 
         // a parameter should correspond to one variable in the text format of this command.
         // mutating a parameter could depend on and the state updated by all nested internal commands and other parameters.
         // Note: Thus, we need to be careful to not have cyclic dependency among parameters.
 
-        final Parameter tableName; // TEXTType
-
-        /**
-         * List<Pair<ColumnName, CassandraDataType>>
-         * - ColumnName must be unique from each other.
-         * - CassandraDataType can be randomly chosen from the Cassandra Type.
-         */
-        final Parameter columns; // LIST<PAIR<TEXTType,TYPE>>
-
-        final Parameter primaryColumns;
-
-        final Parameter IF_NOT_EXIST;
-
         // final Command ...; // Nested commands need to be constructed first.
 
         public CREATETABLE(State state) {
+            params = new ArrayList<>();
 
-            ParameterType.ConcreteType tableNameType = STRINGType.instance; // TEXTType
-            tableName = tableNameType.generateRandomParameter(state, this); //
+            assert state instanceof CassandraState;
+            CassandraState cassandraState = (CassandraState) state;
 
             /**
-             * TODO: Optional Parameters, need to be impl in a more general way.
+             * There should be a not in collection constraints
+             * TODO: Add a not empty constraints here.
              */
+            ParameterType.ConcreteType tableNameType = new ParameterType.NotInCollectionType(
+                    STRINGType.instance,
+                    (Collection) cassandraState.tables,
+                    p -> ((CassandraTable) p).name
+            );
+
+//            ParameterType.ConcreteType tableNameType = STRINGType.instance;
+
+            Parameter tableName = tableNameType.generateRandomParameter(cassandraState, this);
+            params.add(tableName);
 
             ParameterType.ConcreteType columnsType = // LIST<PAIR<TEXT,TYPE>>
                 ParameterType.ConcreteGenericType.constructConcreteGenericType(
                     CassandraTypes.MapLikeListType.instance,
                         ParameterType.ConcreteGenericType.constructConcreteGenericType(PAIRType.instance,
                             STRINGType.instance, CassandraTypes.TYPEType.instance));
-            columns = columnsType.generateRandomParameter(state, this);
+            Parameter columns = columnsType.generateRandomParameter(cassandraState, this);
+            params.add(columns);
 
             ParameterType.ConcreteType primaryColumnsType =
                     new ParameterType.SubsetType(
@@ -89,31 +89,41 @@ public class CassandraCommands {
                             p -> ((Pair) p).left
                     );
 
-            primaryColumns = primaryColumnsType.generateRandomParameter(state, this);
+            Parameter primaryColumns = primaryColumnsType.generateRandomParameter(cassandraState, this);
+            params.add(primaryColumns);
 
             ParameterType.ConcreteType IF_NOT_EXISTType = new FIXSTRINGType("IF NOT EXIST");
-
-            IF_NOT_EXIST = IF_NOT_EXISTType.generateRandomParameter(state, this);
+            Parameter IF_NOT_EXIST = IF_NOT_EXISTType.generateRandomParameter(cassandraState, this);
+            params.add(IF_NOT_EXIST);
         }
 
         @Override
         public String constructCommandString() {
             // TODO: Need a helper function, add space between all strings
+            Parameter tableName = params.get(0);
+            Parameter columns = params.get(1); // LIST<PAIR<TEXTType,TYPE>>
+            Parameter primaryColumns = params.get(2);
+            Parameter IF_NOT_EXIST = params.get(3);
+
+            assert tableName.toString().isEmpty() == false;
 
             String ret = "CREATE TABLE " + IF_NOT_EXIST.toString() + " " + tableName.toString() + "(" +
                     columns.toString() + "\n WITH PRIMARY KEY (" +
                     primaryColumns.toString() + " )" +
                     ");";
-
             return ret;
         }
 
         @Override
         public void updateState(State state) {
+            Parameter tableName = params.get(0);
+            Parameter columns = params.get(1); // LIST<PAIR<TEXTType,TYPE>>
+            Parameter primaryColumns = params.get(2);
+            Parameter IF_NOT_EXIST = params.get(3);
+
             CassandraTable table = new CassandraTable(tableName, columns, primaryColumns);
             ((CassandraState) state).addTable(table);
         }
-
     }
 
     /**

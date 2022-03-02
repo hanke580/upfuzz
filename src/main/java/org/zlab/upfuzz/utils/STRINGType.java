@@ -24,8 +24,7 @@ public class STRINGType extends ParameterType.ConcreteType {
             char randomChar = alphabet.charAt(index);
             sb.append(randomChar);
         }
-        String randomString = sb.toString();
-        return randomString;
+        return sb.toString();
     }
 
     @Override
@@ -37,6 +36,16 @@ public class STRINGType extends ParameterType.ConcreteType {
     @Override
     public String generateStringValue(Parameter p) {
         return (String) p.value;
+    }
+
+    @Override
+    public boolean isValid(State state, Object value) {
+        return false;
+    }
+
+    @Override
+    public void fixIfNotValid(State state, Object value) {
+
     }
 
 //    void mutate() {
