@@ -6,9 +6,6 @@ import org.zlab.upfuzz.utils.FIXSTRINGType;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.STRINGType;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -21,7 +18,6 @@ import java.util.*;
  *   - When we call the command.mutate, (Conduct param level mutation)
  *   - It should pick one parameter defined in this command, and call its mutation method.
  *   - Then for the rest command, it should run check() method to do the minor modification or not.
- *
  */
 public class CassandraCommands {
     /**
@@ -39,6 +35,13 @@ public class CassandraCommands {
      *    emp_phone varint
      *    );
      */
+
+    public static final List<Class<? extends Command>> commandClassList = new ArrayList<>();
+
+    static {
+        commandClassList.add(CREATETABLE.class);
+    }
+
     public static class CREATETABLE extends Command {
 
         // parameters used in this command
@@ -63,7 +66,7 @@ public class CassandraCommands {
 
         // final Command ...; // Nested commands need to be constructed first.
 
-        public CREATETABLE(CassandraState state) {
+        public CREATETABLE(State state) {
 
             ParameterType.ConcreteType tableNameType = STRINGType.instance; // TEXTType
             tableName = tableNameType.generateRandomParameter(state, this); //

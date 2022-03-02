@@ -1,4 +1,4 @@
 
 package org.zlab.upfuzz;
-public interface State {
+public abstract class State {
 }

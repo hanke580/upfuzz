@@ -2,9 +2,9 @@ package org.zlab.upfuzz;
 
 public class Parameter {
 
-    public final ParameterType.ConcreteType type;
+    public ParameterType.ConcreteType type;
     /* Inside this parameter's value, it could contain lower-level parameters. */
-    public final Object value;
+    public Object value;
     public String strValue;
 
     public Parameter(ParameterType.ConcreteType type, Object value) {
