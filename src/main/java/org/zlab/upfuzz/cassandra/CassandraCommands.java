@@ -69,8 +69,6 @@ public class CassandraCommands {
                     p -> ((CassandraTable) p).name
             );
 
-//            ParameterType.ConcreteType tableNameType = STRINGType.instance;
-
             Parameter tableName = tableNameType.generateRandomParameter(cassandraState, this);
             params.add(tableName);
 

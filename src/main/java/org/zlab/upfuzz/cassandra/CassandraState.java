@@ -7,7 +7,7 @@ import java.util.Set;
 
 public class CassandraState extends State {
     public Set<CassandraTable> tables = new HashSet<>();
-    void addTable(CassandraTable table) {
+    public void addTable(CassandraTable table) {
         tables.add(table);
     }
 }

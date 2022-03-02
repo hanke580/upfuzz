@@ -26,12 +26,12 @@ public class INTType extends ParameterType.ConcreteType {
     }
 
     @Override
-    public boolean isValid(State state, Object value) {
+    public boolean isValid(State s, Object v) {
         return false;
     }
 
     @Override
-    public void fixIfNotValid(State state, Object value) {
+    public void fixIfNotValid(State s, Object v) {
 
     }
 }

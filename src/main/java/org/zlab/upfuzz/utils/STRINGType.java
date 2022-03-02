@@ -30,7 +30,16 @@ public class STRINGType extends ParameterType.ConcreteType {
     @Override
     public Parameter generateRandomParameter(State s, Command c) {
         // TODO: generate a random string.
-        return new Parameter(STRINGType.instance, generateRandomString());
+
+        //  For testing **testNotInCollection()**
+//        String[] sList = {"T1", "T2", "T3", "T4", "T5"};
+//        Random rand = new Random();
+//        int idx = rand.nextInt(sList.length);
+//
+//        return new Parameter(STRINGType.instance, sList[idx]);
+
+        // Original Codes:
+         return new Parameter(STRINGType.instance, generateRandomString());
     }
 
     @Override
@@ -39,12 +48,12 @@ public class STRINGType extends ParameterType.ConcreteType {
     }
 
     @Override
-    public boolean isValid(State state, Object value) {
+    public boolean isValid(State s, Object v) {
         return false;
     }
 
     @Override
-    public void fixIfNotValid(State state, Object value) {
+    public void fixIfNotValid(State s, Object v) {
 
     }
 

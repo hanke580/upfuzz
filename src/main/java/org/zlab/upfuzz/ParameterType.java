@@ -24,8 +24,8 @@ public abstract class ParameterType {
         public abstract Parameter generateRandomParameter(State s, Command c);
         public abstract String generateStringValue(Parameter p); // Maybe this should be in Parameter class? It has the concrete type anyways.
 
-        public abstract boolean isValid(State state, Object value);
-        public abstract void fixIfNotValid(State state, Object value);
+        public abstract boolean isValid(State s, Object v);
+        public abstract void fixIfNotValid(State s, Object v);
     }
 
     public static abstract class GenericType extends ParameterType {
@@ -75,26 +75,39 @@ public abstract class ParameterType {
         @Override
         public Parameter generateRandomParameter(State s, Command c) {
             Parameter ret = t.generateRandomParameter(s, c); // ((Pair<TEXTType, TYPEType>)ret.value).left
-            while (((Collection<T>) configuration).stream().map(mapFunc).collect(Collectors.toSet()).contains(ret)) {
+            while (((Collection<T>) configuration).stream().map(mapFunc).collect(Collectors.toSet()).contains(ret.value)) {
                 ret = t.generateRandomParameter(s, c);
             }
-            return ret;
+            return new Parameter(this, ret.value);
         }
 
         @Override
         public String generateStringValue(Parameter p) {
-            return null;
+            return t.generateStringValue(p);
         }
 
         @Override
-        public boolean isValid(State state, Object value) {
-            // TODO: impl
-            return false;
+        public boolean isValid(State s, Object v) {
+            return !((Collection<T>) configuration).stream().map(mapFunc).collect(Collectors.toSet()).contains(v);
         }
 
         @Override
-        public void fixIfNotValid(State state, Object value) {
+        public void fixIfNotValid(State s, Object v) {
             // TODO: impl
+            /**
+             * cmd1 -> cmd2 -> cmd3 -> ... -> cmdn
+             * Pick pos = cmd3, do mutate for it.
+             * 1. Compute state until cmd2
+             * 2. Do mutation on cmd3
+             * 3. Run check() on cmd3, Run updateSchema
+             * 4. Run check() for all the following commands, and Run the updateSchema
+             * -- Get a finally true sequence.
+             */
+            Parameter ret = t.generateRandomParameter(s, null); // ((Pair<TEXTType, TYPEType>)ret.value).left
+            while (((Collection<T>) configuration).stream().map(mapFunc).collect(Collectors.toSet()).contains(ret.value)) {
+                ret = t.generateRandomParameter(s, null);
+            }
+            v = ret.value;
         }
     }
 
@@ -137,8 +150,8 @@ public abstract class ParameterType {
                     cGenericType.t = new LISTType() {
                         @Override
                         public Parameter generateRandomParameter(State s, Command c, java.util.List<ConcreteType> typesInTemplate) {
-                            List targetSet = new ArrayList<>((Collection) tmpCollection);
-                            List value = new ArrayList<>();
+                            List<Object> targetSet = new ArrayList<Object>((Collection<Object>) tmpCollection);
+                            List<Object> value = new ArrayList<>();
 
                             if (targetSet.size() > 0) {
                                 Random rand = new Random();
@@ -172,12 +185,12 @@ public abstract class ParameterType {
         }
 
         @Override
-        public boolean isValid(State state, Object value) {
+        public boolean isValid(State s, Object v) {
             return false;
         }
 
         @Override
-        public void fixIfNotValid(State state, Object value) {
+        public void fixIfNotValid(State s, Object v) {
 
         }
     }
@@ -246,12 +259,12 @@ public abstract class ParameterType {
         }
 
         @Override
-        public boolean isValid(State state, Object value) {
+        public boolean isValid(State s, Object v) {
             return false;
         }
 
         @Override
-        public void fixIfNotValid(State state, Object value) {
+        public void fixIfNotValid(State s, Object v) {
 
         }
     }
@@ -266,12 +279,12 @@ public abstract class ParameterType {
         }
 
         @Override
-        public boolean isValid(State state, Object value) {
+        public boolean isValid(State s, Object v) {
             return false;
         }
 
         @Override
-        public void fixIfNotValid(State state, Object value) {
+        public void fixIfNotValid(State s, Object v) {
 
         }
     }

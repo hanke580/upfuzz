@@ -15,7 +15,11 @@ public class CassandraTable {
 
     public CassandraTable(Parameter name, Parameter colName2Type, Parameter primaryColName2Type) {
         this.name = (String) name.value;
-        this.colName2Type = (List<Pair<String, CassandraTypes.TYPEType>>) colName2Type.value;
-        this.primaryColName2Type = (List<Pair<String, CassandraTypes.TYPEType>>) primaryColName2Type.value;
+        if (colName2Type != null) {
+            this.colName2Type = (List<Pair<String, CassandraTypes.TYPEType>>) colName2Type.value;
+        }
+        if (primaryColName2Type != null) {
+            this.primaryColName2Type = (List<Pair<String, CassandraTypes.TYPEType>>) primaryColName2Type.value;
+        }
     }
 }
