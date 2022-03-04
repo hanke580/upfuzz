@@ -13,14 +13,15 @@ public class CommandSequence {
 
     public final List<Command> commands;
     public final List<Class<? extends Command>> commandClassList;
-    public final Class<? extends State> stateClass;
+    public final State state;
+    // TODO: More reasoning about the state.
 
     public CommandSequence(List<Command> commands,
                            List<Class<? extends Command>> commandClassList,
-                           Class<? extends State> stateClazz) {
+                           State state) {
         this.commands = commands;
         this.commandClassList = commandClassList;
-        this.stateClass = stateClazz;
+        this.state = state;
     }
 
     /**
@@ -32,7 +33,7 @@ public class CommandSequence {
      * 2. Replace a command.
      * 3. Delete a command.
      */
-    public CommandSequence mutate() {
+    public CommandSequence mutate(State state) {
 
         Random rand = new Random();
 
@@ -52,15 +53,16 @@ public class CommandSequence {
 
             assert commands.size() > 0;
             // pos to insert
-            int pos = rand.nextInt(commands.size());
+//            int pos = rand.nextInt(commands.size());
+            int pos = 0; // Debug
 
             // TODO: Need more reasoning whether use this: compute state from beginning
-            State state = null;
-            try {
-                state = stateClass.getConstructor().newInstance();
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                e.printStackTrace();
-            }
+            state.clearState();
+//            try {
+//                state = stateClass.getConstructor().newInstance();
+//            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+//                e.printStackTrace();
+//            }
 
             for (int i = 0; i < pos; i++) {
                 commands.get(i).updateState(state);
@@ -90,12 +92,17 @@ public class CommandSequence {
                 e.printStackTrace();
             }
             assert cmd != null;
+
+            System.out.println("Added command : " + cmd.constructCommandString());
+            System.out.println("\n");
+
             cmd.updateState(state);
             commands.add(pos, cmd);
 
             // Invoke check() function from the that position
             for (int i = pos + 1; i < commands.size(); i++) {
-                commands.get(i).check(state);
+                commands.get(i).check(state, commands.get(i)); // same func as regenerateIfNotValid
+                commands.get(i).updateState(state);
             }
         } else if (choice == 1) {
             // Replace a command
@@ -111,14 +118,16 @@ public class CommandSequence {
      * - Output: TestSequence
      */
     public static CommandSequence generateSequence(List<Class<? extends Command>> commandClassList,
-                                                   Class<? extends State> stateClazz)
+                                                   State state)
             throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
 
         Random rand = new Random();
         assert MAX_CMD_SEQ_LEN > 0;
         int len = rand.nextInt(MAX_CMD_SEQ_LEN) + 1;
 
-        State state = stateClazz.getConstructor().newInstance();
+        len = 8; // Debug
+//        State state = stateClazz.getConstructor().newInstance();
+
         List<Command> commands = new LinkedList<>();
 
         for (int i = 0; i < len; i++) {
@@ -131,7 +140,7 @@ public class CommandSequence {
             cmd.updateState(state);
             commands.add(cmd);
         }
-        return new CommandSequence(commands, commandClassList, stateClazz);
+        return new CommandSequence(commands, commandClassList, state);
     }
 
     public List<String> getCommandStringList() {

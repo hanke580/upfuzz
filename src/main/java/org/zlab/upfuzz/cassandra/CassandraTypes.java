@@ -197,12 +197,12 @@ public class CassandraTypes {
     }
 
     @Override
-    public boolean isValid(State s, Object v) {
+    public boolean isValid(State s, Command c, Parameter p) {
       return false;
     }
 
     @Override
-    public void fixIfNotValid(State s, Object v) {
+    public void fixIfNotValid(State s, Command c, Parameter p) {
 
     }
 

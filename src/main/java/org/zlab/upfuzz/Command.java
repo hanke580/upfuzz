@@ -19,14 +19,14 @@ public abstract class Command {
     public abstract String constructCommandString();
     public abstract void updateState(State state);
 
-    public void mutate(State state) throws
+    public void mutate(State s) throws
             IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         Random rand = new Random();
         int mutateParamIdx = rand.nextInt(params.size());
         params.get(mutateParamIdx).mutate();
     }
 
-    public void check(State state) {
+    public void check(State s, Command c) {
         /**
          * Run check on each existing parameters in order.
          * It will includes
@@ -35,8 +35,8 @@ public abstract class Command {
          * Two functions
          */
         for (Parameter param : params) {
-            if (!param.isValid(state)) {
-                param.fixIfNotValid(state);
+            if (!param.isValid(s, c)) {
+                param.fixIfNotValid(s, c);
             }
         }
     }

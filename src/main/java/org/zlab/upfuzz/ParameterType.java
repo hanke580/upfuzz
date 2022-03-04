@@ -24,8 +24,8 @@ public abstract class ParameterType {
         public abstract Parameter generateRandomParameter(State s, Command c);
         public abstract String generateStringValue(Parameter p); // Maybe this should be in Parameter class? It has the concrete type anyways.
 
-        public abstract boolean isValid(State s, Object v);
-        public abstract void fixIfNotValid(State s, Object v);
+        public abstract boolean isValid(State s, Command c, Parameter p);
+        public abstract void fixIfNotValid(State s, Command c, Parameter p);
     }
 
     public static abstract class GenericType extends ParameterType {
@@ -87,12 +87,12 @@ public abstract class ParameterType {
         }
 
         @Override
-        public boolean isValid(State s, Object v) {
-            return !((Collection<T>) configuration).stream().map(mapFunc).collect(Collectors.toSet()).contains(v);
+        public boolean isValid(State s, Command c, Parameter p) {
+            return !((Collection<T>) configuration).stream().map(mapFunc).collect(Collectors.toSet()).contains(p.value);
         }
 
         @Override
-        public void fixIfNotValid(State s, Object v) {
+        public void fixIfNotValid(State s, Command c, Parameter p) {
             // TODO: impl
             /**
              * cmd1 -> cmd2 -> cmd3 -> ... -> cmdn
@@ -103,11 +103,11 @@ public abstract class ParameterType {
              * 4. Run check() for all the following commands, and Run the updateSchema
              * -- Get a finally true sequence.
              */
-            Parameter ret = t.generateRandomParameter(s, null); // ((Pair<TEXTType, TYPEType>)ret.value).left
+            Parameter ret = t.generateRandomParameter(s, c); // ((Pair<TEXTType, TYPEType>)ret.value).left
             while (((Collection<T>) configuration).stream().map(mapFunc).collect(Collectors.toSet()).contains(ret.value)) {
-                ret = t.generateRandomParameter(s, null);
+                ret = t.generateRandomParameter(s, c);
             }
-            v = ret.value;
+            p.value = ret.value;
         }
     }
 
@@ -185,12 +185,12 @@ public abstract class ParameterType {
         }
 
         @Override
-        public boolean isValid(State s, Object v) {
+        public boolean isValid(State s, Command c, Parameter p) {
             return false;
         }
 
         @Override
-        public void fixIfNotValid(State s, Object v) {
+        public void fixIfNotValid(State s, Command c, Parameter p) {
 
         }
     }
@@ -259,12 +259,12 @@ public abstract class ParameterType {
         }
 
         @Override
-        public boolean isValid(State s, Object v) {
+        public boolean isValid(State s, Command c, Parameter p) {
             return false;
         }
 
         @Override
-        public void fixIfNotValid(State s, Object v) {
+        public void fixIfNotValid(State s, Command c, Parameter p) {
 
         }
     }
@@ -279,12 +279,12 @@ public abstract class ParameterType {
         }
 
         @Override
-        public boolean isValid(State s, Object v) {
+        public boolean isValid(State s, Command c, Parameter p) {
             return false;
         }
 
         @Override
-        public void fixIfNotValid(State s, Object v) {
+        public void fixIfNotValid(State s, Command c, Parameter p) {
 
         }
     }

@@ -106,7 +106,7 @@ public class CassandraCommands {
             assert tableName.toString().isEmpty() == false;
 
             String ret = "CREATE TABLE " + IF_NOT_EXIST.toString() + " " + tableName.toString() + "(" +
-                    columns.toString() + "\n WITH PRIMARY KEY (" +
+                    columns.toString() + " WITH PRIMARY KEY (" +
                     primaryColumns.toString() + " )" +
                     ");";
             return ret;

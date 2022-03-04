@@ -14,15 +14,15 @@ public class Parameter {
         System.out.println("hello mutation");
     }
 
-    public boolean isValid(State s) {
-        return type.isValid(s, value);
+    public boolean isValid(State s, Command c) {
+        return type.isValid(s, c, this);
     }
 
     /**
      * Fix if the param does not comply the rule.
      */
-    public void fixIfNotValid(State s) {
-        type.fixIfNotValid(s, value);
+    public void fixIfNotValid(State s, Command c) {
+        type.fixIfNotValid(s, c, this);
     }
 
     @Override

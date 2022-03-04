@@ -10,4 +10,9 @@ public class CassandraState extends State {
     public void addTable(CassandraTable table) {
         tables.add(table);
     }
+
+    @Override
+    public void clearState() {
+        tables.clear();
+    }
 }

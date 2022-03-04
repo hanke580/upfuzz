@@ -5,6 +5,8 @@ import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 
 public class STRINGType extends ParameterType.ConcreteType {
@@ -32,14 +34,18 @@ public class STRINGType extends ParameterType.ConcreteType {
         // TODO: generate a random string.
 
         //  For testing **testNotInCollection()**
-//        String[] sList = {"T1", "T2", "T3", "T4", "T5"};
-//        Random rand = new Random();
-//        int idx = rand.nextInt(sList.length);
-//
-//        return new Parameter(STRINGType.instance, sList[idx]);
+        List<String> sList = new LinkedList<>();
+        for (int i = 0; i < 10; i++) {
+            sList.add("T" + String.valueOf(i));
+        }
+
+        Random rand = new Random();
+        int idx = rand.nextInt(sList.size());
+
+        return new Parameter(STRINGType.instance, sList.get(idx));
 
         // Original Codes:
-         return new Parameter(STRINGType.instance, generateRandomString());
+//         return new Parameter(STRINGType.instance, generateRandomString());
     }
 
     @Override
@@ -48,12 +54,12 @@ public class STRINGType extends ParameterType.ConcreteType {
     }
 
     @Override
-    public boolean isValid(State s, Object v) {
+    public boolean isValid(State s, Command c, Parameter p) {
         return false;
     }
 
     @Override
-    public void fixIfNotValid(State s, Object v) {
+    public void fixIfNotValid(State s, Command c, Parameter p) {
 
     }
 
