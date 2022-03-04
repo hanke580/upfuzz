@@ -21,8 +21,8 @@ public class Parameter {
     /**
      * Fix if the param does not comply the rule.
      */
-    public void fixIfNotValid(State s, Command c) {
-        type.fixIfNotValid(s, c, this);
+    public void regenerateIfNotValid(State s, Command c) {
+        type.regenerateIfNotValid(s, c, this);
     }
 
     @Override

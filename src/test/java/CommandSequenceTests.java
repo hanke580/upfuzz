@@ -10,7 +10,9 @@ public class CommandSequenceTests {
     @Test
     public void testSequenceGeneration() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException, InstantiationException {
 
-        CommandSequence commandSequence = CommandSequence.generateSequence(CassandraCommands.commandClassList, CassandraState.class);
+        CassandraState state = new CassandraState();
+        CommandSequence commandSequence = CommandSequence.generateSequence(CassandraCommands.commandClassList, state);
+
         List<String> l = commandSequence.getCommandStringList();
         for (String commandString : l) {
             System.out.println(commandString);
@@ -19,7 +21,8 @@ public class CommandSequenceTests {
 
         System.out.println("\n\n");
 
-        commandSequence.mutate();
+        commandSequence.mutate(state);
+
         l = commandSequence.getCommandStringList();
         for (String commandString : l) {
             System.out.println(commandString);

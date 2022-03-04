@@ -31,7 +31,12 @@ public class INTType extends ParameterType.ConcreteType {
     }
 
     @Override
-    public void fixIfNotValid(State s, Command c, Parameter p) {
+    public void regenerateIfNotValid(State s, Command c, Parameter p) {
 
+    }
+
+    @Override
+    public boolean isEmpty(State s, Command c, Parameter p) {
+        return false;
     }
 }

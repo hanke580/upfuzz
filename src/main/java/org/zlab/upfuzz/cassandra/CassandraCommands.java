@@ -64,7 +64,9 @@ public class CassandraCommands {
              * TODO: Add a not empty constraints here.
              */
             ParameterType.ConcreteType tableNameType = new ParameterType.NotInCollectionType(
-                    STRINGType.instance,
+                    new ParameterType.NotEmpty(
+                            STRINGType.instance
+                    ),
                     (Collection) cassandraState.tables,
                     p -> ((CassandraTable) p).name
             );
@@ -84,7 +86,7 @@ public class CassandraCommands {
                     new ParameterType.SubsetType(
                             columnsType,
                             (Collection) columns.value,
-                            p -> ((Pair) p).left
+                            p -> ((Pair<Parameter, Parameter>) ((Parameter) p).value).left
                     );
 
             Parameter primaryColumns = primaryColumnsType.generateRandomParameter(cassandraState, this);

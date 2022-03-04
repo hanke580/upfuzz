@@ -36,5 +36,10 @@ public class PAIRType extends ParameterType.GenericTypeTwo {
     sb.append(value.right.toString());
     return sb.toString();
   }
+
+  @Override
+  public boolean isEmpty(State s, Command c, Parameter p, List<ConcreteType> types) {
+    return false;
+  }
 }
 

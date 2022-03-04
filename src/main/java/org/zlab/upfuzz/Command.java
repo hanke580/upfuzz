@@ -1,9 +1,6 @@
 package org.zlab.upfuzz;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -26,7 +23,7 @@ public abstract class Command {
         params.get(mutateParamIdx).mutate();
     }
 
-    public void check(State s, Command c) {
+    public void regenerateIfNotValid(State s, Command c) {
         /**
          * Run check on each existing parameters in order.
          * It will includes
@@ -36,7 +33,7 @@ public abstract class Command {
          */
         for (Parameter param : params) {
             if (!param.isValid(s, c)) {
-                param.fixIfNotValid(s, c);
+                param.regenerateIfNotValid(s, c);
             }
         }
     }

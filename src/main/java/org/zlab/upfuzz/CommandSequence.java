@@ -101,7 +101,7 @@ public class CommandSequence {
 
             // Invoke check() function from the that position
             for (int i = pos + 1; i < commands.size(); i++) {
-                commands.get(i).check(state, commands.get(i)); // same func as regenerateIfNotValid
+                commands.get(i).regenerateIfNotValid(state, commands.get(i)); // same func as regenerateIfNotValid
                 commands.get(i).updateState(state);
             }
         } else if (choice == 1) {

@@ -25,13 +25,15 @@ public abstract class ParameterType {
         public abstract String generateStringValue(Parameter p); // Maybe this should be in Parameter class? It has the concrete type anyways.
 
         public abstract boolean isValid(State s, Command c, Parameter p);
-        public abstract void fixIfNotValid(State s, Command c, Parameter p);
+        public abstract void regenerateIfNotValid(State s, Command c, Parameter p);
+        public abstract boolean isEmpty(State s, Command c, Parameter p);
     }
 
     public static abstract class GenericType extends ParameterType {
         // generic type cannot generate value without concrete types
         public abstract Parameter generateRandomParameter(State s, Command c, List<ConcreteType> types);
         public abstract String generateStringValue(Parameter p, List<ConcreteType> types); // Maybe this should be in Parameter class? It has the concrete type anyways.
+        public abstract boolean isEmpty(State s, Command c, Parameter p, List<ConcreteType> types);
     }
 
     /**
@@ -75,7 +77,7 @@ public abstract class ParameterType {
         @Override
         public Parameter generateRandomParameter(State s, Command c) {
             Parameter ret = t.generateRandomParameter(s, c); // ((Pair<TEXTType, TYPEType>)ret.value).left
-            while (((Collection<T>) configuration).stream().map(mapFunc).collect(Collectors.toSet()).contains(ret.value)) {
+            while (!isValid(s, c, ret)) {
                 ret = t.generateRandomParameter(s, c);
             }
             return new Parameter(this, ret.value);
@@ -92,22 +94,55 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void fixIfNotValid(State s, Command c, Parameter p) {
-            // TODO: impl
-            /**
-             * cmd1 -> cmd2 -> cmd3 -> ... -> cmdn
-             * Pick pos = cmd3, do mutate for it.
-             * 1. Compute state until cmd2
-             * 2. Do mutation on cmd3
-             * 3. Run check() on cmd3, Run updateSchema
-             * 4. Run check() for all the following commands, and Run the updateSchema
-             * -- Get a finally true sequence.
-             */
-            Parameter ret = t.generateRandomParameter(s, c); // ((Pair<TEXTType, TYPEType>)ret.value).left
-            while (((Collection<T>) configuration).stream().map(mapFunc).collect(Collectors.toSet()).contains(ret.value)) {
+        public void regenerateIfNotValid(State s, Command c, Parameter p) {
+            Parameter ret = generateRandomParameter(s, c); // ((Pair<TEXTType, TYPEType>)ret.value).left
+            p.value = ret.value;
+        }
+
+        @Override
+        public boolean isEmpty(State s, Command c, Parameter p) {
+            return t.isEmpty(s, c, p);
+        }
+    }
+
+    public static class NotEmpty extends ConfigurableType {
+
+        public NotEmpty(ConcreteType t) {
+            super(t, null);
+        }
+
+        public NotEmpty(ConcreteType t, Object configuration) {
+            super(t, configuration);
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c) {
+            Parameter ret = t.generateRandomParameter(s, c);
+            while (!isValid(s, c, ret)) {
                 ret = t.generateRandomParameter(s, c);
             }
+            return ret;
+        }
+
+        @Override
+        public String generateStringValue(Parameter p) {
+            return t.generateStringValue(p);
+        }
+
+        @Override
+        public boolean isValid(State s, Command c, Parameter p) {
+            return !t.isEmpty(s, c, p);
+        }
+
+        @Override
+        public void regenerateIfNotValid(State s, Command c, Parameter p) {
+            Parameter ret = generateRandomParameter(s, c);
             p.value = ret.value;
+        }
+
+        @Override
+        public boolean isEmpty(State s, Command c, Parameter p) {
+            return false;
         }
     }
 
@@ -190,8 +225,13 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void fixIfNotValid(State s, Command c, Parameter p) {
+        public void regenerateIfNotValid(State s, Command c, Parameter p) {
 
+        }
+
+        @Override
+        public boolean isEmpty(State s, Command c, Parameter p) {
+            return false;
         }
     }
 
@@ -204,7 +244,6 @@ public abstract class ParameterType {
         // Support a variable number of templates. E.g., Pair<K, V>.
         public GenericType t;
         public List<ConcreteType> typesInTemplate = new ArrayList<>();
-
 
         public Parameter generateRandomParameter(State s, Command c) {
             return t.generateRandomParameter(s, c, typesInTemplate);
@@ -260,12 +299,18 @@ public abstract class ParameterType {
 
         @Override
         public boolean isValid(State s, Command c, Parameter p) {
+            // TODO: Impl
             return false;
         }
 
         @Override
-        public void fixIfNotValid(State s, Command c, Parameter p) {
+        public void regenerateIfNotValid(State s, Command c, Parameter p) {
+            // TODO: Impl
+        }
 
+        @Override
+        public boolean isEmpty(State s, Command c, Parameter p) {
+            return t.isEmpty(s, c, p, this.typesInTemplate);
         }
     }
 
@@ -284,8 +329,13 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void fixIfNotValid(State s, Command c, Parameter p) {
+        public void regenerateIfNotValid(State s, Command c, Parameter p) {
 
+        }
+
+        @Override
+        public boolean isEmpty(State s, Command c, Parameter p) {
+            return false;
         }
     }
 }

@@ -5,8 +5,6 @@ import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Random;
 
 public class STRINGType extends ParameterType.ConcreteType {
@@ -26,26 +24,34 @@ public class STRINGType extends ParameterType.ConcreteType {
             char randomChar = alphabet.charAt(index);
             sb.append(randomChar);
         }
-        return sb.toString();
+
+        // Debug Code
+        boolean choice = random.nextBoolean();
+        if (choice)
+            return "";
+        else
+            return sb.toString();
+
+        // Debug End
+
+//        return sb.toString();
     }
 
     @Override
     public Parameter generateRandomParameter(State s, Command c) {
         // TODO: generate a random string.
 
-        //  For testing **testNotInCollection()**
-        List<String> sList = new LinkedList<>();
-        for (int i = 0; i < 10; i++) {
-            sList.add("T" + String.valueOf(i));
-        }
-
-        Random rand = new Random();
-        int idx = rand.nextInt(sList.size());
-
-        return new Parameter(STRINGType.instance, sList.get(idx));
+        //  DEBUG: For testing **testNotInCollection()**
+//        List<String> sList = new LinkedList<>();
+//        for (int i = 0; i < 10; i++) {
+//            sList.add("T" + String.valueOf(i));
+//        }
+//        Random rand = new Random();
+//        int idx = rand.nextInt(sList.size());
+//        return new Parameter(STRINGType.instance, sList.get(idx));
 
         // Original Codes:
-//         return new Parameter(STRINGType.instance, generateRandomString());
+         return new Parameter(STRINGType.instance, generateRandomString());
     }
 
     @Override
@@ -55,12 +61,24 @@ public class STRINGType extends ParameterType.ConcreteType {
 
     @Override
     public boolean isValid(State s, Command c, Parameter p) {
-        return false;
+        if (p == null || ! (p.type instanceof STRINGType))
+            return false;
+        return true;
     }
 
     @Override
-    public void fixIfNotValid(State s, Command c, Parameter p) {
+    public void regenerateIfNotValid(State s, Command c, Parameter p) {
+        Parameter ret = new Parameter(STRINGType.instance, generateRandomString());
+        while (!isValid(s, c, ret)) {
+            ret = new Parameter(STRINGType.instance, generateRandomString());
+        }
+        p.value = ret.value;
+    }
 
+    @Override
+    public boolean isEmpty(State s, Command c, Parameter p) {
+        // TODO: Maybe need to call isValid() for checking
+        return ((String) p.value).isEmpty();
     }
 
 //    void mutate() {
