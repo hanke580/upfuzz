@@ -5,10 +5,12 @@ import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 
+import java.math.BigInteger;
+import java.util.BitSet;
 import java.util.Random;
 
 public class STRINGType extends ParameterType.ConcreteType {
-    public static final int MAX_LEN = 30;
+    public static final int MAX_LEN = 30; // Probably need refactor
 
     public static final STRINGType instance = new STRINGType();
     public static final String signature = "java.lang.String";
@@ -31,7 +33,6 @@ public class STRINGType extends ParameterType.ConcreteType {
             return "";
         else
             return sb.toString();
-
         // Debug End
 
 //        return sb.toString();
@@ -49,9 +50,12 @@ public class STRINGType extends ParameterType.ConcreteType {
 //        Random rand = new Random();
 //        int idx = rand.nextInt(sList.size());
 //        return new Parameter(STRINGType.instance, sList.get(idx));
-
+        Parameter ret = new Parameter(STRINGType.instance, generateRandomString());
+        while (!isValid(s, c, ret)) {
+            ret = new Parameter(STRINGType.instance, generateRandomString());
+        }
         // Original Codes:
-         return new Parameter(STRINGType.instance, generateRandomString());
+         return ret;
     }
 
     @Override
@@ -67,11 +71,8 @@ public class STRINGType extends ParameterType.ConcreteType {
     }
 
     @Override
-    public void regenerateIfNotValid(State s, Command c, Parameter p) {
-        Parameter ret = new Parameter(STRINGType.instance, generateRandomString());
-        while (!isValid(s, c, ret)) {
-            ret = new Parameter(STRINGType.instance, generateRandomString());
-        }
+    public void regenerate(State s, Command c, Parameter p) {
+        Parameter ret = generateRandomParameter(s, c);
         p.value = ret.value;
     }
 
@@ -81,13 +82,57 @@ public class STRINGType extends ParameterType.ConcreteType {
         return ((String) p.value).isEmpty();
     }
 
-//    void mutate() {
-//        /**
-//         * 1. Regenerate
-//         * 2. Resize
-//         * 3. Flip/Add/Del bit/byte/word
-//         */
-//    }
+    @Override
+    public void mutate(Command c, State s, Parameter p) {
+        /**
+         * 1. Regenerate
+         * 2. Flip/Add/Del Bit/Byte/Word/Dword
+         * - These operations might need different probabilities
+         */
+        Random rand = new Random();
+        int choice = rand.nextInt(2);
+
+        // Debug
+        choice = 1; // Only test the mutate method
+
+        switch (choice) {
+            case 0: // Regenerate
+                regenerate(s, c, p);
+                break;
+            case 1:// Flip/Add/Del Bit/Byte/Word/Dword
+                /**
+                 * Cast into Bits and flip one of them
+                 */
+                flipBit(p); // Now only have the flipBit part.
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + choice);
+        }
+    }
+
+    public String string2binary(String value) {
+        return  new BigInteger(value.getBytes()).toString(2);
+    }
+
+
+    public void flipBit(Parameter p) {
+
+        String value = (String) p.value;
+        String binary = string2binary(value);
+
+        Random rand = new Random();
+        int pos = rand.nextInt(binary.length());
+
+        StringBuilder sb = new StringBuilder(binary);
+        if (sb.charAt(pos) == '1') {
+            sb.setCharAt(pos, '0');
+        } else {
+            sb.setCharAt(pos, '1');
+        }
+
+        String mutatedValue = new String(new BigInteger(sb.toString(), 2).toByteArray());
+        p.value = mutatedValue;
+    }
 
 }
 

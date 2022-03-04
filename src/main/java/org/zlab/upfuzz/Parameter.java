@@ -10,7 +10,8 @@ public class Parameter {
         this.value = value;
     }
 
-    public void mutate() {
+    public void mutate(State s, Command c) {
+        type.mutate(c, s, this);
         System.out.println("hello mutation");
     }
 
@@ -21,8 +22,8 @@ public class Parameter {
     /**
      * Fix if the param does not comply the rule.
      */
-    public void regenerateIfNotValid(State s, Command c) {
-        type.regenerateIfNotValid(s, c, this);
+    public void regenerate(State s, Command c) {
+        type.regenerate(s, c, this);
     }
 
     @Override

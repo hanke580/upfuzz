@@ -25,8 +25,9 @@ public abstract class ParameterType {
         public abstract String generateStringValue(Parameter p); // Maybe this should be in Parameter class? It has the concrete type anyways.
 
         public abstract boolean isValid(State s, Command c, Parameter p);
-        public abstract void regenerateIfNotValid(State s, Command c, Parameter p);
+        public abstract void regenerate(State s, Command c, Parameter p);
         public abstract boolean isEmpty(State s, Command c, Parameter p);
+        public abstract void mutate(Command c, State s, Parameter p);
     }
 
     public static abstract class GenericType extends ParameterType {
@@ -52,16 +53,6 @@ public abstract class ParameterType {
 //            this.mapFunc = mapFunc;
         }
     }
-
-    /**
-     *
-     * while()
-     *      val = type.generate()
-     *      list.add(val)
-     *
-     * inCollection(
-     *      (not inCollection
-     */
 
     public static class NotInCollectionType <T,U> extends ConfigurableType {
 
@@ -94,7 +85,7 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void regenerateIfNotValid(State s, Command c, Parameter p) {
+        public void regenerate(State s, Command c, Parameter p) {
             Parameter ret = generateRandomParameter(s, c); // ((Pair<TEXTType, TYPEType>)ret.value).left
             p.value = ret.value;
         }
@@ -102,6 +93,11 @@ public abstract class ParameterType {
         @Override
         public boolean isEmpty(State s, Command c, Parameter p) {
             return t.isEmpty(s, c, p);
+        }
+
+        @Override
+        public void mutate(Command c, State s, Parameter p) {
+            t.mutate(c, s, p);
         }
     }
 
@@ -135,7 +131,7 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void regenerateIfNotValid(State s, Command c, Parameter p) {
+        public void regenerate(State s, Command c, Parameter p) {
             Parameter ret = generateRandomParameter(s, c);
             p.value = ret.value;
         }
@@ -143,6 +139,11 @@ public abstract class ParameterType {
         @Override
         public boolean isEmpty(State s, Command c, Parameter p) {
             return false;
+        }
+
+        @Override
+        public void mutate(Command c, State s, Parameter p) {
+            t.mutate(c, s, p);
         }
     }
 
@@ -225,13 +226,18 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void regenerateIfNotValid(State s, Command c, Parameter p) {
+        public void regenerate(State s, Command c, Parameter p) {
 
         }
 
         @Override
         public boolean isEmpty(State s, Command c, Parameter p) {
             return false;
+        }
+
+        @Override
+        public void mutate(Command c, State s, Parameter p) {
+
         }
     }
 
@@ -304,13 +310,18 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void regenerateIfNotValid(State s, Command c, Parameter p) {
+        public void regenerate(State s, Command c, Parameter p) {
             // TODO: Impl
         }
 
         @Override
         public boolean isEmpty(State s, Command c, Parameter p) {
             return t.isEmpty(s, c, p, this.typesInTemplate);
+        }
+
+        @Override
+        public void mutate(Command c, State s, Parameter p) {
+
         }
     }
 
@@ -329,13 +340,18 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void regenerateIfNotValid(State s, Command c, Parameter p) {
+        public void regenerate(State s, Command c, Parameter p) {
 
         }
 
         @Override
         public boolean isEmpty(State s, Command c, Parameter p) {
             return false;
+        }
+
+        @Override
+        public void mutate(Command c, State s, Parameter p) {
+
         }
     }
 }

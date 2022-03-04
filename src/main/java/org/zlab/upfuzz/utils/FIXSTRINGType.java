@@ -49,4 +49,8 @@ public class FIXSTRINGType extends STRINGType {
         return (String) p.value;
     }
 
+    @Override
+    public void mutate(Command c, State s, Parameter p) {
+        isEmpty = !isEmpty;
+    }
 }

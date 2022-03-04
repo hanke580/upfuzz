@@ -200,7 +200,7 @@ public class CassandraTypes {
     }
 
     @Override
-    public void regenerateIfNotValid(State s, Command c, Parameter p) {
+    public void regenerate(State s, Command c, Parameter p) {
 
     }
 
@@ -209,6 +209,11 @@ public class CassandraTypes {
       if (p.value == null || ! ( p.value instanceof ConcreteType ))
         return true;
       return false;
+    }
+
+    @Override
+    public void mutate(Command c, State s, Parameter p) {
+
     }
 
     private ParameterType selectRandomType() {

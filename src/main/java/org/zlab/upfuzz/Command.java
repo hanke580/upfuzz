@@ -20,7 +20,12 @@ public abstract class Command {
             IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         Random rand = new Random();
         int mutateParamIdx = rand.nextInt(params.size());
-        params.get(mutateParamIdx).mutate();
+
+        mutateParamIdx = 0; // Debug
+
+        System.out.println("Mutate Param Pos = " + mutateParamIdx);
+
+        params.get(mutateParamIdx).mutate(s, this);
     }
 
     public void regenerateIfNotValid(State s, Command c) {
@@ -33,7 +38,7 @@ public abstract class Command {
          */
         for (Parameter param : params) {
             if (!param.isValid(s, c)) {
-                param.regenerateIfNotValid(s, c);
+                param.regenerate(s, c);
             }
         }
     }

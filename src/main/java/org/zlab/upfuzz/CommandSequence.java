@@ -37,8 +37,28 @@ public class CommandSequence {
 
         Random rand = new Random();
 
-        int choice = rand.nextInt(3);
-        choice = 0; // TODO: Impl the rest two choices.
+        int choice = rand.nextInt(4);
+        /**
+         * 0: Insert a command
+         * 1: Replace a command
+         * 2: Delete a command
+         * 3: Mutate the command (Call command.mutate)
+         */
+        // TODO: Impl the rest two choices.
+        choice = 3; // DEBUG
+
+        assert commands.size() > 0;
+        // pos to insert
+        int pos = rand.nextInt(commands.size());
+        System.out.println("\n pos = " + pos + "\n");
+
+        state.clearState();
+
+
+
+        for (int i = 0; i < pos; i++) {
+            commands.get(i).updateState(state);
+        }
 
         if (choice == 0) {
             // Insert a command
@@ -50,31 +70,13 @@ public class CommandSequence {
              * - Opt2: Re-compute from beginning. Takes more time, but save space.
              *      - (Use this for now)
              */
-
-            assert commands.size() > 0;
-            // pos to insert
-//            int pos = rand.nextInt(commands.size());
-            int pos = 0; // Debug
-
             // TODO: Need more reasoning whether use this: compute state from beginning
-            state.clearState();
-//            try {
-//                state = stateClass.getConstructor().newInstance();
-//            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-//                e.printStackTrace();
-//            }
-
-            for (int i = 0; i < pos; i++) {
-                commands.get(i).updateState(state);
-            }
-
             // generate a new command
             /**
              * Two options
              * 1. Purely random generate one from this state.
              * 2. (TODO) Pick command from the command pool
              */
-
             int cmdIdx = rand.nextInt(commandClassList.size());
             Class<? extends Command> clazz = commandClassList.get(cmdIdx);
             Constructor<?> constructor = null;
@@ -106,8 +108,24 @@ public class CommandSequence {
             }
         } else if (choice == 1) {
             // Replace a command
-        } else {
+            /**
+             * 1. Generate a new command / Pick command from the command pool (Not impl yet)
+             * 2. Delete that command, and add the newly generated command in that place
+             */
+
+        } else if (choice == 2) {
             // Delete a command
+        } else {
+            // Mutate a specific command
+            try {
+                commands.get(pos).mutate(state);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
         }
         return this;
     }
