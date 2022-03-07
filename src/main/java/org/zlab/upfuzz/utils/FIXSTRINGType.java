@@ -18,10 +18,9 @@ public class FIXSTRINGType extends STRINGType {
 
     // TODO:Should we keep using instance here?
 //        public static final FIXEDSTRINGType instance = new FIXEDSTRINGType();
-    public static final String signature = "org.zlab.upfuzz.utils.FIXEDSTRINGType";
+    public static final String signature = "org.zlab.upfuzz.utils.FIXSTRINGType";
 
     final String fixString;
-
     boolean isEmpty;
 
     public FIXSTRINGType(String fixString) {

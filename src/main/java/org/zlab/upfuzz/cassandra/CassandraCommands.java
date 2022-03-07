@@ -54,15 +54,11 @@ public class CassandraCommands {
         // final Command ...; // Nested commands need to be constructed first.
 
         public CREATETABLE(State state) {
-            params = new ArrayList<>();
+            super();
 
             assert state instanceof CassandraState;
             CassandraState cassandraState = (CassandraState) state;
 
-            /**
-             * There should be a not in collection constraints
-             * TODO: Add a not empty constraints here.
-             */
             ParameterType.ConcreteType tableNameType = new ParameterType.NotInCollectionType(
                     new ParameterType.NotEmpty(
                             STRINGType.instance

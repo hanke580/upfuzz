@@ -159,7 +159,6 @@ public abstract class ParameterType {
              * - Instead of calling t.generateValue function, it should now construct values by select from targetSet.
              * - Do it by anonymous class extends List, and we write the subset generateRandomParameter() for it.
              */
-
             super(t, configuration);
             this.mapFunc = mapFunc;
         }
@@ -180,38 +179,37 @@ public abstract class ParameterType {
                 tmpCollection = (Collection) configuration;
             }
 
-            if (t instanceof ConcreteGenericTypeOne) {
-                ConcreteGenericType cGenericType = (ConcreteGenericType) t;
-                if (cGenericType.t instanceof LISTType) {
-                    cGenericType.t = new LISTType() {
-                        @Override
-                        public Parameter generateRandomParameter(State s, Command c, java.util.List<ConcreteType> typesInTemplate) {
-                            List<Object> targetSet = new ArrayList<Object>((Collection<Object>) tmpCollection);
-                            List<Object> value = new ArrayList<>();
+            assert t instanceof ConcreteGenericTypeOne;
 
-                            if (targetSet.size() > 0) {
-                                Random rand = new Random();
-                                int setSize = rand.nextInt(targetSet.size()); // specified by user
+            ConcreteGenericType cGenericType = (ConcreteGenericType) t;
+            assert cGenericType.t instanceof LISTType;
 
-                                List<Integer> indexArray = new ArrayList<>();
-                                for (int i = 0; i < targetSet.size(); i++) {
-                                    indexArray.add(i);
-                                }
-                                Collections.shuffle(indexArray);
+            cGenericType.t = new LISTType() {
+                @Override
+                public Parameter generateRandomParameter(State s, Command c, java.util.List<ConcreteType> typesInTemplate) {
+                    List<Object> targetSet = new ArrayList<Object>((Collection<Object>) tmpCollection);
+                    List<Object> value = new ArrayList<>();
 
-                                for (int i = 0; i < setSize; i++) {
-                                    value.add(targetSet.get(indexArray.get(i))); // The targetSet should also store Parameter
-                                }
-                            }
-                            ConcreteType type = ConcreteGenericType.constructConcreteGenericType(instance, t); // LIST<WhateverType>
-                            return new Parameter(type, value);
+                    if (targetSet.size() > 0) {
+                        Random rand = new Random();
+                        int setSize = rand.nextInt(targetSet.size()); // specified by user
+
+                        List<Integer> indexArray = new ArrayList<>();
+                        for (int i = 0; i < targetSet.size(); i++) {
+                            indexArray.add(i);
                         }
-                    };
+                        Collections.shuffle(indexArray);
 
-                    return cGenericType.generateRandomParameter(s, c);
+                        for (int i = 0; i < setSize; i++) {
+                            value.add(targetSet.get(indexArray.get(i))); // The targetSet should also store Parameter
+                        }
+                    }
+                    ConcreteType type = ConcreteGenericType.constructConcreteGenericType(instance, t); // LIST<WhateverType>
+                    return new Parameter(type, value);
                 }
-            }
-            return null;
+            };
+
+            return cGenericType.generateRandomParameter(s, c);
         }
 
         @Override
@@ -232,6 +230,7 @@ public abstract class ParameterType {
 
         @Override
         public boolean isEmpty(State s, Command c, Parameter p) {
+            // TODO: Impl
             return false;
         }
 

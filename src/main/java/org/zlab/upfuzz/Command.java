@@ -1,6 +1,7 @@
 package org.zlab.upfuzz;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
@@ -12,6 +13,10 @@ import java.util.Random;
 public abstract class Command {
 
     public List<Parameter> params;
+
+    public Command() {
+        params = new LinkedList<>();
+    }
 
     public abstract String constructCommandString();
     public abstract void updateState(State state);
