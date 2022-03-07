@@ -2,7 +2,7 @@ package org.zlab.upfuzz.cassandra;
 
 import org.zlab.upfuzz.*;
 import org.zlab.upfuzz.utils.PAIRType;
-import org.zlab.upfuzz.utils.FIXSTRINGType;
+import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.STRINGType;
 
@@ -88,7 +88,9 @@ public class CassandraCommands {
             Parameter primaryColumns = primaryColumnsType.generateRandomParameter(cassandraState, this);
             params.add(primaryColumns);
 
-            ParameterType.ConcreteType IF_NOT_EXISTType = new FIXSTRINGType("IF NOT EXIST");
+            ParameterType.ConcreteType IF_NOT_EXISTType = new ParameterType.OptionalType(
+                    new CONSTANTSTRINGType("IF NOT EXIST"), null
+            );
             Parameter IF_NOT_EXIST = IF_NOT_EXISTType.generateRandomParameter(cassandraState, this);
             params.add(IF_NOT_EXIST);
         }

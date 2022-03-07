@@ -5,7 +5,7 @@ import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.State;
 import java.util.Random;
 
-public class FIXSTRINGType extends STRINGType {
+public class CONSTANTSTRINGType extends STRINGType {
     /**
      * Only two choice, empty string or the given fixed value at
      * constructor function.
@@ -21,26 +21,14 @@ public class FIXSTRINGType extends STRINGType {
     public static final String signature = "org.zlab.upfuzz.utils.FIXSTRINGType";
 
     final String fixString;
-    boolean isEmpty;
 
-    public FIXSTRINGType(String fixString) {
+    public CONSTANTSTRINGType(String fixString) {
         this.fixString = fixString;
-        Random rand = new Random();
-        if (rand.nextBoolean()) {
-            isEmpty = true;
-        } else {
-            isEmpty = false;
-        }
     }
 
     @Override
     public Parameter generateRandomParameter(State s, Command c) {
-        // TODO: generate a random string.
-        if (isEmpty) {
-            return new Parameter(this, "");
-        } else {
-            return new Parameter(this, fixString);
-        }
+        return new Parameter(this, fixString);
     }
 
     @Override
@@ -49,7 +37,5 @@ public class FIXSTRINGType extends STRINGType {
     }
 
     @Override
-    public void mutate(Command c, State s, Parameter p) {
-        isEmpty = !isEmpty;
-    }
+    public void mutate(Command c, State s, Parameter p) {}
 }

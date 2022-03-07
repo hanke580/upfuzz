@@ -240,6 +240,68 @@ public abstract class ParameterType {
         }
     }
 
+    public static class OptionalType extends ConfigurableType {
+
+        // Example of mapFunc:
+        // Parameter p -> p.value.left // p's ParameterType is Pair<TEXT, TEXTType>
+
+        boolean isEmpty;
+
+        public OptionalType(ConcreteType t, Collection configuration) {
+            super(t, configuration);
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c) {
+            Random rand = new Random();
+            isEmpty = rand.nextBoolean();
+            if (isEmpty) {
+                return new Parameter(this, null);
+            } else {
+                Parameter ret = t.generateRandomParameter(s, c);
+                return new Parameter(this, ret.value);
+            }
+        }
+
+        @Override
+        public String generateStringValue(Parameter p) {
+            return isEmpty? "": t.generateStringValue(p);
+        }
+
+        @Override
+        public boolean isValid(State s, Command c, Parameter p) {
+            assert t != null;
+            return true;
+        }
+
+        @Override
+        public void regenerate(State s, Command c, Parameter p) {
+            Parameter ret = generateRandomParameter(s, c);
+            p.value = ret.value;
+        }
+
+        @Override
+        public boolean isEmpty(State s, Command c, Parameter p) {
+            if (isEmpty) return true;
+            else
+                return t.isEmpty(s, c, p);
+        }
+
+        @Override
+        public void mutate(Command c, State s, Parameter p) {
+            /**
+             * There should be two choices.
+             * 1. Mutate current state.
+             * 2. Mutate the subvalue.
+             * Since the optional parameters are likely to be a constant,
+             * we only mutate current isEmpty for now.
+             */
+            Random rand = new Random();
+            assert p.type instanceof OptionalType;
+            ((OptionalType) p.type).isEmpty = rand.nextBoolean();
+        }
+    }
+
     public static abstract class GenericTypeOne extends GenericType { }
     public static abstract class GenericTypeTwo extends GenericType { }
 
