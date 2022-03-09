@@ -178,6 +178,8 @@ public class CassandraCommands {
 
             /**
              * TODO: Transfer TYPEType to exact values
+             * - List<Pair<col1, TEXT>>
+             * - List<Pair<col1,
              */
         }
 

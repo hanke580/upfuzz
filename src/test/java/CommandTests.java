@@ -17,8 +17,21 @@ public class CommandTests {
 //        cmd.mutate(s);
 
 //        STRINGType.flipBit(null);
+    }
 
 
+    @Test
+    public void testINSERTCommandGeneration() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
 
+        CassandraState s = new CassandraState();
+
+        CassandraCommands.CREATETABLE cmd1 = new CassandraCommands.CREATETABLE(s);
+        cmd1.updateState(s);
+
+        System.out.println(cmd1.constructCommandString());
+
+
+        CassandraCommands.INSERT cmd2 = new CassandraCommands.INSERT(s);
+        System.out.println(cmd2.constructCommandString());
     }
 }
