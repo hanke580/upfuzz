@@ -70,26 +70,45 @@ public class CassandraCommands {
             Parameter tableName = tableNameType.generateRandomParameter(cassandraState, this);
             params.add(tableName);
 
-            ParameterType.ConcreteType columnsType = // LIST<PAIR<TEXT,TYPE>>
+            ParameterType.ConcreteType columnsType = // LIST<PAIR<String,TYPEType>>
                 ParameterType.ConcreteGenericType.constructConcreteGenericType(
                     CassandraTypes.MapLikeListType.instance,
                         ParameterType.ConcreteGenericType.constructConcreteGenericType(PAIRType.instance,
                             STRINGType.instance, CassandraTypes.TYPEType.instance));
             Parameter columns = columnsType.generateRandomParameter(cassandraState, this);
             params.add(columns);
-
+            /**
+             * Bool variable check whether the previous columns has any member that's already specified as
+             * Primary Key
+             * - True
+             *      - Shouldn't generate the third param
+             * - False
+             *      - Should generate
+             *
+             * Impl this check as a type
+             * - Take a previous parameter as input
+             *      - genRanParam()
+             *            - whether generate() according to whether 'columns' have already 'Primary Key'
+             *
+             */
             ParameterType.ConcreteType primaryColumnsType =
                     new ParameterType.SubsetType(
                             columnsType,
                             (Collection) columns.value,
                             p -> ((Pair<Parameter, Parameter>) ((Parameter) p).value).left
                     );
+            /**
+             * List type for the columns
+             * - genRanParam()
+             *      - check the current command(this) parameters' second parameter (Columns)
+             *      - get subset from it.
+             */
 
             Parameter primaryColumns = primaryColumnsType.generateRandomParameter(cassandraState, this);
             params.add(primaryColumns);
 
             ParameterType.ConcreteType IF_NOT_EXISTType = new ParameterType.OptionalType(
-                    new CONSTANTSTRINGType("IF NOT EXIST"), null
+                    new CONSTANTSTRINGType("IF NOT EXIST"), null   // TODO: Make a pure CONSTANTType
             );
             Parameter IF_NOT_EXIST = IF_NOT_EXISTType.generateRandomParameter(cassandraState, this);
             params.add(IF_NOT_EXIST);
@@ -109,6 +128,12 @@ public class CassandraCommands {
                     columns.toString() + " WITH PRIMARY KEY (" +
                     primaryColumns.toString() + " )" +
                     ");";
+            /**
+             * primaryColumns also contains keywords (Optional)
+             * - " WITH PRIMARY KEY (" + primaryColumns.toString() + " )"
+             * Check the current command, column definitions (Whether it's followed by 'Primary key'
+             * - Across multiple Param
+             */
             return ret;
         }
 
@@ -117,7 +142,6 @@ public class CassandraCommands {
             Parameter tableName = params.get(0);
             Parameter columns = params.get(1); // LIST<PAIR<TEXTType,TYPE>>
             Parameter primaryColumns = params.get(2);
-            Parameter IF_NOT_EXIST = params.get(3);
 
             CassandraTable table = new CassandraTable(tableName, columns, primaryColumns);
             ((CassandraState) state).addTable(table);
@@ -135,17 +159,36 @@ public class CassandraCommands {
      *    VALUES (c4b65263-fe58-4846-83e8-f0e1c13d518f, 'RATTO', 'Rissella')
      * IF NOT EXISTS;
      */
-//    public static class INSERT implements Command {
-//        @Override
-//        public String constructCommandString() {
-//            return null;
-//        }
-//
-//        @Override
-//        public void updateState() {
-//
-//        }
-//    }
+
+    public static class INSERT extends Command {
+
+        public INSERT(State state) {
+            super();
+
+            assert state instanceof CassandraState;
+            CassandraState cassandraState = (CassandraState) state;
+
+            ParameterType.ConcreteType TableNameType = new ParameterType.PickOneFromSetType(
+                    CONSTANTSTRINGType.instance,
+                    cassandraState.tables,
+                    p -> ((CassandraTable) p).name
+            );
+            Parameter TableName = TableNameType.generateRandomParameter(cassandraState, this);
+            this.params.add(TableName);
+
+            /**
+             * TODO: Transfer TYPEType to exact values
+             */
+        }
+
+        @Override
+        public String constructCommandString() {
+            return this.params.get(0).toString();
+        }
+
+        @Override
+        public void updateState(State state) { }
+    }
 
     /**
      * CREATE TYPE cycling.basic_info (

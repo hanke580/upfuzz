@@ -126,6 +126,11 @@ public class CommandSequence {
             } catch (InvocationTargetException e) {
                 e.printStackTrace();
             }
+            // Invoke check() function from the that position
+            for (int i = pos + 1; i < commands.size(); i++) {
+                commands.get(i).regenerateIfNotValid(state, commands.get(i)); // same func as regenerateIfNotValid
+                commands.get(i).updateState(state);
+            }
         }
         return this;
     }

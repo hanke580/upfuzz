@@ -242,9 +242,6 @@ public abstract class ParameterType {
 
     public static class OptionalType extends ConfigurableType {
 
-        // Example of mapFunc:
-        // Parameter p -> p.value.left // p's ParameterType is Pair<TEXT, TEXTType>
-
         boolean isEmpty;
 
         public OptionalType(ConcreteType t, Collection configuration) {
@@ -299,6 +296,74 @@ public abstract class ParameterType {
             Random rand = new Random();
             assert p.type instanceof OptionalType;
             ((OptionalType) p.type).isEmpty = rand.nextBoolean();
+        }
+    }
+
+    public static class PickOneFromSetType extends ConfigurableType {
+        /**
+         * For conflict options, not test yet.
+         */
+
+        public int idx;
+        public final Function mapFunc;
+
+        public PickOneFromSetType(ConcreteType t, Collection configuration, Function mapFunc) {
+            super(t, configuration);
+            this.mapFunc = mapFunc;
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c) {
+            // Pick one parameter from the collection
+            Random rand = new Random();
+            List l = (List) (((Collection)configuration).stream().map(mapFunc).collect(Collectors.toList()));
+            idx = rand.nextInt(l.size());
+
+            Parameter ret = new Parameter(t, l.get(idx));
+
+            return new Parameter(this, ret);
+        }
+
+        @Override
+        public String generateStringValue(Parameter p) {
+            return p.value.toString();
+        }
+
+        @Override
+        public boolean isValid(State s, Command c, Parameter p) {
+            assert p.value instanceof Parameter;
+            return ((Parameter) p.value).isValid(s, c);
+        }
+
+        @Override
+        public void regenerate(State s, Command c, Parameter p) {
+            Parameter ret = generateRandomParameter(s, c);
+            p.value = ret.value;
+        }
+
+        @Override
+        public boolean isEmpty(State s, Command c, Parameter p) {
+            return ((Parameter) p.value).type.isEmpty(s, c, (Parameter) p.value);
+        }
+
+        @Override
+        public void mutate(Command c, State s, Parameter p) {
+            /**
+             * 1. Repick one from the set.
+             * 2. Mutate the current picked one
+             */
+            Random rand = new Random();
+            boolean choice = rand.nextBoolean();
+            choice = true; // Only pick the first one
+            if (choice) {
+                // Repick one
+                Parameter ret = generateRandomParameter(s, c);
+                p.value = ret.value;
+            } else {
+                // Mutate current picked one. (But usually it will be picked from
+                // a specific fixed set. Set this to null for now.
+                assert false;
+            }
         }
     }
 
