@@ -26,8 +26,28 @@ public class Parameter {
         type.regenerate(s, c, this);
     }
 
+    public Object getValue() {
+        /**
+         * Get non-parameter value
+         *         p
+         *       /   \
+         *      /     \
+         *  NotEmpty   p
+         *           /   \
+         *          /     \
+         *     ConcreteGen List<Parameter>
+         *
+         *  Sometimes we want to directly get to the low-level values
+         */
+        if (this.value instanceof Parameter) {
+            return ((Parameter) this.value).getValue();
+        }
+        return null;
+    }
+
     @Override
     public String toString() {
         return type.generateStringValue(this);
     }
+
 }

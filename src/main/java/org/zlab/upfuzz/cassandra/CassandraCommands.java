@@ -60,21 +60,27 @@ public class CassandraCommands {
             CassandraState cassandraState = (CassandraState) state;
 
             ParameterType.ConcreteType tableNameType = new ParameterType.NotInCollectionType(
-                    new ParameterType.NotEmpty(
-                            STRINGType.instance
-                    ),
-                    (Collection) cassandraState.tables,
-                    p -> ((CassandraTable) p).name
+                new ParameterType.NotEmpty(
+                        STRINGType.instance
+                ),
+                cassandraState.tables.keySet(),
+                null
             );
 
             Parameter tableName = tableNameType.generateRandomParameter(cassandraState, this);
             params.add(tableName);
 
             ParameterType.ConcreteType columnsType = // LIST<PAIR<String,TYPEType>>
-                ParameterType.ConcreteGenericType.constructConcreteGenericType(
-                    CassandraTypes.MapLikeListType.instance,
+                new ParameterType.NotEmpty(
+                    ParameterType.ConcreteGenericType.constructConcreteGenericType(
+                        CassandraTypes.MapLikeListType.instance,
                         ParameterType.ConcreteGenericType.constructConcreteGenericType(PAIRType.instance,
-                            STRINGType.instance, CassandraTypes.TYPEType.instance));
+                            new ParameterType.NotEmpty(
+                                    STRINGType.instance
+                            ),
+                            CassandraTypes.TYPEType.instance))
+            );
+
             Parameter columns = columnsType.generateRandomParameter(cassandraState, this);
             params.add(columns);
             /**
@@ -92,17 +98,14 @@ public class CassandraCommands {
              *
              */
             ParameterType.ConcreteType primaryColumnsType =
+                new ParameterType.NotEmpty(
                     new ParameterType.SubsetType(
                             columnsType,
-                            (Collection) columns.value,
-                            p -> ((Pair<Parameter, Parameter>) ((Parameter) p).value).left
-                    );
-            /**
-             * List type for the columns
-             * - genRanParam()
-             *      - check the current command(this) parameters' second parameter (Columns)
-             *      - get subset from it.
-             */
+                            (Collection) ((Parameter)(columns.value)).value,
+                            null
+//                            p -> ((Pair<Parameter, Parameter>) ((Parameter) p).value).left
+                    )
+                );
 
             Parameter primaryColumns = primaryColumnsType.generateRandomParameter(cassandraState, this);
             params.add(primaryColumns);
@@ -122,18 +125,17 @@ public class CassandraCommands {
             Parameter primaryColumns = params.get(2);
             Parameter IF_NOT_EXIST = params.get(3);
 
-            assert tableName.toString().isEmpty() == false;
+            ParameterType.ConcreteType primaryColumnsNameType = new ParameterType.StreamMapType(
+                    null,
+                    (Collection) ((Parameter)primaryColumns.value).value,
+                    p -> ((Pair<Parameter, Parameter>) ((Parameter) p).value).left
+            );
+            Parameter primaryColumnsName = primaryColumnsNameType.generateRandomParameter(null, null);
 
             String ret = "CREATE TABLE " + IF_NOT_EXIST.toString() + " " + tableName.toString() + "(" +
-                    columns.toString() + " WITH PRIMARY KEY (" +
-                    primaryColumns.toString() + " )" +
+                    columns.toString() + ",\n PRIMARY KEY (" +
+                    primaryColumnsName.toString() + " )" +
                     ");";
-            /**
-             * primaryColumns also contains keywords (Optional)
-             * - " WITH PRIMARY KEY (" + primaryColumns.toString() + " )"
-             * Check the current command, column definitions (Whether it's followed by 'Primary key'
-             * - Across multiple Param
-             */
             return ret;
         }
 
@@ -144,7 +146,7 @@ public class CassandraCommands {
             Parameter primaryColumns = params.get(2);
 
             CassandraTable table = new CassandraTable(tableName, columns, primaryColumns);
-            ((CassandraState) state).addTable(table);
+            ((CassandraState) state).addTable(tableName.toString(), table);
         }
     }
 
@@ -168,19 +170,27 @@ public class CassandraCommands {
             assert state instanceof CassandraState;
             CassandraState cassandraState = (CassandraState) state;
 
-            ParameterType.ConcreteType TableNameType = new ParameterType.PickOneFromSetType(
+            ParameterType.ConcreteType TableNameType = new ParameterType.InCollectionType(
                     CONSTANTSTRINGType.instance,
-                    cassandraState.tables,
-                    p -> ((CassandraTable) p).name
+                    cassandraState.tables.keySet(),
+                    null
             );
             Parameter TableName = TableNameType.generateRandomParameter(cassandraState, this);
             this.params.add(TableName);
+
+            // Get specific table.
+
+//            ParameterType.ConcreteType columnsType = new ParameterType.MustContainType(
+//                    null,
+//
+//            );
 
             /**
              * TODO: Transfer TYPEType to exact values
              * - List<Pair<col1, TEXT>>
              * - List<Pair<col1,
              */
+//            ParameterType.ConcreteType Columns2Insert =
         }
 
         @Override

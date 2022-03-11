@@ -2,13 +2,15 @@ package org.zlab.upfuzz.cassandra;
 
 import org.zlab.upfuzz.State;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class CassandraState extends State {
-    public Set<CassandraTable> tables = new HashSet<>();
-    public void addTable(CassandraTable table) {
-        tables.add(table);
+    public Map<String, CassandraTable> tables = new HashMap<>();
+    public void addTable(String tableName, CassandraTable table) {
+        tables.put(tableName, table);
     }
 
     @Override

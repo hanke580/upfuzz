@@ -71,17 +71,23 @@ public abstract class ParameterType {
             while (!isValid(s, c, ret)) {
                 ret = t.generateRandomParameter(s, c);
             }
-            return new Parameter(this, ret.value);
+            return new Parameter(this, ret);
         }
 
         @Override
         public String generateStringValue(Parameter p) {
-            return t.generateStringValue(p);
+            return t.generateStringValue((Parameter) p.value);
         }
 
         @Override
         public boolean isValid(State s, Command c, Parameter p) {
-            return !((Collection<T>) configuration).stream().map(mapFunc).collect(Collectors.toSet()).contains(p.value);
+            if (((Collection<T>) configuration).isEmpty())
+                return true;
+            if (mapFunc == null) {
+                return !((Collection<T>) configuration).stream().collect(Collectors.toSet()).contains(p.value);
+            } else {
+                return !((Collection<T>) configuration).stream().map(mapFunc).collect(Collectors.toSet()).contains(p.value);
+            }
         }
 
         @Override
@@ -92,12 +98,12 @@ public abstract class ParameterType {
 
         @Override
         public boolean isEmpty(State s, Command c, Parameter p) {
-            return t.isEmpty(s, c, p);
+            return t.isEmpty(s, c, (Parameter) p.value);
         }
 
         @Override
         public void mutate(Command c, State s, Parameter p) {
-            t.mutate(c, s, p);
+            t.mutate(c, s, (Parameter) p.value);
         }
     }
 
@@ -113,21 +119,31 @@ public abstract class ParameterType {
 
         @Override
         public Parameter generateRandomParameter(State s, Command c) {
+            /**
+             *      p
+             *    /  \
+             *  this  ret
+             */
             Parameter ret = t.generateRandomParameter(s, c);
-            while (!isValid(s, c, ret)) {
+            while (t.isEmpty(s, c, ret)) {
                 ret = t.generateRandomParameter(s, c);
             }
-            return ret;
+            return new Parameter(this, ret);
         }
 
         @Override
         public String generateStringValue(Parameter p) {
-            return t.generateStringValue(p);
+            return t.generateStringValue((Parameter) p.value);
         }
 
         @Override
         public boolean isValid(State s, Command c, Parameter p) {
-            return !t.isEmpty(s, c, p);
+            /**
+             *      p
+             *    /  \
+             *  this  value2check
+             */
+            return !t.isEmpty(s, c, (Parameter) p.value);
         }
 
         @Override
@@ -143,7 +159,7 @@ public abstract class ParameterType {
 
         @Override
         public void mutate(Command c, State s, Parameter p) {
-            t.mutate(c, s, p);
+            t.mutate(c, s, (Parameter) p.value);
         }
     }
 
@@ -169,7 +185,6 @@ public abstract class ParameterType {
              * Current t should be concrete generic type List<xxx>
              * - Select from collection set
              */
-            assert t instanceof ConcreteGenericTypeOne;
 
             Object tmpCollection;
 
@@ -179,43 +194,44 @@ public abstract class ParameterType {
                 tmpCollection = (Collection) configuration;
             }
 
-            assert t instanceof ConcreteGenericTypeOne;
+            /**
+             * Pick a subset from the configuration, it will also be a list of parameters
+             * Return new Parameter(SubsetType, value)
+             */
 
-            ConcreteGenericType cGenericType = (ConcreteGenericType) t;
-            assert cGenericType.t instanceof LISTType;
+            List<Object> targetSet = new ArrayList<Object>((Collection<Object>) tmpCollection);
+            List<Object> value = new ArrayList<>();
 
-            cGenericType.t = new LISTType() {
-                @Override
-                public Parameter generateRandomParameter(State s, Command c, java.util.List<ConcreteType> typesInTemplate) {
-                    List<Object> targetSet = new ArrayList<Object>((Collection<Object>) tmpCollection);
-                    List<Object> value = new ArrayList<>();
+            if (targetSet.size() > 0) {
+                Random rand = new Random();
+                int setSize = rand.nextInt(targetSet.size() + 1); // specified by user
 
-                    if (targetSet.size() > 0) {
-                        Random rand = new Random();
-                        int setSize = rand.nextInt(targetSet.size()); // specified by user
-
-                        List<Integer> indexArray = new ArrayList<>();
-                        for (int i = 0; i < targetSet.size(); i++) {
-                            indexArray.add(i);
-                        }
-                        Collections.shuffle(indexArray);
-
-                        for (int i = 0; i < setSize; i++) {
-                            value.add(targetSet.get(indexArray.get(i))); // The targetSet should also store Parameter
-                        }
-                    }
-                    ConcreteType type = ConcreteGenericType.constructConcreteGenericType(instance, t); // LIST<WhateverType>
-                    return new Parameter(type, value);
+                List<Integer> indexArray = new ArrayList<>();
+                for (int i = 0; i < targetSet.size(); i++) {
+                    indexArray.add(i);
                 }
-            };
+                Collections.shuffle(indexArray);
 
-            return cGenericType.generateRandomParameter(s, c);
+                for (int i = 0; i < setSize; i++) {
+                    value.add(targetSet.get(indexArray.get(i))); // The targetSet should also store Parameter
+                }
+            }
+
+            return new Parameter(this, value);
         }
 
         @Override
         public String generateStringValue(Parameter p) {
             // TODO Auto-generated method stub
-            return "[TO IMPL]";
+            StringBuilder sb = new StringBuilder();
+            List<Parameter> l = (List<Parameter>) p.value;
+            for (int i = 0; i < l.size(); i++) {
+                sb.append(l.get(i).toString());
+                if (i < l.size() - 1) {
+                    sb.append(", ");
+                }
+            }
+            return sb.toString();
         }
 
         @Override
@@ -231,12 +247,85 @@ public abstract class ParameterType {
         @Override
         public boolean isEmpty(State s, Command c, Parameter p) {
             // TODO: Impl
-            return false;
+            return  ((List<Object>) p.value).isEmpty();
         }
 
         @Override
         public void mutate(Command c, State s, Parameter p) {
 
+        }
+    }
+
+    /**
+     * TODO: StreamMapType might not be a configurable type.
+     */
+    public static class StreamMapType extends ConfigurableType {
+
+        Function mapFunc;
+
+        public StreamMapType(ConcreteType t, Collection configuration, Function mapFunc) { // change to concreteGenericType
+            /**
+             * In this case, the ConcreteType should be List<Pair<xxx>>.
+             * The set we select from will be the target set targetSet. Let's suppose it's also List<Pair<TEXT, TYPEType>>
+             * - we rewrite the generateRandomParameter() in this concreteGenericType
+             * - Instead of calling t.generateValue function, it should now construct values by select from targetSet.
+             * - Do it by anonymous class extends List, and we write the subset generateRandomParameter() for it.
+             */
+            super(t, configuration);
+            this.mapFunc = mapFunc;
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c) {
+            /**
+             * Current t should be concrete generic type List<xxx>
+             * - Select from collection set
+             */
+
+            Object tmpCollection;
+
+            if (mapFunc != null) {
+                tmpCollection = ((Collection) configuration).stream().map(mapFunc).collect(Collectors.toList());
+            } else {
+                tmpCollection = (Collection) configuration;
+            }
+
+            return new Parameter(this, tmpCollection);
+        }
+
+        @Override
+        public String generateStringValue(Parameter p) {
+            // TODO: This method is not general
+            StringBuilder sb = new StringBuilder();
+            List<Parameter> l = (List<Parameter>) p.value;
+            for (int i = 0; i < l.size(); i++) {
+                sb.append(l.get(i).toString());
+                if (i < l.size() - 1)
+                    sb.append(", ");
+            }
+            return sb.toString();
+        }
+
+        @Override
+        public boolean isValid(State s, Command c, Parameter p) {
+            // TODO: Impl
+            return false;
+        }
+
+        @Override
+        public void regenerate(State s, Command c, Parameter p) {
+            // TODO: Impl
+        }
+
+        @Override
+        public boolean isEmpty(State s, Command c, Parameter p) {
+            // TODO: Impl
+            return false;
+        }
+
+        @Override
+        public void mutate(Command c, State s, Parameter p) {
+            // TODO: Impl
         }
     }
 
@@ -299,7 +388,7 @@ public abstract class ParameterType {
         }
     }
 
-    public static class PickOneFromSetType extends ConfigurableType {
+    public static class InCollectionType extends ConfigurableType {
         /**
          * For conflict options, not test yet.
          */
@@ -307,7 +396,7 @@ public abstract class ParameterType {
         public int idx;
         public final Function mapFunc;
 
-        public PickOneFromSetType(ConcreteType t, Collection configuration, Function mapFunc) {
+        public InCollectionType(ConcreteType t, Collection configuration, Function mapFunc) {
             super(t, configuration);
             this.mapFunc = mapFunc;
         }
@@ -315,8 +404,16 @@ public abstract class ParameterType {
         @Override
         public Parameter generateRandomParameter(State s, Command c) {
             // Pick one parameter from the collection
+            assert ((Collection) configuration).isEmpty() == false;
             Random rand = new Random();
-            List l = (List) (((Collection)configuration).stream().map(mapFunc).collect(Collectors.toList()));
+
+            List l;
+
+            if (mapFunc == null) {
+                l = (List) (((Collection)configuration).stream().collect(Collectors.toList()));
+            } else {
+                l = (List) (((Collection)configuration).stream().map(mapFunc).collect(Collectors.toList()));
+            }
             idx = rand.nextInt(l.size());
 
             Parameter ret = new Parameter(t, l.get(idx));
@@ -363,6 +460,88 @@ public abstract class ParameterType {
                 // Mutate current picked one. (But usually it will be picked from
                 // a specific fixed set. Set this to null for now.
                 assert false;
+            }
+        }
+    }
+
+
+    public static class MustContainType extends ConfigurableType {
+        /**
+         * For conflict options, not test yet.
+         */
+
+        public int idx;
+        public final Function mapFunc;
+
+        public MustContainType(ConcreteType t, Collection configuration, Function mapFunc) {
+            super(t, configuration);
+            this.mapFunc = mapFunc;
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c) {
+            /**
+             * use ConcreteType t to generate a parameter, it should be a concreteGenericType
+             * Check whether this parameter contains everything in the collection
+             * If not, add the rest to the collection
+             */
+            Parameter p = t.generateRandomParameter(s, c);
+            assert p.type instanceof ConcreteGenericTypeOne;
+            List<Parameter> l = (List<Parameter>) p.value;
+
+            List<Parameter> targetSet = (List) (((Collection)configuration).stream().map(mapFunc).collect(Collectors.toList()));
+
+            for (Parameter m : targetSet) {
+                if (!l.contains(m)) {
+                    l.add(m);
+                }
+            }
+
+            return new Parameter(this, p);
+        }
+
+        @Override
+        public String generateStringValue(Parameter p) {
+            return p.value.toString();
+        }
+
+        @Override
+        public boolean isValid(State s, Command c, Parameter p) {
+            assert p.value instanceof Parameter;
+            return ((Parameter) p.value).isValid(s, c);
+        }
+
+        @Override
+        public void regenerate(State s, Command c, Parameter p) {
+            Parameter ret = generateRandomParameter(s, c);
+            p.value = ret.value;
+        }
+
+        @Override
+        public boolean isEmpty(State s, Command c, Parameter p) {
+            return ((Parameter) p.value).type.isEmpty(s, c, (Parameter) p.value);
+        }
+
+        @Override
+        public void mutate(Command c, State s, Parameter p) {
+            /**
+             * 1. Call value.mutate
+             * 2. Make sure it's still valid
+             */
+
+            Parameter subParameter = (Parameter) p.value;
+
+            subParameter.mutate(s, c);
+            assert subParameter.type instanceof ConcreteGenericTypeOne;
+
+
+            List<Parameter> l = (List<Parameter>) subParameter.value;
+            List<Parameter> targetSet = (List) (((Collection)configuration).stream().map(mapFunc).collect(Collectors.toList()));
+
+            for (Parameter m : targetSet) {
+                if (!l.contains(m)) {
+                    l.add(m);
+                }
             }
         }
     }
@@ -432,6 +611,7 @@ public abstract class ParameterType {
         @Override
         public boolean isValid(State s, Command c, Parameter p) {
             // TODO: Impl
+            assert false;
             return false;
         }
 

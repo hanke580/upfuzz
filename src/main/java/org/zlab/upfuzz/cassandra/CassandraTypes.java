@@ -112,10 +112,10 @@ public class CassandraTypes {
     @Override
     public boolean isEmpty(State s, Command c, Parameter p, List<ConcreteType> types) {
       // Maybe add a isValid() here
+      assert 1 == 1;
 
-      return false;
+      return ((List<Parameter>) p.value).isEmpty();
     }
-
 
   }
 
