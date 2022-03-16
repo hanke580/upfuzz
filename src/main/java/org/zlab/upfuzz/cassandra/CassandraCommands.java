@@ -179,18 +179,6 @@ public class CassandraCommands {
             Parameter TableName = TableNameType.generateRandomParameter(cassandraState, this);
             this.params.add(TableName);
 
-            // Get specific table.
-            /**
-             * Constraints
-             * - It must contain the primary set
-             * - It must be the subset of the columns
-             * - It must not be empty
-             *
-             * NotEmpty(Mustcontain(Subset(columns) , primary_columns)))
-             * MustContain
-             * Input: type, a columns
-             */
-
             CassandraTable cassandraTable = cassandraState.tables.get(TableName.toString());
 
             ParameterType.ConcreteType columnsType = new ParameterType.MustContainType(
@@ -213,42 +201,22 @@ public class CassandraCommands {
             );
             Parameter insertValues = insertValuesType.generateRandomParameter(cassandraState, this);
             this.params.add(insertValues);
-            /**
-             * TODO: Transfer TYPEType to exact values
-             * - List<Pair<col1, TEXT>>
-             * - List<Pair<col1,
-             */
-//            ParameterType.ConcreteType Columns2Insert =
-
-
-
         }
 
         @Override
         public String constructCommandString() {
 
             Parameter tableName = params.get(0);
-
             ParameterType.ConcreteType columnNameType = new ParameterType.StreamMapType(
                     null,
                     (Collection) (params.get(1).getValue()),
                     p -> ((Pair) ((Parameter) p).getValue()).left
             );
             Parameter columnName = columnNameType.generateRandomParameter(null, null);
-
             Parameter insertValues = params.get(2);
 
-            System.out.println("INSERT COMMAND:");
-
-            /**
-             * INSERT INTO cycling.cyclist_name (id, lastname, firstname)
-             * VALUES (c4b65263-fe58-4846-83e8-f0e1c13d518f, 'RATTO', 'Rissella')
-             */
             StringBuilder sb = new StringBuilder();
-            sb.append("TableName: " + params.get(0).toString() + "\n");
-            sb.append("Columns: "+ params.get(1).toString() + "\n");
-            sb.append("InsertValues: "+ params.get(2).toString() + "\n");
-
+            sb.append("INSERT INTO " + tableName.toString() + " (" +  columnName.toString() + ") VALUES (" + insertValues.toString()  + ");");
             return sb.toString();
         }
 
