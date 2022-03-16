@@ -28,6 +28,7 @@ public abstract class ParameterType {
         public abstract void regenerate(State s, Command c, Parameter p);
         public abstract boolean isEmpty(State s, Command c, Parameter p);
         public abstract void mutate(Command c, State s, Parameter p);
+
     }
 
     public static abstract class GenericType extends ParameterType {
@@ -52,6 +53,19 @@ public abstract class ParameterType {
             this.configuration = configuration;
 //            this.mapFunc = mapFunc;
         }
+
+        /**
+         * Problem:
+         * There could be multiple constraints added in one parameters.
+         * But when we want to store them, we might want directly get
+         * access to the "real values" instead of those constraints
+         * Now if take off all the constraints, we will have the pure values
+         * Which will be
+         * List<String, CassandraTypes>
+         * If we only save the pure values, if will be very easy for use.
+         * But this value will need to be updated if it's mutated.
+         */
+
     }
 
     public static class NotInCollectionType <T,U> extends ConfigurableType {
@@ -174,6 +188,8 @@ public abstract class ParameterType {
              * - we rewrite the generateRandomParameter() in this concreteGenericType
              * - Instead of calling t.generateValue function, it should now construct values by select from targetSet.
              * - Do it by anonymous class extends List, and we write the subset generateRandomParameter() for it.
+             *
+             * TODO: This type can actually be removed. It can be used for checking.
              */
             super(t, configuration);
             this.mapFunc = mapFunc;
@@ -464,6 +480,83 @@ public abstract class ParameterType {
         }
     }
 
+    public static class Type2ValueType extends ConfigurableType {
+
+        Function mapFunc;
+
+        public Type2ValueType(ConcreteType t, Object configuration, Function mapFunc) {
+            super(t, configuration);
+            this.mapFunc = mapFunc;
+            // TODO: Make sure that configuration must be List<ConcreteTypes>
+            /**
+             * If the value is not corrected, regenerate or add some minor
+             * changes
+             *
+             * Do we need a notEmpty function?
+             */
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c) {
+
+            assert configuration instanceof List;
+
+            List<Parameter> l;
+            if (mapFunc != null) {
+                l = (List<Parameter>) ((Collection)configuration).stream().map(mapFunc).collect(Collectors.toList());
+            } else {
+                l = (List<Parameter>) configuration;
+            }
+
+            List<Parameter> ret = new LinkedList<>();
+
+            for (Parameter p : l) {
+                assert p.getValue() instanceof ConcreteType;
+                ConcreteType concreteType = (ConcreteType) p.getValue();
+                ret.add(concreteType.generateRandomParameter(s, c));
+            }
+
+            return new Parameter(this, ret);
+        }
+
+        @Override
+        public String generateStringValue(Parameter p) {
+            List<Parameter> l = (List<Parameter>) p.value;
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < l.size(); i++) {
+                sb.append(l.get(i).toString());
+                if (i < l.size() - 1) {
+                    sb.append(", ");
+                }
+            }
+            return sb.toString();
+        }
+
+        @Override
+        public boolean isValid(State s, Command c, Parameter p) {
+            /**
+             * Check each slot to see whether it's still valid.
+             * Check whether the list size is change
+             */
+            return false;
+        }
+
+        @Override
+        public void regenerate(State s, Command c, Parameter p) {
+
+        }
+
+        @Override
+        public boolean isEmpty(State s, Command c, Parameter p) {
+            return false;
+        }
+
+        @Override
+        public void mutate(Command c, State s, Parameter p) {
+
+        }
+    }
+
 
     public static class MustContainType extends ConfigurableType {
         /**
@@ -486,10 +579,15 @@ public abstract class ParameterType {
              * If not, add the rest to the collection
              */
             Parameter p = t.generateRandomParameter(s, c);
-            assert p.type instanceof ConcreteGenericTypeOne;
+//            assert p.type instanceof ConcreteGenericTypeOne;
             List<Parameter> l = (List<Parameter>) p.value;
 
-            List<Parameter> targetSet = (List) (((Collection)configuration).stream().map(mapFunc).collect(Collectors.toList()));
+            List<Parameter> targetSet;
+            if (mapFunc != null) {
+                targetSet = (List) (((Collection)configuration).stream().map(mapFunc).collect(Collectors.toList()));
+            } else {
+                targetSet = (List) (((Collection)configuration));
+            }
 
             for (Parameter m : targetSet) {
                 if (!l.contains(m)) {

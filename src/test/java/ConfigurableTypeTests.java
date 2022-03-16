@@ -17,12 +17,12 @@ public class ConfigurableTypeTests {
          * Before testing, make the STRINGType can only choose
          * from Tx, x = 1,2,...5
          */
-        s.addTable(new CassandraTable(new Parameter(STRINGType.instance, "T1"), null, null));
-        s.addTable(new CassandraTable(new Parameter(STRINGType.instance, "T2"), null, null));
-        s.addTable(new CassandraTable(new Parameter(STRINGType.instance, "T3"), null, null));
-
-        CassandraCommands.CREATETABLE cmd = new CassandraCommands.CREATETABLE(s);
-        System.out.println(cmd.constructCommandString());
+//        s.addTable(new CassandraTable(new Parameter(STRINGType.instance, "T1"), null, null));
+//        s.addTable(new CassandraTable(new Parameter(STRINGType.instance, "T2"), null, null));
+//        s.addTable(new CassandraTable(new Parameter(STRINGType.instance, "T3"), null, null));
+//
+//        CassandraCommands.CREATETABLE cmd = new CassandraCommands.CREATETABLE(s);
+//        System.out.println(cmd.constructCommandString());
 
     }
 

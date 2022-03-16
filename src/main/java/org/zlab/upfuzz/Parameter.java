@@ -41,8 +41,9 @@ public class Parameter {
          */
         if (this.value instanceof Parameter) {
             return ((Parameter) this.value).getValue();
+        } else {
+            return this.value;
         }
-        return null;
     }
 
     @Override

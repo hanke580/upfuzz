@@ -40,6 +40,7 @@ public class CassandraCommands {
 
     static {
         commandClassList.add(CREATETABLE.class);
+        commandClassList.add(INSERT.class);
     }
 
     /**
@@ -179,23 +180,76 @@ public class CassandraCommands {
             this.params.add(TableName);
 
             // Get specific table.
+            /**
+             * Constraints
+             * - It must contain the primary set
+             * - It must be the subset of the columns
+             * - It must not be empty
+             *
+             * NotEmpty(Mustcontain(Subset(columns) , primary_columns)))
+             * MustContain
+             * Input: type, a columns
+             */
 
-//            ParameterType.ConcreteType columnsType = new ParameterType.MustContainType(
-//                    null,
-//
-//            );
+            CassandraTable cassandraTable = cassandraState.tables.get(TableName.toString());
 
+            ParameterType.ConcreteType columnsType = new ParameterType.MustContainType(
+                    new ParameterType.SubsetType(
+                            null,
+                            cassandraTable.colName2Type,
+                            null
+                    ),
+                    cassandraTable.primaryColName2Type,
+                    null
+            );
+            Parameter columns = columnsType.generateRandomParameter(cassandraState, this);
+            this.params.add(columns);
+
+            ParameterType.ConcreteType insertValuesType = new ParameterType.Type2ValueType(
+                    null,
+                    columns.getValue(),
+                    p -> ((Pair) ((Parameter) p).value).right
+
+            );
+            Parameter insertValues = insertValuesType.generateRandomParameter(cassandraState, this);
+            this.params.add(insertValues);
             /**
              * TODO: Transfer TYPEType to exact values
              * - List<Pair<col1, TEXT>>
              * - List<Pair<col1,
              */
 //            ParameterType.ConcreteType Columns2Insert =
+
+
+
         }
 
         @Override
         public String constructCommandString() {
-            return this.params.get(0).toString();
+
+            Parameter tableName = params.get(0);
+
+            ParameterType.ConcreteType columnNameType = new ParameterType.StreamMapType(
+                    null,
+                    (Collection) (params.get(1).getValue()),
+                    p -> ((Pair) ((Parameter) p).getValue()).left
+            );
+            Parameter columnName = columnNameType.generateRandomParameter(null, null);
+
+            Parameter insertValues = params.get(2);
+
+            System.out.println("INSERT COMMAND:");
+
+            /**
+             * INSERT INTO cycling.cyclist_name (id, lastname, firstname)
+             * VALUES (c4b65263-fe58-4846-83e8-f0e1c13d518f, 'RATTO', 'Rissella')
+             */
+            StringBuilder sb = new StringBuilder();
+            sb.append("TableName: " + params.get(0).toString() + "\n");
+            sb.append("Columns: "+ params.get(1).toString() + "\n");
+            sb.append("InsertValues: "+ params.get(2).toString() + "\n");
+
+            return sb.toString();
         }
 
         @Override
