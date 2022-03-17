@@ -155,12 +155,27 @@ public class CommandSequence {
 
         for (int i = 0; i < len; i++) {
             // TODO: Prioritize create table like function, make sure they are at front.
-            int cmdIdx = rand.nextInt(commandClassList.size());
-            Class<? extends Command> clazz = commandClassList.get(cmdIdx);
-            Constructor<?> constructor = clazz.getConstructor(State.class);
 
-            Command cmd = (Command) constructor.newInstance(state);
-            cmd.updateState(state);
+
+            // TODO: More reasoning on this forever loop, could be bad choice.
+            Command cmd;
+
+            while (true) {
+                try {
+                    int cmdIdx = rand.nextInt(commandClassList.size());
+                    Class<? extends Command> clazz = commandClassList.get(cmdIdx);
+                    Constructor<?> constructor = clazz.getConstructor(State.class);
+
+                    cmd = (Command) constructor.newInstance(state);
+                    cmd.updateState(state);
+                    break;
+                } catch (Exception e) {
+//                    e.printStackTrace();
+//                    System.out.println("Exception with forever loop");
+                    continue;
+
+                }
+            }
             commands.add(cmd);
         }
         return new CommandSequence(commands, commandClassList, state);

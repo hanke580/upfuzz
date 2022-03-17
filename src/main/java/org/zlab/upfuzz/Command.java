@@ -26,9 +26,7 @@ public abstract class Command {
         Random rand = new Random();
         int mutateParamIdx = rand.nextInt(params.size());
 
-        mutateParamIdx = 0; // Debug
-
-        System.out.println("Mutate Param Pos = " + mutateParamIdx);
+        System.out.println("\n Mutate Param Pos = " + mutateParamIdx);
 
         params.get(mutateParamIdx).mutate(s, this);
     }

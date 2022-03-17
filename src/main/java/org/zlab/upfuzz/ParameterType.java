@@ -400,7 +400,7 @@ public abstract class ParameterType {
              */
             Random rand = new Random();
             assert p.type instanceof OptionalType;
-            ((OptionalType) p.type).isEmpty = rand.nextBoolean();
+            ((OptionalType) p.type).isEmpty = !((OptionalType) p.type).isEmpty;
         }
     }
 
@@ -445,7 +445,20 @@ public abstract class ParameterType {
         @Override
         public boolean isValid(State s, Command c, Parameter p) {
             assert p.value instanceof Parameter;
+
             return ((Parameter) p.value).isValid(s, c);
+
+//            List l;
+//            if (mapFunc == null) {
+//                l = (List) (((Collection)configuration).stream().collect(Collectors.toList()));
+//            } else {
+//                l = (List) (((Collection)configuration).stream().map(mapFunc).collect(Collectors.toList()));
+//            }
+//            if (l.contains(p.value)) {
+//                return ((Parameter) p.value).isValid(s, c);
+//            } else {
+//                return false;
+//            }
         }
 
         @Override
@@ -491,7 +504,6 @@ public abstract class ParameterType {
             /**
              * If the value is not corrected, regenerate or add some minor
              * changes
-             *
              * Do we need a notEmpty function?
              */
         }
@@ -543,30 +555,36 @@ public abstract class ParameterType {
 
         @Override
         public void regenerate(State s, Command c, Parameter p) {
-
+            Parameter ret = generateRandomParameter(s, c);
+            p.value = ret.value;
         }
 
         @Override
         public boolean isEmpty(State s, Command c, Parameter p) {
-            return false;
+            /**
+             * Return whether the current list is empty or not
+             */
+            return ((Collection) configuration).isEmpty();
         }
 
         @Override
         public void mutate(Command c, State s, Parameter p) {
-
+            // TODO: Multiple level mutation!
+            // Now only regenerate everything
+            Parameter ret = generateRandomParameter(s, c);
+            p.value = ret.value;
         }
     }
 
 
-    public static class MustContainType extends ConfigurableType {
+    public static class SuperSetType extends ConfigurableType {
         /**
          * For conflict options, not test yet.
          */
-
         public int idx;
         public final Function mapFunc;
 
-        public MustContainType(ConcreteType t, Collection configuration, Function mapFunc) {
+        public SuperSetType(ConcreteType t, Collection configuration, Function mapFunc) {
             super(t, configuration);
             this.mapFunc = mapFunc;
         }

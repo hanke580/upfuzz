@@ -104,7 +104,6 @@ public class CassandraCommands {
                             columnsType,
                             (Collection) ((Parameter)(columns.value)).value,
                             null
-//                            p -> ((Pair<Parameter, Parameter>) ((Parameter) p).value).left
                     )
                 );
 
@@ -179,9 +178,9 @@ public class CassandraCommands {
             Parameter TableName = TableNameType.generateRandomParameter(cassandraState, this);
             this.params.add(TableName);
 
-            CassandraTable cassandraTable = cassandraState.tables.get(TableName.toString());
 
-            ParameterType.ConcreteType columnsType = new ParameterType.MustContainType(
+            CassandraTable cassandraTable = cassandraState.tables.get(TableName.toString());
+            ParameterType.ConcreteType columnsType = new ParameterType.SuperSetType(
                     new ParameterType.SubsetType(
                             null,
                             cassandraTable.colName2Type,
@@ -192,6 +191,7 @@ public class CassandraCommands {
             );
             Parameter columns = columnsType.generateRandomParameter(cassandraState, this);
             this.params.add(columns);
+
 
             ParameterType.ConcreteType insertValuesType = new ParameterType.Type2ValueType(
                     null,
