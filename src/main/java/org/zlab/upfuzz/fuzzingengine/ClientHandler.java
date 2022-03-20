@@ -1,0 +1,119 @@
+
+package org.zlab.upfuzz.fuzzingengine;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import org.jacoco.core.data.ExecutionData;
+import org.jacoco.core.data.ExecutionDataStore;
+import org.jacoco.core.data.ExecutionDataWriter;
+import org.jacoco.core.data.IExecutionDataVisitor;
+import org.jacoco.core.data.ISessionInfoVisitor;
+import org.jacoco.core.data.SessionInfo;
+import org.jacoco.core.runtime.RemoteControlReader;
+import org.jacoco.core.runtime.RemoteControlWriter;
+
+public class ClientHandler implements Runnable, ISessionInfoVisitor, IExecutionDataVisitor {
+    private final FuzzingClient client;
+    private final Socket socket;
+    private String sessionId;
+    private SessionInfo sesInfo;
+
+    private final RemoteControlReader reader;
+    private final RemoteControlWriter writer;
+
+    private final ExecutionDataWriter fileWriter;
+
+    private final int maxn = 10240;
+
+    private boolean registered = false;
+
+    private byte[] buffer;
+
+    ClientHandler(final FuzzingClient client, final Socket socket, ExecutionDataWriter fileWriter) throws IOException {
+        this.client = client;
+        this.socket = socket;
+        this.fileWriter = fileWriter;
+
+        // Just send a valid header:
+        writer = new RemoteControlWriter(socket.getOutputStream());
+
+        reader = new RemoteControlReader(socket.getInputStream());
+        reader.setSessionInfoVisitor(this);
+        reader.setExecutionDataVisitor(this);
+        buffer = new byte[maxn];
+    }
+
+    @Override
+    public void run() {
+        try {
+            while (reader.read()) {
+            }
+            socket.close();
+            synchronized (fileWriter) {
+                fileWriter.flush();
+            }
+        } catch (final IOException e) {
+            e.printStackTrace();
+            client.agentHandler.remove(sessionId);
+        }
+    }
+
+    private void register(SessionInfo info) {
+        client.agentHandler.put(sessionId, this);
+        sesInfo = info;
+        sessionId = info.getId();
+        String[] sessionSplit = sessionId.split("-");
+        if (sessionSplit.length != 3) {
+            System.err.println("Invalid sessionId " + sessionId);
+            return;
+        }
+        String identifier = sessionSplit[0], version = sessionSplit[1], index = sessionSplit[2];
+        if (!client.sessionGroup.containsKey(sessionId)) {
+            client.sessionGroup.put(sessionId, new ArrayList<>());
+        }
+        client.sessionGroup.get(sessionId).add(sessionId);
+        registered = true;
+    }
+
+    public void visitSessionInfo(final SessionInfo info) {
+        if (!registered) {
+            register(info);
+        }
+        System.out.printf("Retrieving execution Data for session: %s%n", info.getId());
+        synchronized (fileWriter) {
+            fileWriter.visitSessionInfo(info);
+        }
+    }
+
+    public void visitClassExecution(final ExecutionData data) {
+        if (client.agentStore.containsKey(sessionId)) {
+            ExecutionDataStore store = client.agentStore.get(sessionId);
+
+            ExecutionData preData = store.get(data.getId());
+            if (preData != null) {
+                // FIXME take the maxinum value when merging data
+                data.merge(preData, false);
+            }
+            store.put(data);
+        } else {
+            ExecutionDataStore store = new ExecutionDataStore();
+            store.put(data);
+            client.agentStore.put(sessionId, store);
+        }
+        synchronized (fileWriter) {
+            fileWriter.visitClassExecution(data);
+        }
+    }
+
+    public void collect() throws IOException {
+        writer.visitDumpCommand(true, false);
+    }
+}

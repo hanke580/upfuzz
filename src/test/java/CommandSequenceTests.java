@@ -7,7 +7,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 public class CommandSequenceTests {
-    @Test
+    // @Test
     public void testSequenceGeneration() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException, InstantiationException {
 
         CassandraState state = new CassandraState();

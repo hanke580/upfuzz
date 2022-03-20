@@ -434,7 +434,8 @@ public abstract class ParameterType {
 
             Parameter ret = new Parameter(t, l.get(idx));
 
-            return new Parameter(this, ret);
+            // return new Parameter(this, ret);
+            return new Parameter(this, l.get(idx));
         }
 
         @Override
@@ -493,6 +494,60 @@ public abstract class ParameterType {
         }
     }
 
+    public static class ConcatenateType<T> extends ConfigurableType {
+
+        // static public ConcatenateType<Object> instance = new ConcatenateType<>(null, null);
+
+        public ConcatenateType(ConcreteType t, Collection<T> configuration) {
+            super(t, configuration);
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c) {
+            List<Object> value = new ArrayList<Object>((Collection<Object>) configuration);
+
+            return new Parameter(this, value);
+        }
+
+        @Override
+        public String generateStringValue(Parameter p) {
+            StringBuilder sb = new StringBuilder();
+            List<Object> l = (List<Object>) p.value;
+            for (int i = 0; i < l.size(); i++) {
+                sb.append(l.get(i).toString());
+                if (i < l.size() - 1) {
+                    sb.append(" ");
+                }
+            }
+            return sb.toString();
+        }
+
+        @Override
+        public boolean isValid(State s, Command c, Parameter p) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        @Override
+        public void regenerate(State s, Command c, Parameter p) {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public boolean isEmpty(State s, Command c, Parameter p) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        @Override
+        public void mutate(Command c, State s, Parameter p) {
+            // TODO Auto-generated method stub
+
+        }
+
+    }
+    
     public static class Type2ValueType extends ConfigurableType {
 
         Function mapFunc;
@@ -648,7 +703,7 @@ public abstract class ParameterType {
             Parameter subParameter = (Parameter) p.value;
 
             subParameter.mutate(s, c);
-            assert subParameter.type instanceof ConcreteGenericTypeOne;
+            // assert subParameter.type instanceof ConcreteGenericTypeOne;
 
 
             List<Parameter> l = (List<Parameter>) subParameter.value;
