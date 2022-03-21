@@ -4,15 +4,12 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.zlab.upfuzz.cassandra.CassandraTypes.LISTType;
-
 /**
  * How a parameter can be generated is only defined in its type.
  * If you want special rules for a parameter, you need to implement a type class for it.
  */
 public abstract class ParameterType {
 
-//    public abstract void mutate(State state, Object value);
 
     public static abstract class ConcreteType extends ParameterType {
         /**
@@ -24,10 +21,16 @@ public abstract class ParameterType {
         public abstract Parameter generateRandomParameter(State s, Command c);
         public abstract String generateStringValue(Parameter p); // Maybe this should be in Parameter class? It has the concrete type anyways.
 
+        /**
+         *                         p     <- input parameter p
+         *                        / \
+         *                       /   \
+         *    this (type) ->   type value
+         */
         public abstract boolean isValid(State s, Command c, Parameter p);
         public abstract void regenerate(State s, Command c, Parameter p);
         public abstract boolean isEmpty(State s, Command c, Parameter p);
-        public abstract void mutate(Command c, State s, Parameter p);
+        public abstract void mutate(State s, Command c, Parameter p);
 
     }
 
@@ -36,6 +39,7 @@ public abstract class ParameterType {
         public abstract Parameter generateRandomParameter(State s, Command c, List<ConcreteType> types);
         public abstract String generateStringValue(Parameter p, List<ConcreteType> types); // Maybe this should be in Parameter class? It has the concrete type anyways.
         public abstract boolean isEmpty(State s, Command c, Parameter p, List<ConcreteType> types);
+        public abstract void mutate(State s, Command c, Parameter p, List<ConcreteType> types);
     }
 
     /**
@@ -116,8 +120,8 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void mutate(Command c, State s, Parameter p) {
-            t.mutate(c, s, (Parameter) p.value);
+        public void mutate(State s, Command c, Parameter p) {
+            t.mutate(s, c, (Parameter) p.value);
         }
     }
 
@@ -172,8 +176,8 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void mutate(Command c, State s, Parameter p) {
-            t.mutate(c, s, (Parameter) p.value);
+        public void mutate(State s, Command c, Parameter p) {
+            t.mutate(s, c, (Parameter) p.value);
         }
     }
 
@@ -252,6 +256,7 @@ public abstract class ParameterType {
 
         @Override
         public boolean isValid(State s, Command c, Parameter p) {
+            // TODO: Check
             return false;
         }
 
@@ -262,13 +267,13 @@ public abstract class ParameterType {
 
         @Override
         public boolean isEmpty(State s, Command c, Parameter p) {
-            // TODO: Impl
             return  ((List<Object>) p.value).isEmpty();
         }
 
         @Override
-        public void mutate(Command c, State s, Parameter p) {
-
+        public void mutate(State s, Command c, Parameter p) {
+            Parameter ret = generateRandomParameter(s, c);
+            p.value = ret.value;
         }
     }
 
@@ -340,7 +345,7 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void mutate(Command c, State s, Parameter p) {
+        public void mutate(State s, Command c, Parameter p) {
             // TODO: Impl
         }
     }
@@ -357,17 +362,12 @@ public abstract class ParameterType {
         public Parameter generateRandomParameter(State s, Command c) {
             Random rand = new Random();
             isEmpty = rand.nextBoolean();
-            if (isEmpty) {
-                return new Parameter(this, null);
-            } else {
-                Parameter ret = t.generateRandomParameter(s, c);
-                return new Parameter(this, ret.value);
-            }
+            return new Parameter(this, t.generateRandomParameter(s, c));
         }
 
         @Override
         public String generateStringValue(Parameter p) {
-            return isEmpty? "": t.generateStringValue(p);
+            return isEmpty? "": ((Parameter) p.value).toString();
         }
 
         @Override
@@ -390,7 +390,7 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void mutate(Command c, State s, Parameter p) {
+        public void mutate(State s, Command c, Parameter p) {
             /**
              * There should be two choices.
              * 1. Mutate current state.
@@ -398,7 +398,6 @@ public abstract class ParameterType {
              * Since the optional parameters are likely to be a constant,
              * we only mutate current isEmpty for now.
              */
-            Random rand = new Random();
             assert p.type instanceof OptionalType;
             ((OptionalType) p.type).isEmpty = !((OptionalType) p.type).isEmpty;
         }
@@ -445,26 +444,22 @@ public abstract class ParameterType {
         @Override
         public boolean isValid(State s, Command c, Parameter p) {
             assert p.value instanceof Parameter;
-
-            return ((Parameter) p.value).isValid(s, c);
-
-//            List l;
-//            if (mapFunc == null) {
-//                l = (List) (((Collection)configuration).stream().collect(Collectors.toList()));
-//            } else {
-//                l = (List) (((Collection)configuration).stream().map(mapFunc).collect(Collectors.toList()));
-//            }
-//            if (l.contains(p.value)) {
-//                return ((Parameter) p.value).isValid(s, c);
-//            } else {
-//                return false;
-//            }
+            List l;
+            if (mapFunc == null) {
+                l = (List) (((Collection)configuration).stream().collect(Collectors.toList()));
+            } else {
+                l = (List) (((Collection)configuration).stream().map(mapFunc).collect(Collectors.toList()));
+            }
+            if (l.contains(p.value)) {
+                return ((Parameter) p.value).isValid(s, c);
+            } else {
+                return false;
+            }
         }
 
         @Override
         public void regenerate(State s, Command c, Parameter p) {
-            Parameter ret = generateRandomParameter(s, c);
-            p.value = ret.value;
+            p.value = generateRandomParameter(s, c);
         }
 
         @Override
@@ -473,7 +468,7 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void mutate(Command c, State s, Parameter p) {
+        public void mutate(State s, Command c, Parameter p) {
             /**
              * 1. Repick one from the set.
              * 2. Mutate the current picked one
@@ -568,7 +563,7 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void mutate(Command c, State s, Parameter p) {
+        public void mutate(State s, Command c, Parameter p) {
             // TODO: Multiple level mutation!
             // Now only regenerate everything
             Parameter ret = generateRandomParameter(s, c);
@@ -639,26 +634,12 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void mutate(Command c, State s, Parameter p) {
+        public void mutate(State s, Command c, Parameter p) {
             /**
              * 1. Call value.mutate
              * 2. Make sure it's still valid
              */
-
-            Parameter subParameter = (Parameter) p.value;
-
-            subParameter.mutate(s, c);
-            assert subParameter.type instanceof ConcreteGenericTypeOne;
-
-
-            List<Parameter> l = (List<Parameter>) subParameter.value;
-            List<Parameter> targetSet = (List) (((Collection)configuration).stream().map(mapFunc).collect(Collectors.toList()));
-
-            for (Parameter m : targetSet) {
-                if (!l.contains(m)) {
-                    l.add(m);
-                }
-            }
+            p.value = generateRandomParameter(s, c).value;
         }
     }
 
@@ -742,7 +723,8 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void mutate(Command c, State s, Parameter p) {
+        public void mutate(State s, Command c, Parameter p) {
+            t.mutate(s, c, p, typesInTemplate);
 
         }
     }
@@ -772,7 +754,7 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void mutate(Command c, State s, Parameter p) {
+        public void mutate(State s, Command c, Parameter p) {
 
         }
     }

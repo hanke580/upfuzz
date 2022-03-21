@@ -41,7 +41,7 @@ public class INTType extends ParameterType.ConcreteType {
     }
 
     @Override
-    public void mutate(Command c, State s, Parameter p) {
+    public void mutate(State s, Command c, Parameter p) {
 
     }
 }

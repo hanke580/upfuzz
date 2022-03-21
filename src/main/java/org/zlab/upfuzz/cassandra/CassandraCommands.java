@@ -111,7 +111,7 @@ public class CassandraCommands {
             params.add(primaryColumns);
 
             ParameterType.ConcreteType IF_NOT_EXISTType = new ParameterType.OptionalType(
-                    new CONSTANTSTRINGType("IF NOT EXIST"), null   // TODO: Make a pure CONSTANTType
+                    new CONSTANTSTRINGType("IF NOT EXISTS"), null   // TODO: Make a pure CONSTANTType
             );
             Parameter IF_NOT_EXIST = IF_NOT_EXISTType.generateRandomParameter(cassandraState, this);
             params.add(IF_NOT_EXIST);

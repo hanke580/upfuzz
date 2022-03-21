@@ -25,7 +25,7 @@ public abstract class Command {
             IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         Random rand = new Random();
         int mutateParamIdx = rand.nextInt(params.size());
-
+        mutateParamIdx = 0;
         System.out.println("\n Mutate Param Pos = " + mutateParamIdx);
 
         params.get(mutateParamIdx).mutate(s, this);

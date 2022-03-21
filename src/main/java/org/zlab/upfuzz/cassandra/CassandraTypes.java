@@ -38,6 +38,8 @@ public class CassandraTypes {
     /**
      * The difference between TEXTType and STRINGType is generateStringValue func,
      * For TEXT, it needs to be enclosed by ''.
+     *
+     * Also TEXT cannot be empty.
      */
     public static final TEXTType instance = new TEXTType();
     public static final String signature = ""; // TODO: Choose the right signature
@@ -46,7 +48,10 @@ public class CassandraTypes {
 
     @Override
     public Parameter generateRandomParameter(State s, Command c) {
-      // TODO: generate a random string.
+      String str = generateRandomString();
+      while (str.isEmpty()) {
+        str = generateRandomString();
+      }
       return new Parameter(TEXTType.instance, generateRandomString());
     }
 
@@ -55,7 +60,18 @@ public class CassandraTypes {
       assert Objects.equals(p.type, instance);
       assert p.value instanceof String;
       return  "'" + (String) p.value + "'";
+    }
 
+    @Override
+    public void mutate(State s, Command c, Parameter p) {
+      Parameter tmpParam = new Parameter(this, p.value);
+      super.mutate(s, c, tmpParam);
+      // Make sure after the mutation, the value is still not empty
+      while (tmpParam.isEmpty(s, c) == true) {
+        tmpParam.value = p.value;
+        super.mutate(s, c, tmpParam);
+      }
+      p.value = tmpParam.value;
     }
   }
 
@@ -70,14 +86,14 @@ public class CassandraTypes {
     public LISTType() {}
 
     @Override
-    public Parameter generateRandomParameter(State s, Command c, List<ConcreteType> typesInTemplate) {
+    public Parameter generateRandomParameter(State s, Command c, List<ConcreteType> types) {
       // (Pair<TEXT,TYPE>)
       List<Parameter> value = new ArrayList<>();
 
       int bound = 10; // specified by user
       int len = new Random().nextInt(bound);
 
-      ConcreteType t = typesInTemplate.get(0);
+      ConcreteType t = types.get(0);
 
       for (int i = 0; i < len; i++) {
         value.add(t.generateRandomParameter(s, c));
@@ -87,17 +103,8 @@ public class CassandraTypes {
       return new Parameter(type, value);
     }
 
-//    @Override
-//    void mutate() {
-//      /**
-//       * List mutation
-//       * 1. Regenerate list
-//       * 2. Pick one item, mutate it! (t.mutate())
-//       */
-//    }
-
     @Override
-    public String generateStringValue(Parameter p, List<ConcreteType> typesInTemplate) {
+    public String generateStringValue(Parameter p, List<ConcreteType> types) {
       StringBuilder sb = new StringBuilder();
 
       List<Parameter> value = (List<Parameter>) p.value;
@@ -112,11 +119,26 @@ public class CassandraTypes {
     @Override
     public boolean isEmpty(State s, Command c, Parameter p, List<ConcreteType> types) {
       // Maybe add a isValid() here
-      assert 1 == 1;
-
       return ((List<Parameter>) p.value).isEmpty();
     }
 
+    @Override
+    public void mutate(State s, Command c, Parameter p, List<ConcreteType> types) {
+      p.value = generateRandomParameter(s, c, types).value;
+    }
+
+
+//    @Override
+//    public void mutate(State s, Command c, Parameter p) {
+//      /**
+//       * 1. [Dramatic Change] Regenerate the list
+//       * 2. [Medium Change] Pick some item, call their mutate function
+//       * 3. [Small Change] Pick one item, call their mutate function
+//       */
+//      p.value = generateStringValue(p, types);
+//
+//
+//    }
   }
 
   /**
@@ -212,7 +234,7 @@ public class CassandraTypes {
     }
 
     @Override
-    public void mutate(Command c, State s, Parameter p) {
+    public void mutate(State s, Command c, Parameter p) {
 
     }
 

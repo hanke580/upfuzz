@@ -3,7 +3,6 @@ package org.zlab.upfuzz.utils;
 import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.State;
-import java.util.Random;
 
 public class CONSTANTSTRINGType extends STRINGType {
     /**
@@ -37,5 +36,5 @@ public class CONSTANTSTRINGType extends STRINGType {
     }
 
     @Override
-    public void mutate(Command c, State s, Parameter p) {}
+    public void mutate(State s, Command c, Parameter p) {}
 }

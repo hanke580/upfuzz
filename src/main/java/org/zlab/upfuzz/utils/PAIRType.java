@@ -41,5 +41,10 @@ public class PAIRType extends ParameterType.GenericTypeTwo {
   public boolean isEmpty(State s, Command c, Parameter p, List<ConcreteType> types) {
     return false;
   }
+
+  @Override
+  public void mutate(State s, Command c, Parameter p, List<ConcreteType> types) {
+    p.value = generateRandomParameter(s, c, types).value;
+  }
 }
 

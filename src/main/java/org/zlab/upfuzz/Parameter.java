@@ -10,8 +10,12 @@ public class Parameter {
         this.value = value;
     }
 
+    public boolean isEmpty(State s, Command c) {
+        return type.isEmpty(s, c, this);
+    }
+
     public void mutate(State s, Command c) {
-        type.mutate(c, s, this);
+        type.mutate(s, c, this);
         System.out.println("hello mutation");
     }
 
@@ -50,5 +54,7 @@ public class Parameter {
     public String toString() {
         return type.generateStringValue(this);
     }
+
+
 
 }

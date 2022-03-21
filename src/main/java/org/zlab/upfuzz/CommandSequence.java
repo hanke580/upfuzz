@@ -16,6 +16,40 @@ public class CommandSequence {
     public final State state;
     // TODO: More reasoning about the state.
 
+    public final static int RETRY_GENERATE_TIME = 20;
+
+    public static Command generateSingleCommand(List<Class<? extends Command>> commandClassList,
+                                                State state) {
+        Command command = null;
+        Random rand = new Random();
+        assert commandClassList.isEmpty() == false;
+        /**
+         * Set Retry time is to avoid forever loop when all
+         * the commands cannot be generated correctly.
+         */
+        for (int i = 0; i < RETRY_GENERATE_TIME; i++) {
+            try {
+                int cmdIdx = rand.nextInt(commandClassList.size());
+                Class<? extends Command> clazz = commandClassList.get(cmdIdx);
+                Constructor<?> constructor = clazz.getConstructor(State.class);
+
+                command = (Command) constructor.newInstance(state);
+                command.updateState(state);
+                break;
+            } catch (Exception e) {
+//                    e.printStackTrace();
+//                    System.out.println("Exception with forever loop");
+                command = null;
+                continue;
+            }
+        }
+        if (command == null) {
+            System.out.println("A problem with generating single command");
+            System.exit(1);
+        }
+        return command;
+    }
+
     public CommandSequence(List<Command> commands,
                            List<Class<? extends Command>> commandClassList,
                            State state) {
@@ -24,15 +58,6 @@ public class CommandSequence {
         this.state = state;
     }
 
-    /**
-     * TestSequence mutate()
-     * - Need to do all level mutation, including the command pool
-     * - Return a new mutated test sequence
-     * Decide the level of mutation.
-     * 1. Insert a command.
-     * 2. Replace a command.
-     * 3. Delete a command.
-     */
     public CommandSequence mutate(State state) {
 
         Random rand = new Random();
@@ -45,17 +70,29 @@ public class CommandSequence {
          * 3: Mutate the command (Call command.mutate)
          */
         // TODO: Impl the rest two choices.
-        choice = 3; // DEBUG
+//        choice = 3; // DEBUG
+        switch (choice) {
+            case 0:
+                System.out.println("insert a command");
+                break;
+            case 1:
+                System.out.println("replace a command");
+                break;
+            case 2:
+                System.out.println("delete a command");
+                break;
+            case 3:
+                System.out.println("mutate a specific command");
+        }
 
         assert commands.size() > 0;
         // pos to insert
         int pos = rand.nextInt(commands.size());
-        System.out.println("\n pos = " + pos + "\n");
+        System.out.println("Mutate Command Index = " + pos);
 
         state.clearState();
 
-
-
+        // Compute the state up to the position
         for (int i = 0; i < pos; i++) {
             commands.get(i).updateState(state);
         }
@@ -77,48 +114,31 @@ public class CommandSequence {
              * 1. Purely random generate one from this state.
              * 2. (TODO) Pick command from the command pool
              */
-            int cmdIdx = rand.nextInt(commandClassList.size());
-            Class<? extends Command> clazz = commandClassList.get(cmdIdx);
-            Constructor<?> constructor = null;
-            try {
-                constructor = clazz.getConstructor(State.class);
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();
-            }
+            Command command = generateSingleCommand(commandClassList, state);
 
-            Command cmd = null;
-            try {
-                assert constructor != null;
-                cmd = (Command) constructor.newInstance(state);
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
-            }
-            assert cmd != null;
-
-            System.out.println("Added command : " + cmd.constructCommandString());
+            System.out.println("Added command : " + command.constructCommandString());
             System.out.println("\n");
 
-            cmd.updateState(state);
-            commands.add(pos, cmd);
+            commands.add(pos, command);
+            commands.get(pos).updateState(state);
 
-            // Invoke check() function from the that position
-            for (int i = pos + 1; i < commands.size(); i++) {
-                commands.get(i).regenerateIfNotValid(state, commands.get(i)); // same func as regenerateIfNotValid
-                commands.get(i).updateState(state);
-            }
         } else if (choice == 1) {
             // Replace a command
             /**
-             * 1. Generate a new command / Pick command from the command pool (Not impl yet)
-             * 2. Delete that command, and add the newly generated command in that place
+             * TODO: Pick from the command pool
              */
-
+            Command command = generateSingleCommand(commandClassList, state);
+            commands.remove(pos);
+            commands.add(command);
         } else if (choice == 2) {
             // Delete a command
+            commands.remove(pos);
+            pos -= 1;
         } else {
             // Mutate a specific command
             try {
                 commands.get(pos).mutate(state);
+                commands.get(pos).updateState(state);
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             } catch (NoSuchMethodException e) {
@@ -126,11 +146,11 @@ public class CommandSequence {
             } catch (InvocationTargetException e) {
                 e.printStackTrace();
             }
-            // Invoke check() function from the that position
-            for (int i = pos + 1; i < commands.size(); i++) {
-                commands.get(i).regenerateIfNotValid(state, commands.get(i)); // same func as regenerateIfNotValid
-                commands.get(i).updateState(state);
-            }
+        }
+        // Check the following commands
+        for (int i = pos + 1; i < commands.size(); i++) {
+            commands.get(i).regenerateIfNotValid(state, commands.get(i)); // same func as regenerateIfNotValid
+            commands.get(i).updateState(state);
         }
         return this;
     }
@@ -155,28 +175,7 @@ public class CommandSequence {
 
         for (int i = 0; i < len; i++) {
             // TODO: Prioritize create table like function, make sure they are at front.
-
-
-            // TODO: More reasoning on this forever loop, could be bad choice.
-            Command cmd;
-
-            while (true) {
-                try {
-                    int cmdIdx = rand.nextInt(commandClassList.size());
-                    Class<? extends Command> clazz = commandClassList.get(cmdIdx);
-                    Constructor<?> constructor = clazz.getConstructor(State.class);
-
-                    cmd = (Command) constructor.newInstance(state);
-                    cmd.updateState(state);
-                    break;
-                } catch (Exception e) {
-//                    e.printStackTrace();
-//                    System.out.println("Exception with forever loop");
-                    continue;
-
-                }
-            }
-            commands.add(cmd);
+            commands.add(generateSingleCommand(commandClassList, state));
         }
         return new CommandSequence(commands, commandClassList, state);
     }
