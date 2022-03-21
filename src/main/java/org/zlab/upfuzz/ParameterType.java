@@ -1,5 +1,7 @@
 package org.zlab.upfuzz;
 
+import org.zlab.upfuzz.cassandra.CassandraCommands;
+
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -49,10 +51,10 @@ public abstract class ParameterType {
      */
     public static abstract class ConfigurableType extends ConcreteType {
         public final ConcreteType t;
-        public final Object configuration;
+        public final FetchCollectionLambda configuration;
 //        public final Function mapFunc;
 
-        public ConfigurableType(ConcreteType t, Object configuration) {
+        public ConfigurableType(ConcreteType t, FetchCollectionLambda configuration) {
             this.t = t;
             this.configuration = configuration;
 //            this.mapFunc = mapFunc;
@@ -78,7 +80,7 @@ public abstract class ParameterType {
 
         // Example of mapFunc:
         // Parameter p -> p.value.left // p's ParameterType is Pair<TEXT, TEXTType>
-        public NotInCollectionType(ConcreteType t, Collection<T> configuration, Function<T, U> mapFunc) {
+        public NotInCollectionType(ConcreteType t, FetchCollectionLambda configuration, Function<T, U> mapFunc) {
             super(t, configuration);
             this.mapFunc = mapFunc;
         }
@@ -86,6 +88,7 @@ public abstract class ParameterType {
         @Override
         public Parameter generateRandomParameter(State s, Command c) {
             Parameter ret = t.generateRandomParameter(s, c); // ((Pair<TEXTType, TYPEType>)ret.value).left
+            // TODO: Don't compute this every time.
             while (!isValid(s, c, ret)) {
                 ret = t.generateRandomParameter(s, c);
             }
@@ -99,12 +102,13 @@ public abstract class ParameterType {
 
         @Override
         public boolean isValid(State s, Command c, Parameter p) {
-            if (((Collection<T>) configuration).isEmpty())
+            Collection<T> targetCollection = configuration.operate(s, c);
+            if (((Collection<T>) targetCollection).isEmpty())
                 return true;
             if (mapFunc == null) {
-                return !((Collection<T>) configuration).stream().collect(Collectors.toSet()).contains(p.value);
+                return !((Collection<T>) targetCollection).stream().collect(Collectors.toSet()).contains(p.value);
             } else {
-                return !((Collection<T>) configuration).stream().map(mapFunc).collect(Collectors.toSet()).contains(p.value);
+                return !((Collection<T>) targetCollection).stream().map(mapFunc).collect(Collectors.toSet()).contains(p.value);
             }
         }
 
@@ -132,7 +136,7 @@ public abstract class ParameterType {
         }
 
         public NotEmpty(ConcreteType t, Object configuration) {
-            super(t, configuration);
+            super(t, null);
         }
 
         @Override
@@ -185,7 +189,8 @@ public abstract class ParameterType {
 
         Function mapFunc;
 
-        public SubsetType(ConcreteType t, Collection<T> configuration, Function mapFunc) { // change to concreteGenericType
+
+        public SubsetType(ConcreteType t, FetchCollectionLambda configuration, Function mapFunc) { // change to concreteGenericType
             /**
              * In this case, the ConcreteType should be List<Pair<xxx>>.
              * The set we select from will be the target set targetSet. Let's suppose it's also List<Pair<TEXT, TYPEType>>
@@ -206,12 +211,14 @@ public abstract class ParameterType {
              * - Select from collection set
              */
 
+            Object targetCollection = configuration.operate(s, c);
+
             Object tmpCollection;
 
             if (mapFunc != null) {
-                tmpCollection = ((Collection<T>) configuration).stream().map(mapFunc).collect(Collectors.toList());
+                tmpCollection = ((Collection<T>) targetCollection).stream().map(mapFunc).collect(Collectors.toList());
             } else {
-                tmpCollection = (Collection) configuration;
+                tmpCollection = (Collection) targetCollection;
             }
 
             /**
@@ -256,13 +263,13 @@ public abstract class ParameterType {
 
         @Override
         public boolean isValid(State s, Command c, Parameter p) {
-            // TODO: Check
+            // TODO: Impl
             return false;
         }
 
         @Override
         public void regenerate(State s, Command c, Parameter p) {
-
+            // TODO: Impl
         }
 
         @Override
@@ -284,7 +291,7 @@ public abstract class ParameterType {
 
         Function mapFunc;
 
-        public StreamMapType(ConcreteType t, Collection configuration, Function mapFunc) { // change to concreteGenericType
+        public StreamMapType(ConcreteType t, FetchCollectionLambda configuration, Function mapFunc) { // change to concreteGenericType
             /**
              * In this case, the ConcreteType should be List<Pair<xxx>>.
              * The set we select from will be the target set targetSet. Let's suppose it's also List<Pair<TEXT, TYPEType>>
@@ -302,13 +309,13 @@ public abstract class ParameterType {
              * Current t should be concrete generic type List<xxx>
              * - Select from collection set
              */
-
+            Object targetCollection = configuration.operate(s, c);
             Object tmpCollection;
 
             if (mapFunc != null) {
-                tmpCollection = ((Collection) configuration).stream().map(mapFunc).collect(Collectors.toList());
+                tmpCollection = ((Collection) targetCollection).stream().map(mapFunc).collect(Collectors.toList());
             } else {
-                tmpCollection = (Collection) configuration;
+                tmpCollection = (Collection) targetCollection;
             }
 
             return new Parameter(this, tmpCollection);
@@ -354,8 +361,8 @@ public abstract class ParameterType {
 
         boolean isEmpty;
 
-        public OptionalType(ConcreteType t, Collection configuration) {
-            super(t, configuration);
+        public OptionalType(ConcreteType t, FetchCollectionLambda configuration) {
+            super(t, null);
         }
 
         @Override
@@ -411,7 +418,7 @@ public abstract class ParameterType {
         public int idx;
         public final Function mapFunc;
 
-        public InCollectionType(ConcreteType t, Collection configuration, Function mapFunc) {
+        public InCollectionType(ConcreteType t, FetchCollectionLambda configuration, Function mapFunc) {
             super(t, configuration);
             this.mapFunc = mapFunc;
         }
@@ -419,15 +426,17 @@ public abstract class ParameterType {
         @Override
         public Parameter generateRandomParameter(State s, Command c) {
             // Pick one parameter from the collection
-            assert ((Collection) configuration).isEmpty() == false;
+            Object targetCollection = configuration.operate(s, c);
+
+            assert ((Collection) targetCollection).isEmpty() == false;
             Random rand = new Random();
 
             List l;
 
             if (mapFunc == null) {
-                l = (List) (((Collection)configuration).stream().collect(Collectors.toList()));
+                l = (List) (((Collection) targetCollection).stream().collect(Collectors.toList()));
             } else {
-                l = (List) (((Collection)configuration).stream().map(mapFunc).collect(Collectors.toList()));
+                l = (List) (((Collection) targetCollection).stream().map(mapFunc).collect(Collectors.toList()));
             }
             idx = rand.nextInt(l.size());
 
@@ -445,10 +454,12 @@ public abstract class ParameterType {
         public boolean isValid(State s, Command c, Parameter p) {
             assert p.value instanceof Parameter;
             List l;
+            Object targetCollection = configuration.operate(s, c);
+
             if (mapFunc == null) {
-                l = (List) (((Collection)configuration).stream().collect(Collectors.toList()));
+                l = (List) (((Collection) targetCollection).stream().collect(Collectors.toList()));
             } else {
-                l = (List) (((Collection)configuration).stream().map(mapFunc).collect(Collectors.toList()));
+                l = (List) (((Collection) targetCollection).stream().map(mapFunc).collect(Collectors.toList()));
             }
             if (l.contains(p.value)) {
                 return ((Parameter) p.value).isValid(s, c);
@@ -492,7 +503,7 @@ public abstract class ParameterType {
 
         Function mapFunc;
 
-        public Type2ValueType(ConcreteType t, Object configuration, Function mapFunc) {
+        public Type2ValueType(ConcreteType t, FetchCollectionLambda configuration, Function mapFunc) {
             super(t, configuration);
             this.mapFunc = mapFunc;
             // TODO: Make sure that configuration must be List<ConcreteTypes>
@@ -506,13 +517,15 @@ public abstract class ParameterType {
         @Override
         public Parameter generateRandomParameter(State s, Command c) {
 
-            assert configuration instanceof List;
+            Collection targetCollection = configuration.operate(s, c);
+
+            assert targetCollection instanceof List;
 
             List<Parameter> l;
             if (mapFunc != null) {
-                l = (List<Parameter>) ((Collection)configuration).stream().map(mapFunc).collect(Collectors.toList());
+                l = (List<Parameter>) ((Collection) targetCollection).stream().map(mapFunc).collect(Collectors.toList());
             } else {
-                l = (List<Parameter>) configuration;
+                l = (List<Parameter>) targetCollection;
             }
 
             List<Parameter> ret = new LinkedList<>();
@@ -579,7 +592,8 @@ public abstract class ParameterType {
         public int idx;
         public final Function mapFunc;
 
-        public SuperSetType(ConcreteType t, Collection configuration, Function mapFunc) {
+
+        public SuperSetType(ConcreteType t, FetchCollectionLambda configuration, Function mapFunc) {
             super(t, configuration);
             this.mapFunc = mapFunc;
         }
@@ -595,11 +609,13 @@ public abstract class ParameterType {
 //            assert p.type instanceof ConcreteGenericTypeOne;
             List<Parameter> l = (List<Parameter>) p.value;
 
+            Collection targetCollection = configuration.operate(s, c);
+
             List<Parameter> targetSet;
             if (mapFunc != null) {
-                targetSet = (List) (((Collection)configuration).stream().map(mapFunc).collect(Collectors.toList()));
+                targetSet = (List) (((Collection) targetCollection).stream().map(mapFunc).collect(Collectors.toList()));
             } else {
-                targetSet = (List) (((Collection)configuration));
+                targetSet = (List) (((Collection) targetCollection));
             }
 
             for (Parameter m : targetSet) {

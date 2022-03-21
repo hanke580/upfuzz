@@ -37,7 +37,7 @@ public class CommandSequence {
                 command.updateState(state);
                 break;
             } catch (Exception e) {
-//                    e.printStackTrace();
+                    e.printStackTrace();
 //                    System.out.println("Exception with forever loop");
                 command = null;
                 continue;
@@ -69,7 +69,6 @@ public class CommandSequence {
          * 2: Delete a command
          * 3: Mutate the command (Call command.mutate)
          */
-        // TODO: Impl the rest two choices.
 //        choice = 3; // DEBUG
         switch (choice) {
             case 0:
@@ -88,6 +87,7 @@ public class CommandSequence {
         assert commands.size() > 0;
         // pos to insert
         int pos = rand.nextInt(commands.size());
+//        pos = 0; // DEBUG
         System.out.println("Mutate Command Index = " + pos);
 
         state.clearState();
@@ -138,6 +138,7 @@ public class CommandSequence {
             // Mutate a specific command
             try {
                 commands.get(pos).mutate(state);
+                commands.get(pos).regenerateIfNotValid(state, commands.get(pos));
                 commands.get(pos).updateState(state);
             } catch (IllegalAccessException e) {
                 e.printStackTrace();

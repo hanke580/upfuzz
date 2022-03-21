@@ -64,7 +64,7 @@ public class CassandraCommands {
                 new ParameterType.NotEmpty(
                         STRINGType.instance
                 ),
-                cassandraState.tables.keySet(),
+                (s, c) -> {return ((CassandraState) s).tables.keySet(); },
                 null
             );
 
@@ -102,7 +102,7 @@ public class CassandraCommands {
                 new ParameterType.NotEmpty(
                     new ParameterType.SubsetType(
                             columnsType,
-                            (Collection) ((Parameter)(columns.value)).value,
+                            (s, c) -> (Collection<Parameter>) c.params.get(1).getValue(),
                             null
                     )
                 );
@@ -127,10 +127,10 @@ public class CassandraCommands {
 
             ParameterType.ConcreteType primaryColumnsNameType = new ParameterType.StreamMapType(
                     null,
-                    (Collection) ((Parameter)primaryColumns.value).value,
+                    (s, c) -> (Collection) c.params.get(2).getValue(),
                     p -> ((Pair<Parameter, Parameter>) ((Parameter) p).value).left
             );
-            Parameter primaryColumnsName = primaryColumnsNameType.generateRandomParameter(null, null);
+            Parameter primaryColumnsName = primaryColumnsNameType.generateRandomParameter(null, this);
 
             String ret = "CREATE TABLE " + IF_NOT_EXIST.toString() + " " + tableName.toString() + "(" +
                     columns.toString() + ",\n PRIMARY KEY (" +
@@ -162,6 +162,10 @@ public class CassandraCommands {
      * IF NOT EXISTS;
      */
 
+//    Collection fetch(CassandraState cassandraState, Command command) {
+//        return cassandraState.tables.get(command.params.get(0).toString());
+//    }
+
     public static class INSERT extends Command {
 
         public INSERT(State state) {
@@ -172,32 +176,29 @@ public class CassandraCommands {
 
             ParameterType.ConcreteType TableNameType = new ParameterType.InCollectionType(
                     CONSTANTSTRINGType.instance,
-                    cassandraState.tables.keySet(),
+                    (s, c) -> ((CassandraState) s).tables.keySet(),
                     null
             );
             Parameter TableName = TableNameType.generateRandomParameter(cassandraState, this);
             this.params.add(TableName);
 
-
             CassandraTable cassandraTable = cassandraState.tables.get(TableName.toString());
             ParameterType.ConcreteType columnsType = new ParameterType.SuperSetType(
                     new ParameterType.SubsetType(
                             null,
-                            cassandraTable.colName2Type,
+                            (s, c) -> ((CassandraState) s).tables.get(c.params.get(0).toString()).colName2Type,
                             null
                     ),
-                    cassandraTable.primaryColName2Type,
+                    (s, c) -> ((CassandraState) s).tables.get(c.params.get(0).toString()).primaryColName2Type,
                     null
             );
             Parameter columns = columnsType.generateRandomParameter(cassandraState, this);
             this.params.add(columns);
 
-
             ParameterType.ConcreteType insertValuesType = new ParameterType.Type2ValueType(
                     null,
-                    columns.getValue(),
+                    (s, c) -> (Collection) c.params.get(1).getValue(),
                     p -> ((Pair) ((Parameter) p).value).right
-
             );
             Parameter insertValues = insertValuesType.generateRandomParameter(cassandraState, this);
             this.params.add(insertValues);
@@ -209,10 +210,10 @@ public class CassandraCommands {
             Parameter tableName = params.get(0);
             ParameterType.ConcreteType columnNameType = new ParameterType.StreamMapType(
                     null,
-                    (Collection) (params.get(1).getValue()),
+                    (s, c) -> (Collection) c.params.get(1).getValue(),
                     p -> ((Pair) ((Parameter) p).getValue()).left
             );
-            Parameter columnName = columnNameType.generateRandomParameter(null, null);
+            Parameter columnName = columnNameType.generateRandomParameter(null, this);
             Parameter insertValues = params.get(2);
 
             StringBuilder sb = new StringBuilder();
