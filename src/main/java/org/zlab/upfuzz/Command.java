@@ -21,14 +21,14 @@ public abstract class Command {
     public abstract String constructCommandString();
     public abstract void updateState(State state);
 
-    public void mutate(State s) throws
+    public boolean mutate(State s) throws
             IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         Random rand = new Random();
         int mutateParamIdx = rand.nextInt(params.size());
         mutateParamIdx = 0;
         System.out.println("\n Mutate Param Pos = " + mutateParamIdx);
 
-        params.get(mutateParamIdx).mutate(s, this);
+        return params.get(mutateParamIdx).mutate(s, this);
     }
 
     public void regenerateIfNotValid(State s, Command c) {

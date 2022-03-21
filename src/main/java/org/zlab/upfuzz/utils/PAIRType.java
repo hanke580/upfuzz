@@ -4,7 +4,6 @@ import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.cassandra.CassandraTypes;
 
 import java.util.List;
 
@@ -43,8 +42,9 @@ public class PAIRType extends ParameterType.GenericTypeTwo {
   }
 
   @Override
-  public void mutate(State s, Command c, Parameter p, List<ConcreteType> types) {
+  public boolean mutate(State s, Command c, Parameter p, List<ConcreteType> types) {
     p.value = generateRandomParameter(s, c, types).value;
+    return true;
   }
 }
 

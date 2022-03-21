@@ -1,7 +1,5 @@
 package org.zlab.upfuzz;
 
-import org.zlab.upfuzz.cassandra.CassandraCommands;
-
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -32,7 +30,7 @@ public abstract class ParameterType {
         public abstract boolean isValid(State s, Command c, Parameter p);
         public abstract void regenerate(State s, Command c, Parameter p);
         public abstract boolean isEmpty(State s, Command c, Parameter p);
-        public abstract void mutate(State s, Command c, Parameter p);
+        public abstract boolean mutate(State s, Command c, Parameter p);
 
     }
 
@@ -41,7 +39,7 @@ public abstract class ParameterType {
         public abstract Parameter generateRandomParameter(State s, Command c, List<ConcreteType> types);
         public abstract String generateStringValue(Parameter p, List<ConcreteType> types); // Maybe this should be in Parameter class? It has the concrete type anyways.
         public abstract boolean isEmpty(State s, Command c, Parameter p, List<ConcreteType> types);
-        public abstract void mutate(State s, Command c, Parameter p, List<ConcreteType> types);
+        public abstract boolean mutate(State s, Command c, Parameter p, List<ConcreteType> types);
     }
 
     /**
@@ -124,8 +122,8 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void mutate(State s, Command c, Parameter p) {
-            t.mutate(s, c, (Parameter) p.value);
+        public boolean mutate(State s, Command c, Parameter p) {
+            return t.mutate(s, c, (Parameter) p.value);
         }
     }
 
@@ -180,8 +178,8 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void mutate(State s, Command c, Parameter p) {
-            t.mutate(s, c, (Parameter) p.value);
+        public boolean mutate(State s, Command c, Parameter p) {
+            return t.mutate(s, c, (Parameter) p.value);
         }
     }
 
@@ -278,9 +276,10 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void mutate(State s, Command c, Parameter p) {
+        public boolean mutate(State s, Command c, Parameter p) {
             Parameter ret = generateRandomParameter(s, c);
             p.value = ret.value;
+            return true;
         }
     }
 
@@ -352,8 +351,9 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void mutate(State s, Command c, Parameter p) {
+        public boolean mutate(State s, Command c, Parameter p) {
             // TODO: Impl
+            return false;
         }
     }
 
@@ -397,7 +397,7 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void mutate(State s, Command c, Parameter p) {
+        public boolean mutate(State s, Command c, Parameter p) {
             /**
              * There should be two choices.
              * 1. Mutate current state.
@@ -407,6 +407,7 @@ public abstract class ParameterType {
              */
             assert p.type instanceof OptionalType;
             ((OptionalType) p.type).isEmpty = !((OptionalType) p.type).isEmpty;
+            return true;
         }
     }
 
@@ -479,23 +480,14 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void mutate(State s, Command c, Parameter p) {
+        public boolean mutate(State s, Command c, Parameter p) {
             /**
-             * 1. Repick one from the set.
-             * 2. Mutate the current picked one
+             * Repick one from the set.
+             * TODO: Make sure it's not the same one as before?
              */
-            Random rand = new Random();
-            boolean choice = rand.nextBoolean();
-            choice = true; // Only pick the first one
-            if (choice) {
-                // Repick one
-                Parameter ret = generateRandomParameter(s, c);
-                p.value = ret.value;
-            } else {
-                // Mutate current picked one. (But usually it will be picked from
-                // a specific fixed set. Set this to null for now.
-                assert false;
-            }
+            Parameter ret = generateRandomParameter(s, c);
+            p.value = ret.value;
+            return true;
         }
     }
 
@@ -576,11 +568,12 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void mutate(State s, Command c, Parameter p) {
+        public boolean mutate(State s, Command c, Parameter p) {
             // TODO: Multiple level mutation!
             // Now only regenerate everything
             Parameter ret = generateRandomParameter(s, c);
             p.value = ret.value;
+            return true;
         }
     }
 
@@ -650,12 +643,13 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void mutate(State s, Command c, Parameter p) {
+        public boolean mutate(State s, Command c, Parameter p) {
             /**
              * 1. Call value.mutate
              * 2. Make sure it's still valid
              */
             p.value = generateRandomParameter(s, c).value;
+            return true;
         }
     }
 
@@ -739,9 +733,8 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void mutate(State s, Command c, Parameter p) {
-            t.mutate(s, c, p, typesInTemplate);
-
+        public boolean mutate(State s, Command c, Parameter p) {
+            return t.mutate(s, c, p, typesInTemplate);
         }
     }
 
@@ -770,8 +763,9 @@ public abstract class ParameterType {
         }
 
         @Override
-        public void mutate(State s, Command c, Parameter p) {
-
+        public boolean mutate(State s, Command c, Parameter p) {
+            // TODO: impl
+            return false;
         }
     }
 }

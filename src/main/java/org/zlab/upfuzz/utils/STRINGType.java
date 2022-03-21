@@ -73,7 +73,7 @@ public class STRINGType extends ParameterType.ConcreteType {
     }
 
     @Override
-    public void mutate(State s, Command c, Parameter p) {
+    public boolean mutate(State s, Command c, Parameter p) {
         /**
          * 1. Regenerate
          * 2. Flip/Add/Del Bit/Byte/Word/Dword
@@ -98,6 +98,7 @@ public class STRINGType extends ParameterType.ConcreteType {
             default:
                 throw new IllegalStateException("Unexpected value: " + choice);
         }
+        return true;
     }
 
     public String string2binary(String value) {

@@ -14,9 +14,9 @@ public class Parameter {
         return type.isEmpty(s, c, this);
     }
 
-    public void mutate(State s, Command c) {
-        type.mutate(s, c, this);
+    public boolean mutate(State s, Command c) {
         System.out.println("hello mutation");
+        return type.mutate(s, c, this);
     }
 
     public boolean isValid(State s, Command c) {

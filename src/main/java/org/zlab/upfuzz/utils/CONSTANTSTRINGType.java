@@ -36,5 +36,8 @@ public class CONSTANTSTRINGType extends STRINGType {
     }
 
     @Override
-    public void mutate(State s, Command c, Parameter p) {}
+    public boolean mutate(State s, Command c, Parameter p) {
+        // Cannot mutate!
+        return false;
+    }
 }

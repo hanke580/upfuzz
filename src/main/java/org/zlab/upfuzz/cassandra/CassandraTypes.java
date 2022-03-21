@@ -63,7 +63,7 @@ public class CassandraTypes {
     }
 
     @Override
-    public void mutate(State s, Command c, Parameter p) {
+    public boolean mutate(State s, Command c, Parameter p) {
       Parameter tmpParam = new Parameter(this, p.value);
       super.mutate(s, c, tmpParam);
       // Make sure after the mutation, the value is still not empty
@@ -72,6 +72,7 @@ public class CassandraTypes {
         super.mutate(s, c, tmpParam);
       }
       p.value = tmpParam.value;
+      return true;
     }
   }
 
@@ -123,8 +124,9 @@ public class CassandraTypes {
     }
 
     @Override
-    public void mutate(State s, Command c, Parameter p, List<ConcreteType> types) {
+    public boolean mutate(State s, Command c, Parameter p, List<ConcreteType> types) {
       p.value = generateRandomParameter(s, c, types).value;
+      return true;
     }
 
 
@@ -234,8 +236,9 @@ public class CassandraTypes {
     }
 
     @Override
-    public void mutate(State s, Command c, Parameter p) {
-
+    public boolean mutate(State s, Command c, Parameter p) {
+      p.value = generateRandomParameter(s, c).value;
+      return true;
     }
 
     private ParameterType selectRandomType() {
@@ -254,7 +257,6 @@ public class CassandraTypes {
       assert false;
       return null; // should not happen.
     }
-
 
     private ConcreteType generateRandomType() {
       ParameterType t = selectRandomType();
