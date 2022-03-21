@@ -462,7 +462,7 @@ public abstract class ParameterType {
             } else {
                 l = (List) (((Collection) targetCollection).stream().map(mapFunc).collect(Collectors.toList()));
             }
-            if (l.contains(p.value)) {
+            if (l.contains(p.getValue())) {
                 return ((Parameter) p.value).isValid(s, c);
             } else {
                 return false;
