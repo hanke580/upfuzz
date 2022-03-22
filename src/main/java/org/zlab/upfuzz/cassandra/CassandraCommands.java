@@ -162,10 +162,6 @@ public class CassandraCommands {
      * IF NOT EXISTS;
      */
 
-//    Collection fetch(CassandraState cassandraState, Command command) {
-//        return cassandraState.tables.get(command.params.get(0).toString());
-//    }
-
     public static class INSERT extends Command {
 
         public INSERT(State state) {
@@ -174,12 +170,7 @@ public class CassandraCommands {
             assert state instanceof CassandraState;
             CassandraState cassandraState = (CassandraState) state;
 
-            ParameterType.ConcreteType TableNameType = new ParameterType.InCollectionType(
-                    CONSTANTSTRINGType.instance,
-                    (s, c) -> ((CassandraState) s).tables.keySet(),
-                    null
-            );
-            Parameter TableName = TableNameType.generateRandomParameter(cassandraState, this);
+            Parameter TableName = chooseOneTable(cassandraState, this);
             this.params.add(TableName);
 
             CassandraTable cassandraTable = cassandraState.tables.get(TableName.toString());
@@ -224,6 +215,81 @@ public class CassandraCommands {
         @Override
         public void updateState(State state) { }
     }
+
+    /**
+     * ALTER TABLE [keyspace_name.] table_name
+     * [DROP column_list];
+     * TODO: Sometimes the drop is not possible to create, like
+     * when the cols == primarys.
+     */
+    public static class ALTER_TABLE_DROP extends Command {
+        public ALTER_TABLE_DROP(State state) {
+            super();
+
+            assert state instanceof CassandraState;
+            CassandraState cassandraState = (CassandraState) state;
+
+            Parameter TableName = chooseOneTable(cassandraState, this);
+            this.params.add(TableName);
+
+            // Drop column list
+            /**
+             * 1. Cannot drop primary columns
+             * 2. Cannot be empty list
+             *
+             * NotInCollection
+             * - InCollection
+             *  - Columns
+             * - PrimaryColumns
+             * Temporary let's drop only one columns
+             */
+            ParameterType.ConcreteType dropColumnType = new ParameterType.NotInCollectionType<>(
+                    new ParameterType.InCollectionType(
+                            null,
+                            (s, c) -> ((CassandraState) s).tables.get(c.params.get(0).toString()).colName2Type,
+//                            p -> ((Pair) ((Parameter) p).value).left
+                            null
+                    ),
+                    (s, c) -> ((CassandraState) s).tables.get(c.params.get(0).toString()).primaryColName2Type,
+//                    p -> ((Pair) ((Parameter) p).value).left
+                    null
+            );
+            Parameter dropColumn = dropColumnType.generateRandomParameter(cassandraState, this);
+            this.params.add(dropColumn);
+
+        }
+
+        @Override
+        public String constructCommandString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("ALTER TABLE");
+            sb.append(" " + this.params.get(0).toString() + " ");
+            sb.append("DROP");
+            sb.append(" " + ((Pair) this.params.get(1).getValue()).left.toString() + " ;");
+            return sb.toString();
+        }
+
+        @Override
+        public void updateState(State state) {
+            // Still problem here in update state, one of the string is in ()
+            ((CassandraState) state).tables.get(this.params.get(0).toString()).colName2Type.removeIf(value -> value.toString().equals(this.params.get(1).getValue().toString()));
+        }
+    }
+
+    public static Parameter chooseOneTable(State state, Command command) {
+        /**
+         * This helper function will randomly pick one table and return its
+         * tablename as parameter.
+         */
+        ParameterType.ConcreteType TableNameType = new ParameterType.InCollectionType(
+                CONSTANTSTRINGType.instance,
+                (s, c) -> ((CassandraState) s).tables.keySet(),
+                null
+        );
+        Parameter TableName = TableNameType.generateRandomParameter((CassandraState) state, command);
+        return TableName;
+    }
+
 
     /**
      * CREATE TYPE cycling.basic_info (

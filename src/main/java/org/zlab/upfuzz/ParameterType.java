@@ -441,9 +441,15 @@ public abstract class ParameterType {
             }
             idx = rand.nextInt(l.size());
 
-            Parameter ret = new Parameter(t, l.get(idx));
+            if (l.get(idx) instanceof Parameter) {
+                return new Parameter(this, l.get(idx));
+            } else {
+                assert t != null;
+                Parameter ret = new Parameter(t, l.get(idx));
+                return new Parameter(this, ret);
+            }
 
-            return new Parameter(this, ret);
+
         }
 
         @Override
