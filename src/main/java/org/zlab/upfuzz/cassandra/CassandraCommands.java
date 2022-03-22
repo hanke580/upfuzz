@@ -41,6 +41,8 @@ public class CassandraCommands {
     static {
         commandClassList.add(CREATETABLE.class);
         commandClassList.add(INSERT.class);
+        commandClassList.add(ALTER_TABLE_DROP.class);
+
     }
 
     /**
@@ -173,7 +175,6 @@ public class CassandraCommands {
             Parameter TableName = chooseOneTable(cassandraState, this);
             this.params.add(TableName);
 
-            CassandraTable cassandraTable = cassandraState.tables.get(TableName.toString());
             ParameterType.ConcreteType columnsType = new ParameterType.SuperSetType(
                     new ParameterType.SubsetType(
                             null,
@@ -221,6 +222,12 @@ public class CassandraCommands {
      * [DROP column_list];
      * TODO: Sometimes the drop is not possible to create, like
      * when the cols == primarys.
+     *
+     * I want a function:
+     * Every time when decide creating this command, it could
+     * throw some exception that now it cannot be correctly
+     * constructed at this time.
+     * try to catch exception...
      */
     public static class ALTER_TABLE_DROP extends Command {
         public ALTER_TABLE_DROP(State state) {
@@ -271,8 +278,7 @@ public class CassandraCommands {
 
         @Override
         public void updateState(State state) {
-            // Still problem here in update state, one of the string is in ()
-            ((CassandraState) state).tables.get(this.params.get(0).toString()).colName2Type.removeIf(value -> value.toString().equals(this.params.get(1).getValue().toString()));
+            ((CassandraState) state).tables.get(this.params.get(0).toString()).colName2Type.removeIf(value -> value.toString().equals(this.params.get(1).toString()));
         }
     }
 
@@ -288,6 +294,26 @@ public class CassandraCommands {
         );
         Parameter TableName = TableNameType.generateRandomParameter((CassandraState) state, command);
         return TableName;
+    }
+
+
+
+
+    public static class DELETE extends Command {
+
+        public DELETE(State state) {
+
+        }
+
+        @Override
+        public String constructCommandString() {
+            return null;
+        }
+
+        @Override
+        public void updateState(State state) {
+
+        }
     }
 
 
