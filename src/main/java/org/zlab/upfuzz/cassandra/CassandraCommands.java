@@ -223,11 +223,30 @@ public class CassandraCommands {
      * TODO: Sometimes the drop is not possible to create, like
      * when the cols == primarys.
      *
-     * I want a function:
-     * Every time when decide creating this command, it could
-     * throw some exception that now it cannot be correctly
-     * constructed at this time.
-     * try to catch exception...
+     * How to handle this?
+     * - Set a timer for each command building, if it fails, then
+     * throw an exception.
+     * - The outsider could catch this exception, it knows that this
+     * command can never be constructed/fixed right now.
+     *
+     * Suppose we have a line:
+     * Command c = new Command()
+     *
+     * If we found that this line executes too long,
+     * we throw an exception saying that this command cannot be
+     *
+     *
+     *
+     * - If it's at constructing stage:
+     *      - Just create a new command
+     * - During mutation
+     *      - Re-mutate this command
+     *      - But need to avoid forever loop
+     *          - Still add a timer
+     *      - What if this command can never be mutated?
+     * - If it's at the fixing stage
+     *      - It means that it cannot be fixed
+     *      - Delete this command!
      */
     public static class ALTER_TABLE_DROP extends Command {
         public ALTER_TABLE_DROP(State state) {
@@ -250,12 +269,20 @@ public class CassandraCommands {
              * - PrimaryColumns
              * Temporary let's drop only one columns
              */
+
+            Predicate predicate = (s, c) -> {
+                assert c instanceof ALTER_TABLE_DROP;
+                CassandraTable cassandraTable = ((CassandraState) s).tables.get(c.params.get(0).toString());
+                return cassandraTable.colName2Type.size() != cassandraTable.primaryColName2Type.size();
+            };
+
             ParameterType.ConcreteType dropColumnType = new ParameterType.NotInCollectionType<>(
                     new ParameterType.InCollectionType(
                             null,
                             (s, c) -> ((CassandraState) s).tables.get(c.params.get(0).toString()).colName2Type,
 //                            p -> ((Pair) ((Parameter) p).value).left
-                            null
+                            null,
+                            predicate
                     ),
                     (s, c) -> ((CassandraState) s).tables.get(c.params.get(0).toString()).primaryColName2Type,
 //                    p -> ((Pair) ((Parameter) p).value).left
@@ -292,12 +319,9 @@ public class CassandraCommands {
                 (s, c) -> ((CassandraState) s).tables.keySet(),
                 null
         );
-        Parameter TableName = TableNameType.generateRandomParameter((CassandraState) state, command);
+        Parameter TableName = TableNameType.generateRandomParameter(state, command);
         return TableName;
     }
-
-
-
 
     public static class DELETE extends Command {
 

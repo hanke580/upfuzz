@@ -1,5 +1,6 @@
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.Command;
+import org.zlab.upfuzz.CustomExceptions;
 import org.zlab.upfuzz.cassandra.CassandraCommands;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.utils.STRINGType;
@@ -47,8 +48,16 @@ public class CommandTests {
         System.out.println(cmd1.constructCommandString());
 
 
-        CassandraCommands.ALTER_TABLE_DROP cmd2 = new CassandraCommands.ALTER_TABLE_DROP(s);
-        cmd2.updateState(s);
-        System.out.println(cmd2.constructCommandString());
+        try {
+            CassandraCommands.ALTER_TABLE_DROP cmd2 = new CassandraCommands.ALTER_TABLE_DROP(s);
+            cmd2.updateState(s);
+            System.out.println(cmd2.constructCommandString());
+        } catch (CustomExceptions.PredicateUnSatisfyException e) {
+            e.printStackTrace();
+            System.out.println("Predicate is not satisfy, this command cannot be correctly constructed");
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Exception is thrown during the construction of the current command");
+        }
     }
 }

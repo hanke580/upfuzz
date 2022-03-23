@@ -50,12 +50,31 @@ public abstract class ParameterType {
     public static abstract class ConfigurableType extends ConcreteType {
         public final ConcreteType t;
         public final FetchCollectionLambda configuration;
+        public final Predicate predicate;
 //        public final Function mapFunc;
 
         public ConfigurableType(ConcreteType t, FetchCollectionLambda configuration) {
             this.t = t;
             this.configuration = configuration;
+            this.predicate = null;
 //            this.mapFunc = mapFunc;
+        }
+
+
+        public ConfigurableType(ConcreteType t, FetchCollectionLambda configuration, Predicate predicate) {
+            this.t = t;
+            this.configuration = configuration;
+            this.predicate = predicate;
+//            this.mapFunc = mapFunc;
+        }
+
+        public void predicateCheck(State s, Command c) {
+            if (predicate != null && predicate.operate(s, c) == false) {
+                throw new CustomExceptions.PredicateUnSatisfyException(
+                        "Predicate is not satisfied in this command",
+                        null
+                );
+            }
         }
 
         /**
@@ -230,7 +249,6 @@ public abstract class ParameterType {
             if (targetSet.size() > 0) {
                 Random rand = new Random();
                 int setSize = rand.nextInt(targetSet.size() + 1); // specified by user
-
                 List<Integer> indexArray = new ArrayList<>();
                 for (int i = 0; i < targetSet.size(); i++) {
                     indexArray.add(i);
@@ -424,12 +442,25 @@ public abstract class ParameterType {
             this.mapFunc = mapFunc;
         }
 
+        public InCollectionType(ConcreteType t, FetchCollectionLambda configuration, Function mapFunc, Predicate predicate) {
+            super(t, configuration, predicate);
+            this.mapFunc = mapFunc;
+        }
+
         @Override
         public Parameter generateRandomParameter(State s, Command c) {
+            predicateCheck(s, c);
+
             // Pick one parameter from the collection
             Object targetCollection = configuration.operate(s, c);
 
             assert ((Collection) targetCollection).isEmpty() == false;
+            if (((Collection) targetCollection).isEmpty() == true) {
+                throw new CustomExceptions.EmptyCollectionException(
+                        "InCollection Type got empty Collection",
+                        null
+                );
+            }
             Random rand = new Random();
 
             List l;
@@ -449,7 +480,6 @@ public abstract class ParameterType {
                 return new Parameter(this, ret);
             }
 
-
         }
 
         @Override
@@ -459,6 +489,8 @@ public abstract class ParameterType {
 
         @Override
         public boolean isValid(State s, Command c, Parameter p) {
+            predicateCheck(s, c);
+
             assert p.value instanceof Parameter;
             List l;
             Object targetCollection = configuration.operate(s, c);
