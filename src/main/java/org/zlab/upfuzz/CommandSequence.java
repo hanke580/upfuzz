@@ -1,57 +1,23 @@
 package org.zlab.upfuzz;
 
+import org.zlab.upfuzz.cassandra.CassandraCommands;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class CommandSequence {
 
-    public static final int MAX_CMD_SEQ_LEN = 10;
+    public static final int MAX_CMD_SEQ_LEN = 20;
 
     public final List<Command> commands;
-    public final List<Class<? extends Command>> commandClassList;
+    public final List<Map.Entry<Class<? extends Command>, Integer>> commandClassList;
     public final State state;
-    // TODO: More reasoning about the state.
 
     public final static int RETRY_GENERATE_TIME = 20;
 
-    public static Command generateSingleCommand(List<Class<? extends Command>> commandClassList,
-                                                State state) {
-        Command command = null;
-        Random rand = new Random();
-        assert commandClassList.isEmpty() == false;
-        /**
-         * Set Retry time is to avoid forever loop when all
-         * the commands cannot be generated correctly.
-         */
-        for (int i = 0; i < RETRY_GENERATE_TIME; i++) {
-            try {
-                int cmdIdx = rand.nextInt(commandClassList.size());
-                Class<? extends Command> clazz = commandClassList.get(cmdIdx);
-                Constructor<?> constructor = clazz.getConstructor(State.class);
-
-                command = (Command) constructor.newInstance(state);
-                command.updateState(state);
-                break;
-            } catch (Exception e) {
-                    e.printStackTrace();
-//                    System.out.println("Exception with forever loop");
-                command = null;
-                continue;
-            }
-        }
-        if (command == null) {
-            System.out.println("A problem with generating single command");
-            System.exit(1);
-        }
-        return command;
-    }
-
     public CommandSequence(List<Command> commands,
-                           List<Class<? extends Command>> commandClassList,
+                           List<Map.Entry<Class<? extends Command>, Integer>> commandClassList,
                            State state) {
         this.commands = commands;
         this.commandClassList = commandClassList;
@@ -87,7 +53,7 @@ public class CommandSequence {
         assert commands.size() > 0;
         // pos to insert
         int pos = rand.nextInt(commands.size());
-//        pos = 0; // DEBUG
+//        pos = 1; // DEBUG
         System.out.println("Mutate Command Index = " + pos);
 
         state.clearState();
@@ -138,8 +104,9 @@ public class CommandSequence {
             // Mutate a specific command
             try {
                 commands.get(pos).mutate(state);
-                commands.get(pos).regenerateIfNotValid(state, commands.get(pos));
-                commands.get(pos).updateState(state);
+
+                checkAndUpdateCommand(commands.get(pos), state);
+                updateState(commands.get(pos), state);
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             } catch (NoSuchMethodException e) {
@@ -149,11 +116,61 @@ public class CommandSequence {
             }
         }
         // Check the following commands
+        /**
+         * TODO: There could be some commands that cannot be fixed.
+         * These commands need to be removed/should be handled
+         * by some other ways...
+         * Like regenerate a new one
+         */
         for (int i = pos + 1; i < commands.size(); i++) {
-            commands.get(i).regenerateIfNotValid(state, commands.get(i)); // same func as regenerateIfNotValid
-            commands.get(i).updateState(state);
+            checkAndUpdateCommand(commands.get(i), state);
+            updateState(commands.get(i), state);
         }
         return this;
+    }
+
+    public static Command generateSingleCommand(List<Map.Entry<Class<? extends Command>, Integer>> commandClassList,
+                                                State state) {
+        Command command = null;
+        Random rand = new Random();
+        assert commandClassList.isEmpty() == false;
+        /**
+         * Set Retry time is to avoid forever loop when all
+         * the commands cannot be generated correctly.
+         */
+        for (int i = 0; i < RETRY_GENERATE_TIME; i++) {
+            try {
+                int sum = commandClassList.stream().mapToInt(a -> a.getValue()).sum();
+
+                int tmpSum = 0;
+                int randInt = rand.nextInt(sum);
+                int cmdIdx = 0;
+
+                for (int j = 0; j < sum; j++) {
+                    tmpSum += commandClassList.get(j).getValue();
+                    if (randInt < tmpSum)
+                        break;
+                    cmdIdx++;
+                }
+
+
+                Class<? extends Command> clazz = commandClassList.get(cmdIdx).getKey();
+                Constructor<?> constructor = clazz.getConstructor(State.class);
+
+                command = (Command) constructor.newInstance(state);
+                command.updateState(state);
+                break;
+            } catch (Exception e) {
+//                e.printStackTrace(); // DEBUG
+                command = null;
+                continue;
+            }
+        }
+        if (command == null) {
+            System.out.println("A problem with generating single command");
+            System.exit(1);
+        }
+        return command;
     }
 
     /**
@@ -161,7 +178,8 @@ public class CommandSequence {
      * - Input: null
      * - Output: TestSequence
      */
-    public static CommandSequence generateSequence(List<Class<? extends Command>> commandClassList,
+    public static CommandSequence generateSequence(List<Map.Entry<Class<? extends Command>, Integer>> commandClassList,
+                                                   List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList,
                                                    State state)
             throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
 
@@ -169,14 +187,22 @@ public class CommandSequence {
         assert MAX_CMD_SEQ_LEN > 0;
         int len = rand.nextInt(MAX_CMD_SEQ_LEN) + 1;
 
-        len = 8; // Debug
+//        len = 8; // Debug
 //        State state = stateClazz.getConstructor().newInstance();
 
         List<Command> commands = new LinkedList<>();
 
+
+//        List<Class<? extends Command>> tmpCommandClassList = new LinkedList<>(); // Debug
+//        tmpCommandClassList.add(CassandraCommands.ALTER_TABLE_DROP.class); // Debug
+
         for (int i = 0; i < len; i++) {
-            // TODO: Prioritize create table like function, make sure they are at front.
-            commands.add(generateSingleCommand(commandClassList, state));
+            if (i <= 1) {
+                commands.add(generateSingleCommand(createCommandClassList, state));
+                continue;
+            } else {
+                commands.add(generateSingleCommand(commandClassList, state));
+            }
         }
         return new CommandSequence(commands, commandClassList, state);
     }
@@ -184,8 +210,26 @@ public class CommandSequence {
     public List<String> getCommandStringList() {
         List<String> commandStringList = new ArrayList<>();
         for (Command command : commands) {
-            commandStringList.add(command.constructCommandString());
+            commandStringList.add(command.toString());
         }
         return commandStringList;
     }
+
+    public static boolean checkAndUpdateCommand(Command command, State state) {
+        /**
+         * Check whether current command is valid. Fix if not valid.
+         * TODO: What if it cannot be fixed?
+         * - simple solution, just return a false, and make command sequence remove it.
+         * Update the command string
+         */
+        command.regenerateIfNotValid(state);
+        command.updateExecutableCommandString();;
+        return true;
+    }
+
+    public static boolean updateState(Command command, State state) {
+        command.updateState(state);
+        return true;
+    }
+
 }

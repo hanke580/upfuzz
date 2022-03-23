@@ -11,23 +11,23 @@ public class CommandSequenceTests {
     public void testSequenceGeneration() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException, InstantiationException {
 
         CassandraState state = new CassandraState();
-        CommandSequence commandSequence = CommandSequence.generateSequence(CassandraCommands.commandClassList, state);
+        CommandSequence commandSequence = CommandSequence.generateSequence(CassandraCommands.commandClassList, CassandraCommands.createCommandClassList, state);
 
         List<String> l = commandSequence.getCommandStringList();
-        for (String commandString : l) {
-            System.out.println(commandString);
+        for (int i = 0; i < l.size(); i++) {
+            System.out.println("[" + i + "]" + "\t" + l.get(i));
         }
-        System.out.println(l.size());
+        System.out.println("command size = " + l.size());
 
-        System.out.println("\n\n");
-
+        System.out.println("\n-----------Sequence Mutation Start-----------");
         commandSequence.mutate(state);
+        System.out.println("-----------Sequence Mutation End-----------\n");
 
         l = commandSequence.getCommandStringList();
-        for (String commandString : l) {
-            System.out.println(commandString);
+        for (int i = 0; i < l.size(); i++) {
+            System.out.println("[" + i + "]" + "\t" + l.get(i));
         }
-        System.out.println(l.size());
+        System.out.println("command size = " + l.size());
 
     }
 }

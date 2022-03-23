@@ -15,8 +15,6 @@ public class CONSTANTSTRINGType extends STRINGType {
      *  - Empty string
      */
 
-    // TODO:Should we keep using instance here?
-//        public static final FIXEDSTRINGType instance = new FIXEDSTRINGType();
     public static final String signature = "org.zlab.upfuzz.utils.FIXSTRINGType";
 
     final String fixString;

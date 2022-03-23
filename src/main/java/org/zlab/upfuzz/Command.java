@@ -13,9 +13,18 @@ import java.util.Random;
 public abstract class Command {
 
     public List<Parameter> params;
+    public String executableCommandString;
 
     public Command() {
         params = new LinkedList<>();
+    }
+    public void updateExecutableCommandString() {
+        executableCommandString = constructCommandString();
+    }
+
+    @Override
+    public String toString() {
+        return executableCommandString;
     }
 
     public abstract String constructCommandString();
@@ -31,7 +40,7 @@ public abstract class Command {
         return params.get(mutateParamIdx).mutate(s, this);
     }
 
-    public void regenerateIfNotValid(State s, Command c) {
+    public void regenerateIfNotValid(State s) {
         /**
          * Run check on each existing parameters in order.
          * It will includes
@@ -40,8 +49,8 @@ public abstract class Command {
          * Two functions
          */
         for (Parameter param : params) {
-            if (!param.isValid(s, c)) {
-                param.regenerate(s, c);
+            if (!param.isValid(s, this)) {
+                param.regenerate(s, this);
             }
         }
     }

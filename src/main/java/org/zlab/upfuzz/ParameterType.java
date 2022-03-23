@@ -230,12 +230,8 @@ public abstract class ParameterType {
 
             Object targetCollection = configuration.operate(s, c);
 
-            Object tmpCollection;
-
             if (mapFunc != null) {
-                tmpCollection = ((Collection<T>) targetCollection).stream().map(mapFunc).collect(Collectors.toList());
-            } else {
-                tmpCollection = (Collection) targetCollection;
+                targetCollection = ((Collection<T>) targetCollection).stream().map(mapFunc).collect(Collectors.toList());
             }
 
             /**
@@ -243,7 +239,9 @@ public abstract class ParameterType {
              * Return new Parameter(SubsetType, value)
              */
 
-            List<Object> targetSet = new ArrayList<Object>((Collection<Object>) tmpCollection);
+            // TODO: Make all the collection contain the parameter
+
+            List<Object> targetSet = new ArrayList<Object>((Collection<Object>) targetCollection);
             List<Object> value = new ArrayList<>();
 
             if (targetSet.size() > 0) {
@@ -265,7 +263,6 @@ public abstract class ParameterType {
 
         @Override
         public String generateStringValue(Parameter p) {
-            // TODO Auto-generated method stub
             StringBuilder sb = new StringBuilder();
             List<Parameter> l = (List<Parameter>) p.value;
             for (int i = 0; i < l.size(); i++) {
@@ -279,13 +276,25 @@ public abstract class ParameterType {
 
         @Override
         public boolean isValid(State s, Command c, Parameter p) {
-            // TODO: Impl
-            return false;
+            List<Parameter> valueList = (List<Parameter>) p.value;
+            Object targetCollection = configuration.operate(s, c);
+            if (mapFunc != null) {
+                targetCollection = ((Collection<T>) targetCollection).stream().map(mapFunc).collect(Collectors.toList());
+            }
+            List<Parameter> targetList = (List<Parameter>) targetCollection;
+
+            for (int i = 0; i < valueList.size(); i++) {
+                if (!targetList.contains(valueList.get(i))) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         @Override
         public void regenerate(State s, Command c, Parameter p) {
-            // TODO: Impl
+            Parameter ret = generateRandomParameter(s, c);
+            p.value = ret.value;
         }
 
         @Override
@@ -585,10 +594,46 @@ public abstract class ParameterType {
         @Override
         public boolean isValid(State s, Command c, Parameter p) {
             /**
-             * Check each slot to see whether it's still valid.
+             * TODO: Check each slot to see whether it's still valid.
              * Check whether the list size is change
              */
-            return false;
+
+            Collection targetCollection = configuration.operate(s, c);
+
+            assert targetCollection instanceof List;
+            assert p.value instanceof List;
+
+            /**
+             *          p
+             *         / \
+             *        /   \
+             *   TYPEType TEXTType
+             */
+            List<Parameter> typeList;
+            if (mapFunc != null) {
+                typeList = (List<Parameter>) ((Collection) targetCollection).stream().map(mapFunc).collect(Collectors.toList());
+            } else {
+                typeList = (List<Parameter>) targetCollection;
+            }
+
+
+            /**
+             *          p
+             *         / \
+             *        /   \
+             *   TEXTType "HelloWorld"
+             */
+            List<Parameter> valueList = (List<Parameter>) p.value;
+            if (typeList.size() != valueList.size()) return false;
+
+            for (int i = 0; i < typeList.size(); i++) {
+                // TODO: Do we need to make the type comparable?
+                // Same t, predicate, class?
+                if (!typeList.get(i).getValue().equals(valueList.get(i).type)) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         @Override

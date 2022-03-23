@@ -36,18 +36,22 @@ public class CassandraCommands {
      *    );
      */
 
-    public static final List<Class<? extends Command>> commandClassList = new ArrayList<>();
+    public static final List<Map.Entry<Class<? extends Command>, Integer>> commandClassList = new ArrayList<>();
+
+//    public static final List<Class<? extends Command>> commandClassList = new ArrayList<>();
+    // Prioritized commands, have a higher possibility to be generated in the first several
+    // commands, but share the same possibility with the rest for the following commands.
+public static final List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList = new ArrayList<>();
+
 
     static {
-        commandClassList.add(CREATETABLE.class);
-        commandClassList.add(INSERT.class);
-        commandClassList.add(ALTER_TABLE_DROP.class);
+        commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(CREATETABLE.class, 2));
+        commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(INSERT.class, 8));
+        commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(ALTER_TABLE_DROP.class, 2));
 
+        createCommandClassList.add(new AbstractMap.SimpleImmutableEntry<>(CREATETABLE.class, 2));
     }
 
-    /**
-     * TODO: Optional Parameters, need to be impl in a more general way.
-     */
     public static class CREATETABLE extends Command {
 
         // a parameter should correspond to one variable in the text format of this command.
@@ -117,6 +121,8 @@ public class CassandraCommands {
             );
             Parameter IF_NOT_EXIST = IF_NOT_EXISTType.generateRandomParameter(cassandraState, this);
             params.add(IF_NOT_EXIST);
+
+            updateExecutableCommandString();
         }
 
         @Override
@@ -138,6 +144,7 @@ public class CassandraCommands {
                     columns.toString() + ",\n PRIMARY KEY (" +
                     primaryColumnsName.toString() + " )" +
                     ");";
+
             return ret;
         }
 
@@ -194,6 +201,8 @@ public class CassandraCommands {
             );
             Parameter insertValues = insertValuesType.generateRandomParameter(cassandraState, this);
             this.params.add(insertValues);
+
+            updateExecutableCommandString();
         }
 
         @Override
@@ -220,33 +229,6 @@ public class CassandraCommands {
     /**
      * ALTER TABLE [keyspace_name.] table_name
      * [DROP column_list];
-     * TODO: Sometimes the drop is not possible to create, like
-     * when the cols == primarys.
-     *
-     * How to handle this?
-     * - Set a timer for each command building, if it fails, then
-     * throw an exception.
-     * - The outsider could catch this exception, it knows that this
-     * command can never be constructed/fixed right now.
-     *
-     * Suppose we have a line:
-     * Command c = new Command()
-     *
-     * If we found that this line executes too long,
-     * we throw an exception saying that this command cannot be
-     *
-     *
-     *
-     * - If it's at constructing stage:
-     *      - Just create a new command
-     * - During mutation
-     *      - Re-mutate this command
-     *      - But need to avoid forever loop
-     *          - Still add a timer
-     *      - What if this command can never be mutated?
-     * - If it's at the fixing stage
-     *      - It means that it cannot be fixed
-     *      - Delete this command!
      */
     public static class ALTER_TABLE_DROP extends Command {
         public ALTER_TABLE_DROP(State state) {
@@ -257,18 +239,6 @@ public class CassandraCommands {
 
             Parameter TableName = chooseOneTable(cassandraState, this);
             this.params.add(TableName);
-
-            // Drop column list
-            /**
-             * 1. Cannot drop primary columns
-             * 2. Cannot be empty list
-             *
-             * NotInCollection
-             * - InCollection
-             *  - Columns
-             * - PrimaryColumns
-             * Temporary let's drop only one columns
-             */
 
             Predicate predicate = (s, c) -> {
                 assert c instanceof ALTER_TABLE_DROP;
@@ -291,6 +261,7 @@ public class CassandraCommands {
             Parameter dropColumn = dropColumnType.generateRandomParameter(cassandraState, this);
             this.params.add(dropColumn);
 
+            updateExecutableCommandString();
         }
 
         @Override

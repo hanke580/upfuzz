@@ -11,9 +11,6 @@ import org.zlab.upfuzz.utils.STRINGType;
 
 import java.util.*;
 
-/**
- * TODO: Need to implement mutate() function and isValid() function.
- */
 public class CassandraTypes {
 
   public static Map<ParameterType, String> type2String = new HashMap<>();

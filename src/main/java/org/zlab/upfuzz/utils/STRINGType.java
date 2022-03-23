@@ -30,8 +30,6 @@ public class STRINGType extends ParameterType.ConcreteType {
 
     @Override
     public Parameter generateRandomParameter(State s, Command c) {
-        // TODO: generate a random string.
-
         //  DEBUG: For testing **testNotInCollection()**
 //        List<String> sList = new LinkedList<>();
 //        for (int i = 0; i < 10; i++) {
