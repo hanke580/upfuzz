@@ -112,13 +112,13 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
              *
              */
             ParameterType.ConcreteType primaryColumnsType =
-                new ParameterType.NotEmpty(
-                    new ParameterType.SubsetType(
-                            columnsType,
-                            (s, c) -> (Collection<Parameter>) c.params.get(1).getValue(),
-                            null
-                    )
-                );
+                    new ParameterType.NotEmpty(
+                            new ParameterType.SubsetType(
+                                    columnsType,
+                                    (s, c) -> (Collection<Parameter>) c.params.get(1).getValue(),
+                                    null
+                            )
+                    );
 
             Parameter primaryColumns = primaryColumnsType.generateRandomParameter(cassandraState, this);
             params.add(primaryColumns);
@@ -287,6 +287,12 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
         }
     }
 
+    /**
+     * DELETE firstname, lastname
+     *   FROM cycling.cyclist_name
+     *   USING TIMESTAMP 1318452291034
+     *   WHERE lastname = 'VOS';
+     */
     public static class DELETE extends Command {
 
         public DELETE(State state) {
@@ -294,28 +300,69 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
              * Delete the whole column for now.
              */
             Parameter TableName = chooseOneTable(state, this);
-            this.params.add(TableName);
+            this.params.add(TableName); // Param0
 
-            ParameterType.ConcreteType insertValuesType = new ParameterType.Type2ValueType(
+            // Pick the subset of the primary columns, and make sure it's on the right order
+            // First Several Type
+            /**
+             * Subset of primary columns
+             */
+
+            ParameterType.ConcreteType whereColumnsType =
+                    new ParameterType.NotEmpty(
+                            new ParameterType.SubsetType(
+                                    null,
+                                    (s, c) -> ((CassandraState) s).tables.get(c.params.get(0).toString()).primaryColName2Type,
+                                    null
+                            )
+                    );
+            Parameter whereColumns = whereColumnsType.generateRandomParameter(state, this);
+            this.params.add(whereColumns); // Param1
+
+            ParameterType.ConcreteType whereValuesType = new ParameterType.Type2ValueType(
                     null,
-                    (s, c) -> ((CassandraState) s).tables.get(c.params.get(0).toString()).primaryColName2Type,
+                    (s, c) -> (Collection) c.params.get(1).getValue(),
                     p -> ((Pair) ((Parameter) p).value).right
             );
-            Parameter insertValues = insertValuesType.generateRandomParameter((CassandraState) state, this);
-            this.params.add(insertValues);
+            Parameter insertValues = whereValuesType.generateRandomParameter(state, this);
+            this.params.add(insertValues); // Param2
 
             updateExecutableCommandString();
         }
 
         @Override
         public String constructCommandString() {
-            return null;
+            StringBuilder sb = new StringBuilder();
+            sb.append("DELETE" + " " + "FROM" + " ");
+            sb.append(params.get(0).toString());
+            sb.append(" " + "WHERE" + " ");
+
+
+            ParameterType.ConcreteType whereColumnsType = new ParameterType.StreamMapType(
+                    null,
+                    (s, c) -> (Collection) c.params.get(1).getValue(),
+                    p -> ((Pair<Parameter, Parameter>) ((Parameter) p).value).left
+            );
+
+            List<Parameter> whereColumns = (List<Parameter>) whereColumnsType.generateRandomParameter(null, this).getValue();
+
+            List<Parameter> whereValues = (List<Parameter>) this.params.get(2).getValue();
+
+
+            assert whereValues.size() == whereValues.size();
+
+            for (int i = 0; i < whereColumns.size(); i++) {
+                sb.append(whereColumns.get(i).toString() + " = " + whereValues.get(i).toString());
+                if (i < whereColumns.size() - 1) {
+                    sb.append(" AND ");
+                }
+            }
+            sb.append(";");
+            return sb.toString();
         }
 
         @Override
-        public void updateState(State state) {
-
-        }
+        public void updateState(State state) { }
     }
 
 

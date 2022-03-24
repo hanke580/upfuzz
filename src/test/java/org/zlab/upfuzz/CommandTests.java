@@ -63,4 +63,29 @@ public class CommandTests {
             System.out.println("Exception is thrown during the construction of the current command");
         }
     }
+
+    @Test
+    public void testDELETECommandGeneration() {
+
+        CassandraState s = new CassandraState();
+
+        CassandraCommands.CREATETABLE cmd1 = new CassandraCommands.CREATETABLE(s);
+        cmd1.updateState(s);
+
+        System.out.println(cmd1.constructCommandString());
+
+
+        try {
+            CassandraCommands.DELETE cmd2 = new CassandraCommands.DELETE(s);
+            cmd2.updateState(s);
+            System.out.println(cmd2.constructCommandString());
+        } catch (CustomExceptions.PredicateUnSatisfyException e) {
+            e.printStackTrace();
+            System.out.println("Predicate is not satisfy, this command cannot be correctly constructed");
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Exception is thrown during the construction of the current command");
+        }
+    }
+
 }
