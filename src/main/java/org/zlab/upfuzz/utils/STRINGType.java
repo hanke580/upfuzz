@@ -6,7 +6,6 @@ import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 
 import java.math.BigInteger;
-import java.util.BitSet;
 import java.util.Random;
 
 public class STRINGType extends ParameterType.ConcreteType {
@@ -16,7 +15,7 @@ public class STRINGType extends ParameterType.ConcreteType {
     public static final String signature = "java.lang.String";
 
     public static String generateRandomString() {
-        String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXY";
         StringBuilder sb = new StringBuilder();
         Random random = new Random();
         int length = random.nextInt(MAX_LEN);
@@ -26,22 +25,11 @@ public class STRINGType extends ParameterType.ConcreteType {
             char randomChar = alphabet.charAt(index);
             sb.append(randomChar);
         }
-
-        // Debug Code
-        boolean choice = random.nextBoolean();
-        if (choice)
-            return "";
-        else
-            return sb.toString();
-        // Debug End
-
-//        return sb.toString();
+        return sb.toString();
     }
 
     @Override
     public Parameter generateRandomParameter(State s, Command c) {
-        // TODO: generate a random string.
-
         //  DEBUG: For testing **testNotInCollection()**
 //        List<String> sList = new LinkedList<>();
 //        for (int i = 0; i < 10; i++) {
@@ -83,7 +71,7 @@ public class STRINGType extends ParameterType.ConcreteType {
     }
 
     @Override
-    public void mutate(Command c, State s, Parameter p) {
+    public boolean mutate(State s, Command c, Parameter p) {
         /**
          * 1. Regenerate
          * 2. Flip/Add/Del Bit/Byte/Word/Dword
@@ -108,6 +96,7 @@ public class STRINGType extends ParameterType.ConcreteType {
             default:
                 throw new IllegalStateException("Unexpected value: " + choice);
         }
+        return true;
     }
 
     public String string2binary(String value) {

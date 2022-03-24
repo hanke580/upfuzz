@@ -3,7 +3,6 @@ package org.zlab.upfuzz.utils;
 import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.State;
-import java.util.Random;
 
 public class CONSTANTSTRINGType extends STRINGType {
     /**
@@ -16,8 +15,6 @@ public class CONSTANTSTRINGType extends STRINGType {
      *  - Empty string
      */
 
-    // TODO:Should we keep using instance here?
-//        public static final FIXEDSTRINGType instance = new FIXEDSTRINGType();
     public static final String signature = "org.zlab.upfuzz.utils.FIXSTRINGType";
 
     final String fixString;
@@ -37,5 +34,8 @@ public class CONSTANTSTRINGType extends STRINGType {
     }
 
     @Override
-    public void mutate(Command c, State s, Parameter p) {}
+    public boolean mutate(State s, Command c, Parameter p) {
+        // Cannot mutate!
+        return false;
+    }
 }

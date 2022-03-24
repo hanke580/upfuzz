@@ -41,7 +41,8 @@ public class INTType extends ParameterType.ConcreteType {
     }
 
     @Override
-    public void mutate(Command c, State s, Parameter p) {
-
+    public boolean mutate(State s, Command c, Parameter p) {
+        p.value = generateRandomParameter(s, c).value;
+        return true;
     }
 }

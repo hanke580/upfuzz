@@ -1,3 +1,5 @@
+package org.zlab.upfuzz;
+
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.cassandra.CassandraCommands;

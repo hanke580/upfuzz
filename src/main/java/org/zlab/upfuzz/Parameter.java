@@ -10,9 +10,16 @@ public class Parameter {
         this.value = value;
     }
 
-    public void mutate(State s, Command c) {
-        type.mutate(c, s, this);
+    public void setValue(Object val) {
+    }
+
+    public boolean isEmpty(State s, Command c) {
+        return type.isEmpty(s, c, this);
+    }
+
+    public boolean mutate(State s, Command c) {
         System.out.println("hello mutation");
+        return type.mutate(s, c, this);
     }
 
     public boolean isValid(State s, Command c) {

@@ -61,16 +61,7 @@ public class FuzzingClient {
 		}
 		init();
 		Executor executor = new CassandraExecutor(conf, null);
-		executor.startup();
-		// collect(executor);
-		// try {
-		// 	Thread.sleep(5000);
-		// } catch (InterruptedException e1) {
-		// 	e1.printStackTrace();
-		// }
-		executor.teardown();
-		int ret = 0;
-		// int ret = executor.execute();
+		int ret = executor.execute();
 		if (ret == 0) {
 			ExecutionDataStore codeCoverage = collect(executor);
 			String destFile = executor.getSysExecID() + ".exec";
@@ -87,36 +78,33 @@ public class FuzzingClient {
 	}
 
 	public ExecutionDataStore collect(Executor executor) {
-		try {
-			List<String> agentIdList = sessionGroup.get(executor.executorID);
-			if (agentIdList == null) {
-				throw new UnexpectedException("No agent connection with executor " + executor.executorID.toString());
-			} else {
-				// for (String agentId : agentIdList) {
-				// 	System.out.println("collect conn " + agentId);
-				// 	ClientHandler conn = agentHandler.get(agentId);
-				// 	if (conn != null) {
-				// 		conn.collect();
-				// 	}
-				// }
-				ExecutionDataStore execStore = new ExecutionDataStore();
-				for (String agentId : agentIdList) {
-					System.out.println("get coverage from " + agentId);
-					ExecutionDataStore astore = agentStore.get(agentId);
-					if (astore == null) {
-						System.out.println("no data");
-					} else {
-						execStore.merge(astore);
-						System.out.println("astore size: " + execStore.getContents().size());
-					}
+		List<String> agentIdList = sessionGroup.get(executor.executorID);
+		if (agentIdList == null) {
+			// new UnexpectedException("No agent connection with executor " + executor.executorID.toString())
+			// 		.printStackTrace();
+			return null;
+		} else {
+			// for (String agentId : agentIdList) {
+			// 	System.out.println("collect conn " + agentId);
+			// 	ClientHandler conn = agentHandler.get(agentId);
+			// 	if (conn != null) {
+			// 		conn.collect();
+			// 	}
+			// }
+			ExecutionDataStore execStore = new ExecutionDataStore();
+			for (String agentId : agentIdList) {
+				System.out.println("get coverage from " + agentId);
+				ExecutionDataStore astore = agentStore.get(agentId);
+				if (astore == null) {
+					System.out.println("no data");
+				} else {
+					execStore.merge(astore);
+					System.out.println("astore size: " + execStore.getContents().size());
 				}
-				System.out.println("size: " + execStore.getContents().size());
-				return execStore;
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.println("size: " + execStore.getContents().size());
+			return execStore;
 		}
-		return null;
 	}
 
 	enum FuzzingClientActions {

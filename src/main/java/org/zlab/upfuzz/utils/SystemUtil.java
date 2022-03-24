@@ -7,24 +7,15 @@ import java.util.Map.Entry;
 
 public class SystemUtil {
 
-    public Process exec(String[] cmds, File path) throws IOException {
+    public static Process exec(String[] cmds, File path) throws IOException {
         ProcessBuilder pb = new ProcessBuilder(cmds);
         Map<String, String> env = pb.environment();
-        // env.put("VAR1", "myValue");
-        // env.remove("OTHERVAR");
-        // env.put("VAR2", env.get("VAR1") + "suffix");
         pb.directory(path);
-        // pb.redirectErrorStream(true);
-        // pb.redirectOutput(Redirect.appendTo(log));
         Process p = pb.start();
         return p;
-        // p.getOutputStream();
-        // assert pb.redirectInput() == Redirect.PIPE;
-        // assert pb.redirectOutput().file() == log;
-        // assert p.getInputStream().read() == -1;
     }
 
-    public Process exec(String[] cmds, String path) throws IOException {
+    public static Process exec(String[] cmds, String path) throws IOException {
         return exec(cmds, new File(path));
     }
 
