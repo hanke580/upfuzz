@@ -45,7 +45,7 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
 
 
     static {
-        commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(CREATETABLE.class, 2));
+        commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(CREATETABLE.class, 6));
         commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(INSERT.class, 8));
         // commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(ALTER_TABLE_DROP.class, 2));
 
@@ -287,24 +287,24 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
         }
     }
 
-    public static Parameter chooseOneTable(State state, Command command) {
-        /**
-         * This helper function will randomly pick one table and return its
-         * tablename as parameter.
-         */
-        ParameterType.ConcreteType TableNameType = new ParameterType.InCollectionType(
-                CONSTANTSTRINGType.instance,
-                (s, c) -> ((CassandraState) s).tables.keySet(),
-                null
-        );
-        Parameter TableName = TableNameType.generateRandomParameter(state, command);
-        return TableName;
-    }
-
     public static class DELETE extends Command {
 
         public DELETE(State state) {
+            /**
+             * Delete the whole column for now.
+             */
+            Parameter TableName = chooseOneTable(state, this);
+            this.params.add(TableName);
 
+            ParameterType.ConcreteType insertValuesType = new ParameterType.Type2ValueType(
+                    null,
+                    (s, c) -> ((CassandraState) s).tables.get(c.params.get(0).toString()).primaryColName2Type,
+                    p -> ((Pair) ((Parameter) p).value).right
+            );
+            Parameter insertValues = insertValuesType.generateRandomParameter((CassandraState) state, this);
+            this.params.add(insertValues);
+
+            updateExecutableCommandString();
         }
 
         @Override
@@ -329,5 +329,19 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
      *
      * // UnionType {1,2,3,4}
      */
+
+    public static Parameter chooseOneTable(State state, Command command) {
+        /**
+         * This helper function will randomly pick one table and return its
+         * tablename as parameter.
+         */
+        ParameterType.ConcreteType TableNameType = new ParameterType.InCollectionType(
+                CONSTANTSTRINGType.instance,
+                (s, c) -> ((CassandraState) s).tables.keySet(),
+                null
+        );
+        Parameter TableName = TableNameType.generateRandomParameter(state, command);
+        return TableName;
+    }
 
 }
