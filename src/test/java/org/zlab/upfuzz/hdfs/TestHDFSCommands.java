@@ -4,10 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.hdfs.HDFSCommands.setacl;
 
-import junit.framework.*;
-import junit.textui.*;
 
-public class TestHDFSCommands extends TestCase {
+public class TestHDFSCommands {
     protected void setUp() {
 
     }

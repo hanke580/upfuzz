@@ -56,18 +56,19 @@ public class ClientHandler implements Runnable, ISessionInfoVisitor, IExecutionD
         try {
             while (reader.read()) {
             }
+
+            System.out.println("connection closed");
             socket.close();
             synchronized (fileWriter) {
                 fileWriter.flush();
             }
         } catch (final IOException e) {
             e.printStackTrace();
-            client.agentHandler.remove(sessionId);
+            // client.agentHandler.remove(sessionId);
         }
     }
 
     private void register(SessionInfo info) {
-        client.agentHandler.put(sessionId, this);
         sesInfo = info;
         sessionId = info.getId();
         String[] sessionSplit = sessionId.split("-");
@@ -75,25 +76,32 @@ public class ClientHandler implements Runnable, ISessionInfoVisitor, IExecutionD
             System.err.println("Invalid sessionId " + sessionId);
             return;
         }
-        String identifier = sessionSplit[0], version = sessionSplit[1], index = sessionSplit[2];
-        if (!client.sessionGroup.containsKey(sessionId)) {
-            client.sessionGroup.put(sessionId, new ArrayList<>());
+        System.out.println("Agent " + info.getId() + " registered");
+        client.agentHandler.put(sessionId, this);
+        System.out.println("agdenthandler add " + sessionId);
+
+        String identifier = sessionSplit[0], executor = sessionSplit[1], index = sessionSplit[2];
+        if (!client.sessionGroup.containsKey(executor)) {
+            client.sessionGroup.put(executor, new ArrayList<>());
         }
-        client.sessionGroup.get(sessionId).add(sessionId);
+        client.sessionGroup.get(executor).add(sessionId);
         registered = true;
     }
 
     public void visitSessionInfo(final SessionInfo info) {
         if (!registered) {
             register(info);
+        } else {
+            System.out.printf("Retrieving execution Data for session: %s%n", info.getId());
         }
-        System.out.printf("Retrieving execution Data for session: %s%n", info.getId());
         synchronized (fileWriter) {
             fileWriter.visitSessionInfo(info);
         }
     }
 
     public void visitClassExecution(final ExecutionData data) {
+        // System.out.println(sessionId + " get data");
+        // System.out.println(data.getName());
         if (client.agentStore.containsKey(sessionId)) {
             ExecutionDataStore store = client.agentStore.get(sessionId);
 
@@ -103,6 +111,7 @@ public class ClientHandler implements Runnable, ISessionInfoVisitor, IExecutionD
                 data.merge(preData, false);
             }
             store.put(data);
+            client.agentStore.put(sessionId, store);
         } else {
             ExecutionDataStore store = new ExecutionDataStore();
             store.put(data);
@@ -114,6 +123,7 @@ public class ClientHandler implements Runnable, ISessionInfoVisitor, IExecutionD
     }
 
     public void collect() throws IOException {
+        System.out.println("handler collect " + sessionId);
         writer.visitDumpCommand(true, false);
     }
 }

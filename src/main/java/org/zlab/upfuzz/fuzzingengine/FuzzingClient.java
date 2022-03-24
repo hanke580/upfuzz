@@ -1,14 +1,16 @@
 package org.zlab.upfuzz.fuzzingengine;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.rmi.UnexpectedException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.jacoco.core.data.ExecutionDataStore;
+import org.jacoco.core.data.ExecutionDataWriter;
 import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
-import org.zlab.upfuzz.fuzzingengine.executor.NullExecutor;
 import org.zlab.upfuzz.utils.SystemUtil;
 
 public class FuzzingClient {
@@ -52,35 +54,63 @@ public class FuzzingClient {
 
 	public void start() {
 		try {
-            System.out.println(SystemUtil.getMainClassName());
-        } catch (ClassNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+			System.out.println(SystemUtil.getMainClassName());
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		init();
 		Executor executor = new CassandraExecutor(conf, null);
-		int ret = executor.execute();
+		executor.startup();
+		// collect(executor);
+		// try {
+		// 	Thread.sleep(5000);
+		// } catch (InterruptedException e1) {
+		// 	e1.printStackTrace();
+		// }
+		executor.teardown();
+		int ret = 0;
+		// int ret = executor.execute();
 		if (ret == 0) {
-			collect(executor);
-			// executor.collect();
+			ExecutionDataStore codeCoverage = collect(executor);
+			String destFile = executor.getSysExecID() + ".exec";
+			try {
+				FileOutputStream localFile = new FileOutputStream(destFile);
+				ExecutionDataWriter localWriter = new ExecutionDataWriter(localFile);
+				codeCoverage.accept(localWriter);
+				// localWriter.visitClassExecution(codeCoverage);
+				System.out.println("write codecoverage to " + destFile);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
 	public ExecutionDataStore collect(Executor executor) {
 		try {
-			agentHandler.get(executor).collect();
-			List<String> agentIdList = sessionGroup.get(executor.executorID.toString());
+			List<String> agentIdList = sessionGroup.get(executor.executorID);
 			if (agentIdList == null) {
 				throw new UnexpectedException("No agent connection with executor " + executor.executorID.toString());
 			} else {
+				// for (String agentId : agentIdList) {
+				// 	System.out.println("collect conn " + agentId);
+				// 	ClientHandler conn = agentHandler.get(agentId);
+				// 	if (conn != null) {
+				// 		conn.collect();
+				// 	}
+				// }
 				ExecutionDataStore execStore = new ExecutionDataStore();
 				for (String agentId : agentIdList) {
+					System.out.println("get coverage from " + agentId);
 					ExecutionDataStore astore = agentStore.get(agentId);
 					if (astore == null) {
+						System.out.println("no data");
 					} else {
-						execStore.subtract(astore);
+						execStore.merge(astore);
+						System.out.println("astore size: " + execStore.getContents().size());
 					}
 				}
+				System.out.println("size: " + execStore.getContents().size());
 				return execStore;
 			}
 		} catch (IOException e) {

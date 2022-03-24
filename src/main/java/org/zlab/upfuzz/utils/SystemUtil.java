@@ -31,10 +31,10 @@ public class SystemUtil {
     public static String getMainClassName() throws ClassNotFoundException {
         for (Entry<Thread, StackTraceElement[]> entry : Thread.getAllStackTraces().entrySet()) {
             Thread thread = entry.getKey();
-            System.out.println(thread.getThreadGroup().getName() );
-            // if (thread.getThreadGroup() != null && thread.getThreadGroup().getName().equals("main")) {
+            // System.out.println(thread.getThreadGroup().getName() );
+            if (thread.getThreadGroup() != null && thread.getThreadGroup().getName().equals("main")) {
                 for (StackTraceElement stackTraceElement : entry.getValue()) {
-                    System.out.println(stackTraceElement.getClassName()+ " " + stackTraceElement.getMethodName() + " " + stackTraceElement.getFileName());
+                    // System.out.println(stackTraceElement.getClassName()+ " " + stackTraceElement.getMethodName() + " " + stackTraceElement.getFileName());
                     if (stackTraceElement.getMethodName().equals("main")) {
 
                         try {
@@ -48,7 +48,7 @@ public class SystemUtil {
                         }
                     }
                 }
-            // }
+            }
         }
         return null;
     }
