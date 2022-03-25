@@ -11,12 +11,41 @@ public class INTType extends ParameterType.ConcreteType {
 
     private final int MAX_VALUE = Integer.MAX_VALUE;
 
-    public static final INTType instance = new INTType();
+    public final Integer max;
+    public final Integer min;
+
+//    public static final INTType instance = new INTType();
     public static final String signature = "java.lang.String";
+
+    public INTType() {
+        max = null;
+        min = null;
+    }
+
+    public INTType(int max) {
+        this.min = null;
+        this.max = max;
+    }
+
+    public INTType(int min, int max) {
+        this.min = min;
+        this.max = max;
+    }
 
     @Override
     public Parameter generateRandomParameter(State s, Command c) {
-        return new Parameter(INTType.instance, new Random().nextInt(MAX_VALUE));
+        Integer value;
+
+        if (max == null && min == null) {
+            value = new Random().nextInt();
+        } else if (max != null && min == null) {
+            value = new Random().nextInt(max);
+        } else if (max == null && min != null) {
+            value = new Random().nextInt(Integer.MAX_VALUE) + min;
+        } else {
+            value = new Random().nextInt(max - min) + min;
+        }
+        return new Parameter(this, (Integer) value);
     }
 
     @Override
@@ -26,13 +55,26 @@ public class INTType extends ParameterType.ConcreteType {
     }
 
     @Override
-    public boolean isValid(State s, Command c, Parameter v) {
-        return false;
+    public boolean isValid(State s, Command c, Parameter p) {
+        assert p.value instanceof Integer;
+        boolean ret;
+        if (max == null && min == null) {
+            ret = true;
+        } else if (max != null && min == null) {
+            ret = (Integer) p.value < max;
+        } else if (max == null && min != null) {
+            ret = (Integer) p.value >= min;
+        } else {
+            ret = (Integer) p.value < max && (Integer) p.value >= min;
+        }
+        return ret;
     }
 
     @Override
     public void regenerate(State s, Command c, Parameter p) {
-
+        if (!isValid(s, c, p)) {
+            p.value = generateRandomParameter(s, c).value;
+        }
     }
 
     @Override

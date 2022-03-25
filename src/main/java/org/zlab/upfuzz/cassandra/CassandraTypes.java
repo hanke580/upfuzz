@@ -21,7 +21,7 @@ public class CassandraTypes {
 
   static {
     type2String.put(TEXTType.instance, "TEXT");
-    type2String.put(INTType.instance, "INT");
+    type2String.put(new INTType(), "INT");
 
 //    types.add(LISTType.instance);
 //    types.add(PAIRType.instance);

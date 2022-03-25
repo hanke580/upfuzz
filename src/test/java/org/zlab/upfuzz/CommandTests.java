@@ -12,11 +12,27 @@ import java.lang.reflect.InvocationTargetException;
 public class CommandTests {
 
     @Test
-    public void testCreateCommandGeneration() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+    public void testCreateKSCommandGeneration(){
 
         CassandraState s = new CassandraState();
-        CassandraCommands.CREATETABLE cmd = new CassandraCommands.CREATETABLE(s);
+        CassandraCommands.CREAT_KEYSPACE cmd = new CassandraCommands.CREAT_KEYSPACE(s);
+        cmd.updateState(s);
         System.out.println(cmd.constructCommandString());
+    }
+
+    @Test
+    public void testCreateTableCommandGeneration() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+
+        CassandraState s = new CassandraState();
+
+        CassandraCommands.CREAT_KEYSPACE cmd0 = new CassandraCommands.CREAT_KEYSPACE(s);
+        cmd0.updateState(s);
+        System.out.println(cmd0.constructCommandString());
+
+
+        CassandraCommands.CREATETABLE cmd1 = new CassandraCommands.CREATETABLE(s);
+        cmd1.updateState(s);
+        System.out.println(cmd1.constructCommandString());
 //        cmd.mutate(s);
 
 //        STRINGType.flipBit(null);
@@ -28,13 +44,16 @@ public class CommandTests {
 
         CassandraState s = new CassandraState();
 
+        CassandraCommands.CREAT_KEYSPACE cmd0 = new CassandraCommands.CREAT_KEYSPACE(s);
+        cmd0.updateState(s);
+        System.out.println(cmd0.constructCommandString());
+
         CassandraCommands.CREATETABLE cmd1 = new CassandraCommands.CREATETABLE(s);
         cmd1.updateState(s);
-
         System.out.println(cmd1.constructCommandString());
 
-
         CassandraCommands.INSERT cmd2 = new CassandraCommands.INSERT(s);
+        cmd2.updateState(s);
         System.out.println(cmd2.constructCommandString());
     }
 

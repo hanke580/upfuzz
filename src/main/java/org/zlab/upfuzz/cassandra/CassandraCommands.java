@@ -1,10 +1,7 @@
 package org.zlab.upfuzz.cassandra;
 
 import org.zlab.upfuzz.*;
-import org.zlab.upfuzz.utils.PAIRType;
-import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
-import org.zlab.upfuzz.utils.Pair;
-import org.zlab.upfuzz.utils.STRINGType;
+import org.zlab.upfuzz.utils.*;
 
 import java.util.*;
 
@@ -45,11 +42,69 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
 
 
     static {
-        commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(CREATETABLE.class, 6));
+        commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(CREAT_KEYSPACE.class, 2));
+        commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(CREATETABLE.class, 3));
         commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(INSERT.class, 8));
+
         // commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(ALTER_TABLE_DROP.class, 2));
 
-        createCommandClassList.add(new AbstractMap.SimpleImmutableEntry<>(CREATETABLE.class, 2));
+        createCommandClassList.add(new AbstractMap.SimpleImmutableEntry<>(CREAT_KEYSPACE.class, 2));
+        createCommandClassList.add(new AbstractMap.SimpleImmutableEntry<>(CREATETABLE.class, 3));
+
+    }
+
+
+    /**
+     * CREATE KEYSPACE [IF NOT EXISTS] keyspace_name
+     *    WITH REPLICATION = {
+     *       'class' : 'SimpleStrategy', 'replication_factor' : N }
+     *      | 'class' : 'NetworkTopologyStrategy',
+     *        'dc1_name' : N [, ...]
+     *    }
+     *    [AND DURABLE_WRITES =  true|false] ;
+     */
+    public static class CREAT_KEYSPACE extends Command {
+
+        public CREAT_KEYSPACE(State state) {
+            super();
+
+            ParameterType.ConcreteType keyspaceNameType = new ParameterType.NotInCollectionType(
+                    new ParameterType.NotEmpty(
+                            STRINGType.instance
+                    ),
+                    (s, c) -> ((CassandraState) s).getKeyspaces(),
+                    null
+            );
+            Parameter keyspaceName = keyspaceNameType.generateRandomParameter(state, this);
+            this.params.add(keyspaceName); // [0]
+
+            ParameterType.ConcreteType replicationFactorType = new INTType(1, 4);
+            Parameter replicationFactor = replicationFactorType.generateRandomParameter(state, this);
+            this.params.add(replicationFactor); // [1]
+
+            ParameterType.ConcreteType IF_NOT_EXISTType = new ParameterType.OptionalType(
+                    new CONSTANTSTRINGType("IF NOT EXISTS"), null   // TODO: Make a pure CONSTANTType
+            );
+            Parameter IF_NOT_EXIST = IF_NOT_EXISTType.generateRandomParameter(state, this);
+            params.add(IF_NOT_EXIST); // [2]
+
+            updateExecutableCommandString();
+
+        }
+
+        @Override
+        public String constructCommandString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("CREATE KEYSPACE" + " " + this.params.get(2).toString() + " " + this.params.get(0).toString() + " ");
+            sb.append("WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' :" + " ");
+            sb.append(this.params.get(1).toString() + " " + "};");
+            return sb.toString();
+        }
+
+        @Override
+        public void updateState(State state) {
+            ((CassandraState) state).addKeyspace(this.params.get(0).toString());
+        }
     }
 
     public static class CREATETABLE extends Command {
@@ -73,11 +128,14 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
             assert state instanceof CassandraState;
             CassandraState cassandraState = (CassandraState) state;
 
+            Parameter keyspaceName = chooseKeyspace(state, this);
+            params.add(keyspaceName);
+
             ParameterType.ConcreteType tableNameType = new ParameterType.NotInCollectionType(
                 new ParameterType.NotEmpty(
                         STRINGType.instance
                 ),
-                (s, c) -> {return ((CassandraState) s).tables.keySet(); },
+                (s, c) -> ((CassandraState) s).keyspace2tables.get(this.params.get(0).toString()).keySet(),
                 null
             );
 
@@ -115,7 +173,7 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
                     new ParameterType.NotEmpty(
                             new ParameterType.SubsetType(
                                     columnsType,
-                                    (s, c) -> (Collection<Parameter>) c.params.get(1).getValue(),
+                                    (s, c) -> (Collection<Parameter>) c.params.get(2).getValue(),
                                     null
                             )
                     );
@@ -135,19 +193,22 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
         @Override
         public String constructCommandString() {
             // TODO: Need a helper function, add space between all strings
-            Parameter tableName = params.get(0);
-            Parameter columns = params.get(1); // LIST<PAIR<TEXTType,TYPE>>
-            Parameter primaryColumns = params.get(2);
-            Parameter IF_NOT_EXIST = params.get(3);
+            Parameter keyspaceName = params.get(0);
+            Parameter tableName = params.get(1);
+            Parameter columns = params.get(2); // LIST<PAIR<TEXTType,TYPE>>
+            Parameter primaryColumns = params.get(3);
+            Parameter IF_NOT_EXIST = params.get(4);
 
             ParameterType.ConcreteType primaryColumnsNameType = new ParameterType.StreamMapType(
                     null,
-                    (s, c) -> (Collection) c.params.get(2).getValue(),
+                    (s, c) -> (Collection) c.params.get(3).getValue(),
                     p -> ((Pair<Parameter, Parameter>) ((Parameter) p).value).left
             );
             Parameter primaryColumnsName = primaryColumnsNameType.generateRandomParameter(null, this);
 
-            String ret = "CREATE TABLE " + IF_NOT_EXIST.toString() + " " + tableName.toString() + "(" +
+            String ret = "CREATE TABLE " + IF_NOT_EXIST.toString() + " " +
+                    keyspaceName.toString() + "." +
+                    tableName.toString() + " (" +
                     columns.toString() + ",\n PRIMARY KEY (" +
                     primaryColumnsName.toString() + " )" +
                     ");";
@@ -157,12 +218,13 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
 
         @Override
         public void updateState(State state) {
-            Parameter tableName = params.get(0);
-            Parameter columns = params.get(1); // LIST<PAIR<TEXTType,TYPE>>
-            Parameter primaryColumns = params.get(2);
+            Parameter keyspaceName = params.get(0);
+            Parameter tableName = params.get(1);
+            Parameter columns = params.get(2); // LIST<PAIR<TEXTType,TYPE>>
+            Parameter primaryColumns = params.get(3);
 
             CassandraTable table = new CassandraTable(tableName, columns, primaryColumns);
-            ((CassandraState) state).addTable(tableName.toString(), table);
+            ((CassandraState) state).addTable(keyspaceName.toString(), tableName.toString(), table);
         }
     }
 
@@ -186,16 +248,25 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
             assert state instanceof CassandraState;
             CassandraState cassandraState = (CassandraState) state;
 
-            Parameter TableName = chooseOneTable(cassandraState, this);
+            Parameter keyspaceName = chooseKeyspace(cassandraState, this);
+            this.params.add(keyspaceName);
+
+            Parameter TableName = chooseTable(cassandraState, this, keyspaceName.toString());
             this.params.add(TableName);
 
             ParameterType.ConcreteType columnsType = new ParameterType.SuperSetType(
                     new ParameterType.SubsetType(
                             null,
-                            (s, c) -> ((CassandraState) s).tables.get(c.params.get(0).toString()).colName2Type,
+                            (s, c) -> ((CassandraState) s).getTable(
+                                    c.params.get(0).toString(),
+                                    c.params.get(1).toString()
+                            ).colName2Type,
                             null
                     ),
-                    (s, c) -> ((CassandraState) s).tables.get(c.params.get(0).toString()).primaryColName2Type,
+                    (s, c) -> ((CassandraState) s).getTable(
+                            c.params.get(0).toString(),
+                            c.params.get(1).toString()
+                    ).primaryColName2Type,
                     null
             );
             Parameter columns = columnsType.generateRandomParameter(cassandraState, this);
@@ -203,7 +274,7 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
 
             ParameterType.ConcreteType insertValuesType = new ParameterType.Type2ValueType(
                     null,
-                    (s, c) -> (Collection) c.params.get(1).getValue(),
+                    (s, c) -> (Collection) c.params.get(2).getValue(), // columns
                     p -> ((Pair) ((Parameter) p).value).right
             );
             Parameter insertValues = insertValuesType.generateRandomParameter(cassandraState, this);
@@ -215,17 +286,18 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
         @Override
         public String constructCommandString() {
 
-            Parameter tableName = params.get(0);
+            Parameter keyspaceName = params.get(0);
+            Parameter tableName = params.get(1);
             ParameterType.ConcreteType columnNameType = new ParameterType.StreamMapType(
                     null,
-                    (s, c) -> (Collection) c.params.get(1).getValue(),
+                    (s, c) -> (Collection) c.params.get(2).getValue(),
                     p -> ((Pair) ((Parameter) p).getValue()).left
             );
             Parameter columnName = columnNameType.generateRandomParameter(null, this);
-            Parameter insertValues = params.get(2);
+            Parameter insertValues = params.get(3);
 
             StringBuilder sb = new StringBuilder();
-            sb.append("INSERT INTO " + tableName.toString() + " (" +  columnName.toString() + ") VALUES (" + insertValues.toString()  + ");");
+            sb.append("INSERT INTO " + keyspaceName.toString() + "." + tableName.toString() + " (" +  columnName.toString() + ") VALUES (" + insertValues.toString()  + ");");
             return sb.toString();
         }
 
@@ -244,24 +316,27 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
             assert state instanceof CassandraState;
             CassandraState cassandraState = (CassandraState) state;
 
-            Parameter TableName = chooseOneTable(cassandraState, this);
+            Parameter keyspaceName = chooseKeyspace(cassandraState, this);
+            this.params.add(keyspaceName);
+
+            Parameter TableName = chooseTable(cassandraState, this, keyspaceName.toString());
             this.params.add(TableName);
 
             Predicate predicate = (s, c) -> {
                 assert c instanceof ALTER_TABLE_DROP;
-                CassandraTable cassandraTable = ((CassandraState) s).tables.get(c.params.get(0).toString());
+                CassandraTable cassandraTable = ((CassandraState) s).getTable(c.params.get(0).toString(), c.params.get(1).toString());
                 return cassandraTable.colName2Type.size() != cassandraTable.primaryColName2Type.size();
             };
 
             ParameterType.ConcreteType dropColumnType = new ParameterType.NotInCollectionType<>(
                     new ParameterType.InCollectionType(
                             null,
-                            (s, c) -> ((CassandraState) s).tables.get(c.params.get(0).toString()).colName2Type,
+                            (s, c) -> ((CassandraState) s).getTable(c.params.get(0).toString(), c.params.get(1).toString()).colName2Type,
 //                            p -> ((Pair) ((Parameter) p).value).left
                             null,
                             predicate
                     ),
-                    (s, c) -> ((CassandraState) s).tables.get(c.params.get(0).toString()).primaryColName2Type,
+                    (s, c) -> ((CassandraState) s).getTable(c.params.get(0).toString(), c.params.get(1).toString()).primaryColName2Type,
 //                    p -> ((Pair) ((Parameter) p).value).left
                     null
             );
@@ -275,15 +350,16 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
         public String constructCommandString() {
             StringBuilder sb = new StringBuilder();
             sb.append("ALTER TABLE");
-            sb.append(" " + this.params.get(0).toString() + " ");
+            sb.append(" " + this.params.get(0) + "." + this.params.get(1).toString() + " ");
             sb.append("DROP");
-            sb.append(" " + ((Pair) this.params.get(1).getValue()).left.toString() + " ;");
+            sb.append(" " + ((Pair) this.params.get(2).getValue()).left.toString() + " ;");
             return sb.toString();
         }
 
         @Override
         public void updateState(State state) {
-            ((CassandraState) state).tables.get(this.params.get(0).toString()).colName2Type.removeIf(value -> value.toString().equals(this.params.get(1).toString()));
+            ((CassandraState) state).getTable(this.params.get(0).toString(), this.params.get(1).toString()) // Get the table to modify
+                    .colName2Type.removeIf(value -> value.toString().equals(this.params.get(2).toString()));
         }
     }
 
@@ -299,7 +375,10 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
             /**
              * Delete the whole column for now.
              */
-            Parameter TableName = chooseOneTable(state, this);
+            Parameter keyspaceName = chooseKeyspace(state, this);
+            this.params.add(keyspaceName);
+
+            Parameter TableName = chooseTable(state, this, keyspaceName.toString());
             this.params.add(TableName); // Param0
 
             // Pick the subset of the primary columns, and make sure it's on the right order
@@ -312,7 +391,11 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
                     new ParameterType.NotEmpty(
                             new ParameterType.SubsetType(
                                     null,
-                                    (s, c) -> ((CassandraState) s).tables.get(c.params.get(0).toString()).primaryColName2Type,
+                                    (s, c) -> ((CassandraState) s)
+                                            .getTable(
+                                                    c.params.get(0).toString(),
+                                                    c.params.get(1).toString())
+                                            .primaryColName2Type,
                                     null
                             )
                     );
@@ -334,20 +417,18 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
         public String constructCommandString() {
             StringBuilder sb = new StringBuilder();
             sb.append("DELETE" + " " + "FROM" + " ");
-            sb.append(params.get(0).toString());
+            sb.append(params.get(0) + "." + params.get(1).toString());
             sb.append(" " + "WHERE" + " ");
 
 
             ParameterType.ConcreteType whereColumnsType = new ParameterType.StreamMapType(
                     null,
-                    (s, c) -> (Collection) c.params.get(1).getValue(),
+                    (s, c) -> (Collection) c.params.get(2).getValue(),
                     p -> ((Pair<Parameter, Parameter>) ((Parameter) p).value).left
             );
 
             List<Parameter> whereColumns = (List<Parameter>) whereColumnsType.generateRandomParameter(null, this).getValue();
-
-            List<Parameter> whereValues = (List<Parameter>) this.params.get(2).getValue();
-
+            List<Parameter> whereValues = (List<Parameter>) this.params.get(3).getValue();
 
             assert whereValues.size() == whereValues.size();
 
@@ -377,14 +458,28 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
      * // UnionType {1,2,3,4}
      */
 
-    public static Parameter chooseOneTable(State state, Command command) {
+    public static Parameter chooseKeyspace(State state, Command command) {
+        /**
+         * This helper function will randomly pick keyspace and return its
+         * tablename as parameter.
+         */
+        ParameterType.ConcreteType keyspaceNameType = new ParameterType.InCollectionType(
+                CONSTANTSTRINGType.instance,
+                (s, c) -> ((CassandraState) s).keyspace2tables.keySet(),
+                null
+        );
+        Parameter keyspaceName = keyspaceNameType.generateRandomParameter(state, command);
+        return keyspaceName;
+    }
+
+    public static Parameter chooseTable(State state, Command command, String keyspaceName) {
         /**
          * This helper function will randomly pick one table and return its
          * tablename as parameter.
          */
         ParameterType.ConcreteType TableNameType = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
-                (s, c) -> ((CassandraState) s).tables.keySet(),
+                (s, c) -> ((CassandraState) s).keyspace2tables.get(keyspaceName).keySet(),
                 null
         );
         Parameter TableName = TableNameType.generateRandomParameter(state, command);
