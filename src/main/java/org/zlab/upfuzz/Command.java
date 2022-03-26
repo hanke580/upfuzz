@@ -40,7 +40,7 @@ public abstract class Command {
         return params.get(mutateParamIdx).mutate(s, this);
     }
 
-    public void regenerateIfNotValid(State s) {
+    public boolean regenerateIfNotValid(State s) {
         /**
          * Run check on each existing parameters in order.
          * It will includes
@@ -49,9 +49,15 @@ public abstract class Command {
          * Two functions
          */
         for (Parameter param : params) {
-            if (!param.isValid(s, this)) {
-                param.regenerate(s, this);
+            try {
+                if (!param.isValid(s, this)) {
+                    param.regenerate(s, this);
+                }
+            } catch (Exception e) {
+                // This parameter cannot be fixed
+                return false;
             }
         }
+        return true;
     }
 }

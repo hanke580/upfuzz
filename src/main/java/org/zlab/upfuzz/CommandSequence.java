@@ -10,17 +10,20 @@ public class CommandSequence {
 
     public static final int MAX_CMD_SEQ_LEN = 20;
 
-    public final List<Command> commands;
+    public List<Command> commands;
     public final List<Map.Entry<Class<? extends Command>, Integer>> commandClassList;
+    public final List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList;
     public final State state;
 
     public final static int RETRY_GENERATE_TIME = 20;
 
     public CommandSequence(List<Command> commands,
                            List<Map.Entry<Class<? extends Command>, Integer>> commandClassList,
+                           List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList,
                            State state) {
         this.commands = commands;
         this.commandClassList = commandClassList;
+        this.createCommandClassList = createCommandClassList;
         this.state = state;
     }
 
@@ -31,6 +34,7 @@ public class CommandSequence {
         int choice = rand.nextInt(3);
         /**
          * 0: Mutate the command (Call command.mutate)
+         *      - Could be not possible to fix (For current command)
          * 1: Insert a command
          * 2: Replace a command
          * 3: Delete a command // Temporary not chosen
@@ -68,8 +72,14 @@ public class CommandSequence {
             try {
                 commands.get(pos).mutate(state);
 
-                checkAndUpdateCommand(commands.get(pos), state);
-                updateState(commands.get(pos), state);
+                boolean fixable = checkAndUpdateCommand(commands.get(pos), state);
+                if (!fixable) {
+                    // remove the command from command sequence...
+                    commands.remove(pos);
+                    pos -= 1;
+                } else {
+                    updateState(commands.get(pos), state);
+                }
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             } catch (NoSuchMethodException e) {
@@ -94,7 +104,13 @@ public class CommandSequence {
              * 1. Purely random generate one from this state.
              * 2. (TODO) Pick command from the command pool
              */
-            Command command = generateSingleCommand(commandClassList, state);
+            Command command;
+            if (pos <= 1) {
+                command = generateSingleCommand(createCommandClassList, state);
+            } else {
+                command = generateSingleCommand(commandClassList, state);
+            }
+
 
             System.out.println("Added command : " + command.constructCommandString());
             System.out.println("\n");
@@ -107,7 +123,13 @@ public class CommandSequence {
             /**
              * TODO: Pick from the command pool
              */
-            Command command = generateSingleCommand(commandClassList, state);
+            Command command;
+            if (pos <= 1) {
+                command = generateSingleCommand(createCommandClassList, state);
+            } else {
+                command = generateSingleCommand(commandClassList, state);
+            }
+
             commands.remove(pos);
             commands.add(command);
         } else {
@@ -123,10 +145,19 @@ public class CommandSequence {
          * by some other ways...
          * Like regenerate a new one
          */
-        for (int i = pos + 1; i < commands.size(); i++) {
-            checkAndUpdateCommand(commands.get(i), state);
-            updateState(commands.get(i), state);
+        List<Command> validCommands = new LinkedList<>();
+        for (int i = 0; i < pos + 1; i++) {
+            validCommands.add(commands.get(i));
         }
+
+        for (int i = pos + 1; i < commands.size(); i++) {
+            boolean fixable = checkAndUpdateCommand(commands.get(i), state);
+            if (fixable) {
+                validCommands.add(commands.get(i));
+                updateState(commands.get(pos), state);
+            }
+        }
+        commands = validCommands;
         return this;
     }
 
@@ -153,8 +184,6 @@ public class CommandSequence {
                         break;
                     cmdIdx++;
                 }
-
-
                 Class<? extends Command> clazz = commandClassList.get(cmdIdx).getKey();
                 Constructor<?> constructor = clazz.getConstructor(State.class);
 
@@ -205,7 +234,7 @@ public class CommandSequence {
                 commands.add(generateSingleCommand(commandClassList, state));
             }
         }
-        return new CommandSequence(commands, commandClassList, state);
+        return new CommandSequence(commands, commandClassList, createCommandClassList, state);
     }
 
     public List<String> getCommandStringList() {
@@ -223,9 +252,10 @@ public class CommandSequence {
          * - simple solution, just return a false, and make command sequence remove it.
          * Update the command string
          */
-        command.regenerateIfNotValid(state);
-        command.updateExecutableCommandString();;
-        return true;
+        boolean fixable = command.regenerateIfNotValid(state);
+        if (fixable)
+            command.updateExecutableCommandString();;
+        return fixable;
     }
 
     public static boolean updateState(Command command, State state) {

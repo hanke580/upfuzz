@@ -463,7 +463,6 @@ public abstract class ParameterType {
             // Pick one parameter from the collection
             Object targetCollection = configuration.operate(s, c);
 
-            assert ((Collection) targetCollection).isEmpty() == false;
             if (((Collection) targetCollection).isEmpty() == true) {
                 throw new CustomExceptions.EmptyCollectionException(
                         "InCollection Type got empty Collection",
