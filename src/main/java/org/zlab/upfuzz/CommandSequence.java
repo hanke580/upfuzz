@@ -28,26 +28,26 @@ public class CommandSequence {
 
         Random rand = new Random();
 
-        int choice = rand.nextInt(4);
+        int choice = rand.nextInt(3);
         /**
-         * 0: Insert a command
-         * 1: Replace a command
-         * 2: Delete a command
-         * 3: Mutate the command (Call command.mutate)
+         * 0: Mutate the command (Call command.mutate)
+         * 1: Insert a command
+         * 2: Replace a command
+         * 3: Delete a command // Temporary not chosen
          */
 //        choice = 3; // DEBUG
         switch (choice) {
             case 0:
-                System.out.println("insert a command");
+                System.out.println("mutate a specific command");
                 break;
             case 1:
-                System.out.println("replace a command");
+                System.out.println("insert a command");
                 break;
             case 2:
-                System.out.println("delete a command");
+                System.out.println("replace a command");
                 break;
             case 3:
-                System.out.println("mutate a specific command");
+                System.out.println("delete a command");
         }
 
         assert commands.size() > 0;
@@ -64,6 +64,20 @@ public class CommandSequence {
         }
 
         if (choice == 0) {
+            // Mutate a specific command
+            try {
+                commands.get(pos).mutate(state);
+
+                checkAndUpdateCommand(commands.get(pos), state);
+                updateState(commands.get(pos), state);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
+        } else if (choice == 1) {
             // Insert a command
             /**
              * Now regenerate the state from beginning to the mutated command.
@@ -88,7 +102,7 @@ public class CommandSequence {
             commands.add(pos, command);
             commands.get(pos).updateState(state);
 
-        } else if (choice == 1) {
+        } else if (choice == 2) {
             // Replace a command
             /**
              * TODO: Pick from the command pool
@@ -96,24 +110,11 @@ public class CommandSequence {
             Command command = generateSingleCommand(commandClassList, state);
             commands.remove(pos);
             commands.add(command);
-        } else if (choice == 2) {
+        } else {
             // Delete a command
+            // Temporary not exist...
             commands.remove(pos);
             pos -= 1;
-        } else {
-            // Mutate a specific command
-            try {
-                commands.get(pos).mutate(state);
-
-                checkAndUpdateCommand(commands.get(pos), state);
-                updateState(commands.get(pos), state);
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-            }
         }
         // Check the following commands
         /**

@@ -88,6 +88,9 @@ public class CommandTests {
 
         CassandraState s = new CassandraState();
 
+        CassandraCommands.CREAT_KEYSPACE cmd0 = new CassandraCommands.CREAT_KEYSPACE(s);
+        cmd0.updateState(s);
+
         CassandraCommands.CREATETABLE cmd1 = new CassandraCommands.CREATETABLE(s);
         cmd1.updateState(s);
 
