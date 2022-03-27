@@ -391,7 +391,7 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
 
             ParameterType.ConcreteType whereColumnsType =
                     new ParameterType.NotEmpty(
-                            new ParameterType.SubsetType(
+                            new ParameterType.FrontSubsetType(
                                     null,
                                     (s, c) -> ((CassandraState) s)
                                             .getTable(

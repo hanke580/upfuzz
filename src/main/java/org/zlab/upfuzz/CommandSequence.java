@@ -15,7 +15,7 @@ public class CommandSequence {
     public final List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList;
     public final State state;
 
-    public final static int RETRY_GENERATE_TIME = 20;
+    public final static int RETRY_GENERATE_TIME = 50;
 
     public CommandSequence(List<Command> commands,
                            List<Map.Entry<Class<? extends Command>, Integer>> commandClassList,
@@ -111,7 +111,6 @@ public class CommandSequence {
                 command = generateSingleCommand(commandClassList, state);
             }
 
-
             System.out.println("Added command : " + command.constructCommandString());
             System.out.println("\n");
 
@@ -131,7 +130,8 @@ public class CommandSequence {
             }
 
             commands.remove(pos);
-            commands.add(command);
+            commands.add(pos, command);
+            commands.get(pos).updateState(state);
         } else {
             // Delete a command
             // Temporary not exist...
@@ -227,7 +227,7 @@ public class CommandSequence {
 //        tmpCommandClassList.add(CassandraCommands.ALTER_TABLE_DROP.class); // Debug
 
         for (int i = 0; i < len; i++) {
-            if (i <= 1) {
+            if (i <= 2) {
                 commands.add(generateSingleCommand(createCommandClassList, state));
                 continue;
             } else {

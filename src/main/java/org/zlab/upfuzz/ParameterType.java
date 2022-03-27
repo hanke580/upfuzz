@@ -310,6 +310,64 @@ public abstract class ParameterType {
         }
     }
 
+    public static class FrontSubsetType <T,U> extends SubsetType {
+
+        public FrontSubsetType(ConcreteType t, FetchCollectionLambda configuration, Function mapFunc) {
+            super(t, configuration, mapFunc);
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c) {
+            /**
+             * Current t should be concrete generic type List<xxx>
+             * - Select from collection set
+             */
+
+            Object targetCollection = configuration.operate(s, c);
+
+            if (mapFunc != null) {
+                targetCollection = ((Collection<T>) targetCollection).stream().map(mapFunc).collect(Collectors.toList());
+            }
+
+            List<Object> targetSet = new ArrayList<Object>((Collection<Object>) targetCollection);
+            List<Object> value = new ArrayList<>();
+
+            if (targetSet.size() > 0) {
+                Random rand = new Random();
+                int setSize = rand.nextInt(targetSet.size() + 1); // specified by user
+                List<Integer> indexArray = new ArrayList<>();
+                for (int i = 0; i < targetSet.size(); i++) {
+                    indexArray.add(i);
+                }
+//                Collections.shuffle(indexArray);
+
+                for (int i = 0; i < setSize; i++) {
+                    value.add(targetSet.get(indexArray.get(i))); // The targetSet should also store Parameter
+                }
+            }
+
+            return new Parameter(this, value);
+        }
+
+        @Override
+        public boolean isValid(State s, Command c, Parameter p) {
+            List<Parameter> valueList = (List<Parameter>) p.value;
+            Object targetCollection = configuration.operate(s, c);
+            if (mapFunc != null) {
+                targetCollection = ((Collection<T>) targetCollection).stream().map(mapFunc).collect(Collectors.toList());
+            }
+            List<Parameter> targetList = (List<Parameter>) targetCollection;
+
+            for (int i = 0; i < valueList.size(); i++) {
+                if (!targetList.get(i).equals(valueList.get(i))) { // Should we make parameter comparable here?
+                    return false;
+                }
+            }
+            return true;
+        }
+
+    }
+
     /**
      * TODO: StreamMapType might not be a configurable type.
      */
