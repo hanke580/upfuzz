@@ -1,5 +1,6 @@
 package org.zlab.upfuzz;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -8,7 +9,7 @@ import java.util.stream.Collectors;
  * How a parameter can be generated is only defined in its type.
  * If you want special rules for a parameter, you need to implement a type class for it.
  */
-public abstract class ParameterType {
+public abstract class ParameterType implements Serializable{
 
 
     public static abstract class ConcreteType extends ParameterType {
@@ -91,13 +92,13 @@ public abstract class ParameterType {
 
     }
 
-    public static class NotInCollectionType <T,U> extends ConfigurableType {
+    public static class NotInCollectionType extends ConfigurableType {
 
-        public final Function<T, U> mapFunc;
+        public final SerializableFunction mapFunc;
 
         // Example of mapFunc:
         // Parameter p -> p.value.left // p's ParameterType is Pair<TEXT, TEXTType>
-        public NotInCollectionType(ConcreteType t, FetchCollectionLambda configuration, Function<T, U> mapFunc) {
+        public NotInCollectionType(ConcreteType t, FetchCollectionLambda configuration, SerializableFunction mapFunc) {
             super(t, configuration);
             this.mapFunc = mapFunc;
         }
@@ -119,14 +120,16 @@ public abstract class ParameterType {
 
         @Override
         public boolean isValid(State s, Command c, Parameter p) {
-            Collection<T> targetCollection = configuration.operate(s, c);
-            if (((Collection<T>) targetCollection).isEmpty())
+            Collection targetCollection = configuration.operate(s, c);
+            if (((Collection) targetCollection).isEmpty())
                 return true;
+            List l;
             if (mapFunc == null) {
-                return !((Collection<T>) targetCollection).stream().collect(Collectors.toSet()).contains(p.value);
+                l = (List) (targetCollection).stream().collect(Collectors.toList());
             } else {
-                return !((Collection<T>) targetCollection).stream().map(mapFunc).collect(Collectors.toSet()).contains(p.value);
+                l = (List) (targetCollection).stream().map(mapFunc).collect(Collectors.toList());
             }
+            return l.contains(p.value);
         }
 
         @Override
@@ -204,10 +207,10 @@ public abstract class ParameterType {
 
     public static class SubsetType <T,U> extends ConfigurableType {
 
-        Function mapFunc;
+        SerializableFunction<T, U> mapFunc;
 
 
-        public SubsetType(ConcreteType t, FetchCollectionLambda configuration, Function mapFunc) { // change to concreteGenericType
+        public SubsetType(ConcreteType t, FetchCollectionLambda configuration, SerializableFunction<T, U> mapFunc) { // change to concreteGenericType
             /**
              * In this case, the ConcreteType should be List<Pair<xxx>>.
              * The set we select from will be the target set targetSet. Let's suppose it's also List<Pair<TEXT, TYPEType>>
@@ -312,7 +315,7 @@ public abstract class ParameterType {
 
     public static class FrontSubsetType <T,U> extends SubsetType {
 
-        public FrontSubsetType(ConcreteType t, FetchCollectionLambda configuration, Function mapFunc) {
+        public FrontSubsetType(ConcreteType t, FetchCollectionLambda configuration, SerializableFunction mapFunc) {
             super(t, configuration, mapFunc);
         }
 
@@ -373,9 +376,9 @@ public abstract class ParameterType {
      */
     public static class StreamMapType extends ConfigurableType {
 
-        Function mapFunc;
+        SerializableFunction mapFunc;
 
-        public StreamMapType(ConcreteType t, FetchCollectionLambda configuration, Function mapFunc) { // change to concreteGenericType
+        public StreamMapType(ConcreteType t, FetchCollectionLambda configuration, SerializableFunction mapFunc) { // change to concreteGenericType
             /**
              * In this case, the ConcreteType should be List<Pair<xxx>>.
              * The set we select from will be the target set targetSet. Let's suppose it's also List<Pair<TEXT, TYPEType>>
@@ -502,14 +505,14 @@ public abstract class ParameterType {
          */
 
         public int idx;
-        public final Function mapFunc;
+        public final SerializableFunction mapFunc;
 
-        public InCollectionType(ConcreteType t, FetchCollectionLambda configuration, Function mapFunc) {
+        public InCollectionType(ConcreteType t, FetchCollectionLambda configuration, SerializableFunction mapFunc) {
             super(t, configuration);
             this.mapFunc = mapFunc;
         }
 
-        public InCollectionType(ConcreteType t, FetchCollectionLambda configuration, Function mapFunc, Predicate predicate) {
+        public InCollectionType(ConcreteType t, FetchCollectionLambda configuration, SerializableFunction mapFunc, Predicate predicate) {
             super(t, configuration, predicate);
             this.mapFunc = mapFunc;
         }
@@ -597,9 +600,9 @@ public abstract class ParameterType {
 
     public static class Type2ValueType extends ConfigurableType {
 
-        Function mapFunc;
+        SerializableFunction mapFunc;
 
-        public Type2ValueType(ConcreteType t, FetchCollectionLambda configuration, Function mapFunc) {
+        public Type2ValueType(ConcreteType t, FetchCollectionLambda configuration, SerializableFunction mapFunc) {
             super(t, configuration);
             this.mapFunc = mapFunc;
             // TODO: Make sure that configuration must be List<ConcreteTypes>
@@ -723,10 +726,10 @@ public abstract class ParameterType {
          * For conflict options, not test yet.
          */
         public int idx;
-        public final Function mapFunc;
+        public final SerializableFunction mapFunc;
 
 
-        public SuperSetType(ConcreteType t, FetchCollectionLambda configuration, Function mapFunc) {
+        public SuperSetType(ConcreteType t, FetchCollectionLambda configuration, SerializableFunction mapFunc) {
             super(t, configuration);
             this.mapFunc = mapFunc;
         }

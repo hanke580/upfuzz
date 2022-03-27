@@ -3,7 +3,9 @@ package org.zlab.upfuzz.cassandra;
 import org.zlab.upfuzz.*;
 import org.zlab.upfuzz.utils.*;
 
+import java.io.*;
 import java.util.*;
+import java.util.function.Function;
 
 /**
  * TODO:
@@ -35,11 +37,12 @@ public class CassandraCommands {
 
     public static final List<Map.Entry<Class<? extends Command>, Integer>> commandClassList = new ArrayList<>();
 
-//    public static final List<Class<? extends Command>> commandClassList = new ArrayList<>();
-    // Prioritized commands, have a higher possibility to be generated in the first several
-    // commands, but share the same possibility with the rest for the following commands.
-public static final List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList = new ArrayList<>();
-
+    /**
+     * public static final List<Class<? extends Command>> commandClassList = new ArrayList<>();
+     * Prioritized commands, have a higher possibility to be generated in the first several
+     * commands, but share the same possibility with the rest for the following commands.
+     */
+    public static final List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList = new ArrayList<>();
 
     static {
         commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(CREAT_KEYSPACE.class, 1));
@@ -52,7 +55,6 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
         createCommandClassList.add(new AbstractMap.SimpleImmutableEntry<>(CREATETABLE.class, 3));
 
     }
-
 
     /**
      * CREATE KEYSPACE [IF NOT EXISTS] keyspace_name
@@ -108,10 +110,11 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
     }
 
     public static class CREATETABLE extends Command {
-
-        // a parameter should correspond to one variable in the text format of this command.
-        // mutating a parameter could depend on and the state updated by all nested internal commands and other parameters.
-        // Note: Thus, we need to be careful to not have cyclic dependency among parameters.
+        /**
+         * a parameter should correspond to one variable in the text format of this command.
+         * mutating a parameter could depend on and the state updated by all nested internal commands and other parameters.
+         * Note: Thus, we need to be careful to not have cyclic dependency among parameters.
+         */
 
         // final Command ...; // Nested commands need to be constructed first.
 
@@ -251,7 +254,7 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
             Parameter keyspaceName = chooseKeyspace(cassandraState, this);
             this.params.add(keyspaceName);
 
-            Parameter TableName = chooseTable(cassandraState, this, keyspaceName.toString());
+            Parameter TableName = chooseTable(cassandraState, this);
             this.params.add(TableName);
 
             ParameterType.ConcreteType columnsType = new ParameterType.SuperSetType(
@@ -319,7 +322,7 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
             Parameter keyspaceName = chooseKeyspace(cassandraState, this);
             this.params.add(keyspaceName);
 
-            Parameter TableName = chooseTable(cassandraState, this, keyspaceName.toString());
+            Parameter TableName = chooseTable(cassandraState, this);
             this.params.add(TableName);
 
             Predicate predicate = (s, c) -> {
@@ -328,7 +331,7 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
                 return cassandraTable.colName2Type.size() != cassandraTable.primaryColName2Type.size();
             };
 
-            ParameterType.ConcreteType dropColumnType = new ParameterType.NotInCollectionType<>(
+            ParameterType.ConcreteType dropColumnType = new ParameterType.NotInCollectionType(
                     new ParameterType.InCollectionType(
                             null,
                             (s, c) -> ((CassandraState) s).getTable(c.params.get(0).toString(), c.params.get(1).toString()).colName2Type,
@@ -378,7 +381,7 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
             Parameter keyspaceName = chooseKeyspace(state, this);
             this.params.add(keyspaceName); // Param0
 
-            Parameter TableName = chooseTable(state, this, keyspaceName.toString());
+            Parameter TableName = chooseTable(state, this);
             this.params.add(TableName); // Param1
 
             // Pick the subset of the primary columns, and make sure it's on the right order
@@ -446,7 +449,6 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
         public void updateState(State state) { }
     }
 
-
     /**
      * CREATE TYPE cycling.basic_info (
      *   birthday timestamp,
@@ -472,14 +474,14 @@ public static final List<Map.Entry<Class<? extends Command>, Integer>> createCom
         return keyspaceName;
     }
 
-    public static Parameter chooseTable(State state, Command command, String keyspaceName) {
+    public static Parameter chooseTable(State state, Command command) {
         /**
          * This helper function will randomly pick one table and return its
          * tablename as parameter.
          */
         ParameterType.ConcreteType TableNameType = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
-                (s, c) -> ((CassandraState) s).keyspace2tables.get(keyspaceName).keySet(),
+                (s, c) -> ((CassandraState) s).keyspace2tables.get(c.params.get(0).toString()).keySet(),
                 null
         );
         Parameter TableName = TableNameType.generateRandomParameter(state, command);

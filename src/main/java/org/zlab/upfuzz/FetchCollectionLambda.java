@@ -1,7 +1,8 @@
 package org.zlab.upfuzz;
 
+import java.io.Serializable;
 import java.util.Collection;
 
-public interface FetchCollectionLambda {
+public interface FetchCollectionLambda extends Serializable {
     Collection operate(State state, Command command);
 }

@@ -1,6 +1,8 @@
 package org.zlab.upfuzz;
 
-public class Parameter {
+import java.io.Serializable;
+
+public class Parameter implements Serializable {
 
     public ParameterType.ConcreteType type;
     public Object value; // Could contain lower-level parameters

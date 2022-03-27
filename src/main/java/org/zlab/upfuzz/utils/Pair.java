@@ -1,6 +1,8 @@
 package org.zlab.upfuzz.utils;
 
-public class Pair<U, V>
+import java.io.Serializable;
+
+public class Pair<U, V> implements Serializable
 {
   public final U left;
   public final V right;

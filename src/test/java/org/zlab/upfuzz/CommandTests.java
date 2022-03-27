@@ -7,7 +7,10 @@ import org.zlab.upfuzz.cassandra.CassandraCommands;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.utils.STRINGType;
 
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
+import java.util.LinkedList;
+import java.util.List;
 
 public class CommandTests {
 
@@ -33,11 +36,29 @@ public class CommandTests {
         CassandraCommands.CREATETABLE cmd1 = new CassandraCommands.CREATETABLE(s);
         cmd1.updateState(s);
         System.out.println(cmd1.constructCommandString());
+
+        List<Command> l = new LinkedList<>();
+
+        l.add(cmd0);
+        l.add(cmd1);
+
+        try {
+            FileOutputStream fileOut =
+                    new FileOutputStream("/Users/hanke/Desktop/LIST.ser");
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(l);
+            out.close();
+            fileOut.close();
+            System.out.println("Serialized data is saved in /Users/hanke/Desktop/LIST.ser");
+        } catch (IOException i) {
+            i.printStackTrace();
+            return;
+        }
+
 //        cmd.mutate(s);
 
 //        STRINGType.flipBit(null);
     }
-
 
     @Test
     public void testINSERTCommandGeneration() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
@@ -56,7 +77,6 @@ public class CommandTests {
         cmd2.updateState(s);
         System.out.println(cmd2.constructCommandString());
     }
-
 
     // FIXME drop primary key => infinate loop
     // @Test
@@ -108,6 +128,27 @@ public class CommandTests {
             e.printStackTrace();
             System.out.println("Exception is thrown during the construction of the current command");
         }
+    }
+
+    @Test
+    public void testSerializable() {
+            List<Command> e = null;
+            try {
+                FileInputStream fileIn = new FileInputStream("/Users/hanke/Desktop/LIST.ser");
+                ObjectInputStream in = new ObjectInputStream(fileIn);
+                e = (List<Command>) in.readObject();
+                in.close();
+                fileIn.close();
+            } catch (IOException i) {
+                i.printStackTrace();
+                return;
+            } catch (ClassNotFoundException c) {
+                System.out.println("Employee class not found");
+                c.printStackTrace();
+                return;
+            }
+
+            System.out.println();
     }
 
 }

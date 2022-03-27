@@ -1,5 +1,6 @@
 package org.zlab.upfuzz;
 
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedList;
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.Random;
  * If our custom mutation is not enough, they can implement their mutation by
  * overriding mutate() method.
  */
-public abstract class Command {
+public abstract class Command implements Serializable {
 
     public List<Parameter> params;
     public String executableCommandString;
