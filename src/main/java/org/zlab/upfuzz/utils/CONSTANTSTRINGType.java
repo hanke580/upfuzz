@@ -29,6 +29,11 @@ public class CONSTANTSTRINGType extends STRINGType {
     }
 
     @Override
+    public Parameter generateRandomParameter(State s, Command c, Object init) {
+        return generateRandomParameter(s, c);
+    }
+
+    @Override
     public String generateStringValue(Parameter p) {
         return (String) p.value;
     }

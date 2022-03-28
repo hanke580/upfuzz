@@ -9,8 +9,7 @@ import java.util.stream.Collectors;
  * How a parameter can be generated is only defined in its type.
  * If you want special rules for a parameter, you need to implement a type class for it.
  */
-public abstract class ParameterType implements Serializable{
-
+public abstract class ParameterType implements Serializable {
 
     public static abstract class ConcreteType extends ParameterType {
         /**
@@ -19,6 +18,7 @@ public abstract class ParameterType implements Serializable{
          * @param c // current command
          *  these rules might use the state and other parameters in the current command.
          */
+        public abstract Parameter generateRandomParameter(State s, Command c, Object init);
         public abstract Parameter generateRandomParameter(State s, Command c);
         public abstract String generateStringValue(Parameter p); // Maybe this should be in Parameter class? It has the concrete type anyways.
 
@@ -38,6 +38,7 @@ public abstract class ParameterType implements Serializable{
     public static abstract class GenericType extends ParameterType {
         // generic type cannot generate value without concrete types
         public abstract Parameter generateRandomParameter(State s, Command c, List<ConcreteType> types);
+        public abstract Parameter generateRandomParameter(State s, Command c, List<ConcreteType> types, Object init);
         public abstract String generateStringValue(Parameter p, List<ConcreteType> types); // Maybe this should be in Parameter class? It has the concrete type anyways.
         public abstract boolean isEmpty(State s, Command c, Parameter p, List<ConcreteType> types);
         public abstract boolean mutate(State s, Command c, Parameter p, List<ConcreteType> types);
@@ -104,6 +105,15 @@ public abstract class ParameterType implements Serializable{
         }
 
         @Override
+        public Parameter generateRandomParameter(State s, Command c, Object init) {
+            if (init == null) {
+                return generateRandomParameter(s, c);
+            }
+            Parameter ret = t.generateRandomParameter(s, c, init);
+            return new Parameter(this, ret);
+        }
+
+        @Override
         public Parameter generateRandomParameter(State s, Command c) {
             Parameter ret = t.generateRandomParameter(s, c); // ((Pair<TEXTType, TYPEType>)ret.value).left
             // TODO: Don't compute this every time.
@@ -160,6 +170,15 @@ public abstract class ParameterType implements Serializable{
         }
 
         @Override
+        public Parameter generateRandomParameter(State s, Command c, Object init) {
+            if (init == null) {
+                return generateRandomParameter(s, c);
+            }
+            Parameter ret = t.generateRandomParameter(s, c, init);
+            return new Parameter(this, ret);
+        }
+
+        @Override
         public Parameter generateRandomParameter(State s, Command c) {
             /**
              *      p
@@ -209,7 +228,6 @@ public abstract class ParameterType implements Serializable{
 
         SerializableFunction<T, U> mapFunc;
 
-
         public SubsetType(ConcreteType t, FetchCollectionLambda configuration, SerializableFunction<T, U> mapFunc) { // change to concreteGenericType
             /**
              * In this case, the ConcreteType should be List<Pair<xxx>>.
@@ -222,6 +240,39 @@ public abstract class ParameterType implements Serializable{
              */
             super(t, configuration);
             this.mapFunc = mapFunc;
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c, Object init) {
+            if (init == null) {
+                return generateRandomParameter(s, c);
+            }
+            assert init instanceof List;
+            List<String> l = (List<String>) init;
+
+            Object targetCollection = configuration.operate(s, c);
+
+            if (mapFunc != null) {
+                targetCollection = ((Collection<T>) targetCollection).stream().map(mapFunc).collect(Collectors.toList());
+            }
+
+            // TODO: Make all the collection contain the parameter
+            List<Parameter> targetSet = new ArrayList<Parameter>((Collection<Parameter>) targetCollection);
+            List<Parameter> value = new ArrayList<>();
+
+            List<String> targetSetString = new LinkedList<>();
+            for (Parameter p: targetSet)
+                targetSetString.add(p.toString());
+
+            if (targetSet.size() > 0) {
+                for (int i = 0; i < l.size(); i++) {
+                    int idx = targetSetString.indexOf(l.get(i));
+                    assert idx != -1;
+                    value.add(targetSet.get(idx));
+                }
+            }
+
+            return new Parameter(this, value);
         }
 
         @Override
@@ -391,6 +442,13 @@ public abstract class ParameterType implements Serializable{
         }
 
         @Override
+        public Parameter generateRandomParameter(State s, Command c, Object init) {
+            // This type doesn't need initial value.
+            // Since it's manipulating other values, and the map function is fixed.
+            return null;
+        }
+
+        @Override
         public Parameter generateRandomParameter(State s, Command c) {
             /**
              * Current t should be concrete generic type List<xxx>
@@ -451,6 +509,16 @@ public abstract class ParameterType implements Serializable{
 
         public OptionalType(ConcreteType t, FetchCollectionLambda configuration) {
             super(t, null);
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c, Object init) {
+            if (init == null) {
+                return generateRandomParameter(s, c);
+            }
+            assert init instanceof Boolean;
+            isEmpty = (Boolean) init;
+            return new Parameter(this, t.generateRandomParameter(s, c));
         }
 
         @Override
@@ -515,6 +583,66 @@ public abstract class ParameterType implements Serializable{
         public InCollectionType(ConcreteType t, FetchCollectionLambda configuration, SerializableFunction mapFunc, Predicate predicate) {
             super(t, configuration, predicate);
             this.mapFunc = mapFunc;
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c, Object init) {
+            /**
+             * InCollectionType
+             * - List<>   {col1, col2, co3}
+             *
+             * return col2
+             *
+             * Add init value col2 (initValue)
+             * for (p : Collection)
+             *      if (initValue.equals(p.toString))
+             *          return p;
+             *
+             *
+             *
+             */
+            if (init == null) {
+                return generateRandomParameter(s, c);
+            }
+            predicateCheck(s, c);
+
+            // Pick one parameter from the collection
+            Object targetCollection = configuration.operate(s, c);
+
+            if (((Collection) targetCollection).isEmpty() == true) {
+                throw new CustomExceptions.EmptyCollectionException(
+                        "InCollection Type got empty Collection",
+                        null
+                );
+            }
+            Random rand = new Random();
+
+            List l;
+
+            if (mapFunc == null) {
+                l = (List) (((Collection) targetCollection).stream().collect(Collectors.toList()));
+            } else {
+                l = (List) (((Collection) targetCollection).stream().map(mapFunc).collect(Collectors.toList()));
+            }
+
+            assert init instanceof String;
+            String pString = (String) init;
+
+            int idx = 0;
+            for (; idx < l.size(); idx++) {
+                if (pString.equals(l.get(idx).toString())) {
+                    break;
+                }
+            }
+            assert idx != l.size();
+
+            if (l.get(idx) instanceof Parameter) {
+                return new Parameter(this, l.get(idx));
+            } else {
+                assert t != null;
+                Parameter ret = new Parameter(t, l.get(idx));
+                return new Parameter(this, ret);
+            }
         }
 
         @Override
@@ -611,6 +739,36 @@ public abstract class ParameterType implements Serializable{
              * changes
              * Do we need a notEmpty function?
              */
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c, Object init) {
+            if (init == null) {
+                return generateRandomParameter(s, c);
+            }
+            Collection targetCollection = configuration.operate(s, c);
+
+            assert targetCollection instanceof List;
+
+            List<Parameter> l;
+            if (mapFunc != null) {
+                l = (List<Parameter>) ((Collection) targetCollection).stream().map(mapFunc).collect(Collectors.toList());
+            } else {
+                l = (List<Parameter>) targetCollection;
+            }
+
+            List<Parameter> ret = new LinkedList<>();
+
+            assert init instanceof List;
+            List<Object> initValues = (List<Object>) init;
+            assert initValues.size() == l.size();
+
+            for (int i = 0; i < l.size(); i++) {
+                assert l.get(i).getValue() instanceof ConcreteType;
+                ConcreteType concreteType = (ConcreteType) l.get(i).getValue();
+                ret.add(concreteType.generateRandomParameter(s, c, initValues.get(i)));
+            }
+            return new Parameter(this, ret);
         }
 
         @Override
@@ -720,7 +878,6 @@ public abstract class ParameterType implements Serializable{
         }
     }
 
-
     public static class SuperSetType extends ConfigurableType {
         /**
          * For conflict options, not test yet.
@@ -732,6 +889,17 @@ public abstract class ParameterType implements Serializable{
         public SuperSetType(ConcreteType t, FetchCollectionLambda configuration, SerializableFunction mapFunc) {
             super(t, configuration);
             this.mapFunc = mapFunc;
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c, Object init) {
+            if (init == null) {
+                return generateRandomParameter(s, c);
+            }
+            assert init instanceof List;
+
+            Parameter p = t.generateRandomParameter(s, c, init);
+            return new Parameter(this, p);
         }
 
         @Override
@@ -806,8 +974,17 @@ public abstract class ParameterType implements Serializable{
         public GenericType t;
         public List<ConcreteType> typesInTemplate = new ArrayList<>();
 
+        @Override
         public Parameter generateRandomParameter(State s, Command c) {
             return t.generateRandomParameter(s, c, typesInTemplate);
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c, Object init) {
+            if (init == null) {
+                return generateRandomParameter(s, c);
+            }
+            return t.generateRandomParameter(s, c, typesInTemplate, init);
         }
 
         @Override

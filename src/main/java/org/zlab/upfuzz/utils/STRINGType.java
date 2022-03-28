@@ -29,6 +29,16 @@ public class STRINGType extends ParameterType.ConcreteType {
     }
 
     @Override
+    public Parameter generateRandomParameter(State s, Command c, Object init) {
+        if (init == null) {
+            return generateRandomParameter(s, c);
+        }
+        assert init instanceof String;
+        String initValue = (String) init;
+        return new Parameter(STRINGType.instance, initValue);
+    }
+
+    @Override
     public Parameter generateRandomParameter(State s, Command c) {
         //  DEBUG: For testing **testNotInCollection()**
 //        List<String> sList = new LinkedList<>();
@@ -121,6 +131,13 @@ public class STRINGType extends ParameterType.ConcreteType {
 
         String mutatedValue = new String(new BigInteger(sb.toString(), 2).toByteArray());
         p.value = mutatedValue;
+    }
+
+    @Override
+    public String toString() {
+        // TODO: Need change later if we want the exact type, and also need to allow
+        // User to modify this
+        return "STRING";
     }
 
 }

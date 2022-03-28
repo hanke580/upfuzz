@@ -12,9 +12,6 @@ public class Parameter implements Serializable {
         this.value = value;
     }
 
-    public void setValue(Object val) {
-    }
-
     public boolean isEmpty(State s, Command c) {
         return type.isEmpty(s, c, this);
     }
@@ -45,14 +42,24 @@ public class Parameter implements Serializable {
          *           /   \
          *          /     \
          *     ConcreteGen List<Parameter>
-         *
-         *  Sometimes we want to directly get to the low-level values
+         *                      /  \
+         *                     /    \
+         *             Pair<P1, P2>  Pair<P1, P2>
+         *  Sometimes we want to directly get to the low-level values.
+         *  It can only be
+         *  List<Parameter>
+         *  Pair<Parameter>
+         *  Primitive type like "String, INT..."
          */
         if (this.value instanceof Parameter) {
             return ((Parameter) this.value).getValue();
         } else {
             return this.value;
         }
+    }
+
+    public void setValue(Object val) {
+        this.getValue();
     }
 
     @Override

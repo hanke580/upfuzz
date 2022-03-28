@@ -3,9 +3,7 @@ package org.zlab.upfuzz.cassandra;
 import org.zlab.upfuzz.*;
 import org.zlab.upfuzz.utils.*;
 
-import java.io.*;
 import java.util.*;
-import java.util.function.Function;
 
 /**
  * TODO:
@@ -67,6 +65,39 @@ public class CassandraCommands {
      */
     public static class CREAT_KEYSPACE extends Command {
 
+        public CREAT_KEYSPACE(State state, Object init0, Object init1, Object init2) {
+            super();
+
+            ParameterType.ConcreteType keyspaceNameType = new ParameterType.NotInCollectionType(
+                    new ParameterType.NotEmpty(
+                            STRINGType.instance
+                    ),
+                    (s, c) -> ((CassandraState) s).getKeyspaces(),
+                    null
+            );
+            Parameter keyspaceName = keyspaceNameType.generateRandomParameter(state, this, init0);
+            this.params.add(keyspaceName); // [0]
+
+            ParameterType.ConcreteType replicationFactorType = new INTType(1, 4);
+            Parameter replicationFactor = replicationFactorType.generateRandomParameter(state, this, init1);
+            this.params.add(replicationFactor); // [1]
+
+            ParameterType.ConcreteType IF_NOT_EXISTType = new ParameterType.OptionalType(
+                    new CONSTANTSTRINGType("IF NOT EXISTS"), null   // TODO: Make a pure CONSTANTType
+            );
+            Parameter IF_NOT_EXIST = IF_NOT_EXISTType.generateRandomParameter(state, this, init2);
+            params.add(IF_NOT_EXIST); // [2]
+
+            updateExecutableCommandString();
+
+            /**
+             * CREATE KEYSPACE ks4 WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
+             */
+//            keyspaceName.getValue(); // This should be a string
+//            Parameter keyspaceName = keyspaceNameType.generateRandomParameter(state, this, value);
+
+        }
+
         public CREAT_KEYSPACE(State state) {
             super();
 
@@ -91,6 +122,13 @@ public class CassandraCommands {
             params.add(IF_NOT_EXIST); // [2]
 
             updateExecutableCommandString();
+
+            /**
+             * CREATE KEYSPACE ks4 WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
+             */
+//            keyspaceName.getValue(); // This should be a string
+//            Parameter keyspaceName = keyspaceNameType.generateRandomParameter(state, this, value);
+
 
         }
 
@@ -118,11 +156,73 @@ public class CassandraCommands {
 
         // final Command ...; // Nested commands need to be constructed first.
 
-        public CREATETABLE(String tableName, List<Pair<String, String>> columns, List<String> PK, boolean ifNE){
-            // TODO construct a command and replace its value!
-            this(new CassandraState());
-            // params.get(0).setValue((Object)tableName);
-            // params.get(1).setValue((Object)columns);
+        public CREATETABLE(State state, Object init0, Object init1, Object init2, Object init3, Object init4) {
+            super();
+
+            assert state instanceof CassandraState;
+            CassandraState cassandraState = (CassandraState) state;
+
+            Parameter keyspaceName = chooseKeyspace(state, this, init0);
+            params.add(keyspaceName); // [0]
+
+            ParameterType.ConcreteType tableNameType = new ParameterType.NotInCollectionType(
+                    new ParameterType.NotEmpty(
+                            STRINGType.instance
+                    ),
+                    (s, c) -> ((CassandraState) s).keyspace2tables.get(this.params.get(0).toString()).keySet(),
+                    null
+            );
+
+            Parameter tableName = tableNameType.generateRandomParameter(cassandraState, this, init1);
+            params.add(tableName); // [1]
+
+            ParameterType.ConcreteType columnsType = // LIST<PAIR<String,TYPEType>>
+                    new ParameterType.NotEmpty(
+                            ParameterType.ConcreteGenericType.constructConcreteGenericType(
+                                    CassandraTypes.MapLikeListType.instance,
+                                    ParameterType.ConcreteGenericType.constructConcreteGenericType(PAIRType.instance,
+                                            new ParameterType.NotEmpty(
+                                                    STRINGType.instance
+                                            ),
+                                            CassandraTypes.TYPEType.instance))
+                    );
+
+            Parameter columns = columnsType.generateRandomParameter(cassandraState, this, init2);
+            params.add(columns); // [2]
+
+            /**
+             * Bool variable check whether the previous columns has any member that's already specified as
+             * Primary Key
+             * - True
+             *      - Shouldn't generate the third param
+             * - False
+             *      - Should generate
+             *
+             * Impl this check as a type
+             * - Take a previous parameter as input
+             *      - genRanParam()
+             *            - whether generate() according to whether 'columns' have already 'Primary Key'
+             *
+             */
+            ParameterType.ConcreteType primaryColumnsType =
+                    new ParameterType.NotEmpty(
+                            new ParameterType.SubsetType(
+                                    columnsType,
+                                    (s, c) -> (Collection<Parameter>) c.params.get(2).getValue(),
+                                    null
+                            )
+                    );
+
+            Parameter primaryColumns = primaryColumnsType.generateRandomParameter(cassandraState, this, init3);
+            params.add(primaryColumns); // [3]
+
+            ParameterType.ConcreteType IF_NOT_EXISTType = new ParameterType.OptionalType(
+                    new CONSTANTSTRINGType("IF NOT EXISTS"), null   // TODO: Make a pure CONSTANTType
+            );
+            Parameter IF_NOT_EXIST = IF_NOT_EXISTType.generateRandomParameter(cassandraState, this, init4);
+            params.add(IF_NOT_EXIST); // [4]
+
+            updateExecutableCommandString();
         }
 
         public CREATETABLE(State state) {
@@ -131,8 +231,8 @@ public class CassandraCommands {
             assert state instanceof CassandraState;
             CassandraState cassandraState = (CassandraState) state;
 
-            Parameter keyspaceName = chooseKeyspace(state, this);
-            params.add(keyspaceName);
+            Parameter keyspaceName = chooseKeyspace(state, this, null);
+            params.add(keyspaceName); // [0]
 
             ParameterType.ConcreteType tableNameType = new ParameterType.NotInCollectionType(
                 new ParameterType.NotEmpty(
@@ -143,7 +243,7 @@ public class CassandraCommands {
             );
 
             Parameter tableName = tableNameType.generateRandomParameter(cassandraState, this);
-            params.add(tableName);
+            params.add(tableName); // [1]
 
             ParameterType.ConcreteType columnsType = // LIST<PAIR<String,TYPEType>>
                 new ParameterType.NotEmpty(
@@ -157,7 +257,8 @@ public class CassandraCommands {
             );
 
             Parameter columns = columnsType.generateRandomParameter(cassandraState, this);
-            params.add(columns);
+            params.add(columns); // [2]
+
             /**
              * Bool variable check whether the previous columns has any member that's already specified as
              * Primary Key
@@ -182,13 +283,13 @@ public class CassandraCommands {
                     );
 
             Parameter primaryColumns = primaryColumnsType.generateRandomParameter(cassandraState, this);
-            params.add(primaryColumns);
+            params.add(primaryColumns); // [3]
 
             ParameterType.ConcreteType IF_NOT_EXISTType = new ParameterType.OptionalType(
                     new CONSTANTSTRINGType("IF NOT EXISTS"), null   // TODO: Make a pure CONSTANTType
             );
             Parameter IF_NOT_EXIST = IF_NOT_EXISTType.generateRandomParameter(cassandraState, this);
-            params.add(IF_NOT_EXIST);
+            params.add(IF_NOT_EXIST); // [4]
 
             updateExecutableCommandString();
         }
@@ -242,8 +343,48 @@ public class CassandraCommands {
      *    VALUES (c4b65263-fe58-4846-83e8-f0e1c13d518f, 'RATTO', 'Rissella')
      * IF NOT EXISTS;
      */
-
     public static class INSERT extends Command {
+
+        public INSERT(State state,Object init0, Object init1, Object init2, Object init3) {
+            super();
+
+            assert state instanceof CassandraState;
+            CassandraState cassandraState = (CassandraState) state;
+
+            Parameter keyspaceName = chooseKeyspace(cassandraState, this, init0);
+            this.params.add(keyspaceName); // [0]
+
+            Parameter TableName = chooseTable(cassandraState, this, init1);
+            this.params.add(TableName); // [1]
+
+            ParameterType.ConcreteType columnsType = new ParameterType.SuperSetType(
+                    new ParameterType.SubsetType(
+                            null,
+                            (s, c) -> ((CassandraState) s).getTable(
+                                    c.params.get(0).toString(),
+                                    c.params.get(1).toString()
+                            ).colName2Type,
+                            null
+                    ),
+                    (s, c) -> ((CassandraState) s).getTable(
+                            c.params.get(0).toString(),
+                            c.params.get(1).toString()
+                    ).primaryColName2Type,
+                    null
+            );
+            Parameter columns = columnsType.generateRandomParameter(cassandraState, this, init2);
+            this.params.add(columns); // [2]
+
+            ParameterType.ConcreteType insertValuesType = new ParameterType.Type2ValueType(
+                    null,
+                    (s, c) -> (Collection) c.params.get(2).getValue(), // columns
+                    p -> ((Pair) ((Parameter) p).value).right
+            );
+            Parameter insertValues = insertValuesType.generateRandomParameter(cassandraState, this, init3);
+            this.params.add(insertValues); // [3]
+
+            updateExecutableCommandString();
+        }
 
         public INSERT(State state) {
             super();
@@ -251,10 +392,10 @@ public class CassandraCommands {
             assert state instanceof CassandraState;
             CassandraState cassandraState = (CassandraState) state;
 
-            Parameter keyspaceName = chooseKeyspace(cassandraState, this);
+            Parameter keyspaceName = chooseKeyspace(cassandraState, this, null);
             this.params.add(keyspaceName);
 
-            Parameter TableName = chooseTable(cassandraState, this);
+            Parameter TableName = chooseTable(cassandraState, this, null);
             this.params.add(TableName);
 
             ParameterType.ConcreteType columnsType = new ParameterType.SuperSetType(
@@ -313,16 +454,52 @@ public class CassandraCommands {
      * [DROP column_list];
      */
     public static class ALTER_TABLE_DROP extends Command {
+        public ALTER_TABLE_DROP(State state, Object init0, Object init1, Object init2) {
+            super();
+
+            assert state instanceof CassandraState;
+            CassandraState cassandraState = (CassandraState) state;
+
+            Parameter keyspaceName = chooseKeyspace(cassandraState, this, init0);
+            this.params.add(keyspaceName);
+
+            Parameter TableName = chooseTable(cassandraState, this, init1);
+            this.params.add(TableName);
+
+            Predicate predicate = (s, c) -> {
+                assert c instanceof ALTER_TABLE_DROP;
+                CassandraTable cassandraTable = ((CassandraState) s).getTable(c.params.get(0).toString(), c.params.get(1).toString());
+                return cassandraTable.colName2Type.size() != cassandraTable.primaryColName2Type.size();
+            };
+
+            ParameterType.ConcreteType dropColumnType = new ParameterType.NotInCollectionType(
+                    new ParameterType.InCollectionType(
+                            null,
+                            (s, c) -> ((CassandraState) s).getTable(c.params.get(0).toString(), c.params.get(1).toString()).colName2Type,
+//                            p -> ((Pair) ((Parameter) p).value).left
+                            null,
+                            predicate
+                    ),
+                    (s, c) -> ((CassandraState) s).getTable(c.params.get(0).toString(), c.params.get(1).toString()).primaryColName2Type,
+//                    p -> ((Pair) ((Parameter) p).value).left
+                    null
+            );
+            Parameter dropColumn = dropColumnType.generateRandomParameter(cassandraState, this, init2);
+            this.params.add(dropColumn);
+
+            updateExecutableCommandString();
+        }
+
         public ALTER_TABLE_DROP(State state) {
             super();
 
             assert state instanceof CassandraState;
             CassandraState cassandraState = (CassandraState) state;
 
-            Parameter keyspaceName = chooseKeyspace(cassandraState, this);
+            Parameter keyspaceName = chooseKeyspace(cassandraState, this, null);
             this.params.add(keyspaceName);
 
-            Parameter TableName = chooseTable(cassandraState, this);
+            Parameter TableName = chooseTable(cassandraState, this, null);
             this.params.add(TableName);
 
             Predicate predicate = (s, c) -> {
@@ -378,10 +555,10 @@ public class CassandraCommands {
             /**
              * Delete the whole column for now.
              */
-            Parameter keyspaceName = chooseKeyspace(state, this);
+            Parameter keyspaceName = chooseKeyspace(state, this, null);
             this.params.add(keyspaceName); // Param0
 
-            Parameter TableName = chooseTable(state, this);
+            Parameter TableName = chooseTable(state, this, null);
             this.params.add(TableName); // Param1
 
             // Pick the subset of the primary columns, and make sure it's on the right order
@@ -459,8 +636,7 @@ public class CassandraCommands {
      *
      * // UnionType {1,2,3,4}
      */
-
-    public static Parameter chooseKeyspace(State state, Command command) {
+    public static Parameter chooseKeyspace(State state, Command command, Object init) {
         /**
          * This helper function will randomly pick keyspace and return its
          * tablename as parameter.
@@ -470,11 +646,11 @@ public class CassandraCommands {
                 (s, c) -> ((CassandraState) s).keyspace2tables.keySet(),
                 null
         );
-        Parameter keyspaceName = keyspaceNameType.generateRandomParameter(state, command);
+        Parameter keyspaceName = keyspaceNameType.generateRandomParameter(state, command, init);
         return keyspaceName;
     }
 
-    public static Parameter chooseTable(State state, Command command) {
+    public static Parameter chooseTable(State state, Command command, Object init) {
         /**
          * This helper function will randomly pick one table and return its
          * tablename as parameter.
@@ -484,7 +660,7 @@ public class CassandraCommands {
                 (s, c) -> ((CassandraState) s).keyspace2tables.get(c.params.get(0).toString()).keySet(),
                 null
         );
-        Parameter TableName = TableNameType.generateRandomParameter(state, command);
+        Parameter TableName = TableNameType.generateRandomParameter(state, command, init);
         return TableName;
     }
 

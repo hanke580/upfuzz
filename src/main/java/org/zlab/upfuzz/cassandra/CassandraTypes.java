@@ -71,6 +71,11 @@ public class CassandraTypes {
       p.value = tmpParam.value;
       return true;
     }
+
+    @Override
+    public String toString() {
+      return "TEXT";
+    }
   }
 
   public static class LISTType extends ParameterType.GenericTypeOne {
@@ -95,6 +100,26 @@ public class CassandraTypes {
 
       for (int i = 0; i < len; i++) {
         value.add(t.generateRandomParameter(s, c));
+      }
+
+      ConcreteType type = ConcreteGenericType.constructConcreteGenericType(instance, t); // LIST<WhateverType>
+      return new Parameter(type, value);
+    }
+
+    @Override
+    public Parameter generateRandomParameter(State s, Command c, List<ConcreteType> types, Object init) {
+      assert init instanceof List;
+      List<Object> initValues = (List<Object>) init;
+
+      // (Pair<TEXT,TYPE>)
+      List<Parameter> value = new ArrayList<>();
+
+      int len = initValues.size();
+
+      ConcreteType t = types.get(0);
+
+      for (int i = 0; i < len; i++) {
+        value.add(t.generateRandomParameter(s, c, initValues.get(i)));
       }
 
       ConcreteType type = ConcreteGenericType.constructConcreteGenericType(instance, t); // LIST<WhateverType>
@@ -196,9 +221,9 @@ public class CassandraTypes {
        * TODO: Implement the nested type.
        */
 //      List<ParameterType> types = (List) type2String.values();
-
-      return type2String.get(p.value);
-
+      assert p.value instanceof ConcreteType;
+      // Didn't handle the situation when there are multiple nested types
+      return ((ConcreteType) p.value).toString();
 //      assert value instanceof List;
 //      assert !((List) value).isEmpty();
 //      assert !(((List) value).get(0) instanceof ParameterType);
@@ -264,6 +289,15 @@ public class CassandraTypes {
       }
       assert false;
       return null; // should not happen.
+    }
+
+    @Override
+    public Parameter generateRandomParameter(State s, Command c, Object init) {
+      if (init == null) {
+        return generateRandomParameter(s, c);
+      }
+      assert init instanceof ConcreteType;
+      return new Parameter(this, (ConcreteType) init);
     }
 
     /**

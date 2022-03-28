@@ -33,6 +33,15 @@ public class INTType extends ParameterType.ConcreteType {
     }
 
     @Override
+    public Parameter generateRandomParameter(State s, Command c, Object init) {
+        if (init == null)
+            return generateRandomParameter(s, c);
+        assert init instanceof Integer;
+        Integer initValue = (Integer) init;
+        return new Parameter(this, initValue);
+    }
+
+    @Override
     public Parameter generateRandomParameter(State s, Command c) {
         Integer value;
 
@@ -86,5 +95,10 @@ public class INTType extends ParameterType.ConcreteType {
     public boolean mutate(State s, Command c, Parameter p) {
         p.value = generateRandomParameter(s, c).value;
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "INT";
     }
 }
