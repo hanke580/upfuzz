@@ -6,6 +6,6 @@ public class Config {
     public String clientHost = "localhost";
     public int clientPort = 6300;
     public String sessionID = null;
-    public String cassandraPath = "/home/yayu/Project/Upgrade-Fuzzing/cassandra/cassandra";
-    // public String systemId = "cassandra";
+    public static String cassandraPath = "/home/yayu/Project/Upgrade-Fuzzing/cassandra/cassandra";
+    public static String jacocoAgentPath = "/home/yayu/Project/Upgrade-Fuzzing/upfuzz/dependencies/org.jacoco.agent-300f3f6d2b.jar";
 }
