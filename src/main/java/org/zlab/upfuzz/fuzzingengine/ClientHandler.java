@@ -78,7 +78,7 @@ public class ClientHandler implements Runnable, ISessionInfoVisitor, IExecutionD
         }
         System.out.println("Agent " + info.getId() + " registered");
         client.agentHandler.put(sessionId, this);
-        System.out.println("agdenthandler add " + sessionId);
+        System.out.println("agent handler add " + sessionId);
 
         String identifier = sessionSplit[0], executor = sessionSplit[1], index = sessionSplit[2];
         if (!client.sessionGroup.containsKey(executor)) {

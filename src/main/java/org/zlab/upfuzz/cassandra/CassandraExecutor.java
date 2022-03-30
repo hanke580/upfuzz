@@ -48,17 +48,17 @@ public class CassandraExecutor extends Executor {
                 "-javaagent:" + Config.jacocoAgentPath + jacocoOptions + systemID + "-" + executorID);
         cassandraProcessBuilder.directory(new File(conf.cassandraPath));
         try {
-            System.out.println("cassandra start");
+            System.out.println("Executor starting cassandra");
             long startTime = System.currentTimeMillis();
             cassandraProcess = cassandraProcessBuilder.start();
             BufferedReader in = new BufferedReader(new InputStreamReader(cassandraProcess.getInputStream()));
             String line;
             while ((line = in.readLine()) != null) {
-                // System.out.println(line);
-                // System.out.flush();
+                System.out.println(line);
+                System.out.flush();
             }
             cassandraProcess.waitFor();
-            System.out.println("cassandra " + executorID + " start");
+            System.out.println("cassandra " + executorID + " started");
             in.close();
             while (!isCassandraReady()) {
                 Thread.sleep(500);
