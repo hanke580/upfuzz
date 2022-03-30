@@ -224,12 +224,19 @@ public class CommandTests {
             System.out.println(cmd);
         }
 
+        CommandSequence commandSequence = new CommandSequence(l, CassandraCommands.commandClassList, CassandraCommands.createCommandClassList, s);
 
+        commandSequence.mutate(s);
+        boolean useIdx = false;
 
-
-
-
-
+        List<String> commandStringList = commandSequence.getCommandStringList();
+        for (int i = 0; i < commandStringList.size(); i++) {
+            if (useIdx)
+                System.out.println("[" + i + "]" + "\t" + commandStringList.get(i));
+            else
+                System.out.println(commandStringList.get(i));
+        }
+        System.out.println("command size = " + commandStringList.size());
 
     }
 

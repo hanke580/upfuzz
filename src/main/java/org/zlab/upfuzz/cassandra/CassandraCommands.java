@@ -507,6 +507,11 @@ public class CassandraCommands {
                 CassandraTable cassandraTable = ((CassandraState) s).getTable(c.params.get(0).toString(), c.params.get(1).toString());
                 return cassandraTable.colName2Type.size() != cassandraTable.primaryColName2Type.size();
             };
+            /**
+             * FIXME: About the Predicate. Two ways
+             * Keep the retry times, if it retrys for many times, throw a warning about the constraints?
+             * Retry a few times, if not success, it fails.
+             */
 
             ParameterType.ConcreteType dropColumnType = new ParameterType.NotInCollectionType(
                     new ParameterType.InCollectionType(

@@ -53,6 +53,16 @@ public class CassandraTypes {
     }
 
     @Override
+    public Parameter generateRandomParameter(State s, Command c, Object init) {
+      if (init == null) {
+        return generateRandomParameter(s, c);
+      }
+      assert init instanceof String;
+      String initValue = (String) init;
+      return new Parameter(TEXTType.instance, initValue);
+    }
+
+    @Override
     public String generateStringValue(Parameter p) {
       assert Objects.equals(p.type, instance);
       assert p.value instanceof String;
@@ -151,6 +161,26 @@ public class CassandraTypes {
       return true;
     }
 
+    @Override
+    public boolean isValid(State s, Command c, Parameter p, List<ConcreteType> types) {
+      // TODO: Make isValid also check the type, now is using the assert, this is bad.
+      assert p.value instanceof List;
+
+      List<Parameter> value = (List<Parameter>) p.value;
+      /**
+       * TODO: The Type should also be the same.
+       * Otherwise, if the type is different from the current list
+       * List<TYPEType> vs List<STRING>. The latter one should also be inValid!
+       * Now only make sure each parameter is correct
+       */
+      for (Parameter v : value) {
+        if (!v.isValid(s, c)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
 
 //    @Override
 //    public void mutate(State s, Command c, Parameter p) {
@@ -242,6 +272,8 @@ public class CassandraTypes {
 
     @Override
     public boolean isValid(State s, Command c, Parameter p) {
+      if (p.value instanceof ConcreteType)
+        return true;
       return false;
     }
 

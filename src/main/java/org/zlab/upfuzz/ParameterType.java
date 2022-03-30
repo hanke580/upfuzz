@@ -33,6 +33,20 @@ public abstract class ParameterType implements Serializable {
         public abstract boolean isEmpty(State s, Command c, Parameter p);
         public abstract boolean mutate(State s, Command c, Parameter p);
 
+        @Override
+        protected Object clone() {
+            Parameter clone = null;
+            try
+            {
+                clone = (Parameter) super.clone();
+            }
+            catch (CloneNotSupportedException e)
+            {
+                throw new RuntimeException(e);
+            }
+            return clone;
+        }
+
     }
 
     public static abstract class GenericType extends ParameterType {
@@ -42,6 +56,7 @@ public abstract class ParameterType implements Serializable {
         public abstract String generateStringValue(Parameter p, List<ConcreteType> types); // Maybe this should be in Parameter class? It has the concrete type anyways.
         public abstract boolean isEmpty(State s, Command c, Parameter p, List<ConcreteType> types);
         public abstract boolean mutate(State s, Command c, Parameter p, List<ConcreteType> types);
+        public abstract boolean isValid(State s, Command c, Parameter p, List<ConcreteType> types);
     }
 
     /**
@@ -139,7 +154,12 @@ public abstract class ParameterType implements Serializable {
             } else {
                 l = (List) (targetCollection).stream().map(mapFunc).collect(Collectors.toList());
             }
-            return l.contains(p.value);
+            if (l.contains(p.value)) {
+                return false;
+            } else {
+                assert p.value instanceof Parameter;
+                return ((Parameter) p.value).isValid(s, c);
+            }
         }
 
         @Override
@@ -572,6 +592,13 @@ public abstract class ParameterType implements Serializable {
          * For conflict options, not test yet.
          */
 
+        @Override
+        protected Object clone() {
+            InCollectionType clone = null;
+            clone = (InCollectionType) super.clone();
+            return clone;
+        }
+
         public int idx;
         public final SerializableFunction mapFunc;
 
@@ -697,7 +724,14 @@ public abstract class ParameterType implements Serializable {
             } else {
                 l = (List) (((Collection) targetCollection).stream().map(mapFunc).collect(Collectors.toList()));
             }
-            if (l.contains(p.getValue())) {
+            /**
+             * Since we are basically generating the string.
+             * When comparing the parameter, we only care about the value.
+             * Then, what if we directly compare the toString() between
+             * two parameter?
+             */
+            if (l.contains(p) || l.contains(p.getValue())) {
+                // l could be List<Parameter> or List<Object>...
                 return ((Parameter) p.value).isValid(s, c);
             } else {
                 return false;
@@ -844,13 +878,17 @@ public abstract class ParameterType implements Serializable {
             List<Parameter> valueList = (List<Parameter>) p.value;
             if (typeList.size() != valueList.size()) return false;
 
-            for (int i = 0; i < typeList.size(); i++) {
-                // TODO: Do we need to make the type comparable?
-                // Same t, predicate, class?
-                if (!typeList.get(i).getValue().equals(valueList.get(i).type)) {
-                    return false;
-                }
-            }
+            // TODO: Problem
+            /**
+             * Type is not comparable
+             */
+//            for (int i = 0; i < typeList.size(); i++) {
+//                // TODO: Do we need to make the type comparable?
+//                // Same t, predicate, class?
+//                if (!typeList.get(i).getValue().equals(valueList.get(i).type)) {
+//                    return false;
+//                }
+//            }
             return true;
         }
 
@@ -988,6 +1026,11 @@ public abstract class ParameterType implements Serializable {
         }
 
         @Override
+        public boolean isValid(State s, Command c, Parameter p) {
+            return t.isValid(s, c, p, typesInTemplate);
+        }
+
+        @Override
         public int hashCode() {
             return super.hashCode();
         }
@@ -1065,11 +1108,6 @@ public abstract class ParameterType implements Serializable {
             this.t = t;
             this.typesInTemplate.add(t1);
             this.typesInTemplate.add(t2);
-        }
-
-        @Override
-        public boolean isValid(State s, Command c, Parameter p) {
-            return false;
         }
 
         @Override

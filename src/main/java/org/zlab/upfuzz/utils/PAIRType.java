@@ -62,5 +62,17 @@ public class PAIRType extends ParameterType.GenericTypeTwo {
     p.value = generateRandomParameter(s, c, types).value;
     return true;
   }
+
+  @Override
+  public boolean isValid(State s, Command c, Parameter p, List<ConcreteType> types) {
+    assert p.value instanceof Pair;
+
+    Pair<Parameter, Parameter> initValues = (Pair<Parameter, Parameter>) p.value;
+
+    ConcreteType t1 = types.get(0); // TEXTType
+    ConcreteType t2 = types.get(1); // TYPEType
+
+    return t1.isValid(s, c, initValues.left) && t2.isValid(s, c, initValues.right);
+  }
 }
 

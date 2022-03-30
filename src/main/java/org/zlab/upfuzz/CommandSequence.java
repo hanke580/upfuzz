@@ -13,7 +13,7 @@ public class CommandSequence {
     public List<Command> commands;
     public final List<Map.Entry<Class<? extends Command>, Integer>> commandClassList;
     public final List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList;
-    public final State state;
+//    public final State state;
 
     public final static int RETRY_GENERATE_TIME = 50;
 
@@ -24,14 +24,15 @@ public class CommandSequence {
         this.commands = commands;
         this.commandClassList = commandClassList;
         this.createCommandClassList = createCommandClassList;
-        this.state = state;
+//        this.state = state;
     }
 
     public CommandSequence mutate(State state) {
 
         Random rand = new Random();
-
         int choice = rand.nextInt(3);
+
+
         /**
          * 0: Mutate the command (Call command.mutate)
          *      - Could be not possible to fix (For current command)
@@ -39,28 +40,30 @@ public class CommandSequence {
          * 2: Replace a command
          * 3: Delete a command // Temporary not chosen
          */
-//        choice = 3; // DEBUG
+
         switch (choice) {
             case 0:
-                System.out.println("mutate a specific command");
+                System.out.println("Mutate a specific command");
                 break;
             case 1:
-                System.out.println("insert a command");
+                System.out.println("Insert a command");
                 break;
             case 2:
-                System.out.println("replace a command");
+                System.out.println("Replace a command");
                 break;
             case 3:
-                System.out.println("delete a command");
+                System.out.println("Delete a command");
         }
 
         assert commands.size() > 0;
         // pos to insert
         int pos = rand.nextInt(commands.size());
-//        pos = 1; // DEBUG
         System.out.println("Mutate Command Index = " + pos);
 
         state.clearState();
+
+        pos = 1; // DEBUG
+        choice = 1; // DEBUG
 
         // Compute the state up to the position
         for (int i = 0; i < pos; i++) {
@@ -105,11 +108,16 @@ public class CommandSequence {
              * 2. (TODO) Pick command from the command pool
              */
             Command command;
-            if (pos <= 1) {
-                command = generateSingleCommand(createCommandClassList, state);
-            } else {
-                command = generateSingleCommand(commandClassList, state);
-            }
+//            if (pos <= 1) {
+//                command = generateSingleCommand(createCommandClassList, state);
+//            } else {
+//                command = generateSingleCommand(commandClassList, state);
+//            }
+            // Debug Code
+            List<Map.Entry<Class<? extends Command>, Integer>> tmpL = new LinkedList<>();
+            tmpL.add(new AbstractMap.SimpleImmutableEntry<>(CassandraCommands.CREATETABLE.class, 2) );
+            command = generateSingleCommand(tmpL, state);
+
 
             System.out.println("Added command : " + command.constructCommandString());
             System.out.println("\n");
@@ -154,7 +162,7 @@ public class CommandSequence {
             boolean fixable = checkAndUpdateCommand(commands.get(i), state);
             if (fixable) {
                 validCommands.add(commands.get(i));
-                updateState(commands.get(pos), state);
+                updateState(commands.get(i), state);
             }
         }
         commands = validCommands;

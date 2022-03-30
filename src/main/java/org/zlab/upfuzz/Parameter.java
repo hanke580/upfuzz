@@ -1,5 +1,7 @@
 package org.zlab.upfuzz;
 
+import org.apache.commons.lang3.SerializationUtils;
+
 import java.io.Serializable;
 
 public class Parameter implements Serializable {
@@ -67,4 +69,20 @@ public class Parameter implements Serializable {
         return type.generateStringValue(this);
     }
 
+    public Parameter clone() {
+        return SerializationUtils.clone(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this)
+            return true;
+
+        if (! (o instanceof Parameter)) {
+            return false;
+        }
+
+        Parameter p = (Parameter) o;
+        return this.toString().equals(p.toString());
+    }
 }

@@ -1,10 +1,12 @@
 package org.zlab.upfuzz.cassandra;
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.utils.Pair;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -16,10 +18,16 @@ public class CassandraTable {
     public CassandraTable(Parameter name, Parameter colName2Type, Parameter primaryColName2Type) {
         this.name = (String) name.getValue();
         if (colName2Type != null) {
-            this.colName2Type = (List<Parameter>) colName2Type.getValue();
+            this.colName2Type = new LinkedList<>();
+            for (Parameter col : (List<Parameter>) colName2Type.getValue()) {
+                this.colName2Type.add(SerializationUtils.clone(col));
+            }
         }
         if (primaryColName2Type != null) {
-            this.primaryColName2Type = (List<Parameter>) primaryColName2Type.getValue();
+            this.primaryColName2Type = new LinkedList<>();
+            for (Parameter primaryCol : (List<Parameter>) primaryColName2Type.getValue()) {
+                this.primaryColName2Type.add(SerializationUtils.clone(primaryCol));
+            }
         }
     }
 }
