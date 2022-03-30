@@ -8,8 +8,7 @@ import java.util.Map.Entry;
 public class SystemUtil {
 
     public static Process exec(String[] cmds, File path) throws IOException {
-        ProcessBuilder pb = new ProcessBuilder(cmds);
-        Map<String, String> env = pb.environment();
+        ProcessBuilder pb = new ProcessBuilder(cmds).redirectErrorStream(true);
         pb.directory(path);
         Process p = pb.start();
         return p;

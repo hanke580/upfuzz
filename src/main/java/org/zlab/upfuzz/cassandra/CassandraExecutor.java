@@ -7,7 +7,6 @@ import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
-
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
@@ -16,6 +15,7 @@ import org.zlab.upfuzz.utils.SystemUtil;
 public class CassandraExecutor extends Executor {
 
     Process cassandraProcess;
+    static final String jacocoOptions = "=append=false,includes=org.apache.cassandra.*,output=dfe,address=localhost,sessionid=";
 
     public CassandraExecutor(Config conf, CommandSequence testSeq) {
         super(conf, testSeq, "cassandra");
@@ -32,6 +32,7 @@ public class CassandraExecutor extends Executor {
             while ((line = in.readLine()) != null) {
             }
             isReady.waitFor();
+            in.close();
             ret = isReady.exitValue();
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
@@ -44,11 +45,11 @@ public class CassandraExecutor extends Executor {
         ProcessBuilder cassandraProcessBuilder = new ProcessBuilder("bin/cassandra");
         Map<String, String> env = cassandraProcessBuilder.environment();
         env.put("JAVA_TOOL_OPTIONS",
-                "-javaagent:/home/yayu/Project/Upgrade-Fuzzing/jacoco/org.jacoco.agent.rt/target/org.jacoco.agent.rt-0.8.8-SNAPSHOT-all.jar=append=false,includes=org.apache.cassandra.*,output=dfe,address=localhost,sessionid="
-                        + systemID + "-" + executorID);
+                "-javaagent:" + Config.jacocoAgentPath + jacocoOptions + systemID + "-" + executorID);
         cassandraProcessBuilder.directory(new File(conf.cassandraPath));
         try {
             System.out.println("cassandra start");
+            long startTime = System.currentTimeMillis();
             cassandraProcess = cassandraProcessBuilder.start();
             BufferedReader in = new BufferedReader(new InputStreamReader(cassandraProcess.getInputStream()));
             String line;
@@ -59,12 +60,13 @@ public class CassandraExecutor extends Executor {
             cassandraProcess.waitFor();
             System.out.println("cassandra " + executorID + " start");
             in.close();
-
-            while (!isCassandraReady())
-                ;
-
+            while (!isCassandraReady()) {
+                Thread.sleep(500);
+            }
+            long endTime = System.currentTimeMillis();
+            System.out.println(
+                    "cassandra " + executorID + " ready \n time usage:" + (endTime - startTime) / 1000. + "\n");
         } catch (IOException | InterruptedException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
@@ -83,9 +85,8 @@ public class CassandraExecutor extends Executor {
                 System.out.flush();
             }
             p.waitFor();
-            System.out.println("cassandra " + executorID + " shutdown ok!");
-
             in.close();
+            System.out.println("cassandra " + executorID + " shutdown ok!");
 
             // p.wait();
         } catch (IOException | InterruptedException e) {
@@ -112,26 +113,28 @@ public class CassandraExecutor extends Executor {
         List<String> commandList = commandSequence.getCommandStringList();
         for (String cmd : commandList) {
             int ret = 0;
-            String[] cqlshCmd = new String[] { "bin/cqlsh", "-e", "\"" + cmd + "\"" };
+            String[] cqlshCmd = new String[] { "bin/cqlsh", "-e", cmd };
             System.out.println("\n\n------------------------------------------------------------\nexecutor command:\n"
                     + String.join(" ", cqlshCmd));
             Process cqlProcess;
             try {
                 cqlProcess = SystemUtil.exec(cqlshCmd, new File(conf.cassandraPath));
+                long startTime = System.currentTimeMillis();
                 BufferedReader in = new BufferedReader(new InputStreamReader(cqlProcess.getInputStream()));
                 String line;
                 while ((line = in.readLine()) != null) {
                     System.out.println(line);
                     System.out.flush();
                 }
-
-                ret = cqlProcess.waitFor();
-                System.out.println("ret is: " + ret + "\n");
+                cqlProcess.waitFor();
+                in.close();
+                ret = cqlProcess.exitValue();
+                long endTime = System.currentTimeMillis();
+                System.out.println("ret is: " + ret + "\ntime usage:" + (endTime - startTime) / 1000. + "\n");
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
             }
         }
         return 0;
     }
-
 }
