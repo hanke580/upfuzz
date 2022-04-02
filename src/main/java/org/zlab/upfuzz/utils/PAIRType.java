@@ -17,8 +17,7 @@ public class PAIRType extends ParameterType.GenericTypeTwo {
     ConcreteType t1 = types.get(0); // TEXTType
     ConcreteType t2 = types.get(1); // TYPEType
 
-    Pair<Parameter, Parameter> value =
-        new Pair<>(t1.generateRandomParameter(s, c), t2.generateRandomParameter(s, c));
+    Pair<Parameter, Parameter> value = new Pair<>(t1.generateRandomParameter(s, c), t2.generateRandomParameter(s, c));
 
     ConcreteType type = ConcreteGenericType.constructConcreteGenericType(instance, t1, t2);
 
@@ -33,8 +32,8 @@ public class PAIRType extends ParameterType.GenericTypeTwo {
     ConcreteType t1 = types.get(0); // TEXTType
     ConcreteType t2 = types.get(1); // TYPEType
 
-    Pair<Parameter, Parameter> value =
-            new Pair<>(t1.generateRandomParameter(s, c, initValues.left), t2.generateRandomParameter(s, c, ((Pair<?, ?>) init).right));
+    Pair<Parameter, Parameter> value = new Pair<>(t1.generateRandomParameter(s, c, initValues.left),
+        t2.generateRandomParameter(s, c, ((Pair<?, ?>) init).right));
 
     ConcreteType type = ConcreteGenericType.constructConcreteGenericType(instance, t1, t2);
 
@@ -75,4 +74,3 @@ public class PAIRType extends ParameterType.GenericTypeTwo {
     return t1.isValid(s, c, initValues.left) && t2.isValid(s, c, initValues.right);
   }
 }
-

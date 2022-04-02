@@ -144,7 +144,7 @@ public class CommandTests {
 
         List<Command> e = null;
         try {
-            FileInputStream fileIn = new FileInputStream("/tmp/LIST.ser");
+            FileInputStream fileIn = new FileInputStream("/home/yayu/Project/Upgrade-Fuzzing/upfuzz/LIST.ser");
             ObjectInputStream in = new ObjectInputStream(fileIn);
             e = (List<Command>) in.readObject();
             in.close();

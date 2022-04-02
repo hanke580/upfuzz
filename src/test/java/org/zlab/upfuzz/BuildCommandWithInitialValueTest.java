@@ -8,7 +8,7 @@ import org.zlab.upfuzz.ParameterType.ConcreteType;
 import org.zlab.upfuzz.cassandra.CassandraTypes;
 import org.zlab.upfuzz.utils.STRINGType;
 
-public class TestBuildCommandWithInitialValue {
+public class BuildCommandWithInitialValueTest {
     protected void setUp() {
 
     }
