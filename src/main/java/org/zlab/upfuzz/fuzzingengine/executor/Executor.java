@@ -35,13 +35,13 @@ public abstract class Executor implements IExecutor {
     public void teardown() {
     }
 
-    public int executeCommands() {
+    public int executeCommands(CommandSequence commandSequence) {
         return 0;
     }
 
-    public int execute() {
+    public int execute(CommandSequence commandSequence) {
         startup();
-        executeCommands();
+        executeCommands(commandSequence);
         teardown();
         return 0;
     }

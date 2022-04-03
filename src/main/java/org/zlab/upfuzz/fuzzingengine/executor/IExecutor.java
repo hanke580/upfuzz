@@ -1,11 +1,13 @@
 package org.zlab.upfuzz.fuzzingengine.executor;
 
+import org.zlab.upfuzz.CommandSequence;
+
 public interface IExecutor {
     public void startup();
 
     public void teardown();
 
-    public int executeCommands();
+    public int executeCommands(CommandSequence commandSequence);
 
-    public int execute();
+    public int execute(CommandSequence commandSequence);
 }

@@ -2,17 +2,20 @@ package org.zlab.upfuzz;
 
 import org.zlab.upfuzz.cassandra.CassandraCommands;
 
+import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
-public class CommandSequence {
+public class CommandSequence implements Serializable {
 
     public static final int MAX_CMD_SEQ_LEN = 20;
 
     public List<Command> commands;
     public final List<Map.Entry<Class<? extends Command>, Integer>> commandClassList;
     public final List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList;
+    public final Class<? extends State> stateClass;
+
 //    public final State state;
 
     public final static int RETRY_GENERATE_TIME = 50;
@@ -20,14 +23,14 @@ public class CommandSequence {
     public CommandSequence(List<Command> commands,
                            List<Map.Entry<Class<? extends Command>, Integer>> commandClassList,
                            List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList,
-                           State state) {
+                           Class<? extends State> stateClass) {
         this.commands = commands;
         this.commandClassList = commandClassList;
         this.createCommandClassList = createCommandClassList;
-//        this.state = state;
+        this.stateClass = stateClass;
     }
 
-    public CommandSequence mutate(State state) {
+    public CommandSequence mutate() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
 
         Random rand = new Random();
         int choice = rand.nextInt(3);
@@ -60,7 +63,9 @@ public class CommandSequence {
         int pos = rand.nextInt(commands.size());
         System.out.println("Mutate Command Index = " + pos);
 
-        state.clearState();
+
+        Constructor<?> constructor = stateClass.getConstructor();
+        State state = (State) constructor.newInstance();
 
         pos = 1; // DEBUG
         choice = 1; // DEBUG
@@ -218,18 +223,19 @@ public class CommandSequence {
      */
     public static CommandSequence generateSequence(List<Map.Entry<Class<? extends Command>, Integer>> commandClassList,
                                                    List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList,
-                                                   State state)
+                                                   Class<? extends State> stateClass)
             throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
 
         Random rand = new Random();
         assert MAX_CMD_SEQ_LEN > 0;
         int len = rand.nextInt(MAX_CMD_SEQ_LEN) + 1;
 
+        Constructor<?> constructor = stateClass.getConstructor();
+        State state = (State) constructor.newInstance();
+
 //        len = 8; // Debug
-//        State state = stateClazz.getConstructor().newInstance();
 
         List<Command> commands = new LinkedList<>();
-
 
 //        List<Class<? extends Command>> tmpCommandClassList = new LinkedList<>(); // Debug
 //        tmpCommandClassList.add(CassandraCommands.ALTER_TABLE_DROP.class); // Debug
@@ -242,7 +248,7 @@ public class CommandSequence {
                 commands.add(generateSingleCommand(commandClassList, state));
             }
         }
-        return new CommandSequence(commands, commandClassList, createCommandClassList, state);
+        return new CommandSequence(commands, commandClassList, createCommandClassList, stateClass);
     }
 
     public List<String> getCommandStringList() {

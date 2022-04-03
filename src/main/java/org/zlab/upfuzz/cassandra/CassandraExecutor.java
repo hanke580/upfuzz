@@ -92,14 +92,22 @@ public class CassandraExecutor extends Executor {
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
+        // Remove the data folder
+        pb = new ProcessBuilder("rm", "-rf", "data");
+        pb.directory(new File(conf.cassandraPath));
+        try {
+            pb.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    CommandSequence prepareCommandSequence() {
+    public static CommandSequence prepareCommandSequence() {
         CassandraState state = new CassandraState();
         CommandSequence commandSequence = null;
         try {
             commandSequence = CommandSequence.generateSequence(CassandraCommands.commandClassList,
-                    CassandraCommands.createCommandClassList, state);
+                    CassandraCommands.createCommandClassList, CassandraState.class);
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException
                 | IllegalAccessException e) {
             e.printStackTrace();
@@ -108,8 +116,8 @@ public class CassandraExecutor extends Executor {
     }
 
     @Override
-    public int executeCommands() {
-        commandSequence = prepareCommandSequence();
+    public int executeCommands(CommandSequence commandSequence) {
+//        commandSequence = prepareCommandSequence();
         List<String> commandList = commandSequence.getCommandStringList();
         for (String cmd : commandList) {
             int ret = 0;

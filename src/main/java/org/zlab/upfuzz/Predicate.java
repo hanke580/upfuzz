@@ -1,5 +1,7 @@
 package org.zlab.upfuzz;
 
-public interface Predicate {
+import java.io.Serializable;
+
+public interface Predicate extends Serializable {
     boolean operate(State state, Command command);
 }
