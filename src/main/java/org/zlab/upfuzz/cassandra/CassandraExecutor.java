@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 import org.zlab.upfuzz.CommandSequence;
+import org.zlab.upfuzz.cassandra.CassandraCqlshDaemon.CqlshPacket;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.utils.SystemUtil;
@@ -117,49 +118,18 @@ public class CassandraExecutor extends Executor {
     public int executeCommands() {
         commandSequence = prepareCommandSequence();
         List<String> commandList = commandSequence.getCommandStringList();
-        Process cqlProcess;
         try {
-            cqlProcess = SystemUtil.exec(
-                    new String[] { "/usr/bin/script", "-qfc",
-                            "/home/yayu/Project/Upgrade-Fuzzing/cassandra/cassandra/bin/cqlsh", "/dev/null" },
-                    // new String[] { "/home/yayu/Project/Upgrade-Fuzzing/cassandra/cassandra/bin/cqlsh" },
-                    new File(conf.cassandraPath));
-            BufferedReader in = new BufferedReader(new InputStreamReader(cqlProcess.getInputStream()));
-            char[] readBuffer = new char[1024];
-            int charCount = 0;
-
-            // read python >>>
-            Thread.sleep(1000);
-            charCount = in.read(readBuffer);
-            if (charCount > 0) {
-                System.out.print(new String(readBuffer, 0, charCount));
-            }
-            int ret = 0;
+            CassandraCqlshDaemon cqlsh = new CassandraCqlshDaemon();
             for (String cmd : commandList) {
-                // String[] cqlshCmd = new String[] { "bin/cqlsh", "-e", cmd };
                 System.out
                         .println("\n\n------------------------------------------------------------\nexecutor command:\n"
                                 + cmd + "\n------------------------------------------------------------\n");
-                BufferedWriter out = new BufferedWriter(new OutputStreamWriter(cqlProcess.getOutputStream()));
-                out.write(cmd);
-                out.newLine();
-                out.flush();
                 long startTime = System.currentTimeMillis();
-                Thread.sleep(50);
-                charCount = in.read(readBuffer);
-                if (charCount > 0) {
-                    System.out.print(new String(readBuffer, 0, charCount));
-                }
-
+                CqlshPacket cp = cqlsh.execute(cmd);
                 long endTime = System.currentTimeMillis();
-                System.out.println("ret is: " + ret + "\ntime usage:" + (endTime - startTime) / 1000. + "\n");
+                System.out.println("ret is: " + cp.exitValue + "\ntime: " + cp.timeUsage + "\ntime usage(network):"
+                        + (endTime - startTime) / 1000. + "\n");
             }
-            // out.close();
-            // out.write("quit");
-            cqlProcess.destroy();
-            cqlProcess.waitFor();
-            // in.close();
-            ret = cqlProcess.exitValue();
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
             return 127;
