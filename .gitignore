@@ -1,4 +1,5 @@
 zlab-jacoco/
+config.json
 *.exec
 
 ##############################

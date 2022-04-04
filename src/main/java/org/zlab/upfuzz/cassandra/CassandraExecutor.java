@@ -23,8 +23,8 @@ public class CassandraExecutor extends Executor {
     Process cassandraProcess;
     static final String jacocoOptions = "=append=false,includes=org.apache.cassandra.*,output=dfe,address=localhost,sessionid=";
 
-    public CassandraExecutor(Config conf, CommandSequence testSeq) {
-        super(conf, testSeq, "cassandra");
+    public CassandraExecutor(CommandSequence testSeq) {
+        super(testSeq, "cassandra");
     }
 
     public boolean isCassandraReady() {
@@ -32,7 +32,7 @@ public class CassandraExecutor extends Executor {
         Process isReady;
         int ret = 0;
         try {
-            isReady = SystemUtil.exec(new String[] { "bin/cqlsh", "-e", "describe cluster" }, conf.cassandraPath);
+            isReady = SystemUtil.exec(new String[] { "bin/cqlsh", "-e", "describe cluster" }, Config.getConf().cassandraPath);
             BufferedReader in = new BufferedReader(new InputStreamReader(isReady.getInputStream()));
             String line;
             while ((line = in.readLine()) != null) {
@@ -51,8 +51,8 @@ public class CassandraExecutor extends Executor {
         ProcessBuilder cassandraProcessBuilder = new ProcessBuilder("bin/cassandra");
         Map<String, String> env = cassandraProcessBuilder.environment();
         env.put("JAVA_TOOL_OPTIONS",
-                "-javaagent:" + Config.jacocoAgentPath + jacocoOptions + systemID + "-" + executorID);
-        cassandraProcessBuilder.directory(new File(conf.cassandraPath));
+                "-javaagent:" + Config.getConf().jacocoAgentPath + jacocoOptions + systemID + "-" + executorID);
+        cassandraProcessBuilder.directory(new File(Config.getConf().cassandraPath));
         try {
             System.out.println("Executor starting cassandra");
             long startTime = System.currentTimeMillis();
@@ -81,7 +81,7 @@ public class CassandraExecutor extends Executor {
     @Override
     public void teardown() {
         ProcessBuilder pb = new ProcessBuilder("bin/nodetool", "stopdaemon");
-        pb.directory(new File(conf.cassandraPath));
+        pb.directory(new File(Config.getConf().cassandraPath));
         Process p;
         try {
             p = pb.start();

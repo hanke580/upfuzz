@@ -32,10 +32,8 @@ public class FuzzingClient {
 	/* socket for client and agents to communicate*/
 	public ClientSocket clientSocket;
 
-	public final Config conf;
 
-	FuzzingClient(Config conf) {
-		this.conf = conf;
+	FuzzingClient() {
 	}
 
 	private void init() {
@@ -60,7 +58,7 @@ public class FuzzingClient {
 			e.printStackTrace();
 		}
 		init();
-		Executor executor = new CassandraExecutor(conf, null);
+		Executor executor = new CassandraExecutor(null);
 		int ret = executor.execute();
 		if (ret == 0) {
 			ExecutionDataStore codeCoverage = collect(executor);

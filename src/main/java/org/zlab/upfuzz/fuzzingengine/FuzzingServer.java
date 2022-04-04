@@ -14,7 +14,7 @@ public class FuzzingServer {
 
     public void start() {
         try {
-            final ServerSocket server = new ServerSocket(conf.serverPort, 0, InetAddress.getByName(conf.serverHost));
+            final ServerSocket server = new ServerSocket(Config.getConf().serverPort, 0, InetAddress.getByName(Config.getConf().serverHost));
             System.out.println("server start at " + server.getLocalSocketAddress());
             // TODO start handler for client
         } catch (IOException e) {

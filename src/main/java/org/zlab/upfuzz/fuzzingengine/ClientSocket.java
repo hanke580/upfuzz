@@ -11,13 +11,11 @@ import org.jacoco.core.data.ExecutionDataWriter;
 public class ClientSocket extends Thread {
     final FuzzingClient client;
     final ServerSocket server;
-    final Config conf;
     final ExecutionDataWriter fileWriter;
 
     ClientSocket(FuzzingClient client) throws UnknownHostException, IOException {
         this.client = client;
-        this.conf = client.conf;
-        this.server = new ServerSocket(conf.clientPort, 0, InetAddress.getByName(conf.clientHost));
+        this.server = new ServerSocket(Config.getConf().clientPort, 0, InetAddress.getByName(Config.getConf().clientHost));
         this.fileWriter = new ExecutionDataWriter(new FileOutputStream("./zlab-jacoco.exec"));
     }
 

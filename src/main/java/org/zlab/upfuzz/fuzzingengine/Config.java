@@ -1,10 +1,38 @@
 package org.zlab.upfuzz.fuzzingengine;
 
+import com.google.gson.GsonBuilder;
+
 public class Config {
-    public static String serverHost = "localhost";
-    public static int serverPort = 6299;
-    public static String clientHost = "localhost";
-    public static int clientPort = 6300;
-    public static String cassandraPath = "/home/yayu/Project/Upgrade-Fuzzing/cassandra/cassandra";
-    public static String jacocoAgentPath = "/home/yayu/Project/Upgrade-Fuzzing/upfuzz/dependencies/org.jacoco.agent-300f3f6d2b-runtime.jar";
+    public static Configuration instance;
+
+    public static Configuration getConf() {
+        return instance;
+    }
+
+    public Config() {
+        instance = new Configuration();
+    }
+
+    public static class Configuration {
+        public String serverHost = "localhost";
+        public Integer serverPort = 6299;
+        public String clientHost = "localhost";
+        public Integer clientPort = 6300;
+        public String cassandraPath = null;
+        public String jacocoAgentPath = null;
+        public String cqlshDaemonScript = null;
+
+        @Override
+        public String toString() {
+            return new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(this,
+                    Configuration.class);
+            // return "Configuration [cassandraPath=" + cassandraPath + ", clientHost=" + clientHost + ", clientPort="
+            //         + clientPort + ", jacocoAgentPath=" + jacocoAgentPath + ", serverHost=" + serverHost
+            //         + ", serverPort=" + serverPort + "]";
+        }
+    }
+
+    public static void setInstance(Configuration config) {
+        instance = config;
+    }
 }

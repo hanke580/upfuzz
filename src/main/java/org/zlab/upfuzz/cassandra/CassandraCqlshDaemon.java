@@ -35,9 +35,8 @@ public class CassandraCqlshDaemon {
         if (flag) {
             // port = port & 0xFFFE;
             System.out.println("Use port:" + port);
-            cqlsh = SystemUtil.exec(new String[] { "python",
-                    "/home/yayu/Project/Upgrade-Fuzzing/cassandra/cassandra/bin/cqlsh_daemon.py",
-                    "--port=" + Integer.toString(port) }, new File(Config.cassandraPath));
+            cqlsh = SystemUtil.exec(new String[] { "python", Config.getConf().cqlshDaemonScript, "--port=" + Integer.toString(port) },
+                    new File(Config.getConf().cassandraPath));
             Thread.sleep(1000);
             socket = new Socket("localhost", port);
         } else {

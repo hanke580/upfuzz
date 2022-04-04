@@ -14,14 +14,13 @@ public abstract class Executor implements IExecutor {
     public Config conf;
     protected CommandSequence commandSequence;
 
-    protected Executor(Config conf, CommandSequence testSeq) {
-        this.conf = conf;
+    protected Executor(CommandSequence testSeq) {
         executorID = RandomStringUtils.randomAlphanumeric(8);
         commandSequence = testSeq;
     }
 
-    protected Executor(Config conf, CommandSequence testSeq, String systemID) {
-        this(conf, testSeq);
+    protected Executor(CommandSequence testSeq, String systemID) {
+        this(testSeq);
         this.systemID = systemID;
     }
 

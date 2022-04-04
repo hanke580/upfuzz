@@ -9,8 +9,8 @@ import org.zlab.upfuzz.CommandSequence;
  * DO NOTHING
  * */
 public class NullExecutor extends Executor {
-  public NullExecutor(Config conf, CommandSequence cmdSeq) {
-    super(conf, cmdSeq);
+  public NullExecutor(CommandSequence cmdSeq) {
+    super(cmdSeq);
   }
 
   @Override
