@@ -280,4 +280,26 @@ public class CommandTests {
 
     }
 
+    @Test
+    public void testSELECTCommandGeneration() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+
+        CassandraState s = new CassandraState();
+
+        CassandraCommands.CREAT_KEYSPACE cmd0 = new CassandraCommands.CREAT_KEYSPACE(s);
+        cmd0.updateState(s);
+        System.out.println(cmd0.constructCommandString());
+
+        CassandraCommands.CREATETABLE cmd1 = new CassandraCommands.CREATETABLE(s);
+        cmd1.updateState(s);
+        System.out.println(cmd1.constructCommandString());
+
+        CassandraCommands.INSERT cmd2 = new CassandraCommands.INSERT(s);
+        cmd2.updateState(s);
+        System.out.println(cmd2.constructCommandString());
+
+        CassandraCommands.SELECT cmd3 = new CassandraCommands.SELECT(s);
+        cmd2.updateState(s);
+        System.out.println(cmd3.constructCommandString());
+    }
+
 }

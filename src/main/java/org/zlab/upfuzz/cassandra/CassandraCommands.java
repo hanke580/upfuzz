@@ -41,17 +41,20 @@ public class CassandraCommands {
      * commands, but share the same possibility with the rest for the following commands.
      */
     public static final List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList = new ArrayList<>();
+    public static final List<Map.Entry<Class<? extends Command>, Integer>> readCommandClassList = new ArrayList<>();
 
     static {
         commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(CREAT_KEYSPACE.class, 1));
         commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(CREATETABLE.class, 1));
         commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(INSERT.class, 8));
         commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(DELETE.class, 6));
-         commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(ALTER_TABLE_DROP.class, 10));
+        commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(SELECT.class, 8));
+        commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(ALTER_TABLE_DROP.class, 10));
 
         createCommandClassList.add(new AbstractMap.SimpleImmutableEntry<>(CREAT_KEYSPACE.class, 2));
         createCommandClassList.add(new AbstractMap.SimpleImmutableEntry<>(CREATETABLE.class, 3));
 
+        readCommandClassList.add(new AbstractMap.SimpleImmutableEntry<>(SELECT.class, 10));
     }
 
     /**
@@ -621,6 +624,116 @@ public class CassandraCommands {
                 sb.append(whereColumns.get(i).toString() + " = " + whereValues.get(i).toString());
                 if (i < whereColumns.size() - 1) {
                     sb.append(" AND ");
+                }
+            }
+            sb.append(";");
+            return sb.toString();
+        }
+
+        @Override
+        public void updateState(State state) { }
+    }
+
+    /**
+     * SELECT * | select_expression | DISTINCT partition
+     * FROM [keyspace_name.] table_name
+     * [WHERE partition_value
+     *    [AND clustering_filters
+     *    [AND static_filters]]]
+     * [ORDER BY PK_column_name ASC|DESC]
+     * [LIMIT N]
+     * [ALLOW FILTERING]
+     */
+    public static class SELECT extends Command {
+
+        public SELECT(State state) {
+            /**
+             * Delete the whole column for now.
+             */
+            Parameter keyspaceName = chooseKeyspace(state, this, null);
+            this.params.add(keyspaceName); // Param0
+
+            Parameter TableName = chooseTable(state, this, null);
+            this.params.add(TableName); // Param1
+
+            // Pick the subset of the primary columns, and make sure it's on the right order
+            // First Several Type
+            /**
+             * Subset of primary columns
+             */
+
+            ParameterType.ConcreteType selectColumnsType =
+                    new ParameterType.SubsetType<>(
+                            null,
+                            (s, c) -> ((CassandraState) s)
+                                    .getTable(
+                                            c.params.get(0).toString(),
+                                            c.params.get(1).toString())
+                                    .colName2Type,
+                            p -> ((Pair<Parameter, Parameter>) (((Parameter) p).getValue())).left
+                    );
+            Parameter selectColumns = selectColumnsType.generateRandomParameter(state, this);
+            this.params.add(selectColumns); // Param2
+
+            ParameterType.ConcreteType whereColumnsType =
+                        new ParameterType.FrontSubsetType(
+                                null,
+                                (s, c) -> ((CassandraState) s)
+                                        .getTable(
+                                                c.params.get(0).toString(),
+                                                c.params.get(1).toString())
+                                        .primaryColName2Type,
+                                null
+                        );
+            Parameter whereColumns = whereColumnsType.generateRandomParameter(state, this);
+            this.params.add(whereColumns); // Param 3
+
+            ParameterType.ConcreteType whereValuesType = new ParameterType.Type2ValueType(
+                    null,
+                    (s, c) -> (Collection) c.params.get(3).getValue(),
+                    p -> ((Pair) ((Parameter) p).value).right
+            );
+            Parameter insertValues = whereValuesType.generateRandomParameter(state, this);
+            this.params.add(insertValues); // Param4
+
+            updateExecutableCommandString();
+        }
+
+        @Override
+        public String constructCommandString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("SELECT ");
+            if (params.get(2).isEmpty(null, this)) {
+                sb.append("* ");
+            } else {
+                List<Parameter> selectColumns = (List<Parameter>) params.get(2).getValue();
+                for (int i = 0; i < selectColumns.size(); i++) {
+                    sb.append(selectColumns.get(i).toString());
+                    if (i < selectColumns.size() - 1) {
+                        sb.append(", ");
+                    }
+                }
+            }
+
+            sb.append(" FROM " + params.get(0) + "." + params.get(1));
+            if (((List)params.get(3).getValue()).size() > 0) {
+                sb.append(" " + "WHERE" + " ");
+                ParameterType.ConcreteType whereColumnsType = new ParameterType.StreamMapType(
+                        null,
+                        (s, c) -> (Collection) c.params.get(3).getValue(),
+                        p -> ((Pair<Parameter, Parameter>) ((Parameter) p).value).left
+                );
+
+                List<Parameter> whereColumns = (List<Parameter>) whereColumnsType.generateRandomParameter(null, this).getValue();
+                List<Parameter> whereValues = (List<Parameter>) this.params.get(4).getValue();
+
+                assert whereColumns.size() == whereValues.size();
+
+                for (int i = 0; i < whereColumns.size(); i++) {
+                    sb.append(whereColumns.get(i).toString() + " = " + whereValues.get(i).toString());
+                    if (i < whereColumns.size() - 1) {
+                        sb.append(" AND ");
+                    }
                 }
             }
             sb.append(";");
