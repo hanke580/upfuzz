@@ -5,12 +5,15 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.utils.SystemUtil;
+import org.zlab.upfuzz.utils.Utilities;
 
 public class CassandraExecutor extends Executor {
 
@@ -143,6 +146,37 @@ public class CassandraExecutor extends Executor {
                 e.printStackTrace();
             }
         }
+        return 0;
+    }
+
+    @Override
+    public int upgradeTest() {
+        /**
+         * 1. Move the data folder to the new version Cassandra
+         * 2. Start the new version cassandra with the Upgrade symbol
+         * 3. Check whether there is any exception happen during the
+         * 4. Run some commands, check consistency
+         *
+         * upgrade process...
+         *
+         * Also need to control the java version.
+         */
+
+        Path oldFolderPath = Paths.get(conf.cassandraPath, "data");
+        Path newFolderPath = Paths.get(conf.upgradeCassandraPath);
+
+        // Move data folder
+        ProcessBuilder pb = new ProcessBuilder("mv", oldFolderPath.toString(), newFolderPath.toString());
+        pb.directory(new File(conf.cassandraPath));
+        Utilities.runProcess(pb, "mv data folder");
+
+        // Upgrade
+        // TODO: Add retry times to check whether the upgrade is failed.
+        pb = new ProcessBuilder("bin/cassandra");
+        pb.directory(new File(conf.upgradeCassandraPath));
+        Utilities.runProcess(pb, "Upgrade Cassandra");
+
+        // Execute validation commands
         return 0;
     }
 }

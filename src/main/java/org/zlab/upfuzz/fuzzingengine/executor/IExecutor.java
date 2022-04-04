@@ -10,4 +10,10 @@ public interface IExecutor {
     public int executeCommands(CommandSequence commandSequence);
 
     public int execute(CommandSequence commandSequence);
+
+    /**
+     * Given the generated snapshot, upgrade it to the new version.
+     * Check whether any exception happens.
+     */
+    public int upgradeTest();
 }

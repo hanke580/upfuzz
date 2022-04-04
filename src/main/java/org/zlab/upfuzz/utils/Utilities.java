@@ -4,9 +4,7 @@ import org.jacoco.core.data.ExecutionData;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.CommandSequence;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.*;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -90,6 +88,25 @@ public class Utilities {
             throw new IllegalStateException(format(
                     "Incompatible execution data for class %s with id %016x.",
                     testSequenceData.getName(), Long.valueOf(testSequenceData.getId())));
+        }
+    }
+
+    public static void runProcess(ProcessBuilder pb, String desc) {
+        try {
+            System.out.println("Execute: " + desc);
+            Process p = pb.start();
+            BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line;
+            while ((line = in.readLine()) != null) {
+                System.out.println(line);
+                System.out.flush();
+            }
+            p.waitFor();
+            in.close();
+            System.out.println(desc + " Successful");
+
+        } catch(IOException | InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
