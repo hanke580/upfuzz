@@ -27,46 +27,35 @@ public class CassandraExecutor extends Executor {
         super(testSeq, "cassandra");
     }
 
-    public boolean isCassandraReady() {
-        ProcessBuilder isReadyBuilder = new ProcessBuilder();
-        Process isReady;
-        int ret = 0;
-        try {
-            isReady = SystemUtil.exec(new String[] { "bin/cqlsh", "-e", "describe cluster" }, Config.getConf().cassandraPath);
-            BufferedReader in = new BufferedReader(new InputStreamReader(isReady.getInputStream()));
-            String line;
-            while ((line = in.readLine()) != null) {
-            }
-            isReady.waitFor();
-            in.close();
-            ret = isReady.exitValue();
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-        return ret == 0;
-    }
-
     @Override
     public void startup() {
-        ProcessBuilder cassandraProcessBuilder = new ProcessBuilder("bin/cassandra");
+        ProcessBuilder cassandraProcessBuilder = new ProcessBuilder("bin/cassandra", "-f");
         Map<String, String> env = cassandraProcessBuilder.environment();
         env.put("JAVA_TOOL_OPTIONS",
                 "-javaagent:" + Config.getConf().jacocoAgentPath + jacocoOptions + systemID + "-" + executorID);
         cassandraProcessBuilder.directory(new File(Config.getConf().cassandraPath));
+        cassandraProcessBuilder.redirectErrorStream(true);
+        cassandraProcessBuilder.redirectOutput(new File(Config.getConf().cassandraOutputFile));
         try {
             System.out.println("Executor starting cassandra");
             long startTime = System.currentTimeMillis();
             cassandraProcess = cassandraProcessBuilder.start();
-            BufferedReader in = new BufferedReader(new InputStreamReader(cassandraProcess.getInputStream()));
-            String line;
-            while ((line = in.readLine()) != null) {
-                System.out.println(line);
-                System.out.flush();
-            }
-            cassandraProcess.waitFor();
+            // byte[] out = cassandraProcess.getInputStream().readAllBytes();
+            // BufferedReader in = new BufferedReader(new InputStreamReader(cassandraProcess.getInputStream()));
+            // String line;
+            // while ((line = in.readLine()) != null) {
+            //     System.out.println(line);
+            //     System.out.flush();
+            // }
+            // in.close();
+            // cassandraProcess.waitFor();
             System.out.println("cassandra " + executorID + " started");
-            in.close();
             while (!isCassandraReady()) {
+                if (!cassandraProcess.isAlive()) {
+                    System.out.println("cassandra process crushed\nCheck " + Config.getConf().cassandraOutputFile
+                            + " for details");
+                    System.exit(1);
+                }
                 System.out.println("Wait for " + systemID + " ready...");
                 Thread.sleep(500);
             }
@@ -93,12 +82,30 @@ public class CassandraExecutor extends Executor {
             }
             p.waitFor();
             in.close();
+            assert cassandraProcess.isAlive() == false;
             System.out.println("cassandra " + executorID + " shutdown ok!");
-
-            // p.wait();
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean isCassandraReady() {
+        Process isReady;
+        int ret = 0;
+        try {
+            isReady = SystemUtil.exec(new String[] { "bin/cqlsh", "-e", "describe cluster" },
+                    Config.getConf().cassandraPath);
+            BufferedReader in = new BufferedReader(new InputStreamReader(isReady.getInputStream()));
+            String line;
+            while ((line = in.readLine()) != null) {
+            }
+            isReady.waitFor();
+            in.close();
+            ret = isReady.exitValue();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        return ret == 0;
     }
 
     CommandSequence prepareCommandSequence() {

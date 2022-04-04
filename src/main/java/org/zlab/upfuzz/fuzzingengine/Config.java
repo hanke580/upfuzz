@@ -21,6 +21,7 @@ public class Config {
         public String cassandraPath = null;
         public String jacocoAgentPath = null;
         public String cqlshDaemonScript = null;
+        public String cassandraOutputFile = null;
 
         @Override
         public String toString() {
