@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import org.zlab.upfuzz.CommandSequence;
+import org.zlab.upfuzz.CustomExceptions;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.utils.SystemUtil;
@@ -24,12 +25,12 @@ public class CassandraExecutor extends Executor {
         super(conf, testSeq, "cassandra");
     }
 
-    public boolean isCassandraReady() {
+    public boolean isCassandraReady(String cassandraPath) {
         ProcessBuilder isReadyBuilder = new ProcessBuilder();
         Process isReady;
         int ret = 0;
         try {
-            isReady = SystemUtil.exec(new String[] { "bin/cqlsh", "-e", "describe cluster" }, conf.cassandraPath);
+            isReady = SystemUtil.exec(new String[] { "bin/cqlsh", "-e", "describe cluster" }, cassandraPath);
             BufferedReader in = new BufferedReader(new InputStreamReader(isReady.getInputStream()));
             String line;
             while ((line = in.readLine()) != null) {
@@ -63,7 +64,11 @@ public class CassandraExecutor extends Executor {
             cassandraProcess.waitFor();
             System.out.println("cassandra " + executorID + " started");
             in.close();
-            while (!isCassandraReady()) {
+            while (!isCassandraReady(conf.cassandraPath)) {
+                if (!cassandraProcess.isAlive()) {
+                    // Throw a specific exception, if this is upgrade, it means we met a bug
+                    throw new CustomExceptions.systemStartFailureException("Cassandra Start fails", null);
+                }
                 Thread.sleep(500);
             }
             long endTime = System.currentTimeMillis();
@@ -98,6 +103,36 @@ public class CassandraExecutor extends Executor {
         // Remove the data folder
         pb = new ProcessBuilder("rm", "-rf", "data");
         pb.directory(new File(conf.cassandraPath));
+        try {
+            pb.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void upgradeteardown() {
+        ProcessBuilder pb = new ProcessBuilder("bin/nodetool", "stopdaemon");
+        pb.directory(new File(conf.upgradeCassandraPath));
+        Process p;
+        try {
+            p = pb.start();
+            BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line;
+            while ((line = in.readLine()) != null) {
+                System.out.println(line);
+                System.out.flush();
+            }
+            p.waitFor();
+            in.close();
+            System.out.println("cassandra " + executorID + " shutdown ok!");
+
+            // p.wait();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        // Remove the data folder
+        pb = new ProcessBuilder("rm", "-rf", "data");
+        pb.directory(new File(conf.upgradeCassandraPath));
         try {
             pb.start();
         } catch (IOException e) {
@@ -169,14 +204,33 @@ public class CassandraExecutor extends Executor {
         ProcessBuilder pb = new ProcessBuilder("mv", oldFolderPath.toString(), newFolderPath.toString());
         pb.directory(new File(conf.cassandraPath));
         Utilities.runProcess(pb, "mv data folder");
-
-        // Upgrade
-        // TODO: Add retry times to check whether the upgrade is failed.
-        pb = new ProcessBuilder("bin/cassandra");
-        pb.directory(new File(conf.upgradeCassandraPath));
-        Utilities.runProcess(pb, "Upgrade Cassandra");
+//
+//        // Upgrade
+//        // TODO: Add retry times to check whether the upgrade is failed.
+//        pb = new ProcessBuilder("bin/cassandra");
+//        pb.directory(new File(conf.upgradeCassandraPath));
+//        Utilities.runProcess(pb, "Upgrade Cassandra");
+//
+//        while (!isCassandraReady(conf.upgradeCassandraPath)) {
+//            if (!cassandraProcess.isAlive()) {
+//                // Throw a specific exception, if this is upgrade, it means we met a bug
+//                throw new CustomExceptions.systemStartFailureException(
+//                        "New version cassandra start fails during" +
+//                        " the upgrade process. Tt could be a bug", null);
+//            }
+//            try {
+//                Thread.sleep(500);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//        System.out.println("Upgrade process success, now shut down the new version, and clean the folder");
+//
+//        upgradeteardown();
+//        System.out.println("Upgrade process shutdown successfully");
 
         // Execute validation commands
         return 0;
     }
+
 }

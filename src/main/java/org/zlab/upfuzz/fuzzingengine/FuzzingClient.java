@@ -10,6 +10,7 @@ import java.util.Map;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.jacoco.core.data.ExecutionDataWriter;
 import org.zlab.upfuzz.CommandSequence;
+import org.zlab.upfuzz.CustomExceptions;
 import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.utils.SystemUtil;
@@ -64,20 +65,35 @@ public class FuzzingClient {
 		}
 
 		Executor executor = new CassandraExecutor(conf, null);
-		int ret = executor.execute(commandSequence);
-		if (ret == 0) {
-			ExecutionDataStore codeCoverage = collect(executor);
-			String destFile = executor.getSysExecID() + ".exec";
-			try {
-				FileOutputStream localFile = new FileOutputStream(destFile);
-				ExecutionDataWriter localWriter = new ExecutionDataWriter(localFile);
-				codeCoverage.accept(localWriter);
-				// localWriter.visitClassExecution(codeCoverage);
-				System.out.println("write codecoverage to " + destFile);
-			} catch (IOException e) {
-				e.printStackTrace();
+		int ret;
+		try {
+			ret = executor.execute(commandSequence);
+			if (ret == 0) {
+				ExecutionDataStore codeCoverage = collect(executor);
+				String destFile = executor.getSysExecID() + ".exec";
+				try {
+					FileOutputStream localFile = new FileOutputStream(destFile);
+					ExecutionDataWriter localWriter = new ExecutionDataWriter(localFile);
+					codeCoverage.accept(localWriter);
+					// localWriter.visitClassExecution(codeCoverage);
+					System.out.println("write codecoverage to " + destFile);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				return codeCoverage;
 			}
-			return codeCoverage;
+		} catch (CustomExceptions.systemStartFailureException e) {
+			System.out.println("old version cassandra start up failed");
+			System.exit(1);
+		}
+
+		try {
+			ret = executor.upgradeTest();
+		} catch (CustomExceptions.systemStartFailureException e) {
+			System.out.println("New version cassandra start up failed, this could be a bug");
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(1);
 		}
 		return null;
 	}

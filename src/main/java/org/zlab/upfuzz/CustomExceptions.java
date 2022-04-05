@@ -20,4 +20,10 @@ public class CustomExceptions {
             super(errorMessage, err);
         }
     }
+
+    public static class systemStartFailureException extends RuntimeException {
+        public systemStartFailureException(String errorMessage, Throwable err ) {
+            super(errorMessage, err);
+        }
+    }
 }

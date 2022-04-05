@@ -116,7 +116,9 @@ public class Main {
                     CommandSequence testCommandSequence = queue.poll();
                     Fuzzer.fuzzOne(conf, testCommandSequence, curCoverage, queue, fuzzingClient, true);
                 }
+                break;
             }
+            System.out.println("\n Fuzzing process end, have a good day \n");
         }
     }
 }

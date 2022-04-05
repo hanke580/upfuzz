@@ -17,7 +17,8 @@ public class Fuzzer {
      *                   mutated seed. If no, this seed also need run.
      * @return
      */
-    public static final int TEST_NUM = 20; // Change this according to the seed.
+//    public static final int TEST_NUM = 20; // Change this according to the seed.
+    public static final int TEST_NUM = 1;
 
     public static boolean fuzzOne(Config conf,
                                   CommandSequence commandSequence,
