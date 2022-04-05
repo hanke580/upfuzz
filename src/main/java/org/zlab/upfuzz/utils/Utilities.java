@@ -91,10 +91,11 @@ public class Utilities {
         }
     }
 
-    public static void runProcess(ProcessBuilder pb, String desc) {
+    public static Process runProcess(ProcessBuilder pb, String desc) {
+        Process p = null;
         try {
             System.out.println("Execute: " + desc);
-            Process p = pb.start();
+            p = pb.start();
             BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String line;
             while ((line = in.readLine()) != null) {
@@ -108,6 +109,27 @@ public class Utilities {
         } catch(IOException | InterruptedException e) {
             e.printStackTrace();
         }
+        return p;
     }
+
+
+    // public static void runProcess(ProcessBuilder pb, String desc) {
+    //     try {
+    //         System.out.println("Execute: " + desc);
+    //         Process p = pb.start();
+    //         BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+    //         String line;
+    //         while ((line = in.readLine()) != null) {
+    //             System.out.println(line);
+    //             System.out.flush();
+    //         }
+    //         p.waitFor();
+    //         in.close();
+    //         System.out.println(desc + " Successful");
+
+    //     } catch(IOException | InterruptedException e) {
+    //         e.printStackTrace();
+    //     }
+    // }
 
 }

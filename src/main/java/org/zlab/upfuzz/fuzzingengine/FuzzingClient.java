@@ -66,10 +66,11 @@ public class FuzzingClient {
 
 		Executor executor = new CassandraExecutor(conf, null);
 		int ret;
+		ExecutionDataStore codeCoverage = null;
 		try {
 			ret = executor.execute(commandSequence);
 			if (ret == 0) {
-				ExecutionDataStore codeCoverage = collect(executor);
+				codeCoverage = collect(executor);
 				String destFile = executor.getSysExecID() + ".exec";
 				try {
 					FileOutputStream localFile = new FileOutputStream(destFile);
@@ -80,22 +81,22 @@ public class FuzzingClient {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				return codeCoverage;
 			}
 		} catch (CustomExceptions.systemStartFailureException e) {
-			System.out.println("old version cassandra start up failed");
+			System.out.println("old version system start up failed");			
+
 			System.exit(1);
 		}
 
-		try {
-			ret = executor.upgradeTest();
-		} catch (CustomExceptions.systemStartFailureException e) {
-			System.out.println("New version cassandra start up failed, this could be a bug");
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.exit(1);
-		}
-		return null;
+		// try {
+		// 	ret = executor.upgradeTest();
+		// } catch (CustomExceptions.systemStartFailureException e) {
+		// 	System.out.println("New version cassandra start up failed, this could be a bug");
+		// } catch (Exception e) {
+		// 	e.printStackTrace();
+		// 	System.exit(1);
+		// }
+		return codeCoverage;
 	}
 
 	public ExecutionDataStore collect(Executor executor) {

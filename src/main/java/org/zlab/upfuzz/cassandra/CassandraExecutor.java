@@ -46,6 +46,16 @@ public class CassandraExecutor extends Executor {
 
     @Override
     public void startup() {
+        System.out.println("Start the new version");
+        // Remove the data folder in the old version
+        // ProcessBuilder pb = new ProcessBuilder("rm", "-rf", "data");
+        // pb.directory(new File(conf.cassandraPath));
+        // try {
+        //     pb.start();
+        // } catch (IOException e) {
+        //     e.printStackTrace();
+        // }
+
         ProcessBuilder cassandraProcessBuilder = new ProcessBuilder("bin/cassandra");
         Map<String, String> env = cassandraProcessBuilder.environment();
         env.put("JAVA_TOOL_OPTIONS",
@@ -200,34 +210,44 @@ public class CassandraExecutor extends Executor {
         Path oldFolderPath = Paths.get(conf.cassandraPath, "data");
         Path newFolderPath = Paths.get(conf.upgradeCassandraPath);
 
-        // Move data folder
-        ProcessBuilder pb = new ProcessBuilder("mv", oldFolderPath.toString(), newFolderPath.toString());
+
+        // Delete the possible data folder in the new version
+        ProcessBuilder pb = new ProcessBuilder("rm", "-rf",  Paths.get(newFolderPath.toString(), "data").toString());
         pb.directory(new File(conf.cassandraPath));
         Utilities.runProcess(pb, "mv data folder");
-//
-//        // Upgrade
-//        // TODO: Add retry times to check whether the upgrade is failed.
-//        pb = new ProcessBuilder("bin/cassandra");
-//        pb.directory(new File(conf.upgradeCassandraPath));
-//        Utilities.runProcess(pb, "Upgrade Cassandra");
-//
-//        while (!isCassandraReady(conf.upgradeCassandraPath)) {
-//            if (!cassandraProcess.isAlive()) {
-//                // Throw a specific exception, if this is upgrade, it means we met a bug
-//                throw new CustomExceptions.systemStartFailureException(
-//                        "New version cassandra start fails during" +
-//                        " the upgrade process. Tt could be a bug", null);
-//            }
-//            try {
-//                Thread.sleep(500);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//        System.out.println("Upgrade process success, now shut down the new version, and clean the folder");
-//
-//        upgradeteardown();
-//        System.out.println("Upgrade process shutdown successfully");
+
+        // Move data folder
+        pb = new ProcessBuilder("mv", oldFolderPath.toString(), newFolderPath.toString());
+        pb.directory(new File(conf.cassandraPath));
+        Utilities.runProcess(pb, "mv data folder");
+
+        System.out.println("Moved data folder");
+
+       // Upgrade
+       // TODO: Add retry times to check whether the upgrade is failed.
+       pb = new ProcessBuilder("bin/cassandra");
+       pb.directory(new File(conf.upgradeCassandraPath));
+    //    Utilities.runProcess(pb, "Upgrade Cassandra");
+       Process upgradeCassandraProcess = Utilities.runProcess(pb, "Upgrade Cassandra");
+
+       while (!isCassandraReady(conf.upgradeCassandraPath)) {
+           // Problem : why would the process be dead?
+        //    if (!upgradeCassandraProcess.isAlive()) {
+        //        // Throw a specific exception, if this is upgrade, it means we met a bug
+        //        throw new CustomExceptions.systemStartFailureException(
+        //                "New version cassandra start fails during" +
+        //                " the upgrade process. Tt could be a bug", null);
+        //    }
+           try {
+               Thread.sleep(500);
+           } catch (InterruptedException e) {
+               e.printStackTrace();
+           }
+       }
+       System.out.println("Upgrade process success, now shut down the new version, and clean the folder");
+
+       upgradeteardown();
+       System.out.println("Upgrade process shutdown successfully");
 
         // Execute validation commands
         return 0;
