@@ -15,7 +15,7 @@ public class CommandSequenceTests {
         boolean useIdx = false;
 
         CassandraState state = new CassandraState();
-        CommandSequence commandSequence = CommandSequence.generateSequence(CassandraCommands.commandClassList, CassandraCommands.createCommandClassList, state);
+        CommandSequence commandSequence = CommandSequence.generateSequence(CassandraCommands.commandClassList, CassandraCommands.createCommandClassList, CassandraState.class);
 
         List<String> l = commandSequence.getCommandStringList();
         for (int i = 0; i < l.size(); i++) {
@@ -27,7 +27,7 @@ public class CommandSequenceTests {
         System.out.println("command size = " + l.size());
 
         System.out.println("\n-----------Sequence Mutation Start-----------");
-        commandSequence.mutate(state);
+        commandSequence.mutate();
         System.out.println("-----------Sequence Mutation End-----------\n");
 
         l = commandSequence.getCommandStringList();

@@ -14,7 +14,12 @@ public class NullExecutor extends Executor {
   }
 
   @Override
-  public int execute() {
+  public int execute(CommandSequence commandSequence) {
+    return 0;
+  }
+
+  @Override
+  public int upgradeTest() {
     return 0;
   }
 }

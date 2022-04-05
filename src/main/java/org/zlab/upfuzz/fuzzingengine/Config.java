@@ -19,9 +19,11 @@ public class Config {
         public String clientHost = "localhost";
         public Integer clientPort = 6300;
         public String cassandraPath = null;
+        public String upgradeCassandraPath = null;
         public String jacocoAgentPath = null;
         public String cqlshDaemonScript = null;
         public String cassandraOutputFile = null;
+        public String initSeedDir = null;
 
         @Override
         public String toString() {

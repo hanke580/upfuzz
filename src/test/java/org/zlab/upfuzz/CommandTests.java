@@ -12,6 +12,8 @@ import org.zlab.upfuzz.utils.STRINGType;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -124,10 +126,17 @@ public class CommandTests {
         cmd1.updateState(s);
         System.out.println(cmd1.constructCommandString());
 
+        CassandraCommands.INSERT cmd2 = new CassandraCommands.INSERT(s);
+        cmd1.updateState(s);
+        System.out.println(cmd1.constructCommandString());
+
         List<Command> l = new LinkedList<>();
 
         l.add(cmd0);
         l.add(cmd1);
+        l.add(cmd2);
+
+
 
         try {
             FileOutputStream fileOut =
@@ -144,7 +153,7 @@ public class CommandTests {
 
         List<Command> e = null;
         try {
-            FileInputStream fileIn = new FileInputStream("/home/yayu/Project/Upgrade-Fuzzing/upfuzz/LIST.ser");
+            FileInputStream fileIn = new FileInputStream("/tmp/LIST.ser");
             ObjectInputStream in = new ObjectInputStream(fileIn);
             e = (List<Command>) in.readObject();
             in.close();
@@ -157,13 +166,13 @@ public class CommandTests {
             c.printStackTrace();
             return;
         }
-        assert e.size() == 2;
+        assert e.size() == 3;
 
         System.out.println();
     }
 
     @Test
-    public void testCreateKSCommandWithInitialValue() {
+    public void testCreateKSCommandWithInitialValue() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         List<Command> l = new LinkedList<>();
 
         CassandraState s = new CassandraState();
@@ -197,10 +206,10 @@ public class CommandTests {
         columns_INSERT.add("average_size TEXT");
 
         List<Object> Values_INSERT = new ArrayList<>();
-        Values_INSERT.add("'Monkey'");
+        Values_INSERT.add("Monkey");
         Values_INSERT.add(0);
         Values_INSERT.add(30);
-        Values_INSERT.add("'AAAAAAAAAAAAAAAAAAAAAAAAAAA'");
+        Values_INSERT.add("AAAAAAAAAAAAAAAAAAAAAAAAAAA");
         CassandraCommands.INSERT cmd2 = new CassandraCommands.INSERT(s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
         cmd2.updateState(s);
         l.add(cmd2);
@@ -224,9 +233,40 @@ public class CommandTests {
             System.out.println(cmd);
         }
 
-        CommandSequence commandSequence = new CommandSequence(l, CassandraCommands.commandClassList, CassandraCommands.createCommandClassList, s);
+        CommandSequence commandSequence = new CommandSequence(l, CassandraCommands.commandClassList, CassandraCommands.createCommandClassList, CassandraState.class);
 
-        commandSequence.mutate(s);
+        Path filePath = Paths.get("/tmp/seed_cassandra_13939.ser");
+
+        try {
+            FileOutputStream fileOut =
+                    new FileOutputStream(filePath.toFile());
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(commandSequence);
+            out.close();
+            fileOut.close();
+            System.out.println("Serialized data is saved in " + filePath.toString());
+        } catch (IOException i) {
+            i.printStackTrace();
+            return;
+        }
+
+        CommandSequence e = null;
+        try {
+            FileInputStream fileIn = new FileInputStream(filePath.toFile());
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            e = (CommandSequence) in.readObject();
+            in.close();
+            fileIn.close();
+        } catch (IOException i) {
+            i.printStackTrace();
+            return;
+        } catch (ClassNotFoundException c) {
+            System.out.println("Command class not found");
+            c.printStackTrace();
+            return;
+        }
+
+        commandSequence.mutate();
         boolean useIdx = false;
 
         List<String> commandStringList = commandSequence.getCommandStringList();
@@ -238,6 +278,28 @@ public class CommandTests {
         }
         System.out.println("command size = " + commandStringList.size());
 
+    }
+
+    @Test
+    public void testSELECTCommandGeneration() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+
+        CassandraState s = new CassandraState();
+
+        CassandraCommands.CREAT_KEYSPACE cmd0 = new CassandraCommands.CREAT_KEYSPACE(s);
+        cmd0.updateState(s);
+        System.out.println(cmd0.constructCommandString());
+
+        CassandraCommands.CREATETABLE cmd1 = new CassandraCommands.CREATETABLE(s);
+        cmd1.updateState(s);
+        System.out.println(cmd1.constructCommandString());
+
+        CassandraCommands.INSERT cmd2 = new CassandraCommands.INSERT(s);
+        cmd2.updateState(s);
+        System.out.println(cmd2.constructCommandString());
+
+        CassandraCommands.SELECT cmd3 = new CassandraCommands.SELECT(s);
+        cmd2.updateState(s);
+        System.out.println(cmd3.constructCommandString());
     }
 
 }

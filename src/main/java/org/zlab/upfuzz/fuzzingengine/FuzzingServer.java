@@ -6,6 +6,8 @@ import java.net.ServerSocket;
 
 public class FuzzingServer {
 
+    // Seed Corpus (tuple(Seed, Info))
+
     private Config conf;
 
     FuzzingServer(Config conf) {

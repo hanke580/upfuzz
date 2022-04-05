@@ -9,6 +9,8 @@ import java.util.Map;
 
 import org.jacoco.core.data.ExecutionDataStore;
 import org.jacoco.core.data.ExecutionDataWriter;
+import org.zlab.upfuzz.CommandSequence;
+import org.zlab.upfuzz.CustomExceptions;
 import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.utils.SystemUtil;
@@ -34,9 +36,11 @@ public class FuzzingClient {
 
 
 	FuzzingClient() {
+        init();
 	}
 
 	private void init() {
+		// TODO: GC the old coverage since we already get the overall coverage.
 		agentStore = new HashMap<>();
 		agentHandler = new HashMap<>();
 		sessionGroup = new HashMap<>();
@@ -50,29 +54,47 @@ public class FuzzingClient {
 		}
 	}
 
-	public void start() {
+	public ExecutionDataStore start(CommandSequence commandSequence) {
 		try {
 			System.out.println(SystemUtil.getMainClassName());
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		init();
+
 		Executor executor = new CassandraExecutor(null);
-		int ret = executor.execute();
-		if (ret == 0) {
-			ExecutionDataStore codeCoverage = collect(executor);
-			String destFile = executor.getSysExecID() + ".exec";
-			try {
-				FileOutputStream localFile = new FileOutputStream(destFile);
-				ExecutionDataWriter localWriter = new ExecutionDataWriter(localFile);
-				codeCoverage.accept(localWriter);
-				// localWriter.visitClassExecution(codeCoverage);
-				System.out.println("write codecoverage to " + destFile);
-			} catch (IOException e) {
-				e.printStackTrace();
+		int ret;
+		ExecutionDataStore codeCoverage = null;
+		try {
+			ret = executor.execute(commandSequence);
+			if (ret == 0) {
+				codeCoverage = collect(executor);
+				String destFile = executor.getSysExecID() + ".exec";
+				try {
+					FileOutputStream localFile = new FileOutputStream(destFile);
+					ExecutionDataWriter localWriter = new ExecutionDataWriter(localFile);
+					codeCoverage.accept(localWriter);
+					// localWriter.visitClassExecution(codeCoverage);
+					System.out.println("write codecoverage to " + destFile);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
+		} catch (CustomExceptions.systemStartFailureException e) {
+			System.out.println("old version system start up failed");			
+
+			System.exit(1);
 		}
+
+		// try {
+		// 	ret = executor.upgradeTest();
+		// } catch (CustomExceptions.systemStartFailureException e) {
+		// 	System.out.println("New version cassandra start up failed, this could be a bug");
+		// } catch (Exception e) {
+		// 	e.printStackTrace();
+		// 	System.exit(1);
+		// }
+		return codeCoverage;
 	}
 
 	public ExecutionDataStore collect(Executor executor) {
@@ -96,11 +118,19 @@ public class FuzzingClient {
 				if (astore == null) {
 					System.out.println("no data");
 				} else {
+					/**
+					 * astore: Map: Classname -> int[] probes.
+					 * this will merge the probe of each classes.
+					 */
 					execStore.merge(astore);
 					System.out.println("astore size: " + execStore.getContents().size());
 				}
 			}
 			System.out.println("size: " + execStore.getContents().size());
+
+
+			// Send coverage back
+
 			return execStore;
 		}
 	}
