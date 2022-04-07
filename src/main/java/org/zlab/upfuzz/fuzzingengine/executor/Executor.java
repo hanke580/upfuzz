@@ -1,5 +1,6 @@
 package org.zlab.upfuzz.fuzzingengine.executor;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -34,14 +35,21 @@ public abstract class Executor implements IExecutor {
     public void teardown() {
     }
 
-    public int executeCommands(CommandSequence commandSequence) {
-        return 0;
+    public List<String> executeCommands(CommandSequence commandSequence) {
+        return null;
     }
 
-    public int execute(CommandSequence commandSequence) {
+    public List<String> execute(CommandSequence commandSequence, CommandSequence validationCommandSequence) {
         startup();
         executeCommands(commandSequence);
+        saveSnapshot(); // Flush, and keep the data folder
+
+        List<String> oldVersionResult = executeCommands(validationCommandSequence);
+        // execute the second commands
         teardown();
-        return 0;
+        return oldVersionResult;
     }
+
+    public int saveSnapshot() {return 0; }
+
 }

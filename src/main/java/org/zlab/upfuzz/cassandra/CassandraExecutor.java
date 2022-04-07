@@ -1,24 +1,23 @@
 package org.zlab.upfuzz.cassandra;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 
 import org.zlab.upfuzz.CommandSequence;
+import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.cassandra.CassandraCqlshDaemon.CqlshPacket;
 import org.zlab.upfuzz.CustomExceptions;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
+import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.SystemUtil;
 import org.zlab.upfuzz.utils.Utilities;
 
@@ -40,6 +39,27 @@ public class CassandraExecutor extends Executor {
             BufferedReader in = new BufferedReader(new InputStreamReader(isReady.getInputStream()));
             String line;
             while ((line = in.readLine()) != null) {
+            }
+            isReady.waitFor();
+            in.close();
+            ret = isReady.exitValue();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        return ret == 0;
+    }
+
+    public boolean isNewCassandraReady(String cassandraPath) {
+        ProcessBuilder isReadyBuilder = new ProcessBuilder();
+        Process isReady;
+        int ret = 0;
+        try {
+            isReady = SystemUtil.exec(new String[] { "bin/cqlsh", "hk", "-e", "describe cluster" }, cassandraPath);
+            BufferedReader in = new BufferedReader(new InputStreamReader(isReady.getInputStream()));
+            String line;
+            
+            while ((line = in.readLine()) != null) {
+            //    System.out.println(line);
             }
             isReady.waitFor();
             in.close();
@@ -83,7 +103,7 @@ public class CassandraExecutor extends Executor {
             // in.close();
             // cassandraProcess.waitFor();
             System.out.println("cassandra " + executorID + " started");
-            while (!isCassandraReady(Config.getConf().cassandraPath)) {
+            while (!isNewCassandraReady(Config.getConf().cassandraPath)) {
                 if (!cassandraProcess.isAlive()) {
                     // System.out.println("cassandra process crushed\nCheck " + Config.getConf().cassandraOutputFile
                     //         + " for details");
@@ -159,27 +179,52 @@ public class CassandraExecutor extends Executor {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        System.out.println("Upgrade folder has been removed");
+
+        // Stop all running cassandra instances
+        // pgrep -u vagrant -f cassandra | xargs kill -9
+        pb = new ProcessBuilder("pgrep", "-u", "vagrant", "cassandra", "| xargs kill -9");
+        pb.directory(new File(Config.getConf().upgradeCassandraPath));
+        Utilities.runProcess(pb, "kill cassandra instances");
+
     }
 
-    public static CommandSequence prepareCommandSequence() {
-        CassandraState state = new CassandraState();
+    public static Pair<CommandSequence, CommandSequence> prepareCommandSequence() {
         CommandSequence commandSequence = null;
+        CommandSequence validationCommandSequence = null;
         try {
             commandSequence = CommandSequence.generateSequence(CassandraCommands.commandClassList,
-                    CassandraCommands.createCommandClassList, CassandraState.class);
+                    CassandraCommands.createCommandClassList, CassandraState.class, null);
+            // TODO: If it's generating read with a initial state, no need to generate with createTable...
+            validationCommandSequence = CommandSequence.generateSequence(CassandraCommands.readCommandClassList,
+                    null, CassandraState.class, commandSequence.state);
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException
                 | IllegalAccessException e) {
             e.printStackTrace();
         }
-        return commandSequence;
+        return new Pair<>(commandSequence, validationCommandSequence);
+    }
+
+    public static CommandSequence prepareValidationCommandSequence(State state) {
+        CommandSequence validationCommandSequence = null;
+        try {
+            validationCommandSequence = CommandSequence.generateSequence(CassandraCommands.readCommandClassList,
+                    null, CassandraState.class, state);
+        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException
+                | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return validationCommandSequence;
     }
 
     @Override
-    public int executeCommands(CommandSequence commandSequence) {
+    public List<String> executeCommands(CommandSequence commandSequence) {
 //        commandSequence = prepareCommandSequence();
         List<String> commandList = commandSequence.getCommandStringList();
+        List<String> ret = new LinkedList<>();
         try {
-            CassandraCqlshDaemon cqlsh = new CassandraCqlshDaemon();
+            CassandraCqlshDaemon cqlsh = new CassandraCqlshDaemon(false);
             for (String cmd : commandList) {
                 System.out
                         .println("\n\n------------------------------------------------------------\nexecutor command:\n"
@@ -187,18 +232,63 @@ public class CassandraExecutor extends Executor {
                 long startTime = System.currentTimeMillis();
                 CqlshPacket cp = cqlsh.execute(cmd);
                 long endTime = System.currentTimeMillis();
+
+                ret.add(cp.message);
                 System.out.println("ret is: " + cp.exitValue + "\ntime: " + cp.timeUsage + "\ntime usage(network):"
                         + (endTime - startTime) / 1000. + "\n");
             }
+            cqlsh.destroy();
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
-            return 127;
+            return null;
         }
+        return ret;
+    }
+
+    public List<String> newVersionExecuteCommands(CommandSequence commandSequence) {
+//        commandSequence = prepareCommandSequence();
+        List<String> commandList = commandSequence.getCommandStringList();
+        List<String> ret = new LinkedList<>();
+        try {
+            CassandraCqlshDaemon cqlsh = new CassandraCqlshDaemon(true);
+            for (String cmd : commandList) {
+                System.out
+                        .println("\n\n------------------------------------------------------------\nexecutor command:\n"
+                                + cmd + "\n------------------------------------------------------------\n");
+                long startTime = System.currentTimeMillis();
+                CqlshPacket cp = cqlsh.execute(cmd);
+                long endTime = System.currentTimeMillis();
+
+                ret.add(cp.message);
+                System.out.println("ret is: " + cp.exitValue + "\ntime: " + cp.timeUsage + "\ntime usage(network):"
+                        + (endTime - startTime) / 1000. + "\n");
+            }
+            cqlsh.destroy();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return ret;
+    }
+
+    public int saveSnapshot() {
+        // Flush
+        ProcessBuilder pb = new ProcessBuilder("bin/nodetool", "flush");
+        pb.directory(new File(Config.getConf().cassandraPath));
+        Utilities.runProcess(pb, "[Executor] Old Version System Flush");
+
+        // Copy the data dir
+        Path oldFolderPath = Paths.get(Config.getConf().cassandraPath, "data");
+        Path newFolderPath = Paths.get(Config.getConf().upgradeCassandraPath);
+
+        pb = new ProcessBuilder("cp", "-r", oldFolderPath.toString(), newFolderPath.toString());
+        pb.directory(new File(Config.getConf().cassandraPath));
+        Utilities.runProcess(pb, "[Executor] Copy the data folder to the new version");
         return 0;
     }
 
     @Override
-    public int upgradeTest() {
+    public int upgradeTest(CommandSequence validationCommandSequence, List<String> oldVersionResult) {
         /**
          * 1. Move the data folder to the new version Cassandra
          * 2. Start the new version cassandra with the Upgrade symbol
@@ -210,31 +300,19 @@ public class CassandraExecutor extends Executor {
          * Also need to control the java version.
          */
 
-        Path oldFolderPath = Paths.get(Config.getConf().cassandraPath, "data");
-        Path newFolderPath = Paths.get(Config.getConf().upgradeCassandraPath);
-
-
-        // Delete the possible data folder in the new version
-        ProcessBuilder pb = new ProcessBuilder("rm", "-rf",  Paths.get(newFolderPath.toString(), "data").toString());
+        // Delete the possible data folder in the old version
+        ProcessBuilder pb = new ProcessBuilder("rm", "-rf", "data");
         pb.directory(new File(Config.getConf().cassandraPath));
-        Utilities.runProcess(pb, "mv data folder");
-
-        // Move data folder
-        pb = new ProcessBuilder("mv", oldFolderPath.toString(), newFolderPath.toString());
-        pb.directory(new File(Config.getConf().cassandraPath));
-        Utilities.runProcess(pb, "mv data folder");
-
-        System.out.println("Moved data folder");
+        Utilities.runProcess(pb, "[Executor] Remove data folder in the old version");
 
        // Upgrade
-       // TODO: Add retry times to check whether the upgrade is failed.
        pb = new ProcessBuilder("bin/cassandra");
        pb.directory(new File(Config.getConf().upgradeCassandraPath));
-    //    Utilities.runProcess(pb, "Upgrade Cassandra");
-       Process upgradeCassandraProcess = Utilities.runProcess(pb, "Upgrade Cassandra");
+       Utilities.runProcess(pb, "Upgrade Cassandra");
 
-       while (!isCassandraReady(Config.getConf().upgradeCassandraPath)) {
+       while (!isNewCassandraReady(Config.getConf().upgradeCassandraPath)) {
            // Problem : why would the process be dead?
+           // TODO: Enable this checking, add a retry times
         //    if (!upgradeCassandraProcess.isAlive()) {
         //        // Throw a specific exception, if this is upgrade, it means we met a bug
         //        throw new CustomExceptions.systemStartFailureException(
@@ -242,18 +320,46 @@ public class CassandraExecutor extends Executor {
         //                " the upgrade process. Tt could be a bug", null);
         //    }
            try {
+               System.out.println("Upgrade System Waiting...");
                Thread.sleep(500);
            } catch (InterruptedException e) {
                e.printStackTrace();
            }
        }
-       System.out.println("Upgrade process success, now shut down the new version, and clean the folder");
 
-       upgradeteardown();
-       System.out.println("Upgrade process shutdown successfully");
+       // Data consistency check
+        /**
+         * Data consistency check
+         * If the return size is different, exception when executing the commands, or the results are different.
+         * Record both results, report as a potential bug.
+         */
+        // If there is any exception when executing the commands, it should also be caught
+        List<String> newVersionResult = newVersionExecuteCommands(validationCommandSequence);
 
-        // Execute validation commands
-        return 0;
+        boolean isBug = false;
+        if (newVersionResult.size() != oldVersionResult.size()) {
+           isBug = true;
+        } else {
+            for (int i = 0; i < newVersionResult.size(); i++) {
+
+
+                if (oldVersionResult.get(i).compareTo(newVersionResult.get(i)) != 0) {
+                    System.out.println("Comparing the results...");
+                    System.out.println("Old version: " + oldVersionResult.get(i));
+                    System.out.println("new version: " + newVersionResult.get(i));
+                    System.out.println();
+                    isBug = false;
+                    break;
+                }
+            }
+        }
+
+        // Shutdown
+        upgradeteardown();
+        System.out.println("Upgrade process shutdown successfully");
+
+        return isBug? 1: 0;
+
     }
 
 }

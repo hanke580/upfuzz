@@ -1,8 +1,7 @@
 package org.zlab.upfuzz.fuzzingengine.executor;
 
 import java.util.List;
-import org.zlab.upfuzz.Command;
-import org.zlab.upfuzz.fuzzingengine.Config;
+
 import org.zlab.upfuzz.CommandSequence;
 
 /* NullExecutor
@@ -14,12 +13,12 @@ public class NullExecutor extends Executor {
   }
 
   @Override
-  public int execute(CommandSequence commandSequence) {
-    return 0;
+  public List<String>  execute(CommandSequence commandSequence, CommandSequence validationCommandSequence) {
+    return null;
   }
 
   @Override
-  public int upgradeTest() {
+  public int upgradeTest(CommandSequence validationCommandSequence, List<String> oldVersionResult) {
     return 0;
   }
 }

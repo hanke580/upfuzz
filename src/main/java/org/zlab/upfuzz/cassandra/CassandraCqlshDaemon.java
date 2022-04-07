@@ -22,12 +22,12 @@ public class CassandraCqlshDaemon {
     private Process cqlsh;
     private Socket socket;
 
-    public CassandraCqlshDaemon() throws IOException, InterruptedException {
+    public CassandraCqlshDaemon(boolean isUpgrade) throws IOException, InterruptedException {
         boolean flag = false;
         flag = true;
         for (int i = 0; i < MAX_RETRY; ++i) {
-            // port = RandomUtils.nextInt(1024, 65536);
-            port = 55555;
+            port = RandomUtils.nextInt(1024, 65536);
+            // port = 55555;
 
             if (testPortAvailable(port)) {
                 flag = true;
@@ -36,18 +36,19 @@ public class CassandraCqlshDaemon {
         }
         if (flag) {
             // port = port & 0xFFFE;
-            System.out.println("Use port:" + port);
-            cqlsh = SystemUtil.exec(new String[] { "python", Config.getConf().cqlshDaemonScript, "--port=" + Integer.toString(port) },
+            // System.out.println("Use port:" + port);
+            String cqlshDaemonScript = isUpgrade ? Config.getConf().newCqlshDaemonScript: Config.getConf().oldCqlshDaemonScript;
+            cqlsh = SystemUtil.exec(new String[] { "python", cqlshDaemonScript, "--port=" + Integer.toString(port) },
                     new File(Config.getConf().cassandraPath));
 
             // byte[] output = new byte[10240];
-
             // cqlsh.getInputStream().read(output);
             // System.out.println("CQLSH OUTPUTING...");
             // System.out.println(new String(output));
 
             Thread.sleep(1000);
             socket = new Socket("localhost", port);
+            // TODO: Add a catch, when the connection is rejected regenerate it.
         } else {
             throw new IllegalStateException("Cannot fina an available port");
         }
@@ -99,5 +100,12 @@ public class CassandraCqlshDaemon {
             message = "";
             timeUsage = -1;
         }
+    }
+
+    /**
+     * Destroy the current process.
+     */
+    public void destroy() {
+        cqlsh.destroy();
     }
 }

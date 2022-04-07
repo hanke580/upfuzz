@@ -233,7 +233,8 @@ public class CommandTests {
             System.out.println(cmd);
         }
 
-        CommandSequence commandSequence = new CommandSequence(l, CassandraCommands.commandClassList, CassandraCommands.createCommandClassList, CassandraState.class);
+        CommandSequence commandSequence = new CommandSequence(l, CassandraCommands.commandClassList, CassandraCommands.createCommandClassList, CassandraState.class, null);
+        CommandSequence validationCommandSequence = new CommandSequence(l, CassandraCommands.readCommandClassList, CassandraCommands.createCommandClassList, CassandraState.class, commandSequence.state);
 
         Path filePath = Paths.get("/tmp/seed_cassandra_13939.ser");
 
@@ -241,7 +242,7 @@ public class CommandTests {
             FileOutputStream fileOut =
                     new FileOutputStream(filePath.toFile());
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
-            out.writeObject(commandSequence);
+            out.writeObject(new Pair<>(commandSequence, validationCommandSequence));
             out.close();
             fileOut.close();
             System.out.println("Serialized data is saved in " + filePath.toString());
@@ -250,11 +251,11 @@ public class CommandTests {
             return;
         }
 
-        CommandSequence e = null;
+        Pair<CommandSequence, CommandSequence> e = null;
         try {
             FileInputStream fileIn = new FileInputStream(filePath.toFile());
             ObjectInputStream in = new ObjectInputStream(fileIn);
-            e = (CommandSequence) in.readObject();
+            e = (Pair<CommandSequence, CommandSequence>) in.readObject();
             in.close();
             fileIn.close();
         } catch (IOException i) {

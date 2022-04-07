@@ -3,6 +3,8 @@ package org.zlab.upfuzz.fuzzingengine;
 import org.apache.commons.lang3.SerializationUtils;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.CommandSequence;
+import org.zlab.upfuzz.cassandra.CassandraExecutor;
+import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
 import java.lang.reflect.InvocationTargetException;
@@ -18,10 +20,14 @@ public class Fuzzer {
      * @return
      */
     //    public static final int TEST_NUM = 20; // Change this according to the seed.
-    public static final int TEST_NUM = 1;
+    public static final int TEST_NUM = 20;
 
-    public static boolean fuzzOne(CommandSequence commandSequence, ExecutionDataStore curCoverage,
-            Queue<CommandSequence> queue, FuzzingClient fuzzingClient, boolean fromCorpus) {
+    public static boolean fuzzOne(CommandSequence commandSequence,
+                                  CommandSequence validationCommandSequence,
+                                  ExecutionDataStore curCoverage,
+                                  Queue<Pair<CommandSequence, CommandSequence>> queue,
+                                  FuzzingClient fuzzingClient,
+                                  boolean fromCorpus) {
         // Fuzz this command sequence for lots of times
         if (fromCorpus) {
             // Only run the mutated seeds
@@ -29,26 +35,30 @@ public class Fuzzer {
                 CommandSequence mutatedCommandSequence = SerializationUtils.clone(commandSequence);
                 try {
                     mutatedCommandSequence.mutate();
+                    // Update the validationCommandSequence...
+                    validationCommandSequence = CassandraExecutor.prepareValidationCommandSequence(mutatedCommandSequence.state);
                 } catch (InvocationTargetException | NoSuchMethodException | InstantiationException
                         | IllegalAccessException e) {
                     i--;
                     continue;
                 }
-                ExecutionDataStore testSequenceCoverage = fuzzingClient.start(mutatedCommandSequence);
+                ExecutionDataStore testSequenceCoverage = fuzzingClient.start(mutatedCommandSequence, validationCommandSequence);
                 // TODO: Add compare function in Jacoco
                 if (Utilities.hasNewBits(curCoverage, testSequenceCoverage)) {
-                    queue.add(mutatedCommandSequence);
+                    queue.add(new Pair<>(mutatedCommandSequence, validationCommandSequence));
                     curCoverage.merge(testSequenceCoverage);
                 }
-                System.out.println("[HKLOG1] QUEUE SIZE = " + queue.size());
+                System.out.println();
+                // System.out.println("[HKLOG1] QUEUE SIZE = " + queue.size() + "\n");
             }
 
         } else {
             // Only run the current seed, no mutation
-            ExecutionDataStore testSequenceCoverage = fuzzingClient.start(commandSequence);
+            ExecutionDataStore testSequenceCoverage = fuzzingClient.start(commandSequence, validationCommandSequence);
             if (Utilities.hasNewBits(curCoverage, testSequenceCoverage)) {
-                queue.add(commandSequence);
+                queue.add(new Pair<>(commandSequence, validationCommandSequence));
             }
+            System.out.println();
         }
         return true;
     }

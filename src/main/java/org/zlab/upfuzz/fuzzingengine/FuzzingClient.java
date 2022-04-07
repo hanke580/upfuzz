@@ -2,7 +2,6 @@ package org.zlab.upfuzz.fuzzingengine;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.rmi.UnexpectedException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +53,7 @@ public class FuzzingClient {
 		}
 	}
 
-	public ExecutionDataStore start(CommandSequence commandSequence) {
+	public ExecutionDataStore start(CommandSequence commandSequence, CommandSequence validationCommandSequence) {
 		try {
 			System.out.println(SystemUtil.getMainClassName());
 		} catch (ClassNotFoundException e) {
@@ -63,11 +62,11 @@ public class FuzzingClient {
 		}
 
 		Executor executor = new CassandraExecutor(null);
-		int ret;
+		List<String> oldVersionResult = null;
 		ExecutionDataStore codeCoverage = null;
 		try {
-			ret = executor.execute(commandSequence);
-			if (ret == 0) {
+			oldVersionResult = executor.execute(commandSequence, validationCommandSequence);
+			if (oldVersionResult != null) {
 				codeCoverage = collect(executor);
 				String destFile = executor.getSysExecID() + ".exec";
 				try {
@@ -86,14 +85,22 @@ public class FuzzingClient {
 			System.exit(1);
 		}
 
-		// try {
-		// 	ret = executor.upgradeTest();
-		// } catch (CustomExceptions.systemStartFailureException e) {
-		// 	System.out.println("New version cassandra start up failed, this could be a bug");
-		// } catch (Exception e) {
-		// 	e.printStackTrace();
-		// 	System.exit(1);
-		// }
+		// 1. Upgrade check
+		// 2. Read sequence check
+		try {
+			int ret = executor.upgradeTest(validationCommandSequence, oldVersionResult);
+			/**
+			 * ret == 0 means consistency, 1 means inconsistency.
+			 * Need to save the two sequences + the two results
+			 */
+		} catch (CustomExceptions.systemStartFailureException e) {
+			System.out.println("New version cassandra start up failed, this could be a bug");
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
+
+
 		return codeCoverage;
 	}
 

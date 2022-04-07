@@ -21,7 +21,9 @@ public class Config {
         public String cassandraPath = null;
         public String upgradeCassandraPath = null;
         public String jacocoAgentPath = null;
-        public String cqlshDaemonScript = null;
+        public String oldCqlshDaemonScript = null;
+        public String newCqlshDaemonScript = null;
+
         public String cassandraOutputFile = null;
         public String initSeedDir = null;
 

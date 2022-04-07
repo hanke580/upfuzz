@@ -10,24 +10,25 @@ import java.util.*;
 public class CommandSequence implements Serializable {
 
     public static final int MAX_CMD_SEQ_LEN = 20;
+    public final static int RETRY_GENERATE_TIME = 50;
 
     public List<Command> commands;
     public final List<Map.Entry<Class<? extends Command>, Integer>> commandClassList;
     public final List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList;
     public final Class<? extends State> stateClass;
+    public State state;
 
-//    public final State state;
-
-    public final static int RETRY_GENERATE_TIME = 50;
 
     public CommandSequence(List<Command> commands,
                            List<Map.Entry<Class<? extends Command>, Integer>> commandClassList,
                            List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList,
-                           Class<? extends State> stateClass) {
+                           Class<? extends State> stateClass,
+                           State state) {
         this.commands = commands;
         this.commandClassList = commandClassList;
         this.createCommandClassList = createCommandClassList;
         this.stateClass = stateClass;
+        this.state = state;
     }
 
     public CommandSequence mutate() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
@@ -171,6 +172,9 @@ public class CommandSequence implements Serializable {
             }
         }
         commands = validCommands;
+
+        this.state = state;
+
         return this;
     }
 
@@ -223,32 +227,42 @@ public class CommandSequence implements Serializable {
      */
     public static CommandSequence generateSequence(List<Map.Entry<Class<? extends Command>, Integer>> commandClassList,
                                                    List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList,
-                                                   Class<? extends State> stateClass)
+                                                   Class<? extends State> stateClass, State state)
             throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+
+        assert commandClassList != null;
 
         Random rand = new Random();
         assert MAX_CMD_SEQ_LEN > 0;
         int len = rand.nextInt(MAX_CMD_SEQ_LEN) + 1;
 
         Constructor<?> constructor = stateClass.getConstructor();
-        State state = (State) constructor.newInstance();
+        if (state == null)
+            state = (State) constructor.newInstance();
 
 //        len = 8; // Debug
-
         List<Command> commands = new LinkedList<>();
 
 //        List<Class<? extends Command>> tmpCommandClassList = new LinkedList<>(); // Debug
 //        tmpCommandClassList.add(CassandraCommands.ALTER_TABLE_DROP.class); // Debug
-
         for (int i = 0; i < len; i++) {
-            if (i <= 2) {
-                commands.add(generateSingleCommand(createCommandClassList, state));
-                continue;
+            if (createCommandClassList != null) {
+                /**
+                 * Make sure the first three columns are write related command,
+                 * so that the later command can be generated more easily.
+                 * [Could be changed later]
+                 */
+                if (i <= 2) {
+                    commands.add(generateSingleCommand(createCommandClassList, state));
+                    continue;
+                } else {
+                    commands.add(generateSingleCommand(commandClassList, state));
+                }
             } else {
                 commands.add(generateSingleCommand(commandClassList, state));
             }
         }
-        return new CommandSequence(commands, commandClassList, createCommandClassList, stateClass);
+        return new CommandSequence(commands, commandClassList, createCommandClassList, stateClass, state);
     }
 
     public List<String> getCommandStringList() {
