@@ -26,7 +26,9 @@ public class CassandraCqlshDaemon {
         boolean flag = false;
         flag = true;
         for (int i = 0; i < MAX_RETRY; ++i) {
-            port = RandomUtils.nextInt(1024, 65536);
+            // port = RandomUtils.nextInt(1024, 65536);
+            port = 55555;
+
             if (testPortAvailable(port)) {
                 flag = true;
                 break;
@@ -37,6 +39,13 @@ public class CassandraCqlshDaemon {
             System.out.println("Use port:" + port);
             cqlsh = SystemUtil.exec(new String[] { "python", Config.getConf().cqlshDaemonScript, "--port=" + Integer.toString(port) },
                     new File(Config.getConf().cassandraPath));
+
+            byte[] output = new byte[10240];
+            
+            cqlsh.getInputStream().read(output);
+            System.out.println("CQLSH OUTPUTING...");
+            System.out.println(new String(output));
+
             Thread.sleep(1000);
             socket = new Socket("localhost", port);
         } else {

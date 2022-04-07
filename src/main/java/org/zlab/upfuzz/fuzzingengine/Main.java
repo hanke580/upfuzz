@@ -39,11 +39,11 @@ public class Main {
         final Options options = new Options();
         Option clazzOption = Option.builder("class").argName("type").hasArg().desc("start a dfe server or client or fuzzer")
                 .required().build();
-        Option actionOption = Option.builder("action").argName("action").hasArg().desc("start a dfe server or client")
-                .required().build();
+        // Option actionOption = Option.builder("action").argName("action").hasArg().desc("start a dfe server or client")
+        //         .required().build();
         Option configFileOption = Option.builder("config").argName("config").hasArg().desc("Configuration file location").build();
         options.addOption(clazzOption);
-        options.addOption(actionOption);
+        // options.addOption(actionOption);
         options.addOption(configFileOption);
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = parser.parse(options, args);

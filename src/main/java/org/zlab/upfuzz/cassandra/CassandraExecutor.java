@@ -36,7 +36,7 @@ public class CassandraExecutor extends Executor {
         Process isReady;
         int ret = 0;
         try {
-            isReady = SystemUtil.exec(new String[] { "bin/cqlsh", "-e", "describe cluster" }, cassandraPath);
+            isReady = SystemUtil.exec(new String[] { "bin/cqlsh", "hk",  "-e", "describe cluster" }, cassandraPath);
             BufferedReader in = new BufferedReader(new InputStreamReader(isReady.getInputStream()));
             String line;
             while ((line = in.readLine()) != null) {
