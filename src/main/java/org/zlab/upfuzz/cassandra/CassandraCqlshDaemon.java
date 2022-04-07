@@ -40,11 +40,11 @@ public class CassandraCqlshDaemon {
             cqlsh = SystemUtil.exec(new String[] { "python", Config.getConf().cqlshDaemonScript, "--port=" + Integer.toString(port) },
                     new File(Config.getConf().cassandraPath));
 
-            byte[] output = new byte[10240];
-            
-            cqlsh.getInputStream().read(output);
-            System.out.println("CQLSH OUTPUTING...");
-            System.out.println(new String(output));
+            // byte[] output = new byte[10240];
+
+            // cqlsh.getInputStream().read(output);
+            // System.out.println("CQLSH OUTPUTING...");
+            // System.out.println(new String(output));
 
             Thread.sleep(1000);
             socket = new Socket("localhost", port);
