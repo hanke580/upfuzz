@@ -8,17 +8,17 @@ import org.zlab.upfuzz.CommandSequence;
  * DO NOTHING
  * */
 public class NullExecutor extends Executor {
-  public NullExecutor(CommandSequence cmdSeq) {
-    super(cmdSeq);
+  public NullExecutor(CommandSequence commandSequence, CommandSequence validationCommandSequence) {
+    super(commandSequence, validationCommandSequence);
   }
 
   @Override
-  public List<String>  execute(CommandSequence commandSequence, CommandSequence validationCommandSequence) {
+  public List<String>  execute() {
     return null;
   }
 
   @Override
-  public int upgradeTest(CommandSequence validationCommandSequence, List<String> oldVersionResult) {
-    return 0;
+  public boolean upgradeTest() {
+    return true;
   }
 }

@@ -22,6 +22,8 @@ public class Fuzzer {
     //    public static final int TEST_NUM = 20; // Change this according to the seed.
     public static final int TEST_NUM = 20;
 
+    public static int testID = 0;
+
     public static boolean fuzzOne(CommandSequence commandSequence,
                                   CommandSequence validationCommandSequence,
                                   ExecutionDataStore curCoverage,
@@ -32,6 +34,16 @@ public class Fuzzer {
         if (fromCorpus) {
             // Only run the mutated seeds
             for (int i = 0; i < TEST_NUM; i++) {
+
+
+                System.out.println("\n\n----------- Executing one fuzzing test -----------");
+                System.out.println("[Fuzz Status]\n" +
+                                   "Queue Size = " + queue.size() + "\n" +
+                                   "Crash Found = " + fuzzingClient.crashID + "\n" +
+                                   "Current Test ID = " + testID + "\n"
+                        );
+
+
                 CommandSequence mutatedCommandSequence = SerializationUtils.clone(commandSequence);
                 try {
                     mutatedCommandSequence.mutate();
@@ -48,16 +60,23 @@ public class Fuzzer {
                     queue.add(new Pair<>(mutatedCommandSequence, validationCommandSequence));
                     curCoverage.merge(testSequenceCoverage);
                 }
+                testID++;
                 System.out.println();
-                // System.out.println("[HKLOG1] QUEUE SIZE = " + queue.size() + "\n");
             }
 
         } else {
+            System.out.println("\n\n----------- Executing one fuzzing test -----------");
+            System.out.println("[Fuzz Status]\n" +
+                "Queue Size = " + queue.size() + "\n" +
+                "Crash Found = " + fuzzingClient.crashID + "\n" +
+                "Current Test ID = " + testID + "\n"
+            );
             // Only run the current seed, no mutation
             ExecutionDataStore testSequenceCoverage = fuzzingClient.start(commandSequence, validationCommandSequence);
             if (Utilities.hasNewBits(curCoverage, testSequenceCoverage)) {
                 queue.add(new Pair<>(commandSequence, validationCommandSequence));
             }
+            testID++;
             System.out.println();
         }
         return true;

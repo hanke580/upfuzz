@@ -49,7 +49,7 @@ public class CassandraCqlshDaemon {
         String cassandraVersion = Utilities.getGitTag(cassandraRoot);
         String cqlshPythonScript = null;
         String python = null;
-        System.out.println("cassandra version\n" + cassandraVersion);
+        // System.out.println("cassandra version\n" + cassandraVersion);
 
         char majorVersion = cassandraVersion.split("-")[1].charAt(0);
 
@@ -77,7 +77,7 @@ public class CassandraCqlshDaemon {
             File cqlshDaemonFile = Paths.get(cassandraRoot, "/bin/cqlsh_daemon.py").toFile();
             if (cqlshDaemonFile.exists()) {
                 Boolean res = cqlshDaemonFile.delete();
-                System.out.println("cqlsh_daemon.py exists. Delete it: " + res);
+                // System.out.println("cqlsh_daemon.py exists. Delete it: " + res);
             }
             BufferedWriter bw = new BufferedWriter(new FileWriter(cqlshDaemonFile));
             bw.write(cqlshPythonScript.replace("__reserved_port__", Integer.toString(port)));
@@ -103,7 +103,7 @@ public class CassandraCqlshDaemon {
 
         bw.write(cmd);
         bw.flush();
-        System.out.println("executor write " + cmd);
+        // System.out.println("executor write " + cmd);
         BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
         // // Socket
@@ -118,7 +118,7 @@ public class CassandraCqlshDaemon {
         int cnt = br.read(chars);
         String cqlshMess = new String(chars, 0, cnt);
 
-        System.out.println("receive size: " + cqlshMess.length() + " \n" + cqlshMess);
+        // System.out.println("receive size: " + cqlshMess.length() + " \n" + cqlshMess);
 
         CqlshPacket cqlshPacket = new Gson().fromJson(cqlshMess, CqlshPacket.class);
         return cqlshPacket;

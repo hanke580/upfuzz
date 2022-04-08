@@ -1,27 +1,43 @@
 package org.zlab.upfuzz.fuzzingengine.executor;
 
 import java.util.List;
-import java.util.UUID;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.RandomUtils;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.fuzzingengine.Config;
 
 public abstract class Executor implements IExecutor {
 
+    public enum FailureType {
+        UPGRADE_FAIL,
+        RESULT_INCONSISTENCY
+    }
+
     public String executorID;
     public String systemID = "UnknowDS";
     public Config conf;
     protected CommandSequence commandSequence;
+    protected CommandSequence validationCommandSequence;
+    public List<String> oldVersionResult;
+    public List<String> newVersionResult;
 
-    protected Executor(CommandSequence testSeq) {
+    public FailureType failureType;
+    public String failureInfo;
+
+    protected Executor(CommandSequence commandSequence, CommandSequence validationCommandSequence) {
         executorID = RandomStringUtils.randomAlphanumeric(8);
-        commandSequence = testSeq;
+        this.commandSequence = commandSequence;
+        this.validationCommandSequence = validationCommandSequence;
+
+        oldVersionResult = null;
+        newVersionResult = null;
+
+        failureType = null;
+        failureInfo = null;
     }
 
-    protected Executor(CommandSequence testSeq, String systemID) {
-        this(testSeq);
+    protected Executor(CommandSequence commandSequence, CommandSequence validationCommandSequence, String systemID) {
+        this(commandSequence, validationCommandSequence);
         this.systemID = systemID;
     }
 
@@ -39,12 +55,12 @@ public abstract class Executor implements IExecutor {
         return null;
     }
 
-    public List<String> execute(CommandSequence commandSequence, CommandSequence validationCommandSequence) {
+    public List<String> execute() {
         startup();
         executeCommands(commandSequence);
         saveSnapshot(); // Flush, and keep the data folder
 
-        List<String> oldVersionResult = executeCommands(validationCommandSequence);
+        oldVersionResult = executeCommands(validationCommandSequence);
         // execute the second commands
         teardown();
         return oldVersionResult;

@@ -15,10 +15,11 @@ public class STRINGType extends ParameterType.ConcreteType {
     public static final String signature = "java.lang.String";
 
     public static String generateRandomString() {
+        // Now when calling text, it's impossible to generate empty string!
         String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXY";
         StringBuilder sb = new StringBuilder();
         Random random = new Random();
-        int length = random.nextInt(MAX_LEN);
+        int length = random.nextInt(MAX_LEN) + 1;
         for(int i = 0; i < length; i++) {
             // generate random index number
             int index = random.nextInt(alphabet.length());

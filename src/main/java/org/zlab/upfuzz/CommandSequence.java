@@ -45,24 +45,24 @@ public class CommandSequence implements Serializable {
          * 3: Delete a command // Temporary not chosen
          */
 
-        switch (choice) {
-            case 0:
-                System.out.println("Mutate a specific command");
-                break;
-            case 1:
-                System.out.println("Insert a command");
-                break;
-            case 2:
-                System.out.println("Replace a command");
-                break;
-            case 3:
-                System.out.println("Delete a command");
-        }
+        // switch (choice) {
+        //     case 0:
+        //         System.out.println("Mutate a specific command");
+        //         break;
+        //     case 1:
+        //         System.out.println("Insert a command");
+        //         break;
+        //     case 2:
+        //         System.out.println("Replace a command");
+        //         break;
+        //     case 3:
+        //         System.out.println("Delete a command");
+        // }
 
         assert commands.size() > 0;
         // pos to insert
         int pos = rand.nextInt(commands.size());
-        System.out.println("Mutate Command Index = " + pos);
+        // System.out.println("Mutate Command Index = " + pos);
 
 
         Constructor<?> constructor = stateClass.getConstructor();
@@ -125,8 +125,8 @@ public class CommandSequence implements Serializable {
             command = generateSingleCommand(tmpL, state);
 
 
-            System.out.println("Added command : " + command.constructCommandString());
-            System.out.println("\n");
+            // System.out.println("Added command : " + command.constructCommandString());
+            // System.out.println("\n");
 
             commands.add(pos, command);
             commands.get(pos).updateState(state);
@@ -215,7 +215,7 @@ public class CommandSequence implements Serializable {
         }
         if (command == null) {
             System.out.println("A problem with generating single command");
-            System.exit(1);
+            // System.exit(1);
         }
         return command;
     }
@@ -256,10 +256,18 @@ public class CommandSequence implements Serializable {
                     commands.add(generateSingleCommand(createCommandClassList, state));
                     continue;
                 } else {
-                    commands.add(generateSingleCommand(commandClassList, state));
+                    Command command = generateSingleCommand(commandClassList, state);
+                    if (command == null) {
+                        command = generateSingleCommand(createCommandClassList, state);
+                    }
+                    commands.add(command);
                 }
             } else {
-                commands.add(generateSingleCommand(commandClassList, state));
+                Command command = generateSingleCommand(commandClassList, state);
+                while (command == null) {           // Might stuck here...
+                    command = generateSingleCommand(commandClassList, state);
+                }
+                commands.add(command);
             }
         }
         return new CommandSequence(commands, commandClassList, createCommandClassList, stateClass, state);

@@ -2,6 +2,9 @@ package org.zlab.upfuzz.fuzzingengine;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +15,7 @@ import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.CustomExceptions;
 import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
+import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
 public class FuzzingClient {
@@ -33,6 +37,8 @@ public class FuzzingClient {
 	/* socket for client and agents to communicate*/
 	public ClientSocket clientSocket;
 
+	public static int crashID;
+
 
 	FuzzingClient() {
         init();
@@ -43,6 +49,7 @@ public class FuzzingClient {
 		agentStore = new HashMap<>();
 		agentHandler = new HashMap<>();
 		sessionGroup = new HashMap<>();
+		crashID = 0;
 		try {
 			clientSocket = new ClientSocket(this);
 			clientSocket.setDaemon(true);
@@ -54,18 +61,19 @@ public class FuzzingClient {
 	}
 
 	public ExecutionDataStore start(CommandSequence commandSequence, CommandSequence validationCommandSequence) {
+
 		try {
-			System.out.println(Utilities.getMainClassName());
+			System.out.println("Main Class Name: " + Utilities.getMainClassName());
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
-		Executor executor = new CassandraExecutor(null);
+		Executor executor = new CassandraExecutor(commandSequence, validationCommandSequence);
 		List<String> oldVersionResult = null;
 		ExecutionDataStore codeCoverage = null;
 		try {
-			oldVersionResult = executor.execute(commandSequence, validationCommandSequence);
+			oldVersionResult = executor.execute();
 			if (oldVersionResult != null) {
 				codeCoverage = collect(executor);
 				String destFile = executor.getSysExecID() + ".exec";
@@ -88,11 +96,65 @@ public class FuzzingClient {
 		// 1. Upgrade check
 		// 2. Read sequence check
 		try {
-			int ret = executor.upgradeTest(validationCommandSequence, oldVersionResult);
-			/**
-			 * ret == 0 means consistency, 1 means inconsistency.
-			 * Need to save the two sequences + the two results
-			 */
+			boolean ret = executor.upgradeTest();
+			if (ret == false) {
+				/**
+				 * An inconsistency has been found
+				 * 1. It could be exception during the upgrade process
+				 * 2. The result is different between two versions
+				 * Serialize them into the folder, 2 sequences + failureType + failureInfo
+				*/
+
+				while(Paths.get(Config.getConf().crashDir, "crash_" + Integer.toString(crashID) + ".report" ).toFile().exists()) {
+					crashID++;
+				}
+				/**
+				 * 1. Pair of sequences
+				 * 2. String format of sequences
+				 * 3. FailureType
+				 * 4. FailureInfo
+				 */
+				Pair<CommandSequence, CommandSequence> commandSequencePair = new Pair<>(commandSequence, validationCommandSequence);
+				Path commandSequencePairPath = Paths.get(Config.getConf().crashDir, "crash_" + Integer.toString(crashID) + ".ser");
+
+				try {
+					FileOutputStream fileOut =
+							new FileOutputStream(commandSequencePairPath.toFile());
+					ObjectOutputStream out = new ObjectOutputStream(fileOut);
+					out.writeObject(commandSequencePair);
+					out.close();
+					fileOut.close();
+				} catch (IOException i) {
+					i.printStackTrace();
+				}
+
+				StringBuilder sb = new StringBuilder();
+				sb.append("Failure Type: " + executor.failureType + "\n");
+				sb.append("Failure Info: " + executor.failureInfo + "\n");
+				sb.append("old version command list\n");
+				for (String commandStr : commandSequence.getCommandStringList()) {
+					sb.append(commandStr);
+					sb.append("\n");
+				}
+				sb.append("\n\n");
+				sb.append("new version command list\n");
+				for (String commandStr : validationCommandSequence.getCommandStringList()) {
+					sb.append(commandStr);
+					sb.append("\n");
+				}
+				Path crashReportPath = Paths.get(Config.getConf().crashDir, "crash_" + Integer.toString(crashID) + ".report");
+				try {
+					FileOutputStream fileOut =
+							new FileOutputStream(crashReportPath.toFile());
+					ObjectOutputStream out = new ObjectOutputStream(fileOut);
+					out.writeObject(sb.toString());
+					out.close();
+					fileOut.close();
+				} catch (IOException i) {
+					i.printStackTrace();
+				}
+				crashID++;
+			}
 		} catch (CustomExceptions.systemStartFailureException e) {
 			System.out.println("New version cassandra start up failed, this could be a bug");
 		} catch (Exception e) {

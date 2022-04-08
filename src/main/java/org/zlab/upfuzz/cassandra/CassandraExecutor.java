@@ -25,8 +25,8 @@ public class CassandraExecutor extends Executor {
     Process cassandraProcess;
     static final String jacocoOptions = "=append=false,includes=org.apache.cassandra.*,output=dfe,address=localhost,sessionid=";
 
-    public CassandraExecutor(CommandSequence testSeq) {
-        super(testSeq, "cassandra");
+    public CassandraExecutor(CommandSequence commandSequence, CommandSequence validationCommandSequence) {
+        super(commandSequence, validationCommandSequence, "cassandra");
     }
 
     public boolean isCassandraReady(String cassandraPath) {
@@ -48,30 +48,29 @@ public class CassandraExecutor extends Executor {
         return ret == 0;
     }
 
-    public boolean isNewCassandraReady(String cassandraPath) {
-        ProcessBuilder isReadyBuilder = new ProcessBuilder();
-        Process isReady;
-        int ret = 0;
-        try {
-            isReady = Utilities.exec(new String[] { "bin/cqlsh", "-e", "describe cluster" }, cassandraPath);
-            BufferedReader in = new BufferedReader(new InputStreamReader(isReady.getInputStream()));
-            String line;
+    // public boolean isNewCassandraReady(String cassandraPath) {
+    //     ProcessBuilder isReadyBuilder = new ProcessBuilder();
+    //     Process isReady;
+    //     int ret = 0;
+    //     try {
+    //         isReady = Utilities.exec(new String[] { "bin/cqlsh", "-e", "describe cluster" }, cassandraPath);
+    //         BufferedReader in = new BufferedReader(new InputStreamReader(isReady.getInputStream()));
+    //         String line;
 
-            while ((line = in.readLine()) != null) {
-                //    System.out.println(line);
-            }
-            isReady.waitFor();
-            in.close();
-            ret = isReady.exitValue();
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-        return ret == 0;
-    }
+    //         while ((line = in.readLine()) != null) {
+    //         }
+    //         isReady.waitFor();
+    //         in.close();
+    //         ret = isReady.exitValue();
+    //     } catch (IOException | InterruptedException e) {
+    //         e.printStackTrace();
+    //     }
+    //     return ret == 0;
+    // }
 
     @Override
     public void startup() {
-        System.out.println("Start the new version");
+        System.out.println("Start testing");
         // Remove the data folder in the old version
         // ProcessBuilder pb = new ProcessBuilder("rm", "-rf", "data");
         // pb.directory(new File(Config.getConf().cassandraPath));
@@ -102,7 +101,7 @@ public class CassandraExecutor extends Executor {
             // in.close();
             // cassandraProcess.waitFor();
             System.out.println("cassandra " + executorID + " started");
-            while (!isNewCassandraReady(Config.getConf().cassandraPath)) {
+            while (!isCassandraReady(Config.getConf().cassandraPath)) {
                 if (!cassandraProcess.isAlive()) {
                     // System.out.println("cassandra process crushed\nCheck " + Config.getConf().cassandraOutputFile
                     //         + " for details");
@@ -225,16 +224,16 @@ public class CassandraExecutor extends Executor {
         try {
             CassandraCqlshDaemon cqlsh = new CassandraCqlshDaemon(Config.getConf().cassandraPath);
             for (String cmd : commandList) {
-                System.out
-                        .println("\n\n------------------------------------------------------------\nexecutor command:\n"
-                                + cmd + "\n------------------------------------------------------------\n");
+                // System.out
+                //         .println("\n\n------------------------------------------------------------\nexecutor command:\n"
+                //                 + cmd + "\n------------------------------------------------------------\n");
                 long startTime = System.currentTimeMillis();
                 CqlshPacket cp = cqlsh.execute(cmd);
                 long endTime = System.currentTimeMillis();
 
                 ret.add(cp.message);
-                System.out.println("ret is: " + cp.exitValue + "\ntime: " + cp.timeUsage + "\ntime usage(network):"
-                        + (endTime - startTime) / 1000. + "\n");
+                // System.out.println("ret is: " + cp.exitValue + "\ntime: " + cp.timeUsage + "\ntime usage(network):"
+                //         + (endTime - startTime) / 1000. + "\n");
             }
             cqlsh.destroy();
         } catch (IOException | InterruptedException e) {
@@ -251,16 +250,16 @@ public class CassandraExecutor extends Executor {
         try {
             CassandraCqlshDaemon cqlsh = new CassandraCqlshDaemon(Config.getConf().upgradeCassandraPath);
             for (String cmd : commandList) {
-                System.out
-                        .println("\n\n------------------------------------------------------------\nexecutor command:\n"
-                                + cmd + "\n------------------------------------------------------------\n");
+                // System.out
+                //         .println("\n\n------------------------------------------------------------\nexecutor command:\n"
+                //                 + cmd + "\n------------------------------------------------------------\n");
                 long startTime = System.currentTimeMillis();
                 CqlshPacket cp = cqlsh.execute(cmd);
                 long endTime = System.currentTimeMillis();
 
                 ret.add(cp.message);
-                System.out.println("ret is: " + cp.exitValue + "\ntime: " + cp.timeUsage + "\ntime usage(network):"
-                        + (endTime - startTime) / 1000. + "\n");
+                // System.out.println("ret is: " + cp.exitValue + "\ntime: " + cp.timeUsage + "\ntime usage(network):"
+                //         + (endTime - startTime) / 1000. + "\n");
             }
             cqlsh.destroy();
         } catch (IOException | InterruptedException e) {
@@ -287,7 +286,7 @@ public class CassandraExecutor extends Executor {
     }
 
     @Override
-    public int upgradeTest(CommandSequence validationCommandSequence, List<String> oldVersionResult) {
+    public boolean upgradeTest() {
         /**
          * 1. Move the data folder to the new version Cassandra
          * 2. Start the new version cassandra with the Upgrade symbol
@@ -304,50 +303,97 @@ public class CassandraExecutor extends Executor {
         pb.directory(new File(Config.getConf().cassandraPath));
         Utilities.runProcess(pb, "[Executor] Remove data folder in the old version");
 
-        // Upgrade
-        pb = new ProcessBuilder("bin/cassandra");
-        pb.directory(new File(Config.getConf().upgradeCassandraPath));
-        pb.redirectOutput(Paths.get(Config.getConf().upgradeCassandraPath, "logs.txt").toFile());
-        Utilities.runProcess(pb, "Upgrade Cassandra");
-
-        while (!isNewCassandraReady(Config.getConf().upgradeCassandraPath)) {
-            // Problem : why would the process be dead?
-            // TODO: Enable this checking, add a retry times
-            //    if (!upgradeCassandraProcess.isAlive()) {
-            //        // Throw a specific exception, if this is upgrade, it means we met a bug
-            //        throw new CustomExceptions.systemStartFailureException(
-            //                "New version cassandra start fails during" +
-            //                " the upgrade process. Tt could be a bug", null);
-            //    }
-            try {
-                System.out.println("Upgrade System Waiting...");
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
         // Data consistency check
         /**
          * Data consistency check
          * If the return size is different, exception when executing the commands, or the results are different.
          * Record both results, report as a potential bug.
+         * 
+         * A crash seed should contain:
+         * 1. Two command sequences.
+         * 2. The results on old and new version.
+         * 3. The reason why it's different
+         *      - Upgrade process throw an exception
+         *      - The result of a specific command is different
          */
         // If there is any exception when executing the commands, it should also be caught
-        List<String> newVersionResult = newVersionExecuteCommands(validationCommandSequence);
 
-        boolean isBug = false;
+        // Upgrade
+        pb = new ProcessBuilder("bin/cassandra");
+        pb.directory(new File(Config.getConf().upgradeCassandraPath));
+        pb.redirectOutput(Paths.get(Config.getConf().upgradeCassandraPath, "logs.txt").toFile());
+        Utilities.runProcess(pb, "Upgrade Cassandra");
+        // Process upgradeCassandraProcess = Utilities.runProcess(pb, "Upgrade Cassandra");
+
+        // Add a retry time here
+        boolean started = false;
+        int RETRY_START_UPGRADE = 25;
+        for (int i = 0; i < RETRY_START_UPGRADE; i++) {
+            if (isCassandraReady(Config.getConf().upgradeCassandraPath)) {
+                started = true;
+                break;
+            }
+            try {
+                System.out.println("Upgrade System Waiting...");
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (started == false) {
+            System.out.println("[FAILURE LOG] New version cannot start");
+            failureType = FailureType.UPGRADE_FAIL;
+            failureInfo = "New version cassandra cannot start\n";
+            return false;
+        }
+
+        // while (!isNewCassandraReady(Config.getConf().upgradeCassandraPath)) {
+        //     // Problem : why would the process be dead?
+        //     // TODO: Enable this checking, add a retry times
+        //     if (!upgradeCassandraProcess.isAlive()) {
+        //         // Throw a specific exception, if this is upgrade, it means we met a bug
+        //         System.out.println("[FAILURE LOG] New version cannot start");
+        //         failureType = FailureType.UPGRADE_FAIL;
+        //         failureInfo = "New version cassandra cannot start";
+
+        //         return false;
+        //     }
+        //     try {
+        //         System.out.println("Upgrade System Waiting...");
+        //         Thread.sleep(1000);
+        //     } catch (InterruptedException e) {
+        //         e.printStackTrace();
+        //     }
+        // }
+
+        this.newVersionResult = newVersionExecuteCommands(validationCommandSequence);
+
+        boolean ret = true;
+
         if (newVersionResult.size() != oldVersionResult.size()) {
-            isBug = true;
+            failureType = FailureType.RESULT_INCONSISTENCY;
+            failureInfo = "The result size is different, old version result size = " +
+            oldVersionResult.size() + "  while new version result size" + newVersionResult.size();
+            ret = false;
         } else {
             for (int i = 0; i < newVersionResult.size(); i++) {
-
                 if (oldVersionResult.get(i).compareTo(newVersionResult.get(i)) != 0) {
-                    System.out.println("Comparing the results...");
-                    System.out.println("Old version: " + oldVersionResult.get(i));
-                    System.out.println("new version: " + newVersionResult.get(i));
-                    System.out.println();
-                    isBug = false;
+                    failureType = FailureType.RESULT_INCONSISTENCY;
+
+                    String errorMsg = "Result not the same in sequence id = " + i + "  " +
+                    "Old Version Result: " + oldVersionResult.get(i) + "  " +
+                    "New Version Result: " + newVersionResult.get(i) + "\n";
+
+                    if (failureInfo == null) {
+                        failureInfo = errorMsg;
+                    } else {
+                        failureInfo += errorMsg;
+                    }
+                    failureInfo += "Result not the same in sequence id = " + i + "\n" +
+                            "Old Version Result: " + oldVersionResult.get(i) + "\n" +
+                            "New Version Result: " + newVersionResult.get(i) + "\n\n";
+                    ret = false;
                     break;
                 }
             }
@@ -357,7 +403,7 @@ public class CassandraExecutor extends Executor {
         upgradeteardown();
         System.out.println("Upgrade process shutdown successfully");
 
-        return isBug ? 1 : 0;
+        return ret;
 
     }
 

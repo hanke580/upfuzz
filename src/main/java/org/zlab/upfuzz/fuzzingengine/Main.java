@@ -136,7 +136,6 @@ public class Main {
 
             // Start fuzzing process
             while(true) {
-                System.out.println("[HKLOG] QUEUE SIZE = " + queue.size());
                 if (queue.isEmpty()) {
                     Pair<CommandSequence, CommandSequence> commandSequencePair = CassandraExecutor.prepareCommandSequence();
                     Fuzzer.fuzzOne(commandSequencePair.left, commandSequencePair.right, curCoverage, queue, fuzzingClient, false);
