@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# should be placed in the same dir with cqlsh.py
+# support cassandra-(2<x)
 
 import json
 import optparse
@@ -28,9 +28,6 @@ from cqlshlib.formatting import (
     DEFAULT_TIMESTAMP_FORMAT,
 )
 import cassandra
-
-parser = optparse.OptionParser()
-
 
 def get_shell(options, hostname, port):
     setup_cqlruleset(options.cqlmodule)
@@ -157,13 +154,12 @@ class TCPHandlere(socketserver.BaseRequestHandler):
     client.
     """
 
-    shell: Shell = None
+    shell = None
     origin_stdout = None
     origin_stderr = None
 
     def __init__(self, request, client_address, server):
         self.log_stream = StringIO()
-        # self.log_stream.write("Test")
         self.origin_stdout = sys.stdout
         self.origin_stderr = sys.stderr
         sys.stdout = sys.stderr = self.log_stream
@@ -174,19 +170,15 @@ class TCPHandlere(socketserver.BaseRequestHandler):
         # self.request is the TCP socket connected to the client
         try:
             while True:
-                self.data: bytes = self.request.recv(10240).strip()
+                self.data = self.request.recv(10240).strip()
                 if not self.data:
                     exit(0)
-                # print("{} wrote:".format(self.client_address[0]))
 
-                cmd: str = self.data.decode("ascii")
+                cmd = self.data.decode("ascii")
 
-                # self.shell.reset_statement()
-                # self.statement.write(cmd)
-                start_time: float = time.time()
-                ret: bool | None = self.shell.onecmd(cmd)
-                # ret: int = 0
-                end_time: float = time.time()
+                start_time = time.time()
+                ret = self.shell.onecmd(cmd)
+                end_time = time.time()
                 resp = {
                     "cmd": cmd,
                     "exitValue": 0 if ret == True else 1,
@@ -194,7 +186,6 @@ class TCPHandlere(socketserver.BaseRequestHandler):
                     "message": self.log_stream.getvalue(),
                 }
                 self.log_stream.truncate(0)
-                # print("\n" + json.dumps(resp))
                 self.request.sendall(json.dumps(resp).encode("ascii"))
         except BrokenPipeError as e:
             print(e)
@@ -202,12 +193,6 @@ class TCPHandlere(socketserver.BaseRequestHandler):
 
 
 if __name__ == "__main__":
-
-    parser.add_option("--port", dest="port", action="store")
-    (options, arguments) = parser.parse_args(sys.argv[1:])
-    port = 0
-    if hasattr(options, "port"):
-        port = options.port
-    print("use port: " + str(port))
+    port = __reserved_port__
     server = socketserver.TCPServer(("localhost", int(port)), TCPHandlere)
     server.serve_forever()

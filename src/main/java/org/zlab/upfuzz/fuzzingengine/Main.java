@@ -57,6 +57,7 @@ public class Main {
                 e.printStackTrace();
             }
         }
+        Config.getConf().checkNull();
 
         String type = cmd.getOptionValue(clazzOption);
         if (type.toLowerCase().equals("server")) {

@@ -19,7 +19,7 @@ import org.zlab.upfuzz.cassandra.CassandraCqlshDaemon.CqlshPacket;
 import org.zlab.upfuzz.CustomExceptions;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
-import org.zlab.upfuzz.utils.SystemUtil;
+import org.zlab.upfuzz.utils.Utilities;
 import org.zlab.upfuzz.utils.Utilities;
 
 public class CassandraExecutor extends Executor {
@@ -36,7 +36,7 @@ public class CassandraExecutor extends Executor {
         Process isReady;
         int ret = 0;
         try {
-            isReady = SystemUtil.exec(new String[] { "bin/cqlsh", "hk",  "-e", "describe cluster" }, cassandraPath);
+            isReady = Utilities.exec(new String[] { "bin/cqlsh", "-e", "describe cluster" }, cassandraPath);
             BufferedReader in = new BufferedReader(new InputStreamReader(isReady.getInputStream()));
             String line;
             while ((line = in.readLine()) != null) {
@@ -179,7 +179,7 @@ public class CassandraExecutor extends Executor {
 //        commandSequence = prepareCommandSequence();
         List<String> commandList = commandSequence.getCommandStringList();
         try {
-            CassandraCqlshDaemon cqlsh = new CassandraCqlshDaemon();
+            CassandraCqlshDaemon cqlsh = new CassandraCqlshDaemon(Config.getConf().cassandraPath);
             for (String cmd : commandList) {
                 System.out
                         .println("\n\n------------------------------------------------------------\nexecutor command:\n"

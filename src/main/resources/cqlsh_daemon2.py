@@ -1,14 +1,14 @@
-#!/usr/bin/env python3
-# should be placed in the same dir with cqlsh.py
+#!/usr/bin/env python2
+# support cassandra-(x<=2)
 
 import json
 import optparse
 import os
-import SocketServer
 import sys
 import time
 import csv
 import codecs
+import SocketServer as socketserver
 
 
 from six import StringIO
@@ -28,9 +28,6 @@ from cqlshlib.formatting import (
     DEFAULT_TIMESTAMP_FORMAT,
 )
 import cassandra
-
-parser = optparse.OptionParser()
-
 
 def get_shell(options, hostname, port):
     setup_cqlruleset(options.cqlmodule)
@@ -118,8 +115,6 @@ def get_shell(options, hostname, port):
 
     return shell
 
-__metaclass__ = type
-
 class TCPHandler(object):
     """
     The request handler class for our server.
@@ -134,9 +129,10 @@ class TCPHandler(object):
 
     def __init__(self, request, client_address, server):
         self.log_stream = StringIO()
-        self.origin_stdout = sys.stdout
-        self.origin_stderr = sys.stderr
-        sys.stdout = sys.stderr = self.log_stream
+        # self.log_stream.write("Test")
+        # self.origin_stdout = sys.stdout
+        # self.origin_stderr = sys.stderr
+        # sys.stdout = sys.stderr = self.log_stream
         self.shell = get_shell(*read_options(sys.argv[2:], os.environ))
         self.request = request
         self.client_address = client_address
@@ -155,15 +151,11 @@ class TCPHandler(object):
                 self.data = self.request.recv(10240).strip()
                 if not self.data:
                     exit(0)
-                # print("{} wrote:".format(self.client_address[0]))
 
                 cmd = self.data.decode("ascii")
 
-                # self.shell.reset_statement()
-                # self.statement.write(cmd)
                 start_time = time.time()
                 ret = self.shell.onecmd(cmd)
-                # ret: int = 0
                 end_time = time.time()
                 resp = {
                     "cmd": cmd,
@@ -172,7 +164,6 @@ class TCPHandler(object):
                     "message": self.log_stream.getvalue(),
                 }
                 self.log_stream.truncate(0)
-                # print("\n" + json.dumps(resp))
                 self.request.sendall(json.dumps(resp).encode("ascii"))
         except Exception as e:
             print(e)
@@ -185,11 +176,6 @@ class TCPHandler(object):
         pass
 
 if __name__ == "__main__":
-    parser.add_option("--port", dest="port", action="store")
-    (options, arguments) = parser.parse_args(sys.argv[1:])
-    port = 0
-    if hasattr(options, "port"):
-        port = options.port
-    print("use port: " + str(port))
-    server = SocketServer.TCPServer(("localhost", int(port)), TCPHandler)
+    port = __reserved_port__
+    server = socketserver.TCPServer(("localhost", int(port)), TCPHandler)
     server.serve_forever()

@@ -1,5 +1,9 @@
 package org.zlab.upfuzz.fuzzingengine;
 
+
+import java.lang.reflect.Field;
+import java.util.Arrays;
+
 import com.google.gson.GsonBuilder;
 
 public class Config {
@@ -21,7 +25,6 @@ public class Config {
         public String cassandraPath = null;
         public String upgradeCassandraPath = null;
         public String jacocoAgentPath = null;
-        public String cqlshDaemonScript = null;
         public String cassandraOutputFile = null;
         public String initSeedDir = null;
 
@@ -29,9 +32,25 @@ public class Config {
         public String toString() {
             return new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(this,
                     Configuration.class);
-            // return "Configuration [cassandraPath=" + cassandraPath + ", clientHost=" + clientHost + ", clientPort="
-            //         + clientPort + ", jacocoAgentPath=" + jacocoAgentPath + ", serverHost=" + serverHost
-            //         + ", serverPort=" + serverPort + "]";
+        }
+
+        public Boolean checkNull() {
+            Field[] fields = this.getClass().getDeclaredFields();
+            for(Field field : fields){
+                try {
+                    Object fieldObject = field.get(this);
+                    if( fieldObject == null ){
+                        System.err.println("Configuration failed to find: " + field);
+                    }
+                } catch (IllegalArgumentException | IllegalAccessException e) {
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+            }
+
+            // assertTrue(Arrays.stream(fields).anyMatch(
+            //         field -> field.getName().equals(LAST_NAME_FIELD) && field.getType().equals(String.class)));
+            return true;
         }
     }
 

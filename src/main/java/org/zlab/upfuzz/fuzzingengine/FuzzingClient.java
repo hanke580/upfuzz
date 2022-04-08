@@ -13,7 +13,7 @@ import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.CustomExceptions;
 import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
-import org.zlab.upfuzz.utils.SystemUtil;
+import org.zlab.upfuzz.utils.Utilities;
 
 public class FuzzingClient {
 
@@ -56,7 +56,7 @@ public class FuzzingClient {
 
 	public ExecutionDataStore start(CommandSequence commandSequence) {
 		try {
-			System.out.println(SystemUtil.getMainClassName());
+			System.out.println(Utilities.getMainClassName());
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
