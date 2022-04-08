@@ -73,7 +73,7 @@ public class CassandraCqlshDaemon {
         }
         if (flag) {
             // port = port & 0xFFFE;
-            System.out.println("Use port:" + port);
+            // System.out.println("Use port:" + port);
             File cqlshDaemonFile = Paths.get(cassandraRoot, "/bin/cqlsh_daemon.py").toFile();
             if (cqlshDaemonFile.exists()) {
                 Boolean res = cqlshDaemonFile.delete();
@@ -92,6 +92,7 @@ public class CassandraCqlshDaemon {
 
             Thread.sleep(1000);
             socket = new Socket("localhost", port);
+            // TODO: Add a catch, when the connection is rejected regenerate it.
         } else {
             throw new IllegalStateException("Cannot fina an available port");
         }
@@ -141,5 +142,12 @@ public class CassandraCqlshDaemon {
             message = "";
             timeUsage = -1;
         }
+    }
+
+    /**
+     * Destroy the current process.
+     */
+    public void destroy() {
+        cqlsh.destroy();
     }
 }

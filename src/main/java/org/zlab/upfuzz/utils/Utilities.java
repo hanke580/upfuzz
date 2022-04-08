@@ -28,12 +28,12 @@ public class Utilities {
         return indexArray;
     }
 
-    public static CommandSequence deserializeCommandSequence(Path filePath) {
-        CommandSequence commandSequence = null;
+    public static Pair<CommandSequence, CommandSequence> deserializeCommandSequence(Path filePath) {
+        Pair<CommandSequence, CommandSequence> commandSequencePair = null;
         try {
             FileInputStream fileIn = new FileInputStream(filePath.toFile());
             ObjectInputStream in = new ObjectInputStream(fileIn);
-            commandSequence = (CommandSequence) in.readObject();
+            commandSequencePair = (Pair<CommandSequence, CommandSequence>) in.readObject();
             in.close();
             fileIn.close();
         } catch (IOException i) {
@@ -44,7 +44,7 @@ public class Utilities {
             c.printStackTrace();
             return null;
         }
-        return commandSequence;
+        return commandSequencePair;
     }
 
     public static boolean hasNewBits(ExecutionDataStore curCoverage, ExecutionDataStore testSequenceCoverage) {
@@ -100,14 +100,14 @@ public class Utilities {
         try {
             System.out.println("Execute: " + desc);
             p = pb.start();
-            BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            String line;
-            while ((line = in.readLine()) != null) {
-                System.out.println(line);
-                System.out.flush();
-            }
+            // BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            // String line;
+            // while ((line = in.readLine()) != null) {
+            //     System.out.println(line);
+            //     System.out.flush();
+            // }
             p.waitFor();
-            in.close();
+            // in.close();
             System.out.println(desc + " Successful");
 
         } catch (IOException | InterruptedException e) {

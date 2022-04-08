@@ -1,5 +1,8 @@
 
 package org.zlab.upfuzz;
-public abstract class State {
+
+import java.io.Serializable;
+
+public abstract class State implements Serializable {
     public abstract void clearState();
 }

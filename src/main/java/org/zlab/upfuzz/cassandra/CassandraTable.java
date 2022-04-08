@@ -5,12 +5,13 @@ import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.utils.Pair;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class CassandraTable {
+public class CassandraTable implements Serializable {
     public String name;
     public List<Parameter> colName2Type;
     public List<Parameter> primaryColName2Type;

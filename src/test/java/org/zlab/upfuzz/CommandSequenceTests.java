@@ -15,7 +15,7 @@ public class CommandSequenceTests {
         boolean useIdx = false;
 
         CassandraState state = new CassandraState();
-        CommandSequence commandSequence = CommandSequence.generateSequence(CassandraCommands.commandClassList, CassandraCommands.createCommandClassList, CassandraState.class);
+        CommandSequence commandSequence = CommandSequence.generateSequence(CassandraCommands.commandClassList, CassandraCommands.createCommandClassList, CassandraState.class, null);
 
         List<String> l = commandSequence.getCommandStringList();
         for (int i = 0; i < l.size(); i++) {

@@ -28,6 +28,7 @@ import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.fuzzingengine.FuzzingClient;
 import org.zlab.upfuzz.fuzzingengine.FuzzingClient.FuzzingClientActions;
 import org.zlab.upfuzz.fuzzingengine.FuzzingServer.FuzzingServerActions;
+import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
 public class Main {
@@ -96,36 +97,55 @@ public class Main {
              */
 
             // Start up, load all command sequence into a queue.
-            Queue<CommandSequence> queue = new LinkedList<>();
-            System.out.println("seed path = " + Config.getConf().initSeedDir);
-            Path initSeedDirPath = Paths.get(Config.getConf().initSeedDir);
-            File initSeedDir = initSeedDirPath.toFile();
-            assert initSeedDir.isDirectory() == true;
-            for (File seedFile : initSeedDir.listFiles()) {
-                if (!seedFile.isDirectory()) {
-                    // Deserialize current file, and add it into the queue.
-                    CommandSequence commandSequence = Utilities.deserializeCommandSequence(seedFile.toPath());
-                    if (commandSequence != null)
-                        queue.add(commandSequence);
+            Queue<Pair<CommandSequence, CommandSequence>> queue = new LinkedList<>();
+
+            if (Config.getConf().initSeedDir != null) {
+                System.out.println("seed path = " + Config.getConf().initSeedDir);
+                Path initSeedDirPath = Paths.get(Config.getConf().initSeedDir);
+                File initSeedDir = initSeedDirPath.toFile();
+                assert initSeedDir.isDirectory() == true;
+                for (File seedFile : initSeedDir.listFiles()) {
+                    if (!seedFile.isDirectory()) {
+                        // Deserialize current file, and add it into the queue.
+                        // TODO: Execute them before adding them to the queue.
+                        // Make sure all the seed in the queue must have been executed.
+                        Pair<CommandSequence, CommandSequence> commandSequencePair = Utilities.deserializeCommandSequence(seedFile.toPath());
+                        if (commandSequencePair != null)
+                            queue.add(commandSequencePair);
+                    }
                 }
             }
+            
 
             ExecutionDataStore curCoverage = new ExecutionDataStore();
             FuzzingClient fuzzingClient = new FuzzingClient();
+
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+                public void run() {
+                    try {
+                        Thread.sleep(200);
+                        System.out.println("Fuzzing process end, have a good day ...");
+                        //some cleaning up code...
+        
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        e.printStackTrace();
+                    }
+                }
+            });
 
             // Start fuzzing process
             while(true) {
                 System.out.println("[HKLOG] QUEUE SIZE = " + queue.size());
                 if (queue.isEmpty()) {
-                    CommandSequence commandSequence = CassandraExecutor.prepareCommandSequence();
-                    Fuzzer.fuzzOne(commandSequence, curCoverage, queue, fuzzingClient, false);
+                    Pair<CommandSequence, CommandSequence> commandSequencePair = CassandraExecutor.prepareCommandSequence();
+                    Fuzzer.fuzzOne(commandSequencePair.left, commandSequencePair.right, curCoverage, queue, fuzzingClient, false);
                 } else {
-                    CommandSequence testCommandSequence = queue.poll();
-                    Fuzzer.fuzzOne(testCommandSequence, curCoverage, queue, fuzzingClient, true);
+                    Pair<CommandSequence, CommandSequence> commandSequencePair = queue.poll();
+                    Fuzzer.fuzzOne(commandSequencePair.left, commandSequencePair.right, curCoverage, queue, fuzzingClient, true);
                 }
-                break;
             }
-            System.out.println("\n Fuzzing process end, have a good day \n");
+            // System.out.println("\n Fuzzing process end, have a good day \n");
         }
     }
 }
