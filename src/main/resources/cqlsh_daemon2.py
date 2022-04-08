@@ -129,11 +129,10 @@ class TCPHandler(object):
 
     def __init__(self, request, client_address, server):
         self.log_stream = StringIO()
-        # self.log_stream.write("Test")
-        # self.origin_stdout = sys.stdout
-        # self.origin_stderr = sys.stderr
-        # sys.stdout = sys.stderr = self.log_stream
-        self.shell = get_shell(*read_options(sys.argv[2:], os.environ))
+        self.origin_stdout = sys.stdout
+        self.origin_stderr = sys.stderr
+        sys.stdout = sys.stderr = self.log_stream
+        self.shell = get_shell(*read_options(sys.argv[1:], os.environ))
         self.request = request
         self.client_address = client_address
         self.server = server

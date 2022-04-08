@@ -110,7 +110,7 @@ public class CassandraExecutor extends Executor {
                     throw new CustomExceptions.systemStartFailureException("Cassandra Start fails", null);
                 }
                 System.out.println("Wait for " + systemID + " ready...");
-                Thread.sleep(500);
+                Thread.sleep(1000);
             }
             long endTime = System.currentTimeMillis();
             System.out.println(
@@ -321,7 +321,7 @@ public class CassandraExecutor extends Executor {
             //    }
             try {
                 System.out.println("Upgrade System Waiting...");
-                Thread.sleep(500);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

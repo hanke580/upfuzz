@@ -163,7 +163,7 @@ class TCPHandlere(socketserver.BaseRequestHandler):
         self.origin_stdout = sys.stdout
         self.origin_stderr = sys.stderr
         sys.stdout = sys.stderr = self.log_stream
-        self.shell = get_shell(*read_options(sys.argv[2:], os.environ))
+        self.shell = get_shell(*read_options(sys.argv[1:], os.environ))
         super(TCPHandlere, self).__init__(request, client_address, server)
 
     def handle(self):

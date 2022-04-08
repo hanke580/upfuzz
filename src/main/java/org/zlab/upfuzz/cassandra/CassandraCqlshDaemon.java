@@ -53,7 +53,7 @@ public class CassandraCqlshDaemon {
 
         char majorVersion = cassandraVersion.split("-")[1].charAt(0);
 
-        if (majorVersion <= '2') {
+        if (majorVersion <= '3') {
             python = "python2";
             cqlshPythonScript = cqlshPython2Script;
         } else {
@@ -105,6 +105,13 @@ public class CassandraCqlshDaemon {
         bw.flush();
         System.out.println("executor write " + cmd);
         BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+        // // Socket
+        // System.out.println("Socket Debug");
+        // byte[] output = new byte[10240];
+        // cqlsh.getInputStream().read(output);
+        // System.out.println(new String(output));
+
 
         char[] chars = new char[10240];
 
