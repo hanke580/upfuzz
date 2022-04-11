@@ -6,15 +6,14 @@ import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.utils.Pair;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CassandraTable implements Serializable {
     public String name;
     public List<Parameter> colName2Type;
     public List<Parameter> primaryColName2Type;
+
+    Set<String> indexes;
 
     public CassandraTable(Parameter name, Parameter colName2Type, Parameter primaryColName2Type) {
         this.name = (String) name.getValue();
@@ -30,5 +29,8 @@ public class CassandraTable implements Serializable {
                 this.primaryColName2Type.add(SerializationUtils.clone(primaryCol));
             }
         }
+
+        indexes = new HashSet<>();
     }
+
 }

@@ -9,6 +9,7 @@ import java.util.Set;
 
 public class CassandraState extends State {
     public Map<String, Map<String, CassandraTable>> keyspace2tables = new HashMap<>();
+    public Map<String, Set<String>> keyspace2UDTs = new HashMap<>();
 
     public void addTable(String keyspaceName, String tableName, CassandraTable table) {
         keyspace2tables.get(keyspaceName).put(tableName, table);
@@ -17,6 +18,9 @@ public class CassandraState extends State {
     public void addKeyspace(String keyspaceName) {
         if (!keyspace2tables.containsKey(keyspaceName)) {
             keyspace2tables.put(keyspaceName, new HashMap<>());
+        }
+        if (!keyspace2UDTs.containsKey(keyspaceName)) {
+            keyspace2UDTs.put(keyspaceName, new HashSet<>());
         }
     }
 

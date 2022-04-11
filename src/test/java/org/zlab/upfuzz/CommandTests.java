@@ -23,13 +23,29 @@ public class CommandTests {
     @Test
     public void testCreateKSCommandGeneration(){
         CassandraState s = new CassandraState();
-        CassandraCommands.CREAT_KEYSPACE cmd = new CassandraCommands.CREAT_KEYSPACE(s);
-        cmd.updateState(s);
-        System.out.println(cmd.constructCommandString());
+        CassandraCommands.CREAT_KEYSPACE cmd0 = new CassandraCommands.CREAT_KEYSPACE(s);
+        cmd0.updateState(s);
+        System.out.println(cmd0.constructCommandString());
+
+        CassandraCommands.DROP_KEYSPACE cmd1 = new CassandraCommands.DROP_KEYSPACE(s);
+        cmd1.updateState(s);
+        System.out.println(cmd1.constructCommandString());
     }
 
     @Test
-    public void testCreateTableCommandGeneration() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+    public void testALTER_KEYSPACECommandGeneration(){
+        CassandraState s = new CassandraState();
+        CassandraCommands.CREAT_KEYSPACE cmd0 = new CassandraCommands.CREAT_KEYSPACE(s);
+        cmd0.updateState(s);
+        System.out.println(cmd0.constructCommandString());
+
+        CassandraCommands.ALTER_KEYSPACE cmd1 = new CassandraCommands.ALTER_KEYSPACE(s);
+        cmd1.updateState(s);
+        System.out.println(cmd1.constructCommandString());
+    }
+
+    @Test
+    public void testCREATE_TABLECommandGeneration() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
 
         CassandraState s = new CassandraState();
 
@@ -38,9 +54,13 @@ public class CommandTests {
         System.out.println(cmd0.constructCommandString());
 
 
-        CassandraCommands.CREATETABLE cmd1 = new CassandraCommands.CREATETABLE(s);
+        CassandraCommands.CREATE_TABLE cmd1 = new CassandraCommands.CREATE_TABLE(s);
         cmd1.updateState(s);
         System.out.println(cmd1.constructCommandString());
+
+        CassandraCommands.DROP_TABLE cmd2 = new CassandraCommands.DROP_TABLE(s);
+        cmd2.updateState(s);
+        System.out.println(cmd2.constructCommandString());
 
     }
 
@@ -53,7 +73,7 @@ public class CommandTests {
         cmd0.updateState(s);
         System.out.println(cmd0.constructCommandString());
 
-        CassandraCommands.CREATETABLE cmd1 = new CassandraCommands.CREATETABLE(s);
+        CassandraCommands.CREATE_TABLE cmd1 = new CassandraCommands.CREATE_TABLE(s);
         cmd1.updateState(s);
         System.out.println(cmd1.constructCommandString());
 
@@ -68,7 +88,7 @@ public class CommandTests {
 
         CassandraState s = new CassandraState();
 
-        CassandraCommands.CREATETABLE cmd1 = new CassandraCommands.CREATETABLE(s);
+        CassandraCommands.CREATE_TABLE cmd1 = new CassandraCommands.CREATE_TABLE(s);
         cmd1.updateState(s);
 
         System.out.println(cmd1.constructCommandString());
@@ -95,7 +115,7 @@ public class CommandTests {
         CassandraCommands.CREAT_KEYSPACE cmd0 = new CassandraCommands.CREAT_KEYSPACE(s);
         cmd0.updateState(s);
 
-        CassandraCommands.CREATETABLE cmd1 = new CassandraCommands.CREATETABLE(s);
+        CassandraCommands.CREATE_TABLE cmd1 = new CassandraCommands.CREATE_TABLE(s);
         cmd1.updateState(s);
 
         System.out.println(cmd1.constructCommandString());
@@ -115,6 +135,58 @@ public class CommandTests {
     }
 
     @Test
+    public void testCREATE_INDEXCommandGeneration() {
+
+        CassandraState s = new CassandraState();
+
+        CassandraCommands.CREAT_KEYSPACE cmd0 = new CassandraCommands.CREAT_KEYSPACE(s);
+        cmd0.updateState(s);
+
+        CassandraCommands.CREATE_TABLE cmd1 = new CassandraCommands.CREATE_TABLE(s);
+        cmd1.updateState(s);
+
+        CassandraCommands.CREAT_INDEX cmd2 = new CassandraCommands.CREAT_INDEX(s);
+        cmd2.updateState(s);
+
+        CassandraCommands.DROP_INDEX cmd3 = new CassandraCommands.DROP_INDEX(s);
+        cmd3.updateState(s);
+
+        System.out.println(cmd0);
+        System.out.println(cmd1);
+        System.out.println(cmd2);
+        System.out.println(cmd3);
+
+    }
+
+    @Test
+    public void testCREATE_UDTCommandGeneration() {
+
+        CassandraState s = new CassandraState();
+
+        CassandraCommands.CREAT_KEYSPACE cmd0 = new CassandraCommands.CREAT_KEYSPACE(s);
+        cmd0.updateState(s);
+
+        CassandraCommands.CREATE_TABLE cmd1 = new CassandraCommands.CREATE_TABLE(s);
+        cmd1.updateState(s);
+
+        CassandraCommands.CREATE_TYPE cmd2 = new CassandraCommands.CREATE_TYPE(s);
+        cmd2.updateState(s);
+
+        CassandraCommands.DROP_TYPE cmd3 = new CassandraCommands.DROP_TYPE(s);
+        cmd3.updateState(s);
+
+        CassandraCommands.USE cmd4 = new CassandraCommands.USE(s);
+        cmd4.updateState(s);
+        
+        System.out.println(cmd0);
+        System.out.println(cmd1);
+        System.out.println(cmd2);
+        System.out.println(cmd3);
+        System.out.println(cmd4);
+
+    }
+
+    @Test
     public void testSerializable() {
         CassandraState s = new CassandraState();
 
@@ -122,7 +194,7 @@ public class CommandTests {
         cmd0.updateState(s);
         System.out.println(cmd0.constructCommandString());
 
-        CassandraCommands.CREATETABLE cmd1 = new CassandraCommands.CREATETABLE(s);
+        CassandraCommands.CREATE_TABLE cmd1 = new CassandraCommands.CREATE_TABLE(s);
         cmd1.updateState(s);
         System.out.println(cmd1.constructCommandString());
 
@@ -193,7 +265,7 @@ public class CommandTests {
         primaryColumns.add("species TEXT");
         primaryColumns.add("common_name INT");
 
-        CassandraCommands.CREATETABLE cmd1 = new CassandraCommands.CREATETABLE(s, "myKS", "monkey_species", columns, primaryColumns, null);
+        CassandraCommands.CREATE_TABLE cmd1 = new CassandraCommands.CREATE_TABLE(s, "myKS", "monkey_species", columns, primaryColumns, null);
         cmd1.updateState(s);
         l.add(cmd1);
 
@@ -290,7 +362,7 @@ public class CommandTests {
         cmd0.updateState(s);
         System.out.println(cmd0.constructCommandString());
 
-        CassandraCommands.CREATETABLE cmd1 = new CassandraCommands.CREATETABLE(s);
+        CassandraCommands.CREATE_TABLE cmd1 = new CassandraCommands.CREATE_TABLE(s);
         cmd1.updateState(s);
         System.out.println(cmd1.constructCommandString());
 
@@ -302,5 +374,24 @@ public class CommandTests {
         cmd2.updateState(s);
         System.out.println(cmd3.constructCommandString());
     }
+
+    @Test
+    public void testALTER_TABLE_ADDCommandGeneration() {
+
+        CassandraState s = new CassandraState();
+
+        CassandraCommands.CREAT_KEYSPACE cmd0 = new CassandraCommands.CREAT_KEYSPACE(s);
+        cmd0.updateState(s);
+        System.out.println(cmd0.constructCommandString());
+
+        CassandraCommands.CREATE_TABLE cmd1 = new CassandraCommands.CREATE_TABLE(s);
+        cmd1.updateState(s);
+        System.out.println(cmd1.constructCommandString());
+
+        CassandraCommands.ALTER_TABLE_ADD cmd2 = new CassandraCommands.ALTER_TABLE_ADD(s);
+        cmd2.updateState(s);
+        System.out.println(cmd2.constructCommandString());
+    }
+
 
 }

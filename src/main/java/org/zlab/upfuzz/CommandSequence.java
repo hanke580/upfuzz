@@ -121,7 +121,7 @@ public class CommandSequence implements Serializable {
 //            }
             // Debug Code
             List<Map.Entry<Class<? extends Command>, Integer>> tmpL = new LinkedList<>();
-            tmpL.add(new AbstractMap.SimpleImmutableEntry<>(CassandraCommands.CREATETABLE.class, 2) );
+            tmpL.add(new AbstractMap.SimpleImmutableEntry<>(CassandraCommands.CREATE_TABLE.class, 2) );
             command = generateSingleCommand(tmpL, state);
 
 

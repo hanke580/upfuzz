@@ -51,7 +51,7 @@ public class CassandraTypes {
       while (str.isEmpty()) {
         str = generateRandomString();
       }
-      return new Parameter(TEXTType.instance, generateRandomString());
+      return new Parameter(TEXTType.instance, str);
     }
 
     @Override
