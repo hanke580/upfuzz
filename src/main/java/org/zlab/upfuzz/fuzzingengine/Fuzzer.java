@@ -34,8 +34,6 @@ public class Fuzzer {
         if (fromCorpus) {
             // Only run the mutated seeds
             for (int i = 0; i < TEST_NUM; i++) {
-
-
                 System.out.println("\n\n----------- Executing one fuzzing test -----------");
                 System.out.println("[Fuzz Status]\n" +
                                    "Queue Size = " + queue.size() + "\n" +
@@ -43,18 +41,23 @@ public class Fuzzer {
                                    "Current Test ID = " + testID + "\n"
                         );
 
-
                 CommandSequence mutatedCommandSequence = SerializationUtils.clone(commandSequence);
                 try {
                     mutatedCommandSequence.mutate();
                     // Update the validationCommandSequence...
                     validationCommandSequence = CassandraExecutor.prepareValidationCommandSequence(mutatedCommandSequence.state);
-                } catch (InvocationTargetException | NoSuchMethodException | InstantiationException
-                        | IllegalAccessException e) {
+                } catch (Exception e) {
                     i--;
                     continue;
                 }
-                ExecutionDataStore testSequenceCoverage = fuzzingClient.start(mutatedCommandSequence, validationCommandSequence);
+                ExecutionDataStore testSequenceCoverage = null;
+                try {
+                    testSequenceCoverage = fuzzingClient.start(mutatedCommandSequence, validationCommandSequence);
+                } catch (Exception e) {
+                    Utilities.clearCassandraDataDir();
+                    i--;
+                    continue;
+                }
                 // TODO: Add compare function in Jacoco
                 if (Utilities.hasNewBits(curCoverage, testSequenceCoverage)) {
                     queue.add(new Pair<>(mutatedCommandSequence, validationCommandSequence));
@@ -72,7 +75,12 @@ public class Fuzzer {
                 "Current Test ID = " + testID + "\n"
             );
             // Only run the current seed, no mutation
-            ExecutionDataStore testSequenceCoverage = fuzzingClient.start(commandSequence, validationCommandSequence);
+            ExecutionDataStore testSequenceCoverage = null;
+            try {
+                testSequenceCoverage = fuzzingClient.start(commandSequence, validationCommandSequence);
+            } catch (Exception e) {
+                Utilities.clearCassandraDataDir();
+            }
             if (Utilities.hasNewBits(curCoverage, testSequenceCoverage)) {
                 queue.add(new Pair<>(commandSequence, validationCommandSequence));
             }

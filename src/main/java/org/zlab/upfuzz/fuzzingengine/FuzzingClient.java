@@ -56,7 +56,7 @@ public class FuzzingClient {
 			clientSocket.start();
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.exit(1);
+			// System.exit(1);
 		}
 	}
 
@@ -90,7 +90,7 @@ public class FuzzingClient {
 		} catch (CustomExceptions.systemStartFailureException e) {
 			System.out.println("old version system start up failed");			
 
-			System.exit(1);
+			// System.exit(1);
 		}
 
 		// 1. Upgrade check
@@ -159,7 +159,7 @@ public class FuzzingClient {
 			System.out.println("New version cassandra start up failed, this could be a bug");
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.exit(1);
+			// System.exit(1);
 		}
 
 
