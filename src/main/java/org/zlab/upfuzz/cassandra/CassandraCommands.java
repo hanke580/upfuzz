@@ -33,6 +33,7 @@ public class CassandraCommands {
      *    emp_phone varint
      *    );
      */
+    public static final boolean DEBUG = false;
 
     public static final List<Map.Entry<Class<? extends Command>, Integer>> commandClassList = new ArrayList<>();
 

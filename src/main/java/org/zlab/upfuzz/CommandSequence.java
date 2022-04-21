@@ -11,6 +11,7 @@ public class CommandSequence implements Serializable {
 
     public static final int MAX_CMD_SEQ_LEN = 20;
     public final static int RETRY_GENERATE_TIME = 50;
+    public final static int RETRY_MUTATE_TIME = 20;
 
     public List<Command> commands;
     public final List<Map.Entry<Class<? extends Command>, Integer>> commandClassList;
@@ -31,149 +32,112 @@ public class CommandSequence implements Serializable {
         this.state = state;
     }
 
-    public CommandSequence mutate() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-
+    public boolean mutate() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        /**
+         * Choice
+         * 0: Mutate the command (Call command.mutate)  // 2/3
+         * 1: Insert a command                          // 1/3
+         * 2: Replace a command                         // 0
+         * 3: Delete a command // Temporary not chosen  // 0
+         */
         Random rand = new Random();
-        int choice = rand.nextInt(4);
 
-        /**
-         * 0: Mutate the command (Call command.mutate)  // 50%
-         * 1: Insert a command                          // 25%
-         * 2: Replace a command                         // 25%
-         * 3: Delete a command // Temporary not chosen  // 0%
-         */
+        for (int mutateRetryIdx = 0; mutateRetryIdx < RETRY_MUTATE_TIME; mutateRetryIdx++) {
+            int choice = rand.nextInt(3);
+            int pos = rand.nextInt(commands.size());
 
-        // switch (choice) {
-        //     case 0:
-        //         System.out.println("Mutate a specific command");
-        //         break;
-        //     case 1:
-        //         System.out.println("Insert a command");
-        //         break;
-        //     case 2:
-        //         System.out.println("Replace a command");
-        //         break;
-        //     case 3:
-        //         System.out.println("Delete a command");
-        // }
+            assert commands.size() > 0;
+            Constructor<?> constructor = stateClass.getConstructor();
+            State state = (State) constructor.newInstance(); // Recreate a state
 
-        assert commands.size() > 0;
-        // pos to insert
-        int pos = rand.nextInt(commands.size());
-        // System.out.println("Mutate Command Index = " + pos);
+            if (CassandraCommands.DEBUG) {
+                pos = 1;
+                choice = 1;
+            }
+            System.out.println("\tMutate Command Pos " + pos);
 
+            // Compute the state up to the position
+            for (int i = 0; i < pos; i++) {
+                commands.get(i).updateState(state);
+            }
 
-        Constructor<?> constructor = stateClass.getConstructor();
-        State state = (State) constructor.newInstance(); // Recreate a state
-//
-//        pos = 1; // DEBUG
-//        choice = 1; // DEBUG
+            if (choice == 0 || choice == 1) {
+                // Mutate a specific command
+                try {
 
-        // Compute the state up to the position
-        for (int i = 0; i < pos; i++) {
-            commands.get(i).updateState(state);
-        }
-
-        if (choice == 0 || choice == 1) {
-            // Mutate a specific command
-            try {
-                commands.get(pos).mutate(state);
-
-                boolean fixable = checkAndUpdateCommand(commands.get(pos), state);
-                if (!fixable) {
-                    // remove the command from command sequence...
-                    commands.remove(pos);
-                    pos -= 1;
-                } else {
-                    updateState(commands.get(pos), state);
+                    boolean mutateStatus = commands.get(pos).mutate(state);
+                    if (!mutateStatus) continue;
+                    boolean fixable = checkAndUpdateCommand(commands.get(pos), state);
+                    if (!fixable) {
+                        // remove the command from command sequence...
+                        commands.remove(pos);
+                        pos -= 1;
+                    } else {
+                        updateState(commands.get(pos), state);
+                    }
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (NoSuchMethodException e) {
+                    e.printStackTrace();
+                } catch (InvocationTargetException e) {
+                    e.printStackTrace();
                 }
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
+            } else if (choice == 2) {
+                /**
+                 * Insert a command
+                 * Two options
+                 * 1. Purely random generate one from this state.
+                 * 2. (TODO) Pick command from the command pool.
+                 */
+                Command command;
+                List<Map.Entry<Class<? extends Command>, Integer>> tmpL = new LinkedList<>();
+                tmpL.add(new AbstractMap.SimpleImmutableEntry<>(CassandraCommands.CREATE_TABLE.class, 2) );
+                command = generateSingleCommand(tmpL, state);
+                commands.add(pos, command);
+                commands.get(pos).updateState(state);
+            } else if (choice == 3) { // Disabled temporally
+                // Replace a command
+                /**
+                 * TODO: Pick from the command pool
+                 */
+                Command command;
+                if (pos <= 1) {
+                    command = generateSingleCommand(createCommandClassList, state);
+                } else {
+                    command = generateSingleCommand(commandClassList, state);
+                }
+                commands.remove(pos);
+                commands.add(pos, command);
+                commands.get(pos).updateState(state);
+            } else { // Disabled temporally
+                // Delete a command
+                commands.remove(pos);
+                pos -= 1;
             }
-        } else if (choice == 2) {
-            // Insert a command
+            // Check the following commands
             /**
-             * Now regenerate the state from beginning to the mutated command.
-             * - Opt1: Save the state for each command.
-             *      - PRO: Eliminate the overhead computing state from 0 to i - 1
-             *      - CON: Takes more space
-             * - Opt2: Re-compute from beginning. Takes more time, but save space.
-             *      - (Use this for now)
+             * There could be some commands that cannot be
+             * fixed. Therefore, remove them to keep the
+             * validity.
              */
-            // TODO: Need more reasoning whether use this: compute state from beginning
-            // generate a new command
-            /**
-             * Two options
-             * 1. Purely random generate one from this state.
-             * 2. (TODO) Pick command from the command pool
-             */
-            Command command;
-//            if (pos <= 1) {
-//                command = generateSingleCommand(createCommandClassList, state);
-//            } else {
-//                command = generateSingleCommand(commandClassList, state);
-//            }
-            // Debug Code
-            List<Map.Entry<Class<? extends Command>, Integer>> tmpL = new LinkedList<>();
-            tmpL.add(new AbstractMap.SimpleImmutableEntry<>(CassandraCommands.CREATE_TABLE.class, 2) );
-            command = generateSingleCommand(tmpL, state);
-
-
-            // System.out.println("Added command : " + command.constructCommandString());
-            // System.out.println("\n");
-
-            commands.add(pos, command);
-            commands.get(pos).updateState(state);
-
-        } else if (choice == 3) {
-            // Replace a command
-            /**
-             * TODO: Pick from the command pool
-             */
-            Command command;
-            if (pos <= 1) {
-                command = generateSingleCommand(createCommandClassList, state);
-            } else {
-                command = generateSingleCommand(commandClassList, state);
-            }
-
-            commands.remove(pos);
-            commands.add(pos, command);
-            commands.get(pos).updateState(state);
-        } else {
-            // Delete a command
-            // Temporary not exist...
-            commands.remove(pos);
-            pos -= 1;
-        }
-        // Check the following commands
-        /**
-         * TODO: There could be some commands that cannot be fixed.
-         * These commands need to be removed/should be handled
-         * by some other ways...
-         * Like regenerate a new one
-         */
-        List<Command> validCommands = new LinkedList<>();
-        for (int i = 0; i < pos + 1; i++) {
-            validCommands.add(commands.get(i));
-        }
-
-        for (int i = pos + 1; i < commands.size(); i++) {
-            boolean fixable = checkAndUpdateCommand(commands.get(i), state);
-            if (fixable) {
+            List<Command> validCommands = new LinkedList<>();
+            for (int i = 0; i < pos + 1; i++) {
                 validCommands.add(commands.get(i));
-                updateState(commands.get(i), state);
             }
+            for (int i = pos + 1; i < commands.size(); i++) {
+                boolean fixable = checkAndUpdateCommand(commands.get(i), state);
+                if (fixable) {
+                    validCommands.add(commands.get(i));
+                    updateState(commands.get(i), state);
+                }
+            }
+            commands = validCommands;
+            this.state = state;
+            return true;
         }
-        commands = validCommands;
-
-        this.state = state;
-
-        return this;
+        // The mutation is failed.
+        System.out.println("Mutation Failed");
+        return false;
     }
 
     public static Command generateSingleCommand(List<Map.Entry<Class<? extends Command>, Integer>> commandClassList,

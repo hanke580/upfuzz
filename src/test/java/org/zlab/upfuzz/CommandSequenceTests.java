@@ -40,4 +40,18 @@ public class CommandSequenceTests {
         System.out.println("command size = " + l.size());
 
     }
+
+    @Test
+    public void testMutation() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException, InstantiationException {
+        CommandSequence commandSequence = CommandTests.cass13939CommandSequence();
+        boolean mutateStatus = commandSequence.mutate();
+        if (!mutateStatus) {
+            System.out.println("Mutate failed");
+        } else {
+            System.out.println("After Mutation");
+            for (String cmdStr : commandSequence.getCommandStringList()) {
+                System.out.println(cmdStr);
+            }
+        }
+    }
 }

@@ -1,5 +1,7 @@
 package org.zlab.upfuzz;
 
+import org.zlab.upfuzz.cassandra.CassandraCommands;
+
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.Function;
@@ -224,7 +226,11 @@ public abstract class ParameterType implements Serializable {
              *    /  \
              *  this  value2check
              */
-            return !t.isEmpty(s, c, (Parameter) p.value);
+            if (t.isEmpty(s, c, (Parameter) p.value) == true) {
+                return false;
+            } else {
+                return ((Parameter) p.value).isValid(s, c);
+            }
         }
 
         @Override
@@ -752,10 +758,49 @@ public abstract class ParameterType implements Serializable {
         public boolean mutate(State s, Command c, Parameter p) {
             /**
              * Repick one from the set.
+             * If there is only one in the target collection, it means
+             * we cannot pick a different item.
+             * - Return false
              * TODO: Make sure it's not the same one as before?
              */
-            Parameter ret = generateRandomParameter(s, c);
-            p.value = ret.value;
+            predicateCheck(s, c);
+
+            // Pick one parameter from the collection
+            Object targetCollection = configuration.operate(s, c);
+            Random rand = new Random();
+            List l;
+            if (mapFunc == null) {
+                l = (List) (((Collection) targetCollection).stream().collect(Collectors.toList()));
+            } else {
+                l = (List) (((Collection) targetCollection).stream().map(mapFunc).collect(Collectors.toList()));
+            }
+            if (l.isEmpty() == true) {
+                // Throw an exception, since the input sequence is already not correct!
+                throw new RuntimeException("[InCollectionType] Mutation: The input collection is already not valid" +
+                        "Run check() before the mutation!");
+            }
+
+            if (l.size() == 1) return false; // Cannot mutate
+
+            List<String> collectionStringList = new LinkedList<>();
+            for (Object item : l) {
+                collectionStringList.add(item.toString());
+            }
+            List<Integer> idxList = new LinkedList<>();
+            for (int i = 0; i < l.size(); i++) {
+                idxList.add(i);
+            }
+            idxList.remove(collectionStringList.indexOf(p.value.toString()));
+
+            int idx = rand.nextInt(idxList.size());
+
+            if (l.get(idx) instanceof Parameter) {
+                p.value = l.get(idx);
+            } else {
+                assert t != null;
+                Parameter tmpParameter = new Parameter(t, l.get(idx));
+                p.value = tmpParameter;
+            }
             return true;
         }
     }
@@ -894,6 +939,8 @@ public abstract class ParameterType implements Serializable {
 
         @Override
         public void regenerate(State s, Command c, Parameter p) {
+            // TODO: Make minor change
+
             Parameter ret = generateRandomParameter(s, c);
             p.value = ret.value;
         }
@@ -908,10 +955,27 @@ public abstract class ParameterType implements Serializable {
 
         @Override
         public boolean mutate(State s, Command c, Parameter p) {
-            // TODO: Multiple level mutation!
+            // TODO: Multiple level mutation
             // Now only regenerate everything
-            Parameter ret = generateRandomParameter(s, c);
-            p.value = ret.value;
+            Random rand = new Random();
+
+            int i = rand.nextInt(1);
+            if (CassandraCommands.DEBUG) {
+                i = 0;
+            }
+            switch (i) {
+                case 0:
+                    // Pick one
+                    List<Parameter> values = (List<Parameter>) p.value;
+                    int mutateIdx = rand.nextInt(values.size());
+                    if (CassandraCommands.DEBUG) {
+                        mutateIdx = 3;
+                        System.out.println("\t[Type2Value] Mutate Idx = " + mutateIdx);
+                    }
+                    values.get(mutateIdx).mutate(s, c);
+            }
+//            Parameter ret = generateRandomParameter(s, c);
+//            p.value = ret.value;
             return true;
         }
     }
@@ -1026,8 +1090,26 @@ public abstract class ParameterType implements Serializable {
         }
 
         @Override
+        public void regenerate(State s, Command c, Parameter p) {
+            Parameter tmp = t.generateRandomParameter(s, c, typesInTemplate);
+            p.value = tmp.value;
+        }
+
+        @Override
+        public boolean isEmpty(State s, Command c, Parameter p) {
+            return t.isEmpty(s, c, p, this.typesInTemplate);
+        }
+
+        @Override
         public boolean isValid(State s, Command c, Parameter p) {
             return t.isValid(s, c, p, typesInTemplate);
+        }
+
+        @Override
+        public boolean mutate(State s, Command c, Parameter p) {
+            // TODO: More operations on the list
+            regenerate(s, c, p); // regenerate list
+            return true;
         }
 
         @Override
@@ -1078,27 +1160,6 @@ public abstract class ParameterType implements Serializable {
             this.typesInTemplate.add(t1);
         }
 
-        @Override
-        public boolean isValid(State s, Command c, Parameter p) {
-            // TODO: Impl
-            assert false;
-            return false;
-        }
-
-        @Override
-        public void regenerate(State s, Command c, Parameter p) {
-            // TODO: Impl
-        }
-
-        @Override
-        public boolean isEmpty(State s, Command c, Parameter p) {
-            return t.isEmpty(s, c, p, this.typesInTemplate);
-        }
-
-        @Override
-        public boolean mutate(State s, Command c, Parameter p) {
-            return t.mutate(s, c, p, typesInTemplate);
-        }
     }
 
     public static class ConcreteGenericTypeTwo extends ConcreteGenericType {
@@ -1108,22 +1169,6 @@ public abstract class ParameterType implements Serializable {
             this.t = t;
             this.typesInTemplate.add(t1);
             this.typesInTemplate.add(t2);
-        }
-
-        @Override
-        public void regenerate(State s, Command c, Parameter p) {
-
-        }
-
-        @Override
-        public boolean isEmpty(State s, Command c, Parameter p) {
-            return false;
-        }
-
-        @Override
-        public boolean mutate(State s, Command c, Parameter p) {
-            // TODO: impl
-            return false;
         }
     }
 }

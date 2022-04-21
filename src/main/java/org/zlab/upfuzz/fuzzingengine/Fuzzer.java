@@ -19,9 +19,13 @@ public class Fuzzer {
      *                   mutated seed. If no, this seed also need run.
      * @return
      */
-    //    public static final int TEST_NUM = 20; // Change this according to the seed.
     public static final int TEST_NUM = 20;
 
+    /**
+     * If a seed cannot be correctly mutated for more than five times,
+     * Discard this test case.
+     */
+    public static final int MUTATE_RETRY_TIME = 5;
     public static int testID = 0;
 
     public static boolean fuzzOne(CommandSequence commandSequence,
@@ -43,9 +47,21 @@ public class Fuzzer {
 
                 CommandSequence mutatedCommandSequence = SerializationUtils.clone(commandSequence);
                 try {
-                    mutatedCommandSequence.mutate();
+                    int j = 0;
+                    for (; j < MUTATE_RETRY_TIME; j++) {
+                        if (mutatedCommandSequence.mutate() == true) break;
+                    }
+                    if (j == MUTATE_RETRY_TIME) {
+                        break; // Discard current seq since the mutation keeps failing
+                    }
+                    System.out.println("Mutated Command Sequence:");
+                    for (String cmdStr : mutatedCommandSequence.getCommandStringList()) {
+                        System.out.println(cmdStr);
+                    }
+                    System.out.println();
                     // Update the validationCommandSequence...
                     validationCommandSequence = mutatedCommandSequence.generateRelatedReadSequence();
+                    System.out.println("Read Command Sequence:");
                     for (String readCmdStr : validationCommandSequence.getCommandStringList()) {
                         System.out.println(readCmdStr);
                     }

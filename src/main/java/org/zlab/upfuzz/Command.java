@@ -1,5 +1,7 @@
 package org.zlab.upfuzz;
 
+import org.zlab.upfuzz.cassandra.CassandraCommands;
+
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedList;
@@ -13,6 +15,8 @@ import java.util.Set;
  * overriding mutate() method.
  */
 public abstract class Command implements Serializable {
+
+    public static final int RETRY_TIMES = 5;
 
     public List<Parameter> params;
     public String executableCommandString;
@@ -35,11 +39,17 @@ public abstract class Command implements Serializable {
     public boolean mutate(State s) throws
             IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         Random rand = new Random();
-        int mutateParamIdx = rand.nextInt(params.size());
-//        mutateParamIdx = 0;
-        System.out.println("\n Mutate Param Pos = " + mutateParamIdx);
 
-        return params.get(mutateParamIdx).mutate(s, this);
+        for (int i = 0; i < RETRY_TIMES; i++) {
+            int mutateParamIdx = rand.nextInt(params.size());
+            if (CassandraCommands.DEBUG) {
+                mutateParamIdx = 2;
+            }
+            System.out.println("\tMutate Parameter Pos = " + mutateParamIdx);
+            if (params.get(mutateParamIdx).mutate(s, this) == true)
+                return true;
+        }
+        return false;
     }
 
     public boolean regenerateIfNotValid(State s) {

@@ -4,6 +4,7 @@ import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
+import org.zlab.upfuzz.cassandra.CassandraCommands;
 
 import java.math.BigInteger;
 import java.util.Random;
@@ -11,12 +12,13 @@ import java.util.Random;
 public class STRINGType extends ParameterType.ConcreteType {
     public static final int MAX_LEN = 30; // Probably need refactor
 
+    public static final String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
     public static final STRINGType instance = new STRINGType();
     public static final String signature = "java.lang.String";
 
     public static String generateRandomString() {
         // Now when calling text, it's impossible to generate empty string!
-        String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXY";
         StringBuilder sb = new StringBuilder();
         Random random = new Random();
         int length = random.nextInt(MAX_LEN) + 1;
@@ -83,26 +85,52 @@ public class STRINGType extends ParameterType.ConcreteType {
 
     @Override
     public boolean mutate(State s, Command c, Parameter p) {
-        /**
-         * 1. Regenerate
-         * 2. Flip/Add/Del Bit/Byte/Word/Dword
-         * - These operations might need different probabilities
-         */
         Random rand = new Random();
-        int choice = rand.nextInt(2);
+        int choice = rand.nextInt(4);
 
         // Debug
-        choice = 1; // Only test the mutate method
+        if (CassandraCommands.DEBUG) {
+//            choice = 4; // Only test the mutate method
+        }
 
         switch (choice) {
+            // Temporally Disable bit level mutation
             case 0: // Regenerate
+                if (CassandraCommands.DEBUG) {
+                    System.out.println("\t[String Mutation]: Regeneration");
+                }
                 regenerate(s, c, p);
                 break;
-            case 1:// Flip/Add/Del Bit/Byte/Word/Dword
-                /**
-                 * Cast into Bits and flip one of them
-                 */
-                flipBit(p); // Now only have the flipBit part.
+            case 1: // Add a Byte
+                if (CassandraCommands.DEBUG) {
+                    System.out.println("\t[String Mutation]: add Byte");
+                }
+                addByte(p);
+                break;
+            case 2: // Delete a Byte
+                if (CassandraCommands.DEBUG) {
+                    System.out.println("\t[String Mutation]: Delete Byte");
+                }
+                deleteByte(p);
+                break;
+            case 3:
+                // Mutate a byte
+                if (CassandraCommands.DEBUG) {
+                    System.out.println("\t[String Mutation]: Mutate Byte");
+                }
+                mutateByte(p);
+                break;
+            case 4:
+                // Add a Byte
+                flipBit(p);
+                break;
+            case 5:
+                // Delete a Byte
+                addBit(p);
+                break;
+            case 6:
+                // Mutate a specific Byte
+                deleteBit(p);
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + choice);
@@ -110,12 +138,15 @@ public class STRINGType extends ParameterType.ConcreteType {
         return true;
     }
 
-    public String string2binary(String value) {
+    private String string2binary(String value) {
         return  new BigInteger(value.getBytes()).toString(2);
     }
 
 
-    public void flipBit(Parameter p) {
+    private void flipBit(Parameter p) {
+        // Can only be called at lower level
+        // Assert only String can be flipped
+        assert p.getValue() instanceof String;
 
         String value = (String) p.value;
         String binary = string2binary(value);
@@ -132,6 +163,70 @@ public class STRINGType extends ParameterType.ConcreteType {
 
         String mutatedValue = new String(new BigInteger(sb.toString(), 2).toByteArray());
         p.value = mutatedValue;
+    }
+
+    private void addBit(Parameter p) {
+        String value = (String) p.value;
+        String binary = string2binary(value);
+
+        Random rand = new Random();
+        int insertPos = rand.nextInt(binary.length());
+        boolean insertBit = rand.nextBoolean();
+
+        StringBuilder sb = new StringBuilder(binary);
+        sb.insert(insertPos, insertBit? '1' : '0');
+
+        String mutatedValue = new String(new BigInteger(sb.toString(), 2).toByteArray());
+        p.value = mutatedValue;
+    }
+
+    private void deleteBit(Parameter p) {
+        String value = (String) p.value;
+        String binary = string2binary(value);
+
+        Random rand = new Random();
+        int deletePos = rand.nextInt(binary.length());
+        StringBuilder sb = new StringBuilder(binary);
+        assert sb.length() == binary.length();
+        sb.deleteCharAt(deletePos);
+
+        String mutatedValue = new String(new BigInteger(sb.toString(), 2).toByteArray());
+        p.value = mutatedValue;
+    }
+
+    private void addByte(Parameter p) {
+        // Add a char
+        String value = (String) p.value;
+        StringBuilder sb = new StringBuilder(value);
+
+        Random rand = new Random();
+        int insertPos = rand.nextInt(sb.length());
+        char insertChar = alphabet.charAt(rand.nextInt(alphabet.length()));
+        sb.insert(insertPos, insertChar);
+        p.value = sb.toString();
+    }
+
+    private void deleteByte(Parameter p) {
+        // Add a char
+        String value = (String) p.value;
+        StringBuilder sb = new StringBuilder(value);
+
+        Random rand = new Random();
+        int delPos = rand.nextInt(sb.length());
+        sb.deleteCharAt(delPos);
+        p.value = sb.toString();
+    }
+
+    private void mutateByte(Parameter p) {
+        // Mutate a char
+        String value = (String) p.value;
+        StringBuilder sb = new StringBuilder(value);
+
+        Random rand = new Random();
+        int mutatePos = rand.nextInt(sb.length());
+        char mutateChar = alphabet.charAt(rand.nextInt(alphabet.length()));
+        sb.setCharAt(mutatePos, mutateChar);
+        p.value = sb.toString();
     }
 
     @Override
