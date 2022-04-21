@@ -5,6 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * User need to implement two methods constructCommandString() and updateState().
@@ -61,4 +62,8 @@ public abstract class Command implements Serializable {
         }
         return true;
     }
+
+    public Set<Command> generateRelatedReadCommand(State state) {
+        return null;
+    };
 }

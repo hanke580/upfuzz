@@ -342,7 +342,7 @@ public abstract class ParameterType implements Serializable {
             for (int i = 0; i < l.size(); i++) {
                 sb.append(l.get(i).toString());
                 if (i < l.size() - 1) {
-                    sb.append(", ");
+                    sb.append(",");
                 }
             }
             return sb.toString();
@@ -837,7 +837,7 @@ public abstract class ParameterType implements Serializable {
             for (int i = 0; i < l.size(); i++) {
                 sb.append(l.get(i).toString());
                 if (i < l.size() - 1) {
-                    sb.append(", ");
+                    sb.append(",");
                 }
             }
             return sb.toString();

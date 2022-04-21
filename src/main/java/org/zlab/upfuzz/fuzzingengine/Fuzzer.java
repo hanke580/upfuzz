@@ -45,7 +45,14 @@ public class Fuzzer {
                 try {
                     mutatedCommandSequence.mutate();
                     // Update the validationCommandSequence...
-                    validationCommandSequence = CassandraExecutor.prepareValidationCommandSequence(mutatedCommandSequence.state);
+                    validationCommandSequence = mutatedCommandSequence.generateRelatedReadSequence();
+                    for (String readCmdStr : validationCommandSequence.getCommandStringList()) {
+                        System.out.println(readCmdStr);
+                    }
+                    System.out.println();
+                    if (validationCommandSequence.commands.isEmpty() == true) {
+                        validationCommandSequence = CassandraExecutor.prepareValidationCommandSequence(mutatedCommandSequence.state);
+                    }
                 } catch (Exception e) {
                     i--;
                     continue;

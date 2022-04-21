@@ -4,6 +4,7 @@ import org.zlab.upfuzz.*;
 import org.zlab.upfuzz.utils.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * TODO:
@@ -478,7 +479,7 @@ public class CassandraCommands {
      */
     public static class INSERT extends Command {
 
-        public INSERT(State state,Object init0, Object init1, Object init2, Object init3) {
+        public INSERT(State state, Object init0, Object init1, Object init2, Object init3) {
             super();
 
             assert state instanceof CassandraState;
@@ -580,6 +581,55 @@ public class CassandraCommands {
 
         @Override
         public void updateState(State state) { }
+
+        @Override
+        public Set<Command> generateRelatedReadCommand(State state) {
+            if (this.params.size() != 4) return null;
+            // You can only query with the primary key
+            // First, get the primary keys, there must be primary keys for the insertion
+
+            CassandraState cassandraState = (CassandraState) state;
+            String keyspaceName = this.params.get(0).toString();
+            String tableName = this.params.get(1).toString();
+
+            CassandraTable cassandraTable = cassandraState.getTable(keyspaceName, tableName);
+            if (cassandraTable != null) {
+                Set<Command> ret = new HashSet<>();
+
+                // primaryNames
+                List<Parameter> primaryColName2Type = cassandraTable.primaryColName2Type;
+                List<String> primaryCols = new ArrayList<>();
+                for (Parameter p : primaryColName2Type) {
+                    primaryCols.add(p.toString());
+                }
+
+                // columnsNames
+                String[] columns = this.params.get(2).toString().split(",");
+                List<String> columnsNames = new ArrayList<>();
+                for (String column : columns) {
+                    columnsNames.add(column);
+                }
+
+                // insertValues
+                List<Object> insertValues = (List<Object>) this.params.get(3).getValue();
+                assert columnsNames.size() == insertValues.size();
+
+                List<Object> primaryValues = new ArrayList<>();
+
+                for (int i = 0; i < primaryCols.size(); i++) {
+                    primaryValues.add( ((Parameter) insertValues.get(columnsNames.indexOf(primaryCols.get(i)))).getValue() );
+                }
+
+                List<String> columns_SELECT = new ArrayList<>();
+                // Randomly pick some, make it null here
+
+                SELECT cmd = new SELECT(state, keyspaceName, tableName, columns_SELECT, primaryCols, primaryValues);
+
+                ret.add(cmd);
+                return ret;
+            }
+            return null;
+        }
     }
 
     /**
@@ -1057,10 +1107,57 @@ public class CassandraCommands {
      */
     public static class SELECT extends Command {
 
-        public SELECT(State state) {
-            /**
-             * Delete the whole column for now.
-             */
+        public SELECT (State state, Object init0, Object init1, Object init2, Object init3, Object init4) {
+            super();
+
+            assert state instanceof CassandraState;
+            CassandraState cassandraState = (CassandraState) state;
+
+            Parameter keyspaceName = chooseKeyspace(cassandraState, this, init0);
+            this.params.add(keyspaceName); // [0]
+
+            Parameter TableName = chooseTable(cassandraState, this, init1);
+            this.params.add(TableName); // [1]
+
+            ParameterType.ConcreteType selectColumnsType =
+                    new ParameterType.SubsetType<>(
+                            null,
+                            (s, c) -> ((CassandraState) s)
+                                    .getTable(
+                                            c.params.get(0).toString(),
+                                            c.params.get(1).toString())
+                                    .colName2Type,
+                            p -> ((Pair<Parameter, Parameter>) (((Parameter) p).getValue())).left
+                    );
+            Parameter selectColumns = selectColumnsType.generateRandomParameter(state, this, init2);
+            this.params.add(selectColumns); // Param2
+
+            ParameterType.ConcreteType whereColumnsType =
+                    new ParameterType.FrontSubsetType(
+                            null,
+                            (s, c) -> ((CassandraState) s)
+                                    .getTable(
+                                            c.params.get(0).toString(),
+                                            c.params.get(1).toString())
+                                    .primaryColName2Type,
+                            null
+                    );
+            Parameter whereColumns = whereColumnsType.generateRandomParameter(state, this, init3);
+            this.params.add(whereColumns); // Param 3
+
+            ParameterType.ConcreteType whereValuesType = new ParameterType.Type2ValueType(
+                    null,
+                    (s, c) -> (Collection) c.params.get(3).getValue(),
+                    p -> ((Pair) ((Parameter) p).value).right
+            );
+            Parameter insertValues = whereValuesType.generateRandomParameter(state, this, init4);
+            this.params.add(insertValues); // Param4
+
+            updateExecutableCommandString();
+        }
+
+        public SELECT (State state) {
+
             Parameter keyspaceName = chooseKeyspace(state, this, null);
             this.params.add(keyspaceName); // Param0
 
@@ -1072,7 +1169,6 @@ public class CassandraCommands {
             /**
              * Subset of primary columns
              */
-
             ParameterType.ConcreteType selectColumnsType =
                     new ParameterType.SubsetType<>(
                             null,

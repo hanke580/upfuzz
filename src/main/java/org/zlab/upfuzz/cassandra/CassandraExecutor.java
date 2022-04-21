@@ -109,7 +109,7 @@ public class CassandraExecutor extends Executor {
                     throw new CustomExceptions.systemStartFailureException("Cassandra Start fails", null);
                 }
                 System.out.println("Wait for " + systemID + " ready...");
-                Thread.sleep(1000);
+                Thread.sleep(2000);
             }
             long endTime = System.currentTimeMillis();
             System.out.println(
@@ -335,7 +335,7 @@ public class CassandraExecutor extends Executor {
             }
             try {
                 System.out.println("Upgrade System Waiting...");
-                Thread.sleep(2000);
+                Thread.sleep(3000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -381,7 +381,7 @@ public class CassandraExecutor extends Executor {
                 if (oldVersionResult.get(i).compareTo(newVersionResult.get(i)) != 0) {
                     failureType = FailureType.RESULT_INCONSISTENCY;
 
-                    String errorMsg = "Result not the same in sequence id = " + i + "  " +
+                    String errorMsg = "Result not the same at read sequence id = " + i + "\n" +
                     "Old Version Result: " + oldVersionResult.get(i) + "  " +
                     "New Version Result: " + newVersionResult.get(i) + "\n";
 
@@ -390,9 +390,6 @@ public class CassandraExecutor extends Executor {
                     } else {
                         failureInfo += errorMsg;
                     }
-                    failureInfo += "Result not the same in sequence id = " + i + "\n" +
-                            "Old Version Result: " + oldVersionResult.get(i) + "\n" +
-                            "New Version Result: " + newVersionResult.get(i) + "\n\n";
                     ret = false;
                     break;
                 }
