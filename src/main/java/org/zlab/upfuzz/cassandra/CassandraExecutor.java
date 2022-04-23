@@ -84,9 +84,9 @@ public class CassandraExecutor extends Executor {
         Map<String, String> env = cassandraProcessBuilder.environment();
         env.put("JAVA_TOOL_OPTIONS",
                 "-javaagent:" + Config.getConf().jacocoAgentPath + jacocoOptions + systemID + "-" + executorID);
-        cassandraProcessBuilder.directory(new File(Config.getConf().cassandraPath));
+        cassandraProcessBuilder.directory(new File(Config.getConf().oldSystemPath));
         cassandraProcessBuilder.redirectErrorStream(true);
-        cassandraProcessBuilder.redirectOutput(Paths.get(Config.getConf().cassandraPath, "logs.txt").toFile());
+        cassandraProcessBuilder.redirectOutput(Paths.get(Config.getConf().oldSystemPath, "logs.txt").toFile());
         try {
             System.out.println("Executor starting cassandra");
             long startTime = System.currentTimeMillis();
@@ -101,7 +101,7 @@ public class CassandraExecutor extends Executor {
             // in.close();
             // cassandraProcess.waitFor();
             System.out.println("cassandra " + executorID + " started");
-            while (!isCassandraReady(Config.getConf().cassandraPath)) {
+            while (!isCassandraReady(Config.getConf().oldSystemPath)) {
                 if (!cassandraProcess.isAlive()) {
                     // System.out.println("cassandra process crushed\nCheck " + Config.getConf().cassandraOutputFile
                     //         + " for details");
@@ -122,7 +122,7 @@ public class CassandraExecutor extends Executor {
     @Override
     public void teardown() {
         ProcessBuilder pb = new ProcessBuilder("bin/nodetool", "stopdaemon");
-        pb.directory(new File(Config.getConf().cassandraPath));
+        pb.directory(new File(Config.getConf().oldSystemPath));
         Process p;
         try {
             p = pb.start();
@@ -141,7 +141,7 @@ public class CassandraExecutor extends Executor {
         }
         // Remove the data folder
         pb = new ProcessBuilder("rm", "-rf", "data");
-        pb.directory(new File(Config.getConf().cassandraPath));
+        pb.directory(new File(Config.getConf().oldSystemPath));
         try {
             pb.start();
         } catch (IOException e) {
@@ -151,7 +151,7 @@ public class CassandraExecutor extends Executor {
 
     public void upgradeteardown() {
         ProcessBuilder pb = new ProcessBuilder("bin/nodetool", "stopdaemon");
-        pb.directory(new File(Config.getConf().upgradeCassandraPath));
+        pb.directory(new File(Config.getConf().newSystemPath));
         Process p;
         try {
             p = pb.start();
@@ -171,7 +171,7 @@ public class CassandraExecutor extends Executor {
         }
         // Remove the data folder
         pb = new ProcessBuilder("rm", "-rf", "data");
-        pb.directory(new File(Config.getConf().upgradeCassandraPath));
+        pb.directory(new File(Config.getConf().newSystemPath));
         try {
             pb.start();
         } catch (IOException e) {
@@ -183,7 +183,7 @@ public class CassandraExecutor extends Executor {
         // Stop all running cassandra instances
         // pgrep -u vagrant -f cassandra | xargs kill -9
         pb = new ProcessBuilder("pgrep", "-u", "vagrant", "cassandra", "| xargs kill -9");
-        pb.directory(new File(Config.getConf().upgradeCassandraPath));
+        pb.directory(new File(Config.getConf().newSystemPath));
         Utilities.runProcess(pb, "kill cassandra instances");
 
     }
@@ -222,7 +222,7 @@ public class CassandraExecutor extends Executor {
         List<String> commandList = commandSequence.getCommandStringList();
         List<String> ret = new LinkedList<>();
         try {
-            CassandraCqlshDaemon cqlsh = new CassandraCqlshDaemon(Config.getConf().cassandraPath);
+            CassandraCqlshDaemon cqlsh = new CassandraCqlshDaemon(Config.getConf().oldSystemPath);
             for (String cmd : commandList) {
                 // System.out
                 //         .println("\n\n------------------------------------------------------------\nexecutor command:\n"
@@ -248,7 +248,7 @@ public class CassandraExecutor extends Executor {
         List<String> commandList = commandSequence.getCommandStringList();
         List<String> ret = new LinkedList<>();
         try {
-            CassandraCqlshDaemon cqlsh = new CassandraCqlshDaemon(Config.getConf().upgradeCassandraPath);
+            CassandraCqlshDaemon cqlsh = new CassandraCqlshDaemon(Config.getConf().newSystemPath);
             for (String cmd : commandList) {
                 // System.out
                 //         .println("\n\n------------------------------------------------------------\nexecutor command:\n"
@@ -272,15 +272,15 @@ public class CassandraExecutor extends Executor {
     public int saveSnapshot() {
         // Flush
         ProcessBuilder pb = new ProcessBuilder("bin/nodetool", "flush");
-        pb.directory(new File(Config.getConf().cassandraPath));
+        pb.directory(new File(Config.getConf().oldSystemPath));
         Utilities.runProcess(pb, "[Executor] Old Version System Flush");
 
         // Copy the data dir
-        Path oldFolderPath = Paths.get(Config.getConf().cassandraPath, "data");
-        Path newFolderPath = Paths.get(Config.getConf().upgradeCassandraPath);
+        Path oldFolderPath = Paths.get(Config.getConf().oldSystemPath, "data");
+        Path newFolderPath = Paths.get(Config.getConf().newSystemPath);
 
         pb = new ProcessBuilder("cp", "-r", oldFolderPath.toString(), newFolderPath.toString());
-        pb.directory(new File(Config.getConf().cassandraPath));
+        pb.directory(new File(Config.getConf().oldSystemPath));
         Utilities.runProcess(pb, "[Executor] Copy the data folder to the new version");
         return 0;
     }
@@ -300,7 +300,7 @@ public class CassandraExecutor extends Executor {
 
         // Delete the possible data folder in the old version
         ProcessBuilder pb = new ProcessBuilder("rm", "-rf", "data");
-        pb.directory(new File(Config.getConf().cassandraPath));
+        pb.directory(new File(Config.getConf().oldSystemPath));
         Utilities.runProcess(pb, "[Executor] Remove data folder in the old version");
 
         // Data consistency check
@@ -320,8 +320,8 @@ public class CassandraExecutor extends Executor {
 
         // Upgrade
         pb = new ProcessBuilder("bin/cassandra");
-        pb.directory(new File(Config.getConf().upgradeCassandraPath));
-        pb.redirectOutput(Paths.get(Config.getConf().upgradeCassandraPath, "logs.txt").toFile());
+        pb.directory(new File(Config.getConf().newSystemPath));
+        pb.redirectOutput(Paths.get(Config.getConf().newSystemPath, "logs.txt").toFile());
         Utilities.runProcess(pb, "Upgrade Cassandra");
         // Process upgradeCassandraProcess = Utilities.runProcess(pb, "Upgrade Cassandra");
 
@@ -329,7 +329,7 @@ public class CassandraExecutor extends Executor {
         boolean started = false;
         int RETRY_START_UPGRADE = 25;
         for (int i = 0; i < RETRY_START_UPGRADE; i++) {
-            if (isCassandraReady(Config.getConf().upgradeCassandraPath)) {
+            if (isCassandraReady(Config.getConf().newSystemPath)) {
                 started = true;
                 break;
             }

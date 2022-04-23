@@ -1,6 +1,5 @@
 package org.zlab.upfuzz.fuzzingengine;
 
-
 import java.lang.reflect.Field;
 import java.util.Arrays;
 
@@ -22,10 +21,10 @@ public class Config {
         public Integer serverPort = 6299;
         public String clientHost = "localhost";
         public Integer clientPort = 6300;
-        public String cassandraPath = null;
-        public String upgradeCassandraPath = null;
+        public String oldSystemPath = null;
+        public String newSystemPath = null;
         public String jacocoAgentPath = null;
-        public String cassandraOutputFile = null;
+        // public String logFile = null;
         public String initSeedDir = null;
         public String crashDir = null;
 
@@ -37,10 +36,10 @@ public class Config {
 
         public Boolean checkNull() {
             Field[] fields = this.getClass().getDeclaredFields();
-            for(Field field : fields){
+            for (Field field : fields) {
                 try {
                     Object fieldObject = field.get(this);
-                    if( fieldObject == null ){
+                    if (fieldObject == null) {
                         System.err.println("Configuration failed to find: " + field);
                     }
                 } catch (IllegalArgumentException | IllegalAccessException e) {

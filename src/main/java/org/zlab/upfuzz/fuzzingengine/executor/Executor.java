@@ -9,8 +9,7 @@ import org.zlab.upfuzz.fuzzingengine.Config;
 public abstract class Executor implements IExecutor {
 
     public enum FailureType {
-        UPGRADE_FAIL,
-        RESULT_INCONSISTENCY
+        UPGRADE_FAIL, RESULT_INCONSISTENCY
     }
 
     public String executorID;
@@ -45,15 +44,11 @@ public abstract class Executor implements IExecutor {
         return systemID + "-" + executorID;
     }
 
-    public void startup() {
-    }
+    abstract public void startup();
 
-    public void teardown() {
-    }
+    abstract public void teardown();
 
-    public List<String> executeCommands(CommandSequence commandSequence) {
-        return null;
-    }
+    abstract public List<String> executeCommands(CommandSequence commandSequence);
 
     public List<String> execute() {
         startup();
@@ -66,6 +61,7 @@ public abstract class Executor implements IExecutor {
         return oldVersionResult;
     }
 
-    public int saveSnapshot() {return 0; }
-
+    public int saveSnapshot() {
+        return 0;
+    }
 }

@@ -10,12 +10,19 @@ import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.utils.Utilities;
 
-public class LinkedListType extends ParameterType.ConcreteType {
+public class ConcatenateType extends ParameterType.ConcreteType {
 
     List<Parameter> parameters;
 
-    LinkedListType(Parameter... params) {
+    String separator;
+
+    public ConcatenateType(Parameter[] params, String sep) {
         parameters = Arrays.asList(params);
+        separator = sep;
+    }
+
+    public ConcatenateType(Parameter... params) {
+        this(params, " ");
     }
 
     @Override
@@ -31,11 +38,18 @@ public class LinkedListType extends ParameterType.ConcreteType {
     @Override
     public String generateStringValue(Parameter p) {
         StringBuilder str = new StringBuilder();
+        boolean first = true;
         for (Parameter pi : (List<Parameter>) p.value) {
             String ps = pi.type.generateStringValue(pi);
+            if (!ps.isEmpty() && !first) {
+                str.append(separator);
+            }
             str.append(ps);
+            if (first) {
+                first = false;
+            }
         }
-        return str.toString();
+        return str.toString().trim();
     }
 
     @Override

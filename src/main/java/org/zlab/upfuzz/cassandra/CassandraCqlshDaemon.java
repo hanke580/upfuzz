@@ -91,7 +91,6 @@ public class CassandraCqlshDaemon {
             // System.out.println("cqlsh:\n" + new String(bytes, 0, cnt1));
 
             Thread.sleep(1000);
-            socket = new Socket("localhost", port);
             // TODO: Add a catch, when the connection is rejected regenerate it.
         } else {
             throw new IllegalStateException("Cannot fina an available port");
