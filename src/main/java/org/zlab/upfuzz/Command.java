@@ -76,4 +76,9 @@ public abstract class Command implements Serializable {
     public Set<Command> generateRelatedReadCommand(State state) {
         return null;
     };
+
+    public void changeKeyspaceName() {
+        // Only Create keyspace command should override this method
+        return;
+    }
 }

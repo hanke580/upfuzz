@@ -8,13 +8,35 @@ import org.zlab.upfuzz.CommandSequence;
  * DO NOTHING
  * */
 public class NullExecutor extends Executor {
-  public NullExecutor(CommandSequence commandSequence, CommandSequence validationCommandSequence) {
-    super(commandSequence, validationCommandSequence);
+  public NullExecutor() {
+    super();
   }
 
   @Override
-  public List<String>  execute() {
+  public void startup() {
+
+  }
+
+  @Override
+  public void teardown() {
+
+  }
+
+  @Override
+  public List<String> execute(CommandSequence commandSequence,
+                               CommandSequence validationCommandSequence,
+                               int testId) {
     return null;
+  }
+
+  @Override
+  public int saveSnapshot() {
+    return 0;
+  }
+
+  @Override
+  public int moveSnapShot() {
+    return 0;
   }
 
   @Override

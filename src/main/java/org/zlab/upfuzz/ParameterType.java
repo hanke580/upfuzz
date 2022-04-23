@@ -147,6 +147,7 @@ public abstract class ParameterType implements Serializable {
 
         @Override
         public boolean isValid(State s, Command c, Parameter p) {
+            if (s == null) return true;
             Collection targetCollection = configuration.operate(s, c);
             if (((Collection) targetCollection).isEmpty())
                 return true;

@@ -34,6 +34,8 @@ public class ClientHandler implements Runnable, ISessionInfoVisitor, IExecutionD
     private final int maxn = 10240;
 
     private boolean registered = false;
+    public long lastUpdateTime;
+    public boolean waitSessionData = false;
 
     private byte[] buffer;
 
@@ -89,6 +91,8 @@ public class ClientHandler implements Runnable, ISessionInfoVisitor, IExecutionD
     }
 
     public void visitSessionInfo(final SessionInfo info) {
+        waitSessionData = true;
+        lastUpdateTime = System.currentTimeMillis();
         if (!registered) {
             register(info);
         } else {
@@ -120,6 +124,8 @@ public class ClientHandler implements Runnable, ISessionInfoVisitor, IExecutionD
         synchronized (fileWriter) {
             fileWriter.visitClassExecution(data);
         }
+        lastUpdateTime = System.currentTimeMillis();
+
     }
 
     public void collect() throws IOException {

@@ -33,6 +33,8 @@ import org.zlab.upfuzz.utils.Utilities;
 
 public class Main {
 
+    public static long startTime;
+
     public static void main(String[] args) throws ParseException {
         long currentTime = System.currentTimeMillis();
         long vmStartTime = ManagementFactory.getRuntimeMXBean().getStartTime();
@@ -133,6 +135,8 @@ public class Main {
                     }
                 }
             });
+
+            startTime = System.nanoTime();
 
             // Start fuzzing process
             while(true) {

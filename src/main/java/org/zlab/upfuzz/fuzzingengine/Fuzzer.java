@@ -7,8 +7,8 @@ import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Queue;
+import java.util.concurrent.TimeUnit;
 
 public class Fuzzer {
     /**
@@ -38,12 +38,7 @@ public class Fuzzer {
         if (fromCorpus) {
             // Only run the mutated seeds
             for (int i = 0; i < TEST_NUM; i++) {
-                System.out.println("\n\n----------- Executing one fuzzing test -----------");
-                System.out.println("[Fuzz Status]\n" +
-                                   "Queue Size = " + queue.size() + "\n" +
-                                   "Crash Found = " + fuzzingClient.crashID + "\n" +
-                                   "Current Test ID = " + testID + "\n"
-                        );
+                printInfo(queue.size(), fuzzingClient.crashID, testID);
 
                 CommandSequence mutatedCommandSequence = SerializationUtils.clone(commandSequence);
                 try {
@@ -52,7 +47,7 @@ public class Fuzzer {
                         if (mutatedCommandSequence.mutate() == true) break;
                     }
                     if (j == MUTATE_RETRY_TIME) {
-                        break; // Discard current seq since the mutation keeps failing
+                        continue; // Discard current seq since the mutation keeps failing
                     }
                     System.out.println("Mutated Command Sequence:");
                     for (String cmdStr : mutatedCommandSequence.getCommandStringList()) {
@@ -75,8 +70,9 @@ public class Fuzzer {
                 }
                 ExecutionDataStore testSequenceCoverage = null;
                 try {
-                    testSequenceCoverage = fuzzingClient.start(mutatedCommandSequence, validationCommandSequence);
+                    testSequenceCoverage = fuzzingClient.start(mutatedCommandSequence, validationCommandSequence, testID);
                 } catch (Exception e) {
+                    e.printStackTrace();
                     Utilities.clearCassandraDataDir();
                     i--;
                     continue;
@@ -91,25 +87,36 @@ public class Fuzzer {
             }
 
         } else {
-            System.out.println("\n\n----------- Executing one fuzzing test -----------");
-            System.out.println("[Fuzz Status]\n" +
-                "Queue Size = " + queue.size() + "\n" +
-                "Crash Found = " + fuzzingClient.crashID + "\n" +
-                "Current Test ID = " + testID + "\n"
-            );
+            printInfo(queue.size(), fuzzingClient.crashID, testID);
             // Only run the current seed, no mutation
             ExecutionDataStore testSequenceCoverage = null;
             try {
-                testSequenceCoverage = fuzzingClient.start(commandSequence, validationCommandSequence);
+                testSequenceCoverage = fuzzingClient.start(commandSequence, validationCommandSequence, testID);
             } catch (Exception e) {
                 Utilities.clearCassandraDataDir();
             }
             if (Utilities.hasNewBits(curCoverage, testSequenceCoverage)) {
                 queue.add(new Pair<>(commandSequence, validationCommandSequence));
+                curCoverage.merge(testSequenceCoverage);
             }
             testID++;
             System.out.println();
         }
         return true;
+    }
+
+    public static void printInfo(int queueSize, int crashID, int testID) {
+        Long timeElapsed = TimeUnit.SECONDS.convert(System.nanoTime() - Main.startTime, TimeUnit.NANOSECONDS);
+
+        System.out.println("\n\n------------------- Executing one fuzzing test -------------------");
+        System.out.println("[Fuzz Status]\n" +
+                           "=========================================================================\n" +
+                           "|" + "Queue Size = " + queueSize +
+                           "|" + "Crash Found = " + crashID +
+                           "|" + "Current Test ID = " + testID +
+                           "|" + "Time Elapsed = " + timeElapsed + "s" +
+                           "|" + "\n" +
+                           "-------------------------------------------------------------------------");
+        System.out.println();
     }
 }

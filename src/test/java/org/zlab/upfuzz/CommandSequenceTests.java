@@ -2,6 +2,7 @@ package org.zlab.upfuzz;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.cassandra.CassandraCommands;
@@ -53,5 +54,11 @@ public class CommandSequenceTests {
                 System.out.println(cmdStr);
             }
         }
+    }
+
+    @Test
+    public void genUUID() {
+        final String uuid = UUID.randomUUID().toString().replace("-", "");
+        System.out.println("uuid = " + uuid);
     }
 }

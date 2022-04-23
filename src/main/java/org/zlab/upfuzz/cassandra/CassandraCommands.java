@@ -4,7 +4,6 @@ import org.zlab.upfuzz.*;
 import org.zlab.upfuzz.utils.*;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * TODO:
@@ -76,7 +75,7 @@ public class CassandraCommands {
 
             ParameterType.ConcreteType keyspaceNameType = new ParameterType.NotInCollectionType(
                     new ParameterType.NotEmpty(
-                            STRINGType.instance
+                            UUIDType.instance
                     ),
                     (s, c) -> ((CassandraState) s).getKeyspaces(),
                     null
@@ -109,7 +108,7 @@ public class CassandraCommands {
 
             ParameterType.ConcreteType keyspaceNameType = new ParameterType.NotInCollectionType(
                     new ParameterType.NotEmpty(
-                            STRINGType.instance
+                            UUIDType.instance
                     ),
                     (s, c) -> ((CassandraState) s).getKeyspaces(),
                     null
@@ -122,7 +121,8 @@ public class CassandraCommands {
             this.params.add(replicationFactor); // [1]
 
             ParameterType.ConcreteType IF_NOT_EXISTType = new ParameterType.OptionalType(
-                    new CONSTANTSTRINGType("IF NOT EXISTS"), null   // TODO: Make a pure CONSTANTType
+                    new CONSTANTSTRINGType("IF NOT EXISTS"), null
+                    // TODO: Make a pure CONSTANTType
             );
             Parameter IF_NOT_EXIST = IF_NOT_EXISTType.generateRandomParameter(state, this);
             params.add(IF_NOT_EXIST); // [2]
@@ -150,6 +150,11 @@ public class CassandraCommands {
         @Override
         public void updateState(State state) {
             ((CassandraState) state).addKeyspace(this.params.get(0).toString());
+        }
+
+        @Override
+        public void changeKeyspaceName() {
+            this.params.get(0).regenerate(null, this);
         }
     }
 

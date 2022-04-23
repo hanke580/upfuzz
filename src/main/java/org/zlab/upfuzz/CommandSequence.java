@@ -10,7 +10,7 @@ import java.util.*;
 public class CommandSequence implements Serializable {
 
     public static final int MAX_CMD_SEQ_LEN = 20;
-    public final static int RETRY_GENERATE_TIME = 50;
+    public final static int RETRY_GENERATE_TIME = 400;
     public final static int RETRY_MUTATE_TIME = 20;
 
     public List<Command> commands;
@@ -32,6 +32,28 @@ public class CommandSequence implements Serializable {
         this.state = state;
     }
 
+    public boolean separateFromFormerTest() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+
+
+        for (Command command : commands) {
+            command.changeKeyspaceName(); // For separation
+            command.updateState(state);
+        }
+
+        Constructor<?> constructor = stateClass.getConstructor();
+        State state = (State) constructor.newInstance(); // Recreate a state
+        List<Command> validCommands = new LinkedList<>();
+        state = (State) constructor.newInstance(); // Recreate a state
+        for (int i = 0; i < commands.size(); i++) {
+            boolean fixable = checkAndUpdateCommand(commands.get(i), state);
+            if (fixable) {
+                validCommands.add(commands.get(i));
+                updateState(commands.get(i), state);
+            }
+        }
+        return true;
+    }
+
     public boolean mutate() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         /**
          * Choice
@@ -40,6 +62,8 @@ public class CommandSequence implements Serializable {
          * 2: Replace a command                         // 0
          * 3: Delete a command // Temporary not chosen  // 0
          */
+        separateFromFormerTest();
+
         Random rand = new Random();
 
         for (int mutateRetryIdx = 0; mutateRetryIdx < RETRY_MUTATE_TIME; mutateRetryIdx++) {
@@ -52,7 +76,7 @@ public class CommandSequence implements Serializable {
 
             if (CassandraCommands.DEBUG) {
                 pos = 1;
-                choice = 1;
+                choice = 2;
             }
             System.out.println("\tMutate Command Pos " + pos);
 
@@ -177,7 +201,7 @@ public class CommandSequence implements Serializable {
         }
         if (command == null) {
             System.out.println("A problem with generating single command");
-            throw new RuntimeException("A problem with generating single command");
+            // throw new RuntimeException("A problem with generating single command");
             // System.exit(1);
         }
         return command;
