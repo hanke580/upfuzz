@@ -51,6 +51,13 @@ public class CommandSequence implements Serializable {
                 updateState(commands.get(i), state);
             }
         }
+        this.commands = validCommands;
+
+//        System.out.println("\nSeparated Seq");
+//        for (Command command : commands) {
+//            System.out.println(command.toString());
+//        }
+//        System.out.println("\n");
         return true;
     }
 
@@ -115,8 +122,11 @@ public class CommandSequence implements Serializable {
                  */
                 Command command;
                 List<Map.Entry<Class<? extends Command>, Integer>> tmpL = new LinkedList<>();
-                tmpL.add(new AbstractMap.SimpleImmutableEntry<>(CassandraCommands.CREATE_TABLE.class, 2) );
-                command = generateSingleCommand(tmpL, state);
+//                tmpL.add(new AbstractMap.SimpleImmutableEntry<>(CassandraCommands.CREATE_TABLE.class, 2) );
+                command = generateSingleCommand(commandClassList, state);
+                while (command == null) {
+                    command = generateSingleCommand(createCommandClassList, state);
+                }
                 commands.add(pos, command);
                 commands.get(pos).updateState(state);
             } else if (choice == 3) { // Disabled temporally
@@ -129,6 +139,9 @@ public class CommandSequence implements Serializable {
                     command = generateSingleCommand(createCommandClassList, state);
                 } else {
                     command = generateSingleCommand(commandClassList, state);
+                }
+                while (command == null) {
+                    command = generateSingleCommand(createCommandClassList, state);
                 }
                 commands.remove(pos);
                 commands.add(pos, command);
@@ -199,11 +212,7 @@ public class CommandSequence implements Serializable {
                 continue;
             }
         }
-        if (command == null) {
-            System.out.println("A problem with generating single command");
-            // throw new RuntimeException("A problem with generating single command");
-            // System.exit(1);
-        }
+
         return command;
     }
 
