@@ -44,6 +44,28 @@ public class CassandraCommands {
     public static final List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList = new ArrayList<>();
     public static final List<Map.Entry<Class<? extends Command>, Integer>> readCommandClassList = new ArrayList<>();
 
+    public static final String[] reservedKeywords = {
+            "ADD","AGGREGATE","ALL","ALLOW","ALTER","AND",
+            "ANY","APPLY","AS","ASC","ASCII","AUTHORIZE",
+            "BATCH","BEGIN","BIGINT","BLOB","BOOLEAN","BY",
+            "CLUSTERING","COLUMNFAMILY","COMPACT","CONSISTENCY","COUNT","COUNTER",
+            "CREATE","CUSTOM","DECIMAL","DELETE","DESC","DISTINCT",
+            "DOUBLE","DROP","EACH_QUORUM","ENTRIES","EXISTS","FILTERING",
+            "FLOAT","FROM","FROZEN","FULL","GRANT","IF",
+            "IN","INDEX","INET","INFINITY","INSERT","INT",
+            "INTO","KEY","KEYSPACE","KEYSPACES","LEVEL","LIMIT",
+            "LIST","LOCAL_ONE","LOCAL_QUORUM","MAP","MATERIALIZED","MODIFY",
+            "NAN","NORECURSIVE","NOSUPERUSER","NOT","OF","ON",
+            "ONE","ORDER","PARTITION","PASSWORD","PER","PERMISSION",
+            "PERMISSIONS","PRIMARY","QUORUM","RENAME","REVOKE","SCHEMA",
+            "SELECT","SET","STATIC","STORAGE","SUPERUSER","TABLE",
+            "TEXT","TIME","TIMESTAMP","TIMEUUID","THREE","TO",
+            "TOKEN","TRUNCATE","TTL","TUPLE","TWO","TYPE",
+            "UNLOGGED","UPDATE","USE","USER","USERS","USING",
+            "UUID","VALUES","VARCHAR","VARINT","VIEW","WHERE",
+            "WITH","WRITETIM"
+    };
+
     static {
         commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(CREAT_KEYSPACE.class, 1));
         commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(CREATE_TABLE.class, 1));

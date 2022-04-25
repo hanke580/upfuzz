@@ -31,6 +31,15 @@ public class STRINGType extends ParameterType.ConcreteType {
         return sb.toString();
     }
 
+    public static boolean contains(String[] strArray, String str) {
+        for (String str_ : strArray) {
+            if (str.equals(str_)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public Parameter generateRandomParameter(State s, Command c, Object init) {
         if (init == null) {
@@ -66,7 +75,9 @@ public class STRINGType extends ParameterType.ConcreteType {
 
     @Override
     public boolean isValid(State s, Command c, Parameter p) {
-        if (p == null || ! (p.type instanceof STRINGType))
+        if (p == null ||
+                ! (p.type instanceof STRINGType) ||
+                contains(CassandraCommands.reservedKeywords, (String) p.value)) // Specially for Cassandra
             return false;
         return true;
     }
