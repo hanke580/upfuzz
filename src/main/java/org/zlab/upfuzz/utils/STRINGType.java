@@ -132,15 +132,15 @@ public class STRINGType extends ParameterType.ConcreteType {
                 mutateByte(p);
                 break;
             case 4:
-                // Add a Byte
+                // Flip a Bit
                 flipBit(p);
                 break;
             case 5:
-                // Delete a Byte
+                // Add a Bit
                 addBit(p);
                 break;
             case 6:
-                // Mutate a specific Byte
+                // Delete a Bit
                 deleteBit(p);
                 break;
             default:

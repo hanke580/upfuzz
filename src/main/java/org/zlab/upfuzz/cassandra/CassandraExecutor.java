@@ -302,6 +302,7 @@ public class CassandraExecutor extends Executor {
         ProcessBuilder pb = new ProcessBuilder("bin/cassandra");
         pb.directory(new File(Config.getConf().upgradeCassandraPath));
         pb.redirectOutput(Paths.get(Config.getConf().upgradeCassandraPath, "logs.txt").toFile());
+        // long startTime = System.currentTimeMillis();
         Utilities.runProcess(pb, "Upgrade Cassandra");
         // Process upgradeCassandraProcess = Utilities.runProcess(pb, "Upgrade Cassandra");
 
@@ -334,6 +335,8 @@ public class CassandraExecutor extends Executor {
             return false;
         }
 
+        // long endTime = System.currentTimeMillis();
+        // System.out.println("Upgrade System Start Time = " + (endTime - startTime)/1000.  + "s");
         try {
             this.cqlsh = new CassandraCqlshDaemon(Config.getConf().upgradeCassandraPath);
         } catch (IOException e) {
@@ -361,6 +364,7 @@ public class CassandraExecutor extends Executor {
         //     }
         // }
 
+        // startTime = System.currentTimeMillis();
         for (Integer testId : testId2commandSequence.keySet()) {
             testId2newVersionResult.put(
                     testId,
@@ -411,8 +415,13 @@ public class CassandraExecutor extends Executor {
             }
         }
 
+        // endTime = System.currentTimeMillis();
+        // System.out.println("Upgrade System comparing results = " + (endTime - startTime)/1000.  + "s");
         // Shutdown
+        // startTime = System.currentTimeMillis();
         upgradeteardown();
+        // endTime = System.currentTimeMillis();
+        // System.out.println("New version Stop = " + (endTime - startTime)/1000.  + "s");
 
         // true means upgrade test succeeded, false means an inconsistency exists
         return testId2Failure.isEmpty();

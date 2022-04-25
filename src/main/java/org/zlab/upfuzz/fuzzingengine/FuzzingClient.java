@@ -106,16 +106,16 @@ public class FuzzingClient {
 					System.exit(1);
 				}
 				// Actually the code coverage do not need to be stored in disk
-				String destFile = executor.getSysExecID() + String.valueOf(testId) + ".exec";
-				try {
-					FileOutputStream localFile = new FileOutputStream(destFile);
-					ExecutionDataWriter localWriter = new ExecutionDataWriter(localFile);
-					codeCoverage.accept(localWriter);
-					// localWriter.visitClassExecution(codeCoverage);
-					System.out.println("write codecoverage to " + destFile);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				// String destFile = executor.getSysExecID() + String.valueOf(testId) + ".exec";
+				// try {
+				// 	FileOutputStream localFile = new FileOutputStream(destFile);
+				// 	ExecutionDataWriter localWriter = new ExecutionDataWriter(localFile);
+				// 	codeCoverage.accept(localWriter);
+				// 	// localWriter.visitClassExecution(codeCoverage);
+				// 	System.out.println("write codecoverage to " + destFile);
+				// } catch (IOException e) {
+				// 	e.printStackTrace();
+				// }
 			}
 		} catch (CustomExceptions.systemStartFailureException e) {
 			System.out.println("old version system start up failed");
@@ -129,8 +129,12 @@ public class FuzzingClient {
 			 * 2. Perform Upgrade check
 			 * 3. Restart the executor
 			 */
+			// long startTime = System.currentTimeMillis();
+			executor.saveSnapshot();
 			executor.moveSnapShot();
 			executor.teardown();
+			// long endTime = System.currentTimeMillis();
+			// System.out.println("Stop the old version Time: " + (endTime - startTime)/1000 + "s");
 
 			// Upgrade test
 			// 1. Upgrade check
@@ -162,18 +166,17 @@ public class FuzzingClient {
 					// File1: CommandSequence
 					StringBuilder commandSequenceString = new StringBuilder();
 
-					for (int i = epochStartTestId; i < epochStartTestId + epochNum; i++) {
+					for (int i = epochStartTestId; i <= testId; i++) {
 						for (String cmdStr : testId2Sequence.get(i).left.getCommandStringList()) {
 							commandSequenceString.append(cmdStr + "\n");
 						}
 						commandSequenceString.append("\n");
 					}
 
-					// Serialize file CommandSequence
-					int testIdEnd = epochStartTestId + epochNum - 1;
+					// Serialize CommandSequence into File
 					Path cmdSeqsPath = Paths.get(Config.getConf().crashDir,
 							"crash_" + epoch,
-							"epoch_cmd_seq_" + epochStartTestId + "_" + testIdEnd);
+							"epoch_cmd_seq_" + epochStartTestId + "_" + testId);
 					try {
 						FileOutputStream fileOut =
 								new FileOutputStream(cmdSeqsPath.toFile());
@@ -189,7 +192,7 @@ public class FuzzingClient {
 					for (int testIdx : executor.testId2Failure.keySet()) {
 						// Serialize the single bug sequence
 						Pair<CommandSequence, CommandSequence> commandSequencePair =
-								new Pair<>(commandSequence, validationCommandSequence);
+								new Pair<>(testId2Sequence.get(testIdx).left, testId2Sequence.get(testIdx).right);
 						Path commandSequencePairPath = Paths.get(Config.getConf().crashDir
 								, "crash_" + epoch,
 										"crash_" + testIdx + ".ser");
@@ -211,13 +214,13 @@ public class FuzzingClient {
 						sb.append("Failure Type: " + executor.testId2Failure.get(testIdx).left + "\n");
 						sb.append("Failure Info: " + executor.testId2Failure.get(testIdx).right + "\n");
 						sb.append("Command Sequence\n");
-						for (String commandStr : commandSequence.getCommandStringList()) {
+						for (String commandStr :  testId2Sequence.get(testIdx).left.getCommandStringList()) {
 							sb.append(commandStr);
 							sb.append("\n");
 						}
 						sb.append("\n\n");
 						sb.append("Read Command Sequence\n");
-						for (String commandStr : validationCommandSequence.getCommandStringList()) {
+						for (String commandStr : testId2Sequence.get(testIdx).right.getCommandStringList()) {
 							sb.append(commandStr);
 							sb.append("\n");
 						}

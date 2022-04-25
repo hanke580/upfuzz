@@ -69,7 +69,7 @@ public abstract class Executor implements IExecutor {
 //        startup();
         testId2commandSequence.put(testId, new Pair<>(commandSequence, validationCommandSequence));
         executeCommands(commandSequence);
-        saveSnapshot(); // Flush, only keep the data folder
+        // saveSnapshot(); // Flush, only keep the data folder
 
         List<String> oldVersionResult = executeCommands(validationCommandSequence);
         testId2oldVersionResult.put(testId, oldVersionResult);

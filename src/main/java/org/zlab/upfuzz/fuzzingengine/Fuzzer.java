@@ -19,7 +19,7 @@ public class Fuzzer {
      *                   mutated seed. If no, this seed also need run.
      * @return
      */
-    public static final int TEST_NUM = 20;
+    public static final int TEST_NUM = 500;
 
     /**
      * If a seed cannot be correctly mutated for more than five times,
@@ -65,6 +65,7 @@ public class Fuzzer {
                         validationCommandSequence = CassandraExecutor.prepareValidationCommandSequence(mutatedCommandSequence.state);
                     }
                 } catch (Exception e) {
+                    e.printStackTrace();
                     i--;
                     continue;
                 }

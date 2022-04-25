@@ -71,7 +71,7 @@ public class CassandraCommands {
         commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(CREATE_TABLE.class, 1));
         commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(INSERT.class, 8));
         commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(DELETE.class, 6));
-        commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(SELECT.class, 8));
+        // commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(SELECT.class, 8));
         commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(ALTER_TABLE_DROP.class, 10));
         commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(CREAT_INDEX.class, 4));
 
