@@ -3,7 +3,7 @@ package org.zlab.upfuzz.hdfs.dfscommands;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.hdfs.HDFSState;
+import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.ConcatenateType;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomHadoopPathType;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomLocalPathType;
@@ -15,7 +15,7 @@ public class CpCommand extends DfsCommands {
     /*
      * Copy files from source to destination. This command allows multiple sources as well in which case the destination must be a directory.
      */
-    public CpCommand(HDFSState hdfsState) {
+    public CpCommand(HdfsState hdfsState) {
         Parameter cpcmd = new CONSTANTSTRINGType("-cp").generateRandomParameter(null, null);
 
         // -f : Overwrites the destination if it already exists.

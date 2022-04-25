@@ -4,7 +4,7 @@ import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType.ConcreteType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.hdfs.HDFSState;
+import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.hdfs.MockFS.INode;
 
 public class RandomHadoopPathType extends ConcreteType
@@ -20,7 +20,7 @@ public class RandomHadoopPathType extends ConcreteType
 
     @Override
     public Parameter generateRandomParameter(State s, Command c) {
-        HDFSState hdfsState = (HDFSState)s;
+        HdfsState hdfsState = (HdfsState)s;
         file = hdfsState.getRandomHadoopPath();
         return new Parameter(this, file);
     }

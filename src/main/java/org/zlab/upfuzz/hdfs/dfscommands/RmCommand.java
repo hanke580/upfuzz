@@ -3,7 +3,7 @@ package org.zlab.upfuzz.hdfs.dfscommands;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.hdfs.HDFSState;
+import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.ConcatenateType;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.OrType;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomHadoopPathType;
@@ -25,7 +25,7 @@ public class RmCommand extends DfsCommands {
      * The -skipTrash option will bypass trash, if enabled, and delete the specified file(s) immediately. This can be useful when it is necessary to delete files from an over-quota directory.
      * The -safely option will require safety confirmation before deleting directory with total number of files greater than hadoop.shell.delete.limit.num.files (in core-site.xml, default: 100). It can be used with -skipTrash to prevent accidental deletion of large directories. Delay is expected when walking over large directory recursively to count the number of files to be deleted before the confirmation.*
      */
-    public RmCommand(HDFSState hdfsState) {
+    public RmCommand(HdfsState hdfsState) {
         Parameter rmcmd = new CONSTANTSTRINGType("-rm").generateRandomParameter(null, null);
 
         // The -f option will not display a diagnostic message or modify the exit status to reflect an error if the file does not exist.

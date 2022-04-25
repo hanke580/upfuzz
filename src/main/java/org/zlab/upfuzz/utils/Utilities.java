@@ -28,12 +28,14 @@ public class Utilities {
         return indexArray;
     }
 
-    public static Pair<CommandSequence, CommandSequence> deserializeCommandSequence(Path filePath) {
+    public static Pair<CommandSequence, CommandSequence> deserializeCommandSequence(
+            Path filePath) {
         Pair<CommandSequence, CommandSequence> commandSequencePair = null;
         try {
             FileInputStream fileIn = new FileInputStream(filePath.toFile());
             ObjectInputStream in = new ObjectInputStream(fileIn);
-            commandSequencePair = (Pair<CommandSequence, CommandSequence>) in.readObject();
+            commandSequencePair = (Pair<CommandSequence, CommandSequence>) in
+                    .readObject();
             in.close();
             fileIn.close();
         } catch (IOException i) {
@@ -47,7 +49,8 @@ public class Utilities {
         return commandSequencePair;
     }
 
-    public static boolean hasNewBits(ExecutionDataStore curCoverage, ExecutionDataStore testSequenceCoverage) {
+    public static boolean hasNewBits(ExecutionDataStore curCoverage,
+            ExecutionDataStore testSequenceCoverage) {
 
         if (testSequenceCoverage == null)
             return false;
@@ -56,7 +59,8 @@ public class Utilities {
             curCoverage = testSequenceCoverage;
             return true;
         } else {
-            for (final ExecutionData testSequenceData : testSequenceCoverage.getContents()) {
+            for (final ExecutionData testSequenceData : testSequenceCoverage
+                    .getContents()) {
 
                 final Long id = Long.valueOf(testSequenceData.getId());
                 final ExecutionData curData = curCoverage.get(id);
@@ -65,7 +69,8 @@ public class Utilities {
                 if (curData != null) {
                     assertCompatibility(curData, testSequenceData);
                     int[] curProbes = curData.getProbes();
-                    final int[] testSequenceProbes = testSequenceData.getProbes();
+                    final int[] testSequenceProbes = testSequenceData
+                            .getProbes();
                     for (int i = 0; i < curProbes.length; i++) {
                         // Now only try with the boolean first
                         if (curProbes[i] == 0 && testSequenceProbes[i] != 0) {
@@ -80,18 +85,25 @@ public class Utilities {
         }
     }
 
-    public static void assertCompatibility(ExecutionData curData, ExecutionData testSequenceData) {
+    public static void assertCompatibility(ExecutionData curData,
+            ExecutionData testSequenceData) {
         if (curData.getId() != testSequenceData.getId()) {
-            throw new IllegalStateException(format("Different ids (%016x and %016x).", Long.valueOf(curData.getId()),
-                    Long.valueOf(testSequenceData.getId())));
+            throw new IllegalStateException(
+                    format("Different ids (%016x and %016x).",
+                            Long.valueOf(curData.getId()),
+                            Long.valueOf(testSequenceData.getId())));
         }
         if (!curData.getName().equals(testSequenceData.getName())) {
-            throw new IllegalStateException(format("Different class names %s and %s for id %016x.", curData.getName(),
-                    testSequenceData.getName(), Long.valueOf(testSequenceData.getId())));
+            throw new IllegalStateException(
+                    format("Different class names %s and %s for id %016x.",
+                            curData.getName(), testSequenceData.getName(),
+                            Long.valueOf(testSequenceData.getId())));
         }
         if (curData.getProbes().length != testSequenceData.getProbes().length) {
-            throw new IllegalStateException(format("Incompatible execution data for class %s with id %016x.",
-                    testSequenceData.getName(), Long.valueOf(testSequenceData.getId())));
+            throw new IllegalStateException(format(
+                    "Incompatible execution data for class %s with id %016x.",
+                    testSequenceData.getName(),
+                    Long.valueOf(testSequenceData.getId())));
         }
     }
 
@@ -128,7 +140,8 @@ public class Utilities {
     }
 
     public static String readProcess(Process p) {
-        BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+        BufferedReader in = new BufferedReader(
+                new InputStreamReader(p.getInputStream()));
         StringBuilder sb = new StringBuilder();
         String line;
         try {
@@ -137,39 +150,43 @@ public class Utilities {
             }
             p.waitFor();
             in.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
         return sb.toString();
     }
 
-    public static String getGitBranch(String path) throws IOException, InterruptedException {
-        Process p = exec(new String[] { "git", "rev-parse", "--abbrev-ref", "HEAD" }, path);
+    public static String getGitBranch(String path)
+            throws IOException, InterruptedException {
+        Process p = exec(
+                new String[] { "git", "rev-parse", "--abbrev-ref", "HEAD" },
+                path);
         String gitBranch = readProcess(p).replace("\n", "");
         return gitBranch;
     }
 
-    public static String getGitTag(String path) throws IOException, InterruptedException {
-        Process p = exec(new String[] { "git", "describe", "--abbrev=0", "--tags", "HEAD" }, path);
+    public static String getGitTag(String path)
+            throws IOException, InterruptedException {
+        Process p = exec(new String[] { "git", "describe", "--abbrev=0",
+                "--tags", "HEAD" }, path);
         String gitBranch = readProcess(p).replace("\n", "");
         return gitBranch;
     }
-
-
 
     public static String getMainClassName() throws ClassNotFoundException {
-        for (Entry<Thread, StackTraceElement[]> entry : Thread.getAllStackTraces().entrySet()) {
+        for (Entry<Thread, StackTraceElement[]> entry : Thread
+                .getAllStackTraces().entrySet()) {
             Thread thread = entry.getKey();
             // System.out.println(thread.getThreadGroup().getName() );
-            if (thread.getThreadGroup() != null && thread.getThreadGroup().getName().equals("main")) {
+            if (thread.getThreadGroup() != null
+                    && thread.getThreadGroup().getName().equals("main")) {
                 for (StackTraceElement stackTraceElement : entry.getValue()) {
                     // System.out.println(stackTraceElement.getClassName()+ " " + stackTraceElement.getMethodName() + " " + stackTraceElement.getFileName());
                     if (stackTraceElement.getMethodName().equals("main")) {
 
                         try {
-                            Class<?> c = Class.forName(stackTraceElement.getClassName());
+                            Class<?> c = Class
+                                    .forName(stackTraceElement.getClassName());
                             Class[] argTypes = new Class[] { String[].class };
                             //This will throw NoSuchMethodException in case of fake main methods
                             c.getDeclaredMethod("main", argTypes);

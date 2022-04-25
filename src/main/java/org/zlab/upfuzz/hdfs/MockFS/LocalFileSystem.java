@@ -151,7 +151,7 @@ public class LocalFileSystem extends FileSystem {
         String dest = src[src.length - 1];
         for (int i = 0; i < src.length - 1; ++i) {
             try {
-                Files.move(Paths.get(src[i]), Paths.get(dest), null);
+                Files.move(Paths.get(src[i]), Paths.get(dest));
             } catch (IOException e) {
                 return false;
             }
@@ -163,7 +163,7 @@ public class LocalFileSystem extends FileSystem {
         String dest = src[src.length - 1];
         for (int i = 0; i < src.length - 1; ++i) {
             try {
-                Files.copy(Paths.get(src[i]), Paths.get(dest), null);
+                Files.copy(Paths.get(src[i]), Paths.get(dest));
             } catch (IOException e) {
                 return false;
             }

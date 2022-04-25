@@ -1,5 +1,6 @@
 package org.zlab.upfuzz.hdfs.MockFS;
 
+import java.io.Serializable;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -10,7 +11,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.zlab.upfuzz.hdfs.MockFS.INode.IType;
 
-public class HadoopFileSystem {
+public class HadoopFileSystem implements Serializable {
     static int file_size = 1024;
 
     Map<String, INode> inodeMap = new HashMap<String, INode>();
@@ -23,7 +24,6 @@ public class HadoopFileSystem {
         randomize(0.5);
     }
 
-
     public void randomize(double ratio) {
         inodeMap.clear();
         INode root = new INode("/", IType.Dir, 1000, 1000, 0660);
@@ -32,9 +32,11 @@ public class HadoopFileSystem {
         for (int i = 0; i < num; ++i) {
             INode dir = getRandomDir(), node;
             if (RandomUtils.nextDouble(0, 1) < ratio) {
-                node = new INode(dir, RandomStringUtils.randomAlphabetic(1, 12), IType.File);
+                node = new INode(dir, RandomStringUtils.randomAlphabetic(1, 12),
+                        IType.File);
             } else {
-                node = new INode(dir, RandomStringUtils.randomAlphabetic(1, 12), IType.Dir);
+                node = new INode(dir, RandomStringUtils.randomAlphabetic(1, 12),
+                        IType.Dir);
             }
             addNode(node);
         }
@@ -102,7 +104,8 @@ public class HadoopFileSystem {
             if (inodeMap.containsKey(path)) {
                 break;
             } else {
-                INode dirNode = new INode(path.toString(), IType.Dir, 1000, 1000, 0660);
+                INode dirNode = new INode(path.toString(), IType.Dir, 1000,
+                        1000, 0660);
                 inodeMap.put(dirNode.file_path, dirNode);
                 path = path.getParent();
             }
@@ -163,7 +166,8 @@ public class HadoopFileSystem {
             inodeMap.put(srcNode.file_path, srcNode);
         } else {
             if (destNode.i_type == IType.Dir) {
-                String newFilePath = PathUtils.join(destNode, srcNode.file_name);
+                String newFilePath = PathUtils.join(destNode,
+                        srcNode.file_name);
                 srcNode.setPath(newFilePath);
                 inodeMap.put(srcNode.file_path, srcNode);
 
@@ -262,7 +266,8 @@ public class HadoopFileSystem {
 
     public Boolean removeDir(INode file, Integer flag) {
         Boolean deleted = false;
-        for (Iterator<Map.Entry<String, INode>> it = inodeMap.entrySet().iterator(); it.hasNext();) {
+        for (Iterator<Map.Entry<String, INode>> it = inodeMap.entrySet()
+                .iterator(); it.hasNext();) {
             Map.Entry<String, INode> entry = it.next();
             if (entry.getKey().startsWith(file.file_path)) {
                 it.remove();

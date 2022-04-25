@@ -31,4 +31,10 @@ public abstract class DfsCommands extends Command {
         }
         return ret.toString();
     }
+
+    @Override
+    public String toString()
+    {
+        return constructCommandString();
+    }
 }

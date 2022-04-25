@@ -5,11 +5,15 @@ import org.zlab.upfuzz.hdfs.MockFS.HadoopFileSystem;
 import org.zlab.upfuzz.hdfs.MockFS.INode;
 import org.zlab.upfuzz.hdfs.MockFS.LocalFileSystem;
 
-public class HDFSState extends State {
+public class HdfsState extends State {
     public HadoopFileSystem dfs = new HadoopFileSystem();
     public LocalFileSystem lfs = new LocalFileSystem();
 
-    public void randomize(double ratio){
+    public HdfsState() {
+        randomize(0.6);
+    }
+
+    public void randomize(double ratio) {
         dfs.randomize(ratio);
         lfs.randomize(ratio);
     }
@@ -28,7 +32,7 @@ public class HDFSState extends State {
         return dfs.getRandomPathString();
     }
 
-    public String getRandomLocalPathString(){
+    public String getRandomLocalPathString() {
         return lfs.getRandomPathString();
     }
 }

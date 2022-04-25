@@ -12,12 +12,12 @@ import org.zlab.upfuzz.hdfs.dfscommands.SetaclCommand;
 
 public class HDFSCommandsTest {
 
-    static HDFSState hdfsState;
+    static HdfsState hdfsState;
 
     @BeforeAll
     public static void initAll() {
-        hdfsState = new HDFSState();
-        hdfsState.randomize(0.6);
+        hdfsState = new HdfsState();
+        // hdfsState.randomize(0.6);
         System.out.println("root " + hdfsState.lfs.localRoot);
     }
 

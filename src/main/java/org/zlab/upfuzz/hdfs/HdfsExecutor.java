@@ -9,6 +9,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.codehaus.plexus.util.FileUtils;
+import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.CustomExceptions;
 import org.zlab.upfuzz.fuzzingengine.Config;
@@ -20,7 +22,8 @@ public class HdfsExecutor extends Executor {
     static final String jacocoOptions = "=append=false,includes=org.apache.hadoop.*,output=dfe,address=localhost,sessionid=";
     Process hdfsProcess;
 
-    protected HdfsExecutor(CommandSequence commandSequence, CommandSequence validationCommandSequence) {
+    public HdfsExecutor(CommandSequence commandSequence,
+            CommandSequence validationCommandSequence) {
         super(commandSequence, validationCommandSequence, "hadoop");
     }
 
@@ -35,8 +38,11 @@ public class HdfsExecutor extends Executor {
         Process isReady;
         int ret = 0;
         try {
-            isReady = Utilities.exec(new String[] { "bin/hdfs", "dfsadmin", "-report" }, hdfsPath);
-            BufferedReader in = new BufferedReader(new InputStreamReader(isReady.getInputStream()));
+            isReady = Utilities.exec(
+                    new String[] { "bin/hdfs", "dfsadmin", "-report" },
+                    hdfsPath);
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(isReady.getInputStream()));
             String line;
             while ((line = in.readLine()) != null) {
             }
@@ -50,15 +56,52 @@ public class HdfsExecutor extends Executor {
     }
 
     @Override
-    public void startup() {
+    public void startup() throws Exception {
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                try {
+                    Utilities.exec(new String[] { "sbin/stop-dfs.sh" },
+                            Config.getConf().oldSystemPath);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        int ret = 0;
+        System.out.println("hadoop format disk...");
+        FileUtils.deleteDirectory(Config.getConf().dataDir);
+        Process hdfsFormatProcess = Utilities.exec(
+                new String[] { "bin/hdfs", "namenode", "-format" },
+                Config.getConf().oldSystemPath);
+        // hdfsFormatProcess.waitFor(1000, TimeUnit.MILLISECONDS);
+        // byte[] bytes = new byte[65536];
+        // int n = hdfsFormatProcess.getInputStream().read(bytes);
+        // while (n != -1) {
+        //     System.out.println(
+        //             "read n bytes: " + n + "\n" + new String(bytes, 0, n));
+        //     n = hdfsFormatProcess.getInputStream().read(bytes);
+        // }
+        // String formatMessage = Utilities.readProcess(hdfsFormatProcess);
+        // System.out.println("format messsage: " + formatMessage);
+        // hdfsFormatProcess.getOutputStream().write("Y\n".getBytes());
+        hdfsFormatProcess.waitFor();
+        ret = hdfsFormatProcess.exitValue();
+        System.out.println("format result: " + ret);
+        if (ret != 0) {
+            throw new Exception("hdfs format exception");
+        }
         System.out.println("start hadoop...");
-        ProcessBuilder hdfsProcessBuilder = new ProcessBuilder("sbin/start-dfs.sh");
+        ProcessBuilder hdfsProcessBuilder = new ProcessBuilder(
+                "sbin/start-dfs.sh");
         Map<String, String> env = hdfsProcessBuilder.environment();
         env.put("JAVA_TOOL_OPTIONS",
-                "-javaagent:" + Config.getConf().jacocoAgentPath + jacocoOptions + systemID + "-" + executorID);
+                "-javaagent:" + Config.getConf().jacocoAgentPath + jacocoOptions
+                        + systemID + "-" + executorID);
         hdfsProcessBuilder.directory(new File(Config.getConf().oldSystemPath));
         hdfsProcessBuilder.redirectErrorStream(true);
-        hdfsProcessBuilder.redirectOutput(Paths.get(Config.getConf().oldSystemPath, "logs.txt").toFile());
+        hdfsProcessBuilder.redirectOutput(
+                Paths.get(Config.getConf().oldSystemPath, "logs.txt").toFile());
 
         try {
             System.out.println("Executor starting hdfs");
@@ -79,13 +122,15 @@ public class HdfsExecutor extends Executor {
                     // System.out.println("hdfs process crushed\nCheck " + Config.getConf().hdfsOutputFile
                     //         + " for details");
                     // System.exit(1);
-                    throw new CustomExceptions.systemStartFailureException("Hdfs Start fails", null);
+                    throw new CustomExceptions.systemStartFailureException(
+                            "Hdfs Start fails", null);
                 }
                 System.out.println("Wait for " + systemID + " ready...");
                 Thread.sleep(1000);
             }
             long endTime = System.currentTimeMillis();
-            System.out.println("hdfs " + executorID + " ready \n time usage:" + (endTime - startTime) / 1000. + "\n");
+            System.out.println("hdfs " + executorID + " ready \n time usage:"
+                    + (endTime - startTime) / 1000. + "\n");
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
@@ -99,7 +144,8 @@ public class HdfsExecutor extends Executor {
         Process p;
         try {
             p = pb.start();
-            BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(p.getInputStream()));
             String line;
             while ((line = in.readLine()) != null) {
                 System.out.println(line);
@@ -118,18 +164,106 @@ public class HdfsExecutor extends Executor {
         List<String> commandList = commandSequence.getCommandStringList();
         List<String> ret = new LinkedList<>();
         for (String cmd : commandList) {
-            ProcessBuilder pb = new ProcessBuilder("bin/hdfs", cmd);
-            pb.directory(new File(Config.getConf().oldSystemPath));
-            Process p;
+            System.out.println("cmd: " + cmd);
             try {
-                p = pb.start();
-                p.wait();
+                Process p = Utilities.exec(new String[] { "bin/hdfs", cmd },
+                        Config.getConf().oldSystemPath);
+                p.waitFor();
             } catch (IOException | InterruptedException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
         return null;
+    }
+
+    /**
+     * 1. Prepare Rolling Upgrade
+     *     1. Run "hdfs dfsadmi n -rolli ngUpgrade prepare" to create a fsimage for rollback.
+     *     2. Run "hdfs dfsadmi n -rolli ngUpgrade query" to check the status of the rollback image.
+     *     Wait and re-run the command until the "Proceed with rolling upgrade" message is shown.
+     *
+     * (without Downtime)
+     * 2. Upgrade Active and Standby NNs
+     *     1. Shutdown and upgrade NN2.
+     *     2. Start NN2 as standby with the "-rollingUpgrade started" option.
+     *     3. Failover from NN1 to NN2 so that NN2 becomes active and NN1 becomes standby.
+     *     4. Shutdown and upgrade NN1. 5. Start NN1 as standby with the "-rolli ngUpgrade started" option.
+     *
+     * (with Downtime)
+     * 2. Upgrade NN and SNN
+     *     1. Shutdown SNN
+     *     2. Shutdown and upgrade NN.
+     *     3. Start NN with the "-rollingUpgrade started" option.
+     *     4. Upgrade and restart SNN
+     *
+     * 3. Upgrade DNs
+     *     1. Choose a small subset of datanodes (e.g. all datanodes under a particular rack).
+     *         1. Run "hdfs dfsadmi n -shutdownDatanode <DATANODE_HOST : IPC_PORT> upgrade" to shutdown one of the chosen datanodes.
+     *         2. Run "hdfs dfsadmi n -getDatanodeInfo <DATANODE_HOST: IPC_PORT>" to check and wait for the datanode to shutdown.
+     *         3. Upgrade and restart the datanode.
+     *         4. Perform the above steps for all the chosen datanodes in the subset in parallel.
+     *     2. Repeat the above steps until all datanodes in the cluster are upgraded.
+     * 4. Finalize Rolling Upgrade
+     *     1. Run "hdfs dfsadmi n -rolli ngUpgrade finalize" to finalize the rolling upgrade.
+     * @throws InterruptedException
+     */
+    public void upgrade() throws IOException, InterruptedException {
+
+        // Prepare Rolling Upgrade
+
+        Process prepareProcess = Utilities.exec(new String[] { "bin/hdfs",
+                "dfsadmin", "-rollingUpgrade", "prepare" },
+                Config.getConf().oldSystemPath);
+        prepareProcess.waitFor();
+        // Re-run until Proceed with rolling upgrade
+        while (true) {
+            Process queryProcess = Utilities.exec(new String[] { "bin/hdfs",
+                    "dfsadmin", "-rollingUpgrade", "query" },
+                    Config.getConf().oldSystemPath);
+
+            int ret = queryProcess.waitFor();
+            if (ret == 0) {
+                break;
+            }
+        }
+
+        // 2 upgrade NN
+
+        Process shutdownSNN = Utilities.exec(new String[] { "bin/hdfs",
+                "--daemon", "stop", "secondarynamenode" },
+                Config.getConf().oldSystemPath);
+        shutdownSNN.waitFor();
+
+        Process shutdownNN = Utilities.exec(
+                new String[] { "bin/hdfs", "--daemon", "stop", "namenode" },
+                Config.getConf().oldSystemPath);
+        shutdownNN.waitFor();
+
+        Process upgradeNN = Utilities.exec(
+                new String[] { "bin/hdfs", "--daemon", "start", "namenode",
+                        "-rollingUpgrade", "started" },
+                Config.getConf().newSystemPath);
+        upgradeNN.waitFor();
+
+
+        Process upgradeSNN = Utilities.exec(new String[] { "bin/hdfs",
+                "--daemon", "start", "secondaynamenode" },
+                Config.getConf().newSystemPath);
+        upgradeSNN.waitFor();
+
+        // 3. Upgrade DNs
+        Process shutdownDN = Utilities.exec(
+                new String[] { "bin/hdfs", "--daemon", "stop", "datanode" },
+                Config.getConf().oldSystemPath);
+        shutdownDN.waitFor();
+
+        Process upgradeDN = Utilities.exec(
+                new String[] { "bin/hdfs", "--daemon", "start", "datanode",
+                        "-rollingUpgrade", "started" },
+                Config.getConf().newSystemPath);
+        upgradeDN.waitFor();
+
+        // TODO Finalize Rolling Upgrade
     }
 
 }

@@ -39,9 +39,8 @@ public class FuzzingClient {
 
 	public static int crashID;
 
-
 	FuzzingClient() {
-        init();
+		init();
 	}
 
 	private void init() {
@@ -60,16 +59,19 @@ public class FuzzingClient {
 		}
 	}
 
-	public ExecutionDataStore start(CommandSequence commandSequence, CommandSequence validationCommandSequence) {
+	public ExecutionDataStore start(Executor executor) {
+		CommandSequence commandSequence = executor.commandSequence;
+		CommandSequence validationCommandSequence = executor.validationCommandSequence;
 
 		try {
-			System.out.println("Main Class Name: " + Utilities.getMainClassName());
+			System.out.println(
+					"Main Class Name: " + Utilities.getMainClassName());
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
-		Executor executor = new CassandraExecutor(commandSequence, validationCommandSequence);
+		// Executor executor = new CassandraExecutor(commandSequence, validationCommandSequence);
 		List<String> oldVersionResult = null;
 		ExecutionDataStore codeCoverage = null;
 		try {
@@ -79,7 +81,8 @@ public class FuzzingClient {
 				String destFile = executor.getSysExecID() + ".exec";
 				try {
 					FileOutputStream localFile = new FileOutputStream(destFile);
-					ExecutionDataWriter localWriter = new ExecutionDataWriter(localFile);
+					ExecutionDataWriter localWriter = new ExecutionDataWriter(
+							localFile);
 					codeCoverage.accept(localWriter);
 					// localWriter.visitClassExecution(codeCoverage);
 					System.out.println("write codecoverage to " + destFile);
@@ -88,8 +91,7 @@ public class FuzzingClient {
 				}
 			}
 		} catch (CustomExceptions.systemStartFailureException e) {
-			System.out.println("old version system start up failed");			
-
+			System.out.println("old version system start up failed");
 			System.exit(1);
 		}
 
@@ -105,7 +107,10 @@ public class FuzzingClient {
 				 * Serialize them into the folder, 2 sequences + failureType + failureInfo
 				*/
 
-				while(Paths.get(Config.getConf().crashDir, "crash_" + Integer.toString(crashID) + ".report" ).toFile().exists()) {
+				while (Paths
+						.get(Config.getConf().crashDir, "crash_"
+								+ Integer.toString(crashID) + ".report")
+						.toFile().exists()) {
 					crashID++;
 				}
 				/**
@@ -114,12 +119,15 @@ public class FuzzingClient {
 				 * 3. FailureType
 				 * 4. FailureInfo
 				 */
-				Pair<CommandSequence, CommandSequence> commandSequencePair = new Pair<>(commandSequence, validationCommandSequence);
-				Path commandSequencePairPath = Paths.get(Config.getConf().crashDir, "crash_" + Integer.toString(crashID) + ".ser");
+				Pair<CommandSequence, CommandSequence> commandSequencePair = new Pair<>(
+						commandSequence, validationCommandSequence);
+				Path commandSequencePairPath = Paths.get(
+						Config.getConf().crashDir,
+						"crash_" + Integer.toString(crashID) + ".ser");
 
 				try {
-					FileOutputStream fileOut =
-							new FileOutputStream(commandSequencePairPath.toFile());
+					FileOutputStream fileOut = new FileOutputStream(
+							commandSequencePairPath.toFile());
 					ObjectOutputStream out = new ObjectOutputStream(fileOut);
 					out.writeObject(commandSequencePair);
 					out.close();
@@ -132,20 +140,24 @@ public class FuzzingClient {
 				sb.append("Failure Type: " + executor.failureType + "\n");
 				sb.append("Failure Info: " + executor.failureInfo + "\n");
 				sb.append("old version command list\n");
-				for (String commandStr : commandSequence.getCommandStringList()) {
+				for (String commandStr : commandSequence
+						.getCommandStringList()) {
 					sb.append(commandStr);
 					sb.append("\n");
 				}
 				sb.append("\n\n");
 				sb.append("new version command list\n");
-				for (String commandStr : validationCommandSequence.getCommandStringList()) {
+				for (String commandStr : validationCommandSequence
+						.getCommandStringList()) {
 					sb.append(commandStr);
 					sb.append("\n");
 				}
-				Path crashReportPath = Paths.get(Config.getConf().crashDir, "crash_" + Integer.toString(crashID) + ".report");
+				Path crashReportPath = Paths.get(Config.getConf().crashDir,
+						"crash_" + Integer.toString(crashID) + ".report");
+
 				try {
-					FileOutputStream fileOut =
-							new FileOutputStream(crashReportPath.toFile());
+					FileOutputStream fileOut = new FileOutputStream(
+							crashReportPath.toFile());
 					ObjectOutputStream out = new ObjectOutputStream(fileOut);
 					out.writeObject(sb.toString());
 					out.close();
@@ -156,12 +168,12 @@ public class FuzzingClient {
 				crashID++;
 			}
 		} catch (CustomExceptions.systemStartFailureException e) {
-			System.out.println("New version cassandra start up failed, this could be a bug");
+			System.out.println(
+					"New version start up failed, this could be a bug");
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(1);
 		}
-
 
 		return codeCoverage;
 	}
@@ -192,11 +204,11 @@ public class FuzzingClient {
 					 * this will merge the probe of each classes.
 					 */
 					execStore.merge(astore);
-					System.out.println("astore size: " + execStore.getContents().size());
+					System.out.println(
+							"astore size: " + execStore.getContents().size());
 				}
 			}
 			System.out.println("size: " + execStore.getContents().size());
-
 
 			// Send coverage back
 

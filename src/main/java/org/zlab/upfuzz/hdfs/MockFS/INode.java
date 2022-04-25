@@ -1,9 +1,10 @@
 package org.zlab.upfuzz.hdfs.MockFS;
 
+import java.io.Serializable;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class INode {
+public class INode implements Serializable {
 
     public INode(INode inode) {
         this.i_gid = inode.i_gid;
