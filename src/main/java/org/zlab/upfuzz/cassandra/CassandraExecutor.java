@@ -22,6 +22,8 @@ import org.zlab.upfuzz.utils.Utilities;
 
 public class CassandraExecutor extends Executor {
 
+    CassandraCqlshDaemon cqlsh = null;
+
     Process cassandraProcess;
     static final String jacocoOptions = "=append=false,includes=org.apache.cassandra.*,output=dfe,address=localhost,sessionid=";
 
@@ -86,6 +88,8 @@ public class CassandraExecutor extends Executor {
             long endTime = System.currentTimeMillis();
             System.out.println(
                     "cassandra " + executorID + " ready \n time usage:" + (endTime - startTime) / 1000. + "\n");
+
+            cqlsh = new CassandraCqlshDaemon(Config.getConf().cassandraPath);
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
@@ -119,6 +123,7 @@ public class CassandraExecutor extends Executor {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        this.cqlsh.destroy();
     }
 
     public void upgradeteardown() {
@@ -158,6 +163,8 @@ public class CassandraExecutor extends Executor {
         pb.directory(new File(Config.getConf().upgradeCassandraPath));
         Utilities.runProcess(pb, "kill cassandra instances");
 
+        this.cqlsh.destroy();
+
     }
 
     public static Pair<CommandSequence, CommandSequence> prepareCommandSequence() {
@@ -194,7 +201,8 @@ public class CassandraExecutor extends Executor {
         List<String> commandList = commandSequence.getCommandStringList();
         List<String> ret = new LinkedList<>();
         try {
-            CassandraCqlshDaemon cqlsh = new CassandraCqlshDaemon(Config.getConf().cassandraPath);
+            if (cqlsh == null)
+                cqlsh = new CassandraCqlshDaemon(Config.getConf().cassandraPath);
             for (String cmd : commandList) {
                 // System.out
                 //         .println("\n\n------------------------------------------------------------\nexecutor command:\n"
@@ -207,7 +215,7 @@ public class CassandraExecutor extends Executor {
                 // System.out.println("ret is: " + cp.exitValue + "\ntime: " + cp.timeUsage + "\ntime usage(network):"
                 //         + (endTime - startTime) / 1000. + "\n");
             }
-            cqlsh.destroy();
+//            cqlsh.destroy();
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
             return null;
@@ -221,7 +229,9 @@ public class CassandraExecutor extends Executor {
         List<String> ret = new LinkedList<>();
         try {
             // TODO: Put the cqlsh daemon outside, so that one instance for one cqlsh daemon
-            CassandraCqlshDaemon cqlsh = new CassandraCqlshDaemon(Config.getConf().upgradeCassandraPath);
+
+            if (cqlsh == null)
+                cqlsh = new CassandraCqlshDaemon(Config.getConf().upgradeCassandraPath);
             for (String cmd : commandList) {
                 // System.out
                 //         .println("\n\n------------------------------------------------------------\nexecutor command:\n"
@@ -234,7 +244,7 @@ public class CassandraExecutor extends Executor {
                 // System.out.println("ret is: " + cp.exitValue + "\ntime: " + cp.timeUsage + "\ntime usage(network):"
                 //         + (endTime - startTime) / 1000. + "\n");
             }
-            cqlsh.destroy();
+//            cqlsh.destroy();
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
             return null;
@@ -288,7 +298,7 @@ public class CassandraExecutor extends Executor {
          */
         // If there is any exception when executing the commands, it should also be caught
 
-        // Upgrade
+        // Upgrade Startup
         ProcessBuilder pb = new ProcessBuilder("bin/cassandra");
         pb.directory(new File(Config.getConf().upgradeCassandraPath));
         pb.redirectOutput(Paths.get(Config.getConf().upgradeCassandraPath, "logs.txt").toFile());
@@ -322,6 +332,14 @@ public class CassandraExecutor extends Executor {
 
             testId2Failure.put(-1, new Pair<>(failureType, failureInfo));
             return false;
+        }
+
+        try {
+            this.cqlsh = new CassandraCqlshDaemon(Config.getConf().upgradeCassandraPath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
 
         // while (!isNewCassandraReady(Config.getConf().upgradeCassandraPath)) {

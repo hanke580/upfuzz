@@ -21,7 +21,7 @@ import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
 public class FuzzingClient {
-	public static final int epochNum = 2; // Validation per epochNum
+	public static final int epochNum = 60; // Validation per epochNum
 
 	/**
 	 * key: String -> agentId
@@ -98,8 +98,6 @@ public class FuzzingClient {
 
 		try {
 			oldVersionResult = executor.execute(commandSequence, validationCommandSequence, testId);
-			// Collect coverage
-			executor.saveSnapshot();
 
 			if (oldVersionResult != null) {
 				codeCoverage = collect(executor);
