@@ -1,6 +1,7 @@
 package org.zlab.upfuzz.cassandra;
 
 import org.zlab.upfuzz.*;
+import org.zlab.upfuzz.ParameterType.FrontSubsetType;
 import org.zlab.upfuzz.utils.*;
 
 import java.util.*;
@@ -117,12 +118,6 @@ public class CassandraCommands {
 
             updateExecutableCommandString();
 
-            /**
-             * CREATE KEYSPACE ks4 WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
-             */
-//            keyspaceName.getValue(); // This should be a string
-//            Parameter keyspaceName = keyspaceNameType.generateRandomParameter(state, this, value);
-
         }
 
         public CREAT_KEYSPACE(State state) {
@@ -150,14 +145,6 @@ public class CassandraCommands {
             params.add(IF_NOT_EXIST); // [2]
 
             updateExecutableCommandString();
-
-            /**
-             * CREATE KEYSPACE ks4 WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
-             */
-//            keyspaceName.getValue(); // This should be a string
-//            Parameter keyspaceName = keyspaceNameType.generateRandomParameter(state, this, value);
-
-
         }
 
         @Override
@@ -223,20 +210,6 @@ public class CassandraCommands {
             Parameter columns = columnsType.generateRandomParameter(cassandraState, this, init2);
             params.add(columns); // [2]
 
-            /**
-             * Bool variable check whether the previous columns has any member that's already specified as
-             * Primary Key
-             * - True
-             *      - Shouldn't generate the third param
-             * - False
-             *      - Should generate
-             *
-             * Impl this check as a type
-             * - Take a previous parameter as input
-             *      - genRanParam()
-             *            - whether generate() according to whether 'columns' have already 'Primary Key'
-             *
-             */
             ParameterType.ConcreteType primaryColumnsType =
                     new ParameterType.NotEmpty(
                             new ParameterType.SubsetType(
@@ -655,7 +628,7 @@ public class CassandraCommands {
                             stringBuilder.append(columnName + " ");
                         }
                         stringBuilder.append("]");
-                        System.out.println(stringBuilder.toString());
+                        System.out.println(stringBuilder);
                         throw new RuntimeException();
                     }
                     primaryValues.add( ((Parameter) insertValues.get(columnsNames.indexOf(primaryCols.get(i)))).getValue() );
@@ -741,12 +714,10 @@ public class CassandraCommands {
                     new ParameterType.InCollectionType(
                             null,
                             (s, c) -> ((CassandraState) s).getTable(c.params.get(0).toString(), c.params.get(1).toString()).colName2Type,
-//                            p -> ((Pair) ((Parameter) p).value).left
                             null,
                             predicate
                     ),
                     (s, c) -> ((CassandraState) s).getTable(c.params.get(0).toString(), c.params.get(1).toString()).primaryColName2Type,
-//                    p -> ((Pair) ((Parameter) p).value).left
                     null
             );
             Parameter dropColumn = dropColumnType.generateRandomParameter(cassandraState, this);
@@ -921,8 +892,7 @@ public class CassandraCommands {
         @Override
         public String constructCommandString() {
             StringBuilder sb = new StringBuilder();
-            sb.append("DROP INDEX " + params.get(3));
-            sb.append(" " + this.params.get(0) + "." + this.params.get(2).toString() + ";");
+            sb.append("DROP INDEX ").append(params.get(3)).append(" " + this.params.get(0) + "." + this.params.get(2).toString() + ";");
             return sb.toString();
         }
 
@@ -1079,7 +1049,7 @@ public class CassandraCommands {
 
             ParameterType.ConcreteType whereColumnsType =
                     new ParameterType.NotEmpty(
-                            new ParameterType.FrontSubsetType(
+                            new FrontSubsetType(
                                     null,
                                     (s, c) -> ((CassandraState) s)
                                             .getTable(
@@ -1174,7 +1144,7 @@ public class CassandraCommands {
             this.params.add(selectColumns); // Param2
 
             ParameterType.ConcreteType whereColumnsType =
-                    new ParameterType.FrontSubsetType(
+                    new FrontSubsetType(
                             null,
                             (s, c) -> ((CassandraState) s)
                                     .getTable(
@@ -1224,7 +1194,7 @@ public class CassandraCommands {
             this.params.add(selectColumns); // Param2
 
             ParameterType.ConcreteType whereColumnsType =
-                        new ParameterType.FrontSubsetType(
+                        new FrontSubsetType(
                                 null,
                                 (s, c) -> ((CassandraState) s)
                                         .getTable(
@@ -1308,7 +1278,7 @@ public class CassandraCommands {
         @Override
         public String constructCommandString() {
             StringBuilder sb = new StringBuilder();
-            sb.append("USE " + params.get(0) + ";");
+            sb.append("USE ").append(params.get(0)).append(";");
             return sb.toString();
         }
 
@@ -1317,41 +1287,31 @@ public class CassandraCommands {
     }
 
     /**
-     * CREATE TYPE cycling.basic_info (
-     *   birthday timestamp,
-     *   nationality text,
-     *   weight text,
-     *   height text
-     * );
-     *
-     * // UnionType {1,2,3,4}
+     * This helper function will randomly pick keyspace and return its
+     * tablename as parameter.
      */
     public static Parameter chooseKeyspace(State state, Command command, Object init) {
-        /**
-         * This helper function will randomly pick keyspace and return its
-         * tablename as parameter.
-         */
+
         ParameterType.ConcreteType keyspaceNameType = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
                 (s, c) -> ((CassandraState) s).keyspace2tables.keySet(),
                 null
         );
-        Parameter keyspaceName = keyspaceNameType.generateRandomParameter(state, command, init);
-        return keyspaceName;
+        return keyspaceNameType.generateRandomParameter(state, command, init);
     }
 
+    /**
+     * This helper function will randomly pick one table and return its
+     * table name as parameter.
+     */
     public static Parameter chooseTable(State state, Command command, Object init) {
-        /**
-         * This helper function will randomly pick one table and return its
-         * tablename as parameter.
-         */
+
         ParameterType.ConcreteType TableNameType = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
                 (s, c) -> ((CassandraState) s).keyspace2tables.get(c.params.get(0).toString()).keySet(),
                 null
         );
-        Parameter TableName = TableNameType.generateRandomParameter(state, command, init);
-        return TableName;
+        return TableNameType.generateRandomParameter(state, command, init);
     }
 
 }
