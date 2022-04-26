@@ -391,6 +391,17 @@ public class CassandraExecutor extends Executor {
                 for (int i = 0; i < newVersionResult.size(); i++) {
 
                     if (oldVersionResult.get(i).compareTo(newVersionResult.get(i)) != 0) {
+
+                        // SyntaxException
+                        if (oldVersionResult.get(i).contains("SyntaxException") && newVersionResult.get(i).contains("SyntaxException")) {
+                            continue;
+                        }
+
+                        // InvalidRequest
+                        if (oldVersionResult.get(i).contains("InvalidRequest") && newVersionResult.get(i).contains("InvalidRequest")) {
+                            continue;
+                        }
+
                         // System.out.println("old version result: " + oldVersionResult.get(i));
                         // System.out.println("new version result: " + newVersionResult.get(i));
 

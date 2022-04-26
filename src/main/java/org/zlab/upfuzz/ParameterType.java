@@ -386,8 +386,37 @@ public abstract class ParameterType implements Serializable {
         @Override
         public boolean mutate(State s, Command c, Parameter p) {
             Parameter ret = generateRandomParameter(s, c);
-            p.value = ret.value;
-            return true;
+            List<Object> retValue = (List<Object>) ret.value;
+            Set<String> retList = new HashSet<>();
+            for (Object o : retValue) {
+                retList.add(o.toString());
+            }
+
+            List<Object> pValue = (List<Object>) p.value;
+            Set<String> pList = new HashSet<>();
+            for (Object o : pValue) {
+                retList.add(o.toString());
+            }
+
+            boolean equal;
+            if (pList.size() == retList.size()) {
+                equal = true;
+                for (String str : pList) {
+                    if (!retList.contains(str)) {
+                        equal = false;
+                        break;
+                    }
+                }
+            } else {
+                equal = false;
+            }
+
+            if (!equal) {
+                p.value = ret.value;
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 
@@ -914,7 +943,6 @@ public abstract class ParameterType implements Serializable {
                 typeList = (List<Parameter>) targetCollection;
             }
 
-
             /**
              *          p
              *         / \
@@ -924,12 +952,8 @@ public abstract class ParameterType implements Serializable {
             List<Parameter> valueList = (List<Parameter>) p.value;
             if (typeList.size() != valueList.size()) return false;
 
-            // TODO: Problem
-            /**
-             * Type is not comparable
-             */
+            // TODO: Problem: Type is not comparable
 //            for (int i = 0; i < typeList.size(); i++) {
-//                // TODO: Do we need to make the type comparable?
 //                // Same t, predicate, class?
 //                if (!typeList.get(i).getValue().equals(valueList.get(i).type)) {
 //                    return false;
