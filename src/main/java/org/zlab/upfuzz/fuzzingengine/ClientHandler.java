@@ -1,16 +1,13 @@
-
 package org.zlab.upfuzz.fuzzingengine;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import org.jacoco.core.data.ExecutionData;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.jacoco.core.data.ExecutionDataWriter;
@@ -20,7 +17,8 @@ import org.jacoco.core.data.SessionInfo;
 import org.jacoco.core.runtime.RemoteControlReader;
 import org.jacoco.core.runtime.RemoteControlWriter;
 
-public class ClientHandler implements Runnable, ISessionInfoVisitor, IExecutionDataVisitor {
+public class ClientHandler
+        implements Runnable, ISessionInfoVisitor, IExecutionDataVisitor {
     private final FuzzingClient client;
     private final Socket socket;
     private String sessionId;
@@ -34,13 +32,20 @@ public class ClientHandler implements Runnable, ISessionInfoVisitor, IExecutionD
     private final int maxn = 10240;
 
     private boolean registered = false;
+    public long lastUpdateTime;
+    public boolean waitSessionData = false;
+    // public boolean okCMD = false;
+    public CountDownLatch okCMD = new CountDownLatch(1);
 
     private byte[] buffer;
 
-    ClientHandler(final FuzzingClient client, final Socket socket, ExecutionDataWriter fileWriter) throws IOException {
+    ClientHandler(final FuzzingClient client, final Socket socket,
+            ExecutionDataWriter fileWriter) throws IOException {
         this.client = client;
         this.socket = socket;
         this.fileWriter = fileWriter;
+
+        this.socket.setReceiveBufferSize(512 * 1024);
 
         // Just send a valid header:
         writer = new RemoteControlWriter(socket.getOutputStream());
@@ -55,6 +60,11 @@ public class ClientHandler implements Runnable, ISessionInfoVisitor, IExecutionD
     public void run() {
         try {
             while (reader.read()) {
+                okCMD.countDown();
+                DateFormat formatter = new SimpleDateFormat(
+                        "yyyy-MM-dd HH:mm:ss.SSS");
+                System.out.println(formatter.format(System.currentTimeMillis())
+                        + "\n" + "after one read");
             }
 
             System.out.println("connection closed");
@@ -80,7 +90,8 @@ public class ClientHandler implements Runnable, ISessionInfoVisitor, IExecutionD
         client.agentHandler.put(sessionId, this);
         System.out.println("agent handler add " + sessionId);
 
-        String identifier = sessionSplit[0], executor = sessionSplit[1], index = sessionSplit[2];
+        String identifier = sessionSplit[0], executor = sessionSplit[1],
+                index = sessionSplit[2];
         if (!client.sessionGroup.containsKey(executor)) {
             client.sessionGroup.put(executor, new ArrayList<>());
         }
@@ -89,10 +100,13 @@ public class ClientHandler implements Runnable, ISessionInfoVisitor, IExecutionD
     }
 
     public void visitSessionInfo(final SessionInfo info) {
+        waitSessionData = true;
+        lastUpdateTime = System.currentTimeMillis();
         if (!registered) {
             register(info);
         } else {
-            System.out.printf("Retrieving execution Data for session: %s%n", info.getId());
+            System.out.printf("Retrieving execution Data for session: %s%n",
+                    info.getId());
         }
         synchronized (fileWriter) {
             fileWriter.visitSessionInfo(info);
@@ -120,10 +134,21 @@ public class ClientHandler implements Runnable, ISessionInfoVisitor, IExecutionD
         synchronized (fileWriter) {
             fileWriter.visitClassExecution(data);
         }
+        lastUpdateTime = System.currentTimeMillis();
+
     }
 
     public void collect() throws IOException {
-        System.out.println("handler collect " + sessionId);
+        System.out.print("handler collect " + sessionId + "...");
         writer.visitDumpCommand(true, false);
+        okCMD = new CountDownLatch(1);
+        synchronized (okCMD) {
+            try {
+                okCMD.await(1500, TimeUnit.MILLISECONDS);
+                System.out.println("ok");
+            } catch (InterruptedException e) {
+                System.out.println("timeout");
+            }
+        }
     }
 }

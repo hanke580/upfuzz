@@ -9,11 +9,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.jacoco.core.data.ExecutionDataWriter;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.CustomExceptions;
-import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
@@ -181,17 +181,44 @@ public class FuzzingClient {
 	public ExecutionDataStore collect(Executor executor) {
 		List<String> agentIdList = sessionGroup.get(executor.executorID);
 		if (agentIdList == null) {
-			// new UnexpectedException("No agent connection with executor " + executor.executorID.toString())
-			// 		.printStackTrace();
+			System.err.println("No agent connection with executor "
+					+ executor.executorID.toString());
 			return null;
 		} else {
-			// for (String agentId : agentIdList) {
-			// 	System.out.println("collect conn " + agentId);
-			// 	ClientHandler conn = agentHandler.get(agentId);
-			// 	if (conn != null) {
-			// 		conn.collect();
-			// 	}
-			// }
+			System.out.println("collect: " + executor.executorID);
+
+			Long startTime = System.currentTimeMillis();
+
+			// Add to the original coverage
+			for (String agentId : agentIdList) {
+				System.out.println("collect conn " + agentId);
+				ClientHandler conn = agentHandler.get(agentId);
+				if (conn != null) {
+					try {
+						conn.waitSessionData = false;
+						conn.collect();
+						// while (!conn.waitSessionData) {
+						// 	// System.out.println("wait Session");
+						// 	Thread.sleep(100);
+						// }
+						// // System.out.println("wait data1: currentTimeMillis = " + System.currentTimeMillis() + "  Conn.lastTime = " + conn.lastUpdateTime);
+						// while (System.currentTimeMillis()
+						// 		- conn.lastUpdateTime < 300) {
+						// 	// System.out.println("wait data2: currentTimeMillis = " + System.currentTimeMillis() + "  Conn.lastTime = " + conn.lastUpdateTime);
+						// 	Thread.sleep(100);
+						// }
+					} catch (IOException e) {
+						// e.printStackTrace();
+					}
+				}
+			}
+			Long endTime = System.currentTimeMillis();
+			System.out.println("network time usage: " + (endTime - startTime)
+					+ "\n" + DurationFormatUtils.formatDuration(
+							endTime - startTime, "HH:mm:ss.SSS"));
+
+			startTime = System.currentTimeMillis();
+
 			ExecutionDataStore execStore = new ExecutionDataStore();
 			for (String agentId : agentIdList) {
 				System.out.println("get coverage from " + agentId);
@@ -208,9 +235,13 @@ public class FuzzingClient {
 							"astore size: " + execStore.getContents().size());
 				}
 			}
-			System.out.println("size: " + execStore.getContents().size());
-
+			System.out.println(
+					"codecoverage size: " + execStore.getContents().size());
 			// Send coverage back
+			endTime = System.currentTimeMillis();
+			System.out.println("merge time usage: " + (endTime - startTime)
+					+ "\n" + DurationFormatUtils.formatDuration(
+							endTime - startTime, "HH:mm:ss.SSS"));
 
 			return execStore;
 		}

@@ -27,8 +27,7 @@ public class NullExecutor extends Executor {
 
     @Override
     public List<String> executeCommands(CommandSequence commandSequence) {
-        while (true){
-        }
+        return null;
     }
 
     @Override

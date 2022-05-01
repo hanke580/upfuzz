@@ -2,17 +2,21 @@ package org.zlab.upfuzz.fuzzingengine;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.fuzzingengine.Config.Configuration;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 
 public class FuzzingClientTest {
+
     @BeforeAll
     static public void initAll() {
         String configFile = "./hdfsconfig.json";
@@ -31,8 +35,37 @@ public class FuzzingClientTest {
 
     @Test
     public void testJacoco() {
+        // Executor nullExecutor = new NullExecutor(null, null);
+        // FuzzingClient fc = new FuzzingClient();
+        // fc.start(nullExecutor);
+    }
+
+    @Test
+    public void testJacocoCollect() {
         Executor nullExecutor = new NullExecutor(null, null);
         FuzzingClient fc = new FuzzingClient();
+        byte[] bs = new byte[65536];
+        nullExecutor.executorID = "nullExecutor";
+        System.out.println("id: " + nullExecutor.executorID);
         fc.start(nullExecutor);
+        while (true) {
+            try {
+                Thread.sleep(6000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.println("collect");
+            Long startTime = System.currentTimeMillis();
+            DateFormat formatter = new SimpleDateFormat(
+                    "yyyy-MM-dd HH:mm:ss.SSS");
+            System.out.println(formatter.format(System.currentTimeMillis())
+                    + "\n" + "ask for dump");
+
+            fc.collect(nullExecutor);
+            Long endTime = System.currentTimeMillis();
+            System.out.println("collect time usage: " + (endTime - startTime)
+                    + "\n" + DurationFormatUtils.formatDuration(
+                            endTime - startTime, "HH:mm:ss.SSS"));
+        }
     }
 }
