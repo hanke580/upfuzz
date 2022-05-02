@@ -45,7 +45,8 @@ public class ClientHandler
         this.socket = socket;
         this.fileWriter = fileWriter;
 
-        this.socket.setReceiveBufferSize(512 * 1024);
+        this.socket.setSendBufferSize(128 * 1024);
+        this.socket.setReceiveBufferSize(128 * 1024);
 
         // Just send a valid header:
         writer = new RemoteControlWriter(socket.getOutputStream());
@@ -69,9 +70,9 @@ public class ClientHandler
 
             System.out.println("connection closed");
             socket.close();
-            synchronized (fileWriter) {
-                fileWriter.flush();
-            }
+            // synchronized (fileWriter) {
+            //     fileWriter.flush();
+            // }
         } catch (final IOException e) {
             e.printStackTrace();
             // client.agentHandler.remove(sessionId);
@@ -108,9 +109,9 @@ public class ClientHandler
             System.out.printf("Retrieving execution Data for session: %s%n",
                     info.getId());
         }
-        synchronized (fileWriter) {
-            fileWriter.visitSessionInfo(info);
-        }
+        // synchronized (fileWriter) {
+        //     fileWriter.visitSessionInfo(info);
+        // }
     }
 
     public void visitClassExecution(final ExecutionData data) {
@@ -131,20 +132,20 @@ public class ClientHandler
             store.put(data);
             client.agentStore.put(sessionId, store);
         }
-        synchronized (fileWriter) {
-            fileWriter.visitClassExecution(data);
-        }
+        // synchronized (fileWriter) {
+        //     fileWriter.visitClassExecution(data);
+        // }
         lastUpdateTime = System.currentTimeMillis();
 
     }
 
     public void collect() throws IOException {
-        System.out.print("handler collect " + sessionId + "...");
+        System.out.println("handler collect " + sessionId + "...");
         writer.visitDumpCommand(true, false);
         okCMD = new CountDownLatch(1);
         synchronized (okCMD) {
             try {
-                okCMD.await(1500, TimeUnit.MILLISECONDS);
+                okCMD.await(1000, TimeUnit.MILLISECONDS);
                 System.out.println("ok");
             } catch (InterruptedException e) {
                 System.out.println("timeout");

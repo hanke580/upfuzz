@@ -2,6 +2,8 @@ package org.zlab.upfuzz.fuzzingengine;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
+import java.net.Socket;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
@@ -9,6 +11,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -40,7 +43,7 @@ public class FuzzingClientTest {
         // fc.start(nullExecutor);
     }
 
-    @Test
+    // @Test
     public void testJacocoCollect() {
         Executor nullExecutor = new NullExecutor(null, null);
         FuzzingClient fc = new FuzzingClient();
@@ -50,7 +53,7 @@ public class FuzzingClientTest {
         fc.start(nullExecutor);
         while (true) {
             try {
-                Thread.sleep(6000);
+                Thread.sleep(10000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -66,6 +69,28 @@ public class FuzzingClientTest {
             System.out.println("collect time usage: " + (endTime - startTime)
                     + "\n" + DurationFormatUtils.formatDuration(
                             endTime - startTime, "HH:mm:ss.SSS"));
+        }
+    }
+
+    // @Test
+    public void testTcpPacketSize() {
+        Executor nullExecutor = new NullExecutor(null, null);
+        FuzzingClient fc = new FuzzingClient();
+        byte[] bs = new byte[65536];
+        nullExecutor.executorID = "nullExecutor";
+        System.out.println("id: " + nullExecutor.executorID);
+        fc.start(nullExecutor);
+
+        try {
+            Socket socket = new Socket("127.0.0.1", 6300);
+            socket.setSendBufferSize(128 * 1024);
+            socket.setReceiveBufferSize(128 * 1024);
+            System.out.println("received: " + socket.getReceiveBufferSize()
+                    + "\n" + "send" + socket.getSendBufferSize());
+            bs = RandomUtils.nextBytes(65535);
+            socket.getOutputStream().write(bs);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
