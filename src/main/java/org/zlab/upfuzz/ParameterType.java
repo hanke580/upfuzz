@@ -1178,6 +1178,23 @@ public abstract class ParameterType implements Serializable {
             }
             return cache.get(ret);
         }
+
+        @Override
+        public String toString() {
+            // List<Int>
+            // Pair<Int,TEXT>
+            // List<Pair<Int,Text>
+            StringBuilder sb = new StringBuilder();
+            sb.append(t.toString());
+            sb.append("<");
+            for (int i = 0; i < typesInTemplate.size(); i++) {
+                sb.append(typesInTemplate.get(i).toString());
+                if (i != typesInTemplate.size() - 1)
+                    sb.append(",");
+            }
+            sb.append(">");
+            return sb.toString();
+        }
     }
 
     public static class ConcreteGenericTypeOne extends ConcreteGenericType {

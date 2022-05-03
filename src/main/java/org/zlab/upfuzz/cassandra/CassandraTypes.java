@@ -187,6 +187,11 @@ public class CassandraTypes {
       return true;
     }
 
+    @Override
+    public String toString() {
+      return "LIST";
+    }
+
 
 //    @Override
 //    public void mutate(State s, Command c, Parameter p) {

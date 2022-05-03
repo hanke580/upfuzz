@@ -73,4 +73,9 @@ public class PAIRType extends ParameterType.GenericTypeTwo {
 
     return t1.isValid(s, c, initValues.left) && t2.isValid(s, c, initValues.right);
   }
+
+  @Override
+  public String toString() {
+    return "PAIR";
+  }
 }
