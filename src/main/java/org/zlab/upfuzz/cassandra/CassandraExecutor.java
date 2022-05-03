@@ -116,7 +116,7 @@ public class CassandraExecutor extends Executor {
             e.printStackTrace();
         }
         // Remove the data folder
-        pb = new ProcessBuilder("rm", "-rf", "data");
+        pb = new ProcessBuilder("rm", "-rf", "data", "logs.txt");
         pb.directory(new File(Config.getConf().cassandraPath));
         try {
             pb.start();
@@ -147,7 +147,7 @@ public class CassandraExecutor extends Executor {
             e.printStackTrace();
         }
         // Remove the data folder
-        pb = new ProcessBuilder("rm", "-rf", "data");
+        pb = new ProcessBuilder("rm", "-rf", "data", "logs.txt");
         pb.directory(new File(Config.getConf().upgradeCassandraPath));
         try {
             pb.start();
