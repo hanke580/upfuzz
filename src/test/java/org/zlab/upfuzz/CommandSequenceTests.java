@@ -61,4 +61,26 @@ public class CommandSequenceTests {
         final String uuid = UUID.randomUUID().toString().replace("-", "");
         System.out.println("uuid = " + uuid);
     }
+
+    @Test
+    public void testTypeIsValidCheck() {
+        CommandSequence commandSequence = CommandTests.cass13939CommandSequence();
+
+        try {
+            commandSequence.mutate();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        for (String cmdStr : commandSequence.getCommandStringList()) {
+            System.out.println(cmdStr);
+        }
+    }
+
 }

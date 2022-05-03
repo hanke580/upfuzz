@@ -82,8 +82,8 @@ public class CommandSequence implements Serializable {
             State state = (State) constructor.newInstance(); // Recreate a state
 
             if (CassandraCommands.DEBUG) {
-                pos = 1;
-                choice = 2;
+                pos = 3;
+                choice = 1;
             }
             System.out.println("\tMutate Command Pos " + pos);
 

@@ -952,13 +952,16 @@ public abstract class ParameterType implements Serializable {
             List<Parameter> valueList = (List<Parameter>) p.value;
             if (typeList.size() != valueList.size()) return false;
 
-            // TODO: Problem: Type is not comparable
-//            for (int i = 0; i < typeList.size(); i++) {
-//                // Same t, predicate, class?
-//                if (!typeList.get(i).getValue().equals(valueList.get(i).type)) {
-//                    return false;
-//                }
-//            }
+            /**
+             * Make sure each concrete type have overrided the toString()
+             * Now we only add text, int, string
+             * TODO: But for the List Type comparing, we also need to add that.
+             */
+            for (int i = 0; i < typeList.size(); i++) {
+                if (!typeList.get(i).getValue().toString().equals(valueList.get(i).type.toString())) {
+                    return false;
+                }
+            }
             return true;
         }
 
@@ -1086,6 +1089,7 @@ public abstract class ParameterType implements Serializable {
              * 1. Call value.mutate
              * 2. Make sure it's still valid
              */
+            // TODO: Call inside mutate function
             p.value = generateRandomParameter(s, c).value;
             return true;
         }
