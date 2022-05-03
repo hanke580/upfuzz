@@ -188,8 +188,35 @@ public class FuzzingClient {
 						i.printStackTrace();
 					}
 
+					// When ret is false, while the testId2Failure is empty!!!
+
 					// Serialize the bug information
 					for (int testIdx : executor.testId2Failure.keySet()) {
+
+						if (testIdx == -1) {
+							// The upgrade test failed, directly write report
+							// Serialize the single bug info
+							StringBuilder sb = new StringBuilder();
+							// For each failure, log into a separate file
+							sb.append("Failure Type: " + executor.testId2Failure.get(testIdx).left + "\n");
+							sb.append("Failure Info: " + executor.testId2Failure.get(testIdx).right + "\n");
+							Path crashReportPath = Paths.get(Config.getConf().crashDir,
+									"crash_" + epoch,
+									"crash_" + testIdx + ".report");
+							try {
+								FileOutputStream fileOut =
+										new FileOutputStream(crashReportPath.toFile());
+								ObjectOutputStream out = new ObjectOutputStream(fileOut);
+								out.writeObject(sb.toString());
+								out.close();
+								fileOut.close();
+							} catch (IOException i) {
+								i.printStackTrace();
+							}
+							crashID++;
+							break;
+						}
+
 						// Serialize the single bug sequence
 						Pair<CommandSequence, CommandSequence> commandSequencePair =
 								new Pair<>(testId2Sequence.get(testIdx).left, testId2Sequence.get(testIdx).right);
