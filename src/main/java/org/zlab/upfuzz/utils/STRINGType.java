@@ -114,7 +114,7 @@ public class STRINGType extends ParameterType.ConcreteType {
                 break;
             case 1: // Add a Byte
                 if (CassandraCommands.DEBUG) {
-                    System.out.println("\t[String Mutation]: add Byte");
+                    System.out.println("\t[String Mutation]: Add Byte");
                 }
                 addByte(p);
                 break;
@@ -218,7 +218,6 @@ public class STRINGType extends ParameterType.ConcreteType {
     }
 
     private void deleteByte(Parameter p) {
-        // Add a char
         String value = (String) p.value;
         StringBuilder sb = new StringBuilder(value);
 
