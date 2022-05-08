@@ -7,6 +7,8 @@ import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
@@ -27,6 +29,14 @@ public class Fuzzer {
      */
     public static final int MUTATE_RETRY_TIME = 5;
     public static int testID = 0;
+
+    // When merge new branches, increase this number
+    public static int coveredBranches = 0;
+    public static int probeNum = 0;
+
+    public static List<Pair<Integer, Integer>> coverageAlongTime = new ArrayList<>(); // time: Coverage
+    public static long lastTimePoint = 0;
+    public static long timeInterval = 600; // seconds, now set it as every 10 mins
 
     public static boolean fuzzOne(CommandSequence commandSequence,
                                   CommandSequence validationCommandSequence,
@@ -82,7 +92,20 @@ public class Fuzzer {
                 if (Utilities.hasNewBits(curCoverage, testSequenceCoverage)) {
                     queue.add(new Pair<>(mutatedCommandSequence, validationCommandSequence));
                     curCoverage.merge(testSequenceCoverage);
+
+                    // Update the coveredBranches to the newest value
+                    Pair<Integer, Integer> coverageStatus = Utilities.getCoverageStatus(curCoverage);
+                    coveredBranches = coverageStatus.left;
+                    probeNum = coverageStatus.right;
                 }
+
+                Long timeElapsed = TimeUnit.SECONDS.convert(System.nanoTime() - Main.startTime, TimeUnit.NANOSECONDS);
+                if (timeElapsed - lastTimePoint > timeInterval) {
+                    // Insert a record (time: coverage)
+                    coverageAlongTime.add(new Pair(timeElapsed, coveredBranches));
+                    lastTimePoint = timeElapsed;
+                }
+
                 testID++;
                 System.out.println();
             }
@@ -99,7 +122,21 @@ public class Fuzzer {
             if (Utilities.hasNewBits(curCoverage, testSequenceCoverage)) {
                 queue.add(new Pair<>(commandSequence, validationCommandSequence));
                 curCoverage.merge(testSequenceCoverage);
+
+                // Update the coveredBranches to the newest value
+                Pair<Integer, Integer> coverageStatus = Utilities.getCoverageStatus(curCoverage);
+                coveredBranches = coverageStatus.left;
+                probeNum = coverageStatus.right;
+
             }
+
+            Long timeElapsed = TimeUnit.SECONDS.convert(System.nanoTime() - Main.startTime, TimeUnit.NANOSECONDS);
+            if (timeElapsed - lastTimePoint > timeInterval) {
+                // Insert a record (time: coverage)
+                coverageAlongTime.add(new Pair(timeElapsed, coveredBranches));
+                lastTimePoint = timeElapsed;
+            }
+
             testID++;
             System.out.println();
         }
@@ -111,13 +148,23 @@ public class Fuzzer {
 
         System.out.println("\n\n------------------- Executing one fuzzing test -------------------");
         System.out.println("[Fuzz Status]\n" +
-                           "=========================================================================\n" +
+                           "==========================================================================================================\n" +
                            "|" + "Queue Size = " + queueSize +
                            "|" + "Crash Found = " + crashID +
                            "|" + "Current Test ID = " + testID +
+                           "|" + "Covered Branches Num = " + coveredBranches +
+                           "|" + "Total Branch Num = " + probeNum +
                            "|" + "Time Elapsed = " + timeElapsed + "s" +
                            "|" + "\n" +
-                           "-------------------------------------------------------------------------");
+                           "----------------------------------------------------------------------------------------------------------");
+
+        // Print the coverage status
+        for (Pair<Integer, Integer> timeCoveragePair : coverageAlongTime) {
+            System.out.println("TIME: " + timeCoveragePair.left + "s" +
+                    "\t\t Coverage: " + timeCoveragePair.right + "/" + probeNum +
+                    "\t\t percentage: " + (float) timeCoveragePair.right/probeNum + "%");
+        }
+
         System.out.println();
     }
 }

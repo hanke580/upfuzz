@@ -18,6 +18,7 @@ import org.jacoco.core.data.ExecutionData;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.fuzzingengine.Config;
+import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 
 public class Utilities {
     public static List<Integer> permutation(int size) {
@@ -80,6 +81,26 @@ public class Utilities {
             return false;
         }
     }
+
+    public static Pair<Integer, Integer> getCoverageStatus(ExecutionDataStore curCoverage) {
+        if (curCoverage == null) {
+            return new Pair(0, 0);
+        }
+
+        int coveredProbes = 0;
+        int probeNum = 0;
+
+        for (final ExecutionData curData : curCoverage.getContents()) {
+            int[] curProbes = curData.getProbes();
+            probeNum += curProbes.length;
+            for (int i = 0; i < curProbes.length; i++) {
+                if (curProbes[i] != 0) coveredProbes++;
+            }
+        }
+        return new Pair(coveredProbes, probeNum);
+    }
+
+
 
     public static void assertCompatibility(ExecutionData curData, ExecutionData testSequenceData) {
         if (curData.getId() != testSequenceData.getId()) {
