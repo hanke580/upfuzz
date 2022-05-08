@@ -89,25 +89,7 @@ public class Fuzzer {
                     continue;
                 }
                 // TODO: Add compare function in Jacoco
-                if (Utilities.hasNewBits(curCoverage, testSequenceCoverage)) {
-                    queue.add(new Pair<>(mutatedCommandSequence, validationCommandSequence));
-                    curCoverage.merge(testSequenceCoverage);
-
-                    // Update the coveredBranches to the newest value
-                    Pair<Integer, Integer> coverageStatus = Utilities.getCoverageStatus(curCoverage);
-                    coveredBranches = coverageStatus.left;
-                    probeNum = coverageStatus.right;
-                }
-
-                Long timeElapsed = TimeUnit.SECONDS.convert(System.nanoTime() - Main.startTime, TimeUnit.NANOSECONDS);
-                if (timeElapsed - lastTimePoint > timeInterval) {
-                    // Insert a record (time: coverage)
-                    coverageAlongTime.add(new Pair(timeElapsed, coveredBranches));
-                    lastTimePoint = timeElapsed;
-                }
-
-                testID++;
-                System.out.println();
+                updateStatus(mutatedCommandSequence, validationCommandSequence, curCoverage, queue, testSequenceCoverage);
             }
 
         } else {
@@ -119,28 +101,31 @@ public class Fuzzer {
             } catch (Exception e) {
                 Utilities.clearCassandraDataDir();
             }
-            if (Utilities.hasNewBits(curCoverage, testSequenceCoverage)) {
-                queue.add(new Pair<>(commandSequence, validationCommandSequence));
-                curCoverage.merge(testSequenceCoverage);
-
-                // Update the coveredBranches to the newest value
-                Pair<Integer, Integer> coverageStatus = Utilities.getCoverageStatus(curCoverage);
-                coveredBranches = coverageStatus.left;
-                probeNum = coverageStatus.right;
-
-            }
-
-            Long timeElapsed = TimeUnit.SECONDS.convert(System.nanoTime() - Main.startTime, TimeUnit.NANOSECONDS);
-            if (timeElapsed - lastTimePoint > timeInterval) {
-                // Insert a record (time: coverage)
-                coverageAlongTime.add(new Pair(timeElapsed, coveredBranches));
-                lastTimePoint = timeElapsed;
-            }
-
-            testID++;
-            System.out.println();
+            updateStatus(commandSequence, validationCommandSequence, curCoverage, queue, testSequenceCoverage);
         }
         return true;
+    }
+
+    private static void updateStatus(CommandSequence commandSequence, CommandSequence validationCommandSequence, ExecutionDataStore curCoverage, Queue<Pair<CommandSequence, CommandSequence>> queue, ExecutionDataStore testSequenceCoverage) {
+        // Check new bits, update covered branches, add record (time, coverage) pair
+        if (Utilities.hasNewBits(curCoverage, testSequenceCoverage)) {
+            queue.add(new Pair<>(commandSequence, validationCommandSequence));
+            curCoverage.merge(testSequenceCoverage);
+
+            // Update the coveredBranches to the newest value
+            Pair<Integer, Integer> coverageStatus = Utilities.getCoverageStatus(curCoverage);
+            coveredBranches = coverageStatus.left;
+            probeNum = coverageStatus.right;
+        }
+
+        Long timeElapsed = TimeUnit.SECONDS.convert(System.nanoTime() - Main.startTime, TimeUnit.NANOSECONDS);
+        if (timeElapsed - lastTimePoint > timeInterval) {
+            // Insert a record (time: coverage)
+            coverageAlongTime.add(new Pair(timeElapsed, coveredBranches));
+            lastTimePoint = timeElapsed;
+        }
+        testID++;
+        System.out.println();
     }
 
     public static void printInfo(int queueSize, int crashID, int testID) {
