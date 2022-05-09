@@ -5,12 +5,13 @@ import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 
-import java.util.Random;
+import java.util.*;
 
 public class INTType extends ParameterType.ConcreteType {
 
     private final int MAX_VALUE = Integer.MAX_VALUE;
 
+    public static Set<Integer> intPool = new HashSet<>();
     public final Integer max;
     public final Integer min;
 
@@ -43,8 +44,19 @@ public class INTType extends ParameterType.ConcreteType {
 
     @Override
     public Parameter generateRandomParameter(State s, Command c) {
-        Integer value;
 
+        if (intPool.isEmpty() == false) {
+            Random rand = new Random();
+            int choice = rand.nextInt(5);
+            if (choice <= 3) {
+                // 80%: it will pick from the Pool
+                List<Integer> intPoolList = new ArrayList<>(intPool);
+                int idx = rand.nextInt(intPoolList.size());
+                return new Parameter(this, intPoolList.get(idx));
+            }
+        }
+
+        Integer value;
         if (max == null && min == null) {
             value = new Random().nextInt();
         } else if (max != null && min == null) {
@@ -54,7 +66,8 @@ public class INTType extends ParameterType.ConcreteType {
         } else {
             value = new Random().nextInt(max - min) + min;
         }
-        return new Parameter(this, (Integer) value);
+        intPool.add(value);
+        return new Parameter(this, value);
     }
 
     @Override
@@ -101,4 +114,9 @@ public class INTType extends ParameterType.ConcreteType {
     public String toString() {
         return "INT";
     }
+
+    public static void cleanPool() {
+        intPool.clear();
+    }
+
 }

@@ -1,6 +1,9 @@
 package org.zlab.upfuzz;
 
 import org.zlab.upfuzz.cassandra.CassandraCommands;
+import org.zlab.upfuzz.utils.INTType;
+import org.zlab.upfuzz.utils.Pair;
+import org.zlab.upfuzz.utils.STRINGType;
 
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
@@ -19,7 +22,6 @@ public class CommandSequence implements Serializable {
     public final Class<? extends State> stateClass;
     public State state;
 
-
     public CommandSequence(List<Command> commands,
                            List<Map.Entry<Class<? extends Command>, Integer>> commandClassList,
                            List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList,
@@ -34,12 +36,10 @@ public class CommandSequence implements Serializable {
 
     public boolean separateFromFormerTest() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
 
-
         for (Command command : commands) {
             command.changeKeyspaceName(); // For separation
             command.updateState(state);
         }
-
         Constructor<?> constructor = stateClass.getConstructor();
         State state = (State) constructor.newInstance(); // Recreate a state
         List<Command> validCommands = new LinkedList<>();
@@ -52,7 +52,6 @@ public class CommandSequence implements Serializable {
             }
         }
         this.commands = validCommands;
-
 //        System.out.println("\nSeparated Seq");
 //        for (Command command : commands) {
 //            System.out.println(command.toString());
@@ -70,9 +69,14 @@ public class CommandSequence implements Serializable {
          * 3: Delete a command // Temporary not chosen  // 0
          */
         separateFromFormerTest();
+        addParamToTypePool();
+
+        if (CassandraCommands.DEBUG) {
+            System.out.println("String Pool:" + STRINGType.stringPool);
+            System.out.println("Int Pool: " + INTType.intPool);
+        }
 
         Random rand = new Random();
-
         for (int mutateRetryIdx = 0; mutateRetryIdx < RETRY_MUTATE_TIME; mutateRetryIdx++) {
             int choice = rand.nextInt(3);
             int pos = rand.nextInt(commands.size());
@@ -81,9 +85,10 @@ public class CommandSequence implements Serializable {
             Constructor<?> constructor = stateClass.getConstructor();
             State state = (State) constructor.newInstance(); // Recreate a state
 
+            // choice = 3; // Force it to be an INSERT
             if (CassandraCommands.DEBUG) {
-                pos = 3;
-                choice = 1;
+//                pos = 3;
+                choice = 2;
             }
             System.out.println("\tMutate Command Pos " + pos);
 
@@ -116,9 +121,6 @@ public class CommandSequence implements Serializable {
             } else if (choice == 2) {
                 /**
                  * Insert a command
-                 * Two options
-                 * 1. Purely random generate one from this state.
-                 * 2. (TODO) Pick command from the command pool.
                  */
                 Command command;
                 List<Map.Entry<Class<? extends Command>, Integer>> tmpL = new LinkedList<>();
@@ -131,9 +133,6 @@ public class CommandSequence implements Serializable {
                 commands.get(pos).updateState(state);
             } else if (choice == 3) { // Disabled temporally
                 // Replace a command
-                /**
-                 * TODO: Pick from the command pool
-                 */
                 Command command;
                 if (pos <= 1) {
                     command = generateSingleCommand(createCommandClassList, state);
@@ -170,6 +169,9 @@ public class CommandSequence implements Serializable {
             }
             commands = validCommands;
             this.state = state;
+
+            cleanTypePool();
+
             return true;
         }
         // The mutation is failed.
@@ -177,8 +179,7 @@ public class CommandSequence implements Serializable {
         return false;
     }
 
-    public static Command generateSingleCommand(List<Map.Entry<Class<? extends Command>, Integer>> commandClassList,
-                                                State state) {
+    public static Command generateSingleCommand(List<Map.Entry<Class<? extends Command>, Integer>> commandClassList, State state) {
         Command command = null;
         Random rand = new Random();
         assert commandClassList.isEmpty() == false;
@@ -216,11 +217,6 @@ public class CommandSequence implements Serializable {
         return command;
     }
 
-    /**
-     * Generate a new test sequence
-     * - Input: null
-     * - Output: TestSequence
-     */
     public static CommandSequence generateSequence(List<Map.Entry<Class<? extends Command>, Integer>> commandClassList,
                                                    List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList,
                                                    Class<? extends State> stateClass, State state)
@@ -242,6 +238,7 @@ public class CommandSequence implements Serializable {
 //        List<Class<? extends Command>> tmpCommandClassList = new LinkedList<>(); // Debug
 //        tmpCommandClassList.add(CassandraCommands.ALTER_TABLE_DROP.class); // Debug
         for (int i = 0; i < len; i++) {
+
             if (createCommandClassList != null) {
                 /**
                  * Make sure the first three columns are write related command,
@@ -256,16 +253,24 @@ public class CommandSequence implements Serializable {
                     if (command == null) {
                         command = generateSingleCommand(createCommandClassList, state);
                     }
+
                     commands.add(command);
                 }
             } else {
                 Command command = generateSingleCommand(commandClassList, state);
-                while (command == null) {           // Might stuck here...
+                if (command == null) {
                     command = generateSingleCommand(commandClassList, state);
                 }
+
                 commands.add(command);
             }
+
+
         }
+
+
+        cleanTypePool();
+
         return new CommandSequence(commands, commandClassList, createCommandClassList, stateClass, state);
     }
 
@@ -317,6 +322,40 @@ public class CommandSequence implements Serializable {
     public static boolean updateState(Command command, State state) {
         command.updateState(state);
         return true;
+    }
+
+    public static void cleanTypePool() {
+        STRINGType.cleanPool();
+        INTType.cleanPool();
+    }
+
+    public void addParamToTypePool() {
+        for (Command command: commands) {
+            // For each parameter, if the type is String or Int
+            // Add them to the pool
+            for (Parameter param: command.params) {
+                Object val = param.getValue();
+                add2Pool(val);
+            }
+        }
+    }
+
+    public void add2Pool(Object val) {
+        if (val instanceof List) {
+            List<Parameter> list = (List<Parameter>) val;
+            for (Parameter param : list) {
+                add2Pool(param.getValue());
+            }
+        } else if (val instanceof Pair) {
+            Pair<Parameter, Parameter> pair = (Pair<Parameter, Parameter>) val;
+            add2Pool(pair.left.getValue());
+            add2Pool(pair.right.getValue());
+        } else if (val instanceof String) {
+            if (!((String) val).contains(" "))
+                STRINGType.stringPool.add((String) val);
+        } else if (val instanceof Integer) {
+            INTType.intPool.add((Integer) val);
+        }
     }
 
 }

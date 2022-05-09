@@ -1,8 +1,7 @@
 package org.zlab.upfuzz;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.cassandra.CassandraCommands;

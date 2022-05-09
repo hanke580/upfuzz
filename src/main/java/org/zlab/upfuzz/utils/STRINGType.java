@@ -7,11 +7,13 @@ import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.cassandra.CassandraCommands;
 
 import java.math.BigInteger;
-import java.util.Random;
+import java.util.*;
 
 public class STRINGType extends ParameterType.ConcreteType {
+
     public static final int MAX_LEN = 30; // Probably need refactor
 
+    public static Set<String> stringPool = new HashSet<>();
     public static final String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     public static final STRINGType instance = new STRINGType();
@@ -60,12 +62,31 @@ public class STRINGType extends ParameterType.ConcreteType {
 //        Random rand = new Random();
 //        int idx = rand.nextInt(sList.size());
 //        return new Parameter(STRINGType.instance, sList.get(idx));
-        Parameter ret = new Parameter(STRINGType.instance, generateRandomString());
+
+        Parameter ret;
+
+        // Count a possibility for fetching from the pool
+        if (stringPool.isEmpty() == false) {
+            Random rand = new Random();
+            int choice = rand.nextInt(10);
+            if (choice <= 8) {
+                // 80%: it will pick from the Pool
+                List<String> stringPoolList = new ArrayList<>(stringPool);
+                int idx = rand.nextInt(stringPoolList.size());
+                ret = new Parameter(STRINGType.instance, stringPoolList.get(idx));
+                return ret;
+            }
+        }
+        ret = new Parameter(STRINGType.instance, generateRandomString());
+        if (CassandraCommands.DEBUG) {
+        }
         while (!isValid(s, c, ret)) {
+            if (CassandraCommands.DEBUG) {
+            }
             ret = new Parameter(STRINGType.instance, generateRandomString());
         }
-        // Original Codes:
-         return ret;
+        stringPool.add((String) ret.value);
+        return ret;
     }
 
     @Override
@@ -97,12 +118,14 @@ public class STRINGType extends ParameterType.ConcreteType {
     @Override
     public boolean mutate(State s, Command c, Parameter p) {
         Random rand = new Random();
-        int choice = rand.nextInt(4);
+        int choice = rand.nextInt(8);
 
         // Debug
         if (CassandraCommands.DEBUG) {
 //            choice = 4; // Only test the mutate method
         }
+
+        // TODO: Add another choice: related to the current string pool
 
         switch (choice) {
             // Temporally Disable bit level mutation
@@ -122,6 +145,7 @@ public class STRINGType extends ParameterType.ConcreteType {
                 if (CassandraCommands.DEBUG) {
                     System.out.println("\t[String Mutation]: Delete Byte");
                 }
+                if (((String) p.value).isEmpty()) return false;
                 deleteByte(p);
                 break;
             case 3:
@@ -129,17 +153,38 @@ public class STRINGType extends ParameterType.ConcreteType {
                 if (CassandraCommands.DEBUG) {
                     System.out.println("\t[String Mutation]: Mutate Byte");
                 }
+                if (((String) p.value).isEmpty()) return false;
                 mutateByte(p);
                 break;
             case 4:
+                // Add a word (2 Bytes)
+                addByte(p);
+                addByte(p);
+                break;
+            case 5:
+                // Delete a word
+                if (((String) p.value).length() < 2) return false;
+                deleteByte(p);
+                deleteByte(p);
+                break;
+            case 6:
+                // Mutate a word
+                if (((String) p.value).isEmpty() || ((String) p.value).length() < 2) return false;
+                mutateWord(p);
+                break;
+            case 7:
+                // Regenerate
+                p.value = generateRandomParameter(s, c).value;
+                break;
+            case 8:
                 // Flip a Bit
                 flipBit(p);
                 break;
-            case 5:
+            case 9:
                 // Add a Bit
                 addBit(p);
                 break;
-            case 6:
+            case 10:
                 // Delete a Bit
                 deleteBit(p);
                 break;
@@ -152,7 +197,6 @@ public class STRINGType extends ParameterType.ConcreteType {
     private String string2binary(String value) {
         return  new BigInteger(value.getBytes()).toString(2);
     }
-
 
     private void flipBit(Parameter p) {
         // Can only be called at lower level
@@ -239,11 +283,31 @@ public class STRINGType extends ParameterType.ConcreteType {
         p.value = sb.toString();
     }
 
+    private void mutateWord(Parameter p) {
+        // Mutate a char
+        String value = (String) p.value;
+        StringBuilder sb = new StringBuilder(value);
+
+        Random rand = new Random();
+        int mutatePos = rand.nextInt(sb.length() - 1);
+        char mutateChar1 = alphabet.charAt(rand.nextInt(alphabet.length()));
+        char mutateChar2 = alphabet.charAt(rand.nextInt(alphabet.length()));
+
+        sb.setCharAt(mutatePos, mutateChar1);
+        sb.setCharAt(mutatePos + 1, mutateChar2);
+
+        p.value = sb.toString();
+    }
+
     @Override
     public String toString() {
         // TODO: Need change later if we want the exact type, and also need to allow
         // User to modify this
         return "STRING";
+    }
+
+    public static void cleanPool() {
+        stringPool.clear();
     }
 
 }

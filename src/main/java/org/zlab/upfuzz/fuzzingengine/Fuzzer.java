@@ -21,7 +21,7 @@ public class Fuzzer {
      *                   mutated seed. If no, this seed also need run.
      * @return
      */
-    public static final int TEST_NUM = 500;
+    public static final int TEST_NUM = 2000;
 
     /**
      * If a seed cannot be correctly mutated for more than five times,
@@ -119,7 +119,7 @@ public class Fuzzer {
         }
 
         Long timeElapsed = TimeUnit.SECONDS.convert(System.nanoTime() - Main.startTime, TimeUnit.NANOSECONDS);
-        if (timeElapsed - lastTimePoint > timeInterval) {
+        if (timeElapsed - lastTimePoint > timeInterval || lastTimePoint == 0) {
             // Insert a record (time: coverage)
             coverageAlongTime.add(new Pair(timeElapsed, coveredBranches));
             lastTimePoint = timeElapsed;

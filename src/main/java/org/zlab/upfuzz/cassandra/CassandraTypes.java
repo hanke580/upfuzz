@@ -48,10 +48,13 @@ public class CassandraTypes {
     @Override
     public Parameter generateRandomParameter(State s, Command c) {
       String str = generateRandomString();
-      while (str.isEmpty()) {
-        str = generateRandomString();
+
+      Parameter tmp = STRINGType.instance.generateRandomParameter(s, c);
+      while( ((String) tmp.getValue()).isEmpty()) {
+        tmp = STRINGType.instance.generateRandomParameter(s, c);
       }
-      return new Parameter(TEXTType.instance, str);
+
+      return new Parameter(TEXTType.instance, tmp.getValue());
     }
 
     @Override
@@ -229,18 +232,21 @@ public class CassandraTypes {
       assert t instanceof ConcreteGenericTypeTwo;
       assert ((ConcreteGenericTypeTwo)t).t instanceof PAIRType;
 
-      Set<Parameter> leftSet = new HashSet<>();
+//      Set<Parameter> leftSet = new HashSet<>();
+
+      Set<String> leftSet = new HashSet<>();
 
       int bound = 10; // specified by user
       int len = new Random().nextInt(bound);
 
       for (int i = 0; i < len; i++) {
         Parameter p = t.generateRandomParameter(s, c);
-        Parameter leftParam = ((Pair<Parameter, Parameter>)p.value).left;
-        while (leftSet.contains(leftParam)) {
+        Parameter leftParam = ((Pair<Parameter, Parameter>) p.value).left;
+        while (leftSet.contains(leftParam.toString())) {
           p = t.generateRandomParameter(s, c);
+          leftParam = ((Pair<Parameter, Parameter>) p.value).left;
         }
-        leftSet.add(leftParam);
+        leftSet.add(leftParam.toString());
         value.add(p);
       }
 
