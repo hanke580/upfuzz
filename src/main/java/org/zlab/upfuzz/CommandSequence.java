@@ -79,28 +79,26 @@ public class CommandSequence implements Serializable {
         Random rand = new Random();
         for (int mutateRetryIdx = 0; mutateRetryIdx < RETRY_MUTATE_TIME; mutateRetryIdx++) {
             int choice = rand.nextInt(3);
-            int pos = rand.nextInt(commands.size());
 
             assert commands.size() > 0;
             Constructor<?> constructor = stateClass.getConstructor();
             State state = (State) constructor.newInstance(); // Recreate a state
 
-            // choice = 3; // Force it to be an INSERT
             if (CassandraCommands.DEBUG) {
-//                pos = 3;
                 choice = 2;
             }
-            System.out.println("\tMutate Command Pos " + pos);
 
-            // Compute the state up to the position
-            for (int i = 0; i < pos; i++) {
-                commands.get(i).updateState(state);
-            }
-
+            int pos;
             if (choice == 0 || choice == 1) {
                 // Mutate a specific command
-                try {
 
+                // Compute the state up to the position
+                pos = rand.nextInt(commands.size());
+                System.out.println("\t\tMutate Command Pos " + pos);
+                for (int i = 0; i < pos; i++) {
+                    commands.get(i).updateState(state);
+                }
+                try {
                     boolean mutateStatus = commands.get(pos).mutate(state);
                     if (!mutateStatus) continue;
                     boolean fixable = checkAndUpdateCommand(commands.get(pos), state);
@@ -122,6 +120,13 @@ public class CommandSequence implements Serializable {
                 /**
                  * Insert a command
                  */
+
+                // Compute the state up to the position
+                pos = rand.nextInt(commands.size() + 1);
+                System.out.println("\t\tMutate Command Pos " + pos);
+                for (int i = 0; i < pos; i++) {
+                    commands.get(i).updateState(state);
+                }
                 Command command;
                 List<Map.Entry<Class<? extends Command>, Integer>> tmpL = new LinkedList<>();
 //                tmpL.add(new AbstractMap.SimpleImmutableEntry<>(CassandraCommands.CREATE_TABLE.class, 2) );
@@ -133,6 +138,11 @@ public class CommandSequence implements Serializable {
                 commands.get(pos).updateState(state);
             } else if (choice == 3) { // Disabled temporally
                 // Replace a command
+                // Compute the state up to the position
+                pos = rand.nextInt(commands.size());
+                for (int i = 0; i < pos; i++) {
+                    commands.get(i).updateState(state);
+                }
                 Command command;
                 if (pos <= 1) {
                     command = generateSingleCommand(createCommandClassList, state);
@@ -147,6 +157,11 @@ public class CommandSequence implements Serializable {
                 commands.get(pos).updateState(state);
             } else { // Disabled temporally
                 // Delete a command
+                // Compute the state up to the position
+                pos = rand.nextInt(commands.size());
+                for (int i = 0; i < pos; i++) {
+                    commands.get(i).updateState(state);
+                }
                 commands.remove(pos);
                 pos -= 1;
             }
