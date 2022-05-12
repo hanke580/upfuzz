@@ -10,6 +10,7 @@ import org.zlab.upfuzz.utils.Utilities;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 public class Fuzzer {
@@ -27,7 +28,7 @@ public class Fuzzer {
      * If a seed cannot be correctly mutated for more than five times,
      * Discard this test case.
      */
-    public static final int MUTATE_RETRY_TIME = 5;
+    public static final int MUTATE_RETRY_TIME = 10;
     public static int testID = 0;
 
     // When merge new branches, increase this number
@@ -38,7 +39,8 @@ public class Fuzzer {
     public static long lastTimePoint = 0;
     public static long timeInterval = 600; // seconds, now set it as every 10 mins
 
-    public static boolean fuzzOne(CommandSequence commandSequence,
+    public static boolean fuzzOne(Random rand,
+                                  CommandSequence commandSequence,
                                   CommandSequence validationCommandSequence,
                                   ExecutionDataStore curCoverage,
                                   Queue<Pair<CommandSequence, CommandSequence>> queue,
@@ -53,8 +55,12 @@ public class Fuzzer {
                 CommandSequence mutatedCommandSequence = SerializationUtils.clone(commandSequence);
                 try {
                     int j = 0;
+
                     for (; j < MUTATE_RETRY_TIME; j++) {
-                        if (mutatedCommandSequence.mutate() == true) break;
+                        // Learned from syzkaller
+                        // 1/3 probability that the mutation could be stacked
+                        // But if exceeds MUTATE_RETRY_TIME(10) stacked mutation, this sequence will be dropped
+                        if (mutatedCommandSequence.mutate() == true && Utilities.oneOf(rand, 3)) break;
                     }
                     if (j == MUTATE_RETRY_TIME) {
                         continue; // Discard current seq since the mutation keeps failing

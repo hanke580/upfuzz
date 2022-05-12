@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Random;
 
 import org.jacoco.core.data.ExecutionData;
 import org.jacoco.core.data.ExecutionDataStore;
@@ -232,6 +233,21 @@ public class Utilities {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static boolean oneOf(Random rand, int n) {
+        if (n <= 0) {
+            throw new RuntimeException("n in oneOf <= 0");
+        }
+        return rand.nextInt(n) == 0;
+    }
+
+    public static boolean nOutOf(Random rand, int x, int y) {
+        // probability x/y
+        if (y <= 0 || x < 0) {
+            throw new RuntimeException("n in oneOf <= 0");
+        }
+        return rand.nextInt(y) < x;
     }
 
 }

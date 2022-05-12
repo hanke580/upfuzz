@@ -120,7 +120,6 @@ public class CommandSequence implements Serializable {
                 /**
                  * Insert a command
                  */
-
                 // Compute the state up to the position
                 pos = rand.nextInt(commands.size() + 1);
                 System.out.println("\t\tMutate Command Pos " + pos);
@@ -128,8 +127,6 @@ public class CommandSequence implements Serializable {
                     commands.get(i).updateState(state);
                 }
                 Command command;
-                List<Map.Entry<Class<? extends Command>, Integer>> tmpL = new LinkedList<>();
-//                tmpL.add(new AbstractMap.SimpleImmutableEntry<>(CassandraCommands.CREATE_TABLE.class, 2) );
                 command = generateSingleCommand(commandClassList, state);
                 while (command == null) {
                     command = generateSingleCommand(createCommandClassList, state);

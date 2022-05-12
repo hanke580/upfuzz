@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Random;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
@@ -118,9 +119,10 @@ public class Main {
                 }
             }
             
-
             ExecutionDataStore curCoverage = new ExecutionDataStore();
             FuzzingClient fuzzingClient = new FuzzingClient();
+
+            Random rand = new Random();
 
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 public void run() {
@@ -142,10 +144,10 @@ public class Main {
             while(true) {
                 if (queue.isEmpty()) {
                     Pair<CommandSequence, CommandSequence> commandSequencePair = CassandraExecutor.prepareCommandSequence();
-                    Fuzzer.fuzzOne(commandSequencePair.left, commandSequencePair.right, curCoverage, queue, fuzzingClient, false);
+                    Fuzzer.fuzzOne(rand, commandSequencePair.left, commandSequencePair.right, curCoverage, queue, fuzzingClient, false);
                 } else {
                     Pair<CommandSequence, CommandSequence> commandSequencePair = queue.poll();
-                    Fuzzer.fuzzOne(commandSequencePair.left, commandSequencePair.right, curCoverage, queue, fuzzingClient, true);
+                    Fuzzer.fuzzOne(rand, commandSequencePair.left, commandSequencePair.right, curCoverage, queue, fuzzingClient, true);
                 }
             }
             // System.out.println("\n Fuzzing process end, have a good day \n");
