@@ -3,11 +3,15 @@ package org.zlab.upfuzz.utils;
 import static java.lang.String.format;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -248,6 +252,44 @@ public class Utilities {
             throw new RuntimeException("n in oneOf <= 0");
         }
         return rand.nextInt(y) < x;
+    }
+
+    public static boolean write2TXT(File file, String content) {
+
+        try{
+            // If file doesn't exists, then create it
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+
+            FileWriter fw = new FileWriter(file.getAbsoluteFile());
+            BufferedWriter bw = new BufferedWriter(fw);
+
+            // Write in file
+            bw.write(content);
+
+            // Close connection
+            bw.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+
+        return true;
+    }
+
+    public static boolean writeCmdSeq(File file, Object object) {
+        try {
+            FileOutputStream fileOut =
+                    new FileOutputStream(file);
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(object);
+            out.close();
+            fileOut.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return true;
     }
 
 }

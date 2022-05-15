@@ -28,6 +28,7 @@ public class Config {
         public String cassandraOutputFile = null;
         public String initSeedDir = null;
         public String crashDir = null;
+        public String corpusDir = null;
 
         @Override
         public String toString() {

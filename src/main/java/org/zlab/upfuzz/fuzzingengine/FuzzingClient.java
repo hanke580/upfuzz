@@ -176,17 +176,8 @@ public class FuzzingClient {
 					// Serialize CommandSequence into File
 					Path cmdSeqsPath = Paths.get(Config.getConf().crashDir,
 							"crash_" + epoch,
-							"epoch_cmd_seq_" + epochStartTestId + "_" + testId);
-					try {
-						FileOutputStream fileOut =
-								new FileOutputStream(cmdSeqsPath.toFile());
-						ObjectOutputStream out = new ObjectOutputStream(fileOut);
-						out.writeObject(commandSequenceString.toString());
-						out.close();
-						fileOut.close();
-					} catch (IOException i) {
-						i.printStackTrace();
-					}
+							"epoch_cmd_seq_" + epochStartTestId + "_" + testId + ".txt");
+					Utilities.write2TXT(cmdSeqsPath.toFile(), commandSequenceString.toString());
 
 					// When ret is false, while the testId2Failure is empty!!!
 
@@ -202,17 +193,9 @@ public class FuzzingClient {
 							sb.append("Failure Info: " + executor.testId2Failure.get(testIdx).right + "\n");
 							Path crashReportPath = Paths.get(Config.getConf().crashDir,
 									"crash_" + epoch,
-									"crash_" + testIdx + ".report");
-							try {
-								FileOutputStream fileOut =
-										new FileOutputStream(crashReportPath.toFile());
-								ObjectOutputStream out = new ObjectOutputStream(fileOut);
-								out.writeObject(sb.toString());
-								out.close();
-								fileOut.close();
-							} catch (IOException i) {
-								i.printStackTrace();
-							}
+									"crash_" + testIdx + ".txt");
+							Utilities.write2TXT(crashReportPath.toFile(), sb.toString());
+
 							crashID++;
 							break;
 						}
@@ -223,17 +206,7 @@ public class FuzzingClient {
 						Path commandSequencePairPath = Paths.get(Config.getConf().crashDir
 								, "crash_" + epoch,
 										"crash_" + testIdx + ".ser");
-
-						try {
-							FileOutputStream fileOut =
-									new FileOutputStream(commandSequencePairPath.toFile());
-							ObjectOutputStream out = new ObjectOutputStream(fileOut);
-							out.writeObject(commandSequencePair);
-							out.close();
-							fileOut.close();
-						} catch (IOException i) {
-							i.printStackTrace();
-						}
+						Utilities.writeCmdSeq(commandSequencePairPath.toFile(), commandSequencePair);
 
 						// Serialize the single bug info
 						StringBuilder sb = new StringBuilder();
@@ -241,7 +214,7 @@ public class FuzzingClient {
 						sb.append("Failure Type: " + executor.testId2Failure.get(testIdx).left + "\n");
 						sb.append("Failure Info: " + executor.testId2Failure.get(testIdx).right + "\n");
 						sb.append("Command Sequence\n");
-						for (String commandStr :  testId2Sequence.get(testIdx).left.getCommandStringList()) {
+						for (String commandStr : testId2Sequence.get(testIdx).left.getCommandStringList()) {
 							sb.append(commandStr);
 							sb.append("\n");
 						}
@@ -253,17 +226,8 @@ public class FuzzingClient {
 						}
 						Path crashReportPath = Paths.get(Config.getConf().crashDir,
 								"crash_" + epoch,
-										"crash_" + testIdx + ".report");
-						try {
-							FileOutputStream fileOut =
-									new FileOutputStream(crashReportPath.toFile());
-							ObjectOutputStream out = new ObjectOutputStream(fileOut);
-							out.writeObject(sb.toString());
-							out.close();
-							fileOut.close();
-						} catch (IOException i) {
-							i.printStackTrace();
-						}
+										"crash_" + testIdx + ".txt");
+						Utilities.write2TXT(crashReportPath.toFile(), sb.toString());
 						crashID++;
 
 					}
@@ -284,10 +248,7 @@ public class FuzzingClient {
 			System.out.println("\n\nRestart the executor\n");
 			executor = new CassandraExecutor();
 			executor.startup();
-
 		}
-
-
 		return codeCoverage;
 	}
 

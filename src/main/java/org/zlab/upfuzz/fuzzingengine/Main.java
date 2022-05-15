@@ -113,8 +113,10 @@ public class Main {
                         // TODO: Execute them before adding them to the queue.
                         // Make sure all the seed in the queue must have been executed.
                         Pair<CommandSequence, CommandSequence> commandSequencePair = Utilities.deserializeCommandSequence(seedFile.toPath());
-                        if (commandSequencePair != null)
+                        if (commandSequencePair != null) {
+                            Fuzzer.saveSeed(commandSequencePair.left, commandSequencePair.right);
                             queue.add(commandSequencePair);
+                        }
                     }
                 }
             }
