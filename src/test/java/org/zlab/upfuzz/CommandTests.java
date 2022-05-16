@@ -656,6 +656,57 @@ public class CommandTests {
     }
 
     @Test
+    public void testTwoCmdDiffCommandWithInitialValue1() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        CommandSequence commandSequence = cass13939CommandSequence_Two_Command_Diff1();
+        CommandSequence validationCommandSequence = commandSequence.generateRelatedReadSequence();
+
+        Path filePath = Paths.get("/tmp/seed_cassandra_13939_Two_Cmd_Diff1.ser");
+
+        try {
+            FileOutputStream fileOut =
+                    new FileOutputStream(filePath.toFile());
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(new Pair<>(commandSequence, validationCommandSequence));
+            out.close();
+            fileOut.close();
+            System.out.println("Serialized data is saved in " + filePath.toString());
+        } catch (IOException i) {
+            i.printStackTrace();
+            return;
+        }
+
+        Pair<CommandSequence, CommandSequence> e = null;
+        try {
+            FileInputStream fileIn = new FileInputStream(filePath.toFile());
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            e = (Pair<CommandSequence, CommandSequence>) in.readObject();
+            in.close();
+            fileIn.close();
+        } catch (IOException i) {
+            i.printStackTrace();
+            return;
+        } catch (ClassNotFoundException c) {
+            System.out.println("Command class not found");
+            c.printStackTrace();
+            return;
+        }
+
+        boolean mutateStatus = commandSequence.mutate();
+        System.out.println("mutateStatus = " + mutateStatus);
+        boolean useIdx = false;
+
+        List<String> commandStringList = commandSequence.getCommandStringList();
+        for (int i = 0; i < commandStringList.size(); i++) {
+            if (useIdx)
+                System.out.println("[" + i + "]" + "\t" + commandStringList.get(i));
+            else
+                System.out.println(commandStringList.get(i));
+        }
+        System.out.println("command size = " + commandStringList.size());
+
+    }
+
+    @Test
     public void testSELECTCommandGeneration() {
 
         CassandraState s = new CassandraState();
@@ -1508,5 +1559,126 @@ public class CommandTests {
                         s);
         return commandSequence;
     }
+
+    public static CommandSequence cass13939CommandSequence_Two_Command_Diff1() {
+        // Less one INSERT command
+        // TODO: Why does create table command generate two table with the same name, this is not correct! Need to FIX
+//        CREATE KEYSPACE IF NOT EXISTS uuid01009d585f434c91930a7b21c13eba5d WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 2 };
+//        CREATE KEYSPACE IF NOT EXISTS uuid39ee1eac4005486199415acd4e7860ab WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
+//        CREATE TABLE IF NOT EXISTS uuid01009d585f434c91930a7b21c13eba5d.monkey_species (species TEXT,common_name INT,population INT,average_size TEXT,
+//                PRIMARY KEY (average_size, common_name, species ));
+//        INSERT INTO uuid01009d585f434c91930a7b21c13eba5d.monkey_species (species, common_name, population, average_size) VALUES ('Monkey',0,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');
+//        INSERT INTO uuid01009d585f434c91930a7b21c13eba5d.monkey_species (species, common_name, population, average_size) VALUES ('Monkey',1,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');
+//        INSERT INTO uuid01009d585f434c91930a7b21c13eba5d.monkey_species (species, common_name, population, average_size) VALUES ('Monkey',2,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');
+//        INSERT INTO uuid01009d585f434c91930a7b21c13eba5d.monkey_species (population, average_size, common_name, species) VALUES (2,'species',4,'species');
+//        INSERT INTO uuid01009d585f434c91930a7b21c13eba5d.monkey_species (species, common_name, population, average_size) VALUES ('Monkey',4,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');
+//        INSERT INTO uuid01009d585f434c91930a7b21c13eba5d.monkey_species (species, common_name, population, average_size) VALUES ('Monkey',5,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');
+//        INSERT INTO uuid01009d585f434c91930a7b21c13eba5d.monkey_species (species, common_name, population, average_size) VALUES ('Monkey',6,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');
+//        INSERT INTO uuid01009d585f434c91930a7b21c13eba5d.monkey_species (species, common_name, population, average_size) VALUES ('Monkey',7,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');
+//        ALTER TABLE uuid01009d585f434c91930a7b21c13eba5d.monkey_species DROP population ;
+
+        List<Command> l = new LinkedList<>();
+
+        CassandraState s = new CassandraState();
+
+        // Command 0
+        CassandraCommands.CREAT_KEYSPACE cmd0 =
+                new CassandraCommands.CREAT_KEYSPACE(s, "myKS", 2, false);
+        cmd0.updateState(s);
+        l.add(cmd0);
+
+        // Command 1
+        List<Pair<String, ParameterType.ConcreteType>> columns = new ArrayList<>();
+        columns.add(new Pair<>("species", CassandraTypes.TEXTType.instance));
+        columns.add(new Pair<>("common_name", new INTType()));
+        columns.add(new Pair<>("population", new INTType()));
+        columns.add(new Pair<>("average_size", CassandraTypes.TEXTType.instance));
+
+        List<String> primaryColumns = new ArrayList<>();
+        primaryColumns.add("average_size TEXT");
+        primaryColumns.add("common_name INT");
+        primaryColumns.add("species TEXT");
+
+        CassandraCommands.CREATE_TABLE cmd1 =
+                new CassandraCommands.CREATE_TABLE(s, "myKS", "monkey_species",
+                        columns, primaryColumns, null);
+        cmd1.updateState(s);
+        l.add(cmd1);
+
+        // Command 2
+        // 'Monkey', 0, 30, 'AAAAAAAAAAAAAAAAAAAAAAAAAAA'
+        List<String> columns_INSERT = new ArrayList<>();
+        columns_INSERT.add("species TEXT");
+        columns_INSERT.add("common_name INT");
+        columns_INSERT.add("population INT");
+        columns_INSERT.add("average_size TEXT");
+
+        List<Object> Values_INSERT = new ArrayList<>();
+        Values_INSERT.add("Monkey");
+        Values_INSERT.add(0);
+        Values_INSERT.add(30);
+        Values_INSERT.add("AAAAAAAAAAAAAAAAAAAAAAAAAAA");
+        CassandraCommands.INSERT cmd2 =
+                new CassandraCommands.INSERT(s, "myKS", "monkey_species",
+                        columns_INSERT, Values_INSERT);
+        cmd2.updateState(s);
+        l.add(cmd2);
+
+        for (int i = 1; i < 3; i++) { // Difference: Cut off one command 9 -> 8
+            Values_INSERT.remove(1);
+            Values_INSERT.add(1, i);
+            CassandraCommands.INSERT tmpCmd =
+                    new CassandraCommands.INSERT(s, "myKS", "monkey_species",
+                            columns_INSERT, Values_INSERT);
+            tmpCmd.updateState(s);
+            l.add(tmpCmd);
+        }
+
+        List<String> columns_INSERT_ = new ArrayList<>();
+        columns_INSERT_.add("population INT");
+        columns_INSERT_.add("average_size TEXT");
+        columns_INSERT_.add("common_name INT");
+        columns_INSERT_.add("species TEXT");
+
+        List<Object> Values_INSERT_ = new ArrayList<>();
+        Values_INSERT_.add(2);
+        Values_INSERT_.add("species");
+        Values_INSERT_.add(2);
+        Values_INSERT_.add("species");
+        CassandraCommands.INSERT cmd3 =
+                new CassandraCommands.INSERT(s, "myKS", "monkey_species",
+                        columns_INSERT_, Values_INSERT_);
+        cmd3.updateState(s);
+        l.add(cmd3);
+
+        // Command 4-10
+        for (int i = 4; i < 8; i++) { // Difference: Cut off one command 9 -> 8
+            Values_INSERT.remove(1);
+            Values_INSERT.add(1, i);
+            CassandraCommands.INSERT tmpCmd =
+                    new CassandraCommands.INSERT(s, "myKS", "monkey_species",
+                            columns_INSERT, Values_INSERT);
+            tmpCmd.updateState(s);
+            l.add(tmpCmd);
+        }
+
+        // Command 11
+        CassandraCommands.ALTER_TABLE_DROP cmd11 =
+                new CassandraCommands.ALTER_TABLE_DROP(s, "myKS",
+                        "monkey_species", "population INT");
+        cmd11.updateState(s);
+        l.add(cmd11);
+
+        for (Command cmd : l) {
+            System.out.println(cmd);
+        }
+
+        CommandSequence commandSequence =
+                new CommandSequence(l, CassandraCommands.commandClassList,
+                        CassandraCommands.createCommandClassList, CassandraState.class,
+                        s);
+        return commandSequence;
+    }
+
 
 }
