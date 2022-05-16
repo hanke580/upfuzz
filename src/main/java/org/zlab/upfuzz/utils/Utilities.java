@@ -2,28 +2,21 @@ package org.zlab.upfuzz.utils;
 
 import static java.lang.String.format;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Random;
 
 import org.jacoco.core.data.ExecutionData;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.fuzzingengine.Config;
-import org.zlab.upfuzz.fuzzingengine.executor.Executor;
+
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
 
 public class Utilities {
     public static List<Integer> permutation(int size) {
@@ -290,6 +283,54 @@ public class Utilities {
             e.printStackTrace();
         }
         return true;
+    }
+
+
+    public static Map<String, List<Map.Entry<String, String>>> loadFunctoinFromStaticAnalysis(Path fileName) {
+        JSONParser jsonParser = new JSONParser();
+        Map<String, List<Map.Entry<String, String>>> funcToInst = new HashMap<>();
+
+        try (FileReader reader = new FileReader(fileName.toFile()))
+        {
+            Object obj = jsonParser.parse(reader);
+            JSONObject jsonObject = (JSONObject) obj;
+            Set<Map.Entry<String, String>> entrySet = jsonObject.entrySet();
+
+            for (Map.Entry<String, String> e : entrySet) {
+                String[] ret = e.getValue().split(e.getKey().replace("$", "\\$") + "\\(");
+                assert(ret.length == 2);
+                String ClassName = ret[0].substring(0, ret[0].length() - 1);
+                String MethodName = e.getKey();
+                String ParamDesc = "(" + ret[1];
+
+                // Only instrument class that's inside org.apache.cassandra.*
+                if (ClassName.contains("cassandra")) {
+                    if (funcToInst.containsKey(ClassName)) {
+                        funcToInst.get(ClassName).add(new AbstractMap.SimpleEntry<>(MethodName, ParamDesc));
+                    } else {
+                        List<Map.Entry<String,String>> list = new ArrayList<>();
+                        list.add(new AbstractMap.SimpleEntry<>(MethodName, ParamDesc));
+                        funcToInst.put(ClassName, list);
+                    }
+                }
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return funcToInst;
+    }
+
+    public void generateJacocoIncludeOption() {
+        Path filePath = Paths.get("/Users/hanke/Desktop/SerDes.json");
+        Map<String, List<Map.Entry<String, String>>> funcs = Utilities.loadFunctoinFromStaticAnalysis(filePath);
+        for (String className: funcs.keySet()) {
+            System.out.print(className + ":");
+        }
+        System.out.println();
     }
 
 }
