@@ -122,6 +122,7 @@ public class Main {
             }
             
             ExecutionDataStore curCoverage = new ExecutionDataStore();
+            ExecutionDataStore upCoverage = new ExecutionDataStore();
             FuzzingClient fuzzingClient = new FuzzingClient();
 
             Random rand = new Random();
@@ -146,10 +147,10 @@ public class Main {
             while(true) {
                 if (queue.isEmpty()) {
                     Pair<CommandSequence, CommandSequence> commandSequencePair = CassandraExecutor.prepareCommandSequence();
-                    Fuzzer.fuzzOne(rand, commandSequencePair.left, commandSequencePair.right, curCoverage, queue, fuzzingClient, false);
+                    Fuzzer.fuzzOne(rand, commandSequencePair.left, commandSequencePair.right, curCoverage, upCoverage, queue, fuzzingClient, false);
                 } else {
                     Pair<CommandSequence, CommandSequence> commandSequencePair = queue.poll();
-                    Fuzzer.fuzzOne(rand, commandSequencePair.left, commandSequencePair.right, curCoverage, queue, fuzzingClient, true);
+                    Fuzzer.fuzzOne(rand, commandSequencePair.left, commandSequencePair.right, curCoverage, upCoverage, queue, fuzzingClient, true);
                 }
             }
             // System.out.println("\n Fuzzing process end, have a good day \n");
