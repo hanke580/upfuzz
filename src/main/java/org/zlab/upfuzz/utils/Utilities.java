@@ -15,7 +15,6 @@ import org.zlab.upfuzz.fuzzingengine.Config;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 
 public class Utilities {
@@ -318,7 +317,7 @@ public class Utilities {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (ParseException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return funcToInst;
