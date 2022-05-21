@@ -145,11 +145,11 @@ public class FuzzingClient {
 			try {
 				// Feed it with all the read
 				boolean ret = executor.upgradeTest();
-				fb.upgradedCodeCoverage = collect(executor, "upgraded");
-				if (fb.upgradedCodeCoverage == null) {
-					System.out.println("ERROR: null upgrade code coverage");
-					System.exit(1);
-				}
+				// fb.upgradedCodeCoverage = collect(executor, "upgraded");
+				// if (fb.upgradedCodeCoverage == null) {
+				// 	System.out.println("ERROR: null upgrade code coverage");
+				// 	System.exit(1);
+				// }
 
 				if (ret == false) {
 					/**

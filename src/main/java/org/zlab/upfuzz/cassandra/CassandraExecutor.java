@@ -335,12 +335,12 @@ public class CassandraExecutor extends Executor {
 
         // Upgrade Startup
         ProcessBuilder pb = new ProcessBuilder("bin/cassandra");
-        Map<String, String> env = pb.environment();
-        env.put("JAVA_TOOL_OPTIONS",
-                "-javaagent:" + Config.getConf().jacocoAgentPath + jacocoOptions
-                        + ",includes=" + classToIns
-                        + ",output=dfe,address=localhost,sessionid=" + systemID
-                        + "-" + executorID + "_upgraded");
+        // Map<String, String> env = pb.environment();
+        // env.put("JAVA_TOOL_OPTIONS",
+        //         "-javaagent:" + Config.getConf().jacocoAgentPath + jacocoOptions
+        //                 + ",includes=" + classToIns
+        //                 + ",output=dfe,address=localhost,sessionid=" + systemID
+        //                 + "-" + executorID + "_upgraded");
 
         pb.directory(new File(Config.getConf().upgradeCassandraPath));
         pb.redirectOutput(
@@ -431,6 +431,7 @@ public class CassandraExecutor extends Executor {
             // for (String str: newVersionResult) {
             //     System.out.println(str);
             // }
+            System.out.println("new size = " + newVersionResult.size());
             if (newVersionResult.size() != oldVersionResult.size()) {
                 failureType = FailureType.RESULT_INCONSISTENCY;
                 failureInfo = "The result size is different, old version result size = "

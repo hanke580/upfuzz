@@ -150,17 +150,17 @@ public class Fuzzer {
             saveSeed(commandSequence, validationCommandSequence);
             queue.add(new Pair<>(commandSequence, validationCommandSequence));
             curCoverage.merge(testFeedBack.originalCodeCoverage);
-            upCoverage.merge(testFeedBack.upgradedCodeCoverage);
+            // upCoverage.merge(testFeedBack.upgradedCodeCoverage);
 
             // Update the coveredBranches to the newest value
             Pair<Integer, Integer> coverageStatus = Utilities
                     .getCoverageStatus(curCoverage);
             originalCoveredBranches = coverageStatus.left;
             originalProbeNum = coverageStatus.right;
-            Pair<Integer, Integer> upgradedCoverageStatus = Utilities
-                    .getCoverageStatus(upCoverage);
-            upgradedCoveredBranches = upgradedCoverageStatus.left;
-            upgradedProbeNum = upgradedCoverageStatus.right;
+            // Pair<Integer, Integer> upgradedCoverageStatus = Utilities
+            //         .getCoverageStatus(upCoverage);
+            // upgradedCoveredBranches = upgradedCoverageStatus.left;
+            // upgradedProbeNum = upgradedCoverageStatus.right;
 
         } else if (Utilities.hasNewBits(upCoverage,
                 testFeedBack.upgradedCodeCoverage)) {
