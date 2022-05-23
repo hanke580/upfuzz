@@ -332,4 +332,14 @@ public class Utilities {
         System.out.println();
     }
 
+    // biasedRand returns a random int in range [0..n),
+    // probability of n-1 is k times higher than probability of 0.
+    public static int biasRand(Random rand, int n, int k) {
+        double nf = (float) n;
+        double kf = (float) k;
+        double rf = nf * (kf/2 + 1) * rand.nextFloat();
+        double bf = (-1 + Math.sqrt(1+2*kf*rf/nf)) * nf / kf;
+        return (int) bf;
+    }
+
 }

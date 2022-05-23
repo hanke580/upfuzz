@@ -10,6 +10,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
+import javax.swing.text.Utilities;
+
 public class CommandSequence implements Serializable {
 
     public static final int MAX_CMD_SEQ_LEN = 20;
@@ -121,7 +123,8 @@ public class CommandSequence implements Serializable {
                  * Insert a command
                  */
                 // Compute the state up to the position
-                pos = rand.nextInt(commands.size() + 1);
+                pos = org.zlab.upfuzz.utils.Utilities.biasRand(rand, commands.size() + 1, 5);
+                // pos = rand.nextInt(commands.size() + 1);
                 System.out.println("\t\tMutate Command Pos " + pos);
                 for (int i = 0; i < pos; i++) {
                     commands.get(i).updateState(state);
