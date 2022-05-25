@@ -82,4 +82,42 @@ public class CommandSequenceTests {
         }
     }
 
+    @Test
+    public void test() {
+        Map<Set<Integer>, Set<Set<Integer>>> orders = new HashMap<>();
+
+        Set<Integer> cmd1Pos1 = new HashSet<>();
+        Set<Integer> cmd2Pos1 = new HashSet<>();
+        cmd1Pos1.add(1);
+        cmd1Pos1.add(2);
+        cmd2Pos1.add(4);
+
+
+        Set<Integer> cmd1Pos2 = new HashSet<>();
+        Set<Integer> cmd2Pos2 = new HashSet<>();
+
+        cmd1Pos2.add(1);
+        cmd1Pos2.add(2);
+        cmd2Pos2.add(4);
+
+        orders.put(cmd1Pos1, new HashSet<>());
+        orders.put(cmd1Pos2, new HashSet<>());
+
+        orders.get(cmd1Pos1).add(cmd2Pos1);
+        orders.get(cmd1Pos1).add(cmd2Pos2);
+
+//
+//
+//        orders.get(cmd1Pos1).add(cmd2Pos1);
+//
+//        if (orders.containsKey(cmd1Pos2)) {
+//            System.out.println("TRUE");
+//        }
+//        orders.put(cmd1Pos2, new HashSet<>());
+//        orders.get(cmd1Pos2).add(cmd2Pos2);
+
+        System.out.println(orders);
+
+    }
+
 }
