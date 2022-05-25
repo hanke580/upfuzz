@@ -16,10 +16,7 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class Fuzzer {
@@ -61,6 +58,17 @@ public class Fuzzer {
             FuzzingClient fuzzingClient, boolean fromCorpus) {
         // Fuzz this command sequence for lots of times
         if (fromCorpus) {
+
+            // Special Care about the order between commands
+            // Choice 1: Only care about the locations of DROP
+            // Choice 2: Care about the order between DROP and INSERT
+            // The order of command can be assigned by USER
+
+            String cmd1 = "INSERT";
+            String cmd2 = "DROP";
+            Map<Set<Integer>, Set<Set<Integer>>> ordersOf2Cmd = new HashMap<>();
+//            Set<Set<Integer>> ordersOf1Cmd = new HashSet<>();
+            boolean hasNewOrder;
             // Only run the mutated seeds
             for (int i = 0; i < TEST_NUM; i++) {
                 printInfo(queue.size(), fuzzingClient.crashID, testID);
@@ -79,8 +87,14 @@ public class Fuzzer {
                             break;
                     }
                     if (j == MUTATE_RETRY_TIME) {
-                        continue; // Discard current seq since the mutation keeps failing
+                        // Discard current seq since the mutation keeps failing
+                        // or too much mutation is stacked together
+                        continue;
                     }
+                    hasNewOrder = checkIfHasNewOrder_Two_Cmd(mutatedCommandSequence
+                            .getCommandStringList(), cmd1, cmd2, ordersOf2Cmd);
+                    // hasNewOrder = checkIfHasNewOrder_OneCmd(mutatedCommandSequence
+                    // .getCommandStringList(), cmd1, ordersOf1Cmd);
                     System.out.println("Mutated Command Sequence:");
                     for (String cmdStr : mutatedCommandSequence
                             .getCommandStringList()) {
@@ -118,7 +132,7 @@ public class Fuzzer {
                 }
                 // TODO: Add compare function in Jacoco
                 updateStatus(mutatedCommandSequence, validationCommandSequence,
-                        curCoverage, upCoverage, queue, fb);
+                        curCoverage, upCoverage, queue, hasNewOrder, fb);
             }
 
             round++;
@@ -134,7 +148,7 @@ public class Fuzzer {
                 Utilities.clearCassandraDataDir();
             }
             updateStatus(commandSequence, validationCommandSequence,
-                    curCoverage, upCoverage, queue, fb);
+                    curCoverage, upCoverage, queue, false, fb);
         }
         return true;
     }
@@ -143,13 +157,18 @@ public class Fuzzer {
             CommandSequence validationCommandSequence,
             ExecutionDataStore curCoverage, ExecutionDataStore upCoverage,
             Queue<Pair<CommandSequence, CommandSequence>> queue,
+            boolean hasNewOrder,
             FeedBack testFeedBack) {
         // Check new bits, update covered branches, add record (time, coverage) pair
-        if (Utilities.hasNewBits(curCoverage,
+        if (hasNewOrder || Utilities.hasNewBits(curCoverage,
                 testFeedBack.originalCodeCoverage)) {
             saveSeed(commandSequence, validationCommandSequence);
             queue.add(new Pair<>(commandSequence, validationCommandSequence));
-            curCoverage.merge(testFeedBack.originalCodeCoverage);
+
+            if (Utilities.hasNewBits(curCoverage,
+                    testFeedBack.originalCodeCoverage)) {
+                curCoverage.merge(testFeedBack.originalCodeCoverage);
+            }
             // upCoverage.merge(testFeedBack.upgradedCodeCoverage);
 
             // Update the coveredBranches to the newest value
@@ -256,4 +275,56 @@ public class Fuzzer {
         }
         System.out.println();
     }
+
+    public static boolean checkIfHasNewOrder_Two_Cmd(List<String> cmdStrList,
+                                          String cmd1, String cmd2,
+                                          Map<Set<Integer>, Set<Set<Integer>>> orders) {
+        // Care about the order between two commands
+        boolean hasNewOrder;
+        Set<Integer> cmd1Pos = new HashSet<>();
+        Set<Integer> cmd2Pos = new HashSet<>();
+        for (int i = 0; i < cmdStrList.size(); i++) {
+            String cmdStr = cmdStrList.get(i);
+            if (cmdStr.contains(cmd1)) {
+                cmd1Pos.add(i);
+            } else if (cmdStr.contains(cmd2)) {
+                cmd2Pos.add(i);
+            }
+        }
+        if (orders.containsKey(cmd1Pos)) {
+            if (orders.get(cmd1Pos).contains(cmd2Pos)) {
+                hasNewOrder = false;
+            } else {
+                orders.get(cmd1Pos).add(cmd2Pos);
+                hasNewOrder = true;
+            }
+        } else {
+            orders.put(cmd1Pos, new HashSet<>());
+            orders.get(cmd1Pos).add(cmd2Pos);
+            hasNewOrder = true;
+        }
+        return hasNewOrder;
+    }
+
+    public static boolean checkIfHasNewOrder_OneCmd(List<String> cmdStrList,
+                                             String cmd1,
+                                             Set<Set<Integer>> orders) {
+        // Care about only the position of target command
+        boolean hasNewOrder;
+        Set<Integer> cmd1Pos = new HashSet<>();
+        for (int i = 0; i < cmdStrList.size(); i++) {
+            String cmdStr = cmdStrList.get(i);
+            if (cmdStr.contains(cmd1)) {
+                cmd1Pos.add(i);
+            }
+        }
+        if (orders.contains(cmd1Pos)) {
+            hasNewOrder = false;
+        } else {
+            orders.add(cmd1Pos);
+            hasNewOrder = true;
+        }
+        return hasNewOrder;
+    }
+
 }
