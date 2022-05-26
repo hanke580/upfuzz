@@ -43,6 +43,20 @@ public class CassandraCommands {
     public static final List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList = new ArrayList<>();
     public static final List<Map.Entry<Class<? extends Command>, Integer>> readCommandClassList = new ArrayList<>();
 
+    static {
+        commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(CREAT_KEYSPACE.class, 1));
+        commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(CREATE_TABLE.class, 1));
+        commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(INSERT.class, 8));
+        commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(DELETE.class, 6));
+        commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(SELECT.class, 8));
+        commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(ALTER_TABLE_DROP.class, 10));
+        commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(CREAT_INDEX.class, 4));
+
+        createCommandClassList.add(new AbstractMap.SimpleImmutableEntry<>(CREAT_KEYSPACE.class, 2));
+        createCommandClassList.add(new AbstractMap.SimpleImmutableEntry<>(CREATE_TABLE.class, 3));
+
+        readCommandClassList.add(new AbstractMap.SimpleImmutableEntry<>(SELECT.class, 10));
+    }
 
     /**
      * CREATE KEYSPACE [IF NOT EXISTS] keyspace_name
@@ -140,7 +154,7 @@ public class CassandraCommands {
         }
     }
 
-    public static class CREATETABLE extends Command {
+    public static class CREATE_TABLE extends Command {
         /**
          * a parameter should correspond to one variable in the text format of this command.
          * mutating a parameter could depend on and the state updated by all nested internal commands and other parameters.
@@ -149,8 +163,7 @@ public class CassandraCommands {
 
         // final Command ...; // Nested commands need to be constructed first.
 
-        public CREATETABLE(State state, Object init0, Object init1,
-                Object init2, Object init3, Object init4) {
+        public CREATE_TABLE(State state, Object init0, Object init1, Object init2, Object init3, Object init4) {
             super();
 
             assert state instanceof CassandraState;
@@ -218,7 +231,7 @@ public class CassandraCommands {
             updateExecutableCommandString();
         }
 
-        public CREATETABLE(State state) {
+        public CREATE_TABLE(State state) {
             super();
 
             assert state instanceof CassandraState;
@@ -320,6 +333,135 @@ public class CassandraCommands {
                     primaryColumns);
             ((CassandraState) state).addTable(keyspaceName.toString(),
                     tableName.toString(), table);
+        }
+    }
+
+    public static class CREAT_INDEX extends Command {
+
+        public CREAT_INDEX(State state) {
+            super();
+
+            assert state instanceof CassandraState;
+            CassandraState cassandraState = (CassandraState) state;
+
+            Parameter keyspaceName = chooseKeyspace(cassandraState, this, null);
+            this.params.add(keyspaceName); // P0
+
+            Parameter TableName = chooseTable(cassandraState, this, null);
+            this.params.add(TableName);    // P1
+
+            ParameterType.ConcreteType indexNameType = new ParameterType.NotInCollectionType(
+                    new ParameterType.NotEmpty(
+                            STRINGType.instance
+                    ),
+                    (s, c) -> ((CassandraState) s).getTable(c.params.get(0).toString(), c.params.get(1).toString()).indexes,
+                    null
+            );
+            Parameter indexName = indexNameType.generateRandomParameter(state, this);
+            this.params.add(indexName);  // P2
+
+            ParameterType.ConcreteType indexColumnType =
+                    new ParameterType.InCollectionType(
+                            null,
+                            (s, c) -> ((CassandraState) s).getTable(c.params.get(0).toString(), c.params.get(1).toString()).colName2Type,
+                            null,
+                            null
+                    );
+            Parameter indexColumn = indexColumnType.generateRandomParameter(cassandraState, this);
+            this.params.add(indexColumn); // P3
+
+            ParameterType.ConcreteType IF_NOT_EXISTType = new ParameterType.OptionalType(
+                    new CONSTANTSTRINGType("IF NOT EXISTS"), null   // TODO: Make a pure CONSTANTType
+            );
+            Parameter IF_NOT_EXIST = IF_NOT_EXISTType.generateRandomParameter(state, this);
+            params.add(IF_NOT_EXIST); // P4
+
+            updateExecutableCommandString();
+        }
+
+        @Override
+        public String constructCommandString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("CREATE INDEX");
+            sb.append(" " + this.params.get(4) + " " + this.params.get(2) + " ON");
+            sb.append(" " + this.params.get(0) + "." + this.params.get(1).toString() + " ");
+            sb.append("( " + ((Pair) this.params.get(3).getValue()).left.toString() + ");");
+            return sb.toString();
+        }
+
+        @Override
+        public void updateState(State state) {
+            ((CassandraState) state)
+                    .getTable(this.params.get(0).toString(), this.params.get(1).toString())
+                    .indexes
+                    .add(this.params.get(2).toString());
+        }
+    }
+
+    /**
+     * INSERT INTO [keyspace_name.] table_name (column_list)
+     * VALUES (column_values)
+     * [IF NOT EXISTS]
+     * [USING TTL seconds | TIMESTAMP epoch_in_microseconds]
+     *
+     * E.g.,
+     * INSERT INTO cycling.cyclist_name (id, lastname, firstname)
+     *    VALUES (c4b65263-fe58-4846-83e8-f0e1c13d518f, 'RATTO', 'Rissella')
+     * IF NOT EXISTS;
+     */
+    public static class CREATE_TYPE extends Command {
+
+        public CREATE_TYPE(State state) {
+            super();
+
+            assert state instanceof CassandraState;
+            CassandraState cassandraState = (CassandraState) state;
+
+            Parameter keyspaceName = chooseKeyspace(cassandraState, this, null);
+            this.params.add(keyspaceName);  // 0
+
+            ParameterType.ConcreteType typeNameType = new ParameterType.NotInCollectionType(
+                    new ParameterType.NotEmpty(
+                            STRINGType.instance
+                    ),
+                    (s, c) -> ((CassandraState) s).keyspace2UDTs.get(c.params.get(0).toString()),
+                    null
+            );
+            Parameter typeName = typeNameType.generateRandomParameter(cassandraState, this);
+            params.add(typeName);           // 1
+
+            ParameterType.ConcreteType columnsType = // LIST<PAIR<String,TYPEType>>
+                    new ParameterType.NotEmpty(
+                            ParameterType.ConcreteGenericType.constructConcreteGenericType(
+                                    CassandraTypes.MapLikeListType.instance,
+                                    ParameterType.ConcreteGenericType.constructConcreteGenericType(PAIRType.instance,
+                                            new ParameterType.NotEmpty(
+                                                    STRINGType.instance
+                                            ),
+                                            CassandraTypes.TYPEType.instance))
+                    );
+
+            Parameter columns = columnsType.generateRandomParameter(cassandraState, this);
+            params.add(columns); // 2
+
+            updateExecutableCommandString();
+        }
+
+        @Override
+        public String constructCommandString() {
+
+            Parameter keyspaceName = params.get(0);
+            Parameter typeName = params.get(1);
+            Parameter columns = params.get(2);
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("CREATE TYPE " + keyspaceName.toString() + "." + typeName + " (" +  columns.toString() + ");");
+            return sb.toString();
+        }
+
+        @Override
+        public void updateState(State state) {
+            ((CassandraState) state).keyspace2UDTs.get(params.get(0).toString()).add(params.get(1).toString());
         }
     }
 
@@ -547,6 +689,287 @@ public class CassandraCommands {
     }
 
     /**
+     * ALTER TABLE [keyspace_name.] table_name
+     * [DROP column_list];
+     */
+    public static class ALTER_TABLE_ADD extends Command {
+
+        public ALTER_TABLE_ADD(State state) {
+            super();
+
+            assert state instanceof CassandraState;
+            CassandraState cassandraState = (CassandraState) state;
+
+            Parameter keyspaceName = chooseKeyspace(cassandraState, this, null);
+            this.params.add(keyspaceName);
+
+            Parameter TableName = chooseTable(cassandraState, this, null);
+            this.params.add(TableName);
+
+            /**
+             * Add a column
+             * - Must not be in the original column list
+             * - Pair type <String, TYPEType>
+             */
+
+            ParameterType.ConcreteType addColumnNameType = new ParameterType.NotInCollectionType(
+                    new ParameterType.NotEmpty(
+                            STRINGType.instance
+                    ),
+                    (s, c) -> ((CassandraState) s).getTable(c.params.get(0).toString(), c.params.get(1).toString()).colName2Type,
+                    p -> ((Pair) ((Parameter) p).getValue()).left
+            );
+            Parameter addColumnName = addColumnNameType.generateRandomParameter(cassandraState, this);
+            this.params.add(addColumnName);
+
+            ParameterType.ConcreteType addColumnTypeType = CassandraTypes.TYPEType.instance;
+            Parameter addColumnType = addColumnTypeType.generateRandomParameter(cassandraState, this);
+            this.params.add(addColumnType);
+
+            updateExecutableCommandString();
+        }
+
+        @Override
+        public String constructCommandString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("ALTER TABLE");
+            sb.append(" " + this.params.get(0) + "." + this.params.get(1).toString() + " ");
+            sb.append("ADD");
+            sb.append(" " + this.params.get(2).toString() + " " + this.params.get(3).toString() + " ;");
+            return sb.toString();
+        }
+
+        @Override
+        public void updateState(State state) {
+
+            ParameterType.ConcreteType columnType =
+                    ParameterType.ConcreteGenericType.constructConcreteGenericType(
+                            PAIRType.instance,
+                            new ParameterType.NotEmpty(
+                                    STRINGType.instance
+                            ),
+                            CassandraTypes.TYPEType.instance);
+
+            Parameter p = new Parameter(columnType, new Pair<>(params.get(2), params.get(3)));
+            ((CassandraState) state).getTable(this.params.get(0).toString(), this.params.get(1).toString()) // Get the table to modify
+                    .colName2Type.add(p);
+        }
+    }
+
+    /**
+     * ALTER  KEYSPACE keyspace_name
+     *    WITH REPLICATION = {
+     *       'class' : 'SimpleStrategy', 'replication_factor' : N
+     *      | 'class' : 'NetworkTopologyStrategy', 'dc1_name' : N [, ...]
+     *    }
+     *    [AND DURABLE_WRITES =  true|false] ;
+     */
+    public static class ALTER_KEYSPACE extends Command {
+        /**
+         * a parameter should correspond to one variable in the text format of this command.
+         * mutating a parameter could depend on and the state updated by all nested internal commands and other parameters.
+         * Note: Thus, we need to be careful to not have cyclic dependency among parameters.
+         */
+
+        // final Command ...; // Nested commands need to be constructed first.
+
+        public ALTER_KEYSPACE(State state) {
+            super();
+
+            assert state instanceof CassandraState;
+            CassandraState cassandraState = (CassandraState) state;
+
+            Parameter keyspaceName = chooseKeyspace(state, this, null);
+            params.add(keyspaceName); // [0]
+
+
+            ParameterType.ConcreteType replicationFactorType = new INTType(1, 4);
+            Parameter replicationFactor = replicationFactorType.generateRandomParameter(state, this);
+            this.params.add(replicationFactor); // [1]
+
+            updateExecutableCommandString();
+        }
+
+        @Override
+        public String constructCommandString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("ALTER KEYSPACE" + " " + this.params.get(0).toString() + " ");
+            sb.append("WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' :" + " ");
+            sb.append(this.params.get(1).toString() + " " + "};");
+
+            return sb.toString();
+        }
+
+        @Override
+        public void updateState(State state) { }
+    }
+
+    public static class DROP_INDEX extends Command {
+        public DROP_INDEX(State state) {
+            super();
+
+            assert state instanceof CassandraState;
+            CassandraState cassandraState = (CassandraState) state;
+
+            Parameter keyspaceName = chooseKeyspace(cassandraState, this, null);
+            this.params.add(keyspaceName); // 0
+
+            Parameter TableName = chooseTable(cassandraState, this, null);
+            this.params.add(TableName);    // 1
+
+            ParameterType.ConcreteType indexNameType = new ParameterType.InCollectionType(
+                    CONSTANTSTRINGType.instance,
+                    (s, c) -> ((CassandraState) s).getTable(c.params.get(0).toString(), c.params.get(1).toString()).indexes,
+                    null
+            );
+            Parameter indexName = indexNameType.generateRandomParameter(state, this);
+            this.params.add(indexName); // 2
+
+            ParameterType.ConcreteType IF_EXISTType = new ParameterType.OptionalType(
+                    new CONSTANTSTRINGType("IF EXISTS"), null   // TODO: Make a pure CONSTANTType
+            );
+            Parameter IF_EXIST = IF_EXISTType.generateRandomParameter(cassandraState, this);
+            params.add(IF_EXIST); // 3
+
+            updateExecutableCommandString();
+        }
+
+        @Override
+        public String constructCommandString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("DROP INDEX " + params.get(3));
+            sb.append(" " + this.params.get(0) + "." + this.params.get(2).toString() + ";");
+            return sb.toString();
+        }
+
+        @Override
+        public void updateState(State state) {
+            ((CassandraState) state)
+                    .getTable(params.get(0).toString(), params.get(1).toString())
+                    .indexes
+                    .remove(params.get(2).toString());
+        }
+    }
+
+    public static class DROP_KEYSPACE extends Command {
+        public DROP_KEYSPACE(State state) {
+            super();
+
+            assert state instanceof CassandraState;
+            CassandraState cassandraState = (CassandraState) state;
+
+            Parameter keyspaceName = chooseKeyspace(cassandraState, this, null);
+            this.params.add(keyspaceName); // 0
+
+            ParameterType.ConcreteType IF_EXISTType = new ParameterType.OptionalType(
+                    new CONSTANTSTRINGType("IF EXISTS"), null   // TODO: Make a pure CONSTANTType
+            );
+            Parameter IF_EXIST = IF_EXISTType.generateRandomParameter(cassandraState, this);
+            params.add(IF_EXIST); // 1
+
+            updateExecutableCommandString();
+        }
+
+        @Override
+        public String constructCommandString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("DROP KEYSPACE " + params.get(1));
+            sb.append(" " + this.params.get(0) + ";");
+            return sb.toString();
+        }
+
+        @Override
+        public void updateState(State state) {
+            ((CassandraState) state)
+                    .keyspace2tables.remove(params.get(0).toString());
+            ((CassandraState) state)
+                    .keyspace2UDTs.remove(params.get(0).toString());
+        }
+    }
+
+    public static class DROP_TABLE extends Command {
+        public DROP_TABLE(State state) {
+            super();
+
+            assert state instanceof CassandraState;
+            CassandraState cassandraState = (CassandraState) state;
+
+            Parameter keyspaceName = chooseKeyspace(cassandraState, this, null);
+            this.params.add(keyspaceName); // 0
+
+            Parameter TableName = chooseTable(cassandraState, this, null);
+            this.params.add(TableName);    // 1
+
+            ParameterType.ConcreteType IF_EXISTType = new ParameterType.OptionalType(
+                    new CONSTANTSTRINGType("IF EXISTS"), null   // TODO: Make a pure CONSTANTType
+            );
+            Parameter IF_EXIST = IF_EXISTType.generateRandomParameter(cassandraState, this);
+            params.add(IF_EXIST); // 2
+
+            updateExecutableCommandString();
+        }
+
+        @Override
+        public String constructCommandString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("DROP TABLE " + params.get(2));
+            sb.append(" " + this.params.get(0) + "." + this.params.get(1).toString() + ";");
+            return sb.toString();
+        }
+
+        @Override
+        public void updateState(State state) {
+            ((CassandraState) state)
+                    .keyspace2tables.get(params.get(0).toString())
+                    .remove(params.get(1).toString());
+        }
+    }
+
+    public static class DROP_TYPE extends Command {
+        public DROP_TYPE(State state) {
+            super();
+
+            assert state instanceof CassandraState;
+            CassandraState cassandraState = (CassandraState) state;
+
+            Parameter keyspaceName = chooseKeyspace(cassandraState, this, null);
+            this.params.add(keyspaceName); // 0
+
+            ParameterType.ConcreteType typeNameType = new ParameterType.InCollectionType(
+                    STRINGType.instance,
+                    (s, c) -> ((CassandraState) s).keyspace2UDTs.get(this.params.get(0).toString()),
+                    null
+            );
+
+            Parameter typeName = typeNameType.generateRandomParameter(cassandraState, this);
+            params.add(typeName); // 1
+
+
+            ParameterType.ConcreteType IF_EXISTType = new ParameterType.OptionalType(
+                    new CONSTANTSTRINGType("IF EXISTS"), null   // TODO: Make a pure CONSTANTType
+            );
+            Parameter IF_EXIST = IF_EXISTType.generateRandomParameter(cassandraState, this);
+            params.add(IF_EXIST); // 2
+
+            updateExecutableCommandString();
+        }
+
+        @Override
+        public String constructCommandString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("DROP TYPE " + params.get(2));
+//            sb.append(" " + this.params.get(0).toString() + "." + ";");
+            sb.append(" " + this.params.get(0).toString() + "." + this.params.get(1).toString() + ";");
+            return sb.toString();
+        }
+
+        @Override
+        public void updateState(State state) {
+            ((CassandraState) state).keyspace2UDTs.get(this.params.get(0).toString()).remove(this.params.get(1).toString());
+        }
+    }
+
+    /**
      * DELETE firstname, lastname
      *   FROM cycling.cyclist_name
      *   USING TIMESTAMP 1318452291034
@@ -730,6 +1153,30 @@ public class CassandraCommands {
         @Override
         public void updateState(State state) {
         }
+    }
+
+    public static class USE extends Command {
+        public USE(State state) {
+            super();
+
+            assert state instanceof CassandraState;
+            CassandraState cassandraState = (CassandraState) state;
+
+            Parameter keyspaceName = chooseKeyspace(cassandraState, this, null);
+            this.params.add(keyspaceName); // 0
+
+            updateExecutableCommandString();
+        }
+
+        @Override
+        public String constructCommandString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("USE " + params.get(0) + ";");
+            return sb.toString();
+        }
+
+        @Override
+        public void updateState(State state) { }
     }
 
     /**

@@ -119,12 +119,10 @@ public class CommandSequence implements Serializable {
             //                command = generateSingleCommand(commandClassList, state);
             //            }
             // Debug Code
-            // FIXME why CREATETABLE instead of createCommandClassList
-            // List<Map.Entry<Class<? extends Command>, Integer>> tmpL = new LinkedList<>();
-            // tmpL.add(new AbstractMap.SimpleImmutableEntry<>(
-            //         CassandraCommands.CREATETABLE.class, 2));
-            // command = generateSingleCommand(tmpL, state);
-            command = generateSingleCommand(createCommandClassList, state);
+            List<Map.Entry<Class<? extends Command>, Integer>> tmpL = new LinkedList<>();
+            tmpL.add(new AbstractMap.SimpleImmutableEntry<>(CassandraCommands.CREATE_TABLE.class, 2) );
+            command = generateSingleCommand(tmpL, state);
+
 
             // System.out.println("Added command : " + command.constructCommandString());
             // System.out.println("\n");

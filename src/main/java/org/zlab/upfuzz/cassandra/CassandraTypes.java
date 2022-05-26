@@ -55,7 +55,8 @@ public class CassandraTypes {
         }
 
         @Override
-        public Parameter generateRandomParameter(State s, Command c, Object init) {
+        public Parameter generateRandomParameter(State s, Command c,
+                Object init) {
             if (init == null) {
                 return generateRandomParameter(s, c);
             }
@@ -102,7 +103,8 @@ public class CassandraTypes {
         }
 
         @Override
-        public Parameter generateRandomParameter(State s, Command c, List<ConcreteType> types) {
+        public Parameter generateRandomParameter(State s, Command c,
+                List<ConcreteType> types) {
             // (Pair<TEXT,TYPE>)
             List<Parameter> value = new ArrayList<>();
 
@@ -115,12 +117,14 @@ public class CassandraTypes {
                 value.add(t.generateRandomParameter(s, c));
             }
 
-            ConcreteType type = ConcreteGenericType.constructConcreteGenericType(instance, t); // LIST<WhateverType>
+            ConcreteType type = ConcreteGenericType
+                    .constructConcreteGenericType(instance, t); // LIST<WhateverType>
             return new Parameter(type, value);
         }
 
         @Override
-        public Parameter generateRandomParameter(State s, Command c, List<ConcreteType> types, Object init) {
+        public Parameter generateRandomParameter(State s, Command c,
+                List<ConcreteType> types, Object init) {
             assert init instanceof List;
             List<Object> initValues = (List<Object>) init;
 
@@ -135,12 +139,14 @@ public class CassandraTypes {
                 value.add(t.generateRandomParameter(s, c, initValues.get(i)));
             }
 
-            ConcreteType type = ConcreteGenericType.constructConcreteGenericType(instance, t); // LIST<WhateverType>
+            ConcreteType type = ConcreteGenericType
+                    .constructConcreteGenericType(instance, t); // LIST<WhateverType>
             return new Parameter(type, value);
         }
 
         @Override
-        public String generateStringValue(Parameter p, List<ConcreteType> types) {
+        public String generateStringValue(Parameter p,
+                List<ConcreteType> types) {
             StringBuilder sb = new StringBuilder();
 
             List<Parameter> value = (List<Parameter>) p.value;
@@ -153,19 +159,22 @@ public class CassandraTypes {
         }
 
         @Override
-        public boolean isEmpty(State s, Command c, Parameter p, List<ConcreteType> types) {
+        public boolean isEmpty(State s, Command c, Parameter p,
+                List<ConcreteType> types) {
             // Maybe add a isValid() here
             return ((List<Parameter>) p.value).isEmpty();
         }
 
         @Override
-        public boolean mutate(State s, Command c, Parameter p, List<ConcreteType> types) {
+        public boolean mutate(State s, Command c, Parameter p,
+                List<ConcreteType> types) {
             p.value = generateRandomParameter(s, c, types).value;
             return true;
         }
 
         @Override
-        public boolean isValid(State s, Command c, Parameter p, List<ConcreteType> types) {
+        public boolean isValid(State s, Command c, Parameter p,
+                List<ConcreteType> types) {
             // TODO: Make isValid also check the type, now is using the assert, this is bad.
             assert p.value instanceof List;
 
@@ -211,7 +220,8 @@ public class CassandraTypes {
         }
 
         @Override
-        public Parameter generateRandomParameter(State s, Command c, List<ConcreteType> typesInTemplate) {
+        public Parameter generateRandomParameter(State s, Command c,
+                List<ConcreteType> typesInTemplate) {
 
             ConcreteType t = typesInTemplate.get(0);
             List<Parameter> value = new ArrayList<>();
@@ -234,7 +244,8 @@ public class CassandraTypes {
                 value.add(p);
             }
 
-            ConcreteType type = ConcreteGenericType.constructConcreteGenericType(this.instance, t); // LIST<WhateverType>
+            ConcreteType type = ConcreteGenericType
+                    .constructConcreteGenericType(this.instance, t); // LIST<WhateverType>
 
             return new Parameter(type, value);
         }
@@ -301,7 +312,8 @@ public class CassandraTypes {
 
         private ParameterType selectRandomType() {
             // Can avoid this transform by storing a separate List
-            List<ParameterType> types = new ArrayList<ParameterType>(type2String.keySet());
+            List<ParameterType> types = new ArrayList<ParameterType>(
+                    type2String.keySet());
             int typeIdx = new Random().nextInt(types.size());
             return types.get(typeIdx);
         }
@@ -310,7 +322,8 @@ public class CassandraTypes {
             if (g instanceof GenericTypeOne) {
                 return new ConcreteGenericTypeOne(g, generateRandomType());
             } else if (g instanceof GenericTypeTwo) {
-                return new ConcreteGenericTypeTwo(g, generateRandomType(), generateRandomType());
+                return new ConcreteGenericTypeTwo(g, generateRandomType(),
+                        generateRandomType());
             }
             assert false;
             return null; // should not happen.
@@ -328,7 +341,8 @@ public class CassandraTypes {
         }
 
         @Override
-        public Parameter generateRandomParameter(State s, Command c, Object init) {
+        public Parameter generateRandomParameter(State s, Command c,
+                Object init) {
             if (init == null) {
                 return generateRandomParameter(s, c);
             }
