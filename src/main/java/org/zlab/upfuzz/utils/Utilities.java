@@ -17,6 +17,7 @@ import java.util.Map.Entry;
 import org.jacoco.core.data.ExecutionData;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.CommandSequence;
+import org.zlab.upfuzz.fuzzingengine.Config;
 
 public class Utilities {
     public static List<Integer> permutation(int size) {
@@ -199,6 +200,34 @@ public class Utilities {
             }
         }
         return null;
+    }
+
+    public static void clearCassandraDataDir() {
+
+        // ProcessBuilder pb = new ProcessBuilder("sh", "clean.sh");
+        // pb.directory(new File("/home/vagrant/project/upfuzz"));
+        // try {
+        //     Process p = pb.start();
+        //     p.waitFor();
+        // } catch (IOException | InterruptedException e) {
+        //     e.printStackTrace();
+        // }
+
+        ProcessBuilder pb = new ProcessBuilder("rm", "-rf", "data");
+        pb.directory(new File(Config.getConf().oldSystemPath));
+        try {
+            pb.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        pb = new ProcessBuilder("rm", "-rf", "data");
+        pb.directory(new File(Config.getConf().newSystemPath));
+        try {
+            pb.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

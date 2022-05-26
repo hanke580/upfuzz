@@ -225,6 +225,7 @@ public class CommandSequence implements Serializable {
         }
         if (command == null) {
             System.out.println("A problem with generating single command");
+            throw new RuntimeException("A problem with generating single command");
             // System.exit(1);
         }
         return command;
