@@ -2,22 +2,20 @@ package org.zlab.upfuzz.utils;
 
 import static java.lang.String.format;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
+import java.io.*;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.Map.Entry;
 
 import org.jacoco.core.data.ExecutionData;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.fuzzingengine.Config;
+
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
 
 public class Utilities {
     public static List<Integer> permutation(int size) {
@@ -86,8 +84,27 @@ public class Utilities {
         }
     }
 
-    public static void assertCompatibility(ExecutionData curData,
-            ExecutionData testSequenceData) {
+    public static Pair<Integer, Integer> getCoverageStatus(ExecutionDataStore curCoverage) {
+        if (curCoverage == null) {
+            return new Pair(0, 0);
+        }
+
+        int coveredProbes = 0;
+        int probeNum = 0;
+
+        for (final ExecutionData curData : curCoverage.getContents()) {
+            int[] curProbes = curData.getProbes();
+            probeNum += curProbes.length;
+            for (int i = 0; i < curProbes.length; i++) {
+                if (curProbes[i] != 0) coveredProbes++;
+            }
+        }
+        return new Pair(coveredProbes, probeNum);
+    }
+
+
+
+    public static void assertCompatibility(ExecutionData curData, ExecutionData testSequenceData) {
         if (curData.getId() != testSequenceData.getId()) {
             throw new IllegalStateException(
                     format("Different ids (%016x and %016x).",
@@ -228,6 +245,117 @@ public class Utilities {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static boolean oneOf(Random rand, int n) {
+        if (n <= 0) {
+            throw new RuntimeException("n in oneOf <= 0");
+        }
+        return rand.nextInt(n) == 0;
+    }
+
+    public static boolean nOutOf(Random rand, int x, int y) {
+        // probability x/y
+        if (y <= 0 || x < 0) {
+            throw new RuntimeException("n in oneOf <= 0");
+        }
+        return rand.nextInt(y) < x;
+    }
+
+    public static boolean write2TXT(File file, String content) {
+
+        try{
+            // If file doesn't exists, then create it
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+
+            FileWriter fw = new FileWriter(file.getAbsoluteFile());
+            BufferedWriter bw = new BufferedWriter(fw);
+
+            // Write in file
+            bw.write(content);
+
+            // Close connection
+            bw.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+
+        return true;
+    }
+
+    public static boolean writeCmdSeq(File file, Object object) {
+        try {
+            FileOutputStream fileOut =
+                    new FileOutputStream(file);
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(object);
+            out.close();
+            fileOut.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return true;
+    }
+
+
+    public static Map<String, List<Map.Entry<String, String>>> loadFunctoinFromStaticAnalysis(Path fileName) {
+        JSONParser jsonParser = new JSONParser();
+        Map<String, List<Map.Entry<String, String>>> funcToInst = new HashMap<>();
+
+        try (FileReader reader = new FileReader(fileName.toFile()))
+        {
+            Object obj = jsonParser.parse(reader);
+            JSONObject jsonObject = (JSONObject) obj;
+            Set<Map.Entry<String, String>> entrySet = jsonObject.entrySet();
+
+            for (Map.Entry<String, String> e : entrySet) {
+                String[] ret = e.getValue().split(e.getKey().replace("$", "\\$") + "\\(");
+                assert(ret.length == 2);
+                String ClassName = ret[0].substring(0, ret[0].length() - 1);
+                String MethodName = e.getKey();
+                String ParamDesc = "(" + ret[1];
+
+                // Only instrument class that's inside org.apache.cassandra.*
+                if (ClassName.contains("cassandra")) {
+                    if (funcToInst.containsKey(ClassName)) {
+                        funcToInst.get(ClassName).add(new AbstractMap.SimpleEntry<>(MethodName, ParamDesc));
+                    } else {
+                        List<Map.Entry<String,String>> list = new ArrayList<>();
+                        list.add(new AbstractMap.SimpleEntry<>(MethodName, ParamDesc));
+                        funcToInst.put(ClassName, list);
+                    }
+                }
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return funcToInst;
+    }
+
+    public void generateJacocoIncludeOption() {
+        Path filePath = Paths.get("/Users/hanke/Desktop/SerDes.json");
+        Map<String, List<Map.Entry<String, String>>> funcs = Utilities.loadFunctoinFromStaticAnalysis(filePath);
+        for (String className: funcs.keySet()) {
+            System.out.print(className + ":");
+        }
+        System.out.println();
+    }
+
+    // biasedRand returns a random int in range [0..n),
+    // probability of n-1 is k times higher than probability of 0.
+    public static int biasRand(Random rand, int n, int k) {
+        double nf = (float) n;
+        double kf = (float) k;
+        double rf = nf * (kf/2 + 1) * rand.nextFloat();
+        double bf = (-1 + Math.sqrt(1+2*kf*rf/nf)) * nf / kf;
+        return (int) bf;
     }
 
 }

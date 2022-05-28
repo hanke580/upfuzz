@@ -19,7 +19,6 @@ public class Parameter implements Serializable {
     }
 
     public boolean mutate(State s, Command c) {
-        System.out.println("hello mutation");
         return type.mutate(s, c, this);
     }
 

@@ -1,16 +1,22 @@
 package org.zlab.upfuzz;
 
 import org.zlab.upfuzz.cassandra.CassandraCommands;
+import org.zlab.upfuzz.utils.INTType;
+import org.zlab.upfuzz.utils.Pair;
+import org.zlab.upfuzz.utils.STRINGType;
 
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
+import javax.swing.text.Utilities;
+
 public class CommandSequence implements Serializable {
 
     public static final int MAX_CMD_SEQ_LEN = 20;
-    public final static int RETRY_GENERATE_TIME = 50;
+    public final static int RETRY_GENERATE_TIME = 400;
+    public final static int RETRY_MUTATE_TIME = 20;
 
     public List<Command> commands;
     public final List<Map.Entry<Class<? extends Command>, Integer>> commandClassList;
@@ -29,156 +35,165 @@ public class CommandSequence implements Serializable {
         this.state = state;
     }
 
-    public CommandSequence mutate()
-            throws NoSuchMethodException, InvocationTargetException,
-            InstantiationException, IllegalAccessException {
+    public boolean separateFromFormerTest() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
 
-        Random rand = new Random();
-        int choice = rand.nextInt(4);
-
-        /**
-         * 0: Mutate the command (Call command.mutate)  // 50%
-         * 1: Insert a command                          // 25%
-         * 2: Replace a command                         // 25%
-         * 3: Delete a command // Temporary not chosen  // 0%
-         */
-
-        // switch (choice) {
-        //     case 0:
-        //         System.out.println("Mutate a specific command");
-        //         break;
-        //     case 1:
-        //         System.out.println("Insert a command");
-        //         break;
-        //     case 2:
-        //         System.out.println("Replace a command");
-        //         break;
-        //     case 3:
-        //         System.out.println("Delete a command");
-        // }
-
-        assert commands.size() > 0;
-        // pos to insert
-        int pos = rand.nextInt(commands.size());
-        // System.out.println("Mutate Command Index = " + pos);
-
+        for (Command command : commands) {
+            command.changeKeyspaceName(); // For separation
+            command.updateState(state);
+        }
         Constructor<?> constructor = stateClass.getConstructor();
         State state = (State) constructor.newInstance(); // Recreate a state
-//
-//        pos = 1; // DEBUG
-//        choice = 1; // DEBUG
-
-        // Compute the state up to the position
-        for (int i = 0; i < pos; i++) {
-            commands.get(i).updateState(state);
-        }
-
-        if (choice == 0 || choice == 1) {
-            // Mutate a specific command
-            try {
-                commands.get(pos).mutate(state);
-
-                boolean fixable = checkAndUpdateCommand(commands.get(pos),
-                        state);
-                if (!fixable) {
-                    // remove the command from command sequence...
-                    commands.remove(pos);
-                    pos -= 1;
-                } else {
-                    updateState(commands.get(pos), state);
-                }
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-            }
-        } else if (choice == 2) {
-            // Insert a command
-            /**
-             * Now regenerate the state from beginning to the mutated command.
-             * - Opt1: Save the state for each command.
-             *      - PRO: Eliminate the overhead computing state from 0 to i - 1
-             *      - CON: Takes more space
-             * - Opt2: Re-compute from beginning. Takes more time, but save space.
-             *      - (Use this for now)
-             */
-            // TODO: Need more reasoning whether use this: compute state from beginning
-            // generate a new command
-            /**
-             * Two options
-             * 1. Purely random generate one from this state.
-             * 2. (TODO) Pick command from the command pool
-             */
-            Command command;
-            //            if (pos <= 1) {
-            //                command = generateSingleCommand(createCommandClassList, state);
-            //            } else {
-            //                command = generateSingleCommand(commandClassList, state);
-            //            }
-            // Debug Code
-            List<Map.Entry<Class<? extends Command>, Integer>> tmpL = new LinkedList<>();
-            tmpL.add(new AbstractMap.SimpleImmutableEntry<>(CassandraCommands.CREATE_TABLE.class, 2) );
-            command = generateSingleCommand(tmpL, state);
-
-
-            // System.out.println("Added command : " + command.constructCommandString());
-            // System.out.println("\n");
-
-            commands.add(pos, command);
-            commands.get(pos).updateState(state);
-
-        } else if (choice == 3) {
-            // Replace a command
-            /**
-             * TODO: Pick from the command pool
-             */
-            Command command;
-            if (pos <= 1) {
-                command = generateSingleCommand(createCommandClassList, state);
-            } else {
-                command = generateSingleCommand(commandClassList, state);
-            }
-
-            commands.remove(pos);
-            commands.add(pos, command);
-            commands.get(pos).updateState(state);
-        } else {
-            // Delete a command
-            // Temporary not exist...
-            commands.remove(pos);
-            pos -= 1;
-        }
-        // Check the following commands
-        /**
-         * TODO: There could be some commands that cannot be fixed.
-         * These commands need to be removed/should be handled
-         * by some other ways...
-         * Like regenerate a new one
-         */
         List<Command> validCommands = new LinkedList<>();
-        for (int i = 0; i < pos + 1; i++) {
-            validCommands.add(commands.get(i));
-        }
-
-        for (int i = pos + 1; i < commands.size(); i++) {
+        state = (State) constructor.newInstance(); // Recreate a state
+        for (int i = 0; i < commands.size(); i++) {
             boolean fixable = checkAndUpdateCommand(commands.get(i), state);
             if (fixable) {
                 validCommands.add(commands.get(i));
                 updateState(commands.get(i), state);
             }
         }
-        commands = validCommands;
-
-        this.state = state;
-
-        return this;
+        this.commands = validCommands;
+//        System.out.println("\nSeparated Seq");
+//        for (Command command : commands) {
+//            System.out.println(command.toString());
+//        }
+//        System.out.println("\n");
+        return true;
     }
 
-    public static Command generateSingleCommand(
-            List<Map.Entry<Class<? extends Command>, Integer>> commandClassList,
-            State state) {
+    public boolean mutate() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        /**
+         * Choice
+         * 0: Mutate the command (Call command.mutate)  // 2/3
+         * 1: Insert a command                          // 1/3
+         * 2: Replace a command                         // 0
+         * 3: Delete a command // Temporary not chosen  // 0
+         */
+        separateFromFormerTest();
+        addParamToTypePool();
+
+        if (CassandraCommands.DEBUG) {
+            System.out.println("String Pool:" + STRINGType.stringPool);
+            System.out.println("Int Pool: " + INTType.intPool);
+        }
+
+        Random rand = new Random();
+        for (int mutateRetryIdx = 0; mutateRetryIdx < RETRY_MUTATE_TIME; mutateRetryIdx++) {
+            int choice = rand.nextInt(3);
+
+            assert commands.size() > 0;
+            Constructor<?> constructor = stateClass.getConstructor();
+            State state = (State) constructor.newInstance(); // Recreate a state
+
+            if (CassandraCommands.DEBUG) {
+                choice = 2;
+            }
+
+            int pos;
+            if (choice == 0 || choice == 1) {
+                // Mutate a specific command
+
+                // Compute the state up to the position
+                pos = rand.nextInt(commands.size());
+                System.out.println("\t\tMutate Command Pos " + pos);
+                for (int i = 0; i < pos; i++) {
+                    commands.get(i).updateState(state);
+                }
+                try {
+                    boolean mutateStatus = commands.get(pos).mutate(state);
+                    if (!mutateStatus) continue;
+                    boolean fixable = checkAndUpdateCommand(commands.get(pos), state);
+                    if (!fixable) {
+                        // remove the command from command sequence...
+                        commands.remove(pos);
+                        pos -= 1;
+                    } else {
+                        updateState(commands.get(pos), state);
+                    }
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (NoSuchMethodException e) {
+                    e.printStackTrace();
+                } catch (InvocationTargetException e) {
+                    e.printStackTrace();
+                }
+            } else if (choice == 2) {
+                /**
+                 * Insert a command
+                 */
+                // Compute the state up to the position
+                pos = org.zlab.upfuzz.utils.Utilities.biasRand(rand, commands.size() + 1, 5);
+                // pos = rand.nextInt(commands.size() + 1);
+                System.out.println("\t\tMutate Command Pos " + pos);
+                for (int i = 0; i < pos; i++) {
+                    commands.get(i).updateState(state);
+                }
+                Command command;
+                command = generateSingleCommand(commandClassList, state);
+                while (command == null) {
+                    command = generateSingleCommand(createCommandClassList, state);
+                }
+                commands.add(pos, command);
+                commands.get(pos).updateState(state);
+            } else if (choice == 3) { // Disabled temporally
+                // Replace a command
+                // Compute the state up to the position
+                pos = rand.nextInt(commands.size());
+                for (int i = 0; i < pos; i++) {
+                    commands.get(i).updateState(state);
+                }
+                Command command;
+                if (pos <= 1) {
+                    command = generateSingleCommand(createCommandClassList, state);
+                } else {
+                    command = generateSingleCommand(commandClassList, state);
+                }
+                while (command == null) {
+                    command = generateSingleCommand(createCommandClassList, state);
+                }
+                commands.remove(pos);
+                commands.add(pos, command);
+                commands.get(pos).updateState(state);
+            } else { // Disabled temporally
+                // Delete a command
+                // Compute the state up to the position
+                pos = rand.nextInt(commands.size());
+                for (int i = 0; i < pos; i++) {
+                    commands.get(i).updateState(state);
+                }
+                commands.remove(pos);
+                pos -= 1;
+            }
+            // Check the following commands
+            /**
+             * There could be some commands that cannot be
+             * fixed. Therefore, remove them to keep the
+             * validity.
+             */
+            List<Command> validCommands = new LinkedList<>();
+            for (int i = 0; i < pos + 1; i++) {
+                validCommands.add(commands.get(i));
+            }
+            for (int i = pos + 1; i < commands.size(); i++) {
+                boolean fixable = checkAndUpdateCommand(commands.get(i), state);
+                if (fixable) {
+                    validCommands.add(commands.get(i));
+                    updateState(commands.get(i), state);
+                }
+            }
+            commands = validCommands;
+            this.state = state;
+
+            cleanTypePool();
+
+            return true;
+        }
+        // The mutation is failed.
+        System.out.println("Mutation Failed");
+        return false;
+    }
+
+    public static Command generateSingleCommand(List<Map.Entry<Class<? extends Command>, Integer>> commandClassList, State state) {
         Command command = null;
         Random rand = new Random();
         assert commandClassList.isEmpty() == false;
@@ -220,25 +235,14 @@ public class CommandSequence implements Serializable {
                 // continue;
             }
         }
-        if (command == null) {
-            System.out.println("A problem with generating single command");
-            throw new RuntimeException("A problem with generating single command");
-            // System.exit(1);
-        }
+
         return command;
     }
 
-    /**
-     * Generate a new test sequence
-     * - Input: null
-     * - Output: TestSequence
-     */
-    public static CommandSequence generateSequence(
-            List<Map.Entry<Class<? extends Command>, Integer>> commandClassList,
-            List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList,
-            Class<? extends State> stateClass, State state)
-            throws NoSuchMethodException, InvocationTargetException,
-            InstantiationException, IllegalAccessException {
+    public static CommandSequence generateSequence(List<Map.Entry<Class<? extends Command>, Integer>> commandClassList,
+                                                   List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList,
+                                                   Class<? extends State> stateClass, State state)
+            throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
 
         assert commandClassList != null;
 
@@ -256,6 +260,7 @@ public class CommandSequence implements Serializable {
         //        List<Class<? extends Command>> tmpCommandClassList = new LinkedList<>(); // Debug
         //        tmpCommandClassList.add(CassandraCommands.ALTER_TABLE_DROP.class); // Debug
         for (int i = 0; i < len; i++) {
+
             if (createCommandClassList != null) {
                 /**
                  * Make sure the first three columns are write related command,
@@ -273,19 +278,25 @@ public class CommandSequence implements Serializable {
                         command = generateSingleCommand(createCommandClassList,
                                 state);
                     }
+
                     commands.add(command);
                 }
             } else {
-                Command command = generateSingleCommand(commandClassList,
-                        state);
-                while (command == null) { // Might stuck here...
+                Command command = generateSingleCommand(commandClassList, state);
+                if (command == null) {
                     command = generateSingleCommand(commandClassList, state);
                 }
+
                 commands.add(command);
             }
+
+
         }
-        return new CommandSequence(commands, commandClassList,
-                createCommandClassList, stateClass, state);
+
+
+        cleanTypePool();
+
+        return new CommandSequence(commands, commandClassList, createCommandClassList, stateClass, state);
     }
 
     public CommandSequence generateRelatedReadSequence() {
@@ -336,6 +347,40 @@ public class CommandSequence implements Serializable {
     public static boolean updateState(Command command, State state) {
         command.updateState(state);
         return true;
+    }
+
+    public static void cleanTypePool() {
+        STRINGType.cleanPool();
+        INTType.cleanPool();
+    }
+
+    public void addParamToTypePool() {
+        for (Command command: commands) {
+            // For each parameter, if the type is String or Int
+            // Add them to the pool
+            for (Parameter param: command.params) {
+                Object val = param.getValue();
+                add2Pool(val);
+            }
+        }
+    }
+
+    public void add2Pool(Object val) {
+        if (val instanceof List) {
+            List<Parameter> list = (List<Parameter>) val;
+            for (Parameter param : list) {
+                add2Pool(param.getValue());
+            }
+        } else if (val instanceof Pair) {
+            Pair<Parameter, Parameter> pair = (Pair<Parameter, Parameter>) val;
+            add2Pool(pair.left.getValue());
+            add2Pool(pair.right.getValue());
+        } else if (val instanceof String) {
+            if (!((String) val).contains(" "))
+                STRINGType.stringPool.add((String) val);
+        } else if (val instanceof Integer) {
+            INTType.intPool.add((Integer) val);
+        }
     }
 
 }

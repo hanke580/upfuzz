@@ -1,7 +1,9 @@
 clean.sh
+initSeed/
 Coutput
 zlab-jacoco/
 config.json
+corpus/
 *.exec
 
 ##############################

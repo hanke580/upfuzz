@@ -98,7 +98,7 @@ public class CassandraCommands {
 
             ParameterType.ConcreteType keyspaceNameType = new ParameterType.NotInCollectionType(
                     new ParameterType.NotEmpty(
-                            STRINGType.instance
+                            UUIDType.instance
                     ),
                     (s, c) -> ((CassandraState) s).getKeyspaces(),
                     null
@@ -125,7 +125,7 @@ public class CassandraCommands {
 
             ParameterType.ConcreteType keyspaceNameType = new ParameterType.NotInCollectionType(
                     new ParameterType.NotEmpty(
-                            STRINGType.instance
+                            UUIDType.instance
                     ),
                     (s, c) -> ((CassandraState) s).getKeyspaces(),
                     null
@@ -161,6 +161,7 @@ public class CassandraCommands {
             ((CassandraState) state).addKeyspace(this.params.get(0).toString());
         }
 
+        @Override
         public void changeKeyspaceName() {
             this.params.get(0).regenerate(null, this);
         }

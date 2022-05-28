@@ -144,7 +144,7 @@ class TCPHandler(object):
 
     def handle(self):
         # self.request is the TCP socket connected to the client
-        print("handler")
+        # print("handler")
         try:
             while True:
                 self.data = self.request.recv(10240).strip()

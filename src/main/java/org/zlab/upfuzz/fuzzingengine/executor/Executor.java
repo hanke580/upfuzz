@@ -1,6 +1,7 @@
 package org.zlab.upfuzz.fuzzingengine.executor;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,23 +24,31 @@ public abstract class Executor implements IExecutor {
     public Config conf;
     public CommandSequence commandSequence;
     public CommandSequence validationCommandSequence;
-    public List<String> oldVersionResult;
-    public List<String> newVersionResult;
 
-    public FailureType failureType;
-    public String failureInfo;
+    public Map<Integer, Pair<CommandSequence, CommandSequence>> testId2commandSequence;
+    public Map<Integer, List<String>> testId2oldVersionResult;
+    public Map<Integer, List<String>> testId2newVersionResult;
+    public Map<Integer, Pair<FailureType, String>> testId2Failure; // Pair<FailureType, FailureInfo>
+
+    //    public List<String> oldVersionResult;
+    //    public List<String> newVersionResult;
+    //    public FailureType failureType;
+    //    public String failureInfo;
+
+    protected Executor() {
+        testId2commandSequence = new HashMap<>();
+        testId2oldVersionResult = new HashMap<>();
+        testId2newVersionResult = new HashMap<>();
+        testId2Failure = new HashMap<>();
+    }
+
+    protected Executor(String systemID) {
+        this.systemID = systemID;
+    }
 
     protected Executor(CommandSequence commandSequence,
             CommandSequence validationCommandSequence) {
         executorID = RandomStringUtils.randomAlphanumeric(8);
-        this.commandSequence = commandSequence;
-        this.validationCommandSequence = validationCommandSequence;
-
-        oldVersionResult = null;
-        newVersionResult = null;
-
-        failureType = null;
-        failureInfo = null;
     }
 
     protected Executor(CommandSequence commandSequence,
@@ -54,18 +63,25 @@ public abstract class Executor implements IExecutor {
         this.commandSequence = commandSequence;
         this.validationCommandSequence = validationCommandSequence;
 
-        oldVersionResult = null;
-        newVersionResult = null;
+        // oldVersionResult = null;
+        // newVersionResult = null;
 
-        failureType = null;
-        failureInfo = null;
+        // failureType = null;
+        // failureInfo = null;
+    }
+
+    public void clearState() {
+        testId2commandSequence.clear();
+        testId2oldVersionResult.clear();
+        testId2newVersionResult.clear();
+        testId2Failure.clear();
     }
 
     public String getSysExecID() {
         return systemID + "-" + executorID;
     }
 
-    abstract public void startup() throws Exception;
+    abstract public void startup();
 
     abstract public void teardown();
 
@@ -105,23 +121,25 @@ public abstract class Executor implements IExecutor {
         return validationCommandSequence;
     }
 
-    public List<String> execute() {
-        try {
-            startup();
-            executeCommands(commandSequence);
-            // Upgrade preparation
-            // also do flush, and keep the data folder
-            upgrade();
+    public List<String> execute(CommandSequence commandSequence,
+            CommandSequence validationCommandSequence, int testId) {
+        //        startup();
+        testId2commandSequence.put(testId,
+                new Pair<>(commandSequence, validationCommandSequence));
+        executeCommands(commandSequence);
+        // saveSnapshot(); // Flush, only keep the data folder
 
-            oldVersionResult = executeCommands(validationCommandSequence);
-            // execute the second commands
-            teardown();
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        List<String> oldVersionResult = executeCommands(
+                validationCommandSequence);
+        testId2oldVersionResult.put(testId, oldVersionResult);
+        // execute the second commands
+        //        teardown();
         return oldVersionResult;
     }
+
+    abstract public int saveSnapshot();
+
+    abstract public int moveSnapShot();
 
     abstract public void upgrade() throws Exception;
 }

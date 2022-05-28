@@ -5,14 +5,17 @@ import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 
-import java.util.Random;
+import java.util.*;
 
 public class INTType extends ParameterType.ConcreteType {
 
     private final int MAX_VALUE = Integer.MAX_VALUE;
 
+    public static Set<Integer> intPool = new HashSet<>();
     public final Integer max;
     public final Integer min;
+
+    public static final int RETRY_POOL_TIME = 5;
 
 //    public static final INTType instance = new INTType();
     public static final String signature = "java.lang.String";
@@ -45,6 +48,30 @@ public class INTType extends ParameterType.ConcreteType {
     public Parameter generateRandomParameter(State s, Command c) {
         Integer value;
 
+        if (intPool.isEmpty() == false) {
+            Random rand = new Random();
+            int choice = rand.nextInt(5);
+            if (choice <= 3) {
+                // 80%: it will pick from the Pool
+                List<Integer> intPoolList = new ArrayList<>(intPool);
+
+                for (int i = 0; i < RETRY_POOL_TIME; i++) {
+                    int idx = rand.nextInt(intPoolList.size());
+                    value = intPoolList.get(idx);
+
+                    if (max == null && min == null) {
+                        return new Parameter(this, value);
+                    } else if (max != null && min == null) {
+                        if (value < max) return new Parameter(this, value);
+                    } else if (max == null && min != null) {
+                        if (value >= min) return new Parameter(this, value);
+                    } else {
+                        if (value < max && value >= min) return new Parameter(this, value);
+                    }
+                }
+            }
+        }
+
         if (max == null && min == null) {
             value = new Random().nextInt();
         } else if (max != null && min == null) {
@@ -54,7 +81,8 @@ public class INTType extends ParameterType.ConcreteType {
         } else {
             value = new Random().nextInt(max - min) + min;
         }
-        return new Parameter(this, (Integer) value);
+        intPool.add(value);
+        return new Parameter(this, value);
     }
 
     @Override
@@ -101,4 +129,9 @@ public class INTType extends ParameterType.ConcreteType {
     public String toString() {
         return "INT";
     }
+
+    public static void cleanPool() {
+        intPool.clear();
+    }
+
 }

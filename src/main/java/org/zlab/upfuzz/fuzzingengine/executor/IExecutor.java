@@ -6,18 +6,20 @@ import java.util.List;
 
 public interface IExecutor {
 
-    public void startup() throws Exception;
+    public void startup() ;
 
-    public void teardown();
+    void teardown();
 
-    public List<String> executeCommands(CommandSequence commandSequence);
+    List<String> executeCommands(CommandSequence commandSequence);
 
-    public List<String>  execute();
+    List<String>  execute(CommandSequence commandSequence,
+                          CommandSequence validationCommandSequence,
+                          int testId);
 
     /**
      * Given the generated snapshot, upgrade it to the new version.
      * Check whether any exception happens.
      * @return
      */
-    public boolean upgradeTest();
+    boolean upgradeTest();
 }

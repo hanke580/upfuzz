@@ -49,9 +49,16 @@ public class CassandraCqlshDaemon {
         String cassandraVersion = Utilities.getGitTag(cassandraRoot);
         String cqlshPythonScript = null;
         String python = null;
+        // Get path, two options
         // System.out.println("cassandra version\n" + cassandraVersion);
 
-        char majorVersion = cassandraVersion.split("-")[1].charAt(0);
+        char majorVersion;
+        
+        try {
+            majorVersion = cassandraVersion.split("-")[1].charAt(0);
+        } catch (Exception e) {
+            majorVersion = cassandraRoot.split("cassandra-")[1].charAt(0);
+        }
 
         if (majorVersion <= '3') {
             python = "python2";

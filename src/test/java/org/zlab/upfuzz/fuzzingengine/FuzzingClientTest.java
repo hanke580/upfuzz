@@ -44,53 +44,54 @@ public class FuzzingClientTest {
     }
 
     // @Test
+    // FIXME test jacoo collect
     public void testJacocoCollect() {
-        Executor nullExecutor = new NullExecutor(null, null);
-        FuzzingClient fc = new FuzzingClient();
-        byte[] bs = new byte[65536];
-        nullExecutor.executorID = "nullExecutor";
-        System.out.println("id: " + nullExecutor.executorID);
-        fc.start(nullExecutor);
-        while (true) {
-            try {
-                Thread.sleep(10000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            System.out.println("collect");
-            Long startTime = System.currentTimeMillis();
-            DateFormat formatter = new SimpleDateFormat(
-                    "yyyy-MM-dd HH:mm:ss.SSS");
-            System.out.println(formatter.format(System.currentTimeMillis())
-                    + "\n" + "ask for dump");
+        // Executor nullExecutor = new NullExecutor(null, null);
+        // FuzzingClient fc = new FuzzingClient();
+        // byte[] bs = new byte[65536];
+        // nullExecutor.executorID = "nullExecutor";
+        // System.out.println("id: " + nullExecutor.executorID);
+        // fc.start(nullExecutor);
+        // while (true) {
+        //     try {
+        //         Thread.sleep(10000);
+        //     } catch (InterruptedException e) {
+        //         e.printStackTrace();
+        //     }
+        //     System.out.println("collect");
+        //     Long startTime = System.currentTimeMillis();
+        //     DateFormat formatter = new SimpleDateFormat(
+        //             "yyyy-MM-dd HH:mm:ss.SSS");
+        //     System.out.println(formatter.format(System.currentTimeMillis())
+        //             + "\n" + "ask for dump");
 
-            fc.collect(nullExecutor);
-            Long endTime = System.currentTimeMillis();
-            System.out.println("collect time usage: " + (endTime - startTime)
-                    + "\n" + DurationFormatUtils.formatDuration(
-                            endTime - startTime, "HH:mm:ss.SSS"));
-        }
+        //     fc.collect(nullExecutor);
+        //     Long endTime = System.currentTimeMillis();
+        //     System.out.println("collect time usage: " + (endTime - startTime)
+        //             + "\n" + DurationFormatUtils.formatDuration(
+        //                     endTime - startTime, "HH:mm:ss.SSS"));
+        // }
     }
 
     // @Test
     public void testTcpPacketSize() {
-        Executor nullExecutor = new NullExecutor(null, null);
-        FuzzingClient fc = new FuzzingClient();
-        byte[] bs = new byte[65536];
-        nullExecutor.executorID = "nullExecutor";
-        System.out.println("id: " + nullExecutor.executorID);
-        fc.start(nullExecutor);
+        // Executor nullExecutor = new NullExecutor(null, null);
+        // FuzzingClient fc = new FuzzingClient();
+        // byte[] bs = new byte[65536];
+        // nullExecutor.executorID = "nullExecutor";
+        // System.out.println("id: " + nullExecutor.executorID);
+        // fc.start(nullExecutor);
 
-        try {
-            Socket socket = new Socket("127.0.0.1", 6300);
-            socket.setSendBufferSize(128 * 1024);
-            socket.setReceiveBufferSize(128 * 1024);
-            System.out.println("received: " + socket.getReceiveBufferSize()
-                    + "\n" + "send" + socket.getSendBufferSize());
-            bs = RandomUtils.nextBytes(65535);
-            socket.getOutputStream().write(bs);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        // try {
+        //     Socket socket = new Socket("127.0.0.1", 6300);
+        //     socket.setSendBufferSize(128 * 1024);
+        //     socket.setReceiveBufferSize(128 * 1024);
+        //     System.out.println("received: " + socket.getReceiveBufferSize()
+        //             + "\n" + "send" + socket.getSendBufferSize());
+        //     bs = RandomUtils.nextBytes(65535);
+        //     socket.getOutputStream().write(bs);
+        // } catch (IOException e) {
+        //     e.printStackTrace();
+        // }
     }
 }
