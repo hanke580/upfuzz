@@ -12,17 +12,19 @@ import com.google.gson.JsonSerializer;
 
 import org.zlab.upfuzz.FetchCollectionLambda;
 
-public class LambdaInterfaceAdapter implements JsonSerializer<FetchCollectionLambda> , JsonDeserializer<FetchCollectionLambda>
-{
+public class LambdaInterfaceAdapter
+        implements JsonSerializer<FetchCollectionLambda>,
+        JsonDeserializer<FetchCollectionLambda> {
 
     @Override
-    public FetchCollectionLambda deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
-            throws JsonParseException {
+    public FetchCollectionLambda deserialize(JsonElement json, Type typeOfT,
+            JsonDeserializationContext context) throws JsonParseException {
         return null;
     }
 
     @Override
-    public JsonElement serialize(FetchCollectionLambda src, Type typeOfSrc, JsonSerializationContext context) {
+    public JsonElement serialize(FetchCollectionLambda src, Type typeOfSrc,
+            JsonSerializationContext context) {
         JsonObject empty = new JsonObject();
         return empty;
     }

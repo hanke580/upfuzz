@@ -28,12 +28,13 @@ public abstract class Executor implements IExecutor {
     public Map<Integer, Pair<CommandSequence, CommandSequence>> testId2commandSequence;
     public Map<Integer, List<String>> testId2oldVersionResult;
     public Map<Integer, List<String>> testId2newVersionResult;
-    public Map<Integer, Pair<FailureType, String>> testId2Failure; // Pair<FailureType, FailureInfo>
+    public Map<Integer, Pair<FailureType, String>> testId2Failure; // Pair<FailureType,
+                                                                   // FailureInfo>
 
-    //    public List<String> oldVersionResult;
-    //    public List<String> newVersionResult;
-    //    public FailureType failureType;
-    //    public String failureInfo;
+    // public List<String> oldVersionResult;
+    // public List<String> newVersionResult;
+    // public FailureType failureType;
+    // public String failureInfo;
 
     protected Executor() {
         testId2commandSequence = new HashMap<>();
@@ -96,7 +97,8 @@ public abstract class Executor implements IExecutor {
             commandSequence = CommandSequence.generateSequence(
                     commandPool.commandClassList,
                     commandPool.createCommandClassList, stateClass, null);
-            // TODO: If it's generating read with a initial state, no need to generate with createTable...
+            // TODO: If it's generating read with a initial state, no need to
+            // generate with createTable...
             validationCommandSequence = CommandSequence.generateSequence(
                     commandPool.readCommandClassList, null, stateClass,
                     commandSequence.state);
@@ -123,7 +125,7 @@ public abstract class Executor implements IExecutor {
 
     public List<String> execute(CommandSequence commandSequence,
             CommandSequence validationCommandSequence, int testId) {
-        //        startup();
+        // startup();
         testId2commandSequence.put(testId,
                 new Pair<>(commandSequence, validationCommandSequence));
         executeCommands(commandSequence);
@@ -133,7 +135,7 @@ public abstract class Executor implements IExecutor {
                 validationCommandSequence);
         testId2oldVersionResult.put(testId, oldVersionResult);
         // execute the second commands
-        //        teardown();
+        // teardown();
         return oldVersionResult;
     }
 

@@ -16,7 +16,6 @@ import org.zlab.upfuzz.fuzzingengine.Config;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-
 public class Utilities {
     public static List<Integer> permutation(int size) {
         List<Integer> indexArray = new ArrayList<>();
@@ -84,7 +83,8 @@ public class Utilities {
         }
     }
 
-    public static Pair<Integer, Integer> getCoverageStatus(ExecutionDataStore curCoverage) {
+    public static Pair<Integer, Integer> getCoverageStatus(
+            ExecutionDataStore curCoverage) {
         if (curCoverage == null) {
             return new Pair(0, 0);
         }
@@ -96,15 +96,15 @@ public class Utilities {
             int[] curProbes = curData.getProbes();
             probeNum += curProbes.length;
             for (int i = 0; i < curProbes.length; i++) {
-                if (curProbes[i] != 0) coveredProbes++;
+                if (curProbes[i] != 0)
+                    coveredProbes++;
             }
         }
         return new Pair(coveredProbes, probeNum);
     }
 
-
-
-    public static void assertCompatibility(ExecutionData curData, ExecutionData testSequenceData) {
+    public static void assertCompatibility(ExecutionData curData,
+            ExecutionData testSequenceData) {
         if (curData.getId() != testSequenceData.getId()) {
             throw new IllegalStateException(
                     format("Different ids (%016x and %016x).",
@@ -130,11 +130,12 @@ public class Utilities {
         try {
             // System.out.println("Execute: " + desc);
             p = pb.start();
-            // BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            // BufferedReader in = new BufferedReader(new
+            // InputStreamReader(p.getInputStream()));
             // String line;
             // while ((line = in.readLine()) != null) {
-            //     System.out.println(line);
-            //     System.out.flush();
+            // System.out.println(line);
+            // System.out.flush();
             // }
             p.waitFor();
             // in.close();
@@ -199,14 +200,17 @@ public class Utilities {
             if (thread.getThreadGroup() != null
                     && thread.getThreadGroup().getName().equals("main")) {
                 for (StackTraceElement stackTraceElement : entry.getValue()) {
-                    // System.out.println(stackTraceElement.getClassName()+ " " + stackTraceElement.getMethodName() + " " + stackTraceElement.getFileName());
+                    // System.out.println(stackTraceElement.getClassName()+ " "
+                    // + stackTraceElement.getMethodName() + " " +
+                    // stackTraceElement.getFileName());
                     if (stackTraceElement.getMethodName().equals("main")) {
 
                         try {
                             Class<?> c = Class
                                     .forName(stackTraceElement.getClassName());
                             Class[] argTypes = new Class[] { String[].class };
-                            //This will throw NoSuchMethodException in case of fake main methods
+                            // This will throw NoSuchMethodException in case of
+                            // fake main methods
                             c.getDeclaredMethod("main", argTypes);
                             // return stackTraceElement.getClassName();
                         } catch (NoSuchMethodException e) {
@@ -224,10 +228,10 @@ public class Utilities {
         // ProcessBuilder pb = new ProcessBuilder("sh", "clean.sh");
         // pb.directory(new File("/home/vagrant/project/upfuzz"));
         // try {
-        //     Process p = pb.start();
-        //     p.waitFor();
+        // Process p = pb.start();
+        // p.waitFor();
         // } catch (IOException | InterruptedException e) {
-        //     e.printStackTrace();
+        // e.printStackTrace();
         // }
 
         ProcessBuilder pb = new ProcessBuilder("rm", "-rf", "data");
@@ -264,7 +268,7 @@ public class Utilities {
 
     public static boolean write2TXT(File file, String content) {
 
-        try{
+        try {
             // If file doesn't exists, then create it
             if (!file.exists()) {
                 file.createNewFile();
@@ -278,8 +282,7 @@ public class Utilities {
 
             // Close connection
             bw.close();
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -288,8 +291,7 @@ public class Utilities {
 
     public static boolean writeCmdSeq(File file, Object object) {
         try {
-            FileOutputStream fileOut =
-                    new FileOutputStream(file);
+            FileOutputStream fileOut = new FileOutputStream(file);
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
             out.writeObject(object);
             out.close();
@@ -300,20 +302,20 @@ public class Utilities {
         return true;
     }
 
-
-    public static Map<String, List<Map.Entry<String, String>>> loadFunctoinFromStaticAnalysis(Path fileName) {
+    public static Map<String, List<Map.Entry<String, String>>> loadFunctoinFromStaticAnalysis(
+            Path fileName) {
         JSONParser jsonParser = new JSONParser();
         Map<String, List<Map.Entry<String, String>>> funcToInst = new HashMap<>();
 
-        try (FileReader reader = new FileReader(fileName.toFile()))
-        {
+        try (FileReader reader = new FileReader(fileName.toFile())) {
             Object obj = jsonParser.parse(reader);
             JSONObject jsonObject = (JSONObject) obj;
             Set<Map.Entry<String, String>> entrySet = jsonObject.entrySet();
 
             for (Map.Entry<String, String> e : entrySet) {
-                String[] ret = e.getValue().split(e.getKey().replace("$", "\\$") + "\\(");
-                assert(ret.length == 2);
+                String[] ret = e.getValue()
+                        .split(e.getKey().replace("$", "\\$") + "\\(");
+                assert (ret.length == 2);
                 String ClassName = ret[0].substring(0, ret[0].length() - 1);
                 String MethodName = e.getKey();
                 String ParamDesc = "(" + ret[1];
@@ -321,10 +323,13 @@ public class Utilities {
                 // Only instrument class that's inside org.apache.cassandra.*
                 if (ClassName.contains("cassandra")) {
                     if (funcToInst.containsKey(ClassName)) {
-                        funcToInst.get(ClassName).add(new AbstractMap.SimpleEntry<>(MethodName, ParamDesc));
+                        funcToInst.get(ClassName)
+                                .add(new AbstractMap.SimpleEntry<>(MethodName,
+                                        ParamDesc));
                     } else {
-                        List<Map.Entry<String,String>> list = new ArrayList<>();
-                        list.add(new AbstractMap.SimpleEntry<>(MethodName, ParamDesc));
+                        List<Map.Entry<String, String>> list = new ArrayList<>();
+                        list.add(new AbstractMap.SimpleEntry<>(MethodName,
+                                ParamDesc));
                         funcToInst.put(ClassName, list);
                     }
                 }
@@ -341,8 +346,9 @@ public class Utilities {
 
     public void generateJacocoIncludeOption() {
         Path filePath = Paths.get("/Users/hanke/Desktop/SerDes.json");
-        Map<String, List<Map.Entry<String, String>>> funcs = Utilities.loadFunctoinFromStaticAnalysis(filePath);
-        for (String className: funcs.keySet()) {
+        Map<String, List<Map.Entry<String, String>>> funcs = Utilities
+                .loadFunctoinFromStaticAnalysis(filePath);
+        for (String className : funcs.keySet()) {
             System.out.print(className + ":");
         }
         System.out.println();
@@ -353,8 +359,8 @@ public class Utilities {
     public static int biasRand(Random rand, int n, int k) {
         double nf = (float) n;
         double kf = (float) k;
-        double rf = nf * (kf/2 + 1) * rand.nextFloat();
-        double bf = (-1 + Math.sqrt(1+2*kf*rf/nf)) * nf / kf;
+        double rf = nf * (kf / 2 + 1) * rand.nextFloat();
+        double bf = (-1 + Math.sqrt(1 + 2 * kf * rf / nf)) * nf / kf;
         return (int) bf;
     }
 

@@ -24,7 +24,7 @@ public class STRINGType extends ParameterType.ConcreteType {
         StringBuilder sb = new StringBuilder();
         Random random = new Random();
         int length = random.nextInt(MAX_LEN) + 1;
-        for(int i = 0; i < length; i++) {
+        for (int i = 0; i < length; i++) {
             // generate random index number
             int index = random.nextInt(alphabet.length());
             char randomChar = alphabet.charAt(index);
@@ -54,14 +54,14 @@ public class STRINGType extends ParameterType.ConcreteType {
 
     @Override
     public Parameter generateRandomParameter(State s, Command c) {
-        //  DEBUG: For testing **testNotInCollection()**
-//        List<String> sList = new LinkedList<>();
-//        for (int i = 0; i < 10; i++) {
-//            sList.add("T" + String.valueOf(i));
-//        }
-//        Random rand = new Random();
-//        int idx = rand.nextInt(sList.size());
-//        return new Parameter(STRINGType.instance, sList.get(idx));
+        // DEBUG: For testing **testNotInCollection()**
+        // List<String> sList = new LinkedList<>();
+        // for (int i = 0; i < 10; i++) {
+        // sList.add("T" + String.valueOf(i));
+        // }
+        // Random rand = new Random();
+        // int idx = rand.nextInt(sList.size());
+        // return new Parameter(STRINGType.instance, sList.get(idx));
 
         Parameter ret;
 
@@ -73,7 +73,8 @@ public class STRINGType extends ParameterType.ConcreteType {
                 // 80%: it will pick from the Pool
                 List<String> stringPoolList = new ArrayList<>(stringPool);
                 int idx = rand.nextInt(stringPoolList.size());
-                ret = new Parameter(STRINGType.instance, stringPoolList.get(idx));
+                ret = new Parameter(STRINGType.instance,
+                        stringPoolList.get(idx));
                 return ret;
             }
         }
@@ -96,9 +97,10 @@ public class STRINGType extends ParameterType.ConcreteType {
 
     @Override
     public boolean isValid(State s, Command c, Parameter p) {
-        if (p == null ||
-                ! (p.type instanceof STRINGType) ||
-                contains(CassandraCommands.reservedKeywords, (String) p.value)) // Specially for Cassandra
+        if (p == null || !(p.type instanceof STRINGType) || contains(
+                CassandraCommands.reservedKeywords, (String) p.value)) // Specially
+                                                                       // for
+                                                                       // Cassandra
             return false;
         return true;
     }
@@ -122,80 +124,84 @@ public class STRINGType extends ParameterType.ConcreteType {
 
         // Debug
         if (CassandraCommands.DEBUG) {
-//            choice = 4; // Only test the mutate method
+            // choice = 4; // Only test the mutate method
         }
 
         // TODO: Add another choice: related to the current string pool
 
         switch (choice) {
-            // Temporally Disable bit level mutation
-            case 0: // Regenerate
-                if (CassandraCommands.DEBUG) {
-                    System.out.println("\t[String Mutation]: Regeneration");
-                }
-                regenerate(s, c, p);
-                break;
-            case 1: // Add a Byte
-                if (CassandraCommands.DEBUG) {
-                    System.out.println("\t[String Mutation]: Add Byte");
-                }
-                addByte(p);
-                break;
-            case 2: // Delete a Byte
-                if (CassandraCommands.DEBUG) {
-                    System.out.println("\t[String Mutation]: Delete Byte");
-                }
-                if (((String) p.value).isEmpty()) return false;
-                deleteByte(p);
-                break;
-            case 3:
-                // Mutate a byte
-                if (CassandraCommands.DEBUG) {
-                    System.out.println("\t[String Mutation]: Mutate Byte");
-                }
-                if (((String) p.value).isEmpty()) return false;
-                mutateByte(p);
-                break;
-            case 4:
-                // Add a word (2 Bytes)
-                addByte(p);
-                addByte(p);
-                break;
-            case 5:
-                // Delete a word
-                if (((String) p.value).length() < 2) return false;
-                deleteByte(p);
-                deleteByte(p);
-                break;
-            case 6:
-                // Mutate a word
-                if (((String) p.value).isEmpty() || ((String) p.value).length() < 2) return false;
-                mutateWord(p);
-                break;
-            case 7:
-                // Regenerate
-                p.value = generateRandomParameter(s, c).value;
-                break;
-            case 8:
-                // Flip a Bit
-                flipBit(p);
-                break;
-            case 9:
-                // Add a Bit
-                addBit(p);
-                break;
-            case 10:
-                // Delete a Bit
-                deleteBit(p);
-                break;
-            default:
-                throw new IllegalStateException("Unexpected value: " + choice);
+        // Temporally Disable bit level mutation
+        case 0: // Regenerate
+            if (CassandraCommands.DEBUG) {
+                System.out.println("\t[String Mutation]: Regeneration");
+            }
+            regenerate(s, c, p);
+            break;
+        case 1: // Add a Byte
+            if (CassandraCommands.DEBUG) {
+                System.out.println("\t[String Mutation]: Add Byte");
+            }
+            addByte(p);
+            break;
+        case 2: // Delete a Byte
+            if (CassandraCommands.DEBUG) {
+                System.out.println("\t[String Mutation]: Delete Byte");
+            }
+            if (((String) p.value).isEmpty())
+                return false;
+            deleteByte(p);
+            break;
+        case 3:
+            // Mutate a byte
+            if (CassandraCommands.DEBUG) {
+                System.out.println("\t[String Mutation]: Mutate Byte");
+            }
+            if (((String) p.value).isEmpty())
+                return false;
+            mutateByte(p);
+            break;
+        case 4:
+            // Add a word (2 Bytes)
+            addByte(p);
+            addByte(p);
+            break;
+        case 5:
+            // Delete a word
+            if (((String) p.value).length() < 2)
+                return false;
+            deleteByte(p);
+            deleteByte(p);
+            break;
+        case 6:
+            // Mutate a word
+            if (((String) p.value).isEmpty() || ((String) p.value).length() < 2)
+                return false;
+            mutateWord(p);
+            break;
+        case 7:
+            // Regenerate
+            p.value = generateRandomParameter(s, c).value;
+            break;
+        case 8:
+            // Flip a Bit
+            flipBit(p);
+            break;
+        case 9:
+            // Add a Bit
+            addBit(p);
+            break;
+        case 10:
+            // Delete a Bit
+            deleteBit(p);
+            break;
+        default:
+            throw new IllegalStateException("Unexpected value: " + choice);
         }
         return true;
     }
 
     private String string2binary(String value) {
-        return  new BigInteger(value.getBytes()).toString(2);
+        return new BigInteger(value.getBytes()).toString(2);
     }
 
     private void flipBit(Parameter p) {
@@ -216,7 +222,8 @@ public class STRINGType extends ParameterType.ConcreteType {
             sb.setCharAt(pos, '1');
         }
 
-        String mutatedValue = new String(new BigInteger(sb.toString(), 2).toByteArray());
+        String mutatedValue = new String(
+                new BigInteger(sb.toString(), 2).toByteArray());
         p.value = mutatedValue;
     }
 
@@ -229,9 +236,10 @@ public class STRINGType extends ParameterType.ConcreteType {
         boolean insertBit = rand.nextBoolean();
 
         StringBuilder sb = new StringBuilder(binary);
-        sb.insert(insertPos, insertBit? '1' : '0');
+        sb.insert(insertPos, insertBit ? '1' : '0');
 
-        String mutatedValue = new String(new BigInteger(sb.toString(), 2).toByteArray());
+        String mutatedValue = new String(
+                new BigInteger(sb.toString(), 2).toByteArray());
         p.value = mutatedValue;
     }
 
@@ -245,7 +253,8 @@ public class STRINGType extends ParameterType.ConcreteType {
         assert sb.length() == binary.length();
         sb.deleteCharAt(deletePos);
 
-        String mutatedValue = new String(new BigInteger(sb.toString(), 2).toByteArray());
+        String mutatedValue = new String(
+                new BigInteger(sb.toString(), 2).toByteArray());
         p.value = mutatedValue;
     }
 
@@ -301,7 +310,8 @@ public class STRINGType extends ParameterType.ConcreteType {
 
     @Override
     public String toString() {
-        // TODO: Need change later if we want the exact type, and also need to allow
+        // TODO: Need change later if we want the exact type, and also need to
+        // allow
         // User to modify this
         return "STRING";
     }
@@ -311,4 +321,3 @@ public class STRINGType extends ParameterType.ConcreteType {
     }
 
 }
-

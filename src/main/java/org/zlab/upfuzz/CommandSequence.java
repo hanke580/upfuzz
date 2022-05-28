@@ -35,7 +35,9 @@ public class CommandSequence implements Serializable {
         this.state = state;
     }
 
-    public boolean separateFromFormerTest() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public boolean separateFromFormerTest()
+            throws NoSuchMethodException, InvocationTargetException,
+            InstantiationException, IllegalAccessException {
 
         for (Command command : commands) {
             command.changeKeyspaceName(); // For separation
@@ -53,15 +55,17 @@ public class CommandSequence implements Serializable {
             }
         }
         this.commands = validCommands;
-//        System.out.println("\nSeparated Seq");
-//        for (Command command : commands) {
-//            System.out.println(command.toString());
-//        }
-//        System.out.println("\n");
+        // System.out.println("\nSeparated Seq");
+        // for (Command command : commands) {
+        // System.out.println(command.toString());
+        // }
+        // System.out.println("\n");
         return true;
     }
 
-    public boolean mutate() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public boolean mutate()
+            throws NoSuchMethodException, InvocationTargetException,
+            InstantiationException, IllegalAccessException {
         /**
          * Choice
          * 0: Mutate the command (Call command.mutate)  // 2/3
@@ -101,8 +105,10 @@ public class CommandSequence implements Serializable {
                 }
                 try {
                     boolean mutateStatus = commands.get(pos).mutate(state);
-                    if (!mutateStatus) continue;
-                    boolean fixable = checkAndUpdateCommand(commands.get(pos), state);
+                    if (!mutateStatus)
+                        continue;
+                    boolean fixable = checkAndUpdateCommand(commands.get(pos),
+                            state);
                     if (!fixable) {
                         // remove the command from command sequence...
                         commands.remove(pos);
@@ -122,7 +128,8 @@ public class CommandSequence implements Serializable {
                  * Insert a command
                  */
                 // Compute the state up to the position
-                pos = org.zlab.upfuzz.utils.Utilities.biasRand(rand, commands.size() + 1, 5);
+                pos = org.zlab.upfuzz.utils.Utilities.biasRand(rand,
+                        commands.size() + 1, 5);
                 // pos = rand.nextInt(commands.size() + 1);
                 System.out.println("\t\tMutate Command Pos " + pos);
                 for (int i = 0; i < pos; i++) {
@@ -131,7 +138,8 @@ public class CommandSequence implements Serializable {
                 Command command;
                 command = generateSingleCommand(commandClassList, state);
                 while (command == null) {
-                    command = generateSingleCommand(createCommandClassList, state);
+                    command = generateSingleCommand(createCommandClassList,
+                            state);
                 }
                 commands.add(pos, command);
                 commands.get(pos).updateState(state);
@@ -144,12 +152,14 @@ public class CommandSequence implements Serializable {
                 }
                 Command command;
                 if (pos <= 1) {
-                    command = generateSingleCommand(createCommandClassList, state);
+                    command = generateSingleCommand(createCommandClassList,
+                            state);
                 } else {
                     command = generateSingleCommand(commandClassList, state);
                 }
                 while (command == null) {
-                    command = generateSingleCommand(createCommandClassList, state);
+                    command = generateSingleCommand(createCommandClassList,
+                            state);
                 }
                 commands.remove(pos);
                 commands.add(pos, command);
@@ -193,7 +203,9 @@ public class CommandSequence implements Serializable {
         return false;
     }
 
-    public static Command generateSingleCommand(List<Map.Entry<Class<? extends Command>, Integer>> commandClassList, State state) {
+    public static Command generateSingleCommand(
+            List<Map.Entry<Class<? extends Command>, Integer>> commandClassList,
+            State state) {
         Command command = null;
         Random rand = new Random();
         assert commandClassList.isEmpty() == false;
@@ -239,10 +251,12 @@ public class CommandSequence implements Serializable {
         return command;
     }
 
-    public static CommandSequence generateSequence(List<Map.Entry<Class<? extends Command>, Integer>> commandClassList,
-                                                   List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList,
-                                                   Class<? extends State> stateClass, State state)
-            throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public static CommandSequence generateSequence(
+            List<Map.Entry<Class<? extends Command>, Integer>> commandClassList,
+            List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList,
+            Class<? extends State> stateClass, State state)
+            throws NoSuchMethodException, InvocationTargetException,
+            InstantiationException, IllegalAccessException {
 
         assert commandClassList != null;
 
@@ -254,11 +268,13 @@ public class CommandSequence implements Serializable {
         if (state == null)
             state = (State) constructor.newInstance();
 
-        //        len = 8; // Debug
+        // len = 8; // Debug
         List<Command> commands = new LinkedList<>();
 
-        //        List<Class<? extends Command>> tmpCommandClassList = new LinkedList<>(); // Debug
-        //        tmpCommandClassList.add(CassandraCommands.ALTER_TABLE_DROP.class); // Debug
+        // List<Class<? extends Command>> tmpCommandClassList = new
+        // LinkedList<>(); // Debug
+        // tmpCommandClassList.add(CassandraCommands.ALTER_TABLE_DROP.class); //
+        // Debug
         for (int i = 0; i < len; i++) {
 
             if (createCommandClassList != null) {
@@ -282,7 +298,8 @@ public class CommandSequence implements Serializable {
                     commands.add(command);
                 }
             } else {
-                Command command = generateSingleCommand(commandClassList, state);
+                Command command = generateSingleCommand(commandClassList,
+                        state);
                 if (command == null) {
                     command = generateSingleCommand(commandClassList, state);
                 }
@@ -290,13 +307,12 @@ public class CommandSequence implements Serializable {
                 commands.add(command);
             }
 
-
         }
-
 
         cleanTypePool();
 
-        return new CommandSequence(commands, commandClassList, createCommandClassList, stateClass, state);
+        return new CommandSequence(commands, commandClassList,
+                createCommandClassList, stateClass, state);
     }
 
     public CommandSequence generateRelatedReadSequence() {
@@ -308,7 +324,8 @@ public class CommandSequence implements Serializable {
 
         List<Command> commands = new LinkedList<>();
         for (Command command : this.commands) {
-            Set<Command> readCommands = command.generateRelatedReadCommand(this.state);
+            Set<Command> readCommands = command
+                    .generateRelatedReadCommand(this.state);
             if (readCommands != null) {
                 for (Command readCommand : readCommands) {
                     boolean fixable = checkAndUpdateCommand(readCommand, state);
@@ -320,7 +337,8 @@ public class CommandSequence implements Serializable {
             }
         }
 
-        return new CommandSequence(commands, commandClassList, createCommandClassList, stateClass, state);
+        return new CommandSequence(commands, commandClassList,
+                createCommandClassList, stateClass, state);
     }
 
     public List<String> getCommandStringList() {
@@ -355,10 +373,10 @@ public class CommandSequence implements Serializable {
     }
 
     public void addParamToTypePool() {
-        for (Command command: commands) {
+        for (Command command : commands) {
             // For each parameter, if the type is String or Int
             // Add them to the pool
-            for (Parameter param: command.params) {
+            for (Parameter param : command.params) {
                 Object val = param.getValue();
                 add2Pool(val);
             }

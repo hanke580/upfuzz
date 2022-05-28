@@ -77,7 +77,7 @@ public class Parameter implements Serializable {
         if (o == this)
             return true;
 
-        if (! (o instanceof Parameter)) {
+        if (!(o instanceof Parameter)) {
             return false;
         }
 

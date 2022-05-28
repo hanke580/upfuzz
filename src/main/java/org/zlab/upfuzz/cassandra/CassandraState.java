@@ -11,7 +11,8 @@ public class CassandraState extends State {
     public Map<String, Map<String, CassandraTable>> keyspace2tables = new HashMap<>();
     public Map<String, Set<String>> keyspace2UDTs = new HashMap<>();
 
-    public void addTable(String keyspaceName, String tableName, CassandraTable table) {
+    public void addTable(String keyspaceName, String tableName,
+            CassandraTable table) {
         keyspace2tables.get(keyspaceName).put(tableName, table);
     }
 
@@ -35,8 +36,6 @@ public class CassandraState extends State {
     public CassandraTable getTable(String keyspaceName, String tableName) {
         return keyspace2tables.get(keyspaceName).get(tableName);
     }
-
-
 
     @Override
     public void clearState() {

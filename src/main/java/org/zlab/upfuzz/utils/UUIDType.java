@@ -43,7 +43,7 @@ public class UUIDType extends ParameterType.ConcreteType {
 
     @Override
     public boolean isValid(State s, Command c, Parameter p) {
-        if (p == null || ! (p.type instanceof UUIDType))
+        if (p == null || !(p.type instanceof UUIDType))
             return false;
         return true;
     }
@@ -65,4 +65,3 @@ public class UUIDType extends ParameterType.ConcreteType {
         return true;
     }
 }
-

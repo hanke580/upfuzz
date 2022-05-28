@@ -48,8 +48,10 @@ public class Main {
         Option clazzOption = Option.builder("class").argName("type").hasArg()
                 .desc("start a dfe server or client or fuzzer").required()
                 .build();
-        // Option actionOption = Option.builder("action").argName("action").hasArg().desc("start a dfe server or client")
-        //         .required().build();
+        // Option actionOption =
+        // Option.builder("action").argName("action").hasArg().desc("start a dfe
+        // server or client")
+        // .required().build();
         Option configFileOption = Option.builder("config").argName("config")
                 .hasArg().desc("Configuration file location").build();
         options.addOption(clazzOption);
@@ -75,32 +77,32 @@ public class Main {
         String type = cmd.getOptionValue(clazzOption);
         if (type.toLowerCase().equals("server")) {
             assert false;
-            //            String act = cmd.getOptionValue(actionOption);
-            //            FuzzingServerActions action = FuzzingServerActions.valueOf(act);
-            //            switch (action) {
-            //            case start: {
-            //                new FuzzingClient(conf).start();
-            //                break;
-            //            }
-            //            default:
-            //                throw new UnsupportedOperationException(act);
-            //            }
+            // String act = cmd.getOptionValue(actionOption);
+            // FuzzingServerActions action = FuzzingServerActions.valueOf(act);
+            // switch (action) {
+            // case start: {
+            // new FuzzingClient(conf).start();
+            // break;
+            // }
+            // default:
+            // throw new UnsupportedOperationException(act);
+            // }
         } else if (type.toLowerCase().equals("client")) {
             assert false;
-            //            String act = cmd.getOptionValue(actionOption);
-            //            FuzzingClientActions action = FuzzingClientActions.valueOf(act);
-            //            switch (action) {
-            //            case start:{
-            //                new FuzzingClient(conf).start();
-            //                break;
-            //            }
-            //            case collect: {
-            //                // new FuzzingClient(conf).collect();
-            //                break;
-            //            }
-            //            default:
-            //                throw new UnsupportedOperationException(act);
-            //            }
+            // String act = cmd.getOptionValue(actionOption);
+            // FuzzingClientActions action = FuzzingClientActions.valueOf(act);
+            // switch (action) {
+            // case start:{
+            // new FuzzingClient(conf).start();
+            // break;
+            // }
+            // case collect: {
+            // // new FuzzingClient(conf).collect();
+            // break;
+            // }
+            // default:
+            // throw new UnsupportedOperationException(act);
+            // }
         } else if (type.toLowerCase().equals("fuzzer")) {
             /**
              * We could also only save path. Queue<Path>, then when
@@ -121,7 +123,8 @@ public class Main {
                     if (!seedFile.isDirectory()) {
                         // Deserialize current file, and add it into the queue.
                         // TODO: Execute them before adding them to the queue.
-                        // Make sure all the seed in the queue must have been executed.
+                        // Make sure all the seed in the queue must have been
+                        // executed.
                         Pair<CommandSequence, CommandSequence> commandSequencePair = Utilities
                                 .deserializeCommandSequence(seedFile.toPath());
                         if (commandSequencePair != null) {
@@ -145,7 +148,7 @@ public class Main {
                         Thread.sleep(200);
                         System.out.println(
                                 "Fuzzing process end, have a good day ...");
-                        //some cleaning up code...
+                        // some cleaning up code...
 
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();

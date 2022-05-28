@@ -12,7 +12,6 @@ import org.zlab.upfuzz.cassandra.CassandraCommands.SELECT;
 public class CassandraCommandPool extends CommandPool {
     // public static CommandPool instance = new CassandraCommandPool();
 
-
     public CassandraCommandPool() {
         commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
                 CREAT_KEYSPACE.class, 1));

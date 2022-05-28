@@ -79,9 +79,9 @@ public class HdfsExecutor extends Executor {
             // byte[] bytes = new byte[65536];
             // int n = hdfsFormatProcess.getInputStream().read(bytes);
             // while (n != -1) {
-            //     System.out.println(
-            //             "read n bytes: " + n + "\n" + new String(bytes, 0, n));
-            //     n = hdfsFormatProcess.getInputStream().read(bytes);
+            // System.out.println(
+            // "read n bytes: " + n + "\n" + new String(bytes, 0, n));
+            // n = hdfsFormatProcess.getInputStream().read(bytes);
             // }
             // String formatMessage = Utilities.readProcess(hdfsFormatProcess);
             // System.out.println("format messsage: " + formatMessage);
@@ -109,19 +109,21 @@ public class HdfsExecutor extends Executor {
             long startTime = System.currentTimeMillis();
             hdfsProcess = hdfsProcessBuilder.start();
             // byte[] out = hdfsProcess.getInputStream().readAllBytes();
-            // BufferedReader in = new BufferedReader(new InputStreamReader(hdfsProcess.getInputStream()));
+            // BufferedReader in = new BufferedReader(new
+            // InputStreamReader(hdfsProcess.getInputStream()));
             // String line;
             // while ((line = in.readLine()) != null) {
-            //     System.out.println(line);
-            //     System.out.flush();
+            // System.out.println(line);
+            // System.out.flush();
             // }
             // in.close();
             // hdfsProcess.waitFor();
             System.out.println("hdfs " + executorID + " started");
             while (!isHdfsReady(Config.getConf().oldSystemPath)) {
                 if (!hdfsProcess.isAlive()) {
-                    // System.out.println("hdfs process crushed\nCheck " + Config.getConf().hdfsOutputFile
-                    //         + " for details");
+                    // System.out.println("hdfs process crushed\nCheck " +
+                    // Config.getConf().hdfsOutputFile
+                    // + " for details");
                     // System.exit(1);
                     throw new CustomExceptions.systemStartFailureException(
                             "Hdfs Start fails", null);

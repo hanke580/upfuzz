@@ -33,8 +33,8 @@ public class Config {
 
         @Override
         public String toString() {
-            return new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(this,
-                    Configuration.class);
+            return new GsonBuilder().setPrettyPrinting().disableHtmlEscaping()
+                    .create().toJson(this, Configuration.class);
         }
 
         public Boolean checkNull() {
@@ -43,7 +43,8 @@ public class Config {
                 try {
                     Object fieldObject = field.get(this);
                     if (fieldObject == null) {
-                        System.err.println("Configuration failed to find: " + field);
+                        System.err.println(
+                                "Configuration failed to find: " + field);
                     }
                 } catch (IllegalArgumentException | IllegalAccessException e) {
                     e.printStackTrace();
@@ -52,7 +53,8 @@ public class Config {
             }
 
             // assertTrue(Arrays.stream(fields).anyMatch(
-            //         field -> field.getName().equals(LAST_NAME_FIELD) && field.getType().equals(String.class)));
+            // field -> field.getName().equals(LAST_NAME_FIELD) &&
+            // field.getType().equals(String.class)));
             return true;
         }
     }

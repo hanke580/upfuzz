@@ -15,11 +15,12 @@ public class FileSystemTest extends TestCase {
 
     @Test
     public void testPath() {
-        Path p = Paths.get("/home/yayu/Project/Upgrade-Fuzzing/upfuzz/src/test/java/org/zlab/upfuzz/hdfs/MockFS/FileSystemTest.java");
-        while( true ){
+        Path p = Paths.get(
+                "/home/yayu/Project/Upgrade-Fuzzing/upfuzz/src/test/java/org/zlab/upfuzz/hdfs/MockFS/FileSystemTest.java");
+        while (true) {
             p = p.getParent();
             System.out.println(p);
-            if( p == null ){
+            if (p == null) {
                 break;
             }
         }
@@ -28,6 +29,7 @@ public class FileSystemTest extends TestCase {
     @Test
     public void testCreateFile() {
         INode fileNode = new INode("test", IType.File, 1000, 1000, 0660);
-        System.out.printf("hash: %16x\noffset: %16x\n", fileNode.hashCode(), fileNode.hashCode() >>> 16);
+        System.out.printf("hash: %16x\noffset: %16x\n", fileNode.hashCode(),
+                fileNode.hashCode() >>> 16);
     }
 }

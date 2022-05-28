@@ -15,7 +15,8 @@ public class CassandraTable implements Serializable {
 
     Set<String> indexes;
 
-    public CassandraTable(Parameter name, Parameter colName2Type, Parameter primaryColName2Type) {
+    public CassandraTable(Parameter name, Parameter colName2Type,
+            Parameter primaryColName2Type) {
         this.name = (String) name.getValue();
         if (colName2Type != null) {
             this.colName2Type = new LinkedList<>();
@@ -25,8 +26,10 @@ public class CassandraTable implements Serializable {
         }
         if (primaryColName2Type != null) {
             this.primaryColName2Type = new LinkedList<>();
-            for (Parameter primaryCol : (List<Parameter>) primaryColName2Type.getValue()) {
-                this.primaryColName2Type.add(SerializationUtils.clone(primaryCol));
+            for (Parameter primaryCol : (List<Parameter>) primaryColName2Type
+                    .getValue()) {
+                this.primaryColName2Type
+                        .add(SerializationUtils.clone(primaryCol));
             }
         }
 

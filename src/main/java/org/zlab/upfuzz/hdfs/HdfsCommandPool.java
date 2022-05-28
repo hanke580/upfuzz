@@ -23,8 +23,8 @@ public class HdfsCommandPool extends CommandPool {
         createCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(PutCommand.class, 2));
 
-        readCommandClassList
-                .add(new AbstractMap.SimpleImmutableEntry<>(MvCommand.class, 10));
+        readCommandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(MvCommand.class, 10));
     }
 
 }

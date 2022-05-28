@@ -13,10 +13,13 @@ public class ClientSocket extends Thread {
     final ServerSocket server;
     final ExecutionDataWriter fileWriter;
 
-    ClientSocket(FuzzingClient client) throws UnknownHostException, IOException {
+    ClientSocket(FuzzingClient client)
+            throws UnknownHostException, IOException {
         this.client = client;
-        this.server = new ServerSocket(Config.getConf().clientPort, 0, InetAddress.getByName(Config.getConf().clientHost));
-        this.fileWriter = new ExecutionDataWriter(new FileOutputStream("./zlab-jacoco.exec"));
+        this.server = new ServerSocket(Config.getConf().clientPort, 0,
+                InetAddress.getByName(Config.getConf().clientHost));
+        this.fileWriter = new ExecutionDataWriter(
+                new FileOutputStream("./zlab-jacoco.exec"));
     }
 
     @Override
@@ -24,7 +27,8 @@ public class ClientSocket extends Thread {
         ClientHandler handler;
         while (true) {
             try {
-                handler = new ClientHandler(client, server.accept(), fileWriter);
+                handler = new ClientHandler(client, server.accept(),
+                        fileWriter);
                 new Thread(handler).start();
             } catch (IOException e) {
                 e.printStackTrace();

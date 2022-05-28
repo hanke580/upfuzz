@@ -71,7 +71,7 @@ public class ClientHandler
             System.out.println("connection closed");
             socket.close();
             // synchronized (fileWriter) {
-            //     fileWriter.flush();
+            // fileWriter.flush();
             // }
         } catch (final IOException e) {
             e.printStackTrace();
@@ -110,7 +110,7 @@ public class ClientHandler
                     info.getId());
         }
         // synchronized (fileWriter) {
-        //     fileWriter.visitSessionInfo(info);
+        // fileWriter.visitSessionInfo(info);
         // }
     }
 
@@ -133,7 +133,7 @@ public class ClientHandler
             client.agentStore.put(sessionId, store);
         }
         // synchronized (fileWriter) {
-        //     fileWriter.visitClassExecution(data);
+        // fileWriter.visitClassExecution(data);
         // }
         lastUpdateTime = System.currentTimeMillis();
 
