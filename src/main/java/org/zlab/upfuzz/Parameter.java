@@ -1,8 +1,8 @@
-/* (C)2022 */
 package org.zlab.upfuzz;
 
-import java.io.Serializable;
 import org.apache.commons.lang3.SerializationUtils;
+
+import java.io.Serializable;
 
 public class Parameter implements Serializable {
 
@@ -26,16 +26,31 @@ public class Parameter implements Serializable {
         return type.isValid(s, c, this);
     }
 
-    /** Fix if the param does not comply the rule. */
+    /**
+     * Fix if the param does not comply the rule.
+     */
     public void regenerate(State s, Command c) {
         type.regenerate(s, c, this);
     }
 
     public Object getValue() {
         /**
-         * Get non-parameter value p / \ / \ NotEmpty p / \ / \ ConcreteGen List<Parameter> / \ / \
-         * Pair<P1, P2> Pair<P1, P2> Sometimes we want to directly get to the low-level values. It
-         * can only be List<Parameter> Pair<Parameter> Primitive type like "String, INT..."
+         * Get non-parameter value
+         *         p
+         *       /   \
+         *      /     \
+         *  NotEmpty   p
+         *           /   \
+         *          /     \
+         *     ConcreteGen List<Parameter>
+         *                      /  \
+         *                     /    \
+         *             Pair<P1, P2>  Pair<P1, P2>
+         *  Sometimes we want to directly get to the low-level values.
+         *  It can only be
+         *  List<Parameter>
+         *  Pair<Parameter>
+         *  Primitive type like "String, INT..."
          */
         if (this.value instanceof Parameter) {
             return ((Parameter) this.value).getValue();
@@ -59,7 +74,8 @@ public class Parameter implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (o == this) return true;
+        if (o == this)
+            return true;
 
         if (!(o instanceof Parameter)) {
             return false;

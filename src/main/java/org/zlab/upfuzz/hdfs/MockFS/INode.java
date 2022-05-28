@@ -1,4 +1,3 @@
-/* (C)2022 */
 package org.zlab.upfuzz.hdfs.MockFS;
 
 import java.io.Serializable;
@@ -76,14 +75,13 @@ public class INode implements Serializable {
 
     int i_file_acl_lo; /* File ACL */
 
-    // int  i_block[EXT4_N_BLOCKS];  /* Pointers to blocks */
+    // int i_block[EXT4_N_BLOCKS]; /* Pointers to blocks */
 
     // int i_generation; /* File version (for NFS) */
 
     int i_size_high;
 
     enum IType {
-        File,
-        Dir;
+        File, Dir;
     }
 }

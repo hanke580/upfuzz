@@ -1,4 +1,3 @@
-/* (C)2022 */
 package org.zlab.upfuzz.utils;
 
 import java.io.Serializable;

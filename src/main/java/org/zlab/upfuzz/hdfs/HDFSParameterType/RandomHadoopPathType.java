@@ -1,4 +1,3 @@
-/* (C)2022 */
 package org.zlab.upfuzz.hdfs.HDFSParameterType;
 
 import org.zlab.upfuzz.Command;
@@ -53,4 +52,5 @@ public class RandomHadoopPathType extends ConcreteType {
         // TODO Auto-generated method stub
         return false;
     }
+
 }

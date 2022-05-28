@@ -1,11 +1,12 @@
-/* (C)2022 */
 package org.zlab.upfuzz.fuzzingengine.executor;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.commons.lang3.RandomStringUtils;
+import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.State;
@@ -15,8 +16,7 @@ import org.zlab.upfuzz.utils.Pair;
 public abstract class Executor implements IExecutor {
 
     public enum FailureType {
-        UPGRADE_FAIL,
-        RESULT_INCONSISTENCY
+        UPGRADE_FAIL, RESULT_INCONSISTENCY
     }
 
     public String executorID;
@@ -28,12 +28,13 @@ public abstract class Executor implements IExecutor {
     public Map<Integer, Pair<CommandSequence, CommandSequence>> testId2commandSequence;
     public Map<Integer, List<String>> testId2oldVersionResult;
     public Map<Integer, List<String>> testId2newVersionResult;
-    public Map<Integer, Pair<FailureType, String>> testId2Failure; // Pair<FailureType, FailureInfo>
+    public Map<Integer, Pair<FailureType, String>> testId2Failure; // Pair<FailureType,
+                                                                   // FailureInfo>
 
-    //    public List<String> oldVersionResult;
-    //    public List<String> newVersionResult;
-    //    public FailureType failureType;
-    //    public String failureInfo;
+    // public List<String> oldVersionResult;
+    // public List<String> newVersionResult;
+    // public FailureType failureType;
+    // public String failureInfo;
 
     protected Executor() {
         testId2commandSequence = new HashMap<>();
@@ -46,19 +47,19 @@ public abstract class Executor implements IExecutor {
         this.systemID = systemID;
     }
 
-    protected Executor(CommandSequence commandSequence, CommandSequence validationCommandSequence) {
+    protected Executor(CommandSequence commandSequence,
+            CommandSequence validationCommandSequence) {
         executorID = RandomStringUtils.randomAlphanumeric(8);
     }
 
-    protected Executor(
-            CommandSequence commandSequence,
-            CommandSequence validationCommandSequence,
-            String systemID) {
+    protected Executor(CommandSequence commandSequence,
+            CommandSequence validationCommandSequence, String systemID) {
         this(commandSequence, validationCommandSequence);
         this.systemID = systemID;
     }
 
-    public void reset(CommandSequence commandSequence, CommandSequence validationCommandSequence) {
+    public void reset(CommandSequence commandSequence,
+            CommandSequence validationCommandSequence) {
         executorID = RandomStringUtils.randomAlphanumeric(8);
         this.commandSequence = commandSequence;
         this.validationCommandSequence = validationCommandSequence;
@@ -81,35 +82,28 @@ public abstract class Executor implements IExecutor {
         return systemID + "-" + executorID;
     }
 
-    public abstract void startup();
+    abstract public void startup();
 
-    public abstract void teardown();
+    abstract public void teardown();
 
-    public abstract List<String> executeCommands(CommandSequence commandSequence);
+    abstract public List<String> executeCommands(
+            CommandSequence commandSequence);
 
     public static Pair<CommandSequence, CommandSequence> prepareCommandSequence(
             CommandPool commandPool, Class<? extends State> stateClass) {
         CommandSequence commandSequence = null;
         CommandSequence validationCommandSequence = null;
         try {
-            commandSequence =
-                    CommandSequence.generateSequence(
-                            commandPool.commandClassList,
-                            commandPool.createCommandClassList,
-                            stateClass,
-                            null);
-            // TODO: If it's generating read with a initial state, no need to generate with
-            // createTable...
-            validationCommandSequence =
-                    CommandSequence.generateSequence(
-                            commandPool.readCommandClassList,
-                            null,
-                            stateClass,
-                            commandSequence.state);
-        } catch (NoSuchMethodException
-                | InvocationTargetException
-                | InstantiationException
-                | IllegalAccessException e) {
+            commandSequence = CommandSequence.generateSequence(
+                    commandPool.commandClassList,
+                    commandPool.createCommandClassList, stateClass, null);
+            // TODO: If it's generating read with a initial state, no need to
+            // generate with createTable...
+            validationCommandSequence = CommandSequence.generateSequence(
+                    commandPool.readCommandClassList, null, stateClass,
+                    commandSequence.state);
+        } catch (NoSuchMethodException | InvocationTargetException
+                | InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
         }
         return new Pair<>(commandSequence, validationCommandSequence);
@@ -119,37 +113,35 @@ public abstract class Executor implements IExecutor {
             CommandPool commandPool, State state) {
         CommandSequence validationCommandSequence = null;
         try {
-            validationCommandSequence =
-                    CommandSequence.generateSequence(
-                            commandPool.readCommandClassList, null, state.getClass(), state);
-        } catch (NoSuchMethodException
-                | InvocationTargetException
-                | InstantiationException
-                | IllegalAccessException e) {
+            validationCommandSequence = CommandSequence.generateSequence(
+                    commandPool.readCommandClassList, null, state.getClass(),
+                    state);
+        } catch (NoSuchMethodException | InvocationTargetException
+                | InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
         }
         return validationCommandSequence;
     }
 
-    public List<String> execute(
-            CommandSequence commandSequence,
-            CommandSequence validationCommandSequence,
-            int testId) {
-        //        startup();
-        testId2commandSequence.put(testId, new Pair<>(commandSequence, validationCommandSequence));
+    public List<String> execute(CommandSequence commandSequence,
+            CommandSequence validationCommandSequence, int testId) {
+        // startup();
+        testId2commandSequence.put(testId,
+                new Pair<>(commandSequence, validationCommandSequence));
         executeCommands(commandSequence);
         // saveSnapshot(); // Flush, only keep the data folder
 
-        List<String> oldVersionResult = executeCommands(validationCommandSequence);
+        List<String> oldVersionResult = executeCommands(
+                validationCommandSequence);
         testId2oldVersionResult.put(testId, oldVersionResult);
         // execute the second commands
-        //        teardown();
+        // teardown();
         return oldVersionResult;
     }
 
-    public abstract int saveSnapshot();
+    abstract public int saveSnapshot();
 
-    public abstract int moveSnapShot();
+    abstract public int moveSnapShot();
 
-    public abstract void upgrade() throws Exception;
+    abstract public void upgrade() throws Exception;
 }

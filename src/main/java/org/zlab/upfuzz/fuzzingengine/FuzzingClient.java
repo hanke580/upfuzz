@@ -1,4 +1,3 @@
-/* (C)2022 */
 package org.zlab.upfuzz.fuzzingengine;
 
 import java.io.File;
@@ -9,6 +8,8 @@ import java.rmi.UnexpectedException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.CustomExceptions;
@@ -20,7 +21,10 @@ import org.zlab.upfuzz.utils.Utilities;
 public class FuzzingClient {
     public static final int epochNum = 60; // Validation per epochNum
 
-    /** key: String -> agentId value: Codecoverage for this agent */
+    /**
+     * key: String -> agentId
+     * value: Codecoverage for this agent
+     */
     public Map<String, ExecutionDataStore> agentStore;
 
     /* key: String -> agent Id
@@ -74,28 +78,31 @@ public class FuzzingClient {
         }
     }
 
-    public FeedBack start(
-            CommandSequence commandSequence,
-            CommandSequence validationCommandSequence,
-            int testId) {
+    public FeedBack start(CommandSequence commandSequence,
+            CommandSequence validationCommandSequence, int testId) {
 
         try {
-            System.out.println("Main Class Name: " + Utilities.getMainClassName());
+            System.out.println(
+                    "Main Class Name: " + Utilities.getMainClassName());
         } catch (ClassNotFoundException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
-        /** Every epochNum tests, do one upgradeProcess + checking */
+        /**
+         * Every epochNum tests, do one upgradeProcess + checking
+         */
         FeedBack fb = new FeedBack();
 
         // Execute the commands on the running cassandra
-        testId2Sequence.put(testId, new Pair<>(commandSequence, validationCommandSequence));
+        testId2Sequence.put(testId,
+                new Pair<>(commandSequence, validationCommandSequence));
 
         List<String> oldVersionResult = null;
 
         try {
-            oldVersionResult = executor.execute(commandSequence, validationCommandSequence, testId);
+            oldVersionResult = executor.execute(commandSequence,
+                    validationCommandSequence, testId);
 
             if (oldVersionResult != null) {
                 fb.originalCodeCoverage = collect(executor, "original");
@@ -104,15 +111,17 @@ public class FuzzingClient {
                     System.exit(1);
                 }
                 // Actually the code coverage do not need to be stored in disk
-                // String destFile = executor.getSysExecID() + String.valueOf(testId) + ".exec";
+                // String destFile = executor.getSysExecID() +
+                // String.valueOf(testId) + ".exec";
                 // try {
-                // 	FileOutputStream localFile = new FileOutputStream(destFile);
-                // 	ExecutionDataWriter localWriter = new ExecutionDataWriter(localFile);
-                // 	codeCoverage.accept(localWriter);
-                // 	// localWriter.visitClassExecution(codeCoverage);
-                // 	System.out.println("write codecoverage to " + destFile);
+                // FileOutputStream localFile = new FileOutputStream(destFile);
+                // ExecutionDataWriter localWriter = new
+                // ExecutionDataWriter(localFile);
+                // codeCoverage.accept(localWriter);
+                // // localWriter.visitClassExecution(codeCoverage);
+                // System.out.println("write codecoverage to " + destFile);
                 // } catch (IOException e) {
-                // 	e.printStackTrace();
+                // e.printStackTrace();
                 // }
             }
         } catch (CustomExceptions.systemStartFailureException e) {
@@ -121,15 +130,18 @@ public class FuzzingClient {
 
         if (epochNum == 1 || testId != 0 && testId % epochNum == 0) {
             /**
-             * Perform a validation 1. Stop the running instance 2. Perform Upgrade check 3. Restart
-             * the executor
+             * Perform a validation
+             * 1. Stop the running instance
+             * 2. Perform Upgrade check
+             * 3. Restart the executor
              */
             // long startTime = System.currentTimeMillis();
             executor.saveSnapshot();
             executor.moveSnapShot();
             executor.teardown();
             // long endTime = System.currentTimeMillis();
-            // System.out.println("Stop the old version Time: " + (endTime - startTime)/1000 + "s");
+            // System.out.println("Stop the old version Time: " + (endTime -
+            // startTime)/1000 + "s");
 
             // Upgrade test
             // 1. Upgrade check
@@ -139,45 +151,47 @@ public class FuzzingClient {
                 boolean ret = executor.upgradeTest();
                 // fb.upgradedCodeCoverage = collect(executor, "upgraded");
                 // if (fb.upgradedCodeCoverage == null) {
-                // 	System.out.println("ERROR: null upgrade code coverage");
-                // 	System.exit(1);
+                // System.out.println("ERROR: null upgrade code coverage");
+                // System.exit(1);
                 // }
 
                 if (ret == false) {
                     /**
-                     * An inconsistency has been found 1. It could be exception during the upgrade
-                     * process 2. The result is different between two versions Serialize them into
-                     * the folder, 2 sequences + failureType + failureInfo
+                     * An inconsistency has been found
+                     * 1. It could be exception during the upgrade process
+                     * 2. The result is different between two versions
+                     * Serialize them into the folder, 2 sequences + failureType + failureInfo
                      */
-                    while (Paths.get(Config.getConf().crashDir, "crash_" + epoch)
-                            .toFile()
-                            .exists()) {
+                    while (Paths
+                            .get(Config.getConf().crashDir, "crash_" + epoch)
+                            .toFile().exists()) {
                         epoch++;
                     }
                     // 1. Serialize all sequences into one file (String format)
 
                     // Make an crash Dir
-                    new File(Paths.get(Config.getConf().crashDir, "crash_" + epoch).toString())
-                            .mkdir();
+                    new File(Paths
+                            .get(Config.getConf().crashDir, "crash_" + epoch)
+                            .toString()).mkdir();
 
                     // Inside this Dir, serialize all the executed sequence
                     // File1: CommandSequence
                     StringBuilder commandSequenceString = new StringBuilder();
 
                     for (int i = epochStartTestId; i <= testId; i++) {
-                        for (String cmdStr : testId2Sequence.get(i).left.getCommandStringList()) {
+                        for (String cmdStr : testId2Sequence.get(i).left
+                                .getCommandStringList()) {
                             commandSequenceString.append(cmdStr + "\n");
                         }
                         commandSequenceString.append("\n");
                     }
 
                     // Serialize CommandSequence into File
-                    Path cmdSeqsPath =
-                            Paths.get(
-                                    Config.getConf().crashDir,
-                                    "crash_" + epoch,
-                                    "epoch_cmd_seq_" + epochStartTestId + "_" + testId + ".txt");
-                    Utilities.write2TXT(cmdSeqsPath.toFile(), commandSequenceString.toString());
+                    Path cmdSeqsPath = Paths.get(Config.getConf().crashDir,
+                            "crash_" + epoch, "epoch_cmd_seq_"
+                                    + epochStartTestId + "_" + testId + ".txt");
+                    Utilities.write2TXT(cmdSeqsPath.toFile(),
+                            commandSequenceString.toString());
 
                     // When ret is false, while the testId2Failure is empty!!!
 
@@ -189,73 +203,66 @@ public class FuzzingClient {
                             // Serialize the single bug info
                             StringBuilder sb = new StringBuilder();
                             // For each failure, log into a separate file
-                            sb.append(
-                                    "Failure Type: "
-                                            + executor.testId2Failure.get(testIdx).left
-                                            + "\n");
-                            sb.append(
-                                    "Failure Info: "
-                                            + executor.testId2Failure.get(testIdx).right
-                                            + "\n");
-                            Path crashReportPath =
-                                    Paths.get(
-                                            Config.getConf().crashDir,
-                                            "crash_" + epoch,
-                                            "crash_" + testIdx + ".txt");
-                            Utilities.write2TXT(crashReportPath.toFile(), sb.toString());
+                            sb.append("Failure Type: "
+                                    + executor.testId2Failure.get(testIdx).left
+                                    + "\n");
+                            sb.append("Failure Info: "
+                                    + executor.testId2Failure.get(testIdx).right
+                                    + "\n");
+                            Path crashReportPath = Paths.get(
+                                    Config.getConf().crashDir, "crash_" + epoch,
+                                    "crash_" + testIdx + ".txt");
+                            Utilities.write2TXT(crashReportPath.toFile(),
+                                    sb.toString());
 
                             crashID++;
                             break;
                         }
 
                         // Serialize the single bug sequence
-                        Pair<CommandSequence, CommandSequence> commandSequencePair =
-                                new Pair<>(
-                                        testId2Sequence.get(testIdx).left,
-                                        testId2Sequence.get(testIdx).right);
-                        Path commandSequencePairPath =
-                                Paths.get(
-                                        Config.getConf().crashDir,
-                                        "crash_" + epoch,
-                                        "crash_" + testIdx + ".ser");
-                        Utilities.writeCmdSeq(
-                                commandSequencePairPath.toFile(), commandSequencePair);
+                        Pair<CommandSequence, CommandSequence> commandSequencePair = new Pair<>(
+                                testId2Sequence.get(testIdx).left,
+                                testId2Sequence.get(testIdx).right);
+                        Path commandSequencePairPath = Paths.get(
+                                Config.getConf().crashDir, "crash_" + epoch,
+                                "crash_" + testIdx + ".ser");
+                        Utilities.writeCmdSeq(commandSequencePairPath.toFile(),
+                                commandSequencePair);
 
                         // Serialize the single bug info
                         StringBuilder sb = new StringBuilder();
                         // For each failure, log into a separate file
-                        sb.append(
-                                "Failure Type: "
-                                        + executor.testId2Failure.get(testIdx).left
-                                        + "\n");
-                        sb.append(
-                                "Failure Info: "
-                                        + executor.testId2Failure.get(testIdx).right
-                                        + "\n");
+                        sb.append("Failure Type: "
+                                + executor.testId2Failure.get(testIdx).left
+                                + "\n");
+                        sb.append("Failure Info: "
+                                + executor.testId2Failure.get(testIdx).right
+                                + "\n");
                         sb.append("Command Sequence\n");
-                        for (String commandStr :
-                                testId2Sequence.get(testIdx).left.getCommandStringList()) {
+                        for (String commandStr : testId2Sequence
+                                .get(testIdx).left.getCommandStringList()) {
                             sb.append(commandStr);
                             sb.append("\n");
                         }
                         sb.append("\n\n");
                         sb.append("Read Command Sequence\n");
-                        for (String commandStr :
-                                testId2Sequence.get(testIdx).right.getCommandStringList()) {
+                        for (String commandStr : testId2Sequence
+                                .get(testIdx).right.getCommandStringList()) {
                             sb.append(commandStr);
                             sb.append("\n");
                         }
-                        Path crashReportPath =
-                                Paths.get(
-                                        Config.getConf().crashDir,
-                                        "crash_" + epoch,
-                                        "crash_" + testIdx + ".txt");
-                        Utilities.write2TXT(crashReportPath.toFile(), sb.toString());
+                        Path crashReportPath = Paths.get(
+                                Config.getConf().crashDir, "crash_" + epoch,
+                                "crash_" + testIdx + ".txt");
+                        Utilities.write2TXT(crashReportPath.toFile(),
+                                sb.toString());
                         crashID++;
+
                     }
                 }
             } catch (CustomExceptions.systemStartFailureException e) {
-                System.out.println("New version cassandra start up failed, this could be a bug");
+                System.out.println(
+                        "New version cassandra start up failed, this could be a bug");
             } catch (Exception e) {
                 e.printStackTrace();
                 // System.exit(1);
@@ -275,11 +282,11 @@ public class FuzzingClient {
     }
 
     public ExecutionDataStore collect(Executor executor, String version) {
-        List<String> agentIdList = sessionGroup.get(executor.executorID + "_" + version);
+        List<String> agentIdList = sessionGroup
+                .get(executor.executorID + "_" + version);
         if (agentIdList == null) {
-            new UnexpectedException(
-                            "No agent connection with executor " + executor.executorID.toString())
-                    .printStackTrace();
+            new UnexpectedException("No agent connection with executor "
+                    + executor.executorID.toString()).printStackTrace();
             return null;
         } else {
             // Add to the original coverage
@@ -294,12 +301,14 @@ public class FuzzingClient {
                             // System.out.println("wait Session");
                             Thread.sleep(100);
                         }
-                        // System.out.println("wait data1: currentTimeMillis = " +
-                        // System.currentTimeMillis() + "  Conn.lastTime = " + conn.lastUpdateTime);
-                        while (System.currentTimeMillis() - conn.lastUpdateTime < 300) {
-                            // System.out.println("wait data2: currentTimeMillis = " +
-                            // System.currentTimeMillis() + "  Conn.lastTime = " +
-                            // conn.lastUpdateTime);
+                        // System.out.println("wait data1: currentTimeMillis = "
+                        // + System.currentTimeMillis() + " Conn.lastTime = " +
+                        // conn.lastUpdateTime);
+                        while (System.currentTimeMillis()
+                                - conn.lastUpdateTime < 300) {
+                            // System.out.println("wait data2: currentTimeMillis
+                            // = " + System.currentTimeMillis() + "
+                            // Conn.lastTime = " + conn.lastUpdateTime);
                             Thread.sleep(100);
                         }
                     } catch (IOException | InterruptedException e) {
@@ -316,14 +325,16 @@ public class FuzzingClient {
                     System.out.println("no data");
                 } else {
                     /**
-                     * astore: Map: Classname -> int[] probes. this will merge the probe of each
-                     * classes.
+                     * astore: Map: Classname -> int[] probes.
+                     * this will merge the probe of each classes.
                      */
                     execStore.merge(astore);
-                    System.out.println("astore size: " + execStore.getContents().size());
+                    System.out.println(
+                            "astore size: " + execStore.getContents().size());
                 }
             }
-            System.out.println("codecoverage size: " + execStore.getContents().size());
+            System.out.println(
+                    "codecoverage size: " + execStore.getContents().size());
             // Send coverage back
 
             return execStore;
@@ -331,7 +342,6 @@ public class FuzzingClient {
     }
 
     enum FuzzingClientActions {
-        start,
-        collect;
+        start, collect;
     }
 }

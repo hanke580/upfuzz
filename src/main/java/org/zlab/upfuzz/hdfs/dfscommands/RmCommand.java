@@ -1,12 +1,15 @@
-/* (C)2022 */
 package org.zlab.upfuzz.hdfs.dfscommands;
 
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomHadoopPathType;
 import org.zlab.upfuzz.hdfs.HdfsState;
+import org.zlab.upfuzz.hdfs.HDFSParameterType.ConcatenateType;
+import org.zlab.upfuzz.hdfs.HDFSParameterType.OrType;
+import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomHadoopPathType;
+import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomLocalPathType;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
+import org.zlab.upfuzz.utils.INTType;
 
 public class RmCommand extends DfsCommands {
 
@@ -23,35 +26,39 @@ public class RmCommand extends DfsCommands {
      * The -safely option will require safety confirmation before deleting directory with total number of files greater than hadoop.shell.delete.limit.num.files (in core-site.xml, default: 100). It can be used with -skipTrash to prevent accidental deletion of large directories. Delay is expected when walking over large directory recursively to count the number of files to be deleted before the confirmation.*
      */
     public RmCommand(HdfsState hdfsState) {
-        Parameter rmcmd = new CONSTANTSTRINGType("-rm").generateRandomParameter(null, null);
+        Parameter rmcmd = new CONSTANTSTRINGType("-rm")
+                .generateRandomParameter(null, null);
 
-        // The -f option will not display a diagnostic message or modify the exit status to reflect
-        // an error if the file does not exist.
-        Parameter fOption =
-                new ParameterType.OptionalType(new CONSTANTSTRINGType("-f"), null)
+        // The -f option will not display a diagnostic message or modify the
+        // exit status to reflect an error if the file does not exist.
+        Parameter fOption = new ParameterType.OptionalType(
+                new CONSTANTSTRINGType("-f"), null)
                         .generateRandomParameter(null, null);
 
-        // The -R option deletes the directory and any content under it recursively.
-        Parameter rOption =
-                new ParameterType.OptionalType(new CONSTANTSTRINGType("-R"), null)
+        // The -R option deletes the directory and any content under it
+        // recursively.
+        Parameter rOption = new ParameterType.OptionalType(
+                new CONSTANTSTRINGType("-R"), null)
                         .generateRandomParameter(null, null);
 
-        // The -safely option will require safety confirmation before deleting directory with total
-        // number of files greater than hadoop.shell.delete.limit.num.files (in core-site.xml,
-        // default: 100). It can be used with -skipTrash to prevent accidental deletion of large
-        // directories. Delay is expected when walking over large directory recursively to count the
-        // number of files to be deleted before the confirmation.
-        Parameter saveOption =
-                new ParameterType.OptionalType(new CONSTANTSTRINGType("-safely"), null)
+        // The -safely option will require safety confirmation before deleting
+        // directory with total number of files greater than
+        // hadoop.shell.delete.limit.num.files (in core-site.xml, default: 100).
+        // It can be used with -skipTrash to prevent accidental deletion of
+        // large directories. Delay is expected when walking over large
+        // directory recursively to count the number of files to be deleted
+        // before the confirmation.
+        Parameter saveOption = new ParameterType.OptionalType(
+                new CONSTANTSTRINGType("-safely"), null)
                         .generateRandomParameter(null, null);
 
         // -d : Skip creation of temporary file with the suffix ._COPYING_.
-        Parameter skipOption =
-                new ParameterType.OptionalType(new CONSTANTSTRINGType("-skipTrash"), null)
+        Parameter skipOption = new ParameterType.OptionalType(
+                new CONSTANTSTRINGType("-skipTrash"), null)
                         .generateRandomParameter(null, null);
 
-        Parameter dstParameter =
-                new RandomHadoopPathType().generateRandomParameter(hdfsState, null);
+        Parameter dstParameter = new RandomHadoopPathType()
+                .generateRandomParameter(hdfsState, null);
 
         params.add(rmcmd);
         params.add(fOption);
@@ -62,5 +69,6 @@ public class RmCommand extends DfsCommands {
     }
 
     @Override
-    public void updateState(State state) {}
+    public void updateState(State state) {
+    }
 }

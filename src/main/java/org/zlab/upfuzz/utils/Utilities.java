@@ -1,4 +1,3 @@
-/* (C)2022 */
 package org.zlab.upfuzz.utils;
 
 import static java.lang.String.format;
@@ -8,12 +7,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.Map.Entry;
+
 import org.jacoco.core.data.ExecutionData;
 import org.jacoco.core.data.ExecutionDataStore;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.fuzzingengine.Config;
+
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 public class Utilities {
     public static List<Integer> permutation(int size) {
@@ -25,12 +26,14 @@ public class Utilities {
         return indexArray;
     }
 
-    public static Pair<CommandSequence, CommandSequence> deserializeCommandSequence(Path filePath) {
+    public static Pair<CommandSequence, CommandSequence> deserializeCommandSequence(
+            Path filePath) {
         Pair<CommandSequence, CommandSequence> commandSequencePair = null;
         try {
             FileInputStream fileIn = new FileInputStream(filePath.toFile());
             ObjectInputStream in = new ObjectInputStream(fileIn);
-            commandSequencePair = (Pair<CommandSequence, CommandSequence>) in.readObject();
+            commandSequencePair = (Pair<CommandSequence, CommandSequence>) in
+                    .readObject();
             in.close();
             fileIn.close();
         } catch (IOException i) {
@@ -44,16 +47,18 @@ public class Utilities {
         return commandSequencePair;
     }
 
-    public static boolean hasNewBits(
-            ExecutionDataStore curCoverage, ExecutionDataStore testSequenceCoverage) {
+    public static boolean hasNewBits(ExecutionDataStore curCoverage,
+            ExecutionDataStore testSequenceCoverage) {
 
-        if (testSequenceCoverage == null) return false;
+        if (testSequenceCoverage == null)
+            return false;
 
         if (curCoverage == null) {
             curCoverage = testSequenceCoverage;
             return true;
         } else {
-            for (final ExecutionData testSequenceData : testSequenceCoverage.getContents()) {
+            for (final ExecutionData testSequenceData : testSequenceCoverage
+                    .getContents()) {
 
                 final Long id = Long.valueOf(testSequenceData.getId());
                 final ExecutionData curData = curCoverage.get(id);
@@ -62,7 +67,8 @@ public class Utilities {
                 if (curData != null) {
                     assertCompatibility(curData, testSequenceData);
                     int[] curProbes = curData.getProbes();
-                    final int[] testSequenceProbes = testSequenceData.getProbes();
+                    final int[] testSequenceProbes = testSequenceData
+                            .getProbes();
                     for (int i = 0; i < curProbes.length; i++) {
                         // Now only try with the boolean first
                         if (curProbes[i] == 0 && testSequenceProbes[i] != 0) {
@@ -77,7 +83,8 @@ public class Utilities {
         }
     }
 
-    public static Pair<Integer, Integer> getCoverageStatus(ExecutionDataStore curCoverage) {
+    public static Pair<Integer, Integer> getCoverageStatus(
+            ExecutionDataStore curCoverage) {
         if (curCoverage == null) {
             return new Pair(0, 0);
         }
@@ -89,32 +96,32 @@ public class Utilities {
             int[] curProbes = curData.getProbes();
             probeNum += curProbes.length;
             for (int i = 0; i < curProbes.length; i++) {
-                if (curProbes[i] != 0) coveredProbes++;
+                if (curProbes[i] != 0)
+                    coveredProbes++;
             }
         }
         return new Pair(coveredProbes, probeNum);
     }
 
-    public static void assertCompatibility(ExecutionData curData, ExecutionData testSequenceData) {
+    public static void assertCompatibility(ExecutionData curData,
+            ExecutionData testSequenceData) {
         if (curData.getId() != testSequenceData.getId()) {
             throw new IllegalStateException(
-                    format(
-                            "Different ids (%016x and %016x).",
-                            Long.valueOf(curData.getId()), Long.valueOf(testSequenceData.getId())));
+                    format("Different ids (%016x and %016x).",
+                            Long.valueOf(curData.getId()),
+                            Long.valueOf(testSequenceData.getId())));
         }
         if (!curData.getName().equals(testSequenceData.getName())) {
             throw new IllegalStateException(
-                    format(
-                            "Different class names %s and %s for id %016x.",
-                            curData.getName(),
-                            testSequenceData.getName(),
+                    format("Different class names %s and %s for id %016x.",
+                            curData.getName(), testSequenceData.getName(),
                             Long.valueOf(testSequenceData.getId())));
         }
         if (curData.getProbes().length != testSequenceData.getProbes().length) {
-            throw new IllegalStateException(
-                    format(
-                            "Incompatible execution data for class %s with id %016x.",
-                            testSequenceData.getName(), Long.valueOf(testSequenceData.getId())));
+            throw new IllegalStateException(format(
+                    "Incompatible execution data for class %s with id %016x.",
+                    testSequenceData.getName(),
+                    Long.valueOf(testSequenceData.getId())));
         }
     }
 
@@ -123,11 +130,12 @@ public class Utilities {
         try {
             // System.out.println("Execute: " + desc);
             p = pb.start();
-            // BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            // BufferedReader in = new BufferedReader(new
+            // InputStreamReader(p.getInputStream()));
             // String line;
             // while ((line = in.readLine()) != null) {
-            //     System.out.println(line);
-            //     System.out.flush();
+            // System.out.println(line);
+            // System.out.flush();
             // }
             p.waitFor();
             // in.close();
@@ -151,7 +159,8 @@ public class Utilities {
     }
 
     public static String readProcess(Process p) {
-        BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+        BufferedReader in = new BufferedReader(
+                new InputStreamReader(p.getInputStream()));
         StringBuilder sb = new StringBuilder();
         String line;
         try {
@@ -166,33 +175,42 @@ public class Utilities {
         return sb.toString();
     }
 
-    public static String getGitBranch(String path) throws IOException, InterruptedException {
-        Process p = exec(new String[] {"git", "rev-parse", "--abbrev-ref", "HEAD"}, path);
+    public static String getGitBranch(String path)
+            throws IOException, InterruptedException {
+        Process p = exec(
+                new String[] { "git", "rev-parse", "--abbrev-ref", "HEAD" },
+                path);
         String gitBranch = readProcess(p).replace("\n", "");
         return gitBranch;
     }
 
-    public static String getGitTag(String path) throws IOException, InterruptedException {
-        Process p = exec(new String[] {"git", "describe", "--abbrev=0", "--tags", "HEAD"}, path);
+    public static String getGitTag(String path)
+            throws IOException, InterruptedException {
+        Process p = exec(new String[] { "git", "describe", "--abbrev=0",
+                "--tags", "HEAD" }, path);
         String gitBranch = readProcess(p).replace("\n", "");
         return gitBranch;
     }
 
     public static String getMainClassName() throws ClassNotFoundException {
-        for (Entry<Thread, StackTraceElement[]> entry : Thread.getAllStackTraces().entrySet()) {
+        for (Entry<Thread, StackTraceElement[]> entry : Thread
+                .getAllStackTraces().entrySet()) {
             Thread thread = entry.getKey();
             // System.out.println(thread.getThreadGroup().getName() );
             if (thread.getThreadGroup() != null
                     && thread.getThreadGroup().getName().equals("main")) {
                 for (StackTraceElement stackTraceElement : entry.getValue()) {
-                    // System.out.println(stackTraceElement.getClassName()+ " " +
-                    // stackTraceElement.getMethodName() + " " + stackTraceElement.getFileName());
+                    // System.out.println(stackTraceElement.getClassName()+ " "
+                    // + stackTraceElement.getMethodName() + " " +
+                    // stackTraceElement.getFileName());
                     if (stackTraceElement.getMethodName().equals("main")) {
 
                         try {
-                            Class<?> c = Class.forName(stackTraceElement.getClassName());
-                            Class[] argTypes = new Class[] {String[].class};
-                            // This will throw NoSuchMethodException in case of fake main methods
+                            Class<?> c = Class
+                                    .forName(stackTraceElement.getClassName());
+                            Class[] argTypes = new Class[] { String[].class };
+                            // This will throw NoSuchMethodException in case of
+                            // fake main methods
                             c.getDeclaredMethod("main", argTypes);
                             // return stackTraceElement.getClassName();
                         } catch (NoSuchMethodException e) {
@@ -210,10 +228,10 @@ public class Utilities {
         // ProcessBuilder pb = new ProcessBuilder("sh", "clean.sh");
         // pb.directory(new File("/home/vagrant/project/upfuzz"));
         // try {
-        //     Process p = pb.start();
-        //     p.waitFor();
+        // Process p = pb.start();
+        // p.waitFor();
         // } catch (IOException | InterruptedException e) {
-        //     e.printStackTrace();
+        // e.printStackTrace();
         // }
 
         ProcessBuilder pb = new ProcessBuilder("rm", "-rf", "data");
@@ -295,7 +313,8 @@ public class Utilities {
             Set<Map.Entry<String, String>> entrySet = jsonObject.entrySet();
 
             for (Map.Entry<String, String> e : entrySet) {
-                String[] ret = e.getValue().split(e.getKey().replace("$", "\\$") + "\\(");
+                String[] ret = e.getValue()
+                        .split(e.getKey().replace("$", "\\$") + "\\(");
                 assert (ret.length == 2);
                 String ClassName = ret[0].substring(0, ret[0].length() - 1);
                 String MethodName = e.getKey();
@@ -304,12 +323,13 @@ public class Utilities {
                 // Only instrument class that's inside org.apache.cassandra.*
                 if (ClassName.contains("cassandra")) {
                     if (funcToInst.containsKey(ClassName)) {
-                        funcToInst
-                                .get(ClassName)
-                                .add(new AbstractMap.SimpleEntry<>(MethodName, ParamDesc));
+                        funcToInst.get(ClassName)
+                                .add(new AbstractMap.SimpleEntry<>(MethodName,
+                                        ParamDesc));
                     } else {
                         List<Map.Entry<String, String>> list = new ArrayList<>();
-                        list.add(new AbstractMap.SimpleEntry<>(MethodName, ParamDesc));
+                        list.add(new AbstractMap.SimpleEntry<>(MethodName,
+                                ParamDesc));
                         funcToInst.put(ClassName, list);
                     }
                 }
@@ -326,8 +346,8 @@ public class Utilities {
 
     public void generateJacocoIncludeOption() {
         Path filePath = Paths.get("/Users/hanke/Desktop/SerDes.json");
-        Map<String, List<Map.Entry<String, String>>> funcs =
-                Utilities.loadFunctoinFromStaticAnalysis(filePath);
+        Map<String, List<Map.Entry<String, String>>> funcs = Utilities
+                .loadFunctoinFromStaticAnalysis(filePath);
         for (String className : funcs.keySet()) {
             System.out.print(className + ":");
         }
@@ -343,4 +363,5 @@ public class Utilities {
         double bf = (-1 + Math.sqrt(1 + 2 * kf * rf / nf)) * nf / kf;
         return (int) bf;
     }
+
 }

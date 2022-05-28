@@ -1,7 +1,7 @@
-/* (C)2022 */
 package org.zlab.upfuzz.fuzzingengine.executor;
 
 import java.util.List;
+
 import org.zlab.upfuzz.CommandSequence;
 
 /* NullExecutor
@@ -13,16 +13,18 @@ public class NullExecutor extends Executor {
     }
 
     @Override
-    public void startup() {}
+    public void startup() {
+
+    }
 
     @Override
-    public void teardown() {}
+    public void teardown() {
+
+    }
 
     @Override
-    public List<String> execute(
-            CommandSequence commandSequence,
-            CommandSequence validationCommandSequence,
-            int testId) {
+    public List<String> execute(CommandSequence commandSequence,
+            CommandSequence validationCommandSequence, int testId) {
         return null;
     }
 
@@ -47,5 +49,6 @@ public class NullExecutor extends Executor {
     }
 
     @Override
-    public void upgrade() throws Exception {}
+    public void upgrade() throws Exception {
+    }
 }

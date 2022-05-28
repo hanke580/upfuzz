@@ -1,4 +1,3 @@
-/* (C)2022 */
 package org.zlab.upfuzz.fuzzingengine;
 
 public class SessionId {
@@ -20,7 +19,8 @@ public class SessionId {
     public static SessionId parse(String sessionId) {
         String[] sessionSplit = sessionId.split("-");
         if (sessionSplit.length != 3) {
-            throw new IllegalArgumentException("Invalid SessionId " + sessionId);
+            throw new IllegalArgumentException(
+                    "Invalid SessionId " + sessionId);
         }
 
         return new SessionId(sessionSplit[0], sessionSplit[1], sessionSplit[2]);

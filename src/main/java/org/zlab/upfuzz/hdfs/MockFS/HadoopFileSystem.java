@@ -1,4 +1,3 @@
-/* (C)2022 */
 package org.zlab.upfuzz.hdfs.MockFS;
 
 import java.io.Serializable;
@@ -7,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.zlab.upfuzz.hdfs.MockFS.INode.IType;
@@ -32,9 +32,11 @@ public class HadoopFileSystem implements Serializable {
         for (int i = 0; i < num; ++i) {
             INode dir = getRandomDir(), node;
             if (RandomUtils.nextDouble(0, 1) < ratio) {
-                node = new INode(dir, RandomStringUtils.randomAlphabetic(1, 12), IType.File);
+                node = new INode(dir, RandomStringUtils.randomAlphabetic(1, 12),
+                        IType.File);
             } else {
-                node = new INode(dir, RandomStringUtils.randomAlphabetic(1, 12), IType.Dir);
+                node = new INode(dir, RandomStringUtils.randomAlphabetic(1, 12),
+                        IType.Dir);
             }
             addNode(node);
         }
@@ -102,7 +104,8 @@ public class HadoopFileSystem implements Serializable {
             if (inodeMap.containsKey(path)) {
                 break;
             } else {
-                INode dirNode = new INode(path.toString(), IType.Dir, 1000, 1000, 0660);
+                INode dirNode = new INode(path.toString(), IType.Dir, 1000,
+                        1000, 0660);
                 inodeMap.put(dirNode.file_path, dirNode);
                 path = path.getParent();
             }
@@ -146,7 +149,12 @@ public class HadoopFileSystem implements Serializable {
         return true;
     }
 
-    /** 1. move to null -> rename 2. move to dir -> rename 3. move to file (INVALID) */
+    /**
+     * 1. move to null -> rename
+     * 2. move to dir -> rename
+     * 3. move to file (INVALID)
+     */
+
     public Boolean moveTo(String src, String dest, Integer flag) {
         INode srcNode = getNode(src), destNode = getNode(dest);
         if (srcNode == null) {
@@ -158,7 +166,8 @@ public class HadoopFileSystem implements Serializable {
             inodeMap.put(srcNode.file_path, srcNode);
         } else {
             if (destNode.i_type == IType.Dir) {
-                String newFilePath = PathUtils.join(destNode, srcNode.file_name);
+                String newFilePath = PathUtils.join(destNode,
+                        srcNode.file_name);
                 srcNode.setPath(newFilePath);
                 inodeMap.put(srcNode.file_path, srcNode);
 
@@ -198,7 +207,11 @@ public class HadoopFileSystem implements Serializable {
         return true;
     }
 
-    /** 1. copy file to null 2. copy file to dir 3. copy file to file (INVALID) */
+    /**
+     * 1. copy file to null
+     * 2. copy file to dir
+     * 3. copy file to file (INVALID)
+     */
     public Boolean copyFileTo(INode source, String dest, Object object) {
         INode destNode = getNode(dest);
         if (destNode == null) {
@@ -214,7 +227,11 @@ public class HadoopFileSystem implements Serializable {
         return true;
     }
 
-    /** 1. copy dir to null 2. copy dir to dir 3. copy dir to file (INVALID) */
+    /**
+    * 1. copy dir to null
+    * 2. copy dir to dir
+    * 3. copy dir to file (INVALID)
+    */
     public Boolean copyDirTo(INode source, String dest, Boolean flag) {
         INode destNode = getNode(dest);
         if (destNode == null) {
@@ -249,8 +266,8 @@ public class HadoopFileSystem implements Serializable {
 
     public Boolean removeDir(INode file, Integer flag) {
         Boolean deleted = false;
-        for (Iterator<Map.Entry<String, INode>> it = inodeMap.entrySet().iterator();
-                it.hasNext(); ) {
+        for (Iterator<Map.Entry<String, INode>> it = inodeMap.entrySet()
+                .iterator(); it.hasNext();) {
             Map.Entry<String, INode> entry = it.next();
             if (entry.getKey().startsWith(file.file_path)) {
                 it.remove();

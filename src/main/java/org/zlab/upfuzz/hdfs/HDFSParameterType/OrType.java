@@ -1,4 +1,3 @@
-/* (C)2022 */
 package org.zlab.upfuzz.hdfs.HDFSParameterType;
 
 import org.apache.commons.lang3.RandomUtils;
@@ -13,7 +12,7 @@ public class OrType extends ParameterType.ConcreteType {
     int choice = 0;
 
     public OrType(ConcreteType t1, ConcreteType t2) {
-        concreteTypes = new ConcreteType[] {t1, t2};
+        concreteTypes = new ConcreteType[] { t1, t2 };
     }
 
     @Override
@@ -58,4 +57,5 @@ public class OrType extends ParameterType.ConcreteType {
         // TODO Auto-generated method stub
         return null;
     }
+
 }
