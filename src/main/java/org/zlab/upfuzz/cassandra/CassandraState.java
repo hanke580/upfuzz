@@ -1,11 +1,11 @@
+/* (C)2022 */
 package org.zlab.upfuzz.cassandra;
-
-import org.zlab.upfuzz.State;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.zlab.upfuzz.State;
 
 public class CassandraState extends State {
     public Map<String, Map<String, CassandraTable>> keyspace2tables = new HashMap<>();
@@ -35,8 +35,6 @@ public class CassandraState extends State {
     public CassandraTable getTable(String keyspaceName, String tableName) {
         return keyspace2tables.get(keyspaceName).get(tableName);
     }
-
-
 
     @Override
     public void clearState() {

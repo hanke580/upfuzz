@@ -1,3 +1,4 @@
+/* (C)2022 */
 package org.zlab.upfuzz.fuzzingengine;
 
 import java.io.IOException;
@@ -7,7 +8,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
 import org.jacoco.core.data.ExecutionData;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.jacoco.core.data.ExecutionDataWriter;
@@ -17,8 +17,7 @@ import org.jacoco.core.data.SessionInfo;
 import org.jacoco.core.runtime.RemoteControlReader;
 import org.jacoco.core.runtime.RemoteControlWriter;
 
-public class ClientHandler
-        implements Runnable, ISessionInfoVisitor, IExecutionDataVisitor {
+public class ClientHandler implements Runnable, ISessionInfoVisitor, IExecutionDataVisitor {
     private final FuzzingClient client;
     private final Socket socket;
     private String sessionId;
@@ -39,8 +38,8 @@ public class ClientHandler
 
     private byte[] buffer;
 
-    ClientHandler(final FuzzingClient client, final Socket socket,
-            ExecutionDataWriter fileWriter) throws IOException {
+    ClientHandler(final FuzzingClient client, final Socket socket, ExecutionDataWriter fileWriter)
+            throws IOException {
         this.client = client;
         this.socket = socket;
         this.fileWriter = fileWriter;
@@ -62,10 +61,9 @@ public class ClientHandler
         try {
             while (reader.read()) {
                 okCMD.countDown();
-                DateFormat formatter = new SimpleDateFormat(
-                        "yyyy-MM-dd HH:mm:ss.SSS");
-                System.out.println(formatter.format(System.currentTimeMillis())
-                        + "\n" + "after one read");
+                DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+                System.out.println(
+                        formatter.format(System.currentTimeMillis()) + "\n" + "after one read");
             }
 
             System.out.println("connection closed");
@@ -91,8 +89,7 @@ public class ClientHandler
         client.agentHandler.put(sessionId, this);
         System.out.println("agent handler add " + sessionId);
 
-        String identifier = sessionSplit[0], executor = sessionSplit[1],
-                index = sessionSplit[2];
+        String identifier = sessionSplit[0], executor = sessionSplit[1], index = sessionSplit[2];
         if (!client.sessionGroup.containsKey(executor)) {
             client.sessionGroup.put(executor, new ArrayList<>());
         }
@@ -106,8 +103,7 @@ public class ClientHandler
         if (!registered) {
             register(info);
         } else {
-            System.out.printf("Retrieving execution Data for session: %s%n",
-                    info.getId());
+            System.out.printf("Retrieving execution Data for session: %s%n", info.getId());
         }
         // synchronized (fileWriter) {
         //     fileWriter.visitSessionInfo(info);
@@ -136,7 +132,6 @@ public class ClientHandler
         //     fileWriter.visitClassExecution(data);
         // }
         lastUpdateTime = System.currentTimeMillis();
-
     }
 
     public void collect() throws IOException {

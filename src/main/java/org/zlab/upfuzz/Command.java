@@ -1,6 +1,5 @@
+/* (C)2022 */
 package org.zlab.upfuzz;
-
-import org.zlab.upfuzz.cassandra.CassandraCommands;
 
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
@@ -8,11 +7,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import org.zlab.upfuzz.cassandra.CassandraCommands;
 
 /**
- * User need to implement two methods constructCommandString() and updateState().
- * If our custom mutation is not enough, they can implement their mutation by
- * overriding mutate() method.
+ * User need to implement two methods constructCommandString() and updateState(). If our custom
+ * mutation is not enough, they can implement their mutation by overriding mutate() method.
  */
 public abstract class Command implements Serializable {
 
@@ -38,8 +37,8 @@ public abstract class Command implements Serializable {
 
     public abstract void updateState(State state);
 
-    public boolean mutate(State s) throws IllegalAccessException,
-            NoSuchMethodException, InvocationTargetException {
+    public boolean mutate(State s)
+            throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         Random rand = new Random();
 
         for (int i = 0; i < RETRY_TIMES; i++) {
@@ -48,19 +47,15 @@ public abstract class Command implements Serializable {
                 mutateParamIdx = 2;
             }
             System.out.println("\tMutate Parameter Pos = " + mutateParamIdx);
-            if (params.get(mutateParamIdx).mutate(s, this) == true)
-                return true;
+            if (params.get(mutateParamIdx).mutate(s, this) == true) return true;
         }
         return false;
     }
 
     public boolean regenerateIfNotValid(State s) {
         /**
-         * Run check on each existing parameters in order.
-         * It will includes
-         * - Parameter.isValid()
-         * - Parameter.fixIfNotValid()
-         * Two functions
+         * Run check on each existing parameters in order. It will includes - Parameter.isValid() -
+         * Parameter.fixIfNotValid() Two functions
          */
         for (Parameter param : params) {
             try {
@@ -77,7 +72,8 @@ public abstract class Command implements Serializable {
 
     public Set<Command> generateRelatedReadCommand(State state) {
         return null;
-    };
+    }
+    ;
 
     public void changeKeyspaceName() {
         // Only Create keyspace command should override this method

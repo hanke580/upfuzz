@@ -1,7 +1,5 @@
+/* (C)2022 */
 package org.zlab.upfuzz.hdfs;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

@@ -1,23 +1,22 @@
+/* (C)2022 */
 package org.zlab.upfuzz;
-
-import org.junit.jupiter.api.Test;
-import org.zlab.upfuzz.cassandra.CassandraCommands;
-import org.zlab.upfuzz.cassandra.CassandraState;
-import org.zlab.upfuzz.cassandra.CassandraTypes;
-import org.zlab.upfuzz.utils.INTType;
-import org.zlab.upfuzz.utils.Pair;
-import org.zlab.upfuzz.utils.Utilities;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import org.junit.jupiter.api.Test;
+import org.zlab.upfuzz.cassandra.CassandraCommands;
+import org.zlab.upfuzz.cassandra.CassandraState;
+import org.zlab.upfuzz.cassandra.CassandraTypes;
+import org.zlab.upfuzz.utils.INTType;
+import org.zlab.upfuzz.utils.Pair;
 
 public class CommandTests {
 
     @Test
-    public void testCreateKSCommandGeneration(){
+    public void testCreateKSCommandGeneration() {
         CassandraState s = new CassandraState();
         CassandraCommands.CREAT_KEYSPACE cmd0 = new CassandraCommands.CREAT_KEYSPACE(s);
         cmd0.updateState(s);
@@ -29,7 +28,7 @@ public class CommandTests {
     }
 
     @Test
-    public void testALTER_KEYSPACECommandGeneration(){
+    public void testALTER_KEYSPACECommandGeneration() {
         CassandraState s = new CassandraState();
         CassandraCommands.CREAT_KEYSPACE cmd0 = new CassandraCommands.CREAT_KEYSPACE(s);
         cmd0.updateState(s);
@@ -41,14 +40,14 @@ public class CommandTests {
     }
 
     @Test
-    public void testCREATE_TABLECommandGeneration() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+    public void testCREATE_TABLECommandGeneration()
+            throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
 
         CassandraState s = new CassandraState();
 
         CassandraCommands.CREAT_KEYSPACE cmd0 = new CassandraCommands.CREAT_KEYSPACE(s);
         cmd0.updateState(s);
         System.out.println(cmd0.constructCommandString());
-
 
         CassandraCommands.CREATE_TABLE cmd1 = new CassandraCommands.CREATE_TABLE(s);
         cmd1.updateState(s);
@@ -57,11 +56,11 @@ public class CommandTests {
         CassandraCommands.DROP_TABLE cmd2 = new CassandraCommands.DROP_TABLE(s);
         cmd2.updateState(s);
         System.out.println(cmd2.constructCommandString());
-
     }
 
     @Test
-    public void testINSERTCommandGeneration() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+    public void testINSERTCommandGeneration()
+            throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
 
         CassandraState s = new CassandraState();
 
@@ -80,7 +79,8 @@ public class CommandTests {
 
     // FIXME drop primary key => infinate loop
     // @Test
-    public void testALTER_TABLE_DROPCommandGeneration() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+    public void testALTER_TABLE_DROPCommandGeneration()
+            throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
 
         CassandraState s = new CassandraState();
 
@@ -89,17 +89,18 @@ public class CommandTests {
 
         System.out.println(cmd1.constructCommandString());
 
-
         try {
             CassandraCommands.ALTER_TABLE_DROP cmd2 = new CassandraCommands.ALTER_TABLE_DROP(s);
             cmd2.updateState(s);
             System.out.println(cmd2.constructCommandString());
         } catch (CustomExceptions.PredicateUnSatisfyException e) {
             e.printStackTrace();
-            System.out.println("Predicate is not satisfy, this command cannot be correctly constructed");
+            System.out.println(
+                    "Predicate is not satisfy, this command cannot be correctly constructed");
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Exception is thrown during the construction of the current command");
+            System.out.println(
+                    "Exception is thrown during the construction of the current command");
         }
     }
 
@@ -116,17 +117,18 @@ public class CommandTests {
 
         System.out.println(cmd1.constructCommandString());
 
-
         try {
             CassandraCommands.DELETE cmd2 = new CassandraCommands.DELETE(s);
             cmd2.updateState(s);
             System.out.println(cmd2.constructCommandString());
         } catch (CustomExceptions.PredicateUnSatisfyException e) {
             e.printStackTrace();
-            System.out.println("Predicate is not satisfy, this command cannot be correctly constructed");
+            System.out.println(
+                    "Predicate is not satisfy, this command cannot be correctly constructed");
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Exception is thrown during the construction of the current command");
+            System.out.println(
+                    "Exception is thrown during the construction of the current command");
         }
     }
 
@@ -151,7 +153,6 @@ public class CommandTests {
         System.out.println(cmd1);
         System.out.println(cmd2);
         System.out.println(cmd3);
-
     }
 
     @Test
@@ -173,13 +174,12 @@ public class CommandTests {
 
         CassandraCommands.USE cmd4 = new CassandraCommands.USE(s);
         cmd4.updateState(s);
-        
+
         System.out.println(cmd0);
         System.out.println(cmd1);
         System.out.println(cmd2);
         System.out.println(cmd3);
         System.out.println(cmd4);
-
     }
 
     @Test
@@ -204,11 +204,8 @@ public class CommandTests {
         l.add(cmd1);
         l.add(cmd2);
 
-
-
         try {
-            FileOutputStream fileOut =
-                    new FileOutputStream("/tmp/LIST.ser");
+            FileOutputStream fileOut = new FileOutputStream("/tmp/LIST.ser");
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
             out.writeObject(l);
             out.close();
@@ -240,15 +237,16 @@ public class CommandTests {
     }
 
     @Test
-    public void testCommandWithInitialValue() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public void testCommandWithInitialValue()
+            throws InvocationTargetException, NoSuchMethodException, InstantiationException,
+                    IllegalAccessException {
         CommandSequence commandSequence = cass13939CommandSequence();
         CommandSequence validationCommandSequence = commandSequence.generateRelatedReadSequence();
 
         Path filePath = Paths.get("/tmp/seed_cassandra_13939.ser");
 
         try {
-            FileOutputStream fileOut =
-                    new FileOutputStream(filePath.toFile());
+            FileOutputStream fileOut = new FileOutputStream(filePath.toFile());
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
             out.writeObject(new Pair<>(commandSequence, validationCommandSequence));
             out.close();
@@ -280,26 +278,25 @@ public class CommandTests {
 
         List<String> commandStringList = commandSequence.getCommandStringList();
         for (int i = 0; i < commandStringList.size(); i++) {
-            if (useIdx)
-                System.out.println("[" + i + "]" + "\t" + commandStringList.get(i));
-            else
-                System.out.println(commandStringList.get(i));
+            if (useIdx) System.out.println("[" + i + "]" + "\t" + commandStringList.get(i));
+            else System.out.println(commandStringList.get(i));
         }
         System.out.println("command size = " + commandStringList.size());
-
     }
 
     @Test
-    public void testOneByteDiffCommandWithInitialValue() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        // This will create a command which only have one Byte difference, remove one char from the string
+    public void testOneByteDiffCommandWithInitialValue()
+            throws InvocationTargetException, NoSuchMethodException, InstantiationException,
+                    IllegalAccessException {
+        // This will create a command which only have one Byte difference, remove one char from the
+        // string
         CommandSequence commandSequence = cass13939CommandSequence_One_Byte_Diff();
         CommandSequence validationCommandSequence = commandSequence.generateRelatedReadSequence();
 
         Path filePath = Paths.get("/tmp/seed_cassandra_13939_One_Byte_Diff.ser");
 
         try {
-            FileOutputStream fileOut =
-                    new FileOutputStream(filePath.toFile());
+            FileOutputStream fileOut = new FileOutputStream(filePath.toFile());
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
             out.writeObject(new Pair<>(commandSequence, validationCommandSequence));
             out.close();
@@ -332,26 +329,25 @@ public class CommandTests {
 
         List<String> commandStringList = commandSequence.getCommandStringList();
         for (int i = 0; i < commandStringList.size(); i++) {
-            if (useIdx)
-                System.out.println("[" + i + "]" + "\t" + commandStringList.get(i));
-            else
-                System.out.println(commandStringList.get(i));
+            if (useIdx) System.out.println("[" + i + "]" + "\t" + commandStringList.get(i));
+            else System.out.println(commandStringList.get(i));
         }
         System.out.println("command size = " + commandStringList.size());
-
     }
 
     @Test
-    public void testTwoByteDiffCommandWithInitialValue1() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        // This will create a command which only have one Byte difference, remove one char from the string
+    public void testTwoByteDiffCommandWithInitialValue1()
+            throws InvocationTargetException, NoSuchMethodException, InstantiationException,
+                    IllegalAccessException {
+        // This will create a command which only have one Byte difference, remove one char from the
+        // string
         CommandSequence commandSequence = cass13939CommandSequence_Two_Byte_Diff1();
         CommandSequence validationCommandSequence = commandSequence.generateRelatedReadSequence();
 
         Path filePath = Paths.get("/tmp/seed_cassandra_13939_Two_Byte_Diff1.ser");
 
         try {
-            FileOutputStream fileOut =
-                    new FileOutputStream(filePath.toFile());
+            FileOutputStream fileOut = new FileOutputStream(filePath.toFile());
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
             out.writeObject(new Pair<>(commandSequence, validationCommandSequence));
             out.close();
@@ -384,26 +380,25 @@ public class CommandTests {
 
         List<String> commandStringList = commandSequence.getCommandStringList();
         for (int i = 0; i < commandStringList.size(); i++) {
-            if (useIdx)
-                System.out.println("[" + i + "]" + "\t" + commandStringList.get(i));
-            else
-                System.out.println(commandStringList.get(i));
+            if (useIdx) System.out.println("[" + i + "]" + "\t" + commandStringList.get(i));
+            else System.out.println(commandStringList.get(i));
         }
         System.out.println("command size = " + commandStringList.size());
-
     }
 
     @Test
-    public void testTwoByteDiffCommandWithInitialValue2() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        // This will create a command which only have one Byte difference, remove one char from the string
+    public void testTwoByteDiffCommandWithInitialValue2()
+            throws InvocationTargetException, NoSuchMethodException, InstantiationException,
+                    IllegalAccessException {
+        // This will create a command which only have one Byte difference, remove one char from the
+        // string
         CommandSequence commandSequence = cass13939CommandSequence_Two_Byte_Diff2();
         CommandSequence validationCommandSequence = commandSequence.generateRelatedReadSequence();
 
         Path filePath = Paths.get("/tmp/seed_cassandra_13939_Two_Byte_Diff2.ser");
 
         try {
-            FileOutputStream fileOut =
-                    new FileOutputStream(filePath.toFile());
+            FileOutputStream fileOut = new FileOutputStream(filePath.toFile());
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
             out.writeObject(new Pair<>(commandSequence, validationCommandSequence));
             out.close();
@@ -436,17 +431,16 @@ public class CommandTests {
 
         List<String> commandStringList = commandSequence.getCommandStringList();
         for (int i = 0; i < commandStringList.size(); i++) {
-            if (useIdx)
-                System.out.println("[" + i + "]" + "\t" + commandStringList.get(i));
-            else
-                System.out.println(commandStringList.get(i));
+            if (useIdx) System.out.println("[" + i + "]" + "\t" + commandStringList.get(i));
+            else System.out.println(commandStringList.get(i));
         }
         System.out.println("command size = " + commandStringList.size());
-
     }
 
     @Test
-    public void testFourByteDiffCommandWithInitialValue() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public void testFourByteDiffCommandWithInitialValue()
+            throws InvocationTargetException, NoSuchMethodException, InstantiationException,
+                    IllegalAccessException {
         // Delete four bytes in two different commands
         CommandSequence commandSequence = cass13939CommandSequence_Four_Byte_Diff();
         CommandSequence validationCommandSequence = commandSequence.generateRelatedReadSequence();
@@ -454,8 +448,7 @@ public class CommandTests {
         Path filePath = Paths.get("/tmp/seed_cassandra_13939_Four_Byte_Diff.ser");
 
         try {
-            FileOutputStream fileOut =
-                    new FileOutputStream(filePath.toFile());
+            FileOutputStream fileOut = new FileOutputStream(filePath.toFile());
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
             out.writeObject(new Pair<>(commandSequence, validationCommandSequence));
             out.close();
@@ -488,26 +481,25 @@ public class CommandTests {
 
         List<String> commandStringList = commandSequence.getCommandStringList();
         for (int i = 0; i < commandStringList.size(); i++) {
-            if (useIdx)
-                System.out.println("[" + i + "]" + "\t" + commandStringList.get(i));
-            else
-                System.out.println(commandStringList.get(i));
+            if (useIdx) System.out.println("[" + i + "]" + "\t" + commandStringList.get(i));
+            else System.out.println(commandStringList.get(i));
         }
         System.out.println("command size = " + commandStringList.size());
-
     }
 
     @Test
-    public void testOneCmdDiffCommandWithInitialValue1() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        // This will create a command which only have one Byte difference, remove one char from the string
+    public void testOneCmdDiffCommandWithInitialValue1()
+            throws InvocationTargetException, NoSuchMethodException, InstantiationException,
+                    IllegalAccessException {
+        // This will create a command which only have one Byte difference, remove one char from the
+        // string
         CommandSequence commandSequence = cass13939CommandSequence_One_Command_Diff1();
         CommandSequence validationCommandSequence = commandSequence.generateRelatedReadSequence();
 
         Path filePath = Paths.get("/tmp/seed_cassandra_13939_One_Cmd_Diff1.ser");
 
         try {
-            FileOutputStream fileOut =
-                    new FileOutputStream(filePath.toFile());
+            FileOutputStream fileOut = new FileOutputStream(filePath.toFile());
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
             out.writeObject(new Pair<>(commandSequence, validationCommandSequence));
             out.close();
@@ -540,26 +532,25 @@ public class CommandTests {
 
         List<String> commandStringList = commandSequence.getCommandStringList();
         for (int i = 0; i < commandStringList.size(); i++) {
-            if (useIdx)
-                System.out.println("[" + i + "]" + "\t" + commandStringList.get(i));
-            else
-                System.out.println(commandStringList.get(i));
+            if (useIdx) System.out.println("[" + i + "]" + "\t" + commandStringList.get(i));
+            else System.out.println(commandStringList.get(i));
         }
         System.out.println("command size = " + commandStringList.size());
-
     }
 
     @Test
-    public void testOneCmdDiffCommandWithInitialValue2() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        // This will create a command which only have one Byte difference, remove one char from the string
+    public void testOneCmdDiffCommandWithInitialValue2()
+            throws InvocationTargetException, NoSuchMethodException, InstantiationException,
+                    IllegalAccessException {
+        // This will create a command which only have one Byte difference, remove one char from the
+        // string
         CommandSequence commandSequence = cass13939CommandSequence_One_Command_Diff2();
         CommandSequence validationCommandSequence = commandSequence.generateRelatedReadSequence();
 
         Path filePath = Paths.get("/tmp/seed_cassandra_13939_One_Cmd_Diff2.ser");
 
         try {
-            FileOutputStream fileOut =
-                    new FileOutputStream(filePath.toFile());
+            FileOutputStream fileOut = new FileOutputStream(filePath.toFile());
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
             out.writeObject(new Pair<>(commandSequence, validationCommandSequence));
             out.close();
@@ -592,26 +583,25 @@ public class CommandTests {
 
         List<String> commandStringList = commandSequence.getCommandStringList();
         for (int i = 0; i < commandStringList.size(); i++) {
-            if (useIdx)
-                System.out.println("[" + i + "]" + "\t" + commandStringList.get(i));
-            else
-                System.out.println(commandStringList.get(i));
+            if (useIdx) System.out.println("[" + i + "]" + "\t" + commandStringList.get(i));
+            else System.out.println(commandStringList.get(i));
         }
         System.out.println("command size = " + commandStringList.size());
-
     }
 
     @Test
-    public void testTwoCmdDiffCommandWithInitialValue() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        // This will create a command which only have one Byte difference, remove one char from the string
+    public void testTwoCmdDiffCommandWithInitialValue()
+            throws InvocationTargetException, NoSuchMethodException, InstantiationException,
+                    IllegalAccessException {
+        // This will create a command which only have one Byte difference, remove one char from the
+        // string
         CommandSequence commandSequence = cass13939CommandSequence_Two_Command_Diff();
         CommandSequence validationCommandSequence = commandSequence.generateRelatedReadSequence();
 
         Path filePath = Paths.get("/tmp/seed_cassandra_13939_Two_Cmd_Diff.ser");
 
         try {
-            FileOutputStream fileOut =
-                    new FileOutputStream(filePath.toFile());
+            FileOutputStream fileOut = new FileOutputStream(filePath.toFile());
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
             out.writeObject(new Pair<>(commandSequence, validationCommandSequence));
             out.close();
@@ -644,25 +634,23 @@ public class CommandTests {
 
         List<String> commandStringList = commandSequence.getCommandStringList();
         for (int i = 0; i < commandStringList.size(); i++) {
-            if (useIdx)
-                System.out.println("[" + i + "]" + "\t" + commandStringList.get(i));
-            else
-                System.out.println(commandStringList.get(i));
+            if (useIdx) System.out.println("[" + i + "]" + "\t" + commandStringList.get(i));
+            else System.out.println(commandStringList.get(i));
         }
         System.out.println("command size = " + commandStringList.size());
-
     }
 
     @Test
-    public void testTwoCmdDiffCommandWithInitialValue1() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public void testTwoCmdDiffCommandWithInitialValue1()
+            throws InvocationTargetException, NoSuchMethodException, InstantiationException,
+                    IllegalAccessException {
         CommandSequence commandSequence = cass13939CommandSequence_Two_Command_Diff1();
         CommandSequence validationCommandSequence = commandSequence.generateRelatedReadSequence();
 
         Path filePath = Paths.get("/tmp/seed_cassandra_13939_Two_Cmd_Diff1.ser");
 
         try {
-            FileOutputStream fileOut =
-                    new FileOutputStream(filePath.toFile());
+            FileOutputStream fileOut = new FileOutputStream(filePath.toFile());
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
             out.writeObject(new Pair<>(commandSequence, validationCommandSequence));
             out.close();
@@ -695,13 +683,10 @@ public class CommandTests {
 
         List<String> commandStringList = commandSequence.getCommandStringList();
         for (int i = 0; i < commandStringList.size(); i++) {
-            if (useIdx)
-                System.out.println("[" + i + "]" + "\t" + commandStringList.get(i));
-            else
-                System.out.println(commandStringList.get(i));
+            if (useIdx) System.out.println("[" + i + "]" + "\t" + commandStringList.get(i));
+            else System.out.println(commandStringList.get(i));
         }
         System.out.println("command size = " + commandStringList.size());
-
     }
 
     @Test
@@ -732,7 +717,8 @@ public class CommandTests {
         CassandraState s = new CassandraState();
 
         // Command 0
-        CassandraCommands.CREAT_KEYSPACE cmd0 = new CassandraCommands.CREAT_KEYSPACE(s, "myKS", 2, false);
+        CassandraCommands.CREAT_KEYSPACE cmd0 =
+                new CassandraCommands.CREAT_KEYSPACE(s, "myKS", 2, false);
         cmd0.updateState(s);
         // Command 1
         List<Pair<String, ParameterType.ConcreteType>> columns = new ArrayList<>();
@@ -745,7 +731,9 @@ public class CommandTests {
         primaryColumns.add("species TEXT");
         primaryColumns.add("common_name INT");
 
-        CassandraCommands.CREATE_TABLE cmd1 = new CassandraCommands.CREATE_TABLE(s, "myKS", "monkey_species", columns, primaryColumns, null);
+        CassandraCommands.CREATE_TABLE cmd1 =
+                new CassandraCommands.CREATE_TABLE(
+                        s, "myKS", "monkey_species", columns, primaryColumns, null);
         cmd1.updateState(s);
         // Command 2
         // 'Monkey', 0, 30, 'AAAAAAAAAAAAAAAAAAAAAAAAAAA'
@@ -760,36 +748,32 @@ public class CommandTests {
         Values_INSERT.add(0);
         Values_INSERT.add(30);
         Values_INSERT.add("AAAAAAAAAAAAAAAAAAAAAAAAAAA");
-        CassandraCommands.INSERT cmd2 = new CassandraCommands.INSERT(s, "myKS",
-                "monkey_species", columns_INSERT, Values_INSERT);
+        CassandraCommands.INSERT cmd2 =
+                new CassandraCommands.INSERT(
+                        s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
         cmd2.updateState(s);
 
-
-
-
-        //------
+        // ------
         List<String> columns_SELECT = new ArrayList<>();
-//        columns_SELECT.add("species");
+        //        columns_SELECT.add("species");
 
         Parameter columnName = cmd2.params.get(2);
         String[] columnNameList = columnName.toString().split(",");
         columns_SELECT.add(columnNameList[0].split(" ")[0]);
-//        columns_SELECT.add(columnNameList[1]);
+        //        columns_SELECT.add(columnNameList[1]);
 
         Parameter insertValue = cmd2.params.get(3);
         System.out.println(columnName.toString());
         System.out.println(insertValue.toString());
 
-        //------
-
+        // ------
 
         List<String> columns_where_SELECT = new ArrayList<>();
         columns_where_SELECT.add(columnNameList[0]);
         columns_where_SELECT.add(columnNameList[1]);
 
-
-//        columns_where_SELECT.add("species TEXT");
-//        columns_where_SELECT.add("common_name INT");
+        //        columns_where_SELECT.add("species TEXT");
+        //        columns_where_SELECT.add("common_name INT");
 
         List<Object> columns_values_SELECT = new ArrayList<>();
 
@@ -797,18 +781,22 @@ public class CommandTests {
         columns_values_SELECT.add(objects.get(0).getValue());
         columns_values_SELECT.add(objects.get(1).getValue());
 
-
         System.out.println("ddd\n");
         for (Parameter p : objects) {
             System.out.println(p.toString());
         }
 
-        CassandraCommands.SELECT cmd3 = new CassandraCommands.SELECT(s, "myKS",
-                "monkey_species", columns_SELECT, columns_where_SELECT, columns_values_SELECT);
+        CassandraCommands.SELECT cmd3 =
+                new CassandraCommands.SELECT(
+                        s,
+                        "myKS",
+                        "monkey_species",
+                        columns_SELECT,
+                        columns_where_SELECT,
+                        columns_values_SELECT);
         cmd3.updateState(s);
 
         System.out.println("SELECT command: " + cmd3);
-
     }
 
     @Test
@@ -835,7 +823,6 @@ public class CommandTests {
                 System.out.println(readCmd.toString());
             }
         }
-
     }
 
     @Test
@@ -857,13 +844,16 @@ public class CommandTests {
     }
 
     @Test
-    public void testReadCommandSequence() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public void testReadCommandSequence()
+            throws InvocationTargetException, NoSuchMethodException, InstantiationException,
+                    IllegalAccessException {
         List<Command> l = new LinkedList<>();
 
         CassandraState s = new CassandraState();
 
         // Command 0
-        CassandraCommands.CREAT_KEYSPACE cmd0 = new CassandraCommands.CREAT_KEYSPACE(s, "myKS", 2, false);
+        CassandraCommands.CREAT_KEYSPACE cmd0 =
+                new CassandraCommands.CREAT_KEYSPACE(s, "myKS", 2, false);
         cmd0.updateState(s);
         l.add(cmd0);
 
@@ -878,7 +868,9 @@ public class CommandTests {
         primaryColumns.add("species TEXT");
         primaryColumns.add("common_name INT");
 
-        CassandraCommands.CREATE_TABLE cmd1 = new CassandraCommands.CREATE_TABLE(s, "myKS", "monkey_species", columns, primaryColumns, null);
+        CassandraCommands.CREATE_TABLE cmd1 =
+                new CassandraCommands.CREATE_TABLE(
+                        s, "myKS", "monkey_species", columns, primaryColumns, null);
         cmd1.updateState(s);
         l.add(cmd1);
 
@@ -895,7 +887,9 @@ public class CommandTests {
         Values_INSERT.add(0);
         Values_INSERT.add(30);
         Values_INSERT.add("AAAAAAAAAAAAAAAAAAAAAAAAAAA");
-        CassandraCommands.INSERT cmd2 = new CassandraCommands.INSERT(s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
+        CassandraCommands.INSERT cmd2 =
+                new CassandraCommands.INSERT(
+                        s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
         cmd2.updateState(s);
         l.add(cmd2);
 
@@ -903,30 +897,39 @@ public class CommandTests {
         for (int i = 1; i < 9; i++) {
             Values_INSERT.remove(1);
             Values_INSERT.add(1, i);
-            CassandraCommands.INSERT tmpCmd = new CassandraCommands.INSERT(s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
+            CassandraCommands.INSERT tmpCmd =
+                    new CassandraCommands.INSERT(
+                            s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
             tmpCmd.updateState(s);
             l.add(tmpCmd);
         }
 
         // Command 11
-        CassandraCommands.ALTER_TABLE_DROP cmd11 = new CassandraCommands.ALTER_TABLE_DROP(s, "myKS", "monkey_species", "population INT");
+        CassandraCommands.ALTER_TABLE_DROP cmd11 =
+                new CassandraCommands.ALTER_TABLE_DROP(
+                        s, "myKS", "monkey_species", "population INT");
         cmd11.updateState(s);
         l.add(cmd11);
-
 
         for (Command cmd : l) {
             System.out.println(cmd);
         }
 
-
-        CommandSequence commandSequence = new CommandSequence(l, CassandraCommands.commandClassList, CassandraCommands.createCommandClassList, CassandraState.class, s);
-//        CommandSequence validationCommandSequence = new CommandSequence(l, CassandraCommands.readCommandClassList, CassandraCommands.createCommandClassList, CassandraState.class, commandSequence.state);
+        CommandSequence commandSequence =
+                new CommandSequence(
+                        l,
+                        CassandraCommands.commandClassList,
+                        CassandraCommands.createCommandClassList,
+                        CassandraState.class,
+                        s);
+        //        CommandSequence validationCommandSequence = new CommandSequence(l,
+        // CassandraCommands.readCommandClassList, CassandraCommands.createCommandClassList,
+        // CassandraState.class, commandSequence.state);
         CommandSequence readCommandSequence = commandSequence.generateRelatedReadSequence();
 
         for (String cmdStr : readCommandSequence.getCommandStringList()) {
             System.out.println(cmdStr);
         }
-
     }
 
     public static CommandSequence cass13939CommandSequence() {
@@ -935,7 +938,8 @@ public class CommandTests {
         CassandraState s = new CassandraState();
 
         // Command 0
-        CassandraCommands.CREAT_KEYSPACE cmd0 = new CassandraCommands.CREAT_KEYSPACE(s, "myKS", 2, false);
+        CassandraCommands.CREAT_KEYSPACE cmd0 =
+                new CassandraCommands.CREAT_KEYSPACE(s, "myKS", 2, false);
         cmd0.updateState(s);
         l.add(cmd0);
 
@@ -950,7 +954,9 @@ public class CommandTests {
         primaryColumns.add("species TEXT");
         primaryColumns.add("common_name INT");
 
-        CassandraCommands.CREATE_TABLE cmd1 = new CassandraCommands.CREATE_TABLE(s, "myKS", "monkey_species", columns, primaryColumns, null);
+        CassandraCommands.CREATE_TABLE cmd1 =
+                new CassandraCommands.CREATE_TABLE(
+                        s, "myKS", "monkey_species", columns, primaryColumns, null);
         cmd1.updateState(s);
         l.add(cmd1);
 
@@ -967,7 +973,9 @@ public class CommandTests {
         Values_INSERT.add(0);
         Values_INSERT.add(30);
         Values_INSERT.add("AAAAAAAAAAAAAAAAAAAAAAAAAAA");
-        CassandraCommands.INSERT cmd2 = new CassandraCommands.INSERT(s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
+        CassandraCommands.INSERT cmd2 =
+                new CassandraCommands.INSERT(
+                        s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
         cmd2.updateState(s);
         l.add(cmd2);
 
@@ -975,25 +983,31 @@ public class CommandTests {
         for (int i = 1; i < 9; i++) {
             Values_INSERT.remove(1);
             Values_INSERT.add(1, i);
-            CassandraCommands.INSERT tmpCmd = new CassandraCommands.INSERT(s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
+            CassandraCommands.INSERT tmpCmd =
+                    new CassandraCommands.INSERT(
+                            s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
             tmpCmd.updateState(s);
             l.add(tmpCmd);
         }
 
         // Command 11
-        CassandraCommands.ALTER_TABLE_DROP cmd11 = new CassandraCommands.ALTER_TABLE_DROP(s, "myKS", "monkey_species", "population INT");
+        CassandraCommands.ALTER_TABLE_DROP cmd11 =
+                new CassandraCommands.ALTER_TABLE_DROP(
+                        s, "myKS", "monkey_species", "population INT");
         cmd11.updateState(s);
         l.add(cmd11);
-
 
         for (Command cmd : l) {
             System.out.println(cmd);
         }
 
         CommandSequence commandSequence =
-                new CommandSequence(l,
+                new CommandSequence(
+                        l,
                         CassandraCommands.commandClassList,
-                        CassandraCommands.createCommandClassList, CassandraState.class, s);
+                        CassandraCommands.createCommandClassList,
+                        CassandraState.class,
+                        s);
         return commandSequence;
     }
 
@@ -1021,8 +1035,8 @@ public class CommandTests {
         primaryColumns.add("common_name INT");
 
         CassandraCommands.CREATE_TABLE cmd1 =
-                new CassandraCommands.CREATE_TABLE(s, "myKS", "monkey_species",
-                        columns, primaryColumns, null);
+                new CassandraCommands.CREATE_TABLE(
+                        s, "myKS", "monkey_species", columns, primaryColumns, null);
         cmd1.updateState(s);
         l.add(cmd1);
 
@@ -1040,8 +1054,8 @@ public class CommandTests {
         Values_INSERT.add(30);
         Values_INSERT.add("AAAAAAAAAAAAAAAAAAAAAAAAAA"); // Less one 'A', one bit difference
         CassandraCommands.INSERT cmd2 =
-                new CassandraCommands.INSERT(s, "myKS", "monkey_species",
-                        columns_INSERT, Values_INSERT);
+                new CassandraCommands.INSERT(
+                        s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
         cmd2.updateState(s);
         l.add(cmd2);
 
@@ -1051,27 +1065,29 @@ public class CommandTests {
             Values_INSERT.remove(1);
             Values_INSERT.add(1, i);
             CassandraCommands.INSERT tmpCmd =
-                    new CassandraCommands.INSERT(s, "myKS", "monkey_species",
-                            columns_INSERT, Values_INSERT);
+                    new CassandraCommands.INSERT(
+                            s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
             tmpCmd.updateState(s);
             l.add(tmpCmd);
         }
 
         // Command 11
         CassandraCommands.ALTER_TABLE_DROP cmd11 =
-                new CassandraCommands.ALTER_TABLE_DROP(s, "myKS",
-                        "monkey_species", "population INT");
+                new CassandraCommands.ALTER_TABLE_DROP(
+                        s, "myKS", "monkey_species", "population INT");
         cmd11.updateState(s);
         l.add(cmd11);
-
 
         for (Command cmd : l) {
             System.out.println(cmd);
         }
 
         CommandSequence commandSequence =
-                new CommandSequence(l, CassandraCommands.commandClassList,
-                        CassandraCommands.createCommandClassList, CassandraState.class,
+                new CommandSequence(
+                        l,
+                        CassandraCommands.commandClassList,
+                        CassandraCommands.createCommandClassList,
+                        CassandraState.class,
                         s);
         return commandSequence;
     }
@@ -1100,8 +1116,8 @@ public class CommandTests {
         primaryColumns.add("common_name INT");
 
         CassandraCommands.CREATE_TABLE cmd1 =
-                new CassandraCommands.CREATE_TABLE(s, "myKS", "monkey_species",
-                        columns, primaryColumns, null);
+                new CassandraCommands.CREATE_TABLE(
+                        s, "myKS", "monkey_species", columns, primaryColumns, null);
         cmd1.updateState(s);
         l.add(cmd1);
 
@@ -1119,8 +1135,8 @@ public class CommandTests {
         Values_INSERT.add(30);
         Values_INSERT.add("AAAAAAAAAAAAAAAAAAAAAAAAA"); // Less two 'A', two Bytes difference
         CassandraCommands.INSERT cmd2 =
-                new CassandraCommands.INSERT(s, "myKS", "monkey_species",
-                        columns_INSERT, Values_INSERT);
+                new CassandraCommands.INSERT(
+                        s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
         cmd2.updateState(s);
         l.add(cmd2);
 
@@ -1130,27 +1146,29 @@ public class CommandTests {
             Values_INSERT.remove(1);
             Values_INSERT.add(1, i);
             CassandraCommands.INSERT tmpCmd =
-                    new CassandraCommands.INSERT(s, "myKS", "monkey_species",
-                            columns_INSERT, Values_INSERT);
+                    new CassandraCommands.INSERT(
+                            s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
             tmpCmd.updateState(s);
             l.add(tmpCmd);
         }
 
         // Command 11
         CassandraCommands.ALTER_TABLE_DROP cmd11 =
-                new CassandraCommands.ALTER_TABLE_DROP(s, "myKS",
-                        "monkey_species", "population INT");
+                new CassandraCommands.ALTER_TABLE_DROP(
+                        s, "myKS", "monkey_species", "population INT");
         cmd11.updateState(s);
         l.add(cmd11);
-
 
         for (Command cmd : l) {
             System.out.println(cmd);
         }
 
         CommandSequence commandSequence =
-                new CommandSequence(l, CassandraCommands.commandClassList,
-                        CassandraCommands.createCommandClassList, CassandraState.class,
+                new CommandSequence(
+                        l,
+                        CassandraCommands.commandClassList,
+                        CassandraCommands.createCommandClassList,
+                        CassandraState.class,
                         s);
         return commandSequence;
     }
@@ -1180,8 +1198,8 @@ public class CommandTests {
         primaryColumns.add("common_name INT");
 
         CassandraCommands.CREATE_TABLE cmd1 =
-                new CassandraCommands.CREATE_TABLE(s, "myKS", "monkey_species",
-                        columns, primaryColumns, null);
+                new CassandraCommands.CREATE_TABLE(
+                        s, "myKS", "monkey_species", columns, primaryColumns, null);
         cmd1.updateState(s);
         l.add(cmd1);
 
@@ -1199,8 +1217,8 @@ public class CommandTests {
         Values_INSERT.add(30);
         Values_INSERT.add("AAAAAAAAAAAAAAAAAAAAAAAAAAABB"); // Add two 'A', two Bytes difference
         CassandraCommands.INSERT cmd2 =
-                new CassandraCommands.INSERT(s, "myKS", "monkey_species",
-                        columns_INSERT, Values_INSERT);
+                new CassandraCommands.INSERT(
+                        s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
         cmd2.updateState(s);
         l.add(cmd2);
 
@@ -1210,27 +1228,29 @@ public class CommandTests {
             Values_INSERT.remove(1);
             Values_INSERT.add(1, i);
             CassandraCommands.INSERT tmpCmd =
-                    new CassandraCommands.INSERT(s, "myKS", "monkey_species",
-                            columns_INSERT, Values_INSERT);
+                    new CassandraCommands.INSERT(
+                            s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
             tmpCmd.updateState(s);
             l.add(tmpCmd);
         }
 
         // Command 11
         CassandraCommands.ALTER_TABLE_DROP cmd11 =
-                new CassandraCommands.ALTER_TABLE_DROP(s, "myKS",
-                        "monkey_species", "population INT");
+                new CassandraCommands.ALTER_TABLE_DROP(
+                        s, "myKS", "monkey_species", "population INT");
         cmd11.updateState(s);
         l.add(cmd11);
-
 
         for (Command cmd : l) {
             System.out.println(cmd);
         }
 
         CommandSequence commandSequence =
-                new CommandSequence(l, CassandraCommands.commandClassList,
-                        CassandraCommands.createCommandClassList, CassandraState.class,
+                new CommandSequence(
+                        l,
+                        CassandraCommands.commandClassList,
+                        CassandraCommands.createCommandClassList,
+                        CassandraState.class,
                         s);
         return commandSequence;
     }
@@ -1259,8 +1279,8 @@ public class CommandTests {
         primaryColumns.add("common_name INT");
 
         CassandraCommands.CREATE_TABLE cmd1 =
-                new CassandraCommands.CREATE_TABLE(s, "myKS", "monkey_species",
-                        columns, primaryColumns, null);
+                new CassandraCommands.CREATE_TABLE(
+                        s, "myKS", "monkey_species", columns, primaryColumns, null);
         cmd1.updateState(s);
         l.add(cmd1);
 
@@ -1281,46 +1301,47 @@ public class CommandTests {
         Values_INSERT.add(30);
         Values_INSERT.add("AAAAAAAAAAAAAAAAAAAAAAAAA"); // Less four 'A', two Bytes difference
         CassandraCommands.INSERT cmd2 =
-                new CassandraCommands.INSERT(s, "myKS", "monkey_species",
-                        columns_INSERT, Values_INSERT);
+                new CassandraCommands.INSERT(
+                        s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
         cmd2.updateState(s);
         l.add(cmd2);
 
         // Delete two bytes in the second INSERT
         Values_INSERT.set(1, 1); // D
         CassandraCommands.INSERT cmd3 =
-                new CassandraCommands.INSERT(s, "myKS", "monkey_species",
-                        columns_INSERT, Values_INSERT);
+                new CassandraCommands.INSERT(
+                        s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
         cmd3.updateState(s);
         l.add(cmd3);
-
 
         Values_INSERT.set(3, "AAAAAAAAAAAAAAAAAAAAAAAAAAA"); // Add the A back
         // Command 3-10
         for (int i = 2; i < 9; i++) {
             Values_INSERT.set(1, i);
             CassandraCommands.INSERT tmpCmd =
-                    new CassandraCommands.INSERT(s, "myKS", "monkey_species",
-                            columns_INSERT, Values_INSERT);
+                    new CassandraCommands.INSERT(
+                            s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
             tmpCmd.updateState(s);
             l.add(tmpCmd);
         }
 
         // Command 11
         CassandraCommands.ALTER_TABLE_DROP cmd11 =
-                new CassandraCommands.ALTER_TABLE_DROP(s, "myKS",
-                        "monkey_species", "population INT");
+                new CassandraCommands.ALTER_TABLE_DROP(
+                        s, "myKS", "monkey_species", "population INT");
         cmd11.updateState(s);
         l.add(cmd11);
-
 
         for (Command cmd : l) {
             System.out.println(cmd);
         }
 
         CommandSequence commandSequence =
-                new CommandSequence(l, CassandraCommands.commandClassList,
-                        CassandraCommands.createCommandClassList, CassandraState.class,
+                new CommandSequence(
+                        l,
+                        CassandraCommands.commandClassList,
+                        CassandraCommands.createCommandClassList,
+                        CassandraState.class,
                         s);
         return commandSequence;
     }
@@ -1350,8 +1371,8 @@ public class CommandTests {
         primaryColumns.add("common_name INT");
 
         CassandraCommands.CREATE_TABLE cmd1 =
-                new CassandraCommands.CREATE_TABLE(s, "myKS", "monkey_species",
-                        columns, primaryColumns, null);
+                new CassandraCommands.CREATE_TABLE(
+                        s, "myKS", "monkey_species", columns, primaryColumns, null);
         cmd1.updateState(s);
         l.add(cmd1);
 
@@ -1369,8 +1390,8 @@ public class CommandTests {
         Values_INSERT.add(30);
         Values_INSERT.add("AAAAAAAAAAAAAAAAAAAAAAAAAAA");
         CassandraCommands.INSERT cmd2 =
-                new CassandraCommands.INSERT(s, "myKS", "monkey_species",
-                        columns_INSERT, Values_INSERT);
+                new CassandraCommands.INSERT(
+                        s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
         cmd2.updateState(s);
         l.add(cmd2);
 
@@ -1380,27 +1401,29 @@ public class CommandTests {
             Values_INSERT.remove(1);
             Values_INSERT.add(1, i);
             CassandraCommands.INSERT tmpCmd =
-                    new CassandraCommands.INSERT(s, "myKS", "monkey_species",
-                            columns_INSERT, Values_INSERT);
+                    new CassandraCommands.INSERT(
+                            s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
             tmpCmd.updateState(s);
             l.add(tmpCmd);
         }
 
         // Command 11
         CassandraCommands.ALTER_TABLE_DROP cmd11 =
-                new CassandraCommands.ALTER_TABLE_DROP(s, "myKS",
-                        "monkey_species", "population INT");
+                new CassandraCommands.ALTER_TABLE_DROP(
+                        s, "myKS", "monkey_species", "population INT");
         cmd11.updateState(s);
         l.add(cmd11);
-
 
         for (Command cmd : l) {
             System.out.println(cmd);
         }
 
         CommandSequence commandSequence =
-                new CommandSequence(l, CassandraCommands.commandClassList,
-                        CassandraCommands.createCommandClassList, CassandraState.class,
+                new CommandSequence(
+                        l,
+                        CassandraCommands.commandClassList,
+                        CassandraCommands.createCommandClassList,
+                        CassandraState.class,
                         s);
         return commandSequence;
     }
@@ -1430,8 +1453,8 @@ public class CommandTests {
         primaryColumns.add("common_name INT");
 
         CassandraCommands.CREATE_TABLE cmd1 =
-                new CassandraCommands.CREATE_TABLE(s, "myKS", "monkey_species",
-                        columns, primaryColumns, null);
+                new CassandraCommands.CREATE_TABLE(
+                        s, "myKS", "monkey_species", columns, primaryColumns, null);
         cmd1.updateState(s);
         l.add(cmd1);
 
@@ -1449,8 +1472,8 @@ public class CommandTests {
         Values_INSERT.add(30);
         Values_INSERT.add("AAAAAAAAAAAAAAAAAAAAAAAAAAA");
         CassandraCommands.INSERT cmd2 =
-                new CassandraCommands.INSERT(s, "myKS", "monkey_species",
-                        columns_INSERT, Values_INSERT);
+                new CassandraCommands.INSERT(
+                        s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
         cmd2.updateState(s);
         l.add(cmd2);
 
@@ -1460,28 +1483,31 @@ public class CommandTests {
             Values_INSERT.remove(1);
             Values_INSERT.add(1, i);
             CassandraCommands.INSERT tmpCmd =
-                    new CassandraCommands.INSERT(s, "myKS", "monkey_species",
-                            columns_INSERT, Values_INSERT);
+                    new CassandraCommands.INSERT(
+                            s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
             tmpCmd.updateState(s);
             l.add(tmpCmd);
         }
 
         // There's no drop in the end
 
-//        // Command 11
-//        CassandraCommands.ALTER_TABLE_DROP cmd11 =
-//                new CassandraCommands.ALTER_TABLE_DROP(s, "myKS",
-//                        "monkey_species", "population INT");
-//        cmd11.updateState(s);
-//        l.add(cmd11);
+        //        // Command 11
+        //        CassandraCommands.ALTER_TABLE_DROP cmd11 =
+        //                new CassandraCommands.ALTER_TABLE_DROP(s, "myKS",
+        //                        "monkey_species", "population INT");
+        //        cmd11.updateState(s);
+        //        l.add(cmd11);
 
         for (Command cmd : l) {
             System.out.println(cmd);
         }
 
         CommandSequence commandSequence =
-                new CommandSequence(l, CassandraCommands.commandClassList,
-                        CassandraCommands.createCommandClassList, CassandraState.class,
+                new CommandSequence(
+                        l,
+                        CassandraCommands.commandClassList,
+                        CassandraCommands.createCommandClassList,
+                        CassandraState.class,
                         s);
         return commandSequence;
     }
@@ -1511,8 +1537,8 @@ public class CommandTests {
         primaryColumns.add("common_name INT");
 
         CassandraCommands.CREATE_TABLE cmd1 =
-                new CassandraCommands.CREATE_TABLE(s, "myKS", "monkey_species",
-                        columns, primaryColumns, null);
+                new CassandraCommands.CREATE_TABLE(
+                        s, "myKS", "monkey_species", columns, primaryColumns, null);
         cmd1.updateState(s);
         l.add(cmd1);
 
@@ -1530,8 +1556,8 @@ public class CommandTests {
         Values_INSERT.add(30);
         Values_INSERT.add("AAAAAAAAAAAAAAAAAAAAAAAAAAA");
         CassandraCommands.INSERT cmd2 =
-                new CassandraCommands.INSERT(s, "myKS", "monkey_species",
-                        columns_INSERT, Values_INSERT);
+                new CassandraCommands.INSERT(
+                        s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
         cmd2.updateState(s);
         l.add(cmd2);
 
@@ -1541,8 +1567,8 @@ public class CommandTests {
             Values_INSERT.remove(1);
             Values_INSERT.add(1, i);
             CassandraCommands.INSERT tmpCmd =
-                    new CassandraCommands.INSERT(s, "myKS", "monkey_species",
-                            columns_INSERT, Values_INSERT);
+                    new CassandraCommands.INSERT(
+                            s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
             tmpCmd.updateState(s);
             l.add(tmpCmd);
         }
@@ -1552,28 +1578,50 @@ public class CommandTests {
         }
 
         CommandSequence commandSequence =
-                new CommandSequence(l, CassandraCommands.commandClassList,
-                        CassandraCommands.createCommandClassList, CassandraState.class,
+                new CommandSequence(
+                        l,
+                        CassandraCommands.commandClassList,
+                        CassandraCommands.createCommandClassList,
+                        CassandraState.class,
                         s);
         return commandSequence;
     }
 
     public static CommandSequence cass13939CommandSequence_Two_Command_Diff1() {
         // Less one INSERT command
-        // TODO: Why does create table command generate two table with the same name, this is not correct! Need to FIX
-//        CREATE KEYSPACE IF NOT EXISTS uuid01009d585f434c91930a7b21c13eba5d WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 2 };
-//        CREATE KEYSPACE IF NOT EXISTS uuid39ee1eac4005486199415acd4e7860ab WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
-//        CREATE TABLE IF NOT EXISTS uuid01009d585f434c91930a7b21c13eba5d.monkey_species (species TEXT,common_name INT,population INT,average_size TEXT,
-//                PRIMARY KEY (average_size, common_name, species ));
-//        INSERT INTO uuid01009d585f434c91930a7b21c13eba5d.monkey_species (species, common_name, population, average_size) VALUES ('Monkey',0,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');
-//        INSERT INTO uuid01009d585f434c91930a7b21c13eba5d.monkey_species (species, common_name, population, average_size) VALUES ('Monkey',1,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');
-//        INSERT INTO uuid01009d585f434c91930a7b21c13eba5d.monkey_species (species, common_name, population, average_size) VALUES ('Monkey',2,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');
-//        INSERT INTO uuid01009d585f434c91930a7b21c13eba5d.monkey_species (population, average_size, common_name, species) VALUES (2,'species',4,'species');
-//        INSERT INTO uuid01009d585f434c91930a7b21c13eba5d.monkey_species (species, common_name, population, average_size) VALUES ('Monkey',4,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');
-//        INSERT INTO uuid01009d585f434c91930a7b21c13eba5d.monkey_species (species, common_name, population, average_size) VALUES ('Monkey',5,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');
-//        INSERT INTO uuid01009d585f434c91930a7b21c13eba5d.monkey_species (species, common_name, population, average_size) VALUES ('Monkey',6,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');
-//        INSERT INTO uuid01009d585f434c91930a7b21c13eba5d.monkey_species (species, common_name, population, average_size) VALUES ('Monkey',7,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');
-//        ALTER TABLE uuid01009d585f434c91930a7b21c13eba5d.monkey_species DROP population ;
+        // TODO: Why does create table command generate two table with the same name, this is not
+        // correct! Need to FIX
+        //        CREATE KEYSPACE IF NOT EXISTS uuid01009d585f434c91930a7b21c13eba5d WITH
+        // REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 2 };
+        //        CREATE KEYSPACE IF NOT EXISTS uuid39ee1eac4005486199415acd4e7860ab WITH
+        // REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
+        //        CREATE TABLE IF NOT EXISTS uuid01009d585f434c91930a7b21c13eba5d.monkey_species
+        // (species TEXT,common_name INT,population INT,average_size TEXT,
+        //                PRIMARY KEY (average_size, common_name, species ));
+        //        INSERT INTO uuid01009d585f434c91930a7b21c13eba5d.monkey_species (species,
+        // common_name, population, average_size) VALUES
+        // ('Monkey',0,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');
+        //        INSERT INTO uuid01009d585f434c91930a7b21c13eba5d.monkey_species (species,
+        // common_name, population, average_size) VALUES
+        // ('Monkey',1,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');
+        //        INSERT INTO uuid01009d585f434c91930a7b21c13eba5d.monkey_species (species,
+        // common_name, population, average_size) VALUES
+        // ('Monkey',2,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');
+        //        INSERT INTO uuid01009d585f434c91930a7b21c13eba5d.monkey_species (population,
+        // average_size, common_name, species) VALUES (2,'species',4,'species');
+        //        INSERT INTO uuid01009d585f434c91930a7b21c13eba5d.monkey_species (species,
+        // common_name, population, average_size) VALUES
+        // ('Monkey',4,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');
+        //        INSERT INTO uuid01009d585f434c91930a7b21c13eba5d.monkey_species (species,
+        // common_name, population, average_size) VALUES
+        // ('Monkey',5,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');
+        //        INSERT INTO uuid01009d585f434c91930a7b21c13eba5d.monkey_species (species,
+        // common_name, population, average_size) VALUES
+        // ('Monkey',6,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');
+        //        INSERT INTO uuid01009d585f434c91930a7b21c13eba5d.monkey_species (species,
+        // common_name, population, average_size) VALUES
+        // ('Monkey',7,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');
+        //        ALTER TABLE uuid01009d585f434c91930a7b21c13eba5d.monkey_species DROP population ;
 
         List<Command> l = new LinkedList<>();
 
@@ -1598,8 +1646,8 @@ public class CommandTests {
         primaryColumns.add("species TEXT");
 
         CassandraCommands.CREATE_TABLE cmd1 =
-                new CassandraCommands.CREATE_TABLE(s, "myKS", "monkey_species",
-                        columns, primaryColumns, null);
+                new CassandraCommands.CREATE_TABLE(
+                        s, "myKS", "monkey_species", columns, primaryColumns, null);
         cmd1.updateState(s);
         l.add(cmd1);
 
@@ -1617,8 +1665,8 @@ public class CommandTests {
         Values_INSERT.add(30);
         Values_INSERT.add("AAAAAAAAAAAAAAAAAAAAAAAAAAA");
         CassandraCommands.INSERT cmd2 =
-                new CassandraCommands.INSERT(s, "myKS", "monkey_species",
-                        columns_INSERT, Values_INSERT);
+                new CassandraCommands.INSERT(
+                        s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
         cmd2.updateState(s);
         l.add(cmd2);
 
@@ -1626,8 +1674,8 @@ public class CommandTests {
             Values_INSERT.remove(1);
             Values_INSERT.add(1, i);
             CassandraCommands.INSERT tmpCmd =
-                    new CassandraCommands.INSERT(s, "myKS", "monkey_species",
-                            columns_INSERT, Values_INSERT);
+                    new CassandraCommands.INSERT(
+                            s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
             tmpCmd.updateState(s);
             l.add(tmpCmd);
         }
@@ -1644,8 +1692,8 @@ public class CommandTests {
         Values_INSERT_.add(2);
         Values_INSERT_.add("species");
         CassandraCommands.INSERT cmd3 =
-                new CassandraCommands.INSERT(s, "myKS", "monkey_species",
-                        columns_INSERT_, Values_INSERT_);
+                new CassandraCommands.INSERT(
+                        s, "myKS", "monkey_species", columns_INSERT_, Values_INSERT_);
         cmd3.updateState(s);
         l.add(cmd3);
 
@@ -1654,16 +1702,16 @@ public class CommandTests {
             Values_INSERT.remove(1);
             Values_INSERT.add(1, i);
             CassandraCommands.INSERT tmpCmd =
-                    new CassandraCommands.INSERT(s, "myKS", "monkey_species",
-                            columns_INSERT, Values_INSERT);
+                    new CassandraCommands.INSERT(
+                            s, "myKS", "monkey_species", columns_INSERT, Values_INSERT);
             tmpCmd.updateState(s);
             l.add(tmpCmd);
         }
 
         // Command 11
         CassandraCommands.ALTER_TABLE_DROP cmd11 =
-                new CassandraCommands.ALTER_TABLE_DROP(s, "myKS",
-                        "monkey_species", "population INT");
+                new CassandraCommands.ALTER_TABLE_DROP(
+                        s, "myKS", "monkey_species", "population INT");
         cmd11.updateState(s);
         l.add(cmd11);
 
@@ -1672,12 +1720,12 @@ public class CommandTests {
         }
 
         CommandSequence commandSequence =
-                new CommandSequence(l, CassandraCommands.commandClassList,
-                        CassandraCommands.createCommandClassList, CassandraState.class,
+                new CommandSequence(
+                        l,
+                        CassandraCommands.commandClassList,
+                        CassandraCommands.createCommandClassList,
+                        CassandraState.class,
                         s);
         return commandSequence;
     }
-
-
-
 }

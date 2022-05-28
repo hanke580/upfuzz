@@ -1,5 +1,7 @@
+/* (C)2022 */
 package org.zlab.upfuzz.cassandra;
 
+import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -10,11 +12,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.nio.file.Paths;
-
-import com.google.gson.Gson;
-
 import org.apache.commons.lang3.RandomUtils;
-import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.utils.Utilities;
 
 public class CassandraCqlshDaemon {
@@ -27,8 +25,10 @@ public class CassandraCqlshDaemon {
     public static String cqlshPython3Script;
 
     static {
-        InputStream cqlsh_daemon2 = CassandraCqlshDaemon.class.getClassLoader().getResourceAsStream("cqlsh_daemon2.py");
-        InputStream cqlsh_daemon3 = CassandraCqlshDaemon.class.getClassLoader().getResourceAsStream("cqlsh_daemon3.py");
+        InputStream cqlsh_daemon2 =
+                CassandraCqlshDaemon.class.getClassLoader().getResourceAsStream("cqlsh_daemon2.py");
+        InputStream cqlsh_daemon3 =
+                CassandraCqlshDaemon.class.getClassLoader().getResourceAsStream("cqlsh_daemon3.py");
         if (cqlsh_daemon2 == null) {
             System.err.println("cannot find cqlsh_daemon.py");
         }
@@ -53,7 +53,7 @@ public class CassandraCqlshDaemon {
         // System.out.println("cassandra version\n" + cassandraVersion);
 
         char majorVersion;
-        
+
         try {
             majorVersion = cassandraVersion.split("-")[1].charAt(0);
         } catch (Exception e) {
@@ -90,8 +90,10 @@ public class CassandraCqlshDaemon {
             bw.write(cqlshPythonScript.replace("__reserved_port__", Integer.toString(port)));
             bw.close();
 
-            cqlsh = Utilities.exec(new String[] { python, cqlshDaemonFile.toString() },
-                    new File(cassandraRoot));
+            cqlsh =
+                    Utilities.exec(
+                            new String[] {python, cqlshDaemonFile.toString()},
+                            new File(cassandraRoot));
 
             // byte[] bytes = new byte[102400];
             // int cnt1 = cqlsh.getInputStream().read(bytes);
@@ -118,7 +120,6 @@ public class CassandraCqlshDaemon {
         // cqlsh.getInputStream().read(output);
         // System.out.println(new String(output));
 
-
         char[] chars = new char[10240];
 
         int cnt = br.read(chars);
@@ -133,8 +134,12 @@ public class CassandraCqlshDaemon {
     public static boolean testPortAvailable(int port) {
         Process p;
         try {
-            p = Utilities.exec(new String[] { "bin/sh", "-c", "netstat -tunlp | grep -P \":" + port + "[\\s$]\"" },
-                    new File("/"));
+            p =
+                    Utilities.exec(
+                            new String[] {
+                                "bin/sh", "-c", "netstat -tunlp | grep -P \":" + port + "[\\s$]\""
+                            },
+                            new File("/"));
             int ret = p.waitFor();
             return ret == 1;
         } catch (IOException | InterruptedException e) {
@@ -157,9 +162,7 @@ public class CassandraCqlshDaemon {
         }
     }
 
-    /**
-     * Destroy the current process.
-     */
+    /** Destroy the current process. */
     public void destroy() {
         cqlsh.destroy();
     }

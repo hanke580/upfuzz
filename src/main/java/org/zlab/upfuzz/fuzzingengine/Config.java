@@ -1,9 +1,8 @@
+/* (C)2022 */
 package org.zlab.upfuzz.fuzzingengine;
 
-import java.lang.reflect.Field;
-import java.util.Arrays;
-
 import com.google.gson.GsonBuilder;
+import java.lang.reflect.Field;
 
 public class Config {
     public static Configuration instance;
@@ -33,8 +32,11 @@ public class Config {
 
         @Override
         public String toString() {
-            return new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(this,
-                    Configuration.class);
+            return new GsonBuilder()
+                    .setPrettyPrinting()
+                    .disableHtmlEscaping()
+                    .create()
+                    .toJson(this, Configuration.class);
         }
 
         public Boolean checkNull() {
@@ -52,7 +54,8 @@ public class Config {
             }
 
             // assertTrue(Arrays.stream(fields).anyMatch(
-            //         field -> field.getName().equals(LAST_NAME_FIELD) && field.getType().equals(String.class)));
+            //         field -> field.getName().equals(LAST_NAME_FIELD) &&
+            // field.getType().equals(String.class)));
             return true;
         }
     }

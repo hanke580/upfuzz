@@ -1,39 +1,28 @@
+/* (C)2022 */
 package org.zlab.upfuzz.fuzzingengine;
-
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.net.Socket;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
-
-import org.apache.commons.lang3.RandomUtils;
-import org.apache.commons.lang3.time.DurationFormatUtils;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.fuzzingengine.Config.Configuration;
-import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 
 public class FuzzingClientTest {
 
     @BeforeAll
-    static public void initAll() {
+    public static void initAll() {
         String configFile = "./hdfsconfig.json";
         Configuration cfg;
         try {
-            cfg = new Gson().fromJson(new FileReader(configFile),
-                    Configuration.class);
+            cfg = new Gson().fromJson(new FileReader(configFile), Configuration.class);
             Config.setInstance(cfg);
-        } catch (JsonSyntaxException | JsonIOException
-                | FileNotFoundException e) {
+        } catch (JsonSyntaxException | JsonIOException | FileNotFoundException e) {
             e.printStackTrace();
             assert false;
         }
-
     }
 
     @Test

@@ -1,12 +1,10 @@
+/* (C)2022 */
 package org.zlab.upfuzz.cassandra;
-
-import org.apache.commons.lang3.SerializationUtils;
-import org.zlab.upfuzz.Parameter;
-import org.zlab.upfuzz.ParameterType;
-import org.zlab.upfuzz.utils.Pair;
 
 import java.io.Serializable;
 import java.util.*;
+import org.apache.commons.lang3.SerializationUtils;
+import org.zlab.upfuzz.Parameter;
 
 public class CassandraTable implements Serializable {
     public String name;
@@ -32,5 +30,4 @@ public class CassandraTable implements Serializable {
 
         indexes = new HashSet<>();
     }
-
 }

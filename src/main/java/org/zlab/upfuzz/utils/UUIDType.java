@@ -1,17 +1,17 @@
+/* (C)2022 */
 package org.zlab.upfuzz.utils;
 
+import java.util.UUID;
 import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 
-import java.util.UUID;
-
 public class UUIDType extends ParameterType.ConcreteType {
 
     public static final UUIDType instance = new UUIDType();
 
-    static public String generateUUID() {
+    public static String generateUUID() {
         String uuid = UUID.randomUUID().toString().replace("-", "");
         return "uuid" + uuid;
     }
@@ -43,8 +43,7 @@ public class UUIDType extends ParameterType.ConcreteType {
 
     @Override
     public boolean isValid(State s, Command c, Parameter p) {
-        if (p == null || ! (p.type instanceof UUIDType))
-            return false;
+        if (p == null || !(p.type instanceof UUIDType)) return false;
         return true;
     }
 
@@ -65,4 +64,3 @@ public class UUIDType extends ParameterType.ConcreteType {
         return true;
     }
 }
-

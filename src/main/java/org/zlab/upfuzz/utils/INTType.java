@@ -1,11 +1,11 @@
+/* (C)2022 */
 package org.zlab.upfuzz.utils;
 
+import java.util.*;
 import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-
-import java.util.*;
 
 public class INTType extends ParameterType.ConcreteType {
 
@@ -17,7 +17,7 @@ public class INTType extends ParameterType.ConcreteType {
 
     public static final int RETRY_POOL_TIME = 5;
 
-//    public static final INTType instance = new INTType();
+    //    public static final INTType instance = new INTType();
     public static final String signature = "java.lang.String";
 
     public INTType() {
@@ -37,8 +37,7 @@ public class INTType extends ParameterType.ConcreteType {
 
     @Override
     public Parameter generateRandomParameter(State s, Command c, Object init) {
-        if (init == null)
-            return generateRandomParameter(s, c);
+        if (init == null) return generateRandomParameter(s, c);
         assert init instanceof Integer;
         Integer initValue = (Integer) init;
         return new Parameter(this, initValue);
@@ -133,5 +132,4 @@ public class INTType extends ParameterType.ConcreteType {
     public static void cleanPool() {
         intPool.clear();
     }
-
 }

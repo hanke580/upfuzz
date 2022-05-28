@@ -1,3 +1,4 @@
+/* (C)2022 */
 package org.zlab.upfuzz.utils;
 
 import org.zlab.upfuzz.Command;
@@ -6,15 +7,10 @@ import org.zlab.upfuzz.State;
 
 public class CONSTANTSTRINGType extends STRINGType {
     /**
-     * Only two choice, empty string or the given fixed value at
-     * constructor function.
+     * Only two choice, empty string or the given fixed value at constructor function.
      *
-     * Override "GenerateRandomParameter"
-     * Override "Mutate", if exists
-     *  - Exist
-     *  - Empty string
+     * <p>Override "GenerateRandomParameter" Override "Mutate", if exists - Exist - Empty string
      */
-
     public static final String signature = "org.zlab.upfuzz.utils.FIXSTRINGType";
 
     final String fixString;

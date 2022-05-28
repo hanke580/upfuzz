@@ -1,16 +1,13 @@
+/* (C)2022 */
 package org.zlab.upfuzz.hdfs.HDFSParameterType;
-
-import java.io.File;
 
 import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType.ConcreteType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.HdfsState;
-import org.zlab.upfuzz.hdfs.MockFS.INode;
 
-public class RandomLocalPathType extends ConcreteType
-{
+public class RandomLocalPathType extends ConcreteType {
     String file;
 
     @Override
@@ -21,14 +18,14 @@ public class RandomLocalPathType extends ConcreteType
 
     @Override
     public Parameter generateRandomParameter(State s, Command c) {
-        HdfsState hdfsState = (HdfsState)s;
+        HdfsState hdfsState = (HdfsState) s;
         file = hdfsState.getRandomLocalPathString();
         return new Parameter(this, file);
     }
 
     @Override
     public String generateStringValue(Parameter p) {
-        String filename = (String)p.getValue();
+        String filename = (String) p.getValue();
         return filename;
     }
 
@@ -54,5 +51,4 @@ public class RandomLocalPathType extends ConcreteType
         // TODO Auto-generated method stub
         return false;
     }
-
 }

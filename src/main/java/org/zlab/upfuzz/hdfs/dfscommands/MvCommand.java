@@ -1,14 +1,12 @@
+/* (C)2022 */
 package org.zlab.upfuzz.hdfs.dfscommands;
 
 import org.zlab.upfuzz.Parameter;
-import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.hdfs.HdfsState;
-import org.zlab.upfuzz.hdfs.HDFSParameterType.ConcatenateType;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomHadoopPathType;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomLocalPathType;
+import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
-import org.zlab.upfuzz.utils.INTType;
 
 public class MvCommand extends DfsCommands {
 
@@ -20,7 +18,8 @@ public class MvCommand extends DfsCommands {
 
         Parameter srcParameter = new RandomLocalPathType().generateRandomParameter(hdfsState, null);
 
-        Parameter dstParameter = new RandomHadoopPathType().generateRandomParameter(hdfsState, null);
+        Parameter dstParameter =
+                new RandomHadoopPathType().generateRandomParameter(hdfsState, null);
 
         params.add(mvcmd);
         params.add(srcParameter);
@@ -28,6 +27,5 @@ public class MvCommand extends DfsCommands {
     }
 
     @Override
-    public void updateState(State state) {
-    }
+    public void updateState(State state) {}
 }

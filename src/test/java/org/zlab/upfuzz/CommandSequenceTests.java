@@ -1,8 +1,8 @@
+/* (C)2022 */
 package org.zlab.upfuzz;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.cassandra.CassandraCommands;
 import org.zlab.upfuzz.cassandra.CassandraState;
@@ -10,19 +10,24 @@ import org.zlab.upfuzz.cassandra.CassandraState;
 public class CommandSequenceTests {
 
     @Test
-    public void testSequenceGeneration() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException, InstantiationException {
+    public void testSequenceGeneration()
+            throws InvocationTargetException, IllegalAccessException, NoSuchMethodException,
+                    InstantiationException {
 
         boolean useIdx = false;
 
         CassandraState state = new CassandraState();
-        CommandSequence commandSequence = CommandSequence.generateSequence(CassandraCommands.commandClassList, CassandraCommands.createCommandClassList, CassandraState.class, null);
+        CommandSequence commandSequence =
+                CommandSequence.generateSequence(
+                        CassandraCommands.commandClassList,
+                        CassandraCommands.createCommandClassList,
+                        CassandraState.class,
+                        null);
 
         List<String> l = commandSequence.getCommandStringList();
         for (int i = 0; i < l.size(); i++) {
-            if (useIdx)
-                System.out.println("[" + i + "]" + "\t" + l.get(i));
-            else
-                System.out.println(l.get(i));
+            if (useIdx) System.out.println("[" + i + "]" + "\t" + l.get(i));
+            else System.out.println(l.get(i));
         }
         System.out.println("command size = " + l.size());
 
@@ -32,17 +37,16 @@ public class CommandSequenceTests {
 
         l = commandSequence.getCommandStringList();
         for (int i = 0; i < l.size(); i++) {
-            if (useIdx)
-                System.out.println("[" + i + "]" + "\t" + l.get(i));
-            else
-                System.out.println(l.get(i));
+            if (useIdx) System.out.println("[" + i + "]" + "\t" + l.get(i));
+            else System.out.println(l.get(i));
         }
         System.out.println("command size = " + l.size());
-
     }
 
     @Test
-    public void testMutation() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException, InstantiationException {
+    public void testMutation()
+            throws InvocationTargetException, IllegalAccessException, NoSuchMethodException,
+                    InstantiationException {
         CommandSequence commandSequence = CommandTests.cass13939CommandSequence();
         boolean mutateStatus = commandSequence.mutate();
         if (!mutateStatus) {
@@ -92,7 +96,6 @@ public class CommandSequenceTests {
         cmd1Pos1.add(2);
         cmd2Pos1.add(4);
 
-
         Set<Integer> cmd1Pos2 = new HashSet<>();
         Set<Integer> cmd2Pos2 = new HashSet<>();
 
@@ -106,18 +109,16 @@ public class CommandSequenceTests {
         orders.get(cmd1Pos1).add(cmd2Pos1);
         orders.get(cmd1Pos1).add(cmd2Pos2);
 
-//
-//
-//        orders.get(cmd1Pos1).add(cmd2Pos1);
-//
-//        if (orders.containsKey(cmd1Pos2)) {
-//            System.out.println("TRUE");
-//        }
-//        orders.put(cmd1Pos2, new HashSet<>());
-//        orders.get(cmd1Pos2).add(cmd2Pos2);
+        //
+        //
+        //        orders.get(cmd1Pos1).add(cmd2Pos1);
+        //
+        //        if (orders.containsKey(cmd1Pos2)) {
+        //            System.out.println("TRUE");
+        //        }
+        //        orders.put(cmd1Pos2, new HashSet<>());
+        //        orders.get(cmd1Pos2).add(cmd2Pos2);
 
         System.out.println(orders);
-
     }
-
 }

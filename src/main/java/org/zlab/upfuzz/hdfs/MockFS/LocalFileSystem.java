@@ -1,3 +1,4 @@
+/* (C)2022 */
 package org.zlab.upfuzz.hdfs.MockFS;
 
 import java.io.BufferedWriter;
@@ -8,12 +9,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
-import org.codehaus.plexus.util.FileUtils;
 import org.zlab.upfuzz.hdfs.MockFS.INode.IType;
 
 public class LocalFileSystem extends FileSystem {
@@ -80,8 +78,13 @@ public class LocalFileSystem extends FileSystem {
     public File getRandomDir() {
         try {
             Long st = System.currentTimeMillis();
-            File[] files = Files.find(Paths.get(localRoot), Integer.MAX_VALUE, (filePath, fileAttr) -> true)
-                    .map(path -> path.toFile()).toArray(size -> new File[size]);
+            File[] files =
+                    Files.find(
+                                    Paths.get(localRoot),
+                                    Integer.MAX_VALUE,
+                                    (filePath, fileAttr) -> true)
+                            .map(path -> path.toFile())
+                            .toArray(size -> new File[size]);
             Long ed = System.currentTimeMillis();
             // System.out.println("files size: " + files.length + "\n" + (ed - st));
             int index = RandomUtils.nextInt(0, files.length);

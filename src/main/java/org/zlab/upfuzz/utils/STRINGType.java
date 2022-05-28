@@ -1,13 +1,13 @@
+/* (C)2022 */
 package org.zlab.upfuzz.utils;
 
+import java.math.BigInteger;
+import java.util.*;
 import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.cassandra.CassandraCommands;
-
-import java.math.BigInteger;
-import java.util.*;
 
 public class STRINGType extends ParameterType.ConcreteType {
 
@@ -24,7 +24,7 @@ public class STRINGType extends ParameterType.ConcreteType {
         StringBuilder sb = new StringBuilder();
         Random random = new Random();
         int length = random.nextInt(MAX_LEN) + 1;
-        for(int i = 0; i < length; i++) {
+        for (int i = 0; i < length; i++) {
             // generate random index number
             int index = random.nextInt(alphabet.length());
             char randomChar = alphabet.charAt(index);
@@ -55,13 +55,13 @@ public class STRINGType extends ParameterType.ConcreteType {
     @Override
     public Parameter generateRandomParameter(State s, Command c) {
         //  DEBUG: For testing **testNotInCollection()**
-//        List<String> sList = new LinkedList<>();
-//        for (int i = 0; i < 10; i++) {
-//            sList.add("T" + String.valueOf(i));
-//        }
-//        Random rand = new Random();
-//        int idx = rand.nextInt(sList.size());
-//        return new Parameter(STRINGType.instance, sList.get(idx));
+        //        List<String> sList = new LinkedList<>();
+        //        for (int i = 0; i < 10; i++) {
+        //            sList.add("T" + String.valueOf(i));
+        //        }
+        //        Random rand = new Random();
+        //        int idx = rand.nextInt(sList.size());
+        //        return new Parameter(STRINGType.instance, sList.get(idx));
 
         Parameter ret;
 
@@ -78,11 +78,9 @@ public class STRINGType extends ParameterType.ConcreteType {
             }
         }
         ret = new Parameter(STRINGType.instance, generateRandomString());
-        if (CassandraCommands.DEBUG) {
-        }
+        if (CassandraCommands.DEBUG) {}
         while (!isValid(s, c, ret)) {
-            if (CassandraCommands.DEBUG) {
-            }
+            if (CassandraCommands.DEBUG) {}
             ret = new Parameter(STRINGType.instance, generateRandomString());
         }
         stringPool.add((String) ret.value);
@@ -96,10 +94,12 @@ public class STRINGType extends ParameterType.ConcreteType {
 
     @Override
     public boolean isValid(State s, Command c, Parameter p) {
-        if (p == null ||
-                ! (p.type instanceof STRINGType) ||
-                contains(CassandraCommands.reservedKeywords, (String) p.value)) // Specially for Cassandra
-            return false;
+        if (p == null
+                || !(p.type instanceof STRINGType)
+                || contains(
+                        CassandraCommands.reservedKeywords,
+                        (String) p.value)) // Specially for Cassandra
+        return false;
         return true;
     }
 
@@ -122,13 +122,13 @@ public class STRINGType extends ParameterType.ConcreteType {
 
         // Debug
         if (CassandraCommands.DEBUG) {
-//            choice = 4; // Only test the mutate method
+            //            choice = 4; // Only test the mutate method
         }
 
         // TODO: Add another choice: related to the current string pool
 
         switch (choice) {
-            // Temporally Disable bit level mutation
+                // Temporally Disable bit level mutation
             case 0: // Regenerate
                 if (CassandraCommands.DEBUG) {
                     System.out.println("\t[String Mutation]: Regeneration");
@@ -195,7 +195,7 @@ public class STRINGType extends ParameterType.ConcreteType {
     }
 
     private String string2binary(String value) {
-        return  new BigInteger(value.getBytes()).toString(2);
+        return new BigInteger(value.getBytes()).toString(2);
     }
 
     private void flipBit(Parameter p) {
@@ -229,7 +229,7 @@ public class STRINGType extends ParameterType.ConcreteType {
         boolean insertBit = rand.nextBoolean();
 
         StringBuilder sb = new StringBuilder(binary);
-        sb.insert(insertPos, insertBit? '1' : '0');
+        sb.insert(insertPos, insertBit ? '1' : '0');
 
         String mutatedValue = new String(new BigInteger(sb.toString(), 2).toByteArray());
         p.value = mutatedValue;
@@ -309,6 +309,4 @@ public class STRINGType extends ParameterType.ConcreteType {
     public static void cleanPool() {
         stringPool.clear();
     }
-
 }
-

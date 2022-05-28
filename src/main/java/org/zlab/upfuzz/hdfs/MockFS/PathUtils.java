@@ -1,14 +1,14 @@
+/* (C)2022 */
 package org.zlab.upfuzz.hdfs.MockFS;
 
 import java.nio.file.Paths;
 
-public class PathUtils
-{
-    public static String join(INode dir, String file){
+public class PathUtils {
+    public static String join(INode dir, String file) {
         return join(dir.file_path, file);
     }
 
-    public static String join(String dir, String file){
+    public static String join(String dir, String file) {
         return Paths.get(dir, file).toString();
     }
 }

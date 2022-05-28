@@ -1,113 +1,114 @@
+/* (C)2022 */
 package org.zlab.upfuzz;
-
-import org.zlab.upfuzz.cassandra.CassandraCommands;
 
 import java.io.Serializable;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.zlab.upfuzz.cassandra.CassandraCommands;
 
 /**
- * How a parameter can be generated is only defined in its type.
- * If you want special rules for a parameter, you need to implement a type class for it.
+ * How a parameter can be generated is only defined in its type. If you want special rules for a
+ * parameter, you need to implement a type class for it.
  */
 public abstract class ParameterType implements Serializable {
 
-    public static abstract class ConcreteType extends ParameterType {
+    public abstract static class ConcreteType extends ParameterType {
         /**
          * generateRandomParameter() follows rules to generate a parameter with a random value.
+         *
          * @param s // current state
-         * @param c // current command
-         *  these rules might use the state and other parameters in the current command.
+         * @param c // current command these rules might use the state and other parameters in the
+         *     current command.
          */
         public abstract Parameter generateRandomParameter(State s, Command c, Object init);
-        public abstract Parameter generateRandomParameter(State s, Command c);
-        public abstract String generateStringValue(Parameter p); // Maybe this should be in Parameter class? It has the concrete type anyways.
 
-        /**
-         *                         p     <- input parameter p
-         *                        / \
-         *                       /   \
-         *    this (type) ->   type value
-         */
+        public abstract Parameter generateRandomParameter(State s, Command c);
+
+        public abstract String generateStringValue(
+                Parameter p); // Maybe this should be in Parameter class? It has the concrete type
+        // anyways.
+
+        /** p <- input parameter p / \ / \ this (type) -> type value */
         public abstract boolean isValid(State s, Command c, Parameter p);
+
         public abstract void regenerate(State s, Command c, Parameter p);
+
         public abstract boolean isEmpty(State s, Command c, Parameter p);
+
         public abstract boolean mutate(State s, Command c, Parameter p);
 
         @Override
         protected Object clone() {
             Parameter clone = null;
-            try
-            {
+            try {
                 clone = (Parameter) super.clone();
-            }
-            catch (CloneNotSupportedException e)
-            {
+            } catch (CloneNotSupportedException e) {
                 throw new RuntimeException(e);
             }
             return clone;
         }
-
     }
 
-    public static abstract class GenericType extends ParameterType {
+    public abstract static class GenericType extends ParameterType {
         // generic type cannot generate value without concrete types
-        public abstract Parameter generateRandomParameter(State s, Command c, List<ConcreteType> types);
-        public abstract Parameter generateRandomParameter(State s, Command c, List<ConcreteType> types, Object init);
-        public abstract String generateStringValue(Parameter p, List<ConcreteType> types); // Maybe this should be in Parameter class? It has the concrete type anyways.
+        public abstract Parameter generateRandomParameter(
+                State s, Command c, List<ConcreteType> types);
+
+        public abstract Parameter generateRandomParameter(
+                State s, Command c, List<ConcreteType> types, Object init);
+
+        public abstract String generateStringValue(
+                Parameter p,
+                List<ConcreteType>
+                        types); // Maybe this should be in Parameter class? It has the concrete type
+        // anyways.
+
         public abstract boolean isEmpty(State s, Command c, Parameter p, List<ConcreteType> types);
+
         public abstract boolean mutate(State s, Command c, Parameter p, List<ConcreteType> types);
+
         public abstract boolean isValid(State s, Command c, Parameter p, List<ConcreteType> types);
     }
 
     /**
-     * ConfigurableType uses its concrete type to generate values,
-     * but it adds extra rules/constraints using configuration.
-     * TODO: Need more reasoning to finish this.
+     * ConfigurableType uses its concrete type to generate values, but it adds extra
+     * rules/constraints using configuration. TODO: Need more reasoning to finish this.
      */
-    public static abstract class ConfigurableType extends ConcreteType {
+    public abstract static class ConfigurableType extends ConcreteType {
         public final ConcreteType t;
         public final FetchCollectionLambda configuration;
         public final Predicate predicate;
-//        public final Function mapFunc;
+        //        public final Function mapFunc;
 
         public ConfigurableType(ConcreteType t, FetchCollectionLambda configuration) {
             this.t = t;
             this.configuration = configuration;
             this.predicate = null;
-//            this.mapFunc = mapFunc;
+            //            this.mapFunc = mapFunc;
         }
 
-
-        public ConfigurableType(ConcreteType t, FetchCollectionLambda configuration, Predicate predicate) {
+        public ConfigurableType(
+                ConcreteType t, FetchCollectionLambda configuration, Predicate predicate) {
             this.t = t;
             this.configuration = configuration;
             this.predicate = predicate;
-//            this.mapFunc = mapFunc;
+            //            this.mapFunc = mapFunc;
         }
 
         public void predicateCheck(State s, Command c) {
             if (predicate != null && predicate.operate(s, c) == false) {
                 throw new CustomExceptions.PredicateUnSatisfyException(
-                        "Predicate is not satisfied in this command",
-                        null
-                );
+                        "Predicate is not satisfied in this command", null);
             }
         }
 
         /**
-         * Problem:
-         * There could be multiple constraints added in one parameters.
-         * But when we want to store them, we might want directly get
-         * access to the "real values" instead of those constraints
-         * Now if take off all the constraints, we will have the pure values
-         * Which will be
-         * List<String, CassandraTypes>
-         * If we only save the pure values, if will be very easy for use.
-         * But this value will need to be updated if it's mutated.
+         * Problem: There could be multiple constraints added in one parameters. But when we want to
+         * store them, we might want directly get access to the "real values" instead of those
+         * constraints Now if take off all the constraints, we will have the pure values Which will
+         * be List<String, CassandraTypes> If we only save the pure values, if will be very easy for
+         * use. But this value will need to be updated if it's mutated.
          */
-
     }
 
     public static class NotInCollectionType extends ConfigurableType {
@@ -116,7 +117,8 @@ public abstract class ParameterType implements Serializable {
 
         // Example of mapFunc:
         // Parameter p -> p.value.left // p's ParameterType is Pair<TEXT, TEXTType>
-        public NotInCollectionType(ConcreteType t, FetchCollectionLambda configuration, SerializableFunction mapFunc) {
+        public NotInCollectionType(
+                ConcreteType t, FetchCollectionLambda configuration, SerializableFunction mapFunc) {
             super(t, configuration);
             this.mapFunc = mapFunc;
         }
@@ -132,7 +134,8 @@ public abstract class ParameterType implements Serializable {
 
         @Override
         public Parameter generateRandomParameter(State s, Command c) {
-            Parameter ret = t.generateRandomParameter(s, c); // ((Pair<TEXTType, TYPEType>)ret.value).left
+            Parameter ret =
+                    t.generateRandomParameter(s, c); // ((Pair<TEXTType, TYPEType>)ret.value).left
             // TODO: Don't compute this every time.
             while (!isValid(s, c, ret)) {
                 ret = t.generateRandomParameter(s, c);
@@ -149,8 +152,7 @@ public abstract class ParameterType implements Serializable {
         public boolean isValid(State s, Command c, Parameter p) {
             if (s == null) return true;
             Collection targetCollection = configuration.operate(s, c);
-            if (((Collection) targetCollection).isEmpty())
-                return true;
+            if (((Collection) targetCollection).isEmpty()) return true;
             List l;
             if (mapFunc == null) {
                 l = (List) (targetCollection).stream().collect(Collectors.toList());
@@ -167,7 +169,8 @@ public abstract class ParameterType implements Serializable {
 
         @Override
         public void regenerate(State s, Command c, Parameter p) {
-            Parameter ret = generateRandomParameter(s, c); // ((Pair<TEXTType, TYPEType>)ret.value).left
+            Parameter ret =
+                    generateRandomParameter(s, c); // ((Pair<TEXTType, TYPEType>)ret.value).left
             p.value = ret.value;
         }
 
@@ -203,11 +206,7 @@ public abstract class ParameterType implements Serializable {
 
         @Override
         public Parameter generateRandomParameter(State s, Command c) {
-            /**
-             *      p
-             *    /  \
-             *  this  ret
-             */
+            /** p / \ this ret */
             Parameter ret = t.generateRandomParameter(s, c);
             while (t.isEmpty(s, c, ret)) {
                 ret = t.generateRandomParameter(s, c);
@@ -222,11 +221,7 @@ public abstract class ParameterType implements Serializable {
 
         @Override
         public boolean isValid(State s, Command c, Parameter p) {
-            /**
-             *      p
-             *    /  \
-             *  this  value2check
-             */
+            /** p / \ this value2check */
             if (t.isEmpty(s, c, (Parameter) p.value) == true) {
                 return false;
             } else {
@@ -251,19 +246,23 @@ public abstract class ParameterType implements Serializable {
         }
     }
 
-    public static class SubsetType <T,U> extends ConfigurableType {
+    public static class SubsetType<T, U> extends ConfigurableType {
 
         SerializableFunction<T, U> mapFunc;
 
-        public SubsetType(ConcreteType t, FetchCollectionLambda configuration, SerializableFunction<T, U> mapFunc) { // change to concreteGenericType
+        public SubsetType(
+                ConcreteType t,
+                FetchCollectionLambda configuration,
+                SerializableFunction<T, U> mapFunc) { // change to concreteGenericType
             /**
-             * In this case, the ConcreteType should be List<Pair<xxx>>.
-             * The set we select from will be the target set targetSet. Let's suppose it's also List<Pair<TEXT, TYPEType>>
-             * - we rewrite the generateRandomParameter() in this concreteGenericType
-             * - Instead of calling t.generateValue function, it should now construct values by select from targetSet.
-             * - Do it by anonymous class extends List, and we write the subset generateRandomParameter() for it.
+             * In this case, the ConcreteType should be List<Pair<xxx>>. The set we select from will
+             * be the target set targetSet. Let's suppose it's also List<Pair<TEXT, TYPEType>> - we
+             * rewrite the generateRandomParameter() in this concreteGenericType - Instead of
+             * calling t.generateValue function, it should now construct values by select from
+             * targetSet. - Do it by anonymous class extends List, and we write the subset
+             * generateRandomParameter() for it.
              *
-             * TODO: This type can actually be removed. It can be used for checking.
+             * <p>TODO: This type can actually be removed. It can be used for checking.
              */
             super(t, configuration);
             this.mapFunc = mapFunc;
@@ -280,16 +279,18 @@ public abstract class ParameterType implements Serializable {
             Object targetCollection = configuration.operate(s, c);
 
             if (mapFunc != null) {
-                targetCollection = ((Collection<T>) targetCollection).stream().map(mapFunc).collect(Collectors.toList());
+                targetCollection =
+                        ((Collection<T>) targetCollection)
+                                .stream().map(mapFunc).collect(Collectors.toList());
             }
 
             // TODO: Make all the collection contain the parameter
-            List<Parameter> targetSet = new ArrayList<Parameter>((Collection<Parameter>) targetCollection);
+            List<Parameter> targetSet =
+                    new ArrayList<Parameter>((Collection<Parameter>) targetCollection);
             List<Parameter> value = new ArrayList<>();
 
             List<String> targetSetString = new LinkedList<>();
-            for (Parameter p: targetSet)
-                targetSetString.add(p.toString());
+            for (Parameter p : targetSet) targetSetString.add(p.toString());
 
             if (targetSet.size() > 0) {
                 for (int i = 0; i < l.size(); i++) {
@@ -304,20 +305,18 @@ public abstract class ParameterType implements Serializable {
 
         @Override
         public Parameter generateRandomParameter(State s, Command c) {
-            /**
-             * Current t should be concrete generic type List<xxx>
-             * - Select from collection set
-             */
-
+            /** Current t should be concrete generic type List<xxx> - Select from collection set */
             Object targetCollection = configuration.operate(s, c);
 
             if (mapFunc != null) {
-                targetCollection = ((Collection<T>) targetCollection).stream().map(mapFunc).collect(Collectors.toList());
+                targetCollection =
+                        ((Collection<T>) targetCollection)
+                                .stream().map(mapFunc).collect(Collectors.toList());
             }
 
             /**
-             * Pick a subset from the configuration, it will also be a list of parameters
-             * Return new Parameter(SubsetType, value)
+             * Pick a subset from the configuration, it will also be a list of parameters Return new
+             * Parameter(SubsetType, value)
              */
 
             // TODO: Make all the collection contain the parameter
@@ -335,7 +334,10 @@ public abstract class ParameterType implements Serializable {
                 Collections.shuffle(indexArray);
 
                 for (int i = 0; i < setSize; i++) {
-                    value.add(targetSet.get(indexArray.get(i))); // The targetSet should also store Parameter
+                    value.add(
+                            targetSet.get(
+                                    indexArray.get(
+                                            i))); // The targetSet should also store Parameter
                 }
             }
 
@@ -360,7 +362,9 @@ public abstract class ParameterType implements Serializable {
             List<Parameter> valueList = (List<Parameter>) p.value;
             Object targetCollection = configuration.operate(s, c);
             if (mapFunc != null) {
-                targetCollection = ((Collection<T>) targetCollection).stream().map(mapFunc).collect(Collectors.toList());
+                targetCollection =
+                        ((Collection<T>) targetCollection)
+                                .stream().map(mapFunc).collect(Collectors.toList());
             }
             List<Parameter> targetList = (List<Parameter>) targetCollection;
 
@@ -380,7 +384,7 @@ public abstract class ParameterType implements Serializable {
 
         @Override
         public boolean isEmpty(State s, Command c, Parameter p) {
-            return  ((List<Object>) p.value).isEmpty();
+            return ((List<Object>) p.value).isEmpty();
         }
 
         @Override
@@ -420,23 +424,22 @@ public abstract class ParameterType implements Serializable {
         }
     }
 
-    public static class FrontSubsetType <T,U> extends SubsetType {
+    public static class FrontSubsetType<T, U> extends SubsetType {
 
-        public FrontSubsetType(ConcreteType t, FetchCollectionLambda configuration, SerializableFunction mapFunc) {
+        public FrontSubsetType(
+                ConcreteType t, FetchCollectionLambda configuration, SerializableFunction mapFunc) {
             super(t, configuration, mapFunc);
         }
 
         @Override
         public Parameter generateRandomParameter(State s, Command c) {
-            /**
-             * Current t should be concrete generic type List<xxx>
-             * - Select from collection set
-             */
-
+            /** Current t should be concrete generic type List<xxx> - Select from collection set */
             Object targetCollection = configuration.operate(s, c);
 
             if (mapFunc != null) {
-                targetCollection = ((Collection<T>) targetCollection).stream().map(mapFunc).collect(Collectors.toList());
+                targetCollection =
+                        ((Collection<T>) targetCollection)
+                                .stream().map(mapFunc).collect(Collectors.toList());
             }
 
             List<Object> targetSet = new ArrayList<Object>((Collection<Object>) targetCollection);
@@ -449,10 +452,13 @@ public abstract class ParameterType implements Serializable {
                 for (int i = 0; i < targetSet.size(); i++) {
                     indexArray.add(i);
                 }
-//                Collections.shuffle(indexArray);
+                //                Collections.shuffle(indexArray);
 
                 for (int i = 0; i < setSize; i++) {
-                    value.add(targetSet.get(indexArray.get(i))); // The targetSet should also store Parameter
+                    value.add(
+                            targetSet.get(
+                                    indexArray.get(
+                                            i))); // The targetSet should also store Parameter
                 }
             }
 
@@ -464,34 +470,39 @@ public abstract class ParameterType implements Serializable {
             List<Parameter> valueList = (List<Parameter>) p.value;
             Object targetCollection = configuration.operate(s, c);
             if (mapFunc != null) {
-                targetCollection = ((Collection<T>) targetCollection).stream().map(mapFunc).collect(Collectors.toList());
+                targetCollection =
+                        ((Collection<T>) targetCollection)
+                                .stream().map(mapFunc).collect(Collectors.toList());
             }
             List<Parameter> targetList = (List<Parameter>) targetCollection;
 
             for (int i = 0; i < valueList.size(); i++) {
-                if (!targetList.get(i).equals(valueList.get(i))) { // Should we make parameter comparable here?
+                if (!targetList
+                        .get(i)
+                        .equals(valueList.get(i))) { // Should we make parameter comparable here?
                     return false;
                 }
             }
             return true;
         }
-
     }
 
-    /**
-     * TODO: StreamMapType might not be a configurable type.
-     */
+    /** TODO: StreamMapType might not be a configurable type. */
     public static class StreamMapType extends ConfigurableType {
 
         SerializableFunction mapFunc;
 
-        public StreamMapType(ConcreteType t, FetchCollectionLambda configuration, SerializableFunction mapFunc) { // change to concreteGenericType
+        public StreamMapType(
+                ConcreteType t,
+                FetchCollectionLambda configuration,
+                SerializableFunction mapFunc) { // change to concreteGenericType
             /**
-             * In this case, the ConcreteType should be List<Pair<xxx>>.
-             * The set we select from will be the target set targetSet. Let's suppose it's also List<Pair<TEXT, TYPEType>>
-             * - we rewrite the generateRandomParameter() in this concreteGenericType
-             * - Instead of calling t.generateValue function, it should now construct values by select from targetSet.
-             * - Do it by anonymous class extends List, and we write the subset generateRandomParameter() for it.
+             * In this case, the ConcreteType should be List<Pair<xxx>>. The set we select from will
+             * be the target set targetSet. Let's suppose it's also List<Pair<TEXT, TYPEType>> - we
+             * rewrite the generateRandomParameter() in this concreteGenericType - Instead of
+             * calling t.generateValue function, it should now construct values by select from
+             * targetSet. - Do it by anonymous class extends List, and we write the subset
+             * generateRandomParameter() for it.
              */
             super(t, configuration);
             this.mapFunc = mapFunc;
@@ -506,15 +517,14 @@ public abstract class ParameterType implements Serializable {
 
         @Override
         public Parameter generateRandomParameter(State s, Command c) {
-            /**
-             * Current t should be concrete generic type List<xxx>
-             * - Select from collection set
-             */
+            /** Current t should be concrete generic type List<xxx> - Select from collection set */
             Object targetCollection = configuration.operate(s, c);
             Object tmpCollection;
 
             if (mapFunc != null) {
-                tmpCollection = ((Collection) targetCollection).stream().map(mapFunc).collect(Collectors.toList());
+                tmpCollection =
+                        ((Collection) targetCollection)
+                                .stream().map(mapFunc).collect(Collectors.toList());
             } else {
                 tmpCollection = (Collection) targetCollection;
             }
@@ -529,8 +539,7 @@ public abstract class ParameterType implements Serializable {
             List<Parameter> l = (List<Parameter>) p.value;
             for (int i = 0; i < l.size(); i++) {
                 sb.append(l.get(i).toString());
-                if (i < l.size() - 1)
-                    sb.append(", ");
+                if (i < l.size() - 1) sb.append(", ");
             }
             return sb.toString();
         }
@@ -586,7 +595,7 @@ public abstract class ParameterType implements Serializable {
 
         @Override
         public String generateStringValue(Parameter p) {
-            return isEmpty? "": ((Parameter) p.value).toString();
+            return isEmpty ? "" : ((Parameter) p.value).toString();
         }
 
         @Override
@@ -604,18 +613,15 @@ public abstract class ParameterType implements Serializable {
         @Override
         public boolean isEmpty(State s, Command c, Parameter p) {
             if (isEmpty) return true;
-            else
-                return t.isEmpty(s, c, p);
+            else return t.isEmpty(s, c, p);
         }
 
         @Override
         public boolean mutate(State s, Command c, Parameter p) {
             /**
-             * There should be two choices.
-             * 1. Mutate current state.
-             * 2. Mutate the subvalue.
-             * Since the optional parameters are likely to be a constant,
-             * we only mutate current isEmpty for now.
+             * There should be two choices. 1. Mutate current state. 2. Mutate the subvalue. Since
+             * the optional parameters are likely to be a constant, we only mutate current isEmpty
+             * for now.
              */
             assert p.type instanceof OptionalType;
             ((OptionalType) p.type).isEmpty = !((OptionalType) p.type).isEmpty;
@@ -624,10 +630,7 @@ public abstract class ParameterType implements Serializable {
     }
 
     public static class InCollectionType extends ConfigurableType {
-        /**
-         * For conflict options, not test yet.
-         */
-
+        /** For conflict options, not test yet. */
         @Override
         protected Object clone() {
             InCollectionType clone = null;
@@ -638,12 +641,17 @@ public abstract class ParameterType implements Serializable {
         public int idx;
         public final SerializableFunction mapFunc;
 
-        public InCollectionType(ConcreteType t, FetchCollectionLambda configuration, SerializableFunction mapFunc) {
+        public InCollectionType(
+                ConcreteType t, FetchCollectionLambda configuration, SerializableFunction mapFunc) {
             super(t, configuration);
             this.mapFunc = mapFunc;
         }
 
-        public InCollectionType(ConcreteType t, FetchCollectionLambda configuration, SerializableFunction mapFunc, Predicate predicate) {
+        public InCollectionType(
+                ConcreteType t,
+                FetchCollectionLambda configuration,
+                SerializableFunction mapFunc,
+                Predicate predicate) {
             super(t, configuration, predicate);
             this.mapFunc = mapFunc;
         }
@@ -651,18 +659,12 @@ public abstract class ParameterType implements Serializable {
         @Override
         public Parameter generateRandomParameter(State s, Command c, Object init) {
             /**
-             * InCollectionType
-             * - List<>   {col1, col2, co3}
+             * InCollectionType - List<> {col1, col2, co3}
              *
-             * return col2
+             * <p>return col2
              *
-             * Add init value col2 (initValue)
-             * for (p : Collection)
-             *      if (initValue.equals(p.toString))
-             *          return p;
-             *
-             *
-             *
+             * <p>Add init value col2 (initValue) for (p : Collection) if
+             * (initValue.equals(p.toString)) return p;
              */
             if (init == null) {
                 return generateRandomParameter(s, c);
@@ -674,9 +676,7 @@ public abstract class ParameterType implements Serializable {
 
             if (((Collection) targetCollection).isEmpty() == true) {
                 throw new CustomExceptions.EmptyCollectionException(
-                        "InCollection Type got empty Collection",
-                        null
-                );
+                        "InCollection Type got empty Collection", null);
             }
             Random rand = new Random();
 
@@ -685,7 +685,10 @@ public abstract class ParameterType implements Serializable {
             if (mapFunc == null) {
                 l = (List) (((Collection) targetCollection).stream().collect(Collectors.toList()));
             } else {
-                l = (List) (((Collection) targetCollection).stream().map(mapFunc).collect(Collectors.toList()));
+                l =
+                        (List)
+                                (((Collection) targetCollection)
+                                        .stream().map(mapFunc).collect(Collectors.toList()));
             }
 
             assert init instanceof String;
@@ -717,9 +720,7 @@ public abstract class ParameterType implements Serializable {
 
             if (((Collection) targetCollection).isEmpty() == true) {
                 throw new CustomExceptions.EmptyCollectionException(
-                        "InCollection Type got empty Collection",
-                        null
-                );
+                        "InCollection Type got empty Collection", null);
             }
             Random rand = new Random();
 
@@ -728,7 +729,10 @@ public abstract class ParameterType implements Serializable {
             if (mapFunc == null) {
                 l = (List) (((Collection) targetCollection).stream().collect(Collectors.toList()));
             } else {
-                l = (List) (((Collection) targetCollection).stream().map(mapFunc).collect(Collectors.toList()));
+                l =
+                        (List)
+                                (((Collection) targetCollection)
+                                        .stream().map(mapFunc).collect(Collectors.toList()));
             }
             idx = rand.nextInt(l.size());
 
@@ -739,7 +743,6 @@ public abstract class ParameterType implements Serializable {
                 Parameter ret = new Parameter(t, l.get(idx));
                 return new Parameter(this, ret);
             }
-
         }
 
         @Override
@@ -758,13 +761,15 @@ public abstract class ParameterType implements Serializable {
             if (mapFunc == null) {
                 l = (List) (((Collection) targetCollection).stream().collect(Collectors.toList()));
             } else {
-                l = (List) (((Collection) targetCollection).stream().map(mapFunc).collect(Collectors.toList()));
+                l =
+                        (List)
+                                (((Collection) targetCollection)
+                                        .stream().map(mapFunc).collect(Collectors.toList()));
             }
             /**
-             * Since we are basically generating the string.
-             * When comparing the parameter, we only care about the value.
-             * Then, what if we directly compare the toString() between
-             * two parameter?
+             * Since we are basically generating the string. When comparing the parameter, we only
+             * care about the value. Then, what if we directly compare the toString() between two
+             * parameter?
              */
             if (l.contains(p) || l.contains(p.getValue())) {
                 // l could be List<Parameter> or List<Object>...
@@ -787,11 +792,9 @@ public abstract class ParameterType implements Serializable {
         @Override
         public boolean mutate(State s, Command c, Parameter p) {
             /**
-             * Repick one from the set.
-             * If there is only one in the target collection, it means
-             * we cannot pick a different item.
-             * - Return false
-             * TODO: Make sure it's not the same one as before?
+             * Repick one from the set. If there is only one in the target collection, it means we
+             * cannot pick a different item. - Return false TODO: Make sure it's not the same one as
+             * before?
              */
             predicateCheck(s, c);
 
@@ -802,12 +805,16 @@ public abstract class ParameterType implements Serializable {
             if (mapFunc == null) {
                 l = (List) (((Collection) targetCollection).stream().collect(Collectors.toList()));
             } else {
-                l = (List) (((Collection) targetCollection).stream().map(mapFunc).collect(Collectors.toList()));
+                l =
+                        (List)
+                                (((Collection) targetCollection)
+                                        .stream().map(mapFunc).collect(Collectors.toList()));
             }
             if (l.isEmpty() == true) {
                 // Throw an exception, since the input sequence is already not correct!
-                throw new RuntimeException("[InCollectionType] Mutation: The input collection is already not valid" +
-                        "Run check() before the mutation!");
+                throw new RuntimeException(
+                        "[InCollectionType] Mutation: The input collection is already not valid"
+                                + "Run check() before the mutation!");
             }
 
             if (l.size() == 1) return false; // Cannot mutate
@@ -839,14 +846,14 @@ public abstract class ParameterType implements Serializable {
 
         SerializableFunction mapFunc;
 
-        public Type2ValueType(ConcreteType t, FetchCollectionLambda configuration, SerializableFunction mapFunc) {
+        public Type2ValueType(
+                ConcreteType t, FetchCollectionLambda configuration, SerializableFunction mapFunc) {
             super(t, configuration);
             this.mapFunc = mapFunc;
             // TODO: Make sure that configuration must be List<ConcreteTypes>
             /**
-             * If the value is not corrected, regenerate or add some minor
-             * changes
-             * Do we need a notEmpty function?
+             * If the value is not corrected, regenerate or add some minor changes Do we need a
+             * notEmpty function?
              */
         }
 
@@ -861,7 +868,10 @@ public abstract class ParameterType implements Serializable {
 
             List<Parameter> l;
             if (mapFunc != null) {
-                l = (List<Parameter>) ((Collection) targetCollection).stream().map(mapFunc).collect(Collectors.toList());
+                l =
+                        (List<Parameter>)
+                                ((Collection) targetCollection)
+                                        .stream().map(mapFunc).collect(Collectors.toList());
             } else {
                 l = (List<Parameter>) targetCollection;
             }
@@ -889,7 +899,10 @@ public abstract class ParameterType implements Serializable {
 
             List<Parameter> l;
             if (mapFunc != null) {
-                l = (List<Parameter>) ((Collection) targetCollection).stream().map(mapFunc).collect(Collectors.toList());
+                l =
+                        (List<Parameter>)
+                                ((Collection) targetCollection)
+                                        .stream().map(mapFunc).collect(Collectors.toList());
             } else {
                 l = (List<Parameter>) targetCollection;
             }
@@ -921,44 +934,38 @@ public abstract class ParameterType implements Serializable {
         @Override
         public boolean isValid(State s, Command c, Parameter p) {
             /**
-             * TODO: Check each slot to see whether it's still valid.
-             * Check whether the list size is change
+             * TODO: Check each slot to see whether it's still valid. Check whether the list size is
+             * change
              */
-
             Collection targetCollection = configuration.operate(s, c);
 
             assert targetCollection instanceof List;
             assert p.value instanceof List;
 
-            /**
-             *          p
-             *         / \
-             *        /   \
-             *   TYPEType TEXTType
-             */
+            /** p / \ / \ TYPEType TEXTType */
             List<Parameter> typeList;
             if (mapFunc != null) {
-                typeList = (List<Parameter>) ((Collection) targetCollection).stream().map(mapFunc).collect(Collectors.toList());
+                typeList =
+                        (List<Parameter>)
+                                ((Collection) targetCollection)
+                                        .stream().map(mapFunc).collect(Collectors.toList());
             } else {
                 typeList = (List<Parameter>) targetCollection;
             }
 
-            /**
-             *          p
-             *         / \
-             *        /   \
-             *   TEXTType "HelloWorld"
-             */
+            /** p / \ / \ TEXTType "HelloWorld" */
             List<Parameter> valueList = (List<Parameter>) p.value;
             if (typeList.size() != valueList.size()) return false;
 
             /**
-             * Make sure each concrete type have overrided the toString()
-             * Now we only add text, int, string
-             * TODO: But for the List Type comparing, we also need to add that.
+             * Make sure each concrete type have overrided the toString() Now we only add text, int,
+             * string TODO: But for the List Type comparing, we also need to add that.
              */
             for (int i = 0; i < typeList.size(); i++) {
-                if (!typeList.get(i).getValue().toString().equals(valueList.get(i).type.toString())) {
+                if (!typeList.get(i)
+                        .getValue()
+                        .toString()
+                        .equals(valueList.get(i).type.toString())) {
                     return false;
                 }
             }
@@ -975,9 +982,7 @@ public abstract class ParameterType implements Serializable {
 
         @Override
         public boolean isEmpty(State s, Command c, Parameter p) {
-            /**
-             * Return whether the current list is empty or not
-             */
+            /** Return whether the current list is empty or not */
             return ((Collection) configuration).isEmpty();
         }
 
@@ -1002,21 +1007,20 @@ public abstract class ParameterType implements Serializable {
                     }
                     values.get(mutateIdx).mutate(s, c);
             }
-//            Parameter ret = generateRandomParameter(s, c);
-//            p.value = ret.value;
+            //            Parameter ret = generateRandomParameter(s, c);
+            //            p.value = ret.value;
             return true;
         }
     }
 
     public static class SuperSetType extends ConfigurableType {
-        /**
-         * For conflict options, not test yet.
-         */
+        /** For conflict options, not test yet. */
         public int idx;
+
         public final SerializableFunction mapFunc;
 
-
-        public SuperSetType(ConcreteType t, FetchCollectionLambda configuration, SerializableFunction mapFunc) {
+        public SuperSetType(
+                ConcreteType t, FetchCollectionLambda configuration, SerializableFunction mapFunc) {
             super(t, configuration);
             this.mapFunc = mapFunc;
         }
@@ -1035,19 +1039,22 @@ public abstract class ParameterType implements Serializable {
         @Override
         public Parameter generateRandomParameter(State s, Command c) {
             /**
-             * use ConcreteType t to generate a parameter, it should be a concreteGenericType
-             * Check whether this parameter contains everything in the collection
-             * If not, add the rest to the collection
+             * use ConcreteType t to generate a parameter, it should be a concreteGenericType Check
+             * whether this parameter contains everything in the collection If not, add the rest to
+             * the collection
              */
             Parameter p = t.generateRandomParameter(s, c);
-//            assert p.type instanceof ConcreteGenericTypeOne;
+            //            assert p.type instanceof ConcreteGenericTypeOne;
             List<Parameter> l = (List<Parameter>) p.value;
 
             Collection targetCollection = configuration.operate(s, c);
 
             List<Parameter> targetSet;
             if (mapFunc != null) {
-                targetSet = (List) (((Collection) targetCollection).stream().map(mapFunc).collect(Collectors.toList()));
+                targetSet =
+                        (List)
+                                (((Collection) targetCollection)
+                                        .stream().map(mapFunc).collect(Collectors.toList()));
             } else {
                 targetSet = (List) (((Collection) targetCollection));
             }
@@ -1085,18 +1092,16 @@ public abstract class ParameterType implements Serializable {
 
         @Override
         public boolean mutate(State s, Command c, Parameter p) {
-            /**
-             * 1. Call value.mutate
-             * 2. Make sure it's still valid
-             */
+            /** 1. Call value.mutate 2. Make sure it's still valid */
             // TODO: Call inside mutate function
             p.value = generateRandomParameter(s, c).value;
             return true;
         }
     }
 
-    public static abstract class GenericTypeOne extends GenericType { }
-    public static abstract class GenericTypeTwo extends GenericType { }
+    public abstract static class GenericTypeOne extends GenericType {}
+
+    public abstract static class GenericTypeTwo extends GenericType {}
 
     // ConcreteGenericType: List<Pair<Text, Type>>
     // ConcreteGenericType: (Pair<Text, Type>)
@@ -1151,8 +1156,8 @@ public abstract class ParameterType implements Serializable {
             if (!(obj instanceof ConcreteGenericTypeOne)) return false;
             ConcreteGenericTypeOne other = (ConcreteGenericTypeOne) obj;
             return Objects.equals(this.t, other.t)
-                // TODO: Check: Do we need to compare every item in the list?
-                && Objects.equals(this.typesInTemplate, other.typesInTemplate);
+                    // TODO: Check: Do we need to compare every item in the list?
+                    && Objects.equals(this.typesInTemplate, other.typesInTemplate);
         }
 
         @Override
@@ -1163,7 +1168,8 @@ public abstract class ParameterType implements Serializable {
         // Use cache so that we won't construct duplicated types.
         public static HashMap<ConcreteGenericType, ConcreteGenericType> cache = new HashMap<>();
 
-        public static ConcreteGenericType constructConcreteGenericType(GenericType t, ConcreteType t1) {
+        public static ConcreteGenericType constructConcreteGenericType(
+                GenericType t, ConcreteType t1) {
             ConcreteGenericType ret = new ConcreteGenericTypeOne(t, t1);
             if (!cache.keySet().contains(ret)) {
                 cache.put(ret, ret);
@@ -1171,7 +1177,8 @@ public abstract class ParameterType implements Serializable {
             return cache.get(ret);
         }
 
-        public static ConcreteGenericType constructConcreteGenericType(GenericType t, ConcreteType t1, ConcreteType t2) {
+        public static ConcreteGenericType constructConcreteGenericType(
+                GenericType t, ConcreteType t1, ConcreteType t2) {
             ConcreteGenericType ret = new ConcreteGenericTypeTwo(t, t1, t2);
             if (!cache.keySet().contains(ret)) {
                 cache.put(ret, ret);
@@ -1189,8 +1196,7 @@ public abstract class ParameterType implements Serializable {
             sb.append("<");
             for (int i = 0; i < typesInTemplate.size(); i++) {
                 sb.append(typesInTemplate.get(i).toString());
-                if (i != typesInTemplate.size() - 1)
-                    sb.append(",");
+                if (i != typesInTemplate.size() - 1) sb.append(",");
             }
             sb.append(">");
             return sb.toString();
@@ -1205,7 +1211,6 @@ public abstract class ParameterType implements Serializable {
             this.t = t;
             this.typesInTemplate.add(t1);
         }
-
     }
 
     public static class ConcreteGenericTypeTwo extends ConcreteGenericType {

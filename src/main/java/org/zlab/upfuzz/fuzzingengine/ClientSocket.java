@@ -1,3 +1,4 @@
+/* (C)2022 */
 package org.zlab.upfuzz.fuzzingengine;
 
 import java.io.FileOutputStream;
@@ -5,7 +6,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.UnknownHostException;
-
 import org.jacoco.core.data.ExecutionDataWriter;
 
 public class ClientSocket extends Thread {
@@ -15,7 +15,11 @@ public class ClientSocket extends Thread {
 
     ClientSocket(FuzzingClient client) throws UnknownHostException, IOException {
         this.client = client;
-        this.server = new ServerSocket(Config.getConf().clientPort, 0, InetAddress.getByName(Config.getConf().clientHost));
+        this.server =
+                new ServerSocket(
+                        Config.getConf().clientPort,
+                        0,
+                        InetAddress.getByName(Config.getConf().clientHost));
         this.fileWriter = new ExecutionDataWriter(new FileOutputStream("./zlab-jacoco.exec"));
     }
 
@@ -30,6 +34,5 @@ public class ClientSocket extends Thread {
                 e.printStackTrace();
             }
         }
-
     }
 }

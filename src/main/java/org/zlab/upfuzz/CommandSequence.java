@@ -1,22 +1,20 @@
+/* (C)2022 */
 package org.zlab.upfuzz;
-
-import org.zlab.upfuzz.cassandra.CassandraCommands;
-import org.zlab.upfuzz.utils.INTType;
-import org.zlab.upfuzz.utils.Pair;
-import org.zlab.upfuzz.utils.STRINGType;
 
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-
-import javax.swing.text.Utilities;
+import org.zlab.upfuzz.cassandra.CassandraCommands;
+import org.zlab.upfuzz.utils.INTType;
+import org.zlab.upfuzz.utils.Pair;
+import org.zlab.upfuzz.utils.STRINGType;
 
 public class CommandSequence implements Serializable {
 
     public static final int MAX_CMD_SEQ_LEN = 20;
-    public final static int RETRY_GENERATE_TIME = 400;
-    public final static int RETRY_MUTATE_TIME = 20;
+    public static final int RETRY_GENERATE_TIME = 400;
+    public static final int RETRY_MUTATE_TIME = 20;
 
     public List<Command> commands;
     public final List<Map.Entry<Class<? extends Command>, Integer>> commandClassList;
@@ -24,10 +22,12 @@ public class CommandSequence implements Serializable {
     public final Class<? extends State> stateClass;
     public State state;
 
-    public CommandSequence(List<Command> commands,
+    public CommandSequence(
+            List<Command> commands,
             List<Map.Entry<Class<? extends Command>, Integer>> commandClassList,
             List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList,
-            Class<? extends State> stateClass, State state) {
+            Class<? extends State> stateClass,
+            State state) {
         this.commands = commands;
         this.commandClassList = commandClassList;
         this.createCommandClassList = createCommandClassList;
@@ -35,7 +35,9 @@ public class CommandSequence implements Serializable {
         this.state = state;
     }
 
-    public boolean separateFromFormerTest() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public boolean separateFromFormerTest()
+            throws NoSuchMethodException, InvocationTargetException, InstantiationException,
+                    IllegalAccessException {
 
         for (Command command : commands) {
             command.changeKeyspaceName(); // For separation
@@ -53,21 +55,20 @@ public class CommandSequence implements Serializable {
             }
         }
         this.commands = validCommands;
-//        System.out.println("\nSeparated Seq");
-//        for (Command command : commands) {
-//            System.out.println(command.toString());
-//        }
-//        System.out.println("\n");
+        //        System.out.println("\nSeparated Seq");
+        //        for (Command command : commands) {
+        //            System.out.println(command.toString());
+        //        }
+        //        System.out.println("\n");
         return true;
     }
 
-    public boolean mutate() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public boolean mutate()
+            throws NoSuchMethodException, InvocationTargetException, InstantiationException,
+                    IllegalAccessException {
         /**
-         * Choice
-         * 0: Mutate the command (Call command.mutate)  // 2/3
-         * 1: Insert a command                          // 1/3
-         * 2: Replace a command                         // 0
-         * 3: Delete a command // Temporary not chosen  // 0
+         * Choice 0: Mutate the command (Call command.mutate) // 2/3 1: Insert a command // 1/3 2:
+         * Replace a command // 0 3: Delete a command // Temporary not chosen // 0
          */
         separateFromFormerTest();
         addParamToTypePool();
@@ -118,9 +119,7 @@ public class CommandSequence implements Serializable {
                     e.printStackTrace();
                 }
             } else if (choice == 2) {
-                /**
-                 * Insert a command
-                 */
+                /** Insert a command */
                 // Compute the state up to the position
                 pos = org.zlab.upfuzz.utils.Utilities.biasRand(rand, commands.size() + 1, 5);
                 // pos = rand.nextInt(commands.size() + 1);
@@ -166,8 +165,7 @@ public class CommandSequence implements Serializable {
             }
             // Check the following commands
             /**
-             * There could be some commands that cannot be
-             * fixed. Therefore, remove them to keep the
+             * There could be some commands that cannot be fixed. Therefore, remove them to keep the
              * validity.
              */
             List<Command> validCommands = new LinkedList<>();
@@ -193,18 +191,18 @@ public class CommandSequence implements Serializable {
         return false;
     }
 
-    public static Command generateSingleCommand(List<Map.Entry<Class<? extends Command>, Integer>> commandClassList, State state) {
+    public static Command generateSingleCommand(
+            List<Map.Entry<Class<? extends Command>, Integer>> commandClassList, State state) {
         Command command = null;
         Random rand = new Random();
         assert commandClassList.isEmpty() == false;
         /**
-         * Set Retry time is to avoid forever loop when all
-         * the commands cannot be generated correctly.
+         * Set Retry time is to avoid forever loop when all the commands cannot be generated
+         * correctly.
          */
         for (int i = 0; i < RETRY_GENERATE_TIME; i++) {
             try {
-                int sum = commandClassList.stream().mapToInt(a -> a.getValue())
-                        .sum();
+                int sum = commandClassList.stream().mapToInt(a -> a.getValue()).sum();
 
                 int tmpSum = 0;
                 int randInt = rand.nextInt(sum);
@@ -212,12 +210,10 @@ public class CommandSequence implements Serializable {
 
                 for (int j = 0; j < sum; j++) {
                     tmpSum += commandClassList.get(j).getValue();
-                    if (randInt < tmpSum)
-                        break;
+                    if (randInt < tmpSum) break;
                     cmdIdx++;
                 }
-                Class<? extends Command> clazz = commandClassList.get(cmdIdx)
-                        .getKey();
+                Class<? extends Command> clazz = commandClassList.get(cmdIdx).getKey();
                 Constructor<?> constructor = null;
                 try {
                     // TODO use state.getClass()
@@ -239,10 +235,13 @@ public class CommandSequence implements Serializable {
         return command;
     }
 
-    public static CommandSequence generateSequence(List<Map.Entry<Class<? extends Command>, Integer>> commandClassList,
-                                                   List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList,
-                                                   Class<? extends State> stateClass, State state)
-            throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public static CommandSequence generateSequence(
+            List<Map.Entry<Class<? extends Command>, Integer>> commandClassList,
+            List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList,
+            Class<? extends State> stateClass,
+            State state)
+            throws NoSuchMethodException, InvocationTargetException, InstantiationException,
+                    IllegalAccessException {
 
         assert commandClassList != null;
 
@@ -251,8 +250,7 @@ public class CommandSequence implements Serializable {
         int len = rand.nextInt(MAX_CMD_SEQ_LEN) + 1;
 
         Constructor<?> constructor = stateClass.getConstructor();
-        if (state == null)
-            state = (State) constructor.newInstance();
+        if (state == null) state = (State) constructor.newInstance();
 
         //        len = 8; // Debug
         List<Command> commands = new LinkedList<>();
@@ -263,20 +261,16 @@ public class CommandSequence implements Serializable {
 
             if (createCommandClassList != null) {
                 /**
-                 * Make sure the first three columns are write related command,
-                 * so that the later command can be generated more easily.
-                 * [Could be changed later]
+                 * Make sure the first three columns are write related command, so that the later
+                 * command can be generated more easily. [Could be changed later]
                  */
                 if (i <= 2) {
-                    commands.add(generateSingleCommand(createCommandClassList,
-                            state));
+                    commands.add(generateSingleCommand(createCommandClassList, state));
                     continue;
                 } else {
-                    Command command = generateSingleCommand(commandClassList,
-                            state);
+                    Command command = generateSingleCommand(commandClassList, state);
                     if (command == null) {
-                        command = generateSingleCommand(createCommandClassList,
-                                state);
+                        command = generateSingleCommand(createCommandClassList, state);
                     }
 
                     commands.add(command);
@@ -289,20 +283,18 @@ public class CommandSequence implements Serializable {
 
                 commands.add(command);
             }
-
-
         }
-
 
         cleanTypePool();
 
-        return new CommandSequence(commands, commandClassList, createCommandClassList, stateClass, state);
+        return new CommandSequence(
+                commands, commandClassList, createCommandClassList, stateClass, state);
     }
 
     public CommandSequence generateRelatedReadSequence() {
         /**
-         * Given a command sequence, and a state from them
-         * Return a read command sequence, by two ways
+         * Given a command sequence, and a state from them Return a read command sequence, by two
+         * ways
          */
         // Start from the state stored in current object
 
@@ -320,7 +312,8 @@ public class CommandSequence implements Serializable {
             }
         }
 
-        return new CommandSequence(commands, commandClassList, createCommandClassList, stateClass, state);
+        return new CommandSequence(
+                commands, commandClassList, createCommandClassList, stateClass, state);
     }
 
     public List<String> getCommandStringList() {
@@ -333,14 +326,12 @@ public class CommandSequence implements Serializable {
 
     public static boolean checkAndUpdateCommand(Command command, State state) {
         /**
-         * Check whether current command is valid. Fix if not valid.
-         * TODO: What if it cannot be fixed?
-         * - simple solution, just return a false, and make command sequence remove it.
+         * Check whether current command is valid. Fix if not valid. TODO: What if it cannot be
+         * fixed? - simple solution, just return a false, and make command sequence remove it.
          * Update the command string
          */
         boolean fixable = command.regenerateIfNotValid(state);
-        if (fixable)
-            command.updateExecutableCommandString();
+        if (fixable) command.updateExecutableCommandString();
         return fixable;
     }
 
@@ -355,10 +346,10 @@ public class CommandSequence implements Serializable {
     }
 
     public void addParamToTypePool() {
-        for (Command command: commands) {
+        for (Command command : commands) {
             // For each parameter, if the type is String or Int
             // Add them to the pool
-            for (Parameter param: command.params) {
+            for (Parameter param : command.params) {
                 Object val = param.getValue();
                 add2Pool(val);
             }
@@ -376,11 +367,9 @@ public class CommandSequence implements Serializable {
             add2Pool(pair.left.getValue());
             add2Pool(pair.right.getValue());
         } else if (val instanceof String) {
-            if (!((String) val).contains(" "))
-                STRINGType.stringPool.add((String) val);
+            if (!((String) val).contains(" ")) STRINGType.stringPool.add((String) val);
         } else if (val instanceof Integer) {
             INTType.intPool.add((Integer) val);
         }
     }
-
 }

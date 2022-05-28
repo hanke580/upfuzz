@@ -1,12 +1,12 @@
+/* (C)2022 */
 package org.zlab.upfuzz.hdfs.dfscommands;
 
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.ConcatenateType;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomHadoopPathType;
-import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomLocalPathType;
+import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.INTType;
 
@@ -19,31 +19,50 @@ public class CpCommand extends DfsCommands {
         Parameter cpcmd = new CONSTANTSTRINGType("-cp").generateRandomParameter(null, null);
 
         // -f : Overwrites the destination if it already exists.
-        Parameter fOption = new ParameterType.OptionalType(new CONSTANTSTRINGType("-f"), null)
-                .generateRandomParameter(null, null);
+        Parameter fOption =
+                new ParameterType.OptionalType(new CONSTANTSTRINGType("-f"), null)
+                        .generateRandomParameter(null, null);
 
-        // -p : Preserve file attributes [topx] (timestamps, ownership, permission, ACL, XAttr). If -p is specified with no arg, then preserves timestamps, ownership, permission. If -pa is specified, then preserves permission also because ACL is a super-set of permission. Determination of whether raw namespace extended attributes are preserved is independent of the -p flag.
-        Parameter pOption = new ParameterType.OptionalType(new CONSTANTSTRINGType("-p"), null)
-                .generateRandomParameter(null, null);
+        // -p : Preserve file attributes [topx] (timestamps, ownership, permission, ACL, XAttr). If
+        // -p is specified with no arg, then preserves timestamps, ownership, permission. If -pa is
+        // specified, then preserves permission also because ACL is a super-set of permission.
+        // Determination of whether raw namespace extended attributes are preserved is independent
+        // of the -p flag.
+        Parameter pOption =
+                new ParameterType.OptionalType(new CONSTANTSTRINGType("-p"), null)
+                        .generateRandomParameter(null, null);
 
         // -d : Skip creation of temporary file with the suffix ._COPYING_.
-        Parameter dOption = new ParameterType.OptionalType(new CONSTANTSTRINGType("-d"), null)
-                .generateRandomParameter(null, null);
+        Parameter dOption =
+                new ParameterType.OptionalType(new CONSTANTSTRINGType("-d"), null)
+                        .generateRandomParameter(null, null);
 
-        // -t <thread count> : Number of threads to be used, default is 1. Useful when uploading directories containing more than 1 file.
+        // -t <thread count> : Number of threads to be used, default is 1. Useful when uploading
+        // directories containing more than 1 file.
         Parameter tOption = new CONSTANTSTRINGType("-t").generateRandomParameter(null, null);
-        Parameter threadNumberParameter = new INTType(1, 16 + 1).generateRandomParameter(null, null);
-        Parameter threadOption  = new ParameterType.OptionalType(new ConcatenateType(tOption, threadNumberParameter), null).generateRandomParameter(null, null);
+        Parameter threadNumberParameter =
+                new INTType(1, 16 + 1).generateRandomParameter(null, null);
+        Parameter threadOption =
+                new ParameterType.OptionalType(
+                                new ConcatenateType(tOption, threadNumberParameter), null)
+                        .generateRandomParameter(null, null);
 
-        // -q <thread pool queue size> : Thread pool queue size to be used, default is 1024. It takes effect only when thread count greater than 1.
+        // -q <thread pool queue size> : Thread pool queue size to be used, default is 1024. It
+        // takes effect only when thread count greater than 1.
 
         Parameter qOption = new CONSTANTSTRINGType("-q").generateRandomParameter(null, null);
-        Parameter poolQueueParameter = new INTType(1024, 65536 + 1).generateRandomParameter(null, null);
-        Parameter threadQueueOption  = new ParameterType.OptionalType(new ConcatenateType(qOption, poolQueueParameter), null).generateRandomParameter(null, null);
+        Parameter poolQueueParameter =
+                new INTType(1024, 65536 + 1).generateRandomParameter(null, null);
+        Parameter threadQueueOption =
+                new ParameterType.OptionalType(
+                                new ConcatenateType(qOption, poolQueueParameter), null)
+                        .generateRandomParameter(null, null);
 
-        Parameter srcParameter = new RandomHadoopPathType().generateRandomParameter(hdfsState, null);
+        Parameter srcParameter =
+                new RandomHadoopPathType().generateRandomParameter(hdfsState, null);
 
-        Parameter dstParameter = new RandomHadoopPathType().generateRandomParameter(hdfsState, null);
+        Parameter dstParameter =
+                new RandomHadoopPathType().generateRandomParameter(hdfsState, null);
 
         params.add(cpcmd);
         params.add(fOption);
@@ -56,6 +75,5 @@ public class CpCommand extends DfsCommands {
     }
 
     @Override
-    public void updateState(State state) {
-    }
+    public void updateState(State state) {}
 }

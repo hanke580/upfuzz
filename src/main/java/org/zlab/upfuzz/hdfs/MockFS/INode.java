@@ -1,3 +1,4 @@
+/* (C)2022 */
 package org.zlab.upfuzz.hdfs.MockFS;
 
 import java.io.Serializable;
@@ -82,6 +83,7 @@ public class INode implements Serializable {
     int i_size_high;
 
     enum IType {
-        File, Dir;
+        File,
+        Dir;
     }
 }

@@ -1,3 +1,4 @@
+/* (C)2022 */
 package org.zlab.upfuzz.fuzzingengine;
 
 public class SessionId {
