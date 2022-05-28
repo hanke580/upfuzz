@@ -118,7 +118,7 @@ public class CassandraExecutor extends Executor {
                             "Cassandra Start fails", null);
                 }
                 System.out.println("Wait for " + systemID + " ready...");
-                Thread.sleep(1000);
+                Thread.sleep(2000);
             }
             long endTime = System.currentTimeMillis();
             System.out
@@ -358,7 +358,7 @@ public class CassandraExecutor extends Executor {
             }
             try {
                 System.out.println("Upgrade System Waiting...");
-                Thread.sleep(2000);
+                Thread.sleep(3000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -408,22 +408,15 @@ public class CassandraExecutor extends Executor {
                         .compareTo(newVersionResult.get(i)) != 0) {
                     failureType = FailureType.RESULT_INCONSISTENCY;
 
-                    String errorMsg = "Result not the same in sequence id = "
-                            + i + "  " + "Old Version Result: "
-                            + oldVersionResult.get(i) + "  "
-                            + "New Version Result: " + newVersionResult.get(i)
-                            + "\n";
+                    String errorMsg = "Result not the same at read sequence id = " + i + "\n" +
+                    "Old Version Result: " + oldVersionResult.get(i) + "  " +
+                    "New Version Result: " + newVersionResult.get(i) + "\n";
 
                     if (failureInfo == null) {
                         failureInfo = errorMsg;
                     } else {
                         failureInfo += errorMsg;
                     }
-                    failureInfo += "Result not the same in sequence id = " + i
-                            + "\n" + "Old Version Result: "
-                            + oldVersionResult.get(i) + "\n"
-                            + "New Version Result: " + newVersionResult.get(i)
-                            + "\n\n";
                     ret = false;
                     break;
                 }

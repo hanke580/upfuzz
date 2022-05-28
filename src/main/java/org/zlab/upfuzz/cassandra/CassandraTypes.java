@@ -27,10 +27,11 @@ public class CassandraTypes {
         //    types.add(PAIRType.instance);
         genericType2String.put(LISTType.instance, "LIST");
 
-        // Because of templated types - template types are dynamically generated -
-        // we do not have a fixed list. When generating a TYPEType, we pick among a
-        // list of
-    }
+    // Because of templated types - template types are dynamically generated -
+    // we do not have a fixed list. When generating a TYPEType, we pick among a
+    // list of
+  }
+
 
     public static class TEXTType extends STRINGType {
         /**

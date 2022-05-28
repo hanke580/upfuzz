@@ -5,6 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * User need to implement two methods constructCommandString() and updateState().
@@ -19,6 +20,7 @@ public abstract class Command implements Serializable {
     public Command() {
         params = new LinkedList<>();
     }
+
     public void updateExecutableCommandString() {
         executableCommandString = constructCommandString();
     }
@@ -29,13 +31,14 @@ public abstract class Command implements Serializable {
     }
 
     public abstract String constructCommandString();
+
     public abstract void updateState(State state);
 
-    public boolean mutate(State s) throws
-            IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+    public boolean mutate(State s) throws IllegalAccessException,
+            NoSuchMethodException, InvocationTargetException {
         Random rand = new Random();
         int mutateParamIdx = rand.nextInt(params.size());
-//        mutateParamIdx = 0;
+        //        mutateParamIdx = 0;
         System.out.println("\n Mutate Param Pos = " + mutateParamIdx);
 
         return params.get(mutateParamIdx).mutate(s, this);
@@ -60,5 +63,9 @@ public abstract class Command implements Serializable {
             }
         }
         return true;
+    }
+
+    public Set<Command> generateRelatedReadCommand(State state) {
+        return null;
     }
 }

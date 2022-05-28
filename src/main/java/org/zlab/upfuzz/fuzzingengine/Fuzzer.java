@@ -132,19 +132,30 @@ public class Fuzzer {
                     mutatedCommandSequence.mutate();
 
                     // Update the validationCommandSequence...
-                    validationCommandSequence = Executor
+                    validationCommandSequence = mutatedCommandSequence.generateRelatedReadSequence();
+                    for (String readCmdStr : validationCommandSequence.getCommandStringList()) {
+                        System.out.println(readCmdStr);
+                    }
+                    System.out.println();
+                    if (validationCommandSequence.commands.isEmpty() == true) {
+                                            validationCommandSequence = Executor
                             .prepareValidationCommandSequence(commandPool,
                                     mutatedCommandSequence.state);
-
-                } catch (InvocationTargetException | NoSuchMethodException
-                        | InstantiationException | IllegalAccessException e) {
+                    }
+                } catch (Exception e) {
                     i--;
                     continue;
                 }
+                ExecutionDataStore testSequenceCoverage = null;
                 executor.reset(mutatedCommandSequence,
                         validationCommandSequence);
-                ExecutionDataStore testSequenceCoverage = fuzzingClient
-                        .start(executor);
+                try {
+                    testSequenceCoverage = fuzzingClient.start(executor);
+                } catch (Exception e) {
+                    Utilities.clearCassandraDataDir();
+                    i--;
+                    continue;
+                }
                 // TODO: Add compare function in Jacoco
                 if (Utilities.hasNewBits(curCoverage, testSequenceCoverage)) {
                     queue.add(new Pair<>(mutatedCommandSequence,

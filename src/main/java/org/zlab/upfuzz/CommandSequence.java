@@ -34,14 +34,13 @@ public class CommandSequence implements Serializable {
             InstantiationException, IllegalAccessException {
 
         Random rand = new Random();
-        int choice = rand.nextInt(3);
+        int choice = rand.nextInt(4);
 
         /**
-         * 0: Mutate the command (Call command.mutate)
-         *      - Could be not possible to fix (For current command)
-         * 1: Insert a command
-         * 2: Replace a command
-         * 3: Delete a command // Temporary not chosen
+         * 0: Mutate the command (Call command.mutate)  // 50%
+         * 1: Insert a command                          // 25%
+         * 2: Replace a command                         // 25%
+         * 3: Delete a command // Temporary not chosen  // 0%
          */
 
         // switch (choice) {
@@ -64,17 +63,17 @@ public class CommandSequence implements Serializable {
         // System.out.println("Mutate Command Index = " + pos);
 
         Constructor<?> constructor = stateClass.getConstructor();
-        State state = (State) constructor.newInstance();
-
-        pos = 1; // DEBUG
-        choice = 1; // DEBUG
+        State state = (State) constructor.newInstance(); // Recreate a state
+//
+//        pos = 1; // DEBUG
+//        choice = 1; // DEBUG
 
         // Compute the state up to the position
         for (int i = 0; i < pos; i++) {
             commands.get(i).updateState(state);
         }
 
-        if (choice == 0) {
+        if (choice == 0 || choice == 1) {
             // Mutate a specific command
             try {
                 commands.get(pos).mutate(state);
@@ -95,7 +94,7 @@ public class CommandSequence implements Serializable {
             } catch (InvocationTargetException e) {
                 e.printStackTrace();
             }
-        } else if (choice == 1) {
+        } else if (choice == 2) {
             // Insert a command
             /**
              * Now regenerate the state from beginning to the mutated command.
@@ -130,7 +129,7 @@ public class CommandSequence implements Serializable {
             commands.add(pos, command);
             commands.get(pos).updateState(state);
 
-        } else if (choice == 2) {
+        } else if (choice == 3) {
             // Replace a command
             /**
              * TODO: Pick from the command pool
@@ -289,6 +288,30 @@ public class CommandSequence implements Serializable {
                 createCommandClassList, stateClass, state);
     }
 
+    public CommandSequence generateRelatedReadSequence() {
+        /**
+         * Given a command sequence, and a state from them
+         * Return a read command sequence, by two ways
+         */
+        // Start from the state stored in current object
+
+        List<Command> commands = new LinkedList<>();
+        for (Command command : this.commands) {
+            Set<Command> readCommands = command.generateRelatedReadCommand(this.state);
+            if (readCommands != null) {
+                for (Command readCommand : readCommands) {
+                    boolean fixable = checkAndUpdateCommand(readCommand, state);
+                    if (fixable) {
+                        commands.add(readCommand);
+                        updateState(readCommand, state);
+                    }
+                }
+            }
+        }
+
+        return new CommandSequence(commands, commandClassList, createCommandClassList, stateClass, state);
+    }
+
     public List<String> getCommandStringList() {
         List<String> commandStringList = new ArrayList<>();
         for (Command command : commands) {
@@ -307,7 +330,6 @@ public class CommandSequence implements Serializable {
         boolean fixable = command.regenerateIfNotValid(state);
         if (fixable)
             command.updateExecutableCommandString();
-        ;
         return fixable;
     }
 
