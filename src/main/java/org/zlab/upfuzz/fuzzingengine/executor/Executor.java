@@ -41,21 +41,19 @@ public abstract class Executor implements IExecutor {
         testId2oldVersionResult = new HashMap<>();
         testId2newVersionResult = new HashMap<>();
         testId2Failure = new HashMap<>();
+        executorID = RandomStringUtils.randomAlphanumeric(8);
     }
 
     protected Executor(String systemID) {
+        this();
         this.systemID = systemID;
-    }
-
-    protected Executor(CommandSequence commandSequence,
-            CommandSequence validationCommandSequence) {
-        executorID = RandomStringUtils.randomAlphanumeric(8);
     }
 
     protected Executor(CommandSequence commandSequence,
             CommandSequence validationCommandSequence, String systemID) {
-        this(commandSequence, validationCommandSequence);
-        this.systemID = systemID;
+        this(systemID);
+        this.commandSequence = commandSequence;
+        this.validationCommandSequence = validationCommandSequence;
     }
 
     public void reset(CommandSequence commandSequence,

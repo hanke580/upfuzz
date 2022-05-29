@@ -8,11 +8,13 @@ import java.rmi.UnexpectedException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.CustomExceptions;
 import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
+import org.zlab.upfuzz.hdfs.HdfsExecutor;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
@@ -20,8 +22,7 @@ public class FuzzingClient {
     public static final int epochNum = 60; // Validation per epochNum
 
     /**
-     * key: String -> agentId
-     * value: Codecoverage for this agent
+     * key: String -> agentId value: Codecoverage for this agent
      */
     public Map<String, ExecutionDataStore> agentStore;
 
@@ -46,8 +47,6 @@ public class FuzzingClient {
 
     FuzzingClient() {
         init();
-        executor = new CassandraExecutor();
-        executor.startup();
     }
 
     private void init() {
@@ -75,11 +74,20 @@ public class FuzzingClient {
     public FeedBack start(CommandSequence commandSequence,
             CommandSequence validationCommandSequence, int testId) {
 
+        if (Config.getConf().system.equals("cassandra")) {
+            executor = new CassandraExecutor(commandSequence,
+                    validationCommandSequence);
+        } else if (Config.getConf().system.equals("hdfs")) {
+            executor = new HdfsExecutor(commandSequence,
+                    validationCommandSequence);
+        }
+
+        executor.startup();
+
         try {
             System.out.println(
                     "Main Class Name: " + Utilities.getMainClassName());
         } catch (ClassNotFoundException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
@@ -124,10 +132,8 @@ public class FuzzingClient {
 
         if (epochNum == 1 || testId != 0 && testId % epochNum == 0) {
             /**
-             * Perform a validation
-             * 1. Stop the running instance
-             * 2. Perform Upgrade check
-             * 3. Restart the executor
+             * Perform a validation 1. Stop the running instance 2. Perform
+             * Upgrade check 3. Restart the executor
              */
             // long startTime = System.currentTimeMillis();
             executor.saveSnapshot();
@@ -151,11 +157,10 @@ public class FuzzingClient {
 
                 if (ret == false) {
                     /**
-                     * An inconsistency has been found
-                     * 1. It could be exception during the upgrade process
-                     * 2. The result is different between two versions
-                     * Serialize them into the folder, 2 sequences + failureType +
-                     * failureInfo
+                     * An inconsistency has been found 1. It could be exception
+                     * during the upgrade process 2. The result is different
+                     * between two versions Serialize them into the folder, 2
+                     * sequences + failureType + failureInfo
                      */
                     while (Paths
                             .get(Config.getConf().crashDir, "crash_" + epoch)
@@ -304,8 +309,8 @@ public class FuzzingClient {
                     System.out.println("no data");
                 } else {
                     /**
-                     * astore: Map: Classname -> int[] probes.
-                     * this will merge the probe of each classes.
+                     * astore: Map: Classname -> int[] probes. this will merge
+                     * the probe of each classes.
                      */
                     execStore.merge(astore);
                     System.out.println(

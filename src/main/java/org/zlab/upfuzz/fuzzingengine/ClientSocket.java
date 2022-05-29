@@ -18,6 +18,8 @@ public class ClientSocket extends Thread {
         this.client = client;
         this.server = new ServerSocket(Config.getConf().clientPort, 0,
                 InetAddress.getByName(Config.getConf().clientHost));
+        System.out.println(
+                "Server start at: " + this.server.getLocalSocketAddress());
         this.fileWriter = new ExecutionDataWriter(
                 new FileOutputStream("./zlab-jacoco.exec"));
     }
@@ -34,6 +36,5 @@ public class ClientSocket extends Thread {
                 e.printStackTrace();
             }
         }
-
     }
 }

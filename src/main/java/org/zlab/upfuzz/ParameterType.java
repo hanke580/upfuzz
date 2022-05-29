@@ -70,9 +70,10 @@ public abstract class ParameterType implements Serializable {
                 List<ConcreteType> types, Object init);
 
         public abstract String generateStringValue(Parameter p,
-                List<ConcreteType> types); // Maybe this should be in Parameter
-                                           // class? It has the concrete type
-                                           // anyways.
+                List<ConcreteType> types);
+        // Maybe this should be in Parameter
+        // class? It has the concrete type
+        // anyways.
 
         public abstract boolean isEmpty(State s, Command c, Parameter p,
                 List<ConcreteType> types);
@@ -160,7 +161,9 @@ public abstract class ParameterType implements Serializable {
         public Parameter generateRandomParameter(State s, Command c) {
             Parameter ret = t.generateRandomParameter(s, c); // ((Pair<TEXTType,
                                                              // TYPEType>)ret.value).left
-            // TODO: Don't compute this every time.
+                                                             // TODO: Don't
+                                                             // compute this
+                                                             // every time.
             while (!isValid(s, c, ret)) {
                 ret = t.generateRandomParameter(s, c);
             }

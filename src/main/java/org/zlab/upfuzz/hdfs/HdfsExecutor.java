@@ -19,7 +19,7 @@ import org.zlab.upfuzz.utils.Utilities;
 
 public class HdfsExecutor extends Executor {
 
-    static final String jacocoOptions = "=append=false,includes=org.apache.hadoop.*,output=dfe,address=localhost,sessionid=";
+    static final String jacocoOptions = "=append=false,includes=org.apache.hadoop.*,output=dfe,address=localhost,port=6300,sessionid=";
     Process hdfsProcess;
 
     public HdfsExecutor(CommandSequence commandSequence,
@@ -29,7 +29,54 @@ public class HdfsExecutor extends Executor {
 
     @Override
     public boolean upgradeTest() {
-        // TODO Auto-generated method stub
+        try {
+            System.out.println("start hadoop...");
+            ProcessBuilder hdfsProcessBuilder = new ProcessBuilder(
+                    "sbin/start-dfs.sh");
+            Map<String, String> env = hdfsProcessBuilder.environment();
+            env.put("JAVA_TOOL_OPTIONS",
+                    "-javaagent:" + Config.getConf().jacocoAgentPath
+                            + jacocoOptions + systemID + "-" + executorID
+                            + "_upgraded");
+            hdfsProcessBuilder
+                    .directory(new File(Config.getConf().newSystemPath));
+            hdfsProcessBuilder.redirectErrorStream(true);
+            hdfsProcessBuilder.redirectOutput(Paths
+                    .get(Config.getConf().newSystemPath, "logs.txt").toFile());
+
+            System.out.println("Executor starting hdfs");
+            long startTime = System.currentTimeMillis();
+            hdfsProcess = hdfsProcessBuilder.start();
+            // byte[] out = hdfsProcess.getInputStream().readAllBytes();
+            // BufferedReader in = new BufferedReader(new
+            // InputStreamReader(hdfsProcess.getInputStream()));
+            // String line;
+            // while ((line = in.readLine()) != null) {
+            // System.out.println(line);
+            // System.out.flush();
+            // }
+            // in.close();
+            // hdfsProcess.waitFor();
+            System.out.println("hdfs " + executorID + " started");
+            while (!isHdfsReady(Config.getConf().newSystemPath)) {
+                if (!hdfsProcess.isAlive()) {
+                    // System.out.println("hdfs process crushed\nCheck " +
+                    // Config.getConf().hdfsOutputFile
+                    // + " for details");
+                    // System.exit(1);
+                    throw new CustomExceptions.systemStartFailureException(
+                            "Hdfs Start fails", null);
+                }
+                System.out.println("Wait for " + systemID + " ready...");
+                Thread.sleep(1000);
+            }
+            long endTime = System.currentTimeMillis();
+            System.out.println("hdfs " + executorID + " ready \n time usage:"
+                    + (endTime - startTime) / 1000. + "\n");
+
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
         return false;
     }
 
@@ -55,6 +102,18 @@ public class HdfsExecutor extends Executor {
         return ret == 0;
     }
 
+    public void stopDfs() {
+        try {
+            Process stopDfsProcess = Utilities.exec(
+                    new String[] { "sbin/stop-dfs.sh" },
+                    Config.getConf().oldSystemPath);
+            int ret = stopDfsProcess.waitFor();
+            System.out.println("stop dfs first: " + ret);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public void startup() {
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -67,14 +126,23 @@ public class HdfsExecutor extends Executor {
                 }
             }
         });
+        stopDfs();
 
         int ret = 0;
         System.out.println("hadoop format disk...");
         try {
             FileUtils.deleteDirectory(Config.getConf().dataDir);
-            Process hdfsFormatProcess = Utilities.exec(
-                    new String[] { "bin/hdfs", "namenode", "-format" },
-                    Config.getConf().oldSystemPath);
+            ProcessBuilder hdfsFormatProcessBuilder = new ProcessBuilder(
+                    "bin/hdfs", "namenode", "-format");
+            hdfsFormatProcessBuilder.redirectErrorStream(true);
+            hdfsFormatProcessBuilder
+                    .directory(new File(Config.getConf().oldSystemPath));
+            hdfsFormatProcessBuilder.redirectOutput(
+                    Paths.get(Config.getConf().oldSystemPath, "format_logs.txt")
+                            .toFile());
+
+            Process hdfsFormatProcess = hdfsFormatProcessBuilder.start();
+
             // hdfsFormatProcess.waitFor(1000, TimeUnit.MILLISECONDS);
             // byte[] bytes = new byte[65536];
             // int n = hdfsFormatProcess.getInputStream().read(bytes);
@@ -86,19 +154,23 @@ public class HdfsExecutor extends Executor {
             // String formatMessage = Utilities.readProcess(hdfsFormatProcess);
             // System.out.println("format messsage: " + formatMessage);
             // hdfsFormatProcess.getOutputStream().write("Y\n".getBytes());
-            hdfsFormatProcess.waitFor();
-            ret = hdfsFormatProcess.exitValue();
+            ret = hdfsFormatProcess.waitFor();
             System.out.println("format result: " + ret);
             if (ret != 0) {
-                throw new Exception("hdfs format exception");
+                throw new CustomExceptions.systemStartFailureException(
+                        "hdfs format exception", null);
             }
+
             System.out.println("start hadoop...");
             ProcessBuilder hdfsProcessBuilder = new ProcessBuilder(
+                    // "bin/hdfs", "--daemon", "start", "namenode");
                     "sbin/start-dfs.sh");
             Map<String, String> env = hdfsProcessBuilder.environment();
             env.put("JAVA_TOOL_OPTIONS",
                     "-javaagent:" + Config.getConf().jacocoAgentPath
-                            + jacocoOptions + systemID + "-" + executorID);
+                            + jacocoOptions + systemID + "-" + executorID
+                            + "_original");
+            System.out.println("env:" + env.get("JAVA_TOOL_OPTIONS"));
             hdfsProcessBuilder
                     .directory(new File(Config.getConf().oldSystemPath));
             hdfsProcessBuilder.redirectErrorStream(true);
@@ -134,7 +206,7 @@ public class HdfsExecutor extends Executor {
             long endTime = System.currentTimeMillis();
             System.out.println("hdfs " + executorID + " ready \n time usage:"
                     + (endTime - startTime) / 1000. + "\n");
-        } catch (Exception e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
     }
@@ -175,7 +247,7 @@ public class HdfsExecutor extends Executor {
                 e.printStackTrace();
             }
         }
-        return null;
+        return ret;
     }
 
     /**

@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -30,18 +31,20 @@ import org.zlab.upfuzz.utils.Utilities;
 
 public class Fuzzer {
     /**
-     * start from one seed, fuzz it for a certain times.
-     * Also check the coverage here?
+     * start from one seed, fuzz it for a certain times. Also check the coverage
+     * here?
+     * 
      * @param commandSequence
-     * @param fromCorpus Whether the given seq is from the corpus. If yes, only run the
-     *                   mutated seed. If no, this seed also need run.
+     * @param fromCorpus
+     *            Whether the given seq is from the corpus. If yes, only run the
+     *            mutated seed. If no, this seed also need run.
      * @return
      */
     public static final int TEST_NUM = 2000;
 
     /**
-     * If a seed cannot be correctly mutated for more than five times,
-     * Discard this test case.
+     * If a seed cannot be correctly mutated for more than five times, Discard
+     * this test case.
      */
     public static final int MUTATE_RETRY_TIME = 10;
     public static int testID = 0;
@@ -57,14 +60,27 @@ public class Fuzzer {
     public static List<Pair<Integer, Integer>> upgradedCoverageAlongTime = new ArrayList<>(); // time:
                                                                                               // Coverage
     public static long lastTimePoint = 0;
-    public static long timeInterval = 600; // seconds, now set it as every 10
-                                           // mins
+
+    // seconds, now set it as every 10 mins
+    public static long timeInterval = 600;
+
+    public long startTime;
 
     public static int seedID = 0;
     public static int round = 0;
     public CommandPool commandPool;
     public Executor executor;
     public Class<? extends State> stateClass;
+
+    /**
+     * We could also only save path. Queue<Path>, then when need a command
+     * sequence, deserialize it then. But now try with the most simple one.
+     */
+    Queue<Pair<CommandSequence, CommandSequence>> queue = new LinkedList<>();
+    Random rand = new Random();
+    ExecutionDataStore curCoverage = new ExecutionDataStore();
+    ExecutionDataStore upCoverage = new ExecutionDataStore();
+    FuzzingClient fuzzingClient = null;
 
     public Fuzzer() {
         if (Config.getConf().system.equals("cassandra")) {
@@ -76,6 +92,51 @@ public class Fuzzer {
             commandPool = new HdfsCommandPool();
             stateClass = HdfsState.class;
         }
+        fuzzingClient = new FuzzingClient();
+
+        if (Config.getConf().initSeedDir != null) {
+            // Start up, load all command sequence into a queue.
+            System.out.println("seed path = " + Config.getConf().initSeedDir);
+            Path initSeedDirPath = Paths.get(Config.getConf().initSeedDir);
+            File initSeedDir = initSeedDirPath.toFile();
+            assert initSeedDir.isDirectory() == true;
+            for (File seedFile : initSeedDir.listFiles()) {
+                if (!seedFile.isDirectory()) {
+                    // Deserialize current file, and add it into the queue.
+                    // TODO: Execute them before adding them to the queue.
+                    // Make sure all the seed in the queue must have been
+                    // executed.
+                    Pair<CommandSequence, CommandSequence> commandSequencePair = Utilities
+                            .deserializeCommandSequence(seedFile.toPath());
+                    if (commandSequencePair != null) {
+                        Fuzzer.saveSeed(commandSequencePair.left,
+                                commandSequencePair.right);
+                        queue.add(commandSequencePair);
+                    }
+                }
+            }
+        }
+    }
+
+    public void start() {
+        startTime = System.nanoTime();
+
+        while (true) {
+            if (queue.isEmpty()) {
+                Pair<CommandSequence, CommandSequence> commandSequencePair = executor
+                        .prepareCommandSequence(commandPool, stateClass);
+                fuzzOne(rand, commandSequencePair.left,
+                        commandSequencePair.right, curCoverage, upCoverage,
+                        queue, fuzzingClient, false);
+            } else {
+                Pair<CommandSequence, CommandSequence> commandSequencePair = queue
+                        .poll();
+                fuzzOne(rand, commandSequencePair.left,
+                        commandSequencePair.right, curCoverage, upCoverage,
+                        queue, fuzzingClient, true);
+            }
+        }
+
     }
 
     public boolean fuzzOne(Random rand, CommandSequence commandSequence,
@@ -167,6 +228,7 @@ public class Fuzzer {
                     i--;
                     continue;
                 }
+
                 // TODO: Add compare function in Jacoco
                 updateStatus(mutatedCommandSequence, validationCommandSequence,
                         curCoverage, upCoverage, queue, hasNewOrder, fb);
@@ -182,19 +244,27 @@ public class Fuzzer {
                 fb = fuzzingClient.start(commandSequence,
                         validationCommandSequence, testID);
             } catch (Exception e) {
+                e.printStackTrace();
                 Utilities.clearCassandraDataDir();
             }
+
             updateStatus(commandSequence, validationCommandSequence,
                     curCoverage, upCoverage, queue, false, fb);
         }
         return true;
     }
 
-    private static void updateStatus(CommandSequence commandSequence,
+    private void updateStatus(CommandSequence commandSequence,
             CommandSequence validationCommandSequence,
             ExecutionDataStore curCoverage, ExecutionDataStore upCoverage,
             Queue<Pair<CommandSequence, CommandSequence>> queue,
             boolean hasNewOrder, FeedBack testFeedBack) {
+
+        System.out.println("fb original cc: "
+                + (testFeedBack.originalCodeCoverage == null));
+        System.out.println("fb size: "
+                + testFeedBack.originalCodeCoverage.getContents().size());
+
         // Check new bits, update covered branches, add record (time, coverage)
         // pair
         if (hasNewOrder || Utilities.hasNewBits(curCoverage,
@@ -236,8 +306,8 @@ public class Fuzzer {
             upgradedProbeNum = upgradedCoverageStatus.right;
         }
 
-        Long timeElapsed = TimeUnit.SECONDS.convert(
-                System.nanoTime() - Main.startTime, TimeUnit.NANOSECONDS);
+        Long timeElapsed = TimeUnit.MILLISECONDS
+                .convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
         if (timeElapsed - lastTimePoint > timeInterval || lastTimePoint == 0) {
             // Insert a record (time: coverage)
             originalCoverageAlongTime
@@ -278,9 +348,9 @@ public class Fuzzer {
         seedID++;
     }
 
-    public static void printInfo(int queueSize, int crashID, int testID) {
-        Long timeElapsed = TimeUnit.SECONDS.convert(
-                System.nanoTime() - Main.startTime, TimeUnit.NANOSECONDS);
+    public void printInfo(int queueSize, int crashID, int testID) {
+        Long timeElapsed = TimeUnit.MILLISECONDS
+                .convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
 
         System.out.println(
                 "\n\n------------------- Executing one fuzzing test -------------------");
@@ -291,25 +361,27 @@ public class Fuzzer {
                 + "Crash Found = " + crashID + "|" + "Current Test ID = "
                 + testID + "|" + "Covered Branches Num = "
                 + originalCoveredBranches + "|" + "Total Branch Num = "
-                + originalProbeNum + "|" + "Time Elapsed = " + timeElapsed + "s"
-                + "|" + "\n"
+                + originalProbeNum + "|" + "Time Elapsed = "
+                + timeElapsed / 1000. + "s" + "|" + "\n"
                 + "-----------------------------------------------------------------"
                 + "----------------------------------------------------");
 
         // Print the coverage status
-        for (Pair<Integer, Integer> timeCoveragePair : originalCoverageAlongTime) {
-            System.out.println("TIME: " + timeCoveragePair.left + "s"
-                    + "\t\t Orginal Coverage: " + timeCoveragePair.right + "/"
-                    + originalProbeNum + "\t\t percentage: "
-                    + (float) timeCoveragePair.right / originalProbeNum + "%");
-        }
+        // for (Pair<Integer, Integer> timeCoveragePair :
+        // originalCoverageAlongTime) {
+        // System.out.println("TIME: " + timeCoveragePair.left + "s"
+        // + "\t\t Orginal Coverage: " + timeCoveragePair.right + "/"
+        // + originalProbeNum + "\t\t percentage: "
+        // + (float) timeCoveragePair.right / originalProbeNum + "%");
+        // }
 
-        for (Pair<Integer, Integer> timeCoveragePair : originalCoverageAlongTime) {
-            System.out.println("TIME: " + timeCoveragePair.left + "s"
-                    + "\t\t Upgraded Coverage: " + timeCoveragePair.right + "/"
-                    + upgradedProbeNum + "\t\t percentage: "
-                    + (float) timeCoveragePair.right / upgradedProbeNum + "%");
-        }
+        // for (Pair<Integer, Integer> timeCoveragePair :
+        // upgradedCoverageAlongTime) {
+        // System.out.println("TIME: " + timeCoveragePair.left + "ms"
+        // + "\t\t Upgraded Coverage: " + timeCoveragePair.right + "/"
+        // + upgradedProbeNum + "\t\t percentage: "
+        // + (float) timeCoveragePair.right / upgradedProbeNum + "%");
+        // }
         System.out.println();
     }
 

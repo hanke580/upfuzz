@@ -193,34 +193,39 @@ public class Utilities {
     }
 
     public static String getMainClassName() throws ClassNotFoundException {
-        for (Entry<Thread, StackTraceElement[]> entry : Thread
-                .getAllStackTraces().entrySet()) {
-            Thread thread = entry.getKey();
-            // System.out.println(thread.getThreadGroup().getName() );
-            if (thread.getThreadGroup() != null
-                    && thread.getThreadGroup().getName().equals("main")) {
-                for (StackTraceElement stackTraceElement : entry.getValue()) {
-                    // System.out.println(stackTraceElement.getClassName()+ " "
-                    // + stackTraceElement.getMethodName() + " " +
-                    // stackTraceElement.getFileName());
-                    if (stackTraceElement.getMethodName().equals("main")) {
-
-                        try {
-                            Class<?> c = Class
-                                    .forName(stackTraceElement.getClassName());
-                            Class[] argTypes = new Class[] { String[].class };
-                            // This will throw NoSuchMethodException in case of
-                            // fake main methods
-                            c.getDeclaredMethod("main", argTypes);
-                            // return stackTraceElement.getClassName();
-                        } catch (NoSuchMethodException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }
+        String sunJavaCommand = System.getProperty("sun.java.command");
+        if (sunJavaCommand != null) {
+            return sunJavaCommand.split(" ")[0];
         }
         return null;
+        // for (Entry<Thread, StackTraceElement[]> entry : Thread
+        // .getAllStackTraces().entrySet()) {
+        // Thread thread = entry.getKey();
+        // // System.out.println(thread.getThreadGroup().getName() );
+        // if (thread.getThreadGroup() != null
+        // && thread.getThreadGroup().getName().equals("main")) {
+        // for (StackTraceElement stackTraceElement : entry.getValue()) {
+        // // System.out.println(stackTraceElement.getClassName()+ " "
+        // // + stackTraceElement.getMethodName() + " " +
+        // // stackTraceElement.getFileName());
+        // if (stackTraceElement.getMethodName().equals("main")) {
+
+        // try {
+        // Class<?> c = Class
+        // .forName(stackTraceElement.getClassName());
+        // Class[] argTypes = new Class[] { String[].class };
+        // // This will throw NoSuchMethodException in case of
+        // // fake main methods
+        // c.getDeclaredMethod("main", argTypes);
+        // // return stackTraceElement.getClassName();
+        // } catch (NoSuchMethodException e) {
+        // e.printStackTrace();
+        // }
+        // }
+        // }
+        // }
+        // }
+        // return null;
     }
 
     public static void clearCassandraDataDir() {
