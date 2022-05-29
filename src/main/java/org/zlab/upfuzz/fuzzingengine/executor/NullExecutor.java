@@ -8,39 +8,38 @@ import org.zlab.upfuzz.CommandSequence;
  * DO NOTHING
  * */
 public class NullExecutor extends Executor {
-  public NullExecutor() {
-    super();
-  }
+    public NullExecutor() {
+        super();
+    }
 
-  @Override
-  public void startup() {
+    @Override
+    public void startup() {
 
-  }
+    }
 
-  @Override
-  public void teardown() {
+    @Override
+    public void teardown() {
 
-  }
+    }
 
-  @Override
-  public List<String> execute(CommandSequence commandSequence,
-                               CommandSequence validationCommandSequence,
-                               int testId) {
-    return null;
-  }
+    @Override
+    public List<String> execute(CommandSequence commandSequence,
+            CommandSequence validationCommandSequence, int testId) {
+        return null;
+    }
 
-  @Override
-  public int saveSnapshot() {
-    return 0;
-  }
+    @Override
+    public int saveSnapshot() {
+        return 0;
+    }
 
-  @Override
-  public int moveSnapShot() {
-    return 0;
-  }
+    @Override
+    public int moveSnapShot() {
+        return 0;
+    }
 
-  @Override
-  public boolean upgradeTest() {
-    return true;
-  }
+    @Override
+    public boolean upgradeTest() {
+        return true;
+    }
 }

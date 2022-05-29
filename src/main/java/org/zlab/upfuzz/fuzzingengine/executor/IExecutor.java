@@ -12,9 +12,8 @@ public interface IExecutor {
 
     List<String> executeCommands(CommandSequence commandSequence);
 
-    List<String>  execute(CommandSequence commandSequence,
-                          CommandSequence validationCommandSequence,
-                          int testId);
+    List<String> execute(CommandSequence commandSequence,
+            CommandSequence validationCommandSequence, int testId);
 
     /**
      * Given the generated snapshot, upgrade it to the new version.

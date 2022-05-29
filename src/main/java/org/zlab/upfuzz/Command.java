@@ -24,6 +24,7 @@ public abstract class Command implements Serializable {
     public Command() {
         params = new LinkedList<>();
     }
+
     public void updateExecutableCommandString() {
         executableCommandString = constructCommandString();
     }
@@ -34,10 +35,11 @@ public abstract class Command implements Serializable {
     }
 
     public abstract String constructCommandString();
+
     public abstract void updateState(State state);
 
-    public boolean mutate(State s) throws
-            IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+    public boolean mutate(State s) throws IllegalAccessException,
+            NoSuchMethodException, InvocationTargetException {
         Random rand = new Random();
 
         for (int i = 0; i < RETRY_TIMES; i++) {

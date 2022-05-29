@@ -27,8 +27,10 @@ public class CassandraCqlshDaemon {
     public static String cqlshPython3Script;
 
     static {
-        InputStream cqlsh_daemon2 = CassandraCqlshDaemon.class.getClassLoader().getResourceAsStream("cqlsh_daemon2.py");
-        InputStream cqlsh_daemon3 = CassandraCqlshDaemon.class.getClassLoader().getResourceAsStream("cqlsh_daemon3.py");
+        InputStream cqlsh_daemon2 = CassandraCqlshDaemon.class.getClassLoader()
+                .getResourceAsStream("cqlsh_daemon2.py");
+        InputStream cqlsh_daemon3 = CassandraCqlshDaemon.class.getClassLoader()
+                .getResourceAsStream("cqlsh_daemon3.py");
         if (cqlsh_daemon2 == null) {
             System.err.println("cannot find cqlsh_daemon.py");
         }
@@ -45,7 +47,8 @@ public class CassandraCqlshDaemon {
         }
     }
 
-    public CassandraCqlshDaemon(String cassandraRoot) throws IOException, InterruptedException {
+    public CassandraCqlshDaemon(String cassandraRoot)
+            throws IOException, InterruptedException {
         String cassandraVersion = Utilities.getGitTag(cassandraRoot);
         String cqlshPythonScript = null;
         String python = null;
@@ -53,7 +56,7 @@ public class CassandraCqlshDaemon {
         // System.out.println("cassandra version\n" + cassandraVersion);
 
         char majorVersion;
-        
+
         try {
             majorVersion = cassandraVersion.split("-")[1].charAt(0);
         } catch (Exception e) {
@@ -81,16 +84,21 @@ public class CassandraCqlshDaemon {
         if (flag) {
             // port = port & 0xFFFE;
             // System.out.println("Use port:" + port);
-            File cqlshDaemonFile = Paths.get(cassandraRoot, "/bin/cqlsh_daemon.py").toFile();
+            File cqlshDaemonFile = Paths
+                    .get(cassandraRoot, "/bin/cqlsh_daemon.py").toFile();
             if (cqlshDaemonFile.exists()) {
                 Boolean res = cqlshDaemonFile.delete();
-                // System.out.println("cqlsh_daemon.py exists. Delete it: " + res);
+                // System.out.println("cqlsh_daemon.py exists. Delete it: " +
+                // res);
             }
-            BufferedWriter bw = new BufferedWriter(new FileWriter(cqlshDaemonFile));
-            bw.write(cqlshPythonScript.replace("__reserved_port__", Integer.toString(port)));
+            BufferedWriter bw = new BufferedWriter(
+                    new FileWriter(cqlshDaemonFile));
+            bw.write(cqlshPythonScript.replace("__reserved_port__",
+                    Integer.toString(port)));
             bw.close();
 
-            cqlsh = Utilities.exec(new String[] { python, cqlshDaemonFile.toString() },
+            cqlsh = Utilities.exec(
+                    new String[] { python, cqlshDaemonFile.toString() },
                     new File(cassandraRoot));
 
             // byte[] bytes = new byte[102400];
@@ -106,12 +114,14 @@ public class CassandraCqlshDaemon {
     }
 
     public CqlshPacket execute(String cmd) throws IOException {
-        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        BufferedWriter bw = new BufferedWriter(
+                new OutputStreamWriter(socket.getOutputStream()));
 
         bw.write(cmd);
         bw.flush();
         // System.out.println("executor write " + cmd);
-        BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        BufferedReader br = new BufferedReader(
+                new InputStreamReader(socket.getInputStream()));
 
         // // Socket
         // System.out.println("Socket Debug");
@@ -119,22 +129,24 @@ public class CassandraCqlshDaemon {
         // cqlsh.getInputStream().read(output);
         // System.out.println(new String(output));
 
-
         char[] chars = new char[10240];
 
         int cnt = br.read(chars);
         String cqlshMess = new String(chars, 0, cnt);
 
-        // System.out.println("receive size: " + cqlshMess.length() + " \n" + cqlshMess);
+        // System.out.println("receive size: " + cqlshMess.length() + " \n" +
+        // cqlshMess);
 
-        CqlshPacket cqlshPacket = new Gson().fromJson(cqlshMess, CqlshPacket.class);
+        CqlshPacket cqlshPacket = new Gson().fromJson(cqlshMess,
+                CqlshPacket.class);
         return cqlshPacket;
     }
 
     public static boolean testPortAvailable(int port) {
         Process p;
         try {
-            p = Utilities.exec(new String[] { "bin/sh", "-c", "netstat -tunlp | grep -P \":" + port + "[\\s$]\"" },
+            p = Utilities.exec(new String[] { "bin/sh", "-c",
+                    "netstat -tunlp | grep -P \":" + port + "[\\s$]\"" },
                     new File("/"));
             int ret = p.waitFor();
             return ret == 1;

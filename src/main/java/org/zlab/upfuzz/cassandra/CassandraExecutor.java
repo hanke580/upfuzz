@@ -25,22 +25,23 @@ public class CassandraExecutor extends Executor {
     CassandraCqlshDaemon cqlsh = null;
 
     Process cassandraProcess;
-//    static final String jacocoOptions = "=append=false,includes=org.apache.cassandra.*,output=dfe,address=localhost,sessionid=";
-
+    // static final String jacocoOptions =
+    // "=append=false,includes=org.apache.cassandra.*,output=dfe,address=localhost,sessionid=";
 
     // Over the JVM start up option limitation.
 
     static final String jacocoOptions = "=append=false";
 
     static final String classToIns = "org.apache.cassandra.*";
-    // static final String classToIns = "org.apache.cassandra.io.compress.CompressionMetadata:org.apache.cassandra.db.commitlog.CommitLog:org.apache.cassandra.db.IndexExpression:org.apache.cassandra.config.Schema:org.apache.cassandra.io.util.MmappedSegmentedFile:org.apache.cassandra.utils.vint.EncodedDataInputStream:org.apache.cassandra.service.PendingRangeCalculatorService:org.apache.cassandra.db.RangeTombstone$Serializer:org.apache.cassandra.schema.LegacySchemaTables:org.apache.cassandra.concurrent.DebuggableThreadPoolExecutor:org.apache.cassandra.db.HintedHandOffManager:org.apache.cassandra.db.compaction.Scrubber:org.apache.cassandra.utils.BloomFilter:org.apache.cassandra.db.ColumnFamily:org.apache.cassandra.io.util.MmappedSegmentedFile$Builder:org.apache.cassandra.db.TruncationSerializer:org.apache.cassandra.utils.FBUtilities:org.apache.cassandra.concurrent.DebuggableThreadPoolExecutor$LocalSessionWrapper:org.apache.cassandra.auth.CassandraRoleManager:org.apache.cassandra.io.util.SegmentedFile$Builder:org.apache.cassandra.net.OutboundTcpConnectionPool:org.apache.cassandra.db.ColumnIndex$Builder:org.apache.cassandra.service.StorageProxy:org.apache.cassandra.transport.Client:org.apache.cassandra.metrics.ThreadPoolMetrics:org.apache.cassandra.utils.IntervalTree$IntervalNode:org.apache.cassandra.db.commitlog.CommitLogSegmentManager:org.apache.cassandra.concurrent.DebuggableScheduledThreadPoolExecutor:org.apache.cassandra.gms.HeartBeatStateSerializer:org.apache.cassandra.io.sstable.format.SSTableReader$GlobalTidy:org.apache.cassandra.io.util.AbstractDataInput:org.apache.cassandra.db.ColumnSerializer:org.apache.cassandra.db.compaction.CompactionManager:org.apache.cassandra.metrics.ThreadPoolMetricNameFactory:org.apache.cassandra.io.sstable.IndexSummaryManager:org.apache.cassandra.io.util.UnbufferedDataOutputStreamPlus:org.apache.cassandra.concurrent.StageManager$1:org.apache.cassandra.serializers.SetSerializer:org.apache.cassandra.utils.memory.MemtablePool$SubPool:org.apache.cassandra.db.SystemKeyspace:org.apache.cassandra.io.sstable.SnapshotDeletingTask:org.apache.cassandra.db.commitlog.CommitLogSegment:org.apache.cassandra.db.SuperColumns$SCIterator:org.apache.cassandra.db.marshal.ListType:org.apache.cassandra.serializers.MapSerializer:org.apache.cassandra.utils.concurrent.Ref$Debug:org.apache.cassandra.db.marshal.AbstractCompositeType:org.apache.cassandra.db.MutationVerbHandler:org.apache.cassandra.db.index.SecondaryIndex:org.apache.cassandra.utils.concurrent.WaitQueue$AbstractSignal:org.apache.cassandra.service.CassandraDaemon$2:org.apache.cassandra.io.sstable.format.big.BigTableReader:org.apache.cassandra.triggers.TriggerExecutor:org.apache.cassandra.io.sstable.SSTableIdentityIterator:org.apache.cassandra.net.MessagingService:org.apache.cassandra.io.sstable.SSTableRewriter:org.apache.cassandra.db.commitlog.CommitLogReplayer:org.apache.cassandra.io.sstable.format.big.BigTableWriter:org.apache.cassandra.io.sstable.SSTableDeletingTask:org.apache.cassandra.utils.ByteBufferUtil:org.apache.cassandra.service.StorageService:org.apache.cassandra.db.BlacklistedDirectories:org.apache.cassandra.utils.concurrent.WaitQueue$RegisteredSignal:org.apache.cassandra.io.util.NIODataInputStream:org.apache.cassandra.utils.BackgroundActivityMonitor:org.apache.cassandra.service.CassandraDaemon:org.apache.cassandra.db.compaction.CompactionTask:org.apache.cassandra.utils.GuidGenerator:org.apache.cassandra.utils.ResourceWatcher:org.apache.cassandra.io.util.RandomAccessReader:org.apache.cassandra.db.compaction.LeveledCompactionTask:org.apache.cassandra.db.BatchlogManager$EndpointFilter:org.apache.cassandra.io.sstable.IndexSummaryBuilder:org.apache.cassandra.db.compaction.Verifier:org.apache.cassandra.concurrent.JMXEnabledThreadPoolExecutor:org.apache.cassandra.io.util.BufferedDataOutputStreamPlus:org.apache.cassandra.db.ColumnFamilyStore$Flush:org.apache.cassandra.service.AbstractReadExecutor:org.apache.cassandra.io.util.ChecksummedSequentialWriter$TransactionalProxy:org.apache.cassandra.concurrent.SEPWorker:org.apache.cassandra.gms.Gossiper:org.apache.cassandra.io.sstable.format.SSTableReader:org.apache.cassandra.io.sstable.metadata.MetadataSerializer:org.apache.cassandra.db.RangeTombstone$Tracker:org.apache.cassandra.locator.GoogleCloudSnitch:org.apache.cassandra.io.util.DataOutputStreamPlus:org.apache.cassandra.db.marshal.TypeParser:org.apache.cassandra.cql3.statements.CQL3CasRequest:org.apache.cassandra.dht.Murmur3Partitioner:org.apache.cassandra.tools.SSTableRepairedAtSetter:org.apache.cassandra.config.DatabaseDescriptor:org.apache.cassandra.thrift.ThriftServer$ThriftServerThread:org.apache.cassandra.service.ReadCallback:org.apache.cassandra.db.marshal.CompositeType:org.apache.cassandra.service.MigrationManager:org.apache.cassandra.locator.CloudstackSnitch:org.apache.cassandra.config.CFMetaData:org.apache.cassandra.db.composites.AbstractComposite:org.apache.cassandra.repair.Validator:org.apache.cassandra.serializers.CollectionSerializer:org.apache.cassandra.service.pager.SliceQueryPager:org.apache.cassandra.db.commitlog.CommitLogDescriptor:org.apache.cassandra.serializers.TimestampSerializer:org.apache.cassandra.db.ColumnFamilyStore:org.apache.cassandra.db.compaction.Upgrader:org.apache.cassandra.db.compaction.writers.CompactionAwareWriter:org.apache.cassandra.service.LoadBroadcaster:org.apache.cassandra.db.Directories$SSTableLister:org.apache.cassandra.db.Directories:org.apache.cassandra.utils.memory.MemtableCleanerThread:org.apache.cassandra.db.compaction.writers.MaxSSTableSizeWriter:org.apache.cassandra.net.OutboundTcpConnection:org.apache.cassandra.cache.AutoSavingCache$Writer:org.apache.cassandra.locator.Ec2Snitch:org.apache.cassandra.metrics.SEPMetrics:org.apache.cassandra.service.ClientWarn:org.apache.cassandra.io.sstable.SSTable:org.apache.cassandra.net.IncomingTcpConnection:org.apache.cassandra.metrics.ThreadPoolMetrics$2:org.apache.cassandra.utils.concurrent.Transactional$AbstractTransactional:org.apache.cassandra.utils.concurrent.Ref$1:org.apache.cassandra.concurrent.StageManager$ExecuteOnlyExecutor:org.apache.cassandra.locator.TokenMetadata:org.apache.cassandra.io.util.DataIntegrityMetadata$ChecksumWriter:org.apache.cassandra.db.BatchlogManager:org.apache.cassandra.utils.HeapUtils:org.apache.cassandra.utils.vint.EncodedDataOutputStream:org.apache.cassandra.utils.StatusLogger:org.apache.cassandra.utils.concurrent.WaitQueue:org.apache.cassandra.tools.SSTableExport:org.apache.cassandra.db.context.CounterContext:org.apache.cassandra.io.compress.CompressedRandomAccessReader:org.apache.cassandra.db.RowIndexEntry$Serializer:org.apache.cassandra.tracing.Tracing:org.apache.cassandra.cache.AutoSavingCache:org.apache.cassandra.db.context.CounterContext$ContextState:org.apache.cassandra.db.SuperColumns:org.apache.cassandra.tracing.TraceState:org.apache.cassandra.io.compress.CompressionMetadata$Writer:org.apache.cassandra.db.marshal.MapType:org.apache.cassandra.streaming.StreamLockfile:org.apache.cassandra.utils.ExpiringMap:org.apache.cassandra.db.WindowsFailedSnapshotTracker:org.apache.cassandra.concurrent.StageManager:org.apache.cassandra.thrift.TServerCustomFactory:org.apache.cassandra.net.MessagingService$SocketThread:org.apache.cassandra.db.BatchlogManager$Batch:org.apache.cassandra.utils.memory.MemtablePool:org.apache.cassandra.db.marshal.UserType";
+    // static final String classToIns =
+    // "org.apache.cassandra.io.compress.CompressionMetadata:org.apache.cassandra.db.commitlog.CommitLog:org.apache.cassandra.db.IndexExpression:org.apache.cassandra.config.Schema:org.apache.cassandra.io.util.MmappedSegmentedFile:org.apache.cassandra.utils.vint.EncodedDataInputStream:org.apache.cassandra.service.PendingRangeCalculatorService:org.apache.cassandra.db.RangeTombstone$Serializer:org.apache.cassandra.schema.LegacySchemaTables:org.apache.cassandra.concurrent.DebuggableThreadPoolExecutor:org.apache.cassandra.db.HintedHandOffManager:org.apache.cassandra.db.compaction.Scrubber:org.apache.cassandra.utils.BloomFilter:org.apache.cassandra.db.ColumnFamily:org.apache.cassandra.io.util.MmappedSegmentedFile$Builder:org.apache.cassandra.db.TruncationSerializer:org.apache.cassandra.utils.FBUtilities:org.apache.cassandra.concurrent.DebuggableThreadPoolExecutor$LocalSessionWrapper:org.apache.cassandra.auth.CassandraRoleManager:org.apache.cassandra.io.util.SegmentedFile$Builder:org.apache.cassandra.net.OutboundTcpConnectionPool:org.apache.cassandra.db.ColumnIndex$Builder:org.apache.cassandra.service.StorageProxy:org.apache.cassandra.transport.Client:org.apache.cassandra.metrics.ThreadPoolMetrics:org.apache.cassandra.utils.IntervalTree$IntervalNode:org.apache.cassandra.db.commitlog.CommitLogSegmentManager:org.apache.cassandra.concurrent.DebuggableScheduledThreadPoolExecutor:org.apache.cassandra.gms.HeartBeatStateSerializer:org.apache.cassandra.io.sstable.format.SSTableReader$GlobalTidy:org.apache.cassandra.io.util.AbstractDataInput:org.apache.cassandra.db.ColumnSerializer:org.apache.cassandra.db.compaction.CompactionManager:org.apache.cassandra.metrics.ThreadPoolMetricNameFactory:org.apache.cassandra.io.sstable.IndexSummaryManager:org.apache.cassandra.io.util.UnbufferedDataOutputStreamPlus:org.apache.cassandra.concurrent.StageManager$1:org.apache.cassandra.serializers.SetSerializer:org.apache.cassandra.utils.memory.MemtablePool$SubPool:org.apache.cassandra.db.SystemKeyspace:org.apache.cassandra.io.sstable.SnapshotDeletingTask:org.apache.cassandra.db.commitlog.CommitLogSegment:org.apache.cassandra.db.SuperColumns$SCIterator:org.apache.cassandra.db.marshal.ListType:org.apache.cassandra.serializers.MapSerializer:org.apache.cassandra.utils.concurrent.Ref$Debug:org.apache.cassandra.db.marshal.AbstractCompositeType:org.apache.cassandra.db.MutationVerbHandler:org.apache.cassandra.db.index.SecondaryIndex:org.apache.cassandra.utils.concurrent.WaitQueue$AbstractSignal:org.apache.cassandra.service.CassandraDaemon$2:org.apache.cassandra.io.sstable.format.big.BigTableReader:org.apache.cassandra.triggers.TriggerExecutor:org.apache.cassandra.io.sstable.SSTableIdentityIterator:org.apache.cassandra.net.MessagingService:org.apache.cassandra.io.sstable.SSTableRewriter:org.apache.cassandra.db.commitlog.CommitLogReplayer:org.apache.cassandra.io.sstable.format.big.BigTableWriter:org.apache.cassandra.io.sstable.SSTableDeletingTask:org.apache.cassandra.utils.ByteBufferUtil:org.apache.cassandra.service.StorageService:org.apache.cassandra.db.BlacklistedDirectories:org.apache.cassandra.utils.concurrent.WaitQueue$RegisteredSignal:org.apache.cassandra.io.util.NIODataInputStream:org.apache.cassandra.utils.BackgroundActivityMonitor:org.apache.cassandra.service.CassandraDaemon:org.apache.cassandra.db.compaction.CompactionTask:org.apache.cassandra.utils.GuidGenerator:org.apache.cassandra.utils.ResourceWatcher:org.apache.cassandra.io.util.RandomAccessReader:org.apache.cassandra.db.compaction.LeveledCompactionTask:org.apache.cassandra.db.BatchlogManager$EndpointFilter:org.apache.cassandra.io.sstable.IndexSummaryBuilder:org.apache.cassandra.db.compaction.Verifier:org.apache.cassandra.concurrent.JMXEnabledThreadPoolExecutor:org.apache.cassandra.io.util.BufferedDataOutputStreamPlus:org.apache.cassandra.db.ColumnFamilyStore$Flush:org.apache.cassandra.service.AbstractReadExecutor:org.apache.cassandra.io.util.ChecksummedSequentialWriter$TransactionalProxy:org.apache.cassandra.concurrent.SEPWorker:org.apache.cassandra.gms.Gossiper:org.apache.cassandra.io.sstable.format.SSTableReader:org.apache.cassandra.io.sstable.metadata.MetadataSerializer:org.apache.cassandra.db.RangeTombstone$Tracker:org.apache.cassandra.locator.GoogleCloudSnitch:org.apache.cassandra.io.util.DataOutputStreamPlus:org.apache.cassandra.db.marshal.TypeParser:org.apache.cassandra.cql3.statements.CQL3CasRequest:org.apache.cassandra.dht.Murmur3Partitioner:org.apache.cassandra.tools.SSTableRepairedAtSetter:org.apache.cassandra.config.DatabaseDescriptor:org.apache.cassandra.thrift.ThriftServer$ThriftServerThread:org.apache.cassandra.service.ReadCallback:org.apache.cassandra.db.marshal.CompositeType:org.apache.cassandra.service.MigrationManager:org.apache.cassandra.locator.CloudstackSnitch:org.apache.cassandra.config.CFMetaData:org.apache.cassandra.db.composites.AbstractComposite:org.apache.cassandra.repair.Validator:org.apache.cassandra.serializers.CollectionSerializer:org.apache.cassandra.service.pager.SliceQueryPager:org.apache.cassandra.db.commitlog.CommitLogDescriptor:org.apache.cassandra.serializers.TimestampSerializer:org.apache.cassandra.db.ColumnFamilyStore:org.apache.cassandra.db.compaction.Upgrader:org.apache.cassandra.db.compaction.writers.CompactionAwareWriter:org.apache.cassandra.service.LoadBroadcaster:org.apache.cassandra.db.Directories$SSTableLister:org.apache.cassandra.db.Directories:org.apache.cassandra.utils.memory.MemtableCleanerThread:org.apache.cassandra.db.compaction.writers.MaxSSTableSizeWriter:org.apache.cassandra.net.OutboundTcpConnection:org.apache.cassandra.cache.AutoSavingCache$Writer:org.apache.cassandra.locator.Ec2Snitch:org.apache.cassandra.metrics.SEPMetrics:org.apache.cassandra.service.ClientWarn:org.apache.cassandra.io.sstable.SSTable:org.apache.cassandra.net.IncomingTcpConnection:org.apache.cassandra.metrics.ThreadPoolMetrics$2:org.apache.cassandra.utils.concurrent.Transactional$AbstractTransactional:org.apache.cassandra.utils.concurrent.Ref$1:org.apache.cassandra.concurrent.StageManager$ExecuteOnlyExecutor:org.apache.cassandra.locator.TokenMetadata:org.apache.cassandra.io.util.DataIntegrityMetadata$ChecksumWriter:org.apache.cassandra.db.BatchlogManager:org.apache.cassandra.utils.HeapUtils:org.apache.cassandra.utils.vint.EncodedDataOutputStream:org.apache.cassandra.utils.StatusLogger:org.apache.cassandra.utils.concurrent.WaitQueue:org.apache.cassandra.tools.SSTableExport:org.apache.cassandra.db.context.CounterContext:org.apache.cassandra.io.compress.CompressedRandomAccessReader:org.apache.cassandra.db.RowIndexEntry$Serializer:org.apache.cassandra.tracing.Tracing:org.apache.cassandra.cache.AutoSavingCache:org.apache.cassandra.db.context.CounterContext$ContextState:org.apache.cassandra.db.SuperColumns:org.apache.cassandra.tracing.TraceState:org.apache.cassandra.io.compress.CompressionMetadata$Writer:org.apache.cassandra.db.marshal.MapType:org.apache.cassandra.streaming.StreamLockfile:org.apache.cassandra.utils.ExpiringMap:org.apache.cassandra.db.WindowsFailedSnapshotTracker:org.apache.cassandra.concurrent.StageManager:org.apache.cassandra.thrift.TServerCustomFactory:org.apache.cassandra.net.MessagingService$SocketThread:org.apache.cassandra.db.BatchlogManager$Batch:org.apache.cassandra.utils.memory.MemtablePool:org.apache.cassandra.db.marshal.UserType";
 
     public CassandraExecutor() {
         super("cassandra");
     }
 
     public boolean isCassandraReady(String cassandraPath) {
-        //    ProcessBuilder isReadyBuilder = new ProcessBuilder();
+        // ProcessBuilder isReadyBuilder = new ProcessBuilder();
         Process isReady;
         int ret = 0;
         try {
@@ -85,19 +86,21 @@ public class CassandraExecutor extends Executor {
             long startTime = System.currentTimeMillis();
             cassandraProcess = cassandraProcessBuilder.start();
             // byte[] out = cassandraProcess.getInputStream().readAllBytes();
-            // BufferedReader in = new BufferedReader(new InputStreamReader(cassandraProcess.getInputStream()));
+            // BufferedReader in = new BufferedReader(new
+            // InputStreamReader(cassandraProcess.getInputStream()));
             // String line;
             // while ((line = in.readLine()) != null) {
-            //     System.out.println(line);
-            //     System.out.flush();
+            // System.out.println(line);
+            // System.out.flush();
             // }
             // in.close();
             // cassandraProcess.waitFor();
             System.out.println("cassandra " + executorID + " started");
             while (!isCassandraReady(Config.getConf().cassandraPath)) {
                 if (!cassandraProcess.isAlive()) {
-                    // System.out.println("cassandra process crushed\nCheck " + Config.getConf().cassandraOutputFile
-                    //         + " for details");
+                    // System.out.println("cassandra process crushed\nCheck " +
+                    // Config.getConf().cassandraOutputFile
+                    // + " for details");
                     // System.exit(1);
                     throw new CustomExceptions.systemStartFailureException(
                             "Cassandra Start fails", null);
@@ -133,7 +136,8 @@ public class CassandraExecutor extends Executor {
             p.waitFor();
             in.close();
             assert !cassandraProcess.isAlive();
-            System.out.println("cassandra " + executorID + " shutdown successfully");
+            System.out.println(
+                    "cassandra " + executorID + " shutdown successfully");
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
@@ -164,7 +168,7 @@ public class CassandraExecutor extends Executor {
             p.waitFor();
             in.close();
             System.out.println(
-                "new cassandra " + executorID + " shutdown successfully");
+                    "new cassandra " + executorID + " shutdown successfully");
 
             // p.wait();
         } catch (IOException | InterruptedException e) {
@@ -200,7 +204,8 @@ public class CassandraExecutor extends Executor {
                     CassandraCommands.commandClassList,
                     CassandraCommands.createCommandClassList,
                     CassandraState.class, null);
-            // TODO: If it's generating read with a initial state, no need to generate with createTable...
+            // TODO: If it's generating read with a initial state, no need to
+            // generate with createTable...
             validationCommandSequence = CommandSequence.generateSequence(
                     CassandraCommands.readCommandClassList, null,
                     CassandraState.class, commandSequence.state);
@@ -227,7 +232,7 @@ public class CassandraExecutor extends Executor {
 
     @Override
     public List<String> executeCommands(CommandSequence commandSequence) {
-        //        commandSequence = prepareCommandSequence();
+        // commandSequence = prepareCommandSequence();
         List<String> commandList = commandSequence.getCommandStringList();
         List<String> ret = new LinkedList<>();
         try {
@@ -236,17 +241,20 @@ public class CassandraExecutor extends Executor {
                         Config.getConf().cassandraPath);
             for (String cmd : commandList) {
                 // System.out
-                //         .println("\n\n------------------------------------------------------------\nexecutor command:\n"
-                //                 + cmd + "\n------------------------------------------------------------\n");
+                // .println("\n\n------------------------------------------------------------\nexecutor
+                // command:\n"
+                // + cmd +
+                // "\n------------------------------------------------------------\n");
                 long startTime = System.currentTimeMillis();
                 CqlshPacket cp = cqlsh.execute(cmd);
                 long endTime = System.currentTimeMillis();
 
                 ret.add(cp.message);
-                // System.out.println("ret is: " + cp.exitValue + "\ntime: " + cp.timeUsage + "\ntime usage(network):"
-                //         + (endTime - startTime) / 1000. + "\n");
+                // System.out.println("ret is: " + cp.exitValue + "\ntime: " +
+                // cp.timeUsage + "\ntime usage(network):"
+                // + (endTime - startTime) / 1000. + "\n");
             }
-            //            cqlsh.destroy();
+            // cqlsh.destroy();
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
             return null;
@@ -256,28 +264,32 @@ public class CassandraExecutor extends Executor {
 
     public List<String> newVersionExecuteCommands(
             CommandSequence commandSequence) {
-        //        commandSequence = prepareCommandSequence();
+        // commandSequence = prepareCommandSequence();
         List<String> commandList = commandSequence.getCommandStringList();
         List<String> ret = new LinkedList<>();
         try {
-            // TODO: Put the cqlsh daemon outside, so that one instance for one cqlsh daemon
+            // TODO: Put the cqlsh daemon outside, so that one instance for one
+            // cqlsh daemon
 
             if (cqlsh == null)
                 cqlsh = new CassandraCqlshDaemon(
                         Config.getConf().upgradeCassandraPath);
             for (String cmd : commandList) {
                 // System.out
-                //         .println("\n\n------------------------------------------------------------\nexecutor command:\n"
-                //                 + cmd + "\n------------------------------------------------------------\n");
+                // .println("\n\n------------------------------------------------------------\nexecutor
+                // command:\n"
+                // + cmd +
+                // "\n------------------------------------------------------------\n");
                 long startTime = System.currentTimeMillis();
                 CqlshPacket cp = cqlsh.execute(cmd);
                 long endTime = System.currentTimeMillis();
 
                 ret.add(cp.message);
-                // System.out.println("ret is: " + cp.exitValue + "\ntime: " + cp.timeUsage + "\ntime usage(network):"
-                //         + (endTime - startTime) / 1000. + "\n");
+                // System.out.println("ret is: " + cp.exitValue + "\ntime: " +
+                // cp.timeUsage + "\ntime usage(network):"
+                // + (endTime - startTime) / 1000. + "\n");
             }
-            //            cqlsh.destroy();
+            // cqlsh.destroy();
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
             return null;
@@ -331,16 +343,17 @@ public class CassandraExecutor extends Executor {
          *      - Upgrade process throw an exception
          *      - The result of a specific command is different
          */
-        // If there is any exception when executing the commands, it should also be caught
+        // If there is any exception when executing the commands, it should also
+        // be caught
 
         // Upgrade Startup
         ProcessBuilder pb = new ProcessBuilder("bin/cassandra");
         // Map<String, String> env = pb.environment();
         // env.put("JAVA_TOOL_OPTIONS",
-        //         "-javaagent:" + Config.getConf().jacocoAgentPath + jacocoOptions
-        //                 + ",includes=" + classToIns
-        //                 + ",output=dfe,address=localhost,sessionid=" + systemID
-        //                 + "-" + executorID + "_upgraded");
+        // "-javaagent:" + Config.getConf().jacocoAgentPath + jacocoOptions
+        // + ",includes=" + classToIns
+        // + ",output=dfe,address=localhost,sessionid=" + systemID
+        // + "-" + executorID + "_upgraded");
 
         pb.directory(new File(Config.getConf().upgradeCassandraPath));
         pb.redirectOutput(
@@ -348,7 +361,8 @@ public class CassandraExecutor extends Executor {
                         .toFile());
         // long startTime = System.currentTimeMillis();
         Utilities.runProcess(pb, "Upgrade Cassandra");
-        // Process upgradeCassandraProcess = Utilities.runProcess(pb, "Upgrade Cassandra");
+        // Process upgradeCassandraProcess = Utilities.runProcess(pb, "Upgrade
+        // Cassandra");
 
         // Add a retry time here
         boolean started = false;
@@ -380,7 +394,8 @@ public class CassandraExecutor extends Executor {
         }
 
         // long endTime = System.currentTimeMillis();
-        // System.out.println("Upgrade System Start Time = " + (endTime - startTime)/1000.  + "s");
+        // System.out.println("Upgrade System Start Time = " + (endTime -
+        // startTime)/1000. + "s");
         try {
             this.cqlsh = new CassandraCqlshDaemon(
                     Config.getConf().upgradeCassandraPath);
@@ -391,22 +406,23 @@ public class CassandraExecutor extends Executor {
         }
 
         // while (!isNewCassandraReady(Config.getConf().upgradeCassandraPath)) {
-        //     // Problem : why would the process be dead?
-        //     // TODO: Enable this checking, add a retry times
-        //     if (!upgradeCassandraProcess.isAlive()) {
-        //         // Throw a specific exception, if this is upgrade, it means we met a bug
-        //         System.out.println("[FAILURE LOG] New version cannot start");
-        //         failureType = FailureType.UPGRADE_FAIL;
-        //         failureInfo = "New version cassandra cannot start";
+        // // Problem : why would the process be dead?
+        // // TODO: Enable this checking, add a retry times
+        // if (!upgradeCassandraProcess.isAlive()) {
+        // // Throw a specific exception, if this is upgrade, it means we met a
+        // bug
+        // System.out.println("[FAILURE LOG] New version cannot start");
+        // failureType = FailureType.UPGRADE_FAIL;
+        // failureInfo = "New version cassandra cannot start";
 
-        //         return false;
-        //     }
-        //     try {
-        //         System.out.println("Upgrade System Waiting...");
-        //         Thread.sleep(1000);
-        //     } catch (InterruptedException e) {
-        //         e.printStackTrace();
-        //     }
+        // return false;
+        // }
+        // try {
+        // System.out.println("Upgrade System Waiting...");
+        // Thread.sleep(1000);
+        // } catch (InterruptedException e) {
+        // e.printStackTrace();
+        // }
         // }
 
         // startTime = System.currentTimeMillis();
@@ -425,11 +441,13 @@ public class CassandraExecutor extends Executor {
             List<String> oldVersionResult = testId2oldVersionResult.get(testId);
             List<String> newVersionResult = testId2newVersionResult.get(testId);
 
-            // System.out.println("old version size = " + oldVersionResult.size() + " new version size = " + newVersionResult.size());
+            // System.out.println("old version size = " +
+            // oldVersionResult.size() + " new version size = " +
+            // newVersionResult.size());
 
             // System.out.println("new version result:");
             // for (String str: newVersionResult) {
-            //     System.out.println(str);
+            // System.out.println(str);
             // }
             System.out.println("new size = " + newVersionResult.size());
             if (newVersionResult.size() != oldVersionResult.size()) {
@@ -459,12 +477,15 @@ public class CassandraExecutor extends Executor {
                             continue;
                         }
 
-                        if (oldVersionResult.get(i).contains("0 rows") && newVersionResult.get(i).contains("0 rows")) {
+                        if (oldVersionResult.get(i).contains("0 rows")
+                                && newVersionResult.get(i).contains("0 rows")) {
                             continue;
                         }
 
-                        // System.out.println("old version result: " + oldVersionResult.get(i));
-                        // System.out.println("new version result: " + newVersionResult.get(i));
+                        // System.out.println("old version result: " +
+                        // oldVersionResult.get(i));
+                        // System.out.println("new version result: " +
+                        // newVersionResult.get(i));
 
                         failureType = FailureType.RESULT_INCONSISTENCY;
 
@@ -480,7 +501,8 @@ public class CassandraExecutor extends Executor {
                             failureInfo += errorMsg;
                         }
                         ret = false;
-                        //                        break; // Try to log all the difference for this instance
+                        // break; // Try to log all the difference for this
+                        // instance
                     }
                 }
             }
@@ -491,14 +513,17 @@ public class CassandraExecutor extends Executor {
         }
 
         // endTime = System.currentTimeMillis();
-        // System.out.println("Upgrade System comparing results = " + (endTime - startTime)/1000.  + "s");
+        // System.out.println("Upgrade System comparing results = " + (endTime -
+        // startTime)/1000. + "s");
         // Shutdown
         // startTime = System.currentTimeMillis();
         upgradeteardown();
         // endTime = System.currentTimeMillis();
-        // System.out.println("New version Stop = " + (endTime - startTime)/1000.  + "s");
+        // System.out.println("New version Stop = " + (endTime -
+        // startTime)/1000. + "s");
 
-        // true means upgrade test succeeded, false means an inconsistency exists
+        // true means upgrade test succeeded, false means an inconsistency
+        // exists
         return testId2Failure.isEmpty();
 
     }

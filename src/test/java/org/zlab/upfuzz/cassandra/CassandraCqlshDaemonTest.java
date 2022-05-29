@@ -13,8 +13,10 @@ public class CassandraCqlshDaemonTest extends TestCase {
     @Test
     public void testFromJson() {
         String jsonString = "{\"cmd\":\"CREATE KEYSPACE IF NOT EXISTS OXBJMXLSGDFXBKX WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 2 };\",\"exitValue\":0,\"timeUsage\":9.5367431640625e-07,\"message\":\"Test\"}";
-        CqlshPacket cqlshPacket = new Gson().fromJson(jsonString, CqlshPacket.class);
-        Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+        CqlshPacket cqlshPacket = new Gson().fromJson(jsonString,
+                CqlshPacket.class);
+        Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping()
+                .create();
         System.out.println(gson.toJson(cqlshPacket, CqlshPacket.class));
     }
 

@@ -12,8 +12,7 @@ import org.zlab.upfuzz.utils.Pair;
 public abstract class Executor implements IExecutor {
 
     public enum FailureType {
-        UPGRADE_FAIL,
-        RESULT_INCONSISTENCY
+        UPGRADE_FAIL, RESULT_INCONSISTENCY
     }
 
     public String executorID;
@@ -23,12 +22,13 @@ public abstract class Executor implements IExecutor {
     public Map<Integer, Pair<CommandSequence, CommandSequence>> testId2commandSequence;
     public Map<Integer, List<String>> testId2oldVersionResult;
     public Map<Integer, List<String>> testId2newVersionResult;
-    public Map<Integer, Pair<FailureType, String>> testId2Failure; // Pair<FailureType, FailureInfo>
+    public Map<Integer, Pair<FailureType, String>> testId2Failure; // Pair<FailureType,
+                                                                   // FailureInfo>
 
-//    public List<String> oldVersionResult;
-//    public List<String> newVersionResult;
-//    public FailureType failureType;
-//    public String failureInfo;
+    // public List<String> oldVersionResult;
+    // public List<String> newVersionResult;
+    // public FailureType failureType;
+    // public String failureInfo;
 
     protected Executor() {
         testId2commandSequence = new HashMap<>();
@@ -64,17 +64,18 @@ public abstract class Executor implements IExecutor {
     }
 
     public List<String> execute(CommandSequence commandSequence,
-                                CommandSequence validationCommandSequence,
-                                int testId) {
-//        startup();
-        testId2commandSequence.put(testId, new Pair<>(commandSequence, validationCommandSequence));
+            CommandSequence validationCommandSequence, int testId) {
+        // startup();
+        testId2commandSequence.put(testId,
+                new Pair<>(commandSequence, validationCommandSequence));
         executeCommands(commandSequence);
         // saveSnapshot(); // Flush, only keep the data folder
 
-        List<String> oldVersionResult = executeCommands(validationCommandSequence);
+        List<String> oldVersionResult = executeCommands(
+                validationCommandSequence);
         testId2oldVersionResult.put(testId, oldVersionResult);
         // execute the second commands
-//        teardown();
+        // teardown();
         return oldVersionResult;
     }
 

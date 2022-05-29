@@ -20,7 +20,8 @@ import org.jacoco.core.data.SessionInfo;
 import org.jacoco.core.runtime.RemoteControlReader;
 import org.jacoco.core.runtime.RemoteControlWriter;
 
-public class ClientHandler implements Runnable, ISessionInfoVisitor, IExecutionDataVisitor {
+public class ClientHandler
+        implements Runnable, ISessionInfoVisitor, IExecutionDataVisitor {
     private final FuzzingClient client;
     private final Socket socket;
     private String sessionId;
@@ -39,7 +40,8 @@ public class ClientHandler implements Runnable, ISessionInfoVisitor, IExecutionD
 
     private byte[] buffer;
 
-    ClientHandler(final FuzzingClient client, final Socket socket, ExecutionDataWriter fileWriter) throws IOException {
+    ClientHandler(final FuzzingClient client, final Socket socket,
+            ExecutionDataWriter fileWriter) throws IOException {
         this.client = client;
         this.socket = socket;
         this.fileWriter = fileWriter;
@@ -82,7 +84,8 @@ public class ClientHandler implements Runnable, ISessionInfoVisitor, IExecutionD
         client.agentHandler.put(sessionId, this);
         System.out.println("agent handler add " + sessionId);
 
-        String identifier = sessionSplit[0], executor = sessionSplit[1], index = sessionSplit[2];
+        String identifier = sessionSplit[0], executor = sessionSplit[1],
+                index = sessionSplit[2];
         if (!client.sessionGroup.containsKey(executor)) {
             client.sessionGroup.put(executor, new ArrayList<>());
         }
@@ -96,7 +99,8 @@ public class ClientHandler implements Runnable, ISessionInfoVisitor, IExecutionD
         if (!registered) {
             register(info);
         } else {
-            System.out.printf("Retrieving execution Data for session: %s%n", info.getId());
+            System.out.printf("Retrieving execution Data for session: %s%n",
+                    info.getId());
         }
         synchronized (fileWriter) {
             fileWriter.visitSessionInfo(info);

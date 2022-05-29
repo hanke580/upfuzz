@@ -43,10 +43,13 @@ public class Fuzzer {
     public static int upgradedCoveredBranches = 0;
     public static int upgradedProbeNum = 0;
 
-    public static List<Pair<Integer, Integer>> originalCoverageAlongTime = new ArrayList<>(); // time: Coverage
-    public static List<Pair<Integer, Integer>> upgradedCoverageAlongTime = new ArrayList<>(); // time: Coverage
+    public static List<Pair<Integer, Integer>> originalCoverageAlongTime = new ArrayList<>(); // time:
+                                                                                              // Coverage
+    public static List<Pair<Integer, Integer>> upgradedCoverageAlongTime = new ArrayList<>(); // time:
+                                                                                              // Coverage
     public static long lastTimePoint = 0;
-    public static long timeInterval = 600; // seconds, now set it as every 10 mins
+    public static long timeInterval = 600; // seconds, now set it as every 10
+                                           // mins
 
     public static int seedID = 0;
     public static int round = 0;
@@ -67,7 +70,7 @@ public class Fuzzer {
             String cmd1 = "INSERT";
             String cmd2 = "DROP";
             Map<Set<Integer>, Set<Set<Integer>>> ordersOf2Cmd = new HashMap<>();
-//            Set<Set<Integer>> ordersOf1Cmd = new HashSet<>();
+            // Set<Set<Integer>> ordersOf1Cmd = new HashSet<>();
             boolean hasNewOrder;
             // Only run the mutated seeds
             for (int i = 0; i < TEST_NUM; i++) {
@@ -81,7 +84,8 @@ public class Fuzzer {
                     for (; j < MUTATE_RETRY_TIME; j++) {
                         // Learned from syzkaller
                         // 1/3 probability that the mutation could be stacked
-                        // But if exceeds MUTATE_RETRY_TIME(10) stacked mutation, this sequence will be dropped
+                        // But if exceeds MUTATE_RETRY_TIME(10) stacked
+                        // mutation, this sequence will be dropped
                         if (mutatedCommandSequence.mutate() == true
                                 && Utilities.oneOf(rand, 3))
                             break;
@@ -91,9 +95,11 @@ public class Fuzzer {
                         // or too much mutation is stacked together
                         continue;
                     }
-                    hasNewOrder = checkIfHasNewOrder_Two_Cmd(mutatedCommandSequence
-                            .getCommandStringList(), cmd1, cmd2, ordersOf2Cmd);
-                    // hasNewOrder = checkIfHasNewOrder_OneCmd(mutatedCommandSequence
+                    hasNewOrder = checkIfHasNewOrder_Two_Cmd(
+                            mutatedCommandSequence.getCommandStringList(), cmd1,
+                            cmd2, ordersOf2Cmd);
+                    // hasNewOrder =
+                    // checkIfHasNewOrder_OneCmd(mutatedCommandSequence
                     // .getCommandStringList(), cmd1, ordersOf1Cmd);
                     System.out.println("Mutated Command Sequence:");
                     for (String cmdStr : mutatedCommandSequence
@@ -157,9 +163,9 @@ public class Fuzzer {
             CommandSequence validationCommandSequence,
             ExecutionDataStore curCoverage, ExecutionDataStore upCoverage,
             Queue<Pair<CommandSequence, CommandSequence>> queue,
-            boolean hasNewOrder,
-            FeedBack testFeedBack) {
-        // Check new bits, update covered branches, add record (time, coverage) pair
+            boolean hasNewOrder, FeedBack testFeedBack) {
+        // Check new bits, update covered branches, add record (time, coverage)
+        // pair
         if (hasNewOrder || Utilities.hasNewBits(curCoverage,
                 testFeedBack.originalCodeCoverage)) {
             saveSeed(commandSequence, validationCommandSequence);
@@ -177,7 +183,7 @@ public class Fuzzer {
             originalCoveredBranches = coverageStatus.left;
             originalProbeNum = coverageStatus.right;
             // Pair<Integer, Integer> upgradedCoverageStatus = Utilities
-            //         .getCoverageStatus(upCoverage);
+            // .getCoverageStatus(upCoverage);
             // upgradedCoveredBranches = upgradedCoverageStatus.left;
             // upgradedProbeNum = upgradedCoverageStatus.right;
 
@@ -277,8 +283,8 @@ public class Fuzzer {
     }
 
     public static boolean checkIfHasNewOrder_Two_Cmd(List<String> cmdStrList,
-                                          String cmd1, String cmd2,
-                                          Map<Set<Integer>, Set<Set<Integer>>> orders) {
+            String cmd1, String cmd2,
+            Map<Set<Integer>, Set<Set<Integer>>> orders) {
         // Care about the order between two commands
         boolean hasNewOrder;
         Set<Integer> cmd1Pos = new HashSet<>();
@@ -307,8 +313,7 @@ public class Fuzzer {
     }
 
     public static boolean checkIfHasNewOrder_OneCmd(List<String> cmdStrList,
-                                             String cmd1,
-                                             Set<Set<Integer>> orders) {
+            String cmd1, Set<Set<Integer>> orders) {
         // Care about only the position of target command
         boolean hasNewOrder;
         Set<Integer> cmd1Pos = new HashSet<>();

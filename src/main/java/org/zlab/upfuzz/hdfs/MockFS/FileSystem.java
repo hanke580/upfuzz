@@ -14,7 +14,7 @@ public class FileSystem {
 
     String[] group_id = new String[file_size];
 
-    public static String randomFile(){
+    public static String randomFile() {
         return "";
     }
 }

@@ -26,7 +26,7 @@ public class INode {
 
     int i_file_acl_lo; /* File ACL */
 
-    // int  i_block[EXT4_N_BLOCKS];  /* Pointers to blocks */
+    // int i_block[EXT4_N_BLOCKS]; /* Pointers to blocks */
 
     // int i_generation; /* File version (for NFS) */
 

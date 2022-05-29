@@ -1,6 +1,5 @@
 package org.zlab.upfuzz.fuzzingengine;
 
-
 import java.lang.reflect.Field;
 import java.util.Arrays;
 
@@ -32,17 +31,18 @@ public class Config {
 
         @Override
         public String toString() {
-            return new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(this,
-                    Configuration.class);
+            return new GsonBuilder().setPrettyPrinting().disableHtmlEscaping()
+                    .create().toJson(this, Configuration.class);
         }
 
         public Boolean checkNull() {
             Field[] fields = this.getClass().getDeclaredFields();
-            for(Field field : fields){
+            for (Field field : fields) {
                 try {
                     Object fieldObject = field.get(this);
-                    if( fieldObject == null ){
-                        System.err.println("Configuration failed to find: " + field);
+                    if (fieldObject == null) {
+                        System.err.println(
+                                "Configuration failed to find: " + field);
                     }
                 } catch (IllegalArgumentException | IllegalAccessException e) {
                     e.printStackTrace();
@@ -51,7 +51,8 @@ public class Config {
             }
 
             // assertTrue(Arrays.stream(fields).anyMatch(
-            //         field -> field.getName().equals(LAST_NAME_FIELD) && field.getType().equals(String.class)));
+            // field -> field.getName().equals(LAST_NAME_FIELD) &&
+            // field.getType().equals(String.class)));
             return true;
         }
     }
