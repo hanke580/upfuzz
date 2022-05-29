@@ -2,15 +2,11 @@
 package org.zlab.upfuzz.fuzzingengine;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import org.jacoco.core.data.ExecutionData;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.jacoco.core.data.ExecutionDataWriter;
@@ -27,6 +23,8 @@ public class ClientHandler
     private String sessionId;
     private SessionInfo sesInfo;
 
+    public CountDownLatch okCMD = new CountDownLatch(1);
+
     private final RemoteControlReader reader;
     private final RemoteControlWriter writer;
 
@@ -35,8 +33,6 @@ public class ClientHandler
     private final int maxn = 10240;
 
     private boolean registered = false;
-    public long lastUpdateTime;
-    public boolean waitSessionData = false;
 
     private byte[] buffer;
 
@@ -63,9 +59,9 @@ public class ClientHandler
 
             System.out.println("connection closed");
             socket.close();
-            synchronized (fileWriter) {
-                fileWriter.flush();
-            }
+            // synchronized (fileWriter) {
+            // fileWriter.flush();
+            // }
         } catch (final IOException e) {
             e.printStackTrace();
             // client.agentHandler.remove(sessionId);
@@ -94,17 +90,15 @@ public class ClientHandler
     }
 
     public void visitSessionInfo(final SessionInfo info) {
-        waitSessionData = true;
-        lastUpdateTime = System.currentTimeMillis();
         if (!registered) {
             register(info);
         } else {
             System.out.printf("Retrieving execution Data for session: %s%n",
                     info.getId());
         }
-        synchronized (fileWriter) {
-            fileWriter.visitSessionInfo(info);
-        }
+        // synchronized (fileWriter) {
+        // fileWriter.visitSessionInfo(info);
+        // }
     }
 
     public void visitClassExecution(final ExecutionData data) {
@@ -125,15 +119,23 @@ public class ClientHandler
             store.put(data);
             client.agentStore.put(sessionId, store);
         }
-        synchronized (fileWriter) {
-            fileWriter.visitClassExecution(data);
-        }
-        lastUpdateTime = System.currentTimeMillis();
+        // synchronized (fileWriter) {
+        // fileWriter.visitClassExecution(data);
+        // }
 
     }
 
     public void collect() throws IOException {
         System.out.println("handler collect " + sessionId);
         writer.visitDumpCommand(true, false);
+        okCMD = new CountDownLatch(1);
+        synchronized (okCMD) {
+            try {
+                okCMD.await(1000, TimeUnit.MILLISECONDS);
+                System.out.println("ok");
+            } catch (InterruptedException e) {
+                System.out.println("timeout");
+            }
+        }
     }
 }
