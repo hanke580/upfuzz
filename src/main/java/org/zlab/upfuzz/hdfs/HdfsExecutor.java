@@ -206,7 +206,7 @@ public class HdfsExecutor extends Executor {
      *         4. Perform the above steps for all the chosen datanodes in the subset in parallel.
      *     2. Repeat the above steps until all datanodes in the cluster are upgraded.
      * 4. Finalize Rolling Upgrade
-     *     1. Run "hdfs dfsadmi n -rolli ngUpgrade finalize" to finalize the rolling upgrade.
+     *     1. Run "hdfs dfsadmin -rollingUpgrade finalize" to finalize the rolling upgrade.
      * @throws InterruptedException
      */
     public void upgrade() throws IOException, InterruptedException {

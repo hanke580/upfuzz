@@ -58,10 +58,6 @@ public class ClientHandler
         try {
             while (reader.read()) {
                 okCMD.countDown();
-                DateFormat formatter = new SimpleDateFormat(
-                        "yyyy-MM-dd HH:mm:ss.SSS");
-                System.out.println(formatter.format(System.currentTimeMillis())
-                        + "\n" + "after one read");
             }
 
             System.out.println("connection closed");

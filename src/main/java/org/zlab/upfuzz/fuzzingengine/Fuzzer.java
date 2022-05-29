@@ -1,11 +1,16 @@
 package org.zlab.upfuzz.fuzzingengine;
 
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Queue;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.SerializationUtils;
 import org.jacoco.core.data.ExecutionDataStore;
@@ -13,26 +18,15 @@ import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.cassandra.CassandraCommandPool;
+import org.zlab.upfuzz.cassandra.CassandraCommands;
 import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
-import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.hdfs.HdfsCommandPool;
 import org.zlab.upfuzz.hdfs.HdfsExecutor;
+import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 public class Fuzzer {
     /**
