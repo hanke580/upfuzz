@@ -26,8 +26,7 @@ public abstract class ParameterType implements Serializable {
         public abstract Parameter generateRandomParameter(State s, Command c);
 
         public abstract String generateStringValue(Parameter p); // Maybe this
-                                                                 // should be
-                                                                 // in
+                                                                 // should be in
                                                                  // Parameter
                                                                  // class? It
                                                                  // has the
@@ -378,8 +377,7 @@ public abstract class ParameterType implements Serializable {
                 for (int i = 0; i < setSize; i++) {
                     value.add(targetSet.get(indexArray.get(i))); // The
                                                                  // targetSet
-                                                                 // should
-                                                                 // also
+                                                                 // should also
                                                                  // store
                                                                  // Parameter
                 }
@@ -506,8 +504,7 @@ public abstract class ParameterType implements Serializable {
                 for (int i = 0; i < setSize; i++) {
                     value.add(targetSet.get(indexArray.get(i))); // The
                                                                  // targetSet
-                                                                 // should
-                                                                 // also
+                                                                 // should also
                                                                  // store
                                                                  // Parameter
                 }

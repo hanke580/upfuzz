@@ -98,10 +98,14 @@ public class Fuzzer {
             // Choice 2: Care about the order between DROP and INSERT
             // The order of command can be assigned by USER
 
+            // Care about all the order between commands
+
             String cmd1 = "INSERT";
             String cmd2 = "DROP";
-            Map<Set<Integer>, Set<Set<Integer>>> ordersOf2Cmd = new HashMap<>();
+            // Map<Set<Integer>, Set<Set<Integer>>> ordersOf2Cmd = new
+            // HashMap<>();
             // Set<Set<Integer>> ordersOf1Cmd = new HashSet<>();
+            Set<String> orderOfAllCmds = new HashSet<>();
             boolean hasNewOrder;
             // Only run the mutated seeds
             for (int i = 0; i < TEST_NUM; i++) {
@@ -125,9 +129,15 @@ public class Fuzzer {
                         // or too much mutation is stacked together
                         continue;
                     }
-                    hasNewOrder = checkIfHasNewOrder_Two_Cmd(
-                            mutatedCommandSequence.getCommandStringList(), cmd1,
-                            cmd2, ordersOf2Cmd);
+                    hasNewOrder = checkIfHasNewOrder_AllCmds(
+                            mutatedCommandSequence.getCommandStringList(),
+                            orderOfAllCmds);
+                    // hasNewOrder = checkIfHasNewOrder_Two_Cmd(
+                    // mutatedCommandSequence.getCommandStringList(), cmd1,
+                    // cmd2, ordersOf2Cmd);
+                    // hasNewOrder =
+                    // checkIfHasNewOrder_OneCmd(mutatedCommandSequence
+                    // .getCommandStringList(), cmd1, ordersOf1Cmd);
                     System.out.println("Mutated Command Sequence:");
                     for (String cmdStr : mutatedCommandSequence
                             .getCommandStringList()) {
@@ -359,4 +369,34 @@ public class Fuzzer {
         return hasNewOrder;
     }
 
+    public static boolean checkIfHasNewOrder_AllCmds(List<String> cmdStrList,
+            Set<String> orderSet) {
+        // Care about only the position of target command
+        String order = getStringOrder(cmdStrList);
+        if (orderSet.contains(order)) {
+            return false;
+        } else {
+            orderSet.add(order);
+            return true;
+        }
+    }
+
+    // Get the order of all commands, format like 1-2-3-3-4 <===> CCIID
+    public static String getStringOrder(List<String> cmdStrList) {
+        StringBuilder sb = new StringBuilder();
+        for (String cmdStr : cmdStrList) {
+            for (int i = 0; i < CassandraCommands.commandNameList.size(); i++) {
+                if (cmdStr.contains(CassandraCommands.commandNameList.get(i))) {
+                    if (sb.toString().length() == 0) {
+                        sb.append(i);
+                    } else {
+                        sb.append("-" + i);
+                    }
+                    break;
+                }
+                // If nothing found, temporally do not care about this command
+            }
+        }
+        return sb.toString();
+    }
 }

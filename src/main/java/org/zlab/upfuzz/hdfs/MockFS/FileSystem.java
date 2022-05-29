@@ -14,4 +14,13 @@ import org.zlab.upfuzz.hdfs.MockFS.INode.IType;
 public abstract class FileSystem implements Serializable {
     static int file_size = 1024;
 
+    Map<String, Integer> file_table = new HashMap<String, Integer>();
+
+    String[] user_id = new String[file_size];
+
+    String[] group_id = new String[file_size];
+
+    public static String randomFile() {
+        return "";
+    }
 }

@@ -2,8 +2,6 @@ package org.zlab.upfuzz.fuzzingengine;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -24,6 +22,8 @@ public class ClientHandler
     private String sessionId;
     private SessionInfo sesInfo;
 
+    public CountDownLatch okCMD = new CountDownLatch(1);
+
     private final RemoteControlReader reader;
     private final RemoteControlWriter writer;
 
@@ -32,10 +32,6 @@ public class ClientHandler
     private final int maxn = 10240;
 
     private boolean registered = false;
-    public long lastUpdateTime;
-    public boolean waitSessionData = false;
-    // public boolean okCMD = false;
-    public CountDownLatch okCMD = new CountDownLatch(1);
 
     private byte[] buffer;
 
@@ -101,8 +97,6 @@ public class ClientHandler
     }
 
     public void visitSessionInfo(final SessionInfo info) {
-        waitSessionData = true;
-        lastUpdateTime = System.currentTimeMillis();
         if (!registered) {
             register(info);
         } else {
@@ -135,7 +129,6 @@ public class ClientHandler
         // synchronized (fileWriter) {
         // fileWriter.visitClassExecution(data);
         // }
-        lastUpdateTime = System.currentTimeMillis();
 
     }
 

@@ -241,7 +241,7 @@ public class CommandSequence implements Serializable {
                 command.updateState(state);
                 break;
             } catch (Exception e) {
-                e.printStackTrace(); // DEBUG
+                // e.printStackTrace(); // DEBUG
                 command = null;
                 break;
                 // continue;

@@ -37,6 +37,8 @@ public class CassandraCommands {
 
     public static final List<Map.Entry<Class<? extends Command>, Integer>> commandClassList = new ArrayList<>();
 
+    public static final List<String> commandNameList = new ArrayList<>();
+
     /**
      * public static final List<Class<? extends Command>> commandClassList = new ArrayList<>();
      * Prioritized commands, have a higher possibility to be generated in the first several
@@ -67,18 +69,24 @@ public class CassandraCommands {
     static {
         commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
                 CREAT_KEYSPACE.class, 1));
+        commandNameList.add("CREATE KEYSPACE");
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(CREATE_TABLE.class, 1));
+        commandNameList.add("CREATE TABLE");
         commandClassList
                 .add(new AbstractMap.SimpleImmutableEntry<>(INSERT.class, 10));
+        commandNameList.add("INSERT");
         commandClassList
                 .add(new AbstractMap.SimpleImmutableEntry<>(DELETE.class, 6));
+        commandNameList.add("DELETE");
         // commandClassList.add(new
         // AbstractMap.SimpleImmutableEntry<>(SELECT.class, 8));
         commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
                 ALTER_TABLE_DROP.class, 8));
+        commandNameList.add("DROP");
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(CREAT_INDEX.class, 4));
+        commandNameList.add("CREATE INDEX");
 
         createCommandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
                 CREAT_KEYSPACE.class, 2));

@@ -8,8 +8,6 @@ import java.rmi.UnexpectedException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.CustomExceptions;
@@ -49,11 +47,7 @@ public class FuzzingClient {
     FuzzingClient() {
         init();
         executor = new CassandraExecutor();
-        try {
-            executor.startup();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        executor.startup();
     }
 
     private void init() {
@@ -160,7 +154,8 @@ public class FuzzingClient {
                      * An inconsistency has been found
                      * 1. It could be exception during the upgrade process
                      * 2. The result is different between two versions
-                     * Serialize them into the folder, 2 sequences + failureType + failureInfo
+                     * Serialize them into the folder, 2 sequences + failureType +
+                     * failureInfo
                      */
                     while (Paths
                             .get(Config.getConf().crashDir, "crash_" + epoch)
@@ -257,7 +252,6 @@ public class FuzzingClient {
                         Utilities.write2TXT(crashReportPath.toFile(),
                                 sb.toString());
                         crashID++;
-
                     }
                 }
             } catch (CustomExceptions.systemStartFailureException e) {
@@ -295,24 +289,9 @@ public class FuzzingClient {
                 ClientHandler conn = agentHandler.get(agentId);
                 if (conn != null) {
                     try {
-                        conn.waitSessionData = false;
                         conn.collect();
-                        while (!conn.waitSessionData) {
-                            // System.out.println("wait Session");
-                            Thread.sleep(100);
-                        }
-                        // System.out.println("wait data1: currentTimeMillis = "
-                        // + System.currentTimeMillis() + " Conn.lastTime = " +
-                        // conn.lastUpdateTime);
-                        while (System.currentTimeMillis()
-                                - conn.lastUpdateTime < 300) {
-                            // System.out.println("wait data2: currentTimeMillis
-                            // = " + System.currentTimeMillis() + "
-                            // Conn.lastTime = " + conn.lastUpdateTime);
-                            Thread.sleep(100);
-                        }
-                    } catch (IOException | InterruptedException e) {
-                        // e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
                 }
             }
