@@ -136,7 +136,6 @@ public class Fuzzer {
                         queue, fuzzingClient, true);
             }
         }
-
     }
 
     public boolean fuzzOne(Random rand, CommandSequence commandSequence,

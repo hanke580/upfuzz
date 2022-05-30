@@ -21,6 +21,8 @@ public class HdfsExecutor extends Executor {
 
     static final String jacocoOptions = "=append=false,includes=org.apache.hadoop.*,output=dfe,address=localhost,port=6300,sessionid=";
     Process hdfsProcess;
+    Process hdfsDN;
+    Process hdfsSNN;
 
     public HdfsExecutor(CommandSequence commandSequence,
             CommandSequence validationCommandSequence) {
@@ -114,6 +116,15 @@ public class HdfsExecutor extends Executor {
         }
     }
 
+    private void setupProcess(ProcessBuilder processBuilder, String path,
+            String option, String logFile) {
+        Map<String, String> env = processBuilder.environment();
+        env.put("JAVA_TOOL_OPTIONS", option);
+        processBuilder.directory(new File(path));
+        processBuilder.redirectErrorStream(true);
+        processBuilder.redirectOutput(Paths.get(path, "logs.txt").toFile());
+    }
+
     @Override
     public void startup() {
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -162,24 +173,26 @@ public class HdfsExecutor extends Executor {
             }
 
             System.out.println("start hadoop...");
-            ProcessBuilder hdfsProcessBuilder = new ProcessBuilder(
-                    // "bin/hdfs", "--daemon", "start", "namenode");
-                    "sbin/start-dfs.sh");
-            Map<String, String> env = hdfsProcessBuilder.environment();
-            env.put("JAVA_TOOL_OPTIONS",
-                    "-javaagent:" + Config.getConf().jacocoAgentPath
-                            + jacocoOptions + systemID + "-" + executorID
-                            + "_original");
-            System.out.println("env:" + env.get("JAVA_TOOL_OPTIONS"));
-            hdfsProcessBuilder
-                    .directory(new File(Config.getConf().oldSystemPath));
-            hdfsProcessBuilder.redirectErrorStream(true);
-            hdfsProcessBuilder.redirectOutput(Paths
-                    .get(Config.getConf().oldSystemPath, "logs.txt").toFile());
+            ProcessBuilder hdfsProcessBuilder = new ProcessBuilder("bin/hdfs",
+                    "--daemon", "start", "namenode");
+            ProcessBuilder hdfsDNBuilder = new ProcessBuilder("bin/hdfs",
+                    "--daemon", "start", "datanode");
+            ProcessBuilder hdfsSNNBuilder = new ProcessBuilder("bin/hdfs",
+                    "--daemon", "start", "secondarynamenode");
+            // "sbin/start-dfs.sh");
+            String hdfsJacocoOption = "-javaagent:"
+                    + Config.getConf().jacocoAgentPath + jacocoOptions
+                    + systemID + "-" + executorID + "_original";
+            String path = Config.getConf().oldSystemPath;
+            setupProcess(hdfsProcessBuilder, path, hdfsJacocoOption, "NN.log");
+            setupProcess(hdfsDNBuilder, path, hdfsJacocoOption, "DN.log");
+            setupProcess(hdfsSNNBuilder, path, hdfsJacocoOption, "SNN.log");
 
             System.out.println("Executor starting hdfs");
             long startTime = System.currentTimeMillis();
             hdfsProcess = hdfsProcessBuilder.start();
+            hdfsDN = hdfsDNBuilder.start();
+            hdfsSNN = hdfsSNNBuilder.start();
             // byte[] out = hdfsProcess.getInputStream().readAllBytes();
             // BufferedReader in = new BufferedReader(new
             // InputStreamReader(hdfsProcess.getInputStream()));
@@ -192,14 +205,14 @@ public class HdfsExecutor extends Executor {
             // hdfsProcess.waitFor();
             System.out.println("hdfs " + executorID + " started");
             while (!isHdfsReady(Config.getConf().oldSystemPath)) {
-                if (!hdfsProcess.isAlive()) {
-                    // System.out.println("hdfs process crushed\nCheck " +
-                    // Config.getConf().hdfsOutputFile
-                    // + " for details");
-                    // System.exit(1);
-                    throw new CustomExceptions.systemStartFailureException(
-                            "Hdfs Start fails", null);
-                }
+                // if (!hdfsProcess.isAlive()) {
+                // // System.out.println("hdfs process crushed\nCheck " +
+                // // Config.getConf().hdfsOutputFile
+                // // + " for details");
+                // // System.exit(1);
+                // throw new CustomExceptions.systemStartFailureException(
+                // "Hdfs Start fails", null);
+                // }
                 System.out.println("Wait for " + systemID + " ready...");
                 Thread.sleep(1000);
             }
