@@ -449,7 +449,6 @@ public class CassandraExecutor extends Executor {
             // for (String str: newVersionResult) {
             // System.out.println(str);
             // }
-            System.out.println("new size = " + newVersionResult.size());
             if (newVersionResult.size() != oldVersionResult.size()) {
                 failureType = FailureType.RESULT_INCONSISTENCY;
                 failureInfo = "The result size is different, old version result size = "

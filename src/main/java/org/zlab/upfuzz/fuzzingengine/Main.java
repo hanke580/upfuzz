@@ -23,7 +23,6 @@ import org.apache.commons.cli.ParseException;
 
 import org.zlab.upfuzz.fuzzingengine.Config.Configuration;
 import org.jacoco.core.data.ExecutionDataStore;
-import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.fuzzingengine.FuzzingClient;
