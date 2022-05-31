@@ -189,7 +189,7 @@ public class FuzzingClient {
                             "crash_" + epoch, "epoch_cmd_seq_"
                                     + epochStartTestId + "_" + testId + ".txt");
                     Utilities.write2TXT(cmdSeqsPath.toFile(),
-                            commandSequenceString.toString());
+                            commandSequenceString.toString(), false);
 
                     // When ret is false, while the testId2Failure is empty!!!
 
@@ -211,7 +211,7 @@ public class FuzzingClient {
                                     Config.getConf().crashDir, "crash_" + epoch,
                                     "crash_" + testIdx + ".txt");
                             Utilities.write2TXT(crashReportPath.toFile(),
-                                    sb.toString());
+                                    sb.toString(), false);
 
                             crashID++;
                             break;
@@ -253,7 +253,7 @@ public class FuzzingClient {
                                 Config.getConf().crashDir, "crash_" + epoch,
                                 "crash_" + testIdx + ".txt");
                         Utilities.write2TXT(crashReportPath.toFile(),
-                                sb.toString());
+                                sb.toString(), false);
                         crashID++;
                     }
                 }

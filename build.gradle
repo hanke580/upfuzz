@@ -24,6 +24,8 @@ dependencies {
 
 	implementation 'com.google.code.gson:gson:2.9.0'
 
+	implementation group: 'info.debatty', name: 'java-string-similarity', version: '0.10'
+
 	implementation 'com.github.st-saint:jacoco:300f3f6d2b'
 
 	// https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple

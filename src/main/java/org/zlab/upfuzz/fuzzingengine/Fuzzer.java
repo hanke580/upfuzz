@@ -1,7 +1,9 @@
 package org.zlab.upfuzz.fuzzingengine;
 
+import info.debatty.java.stringsimilarity.QGram;
 import org.apache.commons.lang3.SerializationUtils;
 import org.jacoco.core.data.ExecutionDataStore;
+import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.cassandra.CassandraCommands;
 import org.zlab.upfuzz.cassandra.CassandraExecutor;
@@ -30,6 +32,8 @@ public class Fuzzer {
      * @return
      */
     public static final int TEST_NUM = 2000;
+
+    public static QGram qGram = new QGram();
 
     /**
      * If a seed cannot be correctly mutated for more than five times,
@@ -63,6 +67,21 @@ public class Fuzzer {
         // Fuzz this command sequence for lots of times
         if (fromCorpus) {
 
+            // [1] Maintain a list storing all new seeds
+            // [2] compare with latest coverage, if a new coverage is found,
+            // directly add it.
+            // [3] If not, compare it with the original seed, if a new coverage
+            // is found, start finding
+            // identical seeds process.
+            // and if there is an identical seed, compute the
+            // edit distance, do the replacement if needed.
+            // Scan [Can be optimized by binary search]
+            // If none of them is identical, we can keep it or throw it.
+            // (temporally throw it)
+            // Cannot use has_new_bits, since it could be seed0 includes seed1,
+            // we want the identical relationship
+            // There need 2 funcs, (1) compare (2) compute the edit distance
+
             // Special Care about the order between commands
             // Choice 1: Only care about the locations of DROP
             // Choice 2: Care about the order between DROP and INSERT
@@ -70,13 +89,24 @@ public class Fuzzer {
 
             // Care about all the order between commands
 
-            String cmd1 = "INSERT";
-            String cmd2 = "DROP";
+            // String cmd1 = "INSERT";
+            // String cmd2 = "DROP";
             // Map<Set<Integer>, Set<Set<Integer>>> ordersOf2Cmd = new
             // HashMap<>();
             // Set<Set<Integer>> ordersOf1Cmd = new HashSet<>();
-            Set<String> orderOfAllCmds = new HashSet<>();
-            boolean hasNewOrder;
+            // Set<String> orderOfAllCmds = new HashSet<>();
+            boolean hasNewOrder = false;
+            ExecutionDataStore seedOriginalCoverage = null;
+            ExecutionDataStore seedUpgradeCoverage = null;
+
+            List<Pair<CommandSequence, CommandSequence>> roundCorpus = new LinkedList<>();
+            List<ExecutionDataStore> roundCoverage = new LinkedList<>();
+            List<Integer> seedIdxList = new LinkedList<>();
+            String seedStr = "";
+            for (String cmdStr : commandSequence.getCommandStringList()) {
+                seedStr += cmdStr;
+            }
+
             // Only run the mutated seeds
             for (int i = 0; i < TEST_NUM; i++) {
                 printInfo(queue.size(), fuzzingClient.crashID, testID);
@@ -86,23 +116,27 @@ public class Fuzzer {
                 try {
                     int j = 0;
 
-                    for (; j < MUTATE_RETRY_TIME; j++) {
-                        // Learned from syzkaller
-                        // 1/3 probability that the mutation could be stacked
-                        // But if exceeds MUTATE_RETRY_TIME(10) stacked
-                        // mutation, this sequence will be dropped
-                        if (mutatedCommandSequence.mutate() == true
-                                && Utilities.oneOf(rand, 3))
-                            break;
+                    if (i != 0) { // Run the original seed and keep its coverage
+                        for (; j < MUTATE_RETRY_TIME; j++) {
+                            // Learned from syzkaller
+                            // 1/3 probability that the mutation could be
+                            // stacked
+                            // But if exceeds MUTATE_RETRY_TIME(10) stacked
+                            // mutation, this sequence will be dropped
+                            if (mutatedCommandSequence.mutate() == true
+                                    && Utilities.oneOf(rand, 3))
+                                break;
+                        }
+                        if (j == MUTATE_RETRY_TIME) {
+                            // Discard current seq since the mutation keeps
+                            // failing
+                            // or too much mutation is stacked together
+                            continue;
+                        }
                     }
-                    if (j == MUTATE_RETRY_TIME) {
-                        // Discard current seq since the mutation keeps failing
-                        // or too much mutation is stacked together
-                        continue;
-                    }
-                    hasNewOrder = checkIfHasNewOrder_AllCmds(
-                            mutatedCommandSequence.getCommandStringList(),
-                            orderOfAllCmds);
+                    // hasNewOrder = checkIfHasNewOrder_AllCmds(
+                    // mutatedCommandSequence.getCommandStringList(),
+                    // orderOfAllCmds);
                     // hasNewOrder = checkIfHasNewOrder_Two_Cmd(
                     // mutatedCommandSequence.getCommandStringList(), cmd1,
                     // cmd2, ordersOf2Cmd);
@@ -145,9 +179,17 @@ public class Fuzzer {
                     continue;
                 }
                 // TODO: Add compare function in Jacoco
+                if (i == 0) {
+                    seedOriginalCoverage = fb.originalCodeCoverage;
+                    seedUpgradeCoverage = fb.upgradedCodeCoverage;
+                }
                 updateStatus(mutatedCommandSequence, validationCommandSequence,
-                        curCoverage, upCoverage, queue, hasNewOrder, fb);
+                        curCoverage, upCoverage, hasNewOrder,
+                        seedOriginalCoverage, seedUpgradeCoverage, roundCorpus,
+                        roundCoverage, seedIdxList, seedStr, fb);
             }
+
+            // TODO: Add roundCorpus to corpus
 
             round++;
 
@@ -174,8 +216,7 @@ public class Fuzzer {
             boolean hasNewOrder, FeedBack testFeedBack) {
         // Check new bits, update covered branches, add record (time, coverage)
         // pair
-        if (hasNewOrder || Utilities.hasNewBits(curCoverage,
-                testFeedBack.originalCodeCoverage)) {
+        if (hasNewOrder) {
             saveSeed(commandSequence, validationCommandSequence);
             queue.add(new Pair<>(commandSequence, validationCommandSequence));
 
@@ -190,28 +231,178 @@ public class Fuzzer {
                     .getCoverageStatus(curCoverage);
             originalCoveredBranches = coverageStatus.left;
             originalProbeNum = coverageStatus.right;
-            // Pair<Integer, Integer> upgradedCoverageStatus = Utilities
-            // .getCoverageStatus(upCoverage);
-            // upgradedCoveredBranches = upgradedCoverageStatus.left;
-            // upgradedProbeNum = upgradedCoverageStatus.right;
-
-        } else if (Utilities.hasNewBits(upCoverage,
-                testFeedBack.upgradedCodeCoverage)) {
+        } else if (Utilities.hasNewBits(curCoverage,
+                testFeedBack.originalCodeCoverage)) {
             saveSeed(commandSequence, validationCommandSequence);
             queue.add(new Pair<>(commandSequence, validationCommandSequence));
             curCoverage.merge(testFeedBack.originalCodeCoverage);
-            upCoverage.merge(testFeedBack.upgradedCodeCoverage);
+            // upCoverage.merge(testFeedBack.upgradedCodeCoverage);
 
             // Update the coveredBranches to the newest value
             Pair<Integer, Integer> coverageStatus = Utilities
                     .getCoverageStatus(curCoverage);
             originalCoveredBranches = coverageStatus.left;
             originalProbeNum = coverageStatus.right;
-            Pair<Integer, Integer> upgradedCoverageStatus = Utilities
-                    .getCoverageStatus(upCoverage);
-            upgradedCoveredBranches = upgradedCoverageStatus.left;
-            upgradedProbeNum = upgradedCoverageStatus.right;
+            // Pair<Integer, Integer> upgradedCoverageStatus = Utilities
+            // .getCoverageStatus(upCoverage);
+            // upgradedCoveredBranches = upgradedCoverageStatus.left;
+            // upgradedProbeNum = upgradedCoverageStatus.right;
         }
+
+        // Disable the usage of new code coverage temporally
+
+        // else if (Utilities.hasNewBits(upCoverage,
+        // testFeedBack.upgradedCodeCoverage)) {
+        // saveSeed(commandSequence, validationCommandSequence);
+        // queue.add(new Pair<>(commandSequence, validationCommandSequence));
+        // curCoverage.merge(testFeedBack.originalCodeCoverage);
+        // upCoverage.merge(testFeedBack.upgradedCodeCoverage);
+        //
+        // // Update the coveredBranches to the newest value
+        // Pair<Integer, Integer> coverageStatus = Utilities
+        // .getCoverageStatus(curCoverage);
+        // originalCoveredBranches = coverageStatus.left;
+        // originalProbeNum = coverageStatus.right;
+        // Pair<Integer, Integer> upgradedCoverageStatus = Utilities
+        // .getCoverageStatus(upCoverage);
+        // upgradedCoveredBranches = upgradedCoverageStatus.left;
+        // upgradedProbeNum = upgradedCoverageStatus.right;
+        // }
+
+        Long timeElapsed = TimeUnit.SECONDS.convert(
+                System.nanoTime() - Main.startTime, TimeUnit.NANOSECONDS);
+        if (timeElapsed - lastTimePoint > timeInterval || lastTimePoint == 0) {
+            // Insert a record (time: coverage)
+            originalCoverageAlongTime
+                    .add(new Pair(timeElapsed, originalCoveredBranches));
+            upgradedCoverageAlongTime
+                    .add(new Pair(timeElapsed, upgradedCoveredBranches));
+            lastTimePoint = timeElapsed;
+        }
+        testID++;
+        System.out.println();
+    }
+
+    private static void updateStatus(CommandSequence commandSequence,
+            CommandSequence validationCommandSequence,
+            ExecutionDataStore curCoverage, ExecutionDataStore upCoverage,
+            boolean hasNewOrder, ExecutionDataStore seedOriginalCoverage,
+            ExecutionDataStore seedUpgradeCoverage,
+            List<Pair<CommandSequence, CommandSequence>> roundCorpus,
+            List<ExecutionDataStore> roundCoverage, List<Integer> seedIdxList,
+            String seedStr, FeedBack testFeedBack) {
+        // Check new bits, update covered branches, add record (time, coverage)
+        // pair
+        if (hasNewOrder) {
+            roundCorpus.add(
+                    new Pair<>(commandSequence, validationCommandSequence));
+            roundCoverage.add(testFeedBack.originalCodeCoverage);
+            if (Utilities.hasNewBits(curCoverage,
+                    testFeedBack.originalCodeCoverage)) {
+                curCoverage.merge(testFeedBack.originalCodeCoverage);
+            }
+            seedIdxList.add(seedID);
+            saveSeed(commandSequence, validationCommandSequence);
+            // upCoverage.merge(testFeedBack.upgradedCodeCoverage);
+
+            // Update the coveredBranches to the newest value
+            Pair<Integer, Integer> coverageStatus = Utilities
+                    .getCoverageStatus(curCoverage);
+            originalCoveredBranches = coverageStatus.left;
+            originalProbeNum = coverageStatus.right;
+        } else if (Utilities.hasNewBits(curCoverage,
+                testFeedBack.originalCodeCoverage)) {
+            roundCorpus.add(
+                    new Pair<>(commandSequence, validationCommandSequence));
+            roundCoverage.add(testFeedBack.originalCodeCoverage);
+            curCoverage.merge(testFeedBack.originalCodeCoverage);
+            seedIdxList.add(seedID);
+            saveSeed(commandSequence, validationCommandSequence);
+            // upCoverage.merge(testFeedBack.upgradedCodeCoverage);
+
+            // Update the coveredBranches to the newest value
+            Pair<Integer, Integer> coverageStatus = Utilities
+                    .getCoverageStatus(curCoverage);
+            originalCoveredBranches = coverageStatus.left;
+            originalProbeNum = coverageStatus.right;
+            // Pair<Integer, Integer> upgradedCoverageStatus = Utilities
+            // .getCoverageStatus(upCoverage);
+            // upgradedCoveredBranches = upgradedCoverageStatus.left;
+            // upgradedProbeNum = upgradedCoverageStatus.right;
+        } else {
+            // no new order is found
+            // update it with the current corpus
+            if (Utilities.hasNewBits(curCoverage, seedOriginalCoverage)) {
+                // compare and check whether we can find an identical one
+                assert roundCorpus.size() == roundCorpus.size();
+                assert roundCorpus.size() == seedIdxList.size();
+
+                int i;
+                for (i = 0; i < roundCorpus.size(); i++) {
+                    if (Utilities.isEqualCoverage(roundCoverage.get(i),
+                            testFeedBack.originalCodeCoverage)) {
+                        break;
+                    }
+                }
+                if (i == roundCorpus.size()) {
+                    // Not found, keep this seed!
+                    // corpus [s0, s1], s0: {b1, b2}, s1: {b2, b3}, s3: {b1, b3}
+                    roundCorpus.add(new Pair<>(commandSequence,
+                            validationCommandSequence));
+                    roundCoverage.add(testFeedBack.originalCodeCoverage);
+                } else {
+                    // Found the identical one!
+                    // Compute the distance, replace if needed
+
+                    System.out.println("Found Identical Seed! Seed idx = "
+                            + seedIdxList.get(i));
+
+                    String str1 = "";
+                    for (String cmdStr : roundCorpus.get(i).left
+                            .getCommandStringList()) {
+                        str1 += cmdStr;
+                    }
+                    String str2 = "";
+                    for (String cmdStr : commandSequence
+                            .getCommandStringList()) {
+                        str2 += cmdStr;
+                    }
+                    if (qGram.distance(seedStr, str1) > qGram.distance(seedStr,
+                            str2)) {
+                        // The new command sequence has the smaller distance
+                        // Replacement!
+                        // Only need to update the round Corpus, since coverage
+                        // is the same
+                        roundCorpus.remove(i);
+                        roundCorpus.add(i, new Pair<>(commandSequence,
+                                validationCommandSequence));
+
+                    }
+                    // Rewrite the seed file, (Use append for checking!)
+                    // File name: "seed" + seedIdxList.get(i)
+                }
+            }
+        }
+
+        // Disable the usage of new code coverage temporally
+
+        // else if (Utilities.hasNewBits(upCoverage,
+        // testFeedBack.upgradedCodeCoverage)) {
+        // saveSeed(commandSequence, validationCommandSequence);
+        // queue.add(new Pair<>(commandSequence, validationCommandSequence));
+        // curCoverage.merge(testFeedBack.originalCodeCoverage);
+        // upCoverage.merge(testFeedBack.upgradedCodeCoverage);
+        //
+        // // Update the coveredBranches to the newest value
+        // Pair<Integer, Integer> coverageStatus = Utilities
+        // .getCoverageStatus(curCoverage);
+        // originalCoveredBranches = coverageStatus.left;
+        // originalProbeNum = coverageStatus.right;
+        // Pair<Integer, Integer> upgradedCoverageStatus = Utilities
+        // .getCoverageStatus(upCoverage);
+        // upgradedCoveredBranches = upgradedCoverageStatus.left;
+        // upgradedProbeNum = upgradedCoverageStatus.right;
+        // }
 
         Long timeElapsed = TimeUnit.SECONDS.convert(
                 System.nanoTime() - Main.startTime, TimeUnit.NANOSECONDS);
@@ -251,9 +442,35 @@ public class Fuzzer {
         Path crashReportPath = Paths.get(Config.getConf().corpusDir,
                 "seed_" + seedID + ".txt");
 
-        Utilities.write2TXT(crashReportPath.toFile(), sb.toString());
+        Utilities.write2TXT(crashReportPath.toFile(), sb.toString(), false);
         seedID++;
     }
+
+    public static void appendSeedFile(CommandSequence commandSequence,
+            CommandSequence validationCommandSequence, int seedIdx) {
+        // Serialize the seed of the queue in to disk
+        StringBuilder sb = new StringBuilder();
+        sb.append("Seed Id = " + seedIdx + "\n");
+        sb.append("Command Sequence\n");
+        for (String commandStr : commandSequence.getCommandStringList()) {
+            sb.append(commandStr);
+            sb.append("\n");
+        }
+        sb.append("Read Command Sequence\n");
+        for (String commandStr : validationCommandSequence
+                .getCommandStringList()) {
+            sb.append(commandStr);
+            sb.append("\n");
+        }
+
+        Path seedFilePath = Paths.get(Config.getConf().corpusDir,
+                "seed_" + seedIdx + ".txt");
+
+        Utilities.write2TXT(seedFilePath.toFile(), sb.toString(), true);
+    }
+
+    // TODO: Need a function to re-write the seed so that we can modify the
+    // existing seeds
 
     public static void printInfo(int queueSize, int crashID, int testID) {
         Long timeElapsed = TimeUnit.SECONDS.convert(

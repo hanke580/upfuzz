@@ -47,6 +47,42 @@ public class Utilities {
         return commandSequencePair;
     }
 
+    public static boolean isEqualCoverage(ExecutionDataStore curCoverage,
+            ExecutionDataStore testSequenceCoverage) {
+        // Return true if two coverage is identical
+        if (testSequenceCoverage == null)
+            return false;
+
+        if (curCoverage == null) {
+            curCoverage = testSequenceCoverage;
+            return true;
+        } else {
+            for (final ExecutionData testSequenceData : testSequenceCoverage
+                    .getContents()) {
+
+                final Long id = Long.valueOf(testSequenceData.getId());
+                final ExecutionData curData = curCoverage.get(id);
+
+                // For one class, merge the coverage
+                if (curData != null) {
+                    assertCompatibility(curData, testSequenceData);
+                    int[] curProbes = curData.getProbes();
+                    final int[] testSequenceProbes = testSequenceData
+                            .getProbes();
+                    for (int i = 0; i < curProbes.length; i++) {
+                        // Now only try with the boolean first
+                        if (curProbes[i] != testSequenceProbes[i]) {
+                            return false;
+                        }
+                    }
+                } else {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
     public static boolean hasNewBits(ExecutionDataStore curCoverage,
             ExecutionDataStore testSequenceCoverage) {
 
@@ -268,7 +304,7 @@ public class Utilities {
         return rand.nextInt(y) < x;
     }
 
-    public static boolean write2TXT(File file, String content) {
+    public static boolean write2TXT(File file, String content, boolean append) {
 
         try {
             // If file doesn't exists, then create it
@@ -276,7 +312,7 @@ public class Utilities {
                 file.createNewFile();
             }
 
-            FileWriter fw = new FileWriter(file.getAbsoluteFile());
+            FileWriter fw = new FileWriter(file.getAbsoluteFile(), append);
             BufferedWriter bw = new BufferedWriter(fw);
 
             // Write in file
