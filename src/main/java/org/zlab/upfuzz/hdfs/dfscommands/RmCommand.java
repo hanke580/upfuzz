@@ -11,7 +11,7 @@ import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomLocalPathType;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.INTType;
 
-public class RmCommand extends DfsCommands {
+public class RmCommand extends DfsCommand {
 
     /*
      * Delete files specified as args.

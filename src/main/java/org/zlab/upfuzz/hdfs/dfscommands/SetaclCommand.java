@@ -9,7 +9,7 @@ import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.ConcatenateType;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 
-public class SetaclCommand extends DfsCommands {
+public class SetaclCommand extends DfsCommand {
 
     public SetaclCommand() {
         // -setfacl [-R] [{-b|-k} {-m|-x <acl_spec>} <path>]|[--set <acl_spec>

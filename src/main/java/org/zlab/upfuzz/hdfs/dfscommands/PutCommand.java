@@ -10,7 +10,7 @@ import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomLocalPathType;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.INTType;
 
-public class PutCommand extends DfsCommands {
+public class PutCommand extends DfsCommand {
 
     /*
      * Copy single src, or multiple srcs from local file system to the destination file system. Also reads input from stdin and writes to destination file system if the source is set to “-”

@@ -10,7 +10,7 @@ import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomLocalPathType;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.INTType;
 
-public class CpCommand extends DfsCommands {
+public class CpCommand extends DfsCommand {
 
     /*
      * Copy files from source to destination. This command allows multiple sources as well in which case the destination must be a directory.
