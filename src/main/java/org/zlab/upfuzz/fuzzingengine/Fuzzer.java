@@ -107,6 +107,23 @@ public class Fuzzer {
                 seedStr += cmdStr;
             }
 
+            // Add a single round only to collect the coverage of the root seed
+            FeedBack fb = null;
+            try {
+                fb = fuzzingClient.start(commandSequence,
+                        validationCommandSequence, testID);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Utilities.clearCassandraDataDir();
+            }
+            seedOriginalCoverage = fb.originalCodeCoverage;
+            seedUpgradeCoverage = fb.upgradedCodeCoverage;
+
+            if (Utilities.hasNewBits(curCoverage, fb.originalCodeCoverage)) {
+                curCoverage.merge(fb.originalCodeCoverage);
+                saveSeed(commandSequence, validationCommandSequence);
+            }
+
             // Only run the mutated seeds
             for (int i = 0; i < TEST_NUM; i++) {
                 printInfo(queue.size(), fuzzingClient.crashID, testID);
@@ -115,41 +132,32 @@ public class Fuzzer {
                         .clone(commandSequence);
                 try {
                     int j = 0;
-
-                    if (i != 0) { // Run the original seed and keep its coverage
-                        for (; j < MUTATE_RETRY_TIME; j++) {
-                            // Learned from syzkaller
-                            // 1/3 probability that the mutation could be
-                            // stacked
-                            // But if exceeds MUTATE_RETRY_TIME(10) stacked
-                            // mutation, this sequence will be dropped
-                            if (mutatedCommandSequence.mutate() == true
-                                    && Utilities.oneOf(rand, 3))
-                                break;
-                        }
-                        if (j == MUTATE_RETRY_TIME) {
-                            // Discard current seq since the mutation keeps
-                            // failing
-                            // or too much mutation is stacked together
-                            continue;
-                        }
+                    for (; j < MUTATE_RETRY_TIME; j++) {
+                        // Learned from syzkaller
+                        // 1/3 probability that the mutation could be
+                        // stacked
+                        // But if exceeds MUTATE_RETRY_TIME(10) stacked
+                        // mutation, this sequence will be dropped
+                        if (mutatedCommandSequence.mutate() == true
+                                && Utilities.oneOf(rand, 3))
+                            break;
                     }
+                    if (j == MUTATE_RETRY_TIME) {
+                        // Discard current seq since the mutation keeps
+                        // failing
+                        // or too much mutation is stacked together
+                        continue;
+                    }
+
                     // hasNewOrder = checkIfHasNewOrder_AllCmds(
                     // mutatedCommandSequence.getCommandStringList(),
                     // orderOfAllCmds);
-                    // hasNewOrder = checkIfHasNewOrder_Two_Cmd(
-                    // mutatedCommandSequence.getCommandStringList(), cmd1,
-                    // cmd2, ordersOf2Cmd);
-                    // hasNewOrder =
-                    // checkIfHasNewOrder_OneCmd(mutatedCommandSequence
-                    // .getCommandStringList(), cmd1, ordersOf1Cmd);
                     System.out.println("Mutated Command Sequence:");
                     for (String cmdStr : mutatedCommandSequence
                             .getCommandStringList()) {
                         System.out.println(cmdStr);
                     }
                     System.out.println();
-                    // Update the validationCommandSequence...
                     validationCommandSequence = mutatedCommandSequence
                             .generateRelatedReadSequence();
                     System.out.println("Read Command Sequence:");
@@ -168,7 +176,7 @@ public class Fuzzer {
                     i--;
                     continue;
                 }
-                FeedBack fb = null;
+                fb = null;
                 try {
                     fb = fuzzingClient.start(mutatedCommandSequence,
                             validationCommandSequence, testID);
@@ -178,18 +186,12 @@ public class Fuzzer {
                     i--;
                     continue;
                 }
-                // TODO: Add compare function in Jacoco
-                if (i == 0) {
-                    seedOriginalCoverage = fb.originalCodeCoverage;
-                    seedUpgradeCoverage = fb.upgradedCodeCoverage;
-                }
                 updateStatus(mutatedCommandSequence, validationCommandSequence,
                         curCoverage, upCoverage, hasNewOrder,
                         seedOriginalCoverage, seedUpgradeCoverage, roundCorpus,
                         roundCoverage, seedIdxList, seedStr, fb);
             }
 
-            // TODO: Add roundCorpus to corpus
             for (Pair<CommandSequence, CommandSequence> seed : roundCorpus) {
                 queue.add(seed);
             }
@@ -337,51 +339,69 @@ public class Fuzzer {
             // update current corpus
             System.out.println("[HKLOG] No new bits!");
 
-            // if (Utilities.hasNewBits(seedOriginalCoverage,
-            // testFeedBack.originalCodeCoverage)) {
-            // // compare and check whether we can find an identical one
-            // System.out.println("[HKLOG] NEWBITS COMPARE TO OLD");
+            if (Utilities.hasNewBits(seedOriginalCoverage,
+                    testFeedBack.originalCodeCoverage)) {
+                // compare and check whether we can find an identical one
+                System.out.println("[HKLOG] NEWBITS COMPARE TO OLD");
 
-            // assert roundCorpus.size() == roundCorpus.size();
-            // assert roundCorpus.size() == seedIdxList.size();
+                assert roundCorpus.size() == roundCoverage.size();
+                assert roundCorpus.size() == seedIdxList.size();
 
-            // int i;
-            // for (i = 0; i < roundCorpus.size(); i++) {
-            // if (Utilities.isEqualCoverage(roundCoverage.get(i),
-            // testFeedBack.originalCodeCoverage)) {
-            // System.out.println("Found Identical Seed! Seed idx = "
-            // + seedIdxList.get(i));
-            // break;
-            // }
-            // }
-            // if (i == roundCorpus.size()) {
-            // // Not found, keep this seed!
-            // // corpus [s0, s1], s0: {b1, b2}, s1: {b2, b3}, s3: {b1, b3}
-            // System.out.println("NOT FOUND!");
-            // roundCorpus.add(new Pair<>(commandSequence,
-            // validationCommandSequence));
-            // roundCoverage.add(testFeedBack.originalCodeCoverage);
-            // } else {
-            // // Compute the distance, replace if needed
-            // String str1 = "";
-            // for (String cmdStr : roundCorpus.get(i).left
-            // .getCommandStringList()) {
-            // str1 += cmdStr;
-            // }
-            // String str2 = "";
-            // for (String cmdStr : commandSequence
-            // .getCommandStringList()) {
-            // str2 += cmdStr;
-            // }
-            // if (qGram.distance(seedStr, str1) > qGram.distance(seedStr,
-            // str2)) {
-            // roundCorpus.remove(i);
-            // roundCorpus.add(i, new Pair<>(commandSequence,
-            // validationCommandSequence));
+                System.out
+                        .println("round corpuse size = " + roundCorpus.size());
+                System.out.println(
+                        "roundCoverage size = " + roundCoverage.size());
+                System.out.println("seedIdxList size = " + seedIdxList);
 
-            // }
-            // appendSeedFile(commandSequence, validationCommandSequence,
-            // seedIdxList.get(i));
+                int i = 0;
+                for (; i < roundCorpus.size(); i++) {
+                    System.out.println("Comparing with " + seedIdxList.get(i));
+                    if (Utilities.isEqualCoverage(roundCoverage.get(i),
+                            testFeedBack.originalCodeCoverage)) {
+                        System.out.println("Found Identical Seed! Seed idx = "
+                                + seedIdxList.get(i));
+                        break;
+                    }
+                }
+                if (i == roundCorpus.size()) {
+                    // Not found, keep this seed!
+                    // corpus [s0, s1], s0: {b1, b2}, s1: {b2, b3}, s3: {b1, b3}
+                    System.out.println("NOT FOUND!");
+                    roundCorpus.add(new Pair<>(commandSequence,
+                            validationCommandSequence));
+                    roundCoverage.add(testFeedBack.originalCodeCoverage);
+                    seedIdxList.add(seedID);
+                    saveSeed(commandSequence, validationCommandSequence);
+                } else {
+                    // Compute the distance, replace if needed
+                    String str1 = "";
+                    for (String cmdStr : roundCorpus.get(i).left
+                            .getCommandStringList()) {
+                        str1 += cmdStr;
+                    }
+                    String str2 = "";
+                    for (String cmdStr : commandSequence
+                            .getCommandStringList()) {
+                        str2 += cmdStr;
+                    }
+
+                    double dist1 = qGram.distance(seedStr, str1);
+                    double dist2 = qGram.distance(seedStr, str2);
+
+                    System.out.println("dist1 = " + dist1);
+                    System.out.println("dist2 = " + dist2);
+
+                    if (qGram.distance(seedStr, str1) > qGram.distance(seedStr,
+                            str2)) {
+                        roundCorpus.remove(i);
+                        roundCorpus.add(i, new Pair<>(commandSequence,
+                                validationCommandSequence));
+                        appendSeedFile(commandSequence,
+                                validationCommandSequence, seedIdxList.get(i));
+                    }
+
+                }
+            }
         }
 
         // Disable the usage of new code coverage temporally
@@ -450,7 +470,7 @@ public class Fuzzer {
             CommandSequence validationCommandSequence, int seedIdx) {
         // Serialize the seed of the queue in to disk
         StringBuilder sb = new StringBuilder();
-        sb.append("\nAPPEND SEED\n");
+        sb.append("\n APPEND SEED \n");
         sb.append("Seed Id = " + seedIdx + "\n");
         sb.append("Command Sequence\n");
         for (String commandStr : commandSequence.getCommandStringList()) {

@@ -71,7 +71,26 @@ public class Utilities {
                             .getProbes();
                     for (int i = 0; i < curProbes.length; i++) {
                         // Now only try with the boolean first
-                        if (curProbes[i] != testSequenceProbes[i]) {
+                        if ((curProbes[i] == 0 && testSequenceProbes[i] != 0)
+                                || (curProbes[i] != 0
+                                        && testSequenceProbes[i] == 0)) {
+                            System.out.println();
+                            System.out.print("cur probes: ");
+                            for (int j = 0; j < curProbes.length; j++) {
+                                System.out.print(curProbes[i] + " ");
+                            }
+                            System.out.println();
+                            System.out.print("test probes: ");
+                            for (int j = 0; j < testSequenceProbes.length; j++) {
+                                System.out.print(testSequenceProbes[i] + " ");
+                            }
+                            System.out.println();
+
+                            System.out
+                                    .println("probe len = " + curProbes.length);
+                            System.out.println("Class "
+                                    + testSequenceData.getName() + " id: [" + i
+                                    + "]" + " is different!");
                             return false;
                         }
                     }

@@ -124,8 +124,8 @@ public class Main {
                         Pair<CommandSequence, CommandSequence> commandSequencePair = Utilities
                                 .deserializeCommandSequence(seedFile.toPath());
                         if (commandSequencePair != null) {
-                            Fuzzer.saveSeed(commandSequencePair.left,
-                                    commandSequencePair.right);
+                            // Fuzzer.saveSeed(commandSequencePair.left,
+                            // commandSequencePair.right);
                             queue.add(commandSequencePair);
                         }
                     }

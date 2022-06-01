@@ -288,10 +288,13 @@ public class FuzzingClient {
         } else {
             // Add to the original coverage
             for (String agentId : agentIdList) {
+                if (agentId.split("-")[2].equals("null"))
+                    continue;
                 System.out.println("collect conn " + agentId);
                 ClientHandler conn = agentHandler.get(agentId);
                 if (conn != null) {
                     try {
+                        agentStore.remove(agentId);
                         conn.collect();
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -312,7 +315,7 @@ public class FuzzingClient {
                      */
                     execStore.merge(astore);
                     System.out.println(
-                            "astore size: " + execStore.getContents().size());
+                            "astore size: " + astore.getContents().size());
                 }
             }
             System.out.println(
