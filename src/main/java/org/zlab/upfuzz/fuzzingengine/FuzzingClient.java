@@ -98,29 +98,29 @@ public class FuzzingClient {
         List<String> oldVersionResult = null;
 
         try {
-            oldVersionResult = executor.execute(commandSequence,
-                    validationCommandSequence, testId);
+            executor.execute(commandSequence, validationCommandSequence,
+                    testId);
 
-            if (oldVersionResult != null) {
-                fb.originalCodeCoverage = collect(executor, "original");
-                if (fb.originalCodeCoverage == null) {
-                    System.out.println("ERROR: null origin code coverage");
-                    System.exit(1);
-                }
-                // Actually the code coverage do not need to be stored in disk
-                // String destFile = executor.getSysExecID() +
-                // String.valueOf(testId) + ".exec";
-                // try {
-                // FileOutputStream localFile = new FileOutputStream(destFile);
-                // ExecutionDataWriter localWriter = new
-                // ExecutionDataWriter(localFile);
-                // codeCoverage.accept(localWriter);
-                // // localWriter.visitClassExecution(codeCoverage);
-                // System.out.println("write codecoverage to " + destFile);
-                // } catch (IOException e) {
-                // e.printStackTrace();
-                // }
+            fb.originalCodeCoverage = collect(executor, "original");
+            if (fb.originalCodeCoverage == null) {
+                System.out.println("ERROR: null origin code coverage");
+                System.exit(1);
             }
+            // Actually the code coverage do not need to be stored in disk
+            String destFile = executor.getSysExecID() + String.valueOf(testId)
+                    + ".exec";
+            try {
+                FileOutputStream localFile = new FileOutputStream(destFile);
+                ExecutionDataWriter localWriter = new ExecutionDataWriter(
+                        localFile);
+                fb.originalCodeCoverage.accept(localWriter);
+                // localWriter.visitClassExecution(codeCoverage);
+                System.out.println("write codecoverage to " + destFile);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            oldVersionResult = executor.executeRead(testId);
+
         } catch (CustomExceptions.systemStartFailureException e) {
             System.out.println("old version system start up failed");
         }

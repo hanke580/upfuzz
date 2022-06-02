@@ -67,28 +67,6 @@ public class Fuzzer {
         // Fuzz this command sequence for lots of times
         if (fromCorpus) {
 
-            // [1] Maintain a list storing all new seeds
-            // [2] compare with latest coverage, if a new coverage is found,
-            // directly add it.
-            // [3] If not, compare it with the original seed, if a new coverage
-            // is found, start finding
-            // identical seeds process.
-            // and if there is an identical seed, compute the
-            // edit distance, do the replacement if needed.
-            // Scan [Can be optimized by binary search]
-            // If none of them is identical, we can keep it or throw it.
-            // (temporally throw it)
-            // Cannot use has_new_bits, since it could be seed0 includes seed1,
-            // we want the identical relationship
-            // There need 2 funcs, (1) compare (2) compute the edit distance
-
-            // Special Care about the order between commands
-            // Choice 1: Only care about the locations of DROP
-            // Choice 2: Care about the order between DROP and INSERT
-            // The order of command can be assigned by USER
-
-            // Care about all the order between commands
-
             // String cmd1 = "INSERT";
             // String cmd2 = "DROP";
             // Map<Set<Integer>, Set<Set<Integer>>> ordersOf2Cmd = new
@@ -138,8 +116,9 @@ public class Fuzzer {
                         // stacked
                         // But if exceeds MUTATE_RETRY_TIME(10) stacked
                         // mutation, this sequence will be dropped
-                        if (mutatedCommandSequence.mutate() == true
-                                && Utilities.oneOf(rand, 3))
+                        if (mutatedCommandSequence.mutate() == true)
+                            // if (mutatedCommandSequence.mutate() == true
+                            // && Utilities.oneOf(rand, 3))
                             break;
                     }
                     if (j == MUTATE_RETRY_TIME) {
