@@ -130,7 +130,7 @@ public class ClientHandler
 
     public void collect() throws IOException {
         System.out.println("handler collect " + sessionId + "...");
-        writer.visitDumpCommand(true, false);
+        writer.visitDumpCommand(true, true);
         okCMD = new CountDownLatch(1);
         synchronized (okCMD) {
             try {

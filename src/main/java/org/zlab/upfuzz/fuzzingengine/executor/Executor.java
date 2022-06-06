@@ -121,19 +121,20 @@ public abstract class Executor implements IExecutor {
         return validationCommandSequence;
     }
 
-    public List<String> execute(CommandSequence commandSequence,
+    public void execute(CommandSequence commandSequence,
             CommandSequence validationCommandSequence, int testId) {
         // startup();
         testId2commandSequence.put(testId,
                 new Pair<>(commandSequence, validationCommandSequence));
         executeCommands(commandSequence);
         // saveSnapshot(); // Flush, only keep the data folder
+    }
 
+    public List<String> executeRead(int testId) {
         List<String> oldVersionResult = executeCommands(
-                validationCommandSequence);
+                testId2commandSequence.get(testId).right);
+
         testId2oldVersionResult.put(testId, oldVersionResult);
-        // execute the second commands
-        // teardown();
         return oldVersionResult;
     }
 

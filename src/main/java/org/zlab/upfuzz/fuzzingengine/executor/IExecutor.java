@@ -12,7 +12,7 @@ public interface IExecutor {
 
     List<String> executeCommands(CommandSequence commandSequence);
 
-    List<String> execute(CommandSequence commandSequence,
+    void execute(CommandSequence commandSequence,
             CommandSequence validationCommandSequence, int testId);
 
     /**

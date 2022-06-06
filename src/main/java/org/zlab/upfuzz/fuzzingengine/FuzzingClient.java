@@ -1,6 +1,7 @@
 package org.zlab.upfuzz.fuzzingengine;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.jacoco.core.data.ExecutionDataStore;
+import org.jacoco.core.data.ExecutionDataWriter;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.CustomExceptions;
 import org.zlab.upfuzz.cassandra.CassandraExecutor;
@@ -103,29 +105,29 @@ public class FuzzingClient {
         List<String> oldVersionResult = null;
 
         try {
-            oldVersionResult = executor.execute(commandSequence,
-                    validationCommandSequence, testId);
+            executor.execute(commandSequence, validationCommandSequence,
+                    testId);
 
-            if (oldVersionResult != null) {
-                fb.originalCodeCoverage = collect(executor, "original");
-                if (fb.originalCodeCoverage == null) {
-                    System.out.println("ERROR: null origin code coverage");
-                    System.exit(1);
-                }
-                // Actually the code coverage do not need to be stored in disk
-                // String destFile = executor.getSysExecID() +
-                // String.valueOf(testId) + ".exec";
-                // try {
-                // FileOutputStream localFile = new FileOutputStream(destFile);
-                // ExecutionDataWriter localWriter = new
-                // ExecutionDataWriter(localFile);
-                // codeCoverage.accept(localWriter);
-                // // localWriter.visitClassExecution(codeCoverage);
-                // System.out.println("write codecoverage to " + destFile);
-                // } catch (IOException e) {
-                // e.printStackTrace();
-                // }
+            fb.originalCodeCoverage = collect(executor, "original");
+            if (fb.originalCodeCoverage == null) {
+                System.out.println("ERROR: null origin code coverage");
+                System.exit(1);
             }
+            // Actually the code coverage do not need to be stored in disk
+            String destFile = executor.getSysExecID() + String.valueOf(testId)
+                    + ".exec";
+            try {
+                FileOutputStream localFile = new FileOutputStream(destFile);
+                ExecutionDataWriter localWriter = new ExecutionDataWriter(
+                        localFile);
+                fb.originalCodeCoverage.accept(localWriter);
+                // localWriter.visitClassExecution(codeCoverage);
+                System.out.println("write codecoverage to " + destFile);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            oldVersionResult = executor.executeRead(testId);
+
         } catch (CustomExceptions.systemStartFailureException e) {
             System.out.println("old version system start up failed");
         }
@@ -191,7 +193,7 @@ public class FuzzingClient {
                             "crash_" + epoch, "epoch_cmd_seq_"
                                     + epochStartTestId + "_" + testId + ".txt");
                     Utilities.write2TXT(cmdSeqsPath.toFile(),
-                            commandSequenceString.toString());
+                            commandSequenceString.toString(), false);
 
                     // When ret is false, while the testId2Failure is empty!!!
 
@@ -213,7 +215,7 @@ public class FuzzingClient {
                                     Config.getConf().crashDir, "crash_" + epoch,
                                     "crash_" + testIdx + ".txt");
                             Utilities.write2TXT(crashReportPath.toFile(),
-                                    sb.toString());
+                                    sb.toString(), false);
 
                             crashID++;
                             break;
@@ -255,7 +257,7 @@ public class FuzzingClient {
                                 Config.getConf().crashDir, "crash_" + epoch,
                                 "crash_" + testIdx + ".txt");
                         Utilities.write2TXT(crashReportPath.toFile(),
-                                sb.toString());
+                                sb.toString(), false);
                         crashID++;
                     }
                 }
@@ -290,10 +292,13 @@ public class FuzzingClient {
         } else {
             // Add to the original coverage
             for (String agentId : agentIdList) {
+                if (agentId.split("-")[2].equals("null"))
+                    continue;
                 System.out.println("collect conn " + agentId);
                 ClientHandler conn = agentHandler.get(agentId);
                 if (conn != null) {
                     try {
+                        agentStore.remove(agentId);
                         conn.collect();
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -314,7 +319,7 @@ public class FuzzingClient {
                      */
                     execStore.merge(astore);
                     System.out.println(
-                            "astore size: " + execStore.getContents().size());
+                            "astore size: " + astore.getContents().size());
                 }
             }
             System.out.println(

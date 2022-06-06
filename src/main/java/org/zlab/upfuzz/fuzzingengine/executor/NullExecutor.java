@@ -23,9 +23,9 @@ public class NullExecutor extends Executor {
     }
 
     @Override
-    public List<String> execute(CommandSequence commandSequence,
+    public void execute(CommandSequence commandSequence,
             CommandSequence validationCommandSequence, int testId) {
-        return null;
+        return;
     }
 
     @Override

@@ -47,6 +47,59 @@ public class Utilities {
         return commandSequencePair;
     }
 
+    public static boolean isEqualCoverage(ExecutionDataStore curCoverage,
+            ExecutionDataStore testSequenceCoverage) {
+        // Return true if two coverage is identical
+        if (testSequenceCoverage == null && curCoverage != null)
+            return false;
+
+        if (testSequenceCoverage != null && curCoverage == null)
+            return false;
+
+        for (final ExecutionData testSequenceData : testSequenceCoverage
+                .getContents()) {
+
+            final Long id = Long.valueOf(testSequenceData.getId());
+            final ExecutionData curData = curCoverage.get(id);
+
+            // For one class, merge the coverage
+            if (curData != null) {
+                assertCompatibility(curData, testSequenceData);
+                int[] curProbes = curData.getProbes();
+                final int[] testSequenceProbes = testSequenceData.getProbes();
+                for (int i = 0; i < curProbes.length; i++) {
+                    // Now only try with the boolean first
+                    if ((curProbes[i] == 0 && testSequenceProbes[i] != 0)
+                            || (curProbes[i] != 0
+                                    && testSequenceProbes[i] == 0)) {
+                        System.out.println();
+                        System.out.print("cur probes: ");
+                        for (int j = 0; j < curProbes.length; j++) {
+                            System.out.print(curProbes[j] + " ");
+                        }
+                        System.out.println();
+                        System.out.print("test probes: ");
+                        for (int j = 0; j < testSequenceProbes.length; j++) {
+                            System.out.print(testSequenceProbes[j] + " ");
+                        }
+                        System.out.println();
+
+                        System.out.println("probe len = " + curProbes.length);
+                        System.out.println("Class " + testSequenceData.getName()
+                                + " id: [" + i + "]" + " is different!");
+                        return false;
+                    }
+                }
+            } else {
+                System.out.println(
+                        "curData not triggered " + testSequenceData.getName());
+                return false;
+            }
+        }
+        return true;
+
+    }
+
     public static boolean hasNewBits(ExecutionDataStore curCoverage,
             ExecutionDataStore testSequenceCoverage) {
 
@@ -54,7 +107,6 @@ public class Utilities {
             return false;
 
         if (curCoverage == null) {
-            curCoverage = testSequenceCoverage;
             return true;
         } else {
             for (final ExecutionData testSequenceData : testSequenceCoverage
@@ -72,11 +124,76 @@ public class Utilities {
                     for (int i = 0; i < curProbes.length; i++) {
                         // Now only try with the boolean first
                         if (curProbes[i] == 0 && testSequenceProbes[i] != 0) {
+                            System.out.println();
+                            System.out.print("cur probes: ");
+                            for (int j = 0; j < curProbes.length; j++) {
+                                System.out.print(curProbes[j] + " ");
+                            }
+                            System.out.println();
+                            System.out.print("test probes: ");
+                            for (int j = 0; j < testSequenceProbes.length; j++) {
+                                System.out.print(testSequenceProbes[j] + " ");
+                            }
+                            System.out.println();
+
+                            System.out
+                                    .println("probe len = " + curProbes.length);
+                            System.out.println("Class "
+                                    + testSequenceData.getName() + " id: [" + i
+                                    + "]" + " is different!");
                             return true;
                         }
                     }
                 } else {
                     return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    // compute the new bits bring by testSequenceCoverage
+    public static boolean computeDelta(ExecutionDataStore curCoverage,
+            ExecutionDataStore testSequenceCoverage) {
+
+        System.out.println("Computing Delta");
+
+        if (testSequenceCoverage == null)
+            return false;
+
+        if (curCoverage == null) {
+            return true;
+        } else {
+            for (final ExecutionData testSequenceData : testSequenceCoverage
+                    .getContents()) {
+
+                boolean findNewBit = false;
+                final Long id = Long.valueOf(testSequenceData.getId());
+                final ExecutionData curData = curCoverage.get(id);
+
+                // For one class, merge the coverage
+                if (curData != null) {
+                    assertCompatibility(curData, testSequenceData);
+                    int[] curProbes = curData.getProbes();
+                    final int[] testSequenceProbes = testSequenceData
+                            .getProbes();
+                    for (int i = 0; i < curProbes.length; i++) {
+                        // Now only try with the boolean first
+                        if (curProbes[i] == 0 && testSequenceProbes[i] != 0) {
+                            continue;
+                        } else {
+                            findNewBit = true;
+                            testSequenceProbes[i] = 0;
+                        }
+                    }
+                    // if (findNewBit) {
+                    // System.out.println(
+                    // "new bit class: " + testSequenceData.getName());
+                    // }
+                } else {
+                    // System.out.println(
+                    // "new bit class: " + testSequenceData.getName());
+                    continue;
                 }
             }
             return false;
@@ -271,7 +388,7 @@ public class Utilities {
         return rand.nextInt(y) < x;
     }
 
-    public static boolean write2TXT(File file, String content) {
+    public static boolean write2TXT(File file, String content, boolean append) {
 
         try {
             // If file doesn't exists, then create it
@@ -279,7 +396,7 @@ public class Utilities {
                 file.createNewFile();
             }
 
-            FileWriter fw = new FileWriter(file.getAbsoluteFile());
+            FileWriter fw = new FileWriter(file.getAbsoluteFile(), append);
             BufferedWriter bw = new BufferedWriter(fw);
 
             // Write in file

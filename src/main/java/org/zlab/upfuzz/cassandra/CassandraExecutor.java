@@ -10,11 +10,10 @@ import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
 import org.zlab.upfuzz.CommandSequence;
+import org.zlab.upfuzz.CustomExceptions;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.cassandra.CassandraCqlshDaemon.CqlshPacket;
-import org.zlab.upfuzz.CustomExceptions;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.utils.Pair;
@@ -32,7 +31,9 @@ public class CassandraExecutor extends Executor {
 
     static final String jacocoOptions = "=append=false";
 
-    static final String classToIns = "org.apache.cassandra.*";
+    static final String classToIns = Config.getConf().instClassFilePath;
+
+    static final String excludes = "org.apache.cassandra.metrics.*:org.apache.cassandra.net.*:org.apache.cassandra.io.sstable.format.SSTableReader.*:org.apache.cassandra.service.*";
 
     public CassandraExecutor(CommandSequence commandSequence,
             CommandSequence validationCommandSequence) {
@@ -77,7 +78,7 @@ public class CassandraExecutor extends Executor {
         Map<String, String> env = cassandraProcessBuilder.environment();
         env.put("JAVA_TOOL_OPTIONS",
                 "-javaagent:" + Config.getConf().jacocoAgentPath + jacocoOptions
-                        + ",includes=" + classToIns
+                        + ",includes=" + classToIns + ",excludes=" + excludes
                         + ",output=dfe,address=localhost,sessionid=" + systemID
                         + "-" + executorID + "_original");
         cassandraProcessBuilder
@@ -196,7 +197,6 @@ public class CassandraExecutor extends Executor {
         Utilities.runProcess(pb, "kill cassandra instances");
 
         this.cqlsh.destroy();
-
     }
 
     public Pair<CommandSequence, CommandSequence> prepareCommandSequence() {
@@ -336,9 +336,10 @@ public class CassandraExecutor extends Executor {
     public boolean upgradeTest() {
         /**
          * Data consistency check
-         * If the return size is different, exception when executing the commands, or the results are different.
-         * Record both results, report as a potential bug.
-         * 
+         * If the return size is different, exception when executing the commands,
+         * or the results are different. Record both results, report as a potential
+         * bug.
+         *
          * A crash seed should contain:
          * 1. Two command sequences.
          * 2. The results on old and new version.
@@ -451,7 +452,6 @@ public class CassandraExecutor extends Executor {
             // for (String str: newVersionResult) {
             // System.out.println(str);
             // }
-            System.out.println("new size = " + newVersionResult.size());
             if (newVersionResult.size() != oldVersionResult.size()) {
                 failureType = FailureType.RESULT_INCONSISTENCY;
                 failureInfo = "The result size is different, old version result size = "
@@ -533,5 +533,4 @@ public class CassandraExecutor extends Executor {
     public void upgrade() throws Exception {
         // TODO Auto-generated method stub
     }
-
 }

@@ -24,7 +24,10 @@ dependencies {
 
 	implementation 'com.google.code.gson:gson:2.9.0'
 
-	implementation 'com.github.st-saint:jacoco:300f3f6d2b'
+	implementation 'info.debatty:java-string-similarity:2.0.0'
+
+	implementation 'com.github.st-saint:jacoco:e1b5bf8437'
+
 
 	// https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple
 	implementation group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
@@ -33,10 +36,13 @@ dependencies {
 	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.0'
 
 	// compile files("../jacoco/org.jacoco.core/target/classes") {
-	//     builtBy "compileMavenProject"
+	// 	builtBy "compileMavenProject"
 	// }
-	// compile files("../jacoco/org.jacoco.core/target/libs") {
-	//     builtBy "downloadMavenDependencies"
+	// compile files("../jacoco/org.jacoco.agent.rt/target/classes") {
+	// 	builtBy "compileMavenProject"
+	// }
+	// compile files("../jacoco/org.jacoco.agent.rt/target/libs") {
+	// 	builtBy "downloadMavenDependencies"
 	// }
 }
 
@@ -59,12 +65,12 @@ into 'dependencies'
 
 task compileMavenProject() {
 	// exec {
-	//     workingDir "../jacoco/"
-	//     commandLine "/usr/bin/mvn", "-f", "org.jacoco.build/pom.xml", "spotless:apply"
+	// 	workingDir "../jacoco/"
+	// 	commandLine "/usr/bin/mvn", "-f", "org.jacoco.build/pom.xml", "spotless:apply"
 	// }
 	// exec {
-	//     workingDir "../jacoco/"
-	//     commandLine "/usr/bin/mvn", "clean", "install", "-DskipTests"
+	// 	workingDir "../jacoco/"
+	// 	commandLine "/usr/bin/mvn", "clean", "install", "-DskipTests"
 	// }
 	// mvn -f org.jacoco.build/pom.xml spotless:apply; mvn clean compile -DskipTests
 }

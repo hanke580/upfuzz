@@ -3,6 +3,7 @@ package org.zlab.upfuzz;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
+import info.debatty.java.stringsimilarity.QGram;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.cassandra.CassandraCommands;
 import org.zlab.upfuzz.cassandra.CassandraState;
@@ -93,38 +94,37 @@ public class CommandSequenceTests {
 
     @Test
     public void test() {
-        Map<Set<Integer>, Set<Set<Integer>>> orders = new HashMap<>();
+        String str0 = "INSERT INTO tb (species, common_name, population, average_size) VALUES ('Monkey',0,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');\n"
+                + "INSERT INTO tb (species, common_name, population, average_size) VALUES ('Monkey',1,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');\n"
+                + "INSERT INTO tb (species, common_name, population, average_size) VALUES ('Monkey',2,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');\n"
+                + "INSERT INTO tb (species, common_name, population, average_size) VALUES ('Monkey',3,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');\n"
+                + "INSERT INTO tb (species, common_name, population, average_size) VALUES ('Monkey',4,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');\n"
+                + "INSERT INTO tb (species, common_name, population, average_size) VALUES ('Monkey',5,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');\n"
+                + "INSERT INTO tb (species, common_name, population, average_size) VALUES ('Monkey',6,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');\n"
+                + "INSERT INTO tb (species, common_name, population, average_size) VALUES ('Monkey',7,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');\n";
+        String str1 = "INSERT INTO tb (species, common_name, population, average_size) VALUES ('Monkey',0,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');\n"
+                + "INSERT INTO tb (species, common_name, population, average_size) VALUES ('Monkey',1,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');\n"
+                + "INSERT INTO tb (species, common_name, population, average_size) VALUES ('Monkey',2,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');\n"
+                + "INSERT INTO tb (species, common_name, population, average_size) VALUES ('Monkey',3,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');\n"
+                + "INSERT INTO tb (species, common_name, population, average_size) VALUES ('Monkey',4,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');\n"
+                + "INSERT INTO tb (species, common_name, population, average_size) VALUES ('Monkey',5,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');\n"
+                + "INSERT INTO tb (species, common_name, population, average_size) VALUES ('Monkey',6,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');\n"
+                + "INSERT INTO tb (species, common_name, population, average_size) VALUES ('Monkey',7,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');\n"
+                + "ALTER TABLE tb DROP population ;\n";
 
-        Set<Integer> cmd1Pos1 = new HashSet<>();
-        Set<Integer> cmd2Pos1 = new HashSet<>();
-        cmd1Pos1.add(1);
-        cmd1Pos1.add(2);
-        cmd2Pos1.add(4);
+        String str2 = "INSERT INTO tb (species, common_name, population, average_size) VALUES ('Monkey',0,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');\n"
+                + "INSERT INTO tb (species, common_name, population, average_size) VALUES ('Monkey',1,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');\n"
+                + "INSERT INTO tb (species, common_name, population, average_size) VALUES ('Monkey',2,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');\n"
+                + "INSERT INTO tb (species, common_name, population, average_size) VALUES ('Monkey',3,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');\n"
+                + "INSERT INTO tb (species, common_name, population, average_size) VALUES ('Monkey',4,30,'AAAAAAAAAAAAAAAAAAAAAAAAAAA');\n"
+                + "ALTER TABLE tb DROP population ;\n"
+                + "INSERT INTO tb (species, average_size, common_name) VALUES ('Monkey','population',5);\n"
+                + "INSERT INTO tb (species, average_size, common_name) VALUES ('tb','tb',2);\n"
+                + "INSERT INTO tb (species, common_name, average_size) VALUES ('common_name',0,'species');\n";
 
-        Set<Integer> cmd1Pos2 = new HashSet<>();
-        Set<Integer> cmd2Pos2 = new HashSet<>();
-
-        cmd1Pos2.add(1);
-        cmd1Pos2.add(2);
-        cmd2Pos2.add(4);
-
-        orders.put(cmd1Pos1, new HashSet<>());
-        orders.put(cmd1Pos2, new HashSet<>());
-
-        orders.get(cmd1Pos1).add(cmd2Pos1);
-        orders.get(cmd1Pos1).add(cmd2Pos2);
-
-        //
-        //
-        // orders.get(cmd1Pos1).add(cmd2Pos1);
-        //
-        // if (orders.containsKey(cmd1Pos2)) {
-        // System.out.println("TRUE");
-        // }
-        // orders.put(cmd1Pos2, new HashSet<>());
-        // orders.get(cmd1Pos2).add(cmd2Pos2);
-
-        System.out.println(orders);
+        QGram l = new QGram();
+        System.out.println(l.distance(str0, str1));
+        System.out.println(l.distance(str0, str1));
 
     }
 
