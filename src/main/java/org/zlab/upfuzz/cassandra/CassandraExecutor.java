@@ -19,6 +19,15 @@ import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
+/**
+ * validity procedure
+ *
+ * 1. execute original command sequence
+ * 2. execute validation command sequence
+ * 3. upgrade
+ * 4. execute upgraded command sequence(NOT NOW)
+ * 5. execute validation command sequence
+ */
 public class CassandraExecutor extends Executor {
 
     CassandraCqlshDaemon cqlsh = null;
