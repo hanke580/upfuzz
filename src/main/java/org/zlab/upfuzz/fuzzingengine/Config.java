@@ -21,6 +21,7 @@ public class Config {
         public Integer serverPort = 6299;
         public String clientHost = "localhost";
         public Integer clientPort = 6300;
+        public String instClassFilePath = null;
         public String cassandraPath = null;
         public String upgradeCassandraPath = null;
         public String jacocoAgentPath = null;

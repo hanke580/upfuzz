@@ -104,7 +104,8 @@ public class Fuzzer {
 
             // Only run the mutated seeds
             for (int i = 0; i < TEST_NUM; i++) {
-                printInfo(queue.size(), fuzzingClient.crashID, testID);
+                printInfo(queue.size() + roundCorpus.size(),
+                        fuzzingClient.crashID, testID);
 
                 CommandSequence mutatedCommandSequence = SerializationUtils
                         .clone(commandSequence);
@@ -167,8 +168,9 @@ public class Fuzzer {
                 }
                 updateStatus(mutatedCommandSequence, validationCommandSequence,
                         curCoverage, upCoverage, hasNewOrder,
-                        seedOriginalCoverage, seedUpgradeCoverage, roundCorpus,
-                        roundCoverage, seedIdxList, seedStr, fb);
+                        seedOriginalCoverage, seedUpgradeCoverage,
+                        commandSequence, roundCorpus, roundCoverage,
+                        seedIdxList, seedStr, fb);
             }
 
             for (Pair<CommandSequence, CommandSequence> seed : roundCorpus) {
@@ -271,6 +273,7 @@ public class Fuzzer {
             ExecutionDataStore curCoverage, ExecutionDataStore upCoverage,
             boolean hasNewOrder, ExecutionDataStore seedOriginalCoverage,
             ExecutionDataStore seedUpgradeCoverage,
+            CommandSequence seedCommandSequence,
             List<Pair<CommandSequence, CommandSequence>> roundCorpus,
             List<ExecutionDataStore> roundCoverage, List<Integer> seedIdxList,
             String seedStr, FeedBack testFeedBack) {
@@ -296,10 +299,13 @@ public class Fuzzer {
         } else if (Utilities.hasNewBits(curCoverage,
                 testFeedBack.originalCodeCoverage)) {
             System.out.println("[HKLOG] Get new bits!");
+            // Must merge first, since computeDelta could change its value
+            curCoverage.merge(testFeedBack.originalCodeCoverage);
             roundCorpus.add(
                     new Pair<>(commandSequence, validationCommandSequence));
+            Utilities.computeDelta(curCoverage,
+                    testFeedBack.originalCodeCoverage);
             roundCoverage.add(testFeedBack.originalCodeCoverage);
-            curCoverage.merge(testFeedBack.originalCodeCoverage);
             seedIdxList.add(seedID);
             saveSeed(commandSequence, validationCommandSequence);
             // upCoverage.merge(testFeedBack.upgradedCodeCoverage);
@@ -321,13 +327,14 @@ public class Fuzzer {
             if (Utilities.hasNewBits(seedOriginalCoverage,
                     testFeedBack.originalCodeCoverage)) {
                 // compare and check whether we can find an identical one
+                Utilities.computeDelta(seedOriginalCoverage,
+                        testFeedBack.originalCodeCoverage);
                 System.out.println("[HKLOG] NEWBITS COMPARE TO OLD");
 
                 assert roundCorpus.size() == roundCoverage.size();
                 assert roundCorpus.size() == seedIdxList.size();
 
-                System.out
-                        .println("round corpuse size = " + roundCorpus.size());
+                System.out.println("round corpus size = " + roundCorpus.size());
                 System.out.println(
                         "roundCoverage size = " + roundCoverage.size());
                 System.out.println("seedIdxList size = " + seedIdxList);
@@ -343,7 +350,7 @@ public class Fuzzer {
                     }
                 }
                 if (i == roundCorpus.size()) {
-                    // Not found, keep this seed!
+                    // Not found, keep this seed
                     // corpus [s0, s1], s0: {b1, b2}, s1: {b2, b3}, s3: {b1, b3}
                     System.out.println("NOT FOUND!");
                     roundCorpus.add(new Pair<>(commandSequence,
@@ -380,6 +387,15 @@ public class Fuzzer {
                     }
 
                 }
+            } else {
+                System.out.println(
+                        "Comparing to the seed sequence, no new bits found!");
+                System.out.println("Original Sequence: ");
+                for (String cmdStr : seedCommandSequence
+                        .getCommandStringList()) {
+                    System.out.println(cmdStr);
+                }
+
             }
         }
 
