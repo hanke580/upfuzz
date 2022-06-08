@@ -226,9 +226,8 @@ public class Fuzzer {
                         // stacked
                         // But if exceeds MUTATE_RETRY_TIME(10) stacked
                         // mutation, this sequence will be dropped
-                        if (mutatedCommandSequence.mutate() == true)
-                            // if (mutatedCommandSequence.mutate() == true
-                            // && Utilities.oneOf(rand, 3))
+                        if (mutatedCommandSequence.mutate() == true
+                                && Utilities.oneOf(rand, 3))
                             break;
                     }
                     if (j == MUTATE_RETRY_TIME) {
