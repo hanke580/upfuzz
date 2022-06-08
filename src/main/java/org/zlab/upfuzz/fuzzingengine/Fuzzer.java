@@ -577,7 +577,7 @@ public class Fuzzer {
     // existing seeds
 
     public void printInfo(int queueSize, int crashID, int testID) {
-        Long timeElapsed = TimeUnit.SECONDS
+        Long timeElapsed = TimeUnit.MILLISECONDS
                 .convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
 
         System.out.println(
