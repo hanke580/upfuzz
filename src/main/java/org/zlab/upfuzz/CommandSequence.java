@@ -277,6 +277,7 @@ public class CommandSequence implements Serializable {
         // Debug
         for (int i = 0; i < len; i++) {
 
+            Command command = null;
             if (createCommandClassList != null) {
                 /**
                  * Make sure the first three columns are write related command,
@@ -284,29 +285,24 @@ public class CommandSequence implements Serializable {
                  * [Could be changed later]
                  */
                 if (i <= 2) {
-                    commands.add(generateSingleCommand(createCommandClassList,
-                            state));
-                    continue;
-                } else {
-                    Command command = generateSingleCommand(commandClassList,
+                    command = generateSingleCommand(createCommandClassList,
                             state);
+                } else {
+                    command = generateSingleCommand(commandClassList, state);
                     if (command == null) {
                         command = generateSingleCommand(createCommandClassList,
                                 state);
                     }
-
-                    commands.add(command);
                 }
             } else {
-                Command command = generateSingleCommand(commandClassList,
-                        state);
-                if (command == null) {
-                    command = generateSingleCommand(commandClassList, state);
-                }
-
+                command = generateSingleCommand(commandClassList, state);
+            }
+            if (command != null) {
                 commands.add(command);
             }
 
+            // The final length might be smaller than the target len since
+            // some command generation might fail.
         }
 
         cleanTypePool();
@@ -344,7 +340,9 @@ public class CommandSequence implements Serializable {
     public List<String> getCommandStringList() {
         List<String> commandStringList = new ArrayList<>();
         for (Command command : commands) {
-            commandStringList.add(command.toString());
+            if (command != null) {
+                commandStringList.add(command.toString());
+            }
         }
         return commandStringList;
     }
