@@ -8,7 +8,12 @@ import java.net.UnknownHostException;
 
 import org.jacoco.core.data.ExecutionDataWriter;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class ClientSocket extends Thread {
+    static Logger logger = LogManager.getLogger(ClientSocket.class);
+
     final FuzzingClient client;
     final ServerSocket server;
     final ExecutionDataWriter fileWriter;
@@ -18,8 +23,8 @@ public class ClientSocket extends Thread {
         this.client = client;
         this.server = new ServerSocket(Config.getConf().clientPort, 0,
                 InetAddress.getByName(Config.getConf().clientHost));
-        System.out.println(
-                "Server start at: " + this.server.getLocalSocketAddress());
+        logger.info("Client socket Server start at: "
+                + this.server.getLocalSocketAddress());
         this.fileWriter = new ExecutionDataWriter(
                 new FileOutputStream("./zlab-jacoco.exec"));
     }

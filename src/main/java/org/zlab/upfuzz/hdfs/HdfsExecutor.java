@@ -127,16 +127,6 @@ public class HdfsExecutor extends Executor {
 
     @Override
     public void startup() {
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            public void run() {
-                try {
-                    Utilities.exec(new String[] { "sbin/stop-dfs.sh" },
-                            Config.getConf().oldSystemPath);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
         stopDfs();
 
         int ret = 0;
