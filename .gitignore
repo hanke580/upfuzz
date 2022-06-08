@@ -5,6 +5,7 @@ zlab-jacoco/
 config.json
 corpus/
 *.exec
+bu.sh
 
 ##############################
 ## Java

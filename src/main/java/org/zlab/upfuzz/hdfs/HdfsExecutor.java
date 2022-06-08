@@ -29,6 +29,10 @@ public class HdfsExecutor extends Executor {
         super(commandSequence, validationCommandSequence, "hadoop");
     }
 
+    public HdfsExecutor() {
+        super("hadoop");
+    }
+
     @Override
     public boolean upgradeTest() {
         try {

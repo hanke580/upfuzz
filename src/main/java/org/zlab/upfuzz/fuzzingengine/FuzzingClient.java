@@ -54,6 +54,12 @@ public class FuzzingClient {
 
     FuzzingClient() {
         init();
+        if (Config.getConf().system.equals("cassandra")) {
+            executor = new CassandraExecutor();
+        } else if (Config.getConf().system.equals("hdfs")) {
+            executor = new HdfsExecutor();
+        }
+        executor.startup();
     }
 
     private void init() {
@@ -80,17 +86,6 @@ public class FuzzingClient {
 
     public FeedBack start(CommandSequence commandSequence,
             CommandSequence validationCommandSequence, int testId) {
-
-        if (Config.getConf().system.equals("cassandra")) {
-            executor = new CassandraExecutor(commandSequence,
-                    validationCommandSequence);
-        } else if (Config.getConf().system.equals("hdfs")) {
-            executor = new HdfsExecutor(commandSequence,
-                    validationCommandSequence);
-        }
-
-        executor.startup();
-
         try {
             logger.info("Main Class Name: " + Utilities.getMainClassName());
         } catch (ClassNotFoundException e) {

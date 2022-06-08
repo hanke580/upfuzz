@@ -246,10 +246,11 @@ public class CassandraExecutor extends Executor {
                 cqlsh = new CassandraCqlshDaemon(
                         Config.getConf().oldSystemPath);
             for (String cmd : commandList) {
-                // System.out
-                // .println("\n\n------------------------------------------------------------\nexecutor
-                // command:\n"
-                // + cmd +
+                // System.out.println(
+                // "\n\n------------------------------------------------------------
+                // executor command:\n"
+                // + cmd
+                // +
                 // "\n------------------------------------------------------------\n");
                 long startTime = System.currentTimeMillis();
                 CqlshPacket cp = cqlsh.execute(cmd);
