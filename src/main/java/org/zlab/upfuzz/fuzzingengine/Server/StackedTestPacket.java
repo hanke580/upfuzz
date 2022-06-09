@@ -1,0 +1,16 @@
+package org.zlab.upfuzz.fuzzingengine.Server;
+
+import java.util.List;
+
+import org.zlab.upfuzz.fuzzingengine.TestPacket;
+
+// This class is for execute multiple tests in one
+// system instance. Like separating 60 tests with
+// keyspace for cassandra to avoid the conflict
+// between them for acceleration
+public class StackedTestPacket {
+    // This wraps the test packet so that we can
+    // control the number of tests we want to
+    // execute in one instance.
+    public List<TestPacket> tpList;
+}

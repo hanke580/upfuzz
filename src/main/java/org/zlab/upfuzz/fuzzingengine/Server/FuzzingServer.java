@@ -27,22 +27,9 @@ public class FuzzingServer {
     }
 
     private void init() {
-        initCorpus();
-    }
-
-    private void initCorpus() {
         if (Config.getConf().initSeedDir != null) {
-            // Start up, load all command sequence into a queue.
-            System.out.println("seed path = " + Config.getConf().initSeedDir);
-            Path initSeedDirPath = Paths.get(Config.getConf().initSeedDir);
-            File initSeedDir = initSeedDirPath.toFile();
-            assert initSeedDir.isDirectory() == true;
-            for (File seedFile : initSeedDir.listFiles()) {
-                if (!seedFile.isDirectory()) {
-                }
-            }
+            corpus.initCorpus(Paths.get(Config.getConf().initSeedDir));
         }
-
     }
 
     public void start() {

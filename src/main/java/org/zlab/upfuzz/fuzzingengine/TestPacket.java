@@ -3,34 +3,19 @@ package org.zlab.upfuzz.fuzzingengine;
 import java.util.Comparator;
 import java.util.List;
 
-import org.zlab.upfuzz.CommandSequence;
-
 public class TestPacket {
-    // Write commands
-    public CommandSequence originalCommandSequence;
-    public CommandSequence upgradedCommandSequence;
 
+    public String systemID;
+    public String testPacketID;
+    // Write Commands
     public List<String> originalCommandSequenceList;
     public List<String> upgradeCommandSequenceList;
-
     // Read Commands
-    public CommandSequence validationCommandSequnece;
+    public List<String> validationCommandSequneceList;
 
-    public String testPacketID;
-    public FeedBack feedBack;
-    public String systemID;
-
-    public void serializeTo(String pathString) {
-    }
-
-    public void deserializeFrom(String pathString) {
-    }
-
-    public int calcInterests() {
-        // TODO
-        int res = 0;
-        return res;
-    }
+    public void serializeTo(String pathString) {}
+    public void deserializeFrom(String pathString) {}
+    public int calcInterests() {return 0;} // TODO
 
     public static class TestPacketComparator implements Comparator<TestPacket> {
 
