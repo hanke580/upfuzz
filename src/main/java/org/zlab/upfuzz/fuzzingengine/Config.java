@@ -1,11 +1,16 @@
 package org.zlab.upfuzz.fuzzingengine;
 
 import java.lang.reflect.Field;
-import java.util.Arrays;
 
 import com.google.gson.GsonBuilder;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class Config {
+
+    static Logger logger = LogManager.getLogger(Config.class);
+
     public static Configuration instance;
 
     public static Configuration getConf() {
@@ -44,8 +49,7 @@ public class Config {
                 try {
                     Object fieldObject = field.get(this);
                     if (fieldObject == null) {
-                        System.err.println(
-                                "Configuration failed to find: " + field);
+                        logger.error("Configuration failed to find: " + field);
                     }
                 } catch (IllegalArgumentException | IllegalAccessException e) {
                     e.printStackTrace();

@@ -22,7 +22,7 @@ public class FuzzingClientTest {
 
     @BeforeAll
     static public void initAll() {
-        String configFile = "./hdfsconfig.json";
+        String configFile = "./config.json";
         Configuration cfg;
         try {
             cfg = new Gson().fromJson(new FileReader(configFile),

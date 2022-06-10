@@ -14,10 +14,13 @@ import java.nio.file.Paths;
 import com.google.gson.Gson;
 
 import org.apache.commons.lang3.RandomUtils;
-import org.zlab.upfuzz.fuzzingengine.Config;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.utils.Utilities;
 
 public class CassandraCqlshDaemon {
+    static Logger logger = LogManager.getLogger(CassandraCqlshDaemon.class);
+
     private int port;
     private int MAX_RETRY = 100;
     private Process cqlsh;
@@ -62,11 +65,15 @@ public class CassandraCqlshDaemon {
         } catch (Exception e) {
             majorVersion = cassandraRoot.split("cassandra-")[1].charAt(0);
         }
+        logger.debug("cassandra version: " + majorVersion);
+        majorVersion = '3';
 
         if (majorVersion <= '3') {
+            logger.info("use python2 cqlsh script");
             python = "python2";
             cqlshPythonScript = cqlshPython2Script;
         } else {
+            logger.info("use python3 cqlsh script");
             python = "python3";
             cqlshPythonScript = cqlshPython3Script;
         }
@@ -106,6 +113,7 @@ public class CassandraCqlshDaemon {
             // System.out.println("cqlsh:\n" + new String(bytes, 0, cnt1));
 
             Thread.sleep(1000);
+            socket = new Socket("localhost", port);
             // TODO: Add a catch, when the connection is rejected regenerate it.
         } else {
             throw new IllegalStateException("Cannot fina an available port");

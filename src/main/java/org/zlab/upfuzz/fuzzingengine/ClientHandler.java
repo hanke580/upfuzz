@@ -15,8 +15,14 @@ import org.jacoco.core.data.SessionInfo;
 import org.jacoco.core.runtime.RemoteControlReader;
 import org.jacoco.core.runtime.RemoteControlWriter;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class ClientHandler
         implements Runnable, ISessionInfoVisitor, IExecutionDataVisitor {
+
+    static Logger logger = LogManager.getLogger(ClientHandler.class);
+
     private final FuzzingClient client;
     private final Socket socket;
     private String sessionId;
@@ -60,7 +66,7 @@ public class ClientHandler
                 okCMD.countDown();
             }
 
-            System.out.println("connection closed");
+            logger.info("connection closed");
             socket.close();
             // synchronized (fileWriter) {
             // fileWriter.flush();
@@ -79,9 +85,9 @@ public class ClientHandler
             System.err.println("Invalid sessionId " + sessionId);
             return;
         }
-        System.out.println("Agent " + info.getId() + " registered");
+        logger.info("Agent " + info.getId() + " registered");
         client.agentHandler.put(sessionId, this);
-        System.out.println("agent handler add " + sessionId);
+        logger.info("agent handler add " + sessionId);
 
         String identifier = sessionSplit[0], executor = sessionSplit[1],
                 index = sessionSplit[2];
@@ -96,8 +102,8 @@ public class ClientHandler
         if (!registered) {
             register(info);
         } else {
-            System.out.printf("Retrieving execution Data for session: %s%n",
-                    info.getId());
+            logger.info(
+                    "Retrieving execution Data for session: " + info.getId());
         }
         // synchronized (fileWriter) {
         // fileWriter.visitSessionInfo(info);
@@ -105,8 +111,8 @@ public class ClientHandler
     }
 
     public void visitClassExecution(final ExecutionData data) {
-        // System.out.println(sessionId + " get data");
-        // System.out.println(data.getName());
+        // logger.info(sessionId + " get data");
+        // logger.info(data.getName());
         if (client.agentStore.containsKey(sessionId)) {
             ExecutionDataStore store = client.agentStore.get(sessionId);
 
@@ -129,15 +135,15 @@ public class ClientHandler
     }
 
     public void collect() throws IOException {
-        System.out.println("handler collect " + sessionId + "...");
+        logger.info("handler collect " + sessionId + "...");
         writer.visitDumpCommand(true, true);
         okCMD = new CountDownLatch(1);
         synchronized (okCMD) {
             try {
                 okCMD.await(1000, TimeUnit.MILLISECONDS);
-                System.out.println("ok");
+                logger.info("ok");
             } catch (InterruptedException e) {
-                System.out.println("timeout");
+                logger.info("timeout");
             }
         }
     }

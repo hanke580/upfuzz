@@ -22,6 +22,12 @@ dependencies {
 	implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
 	implementation group: 'org.apache.maven.reporting', name: 'maven-reporting-api', version: '3.0'
 
+	implementation 'org.apache.logging.log4j:log4j-api:2.17.2'
+	implementation 'org.apache.logging.log4j:log4j-core:2.17.2'
+	implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.3'
+	implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.3'
+
+
 	implementation 'com.google.code.gson:gson:2.9.0'
 
 	implementation 'info.debatty:java-string-similarity:2.0.0'

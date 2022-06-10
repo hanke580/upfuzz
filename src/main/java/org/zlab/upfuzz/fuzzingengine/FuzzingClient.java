@@ -20,7 +20,12 @@ import org.zlab.upfuzz.hdfs.HdfsExecutor;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class FuzzingClient {
+    static Logger logger = LogManager.getLogger(FuzzingClient.class);
+
     public static final int epochNum = 60; // Validation per epochNum
 
     /**
@@ -49,6 +54,12 @@ public class FuzzingClient {
 
     FuzzingClient() {
         init();
+        if (Config.getConf().system.equals("cassandra")) {
+            executor = new CassandraExecutor();
+        } else if (Config.getConf().system.equals("hdfs")) {
+            executor = new HdfsExecutor();
+        }
+        executor.startup();
     }
 
     private void init() {
@@ -75,20 +86,8 @@ public class FuzzingClient {
 
     public FeedBack start(CommandSequence commandSequence,
             CommandSequence validationCommandSequence, int testId) {
-
-        if (Config.getConf().system.equals("cassandra")) {
-            executor = new CassandraExecutor(commandSequence,
-                    validationCommandSequence);
-        } else if (Config.getConf().system.equals("hdfs")) {
-            executor = new HdfsExecutor(commandSequence,
-                    validationCommandSequence);
-        }
-
-        executor.startup();
-
         try {
-            System.out.println(
-                    "Main Class Name: " + Utilities.getMainClassName());
+            logger.info("Main Class Name: " + Utilities.getMainClassName());
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -110,7 +109,7 @@ public class FuzzingClient {
 
             fb.originalCodeCoverage = collect(executor, "original");
             if (fb.originalCodeCoverage == null) {
-                System.out.println("ERROR: null origin code coverage");
+                logger.info("ERROR: null origin code coverage");
                 System.exit(1);
             }
             // Actually the code coverage do not need to be stored in disk
@@ -122,14 +121,14 @@ public class FuzzingClient {
                         localFile);
                 fb.originalCodeCoverage.accept(localWriter);
                 // localWriter.visitClassExecution(codeCoverage);
-                System.out.println("write codecoverage to " + destFile);
+                logger.info("write codecoverage to " + destFile);
             } catch (IOException e) {
                 e.printStackTrace();
             }
             oldVersionResult = executor.executeRead(testId);
 
         } catch (CustomExceptions.systemStartFailureException e) {
-            System.out.println("old version system start up failed");
+            logger.info("old version system start up failed");
         }
 
         if (epochNum == 1 || testId != 0 && testId % epochNum == 0) {
@@ -142,7 +141,7 @@ public class FuzzingClient {
             executor.moveSnapShot();
             executor.teardown();
             // long endTime = System.currentTimeMillis();
-            // System.out.println("Stop the old version Time: " + (endTime -
+            // logger.info("Stop the old version Time: " + (endTime -
             // startTime)/1000 + "s");
 
             // Upgrade test
@@ -153,7 +152,7 @@ public class FuzzingClient {
                 boolean ret = executor.upgradeTest();
                 // fb.upgradedCodeCoverage = collect(executor, "upgraded");
                 // if (fb.upgradedCodeCoverage == null) {
-                // System.out.println("ERROR: null upgrade code coverage");
+                // logger.info("ERROR: null upgrade code coverage");
                 // System.exit(1);
                 // }
 
@@ -262,7 +261,7 @@ public class FuzzingClient {
                     }
                 }
             } catch (CustomExceptions.systemStartFailureException e) {
-                System.out.println(
+                logger.info(
                         "New version cassandra start up failed, this could be a bug");
             } catch (Exception e) {
                 e.printStackTrace();
@@ -275,7 +274,7 @@ public class FuzzingClient {
             epochStartTestId = testId + 1;
             // Restart the old version executor
 
-            System.out.println("\n\nRestart the executor\n");
+            logger.info("\n\nRestart the executor\n");
             executor = new CassandraExecutor();
             executor.startup();
         }
@@ -294,7 +293,7 @@ public class FuzzingClient {
             for (String agentId : agentIdList) {
                 if (agentId.split("-")[2].equals("null"))
                     continue;
-                System.out.println("collect conn " + agentId);
+                logger.info("collect conn " + agentId);
                 ClientHandler conn = agentHandler.get(agentId);
                 if (conn != null) {
                     try {
@@ -308,22 +307,20 @@ public class FuzzingClient {
 
             ExecutionDataStore execStore = new ExecutionDataStore();
             for (String agentId : agentIdList) {
-                System.out.println("get coverage from " + agentId);
+                logger.info("get coverage from " + agentId);
                 ExecutionDataStore astore = agentStore.get(agentId);
                 if (astore == null) {
-                    System.out.println("no data");
+                    logger.info("no data");
                 } else {
                     /**
                      * astore: Map: Classname -> int[] probes. this will merge
                      * the probe of each classes.
                      */
                     execStore.merge(astore);
-                    System.out.println(
-                            "astore size: " + astore.getContents().size());
+                    logger.info("astore size: " + astore.getContents().size());
                 }
             }
-            System.out.println(
-                    "codecoverage size: " + execStore.getContents().size());
+            logger.info("codecoverage size: " + execStore.getContents().size());
             // Send coverage back
 
             return execStore;

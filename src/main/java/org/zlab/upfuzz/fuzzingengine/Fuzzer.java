@@ -1,7 +1,7 @@
 package org.zlab.upfuzz.fuzzingengine;
 
-import info.debatty.java.stringsimilarity.QGram;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -13,6 +13,7 @@ import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.lang3.SerializationUtils;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.CommandPool;
@@ -28,6 +29,8 @@ import org.zlab.upfuzz.hdfs.HdfsExecutor;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
+
+import info.debatty.java.stringsimilarity.QGram;
 
 public class Fuzzer {
     /**
@@ -89,10 +92,34 @@ public class Fuzzer {
             executor = new CassandraExecutor(null, null);
             commandPool = new CassandraCommandPool();
             stateClass = CassandraState.class;
+
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+                public void run() {
+                    try {
+                        Utilities.exec(
+                                new String[] { "bin/nodetool", "stopdaemon" },
+                                Config.getConf().oldSystemPath);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
         } else if (Config.getConf().system.equals("hdfs")) {
             executor = new HdfsExecutor(null, null);
             commandPool = new HdfsCommandPool();
             stateClass = HdfsState.class;
+
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+                public void run() {
+                    try {
+                        Utilities.exec(new String[] { "sbin/stop-dfs.sh" },
+                                Config.getConf().oldSystemPath);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
         }
         fuzzingClient = new FuzzingClient();
 
@@ -199,9 +226,8 @@ public class Fuzzer {
                         // stacked
                         // But if exceeds MUTATE_RETRY_TIME(10) stacked
                         // mutation, this sequence will be dropped
-                        if (mutatedCommandSequence.mutate() == true)
-                            // if (mutatedCommandSequence.mutate() == true
-                            // && Utilities.oneOf(rand, 3))
+                        if (mutatedCommandSequence.mutate() == true
+                                && Utilities.oneOf(rand, 3))
                             break;
                     }
                     if (j == MUTATE_RETRY_TIME) {
@@ -577,7 +603,7 @@ public class Fuzzer {
     // existing seeds
 
     public void printInfo(int queueSize, int crashID, int testID) {
-        Long timeElapsed = TimeUnit.SECONDS
+        Long timeElapsed = TimeUnit.MILLISECONDS
                 .convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
 
         System.out.println(

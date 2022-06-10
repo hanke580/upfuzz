@@ -15,15 +15,15 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.Config.Configuration;
 
 public class Main {
 
+    static Logger logger = LogManager.getLogger(Main.class);
+
     public static void main(String[] args) throws ParseException {
-        long currentTime = System.currentTimeMillis();
-        long vmStartTime = ManagementFactory.getRuntimeMXBean().getStartTime();
-        System.out.println("jvm startup time million seconds: "
-                + (currentTime - vmStartTime));
         final Options options = new Options();
         Option clazzOption = Option.builder("class").argName("type").hasArg()
                 .desc("start a dfe server or client or fuzzer").required()
@@ -89,8 +89,7 @@ public class Main {
                 public void run() {
                     try {
                         Thread.sleep(200);
-                        System.out.println(
-                                "Fuzzing process end, have a good day ...");
+                        logger.info("Fuzzing process end, have a good day ...");
                         // some cleaning up code...
 
                     } catch (InterruptedException e) {
