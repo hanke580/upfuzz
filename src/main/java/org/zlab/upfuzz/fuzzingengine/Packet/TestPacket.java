@@ -1,4 +1,4 @@
-package org.zlab.upfuzz.fuzzingengine;
+package org.zlab.upfuzz.fuzzingengine.Packet;
 
 import java.util.Comparator;
 import java.util.List;
@@ -13,9 +13,15 @@ public class TestPacket {
     // Read Commands
     public List<String> validationCommandSequneceList;
 
-    public void serializeTo(String pathString) {}
-    public void deserializeFrom(String pathString) {}
-    public int calcInterests() {return 0;} // TODO
+    public void serializeTo(String pathString) {
+    }
+
+    public void deserializeFrom(String pathString) {
+    }
+
+    public int calcInterests() {
+        return 0;
+    } // TODO
 
     public static class TestPacketComparator implements Comparator<TestPacket> {
 

@@ -1,8 +1,6 @@
-package org.zlab.upfuzz.fuzzingengine.Server;
+package org.zlab.upfuzz.fuzzingengine.Packet;
 
 import java.util.List;
-
-import org.zlab.upfuzz.fuzzingengine.TestPacket;
 
 // This class is for execute multiple tests in one
 // system instance. Like separating 60 tests with

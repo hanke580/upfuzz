@@ -3,7 +3,6 @@ package org.zlab.upfuzz.fuzzingengine;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.lang.management.ManagementFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
@@ -18,12 +17,14 @@ import org.apache.commons.cli.ParseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.Config.Configuration;
+import org.zlab.upfuzz.fuzzingengine.Server.FuzzingServer;
 
 public class Main {
 
     static Logger logger = LogManager.getLogger(Main.class);
 
-    public static void main(String[] args) throws ParseException {
+    public static void main(String[] args)
+            throws ParseException, InterruptedException {
         final Options options = new Options();
         Option clazzOption = Option.builder("class").argName("type").hasArg()
                 .desc("start a dfe server or client or fuzzer").required()
@@ -55,8 +56,9 @@ public class Main {
         Config.getConf().checkNull();
 
         String type = cmd.getOptionValue(clazzOption);
+        logger.info("start " + type);
         if (type.toLowerCase().equals("server")) {
-            assert false;
+            new FuzzingServer().start();
             // String act = cmd.getOptionValue(actionOption);
             // FuzzingServerActions action = FuzzingServerActions.valueOf(act);
             // switch (action) {
@@ -68,23 +70,9 @@ public class Main {
             // throw new UnsupportedOperationException(act);
             // }
         } else if (type.toLowerCase().equals("client")) {
-            assert false;
-            // String act = cmd.getOptionValue(actionOption);
-            // FuzzingClientActions action = FuzzingClientActions.valueOf(act);
-            // switch (action) {
-            // case start:{
-            // new FuzzingClient(conf).start();
-            // break;
-            // }
-            // case collect: {
-            // // new FuzzingClient(conf).collect();
-            // break;
-            // }
-            // default:
-            // throw new UnsupportedOperationException(act);
-            // }
+            new FuzzingClient().start();
         } else if (type.toLowerCase().equals("fuzzer")) {
-
+            logger.error("equal fuzzer");
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 public void run() {
                     try {

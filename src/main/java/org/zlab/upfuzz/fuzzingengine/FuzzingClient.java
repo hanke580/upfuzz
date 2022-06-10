@@ -59,7 +59,6 @@ public class FuzzingClient {
         } else if (Config.getConf().system.equals("hdfs")) {
             executor = new HdfsExecutor();
         }
-        executor.startup();
     }
 
     private void init() {
@@ -82,6 +81,12 @@ public class FuzzingClient {
             e.printStackTrace();
             // System.exit(1);
         }
+    }
+
+    public void start() throws InterruptedException {
+        Thread clientThread = new Thread(new FuzzingClientSocket(this));
+        clientThread.start();
+        clientThread.join();
     }
 
     public FeedBack start(CommandSequence commandSequence,

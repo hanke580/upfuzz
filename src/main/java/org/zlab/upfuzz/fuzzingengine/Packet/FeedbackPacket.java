@@ -1,4 +1,6 @@
-package org.zlab.upfuzz.fuzzingengine;
+package org.zlab.upfuzz.fuzzingengine.Packet;
+
+import org.zlab.upfuzz.fuzzingengine.FeedBack;
 
 public class FeedbackPacket {
     public String testPacketID;
