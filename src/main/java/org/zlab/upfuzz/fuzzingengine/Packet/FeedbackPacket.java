@@ -1,5 +1,10 @@
 package org.zlab.upfuzz.fuzzingengine.Packet;
 
+import java.io.IOException;
+import java.io.InputStream;
+
+import com.google.gson.Gson;
+
 import org.zlab.upfuzz.fuzzingengine.FeedBack;
 
 public class FeedbackPacket {
@@ -7,4 +12,18 @@ public class FeedbackPacket {
     public String systemID;
 
     public FeedBack feedBack;
+
+    public static FeedbackPacket read(InputStream in) {
+        byte[] bytes = new byte[65536];
+        int len;
+        try {
+            len = in.read(bytes);
+            FeedbackPacket feedbackPacket = new Gson()
+                    .fromJson(new String(bytes, 0, len), FeedbackPacket.class);
+            return feedbackPacket;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

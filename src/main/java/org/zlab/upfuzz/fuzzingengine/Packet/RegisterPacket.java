@@ -1,6 +1,7 @@
 package org.zlab.upfuzz.fuzzingengine.Packet;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -18,11 +19,28 @@ public class RegisterPacket extends Packet {
     public String systemId;
     public String clientId;
 
+    public RegisterPacket() {
+    }
+
     public RegisterPacket(Socket socket) {
         this.systemId = Config.getConf().system;
         this.type = PacketType.RegisterPacket;
         this.clientId = socket.getLocalAddress().getHostName()
                 + socket.getLocalSocketAddress().toString();
+    }
+
+    public static RegisterPacket read(InputStream in) {
+        byte[] bytes = new byte[65536];
+        int len;
+        try {
+            len = in.read(bytes);
+            RegisterPacket registerPacket = new Gson()
+                    .fromJson(new String(bytes, 0, len), RegisterPacket.class);
+            return registerPacket;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public void write(OutputStream out) {

@@ -10,6 +10,7 @@ import com.google.gson.Gson;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.Packet.Packet.PacketType;
+import org.zlab.upfuzz.fuzzingengine.Packet.FeedbackPacket;
 import org.zlab.upfuzz.fuzzingengine.Packet.RegisterPacket;
 
 public class FuzzingServerHandler implements Runnable {
@@ -35,6 +36,11 @@ public class FuzzingServerHandler implements Runnable {
     public void run() {
         try {
             readRegisterPacket();
+            while (true) {
+                CorpusEntry entry = fuzzingServer.getOneTest();
+                entry.toPacket().write(out);
+                readFeedbackPacket();
+            }
             // TestPacket tp = fuzzingServer.getOneTest();
             // Gson gs = new Gson();
             // socket.getOutputStream().write(gs.toJson(tp).getBytes());
@@ -43,15 +49,23 @@ public class FuzzingServerHandler implements Runnable {
         }
     }
 
+    private void readFeedbackPacket() throws IOException {
+        int intType = in.read();
+        assert intType == PacketType.FeedbackPacket.value;
+        FeedbackPacket feedbackPacket = FeedbackPacket.read(in);
+    }
+
     private void readRegisterPacket() throws IOException {
         int intType = in.read();
         assert intType == PacketType.RegisterPacket.value;
-        byte[] bytes = new byte[65536];
-        int len = in.read(bytes);
-        RegisterPacket registerPacket = new Gson()
-                .fromJson(new String(bytes, 0, len), RegisterPacket.class);
-        logger.info("register fuzzingclient: " + registerPacket.clientId + " "
-                + registerPacket.systemId);
+        RegisterPacket registerPacket = RegisterPacket.read(in);
+        // byte[] bytes = new byte[65536];
+        // int len = in.read(bytes);
+        // RegisterPacket registerPacket = new Gson()
+        // .fromJson(new String(bytes, 0, len), RegisterPacket.class);
+        // logger.info("register fuzzingclient: " + registerPacket.clientId + "
+        // "
+        // + registerPacket.systemId);
     }
 
 }

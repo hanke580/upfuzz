@@ -15,6 +15,8 @@ public class Corpus {
     // PriorityQueue queue = new PriorityQueue<TestPacket>(
     // new TestPacketComparator());
 
+    // Q0 corpus seed (level 0) always in the corpus
+
     Queue<CorpusEntry> queue = new LinkedList();
 
     public boolean initCorpus(Path initSeedDirPath) {
@@ -35,8 +37,7 @@ public class Corpus {
         return true;
     }
 
-    public TestPacket getOneTest() {
-        TestPacket tp = null;
-        return tp;
+    public CorpusEntry getSeed() {
+        return null;
     }
 }
