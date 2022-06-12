@@ -11,6 +11,7 @@ import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.fuzzingengine.Config;
+import org.zlab.upfuzz.fuzzingengine.Server.Seed;
 import org.zlab.upfuzz.utils.Pair;
 
 public abstract class Executor implements IExecutor {
@@ -87,24 +88,23 @@ public abstract class Executor implements IExecutor {
     abstract public List<String> executeCommands(
             CommandSequence commandSequence);
 
-    public static Pair<CommandSequence, CommandSequence> prepareCommandSequence(
-            CommandPool commandPool, Class<? extends State> stateClass) {
-        CommandSequence commandSequence = null;
+    public static Seed generateSeed(CommandPool commandPool,
+            Class<? extends State> stateClass) {
+        CommandSequence originalCommandSequence = null;
         CommandSequence validationCommandSequence = null;
         try {
-            commandSequence = CommandSequence.generateSequence(
+            originalCommandSequence = CommandSequence.generateSequence(
                     commandPool.commandClassList,
                     commandPool.createCommandClassList, stateClass, null);
-            // TODO: If it's generating read with a initial state, no need to
-            // generate with createTable...
             validationCommandSequence = CommandSequence.generateSequence(
                     commandPool.readCommandClassList, null, stateClass,
-                    commandSequence.state);
+                    originalCommandSequence.state);
+            return new Seed(originalCommandSequence, validationCommandSequence);
         } catch (NoSuchMethodException | InvocationTargetException
                 | InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
+            return null;
         }
-        return new Pair<>(commandSequence, validationCommandSequence);
     }
 
     public static CommandSequence prepareValidationCommandSequence(

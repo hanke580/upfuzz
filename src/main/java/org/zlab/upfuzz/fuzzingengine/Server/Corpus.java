@@ -6,7 +6,6 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import org.zlab.upfuzz.CommandSequence;
-import org.zlab.upfuzz.fuzzingengine.Packet.TestPacket;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
@@ -17,7 +16,7 @@ public class Corpus {
 
     // Q0 corpus seed (level 0) always in the corpus
 
-    Queue<CorpusEntry> queue = new LinkedList();
+    Queue<Seed> queue = new LinkedList();
 
     public boolean initCorpus(Path initSeedDirPath) {
         File initSeedDir = initSeedDirPath.toFile();
@@ -29,7 +28,7 @@ public class Corpus {
                 if (commandSequencePair != null) {
                     // Fuzzer.saveSeed(commandSequencePair.left,
                     // commandSequencePair.right);
-                    queue.add(new CorpusEntry(commandSequencePair.left,
+                    queue.add(new Seed(commandSequencePair.left,
                             commandSequencePair.right));
                 }
             }
@@ -37,7 +36,15 @@ public class Corpus {
         return true;
     }
 
-    public CorpusEntry getSeed() {
-        return null;
+    public Seed getSeed() {
+        if (queue.isEmpty())
+            return null;
+        return queue.poll();
+    }
+
+    // Add one interesting seed to corpus
+    public boolean addSeed(Seed seed) {
+        queue.add(seed);
+        return true;
     }
 }

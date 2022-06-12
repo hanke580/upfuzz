@@ -7,7 +7,7 @@ import com.google.gson.Gson;
 
 import org.zlab.upfuzz.fuzzingengine.FeedBack;
 
-public class FeedbackPacket {
+public class FeedbackPacket extends Packet {
     public String testPacketID;
     public String systemID;
 

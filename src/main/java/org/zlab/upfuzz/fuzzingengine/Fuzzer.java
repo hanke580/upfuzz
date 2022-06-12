@@ -23,6 +23,7 @@ import org.zlab.upfuzz.cassandra.CassandraCommandPool;
 import org.zlab.upfuzz.cassandra.CassandraCommands;
 import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.cassandra.CassandraState;
+import org.zlab.upfuzz.fuzzingengine.Server.Seed;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.hdfs.HdfsCommandPool;
 import org.zlab.upfuzz.hdfs.HdfsExecutor;
@@ -152,8 +153,14 @@ public class Fuzzer {
 
         while (true) {
             if (queue.isEmpty()) {
-                Pair<CommandSequence, CommandSequence> commandSequencePair = executor
-                        .prepareCommandSequence(commandPool, stateClass);
+
+                Seed seed = null;
+                while (seed == null) {
+                    seed = Executor.generateSeed(commandPool, stateClass);
+                }
+                Pair<CommandSequence, CommandSequence> commandSequencePair = new Pair<>(
+                        seed.originalCommandSequence,
+                        seed.validationCommandSequnece);
                 fuzzOne(rand, commandSequencePair.left,
                         commandSequencePair.right, curCoverage, upCoverage,
                         queue, fuzzingClient, false);

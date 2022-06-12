@@ -6,12 +6,23 @@ import java.util.List;
 public class TestPacket {
 
     public String systemID;
-    public String testPacketID;
+    public int testPacketID;
     // Write Commands
     public List<String> originalCommandSequenceList;
     public List<String> upgradeCommandSequenceList;
     // Read Commands
     public List<String> validationCommandSequneceList;
+
+    public TestPacket(String systemID, int testPacketID,
+            List<String> originalCommandSequenceList,
+            List<String> upgradeCommandSequenceList,
+            List<String> validationCommandSequneceList) {
+        this.systemID = systemID;
+        this.testPacketID = testPacketID;
+        this.originalCommandSequenceList = originalCommandSequenceList;
+        this.upgradeCommandSequenceList = upgradeCommandSequenceList;
+        this.validationCommandSequneceList = validationCommandSequneceList;
+    }
 
     public void serializeTo(String pathString) {
     }

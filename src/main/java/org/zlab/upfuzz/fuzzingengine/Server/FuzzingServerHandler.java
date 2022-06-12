@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.Packet.Packet.PacketType;
 import org.zlab.upfuzz.fuzzingengine.Packet.FeedbackPacket;
 import org.zlab.upfuzz.fuzzingengine.Packet.RegisterPacket;
+import org.zlab.upfuzz.fuzzingengine.Packet.StackedTestPacket;
 
 public class FuzzingServerHandler implements Runnable {
     static Logger logger = LogManager.getLogger(FuzzingServerHandler.class);
@@ -37,8 +38,9 @@ public class FuzzingServerHandler implements Runnable {
         try {
             readRegisterPacket();
             while (true) {
-                CorpusEntry entry = fuzzingServer.getOneTest();
-                entry.toPacket().write(out);
+                StackedTestPacket stackedTestPacket = fuzzingServer
+                        .getOneTest();
+                stackedTestPacket.write(out);
                 readFeedbackPacket();
             }
             // TestPacket tp = fuzzingServer.getOneTest();
