@@ -4,7 +4,8 @@ public class Packet {
     PacketType type;
 
     public enum PacketType {
-        RegisterPacket(0), StackedTestPacket(1), FeedbackPacket(2);
+        RegisterPacket(0), StackedTestPacket(1), StackedFeedbackPacket(
+                2), FeedbackPacket(3);
 
         public int value;
 

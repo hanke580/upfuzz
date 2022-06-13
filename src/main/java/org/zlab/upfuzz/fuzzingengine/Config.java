@@ -38,6 +38,7 @@ public class Config {
         public String corpusDir = null;
         public int mutationEpoch = 2000;
         public int STACKED_TESTS_NUM = 100;
+        public long timeInterval = 600; // seconds, record time
 
         @Override
         public String toString() {

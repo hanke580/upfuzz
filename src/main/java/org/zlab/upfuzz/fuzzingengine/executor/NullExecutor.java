@@ -23,6 +23,11 @@ public class NullExecutor extends Executor {
     }
 
     @Override
+    public void upgradeteardown() {
+
+    }
+
+    @Override
     public void execute(CommandSequence commandSequence,
             CommandSequence validationCommandSequence, int testId) {
         return;
@@ -44,7 +49,7 @@ public class NullExecutor extends Executor {
     }
 
     @Override
-    public List<String> executeCommands(CommandSequence commandSequence) {
+    public List<String> executeCommands(List<String> commandList) {
         return null;
     }
 

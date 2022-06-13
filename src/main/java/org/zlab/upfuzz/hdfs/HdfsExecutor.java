@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.codehaus.plexus.util.FileUtils;
-import org.zlab.upfuzz.Command;
-import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.CustomExceptions;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
@@ -23,11 +21,6 @@ public class HdfsExecutor extends Executor {
     Process hdfsProcess;
     Process hdfsDN;
     Process hdfsSNN;
-
-    public HdfsExecutor(CommandSequence commandSequence,
-            CommandSequence validationCommandSequence) {
-        super(commandSequence, validationCommandSequence, "hadoop");
-    }
 
     public HdfsExecutor() {
         super("hadoop");
@@ -241,8 +234,11 @@ public class HdfsExecutor extends Executor {
     }
 
     @Override
-    public List<String> executeCommands(CommandSequence commandSequence) {
-        List<String> commandList = commandSequence.getCommandStringList();
+    public void upgradeteardown() {
+    }
+
+    @Override
+    public List<String> executeCommands(List<String> commandList) {
         List<String> ret = new LinkedList<>();
         for (String cmd : commandList) {
             System.out.println("cmd: " + cmd);

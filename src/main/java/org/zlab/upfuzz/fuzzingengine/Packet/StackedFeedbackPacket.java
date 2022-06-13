@@ -1,0 +1,55 @@
+package org.zlab.upfuzz.fuzzingengine.Packet;
+
+import com.google.gson.Gson;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.LinkedList;
+import java.util.List;
+
+/**
+ * Client: Execute and reply the execute information
+ */
+
+public class StackedFeedbackPacket extends Packet {
+    private final List<FeedbackPacket> fpList;
+    public boolean isUpgradeProcessFailed;
+    public String stackedCommandSequenceStr;
+
+    // (1) Failed Upgrade Process: Report all command sequences
+    // (2) Result Inconsistency: Report the target seed's inconsistency
+
+    public StackedFeedbackPacket() {
+        fpList = new LinkedList<>();
+    }
+
+    public void addFeedbackPacket(FeedbackPacket fp) {
+        fpList.add(fp);
+    }
+
+    public List<FeedbackPacket> getFpList() {
+        return fpList;
+    }
+
+    public int size() {
+        return fpList.size();
+    }
+
+    public static StackedFeedbackPacket read(InputStream in) {
+        byte[] bytes = new byte[65536];
+        int len;
+        try {
+            len = in.read(bytes);
+            return new Gson().fromJson(new String(bytes, 0, len),
+                    StackedFeedbackPacket.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public void write(OutputStream out) throws IOException {
+        out.write(new Gson().toJson(this).getBytes());
+    }
+}

@@ -6,11 +6,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.fuzzingengine.Config;
+import org.zlab.upfuzz.fuzzingengine.Packet.TestPacket;
 import org.zlab.upfuzz.fuzzingengine.Server.Seed;
 import org.zlab.upfuzz.utils.Pair;
 
@@ -22,26 +21,15 @@ public abstract class Executor implements IExecutor {
 
     public String executorID;
     public String systemID = "UnknowDS";
-    public Config conf;
-    public CommandSequence commandSequence;
-    public CommandSequence validationCommandSequence;
 
-    public Map<Integer, Pair<CommandSequence, CommandSequence>> testId2commandSequence;
+    public Map<Integer, Pair<List<String>, List<String>>> testId2commandSequence;
     public Map<Integer, List<String>> testId2oldVersionResult;
     public Map<Integer, List<String>> testId2newVersionResult;
-    public Map<Integer, Pair<FailureType, String>> testId2Failure; // Pair<FailureType,
-                                                                   // FailureInfo>
-
-    // public List<String> oldVersionResult;
-    // public List<String> newVersionResult;
-    // public FailureType failureType;
-    // public String failureInfo;
 
     protected Executor() {
         testId2commandSequence = new HashMap<>();
         testId2oldVersionResult = new HashMap<>();
         testId2newVersionResult = new HashMap<>();
-        testId2Failure = new HashMap<>();
         executorID = RandomStringUtils.randomAlphanumeric(8);
     }
 
@@ -50,31 +38,10 @@ public abstract class Executor implements IExecutor {
         this.systemID = systemID;
     }
 
-    protected Executor(CommandSequence commandSequence,
-            CommandSequence validationCommandSequence, String systemID) {
-        this(systemID);
-        this.commandSequence = commandSequence;
-        this.validationCommandSequence = validationCommandSequence;
-    }
-
-    public void reset(CommandSequence commandSequence,
-            CommandSequence validationCommandSequence) {
-        executorID = RandomStringUtils.randomAlphanumeric(8);
-        this.commandSequence = commandSequence;
-        this.validationCommandSequence = validationCommandSequence;
-
-        // oldVersionResult = null;
-        // newVersionResult = null;
-
-        // failureType = null;
-        // failureInfo = null;
-    }
-
     public void clearState() {
         testId2commandSequence.clear();
         testId2oldVersionResult.clear();
         testId2newVersionResult.clear();
-        testId2Failure.clear();
     }
 
     public String getSysExecID() {
@@ -85,8 +52,9 @@ public abstract class Executor implements IExecutor {
 
     abstract public void teardown();
 
-    abstract public List<String> executeCommands(
-            CommandSequence commandSequence);
+    abstract public void upgradeteardown();
+
+    abstract public List<String> executeCommands(List<String> commandList);
 
     public static Seed generateSeed(CommandPool commandPool,
             Class<? extends State> stateClass) {
@@ -125,9 +93,17 @@ public abstract class Executor implements IExecutor {
             CommandSequence validationCommandSequence, int testId) {
         // startup();
         testId2commandSequence.put(testId,
-                new Pair<>(commandSequence, validationCommandSequence));
-        executeCommands(commandSequence);
+                new Pair<>(commandSequence.getCommandStringList(),
+                        validationCommandSequence.getCommandStringList()));
+        executeCommands(commandSequence.getCommandStringList());
         // saveSnapshot(); // Flush, only keep the data folder
+    }
+
+    public void execute(TestPacket testPacket) {
+        testId2commandSequence.put(testPacket.testPacketID,
+                new Pair<>(testPacket.originalCommandSequenceList,
+                        testPacket.validationCommandSequneceList));
+        executeCommands(testPacket.originalCommandSequenceList);
     }
 
     public List<String> executeRead(int testId) {
@@ -143,4 +119,10 @@ public abstract class Executor implements IExecutor {
     abstract public int moveSnapShot();
 
     abstract public void upgrade() throws Exception;
+
+    public Pair<Boolean, String> checkResultConsistency(List<String> oriResult,
+            List<String> upResult) {
+        return new Pair<>(true, "");
+    }
+
 }

@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.rmi.UnexpectedException;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +16,10 @@ import org.jacoco.core.data.ExecutionDataWriter;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.CustomExceptions;
 import org.zlab.upfuzz.cassandra.CassandraExecutor;
+import org.zlab.upfuzz.fuzzingengine.Packet.FeedbackPacket;
+import org.zlab.upfuzz.fuzzingengine.Packet.StackedFeedbackPacket;
+import org.zlab.upfuzz.fuzzingengine.Packet.StackedTestPacket;
+import org.zlab.upfuzz.fuzzingengine.Packet.TestPacket;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.hdfs.HdfsExecutor;
 import org.zlab.upfuzz.utils.Pair;
@@ -50,7 +55,9 @@ public class FuzzingClient {
 
     public Executor executor;
 
-    public static Map<Integer, Pair<CommandSequence, CommandSequence>> testId2Sequence;
+    private Thread t; // new version stop + old version restart
+
+    public static Map<Integer, Pair<List<String>, List<String>>> testId2Sequence;
 
     FuzzingClient() {
         init();
@@ -59,6 +66,7 @@ public class FuzzingClient {
         } else if (Config.getConf().system.equals("hdfs")) {
             executor = new HdfsExecutor();
         }
+        t = new Thread(() -> executor.startup()); // Startup before tests
     }
 
     private void init() {
@@ -89,209 +97,134 @@ public class FuzzingClient {
         clientThread.join();
     }
 
-    public FeedBack start(CommandSequence commandSequence,
-            CommandSequence validationCommandSequence, int testId) {
+    /**
+     * start the old version system, execute and count the coverage of all
+     * test cases of stackedFeedbackPacket, perform an upgrade process, check
+     * the (1) upgrade process failed (2) result inconsistency
+     * @param stackedTestPacket the stacked test packets from server
+     */
+    public StackedFeedbackPacket executeStackedTestPacket(
+            StackedTestPacket stackedTestPacket) {
+        // Run all the tests, collect (1) coverage and (2) old version read
+        // results
+
+        // Check whether system start up is successful
+        assert t != null;
+
         try {
-            logger.info("Main Class Name: " + Utilities.getMainClassName());
-        } catch (ClassNotFoundException e) {
+            t.join();
+        } catch (InterruptedException e) {
             e.printStackTrace();
+            // clean system state, restart the executor
+            // (1) clean system state
+            // (2) restart
+            executor.teardown();
+            executor.clearState();
+            executor.startup();
         }
 
-        /**
-         * Every epochNum tests, do one upgradeProcess + checking
-         */
-        FeedBack fb = new FeedBack();
+        Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();
+        Map<Integer, List<String>> testID2oriResults = new HashMap<>();
+        Map<Integer, List<String>> testID2upResults;
 
-        // Execute the commands on the running cassandra
-        testId2Sequence.put(testId,
-                new Pair<>(commandSequence, validationCommandSequence));
-
-        List<String> oldVersionResult = null;
-
-        try {
-            executor.execute(commandSequence, validationCommandSequence,
-                    testId);
-
+        FeedBack fb;
+        for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
+            executor.execute(tp);
+            fb = new FeedBack();
             fb.originalCodeCoverage = collect(executor, "original");
             if (fb.originalCodeCoverage == null) {
                 logger.info("ERROR: null origin code coverage");
                 System.exit(1);
             }
-            // Actually the code coverage do not need to be stored in disk
-            String destFile = executor.getSysExecID() + String.valueOf(testId)
-                    + ".exec";
-            try {
-                FileOutputStream localFile = new FileOutputStream(destFile);
-                ExecutionDataWriter localWriter = new ExecutionDataWriter(
-                        localFile);
-                fb.originalCodeCoverage.accept(localWriter);
-                // localWriter.visitClassExecution(codeCoverage);
-                logger.info("write codecoverage to " + destFile);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            oldVersionResult = executor.executeRead(testId);
+            testID2FeedbackPacket.put(tp.testPacketID,
+                    new FeedbackPacket(tp.testPacketID, tp.systemID, fb));
 
-        } catch (CustomExceptions.systemStartFailureException e) {
-            logger.info("old version system start up failed");
+            List<String> oriResult = executor.executeRead(tp.testPacketID);
+            testID2oriResults.put(tp.testPacketID, oriResult);
         }
 
-        if (epochNum == 1 || testId != 0 && testId % epochNum == 0) {
-            /**
-             * Perform a validation 1. Stop the running instance 2. Perform
-             * Upgrade check 3. Restart the executor
-             */
-            // long startTime = System.currentTimeMillis();
-            executor.saveSnapshot();
-            executor.moveSnapShot();
-            executor.teardown();
-            // long endTime = System.currentTimeMillis();
-            // logger.info("Stop the old version Time: " + (endTime -
-            // startTime)/1000 + "s");
+        // Perform upgrade (1) check whether upgrade succeeds (2) new version
+        // read
+        // results, compare
+        executor.saveSnapshot();
+        executor.moveSnapShot();
+        executor.teardown();
 
-            // Upgrade test
-            // 1. Upgrade check
-            // 2. Read sequence check
-            try {
-                // Feed it with all the read
-                boolean ret = executor.upgradeTest();
-                // fb.upgradedCodeCoverage = collect(executor, "upgraded");
-                // if (fb.upgradedCodeCoverage == null) {
-                // logger.info("ERROR: null upgrade code coverage");
-                // System.exit(1);
-                // }
+        StackedFeedbackPacket stackedFeedbackPacket = new StackedFeedbackPacket();
+        stackedFeedbackPacket.stackedCommandSequenceStr = recordAllStackedTests(
+                stackedTestPacket);
 
-                if (ret == false) {
-                    /**
-                     * An inconsistency has been found 1. It could be exception
-                     * during the upgrade process 2. The result is different
-                     * between two versions Serialize them into the folder, 2
-                     * sequences + failureType + failureInfo
-                     */
-                    while (Paths
-                            .get(Config.getConf().crashDir, "crash_" + epoch)
-                            .toFile().exists()) {
-                        epoch++;
-                    }
-                    // 1. Serialize all sequences into one file (String format)
+        boolean ret = executor.upgradeTest();
 
-                    // Make an crash Dir
-                    new File(Paths
-                            .get(Config.getConf().crashDir, "crash_" + epoch)
-                            .toString()).mkdir();
-
-                    // Inside this Dir, serialize all the executed sequence
-                    // File1: CommandSequence
-                    StringBuilder commandSequenceString = new StringBuilder();
-
-                    for (int i = epochStartTestId; i <= testId; i++) {
-                        for (String cmdStr : testId2Sequence.get(i).left
-                                .getCommandStringList()) {
-                            commandSequenceString.append(cmdStr + "\n");
-                        }
-                        commandSequenceString.append("\n");
-                    }
-
-                    // Serialize CommandSequence into File
-                    Path cmdSeqsPath = Paths.get(Config.getConf().crashDir,
-                            "crash_" + epoch, "epoch_cmd_seq_"
-                                    + epochStartTestId + "_" + testId + ".txt");
-                    Utilities.write2TXT(cmdSeqsPath.toFile(),
-                            commandSequenceString.toString(), false);
-
-                    // When ret is false, while the testId2Failure is empty!!!
-
-                    // Serialize the bug information
-                    for (int testIdx : executor.testId2Failure.keySet()) {
-
-                        if (testIdx == -1) {
-                            // The upgrade test failed, directly write report
-                            // Serialize the single bug info
-                            StringBuilder sb = new StringBuilder();
-                            // For each failure, log into a separate file
-                            sb.append("Failure Type: "
-                                    + executor.testId2Failure.get(testIdx).left
-                                    + "\n");
-                            sb.append("Failure Info: "
-                                    + executor.testId2Failure.get(testIdx).right
-                                    + "\n");
-                            Path crashReportPath = Paths.get(
-                                    Config.getConf().crashDir, "crash_" + epoch,
-                                    "crash_" + testIdx + ".txt");
-                            Utilities.write2TXT(crashReportPath.toFile(),
-                                    sb.toString(), false);
-
-                            crashID++;
-                            break;
-                        }
-
-                        // Serialize the single bug sequence
-                        Pair<CommandSequence, CommandSequence> commandSequencePair = new Pair<>(
-                                testId2Sequence.get(testIdx).left,
-                                testId2Sequence.get(testIdx).right);
-                        Path commandSequencePairPath = Paths.get(
-                                Config.getConf().crashDir, "crash_" + epoch,
-                                "crash_" + testIdx + ".ser");
-                        Utilities.writeCmdSeq(commandSequencePairPath.toFile(),
-                                commandSequencePair);
-
-                        // Serialize the single bug info
-                        StringBuilder sb = new StringBuilder();
-                        // For each failure, log into a separate file
-                        sb.append("Failure Type: "
-                                + executor.testId2Failure.get(testIdx).left
-                                + "\n");
-                        sb.append("Failure Info: "
-                                + executor.testId2Failure.get(testIdx).right
-                                + "\n");
-                        sb.append("Command Sequence\n");
-                        for (String commandStr : testId2Sequence
-                                .get(testIdx).left.getCommandStringList()) {
-                            sb.append(commandStr);
-                            sb.append("\n");
-                        }
-                        sb.append("\n\n");
-                        sb.append("Read Command Sequence\n");
-                        for (String commandStr : testId2Sequence
-                                .get(testIdx).right.getCommandStringList()) {
-                            sb.append(commandStr);
-                            sb.append("\n");
-                        }
-                        Path crashReportPath = Paths.get(
-                                Config.getConf().crashDir, "crash_" + epoch,
-                                "crash_" + testIdx + ".txt");
-                        Utilities.write2TXT(crashReportPath.toFile(),
-                                sb.toString(), false);
-                        crashID++;
-                    }
-                }
-            } catch (CustomExceptions.systemStartFailureException e) {
-                logger.info(
-                        "New version cassandra start up failed, this could be a bug");
-            } catch (Exception e) {
-                e.printStackTrace();
-                // System.exit(1);
-            }
-            // Clear the sequence set
-            epoch++;
-            testId2Sequence.clear();
+        t = new Thread(() -> {
+            executor.upgradeteardown();
             executor.clearState();
-            epochStartTestId = testId + 1;
-            // Restart the old version executor
-
-            logger.info("\n\nRestart the executor\n");
-            executor = new CassandraExecutor();
             executor.startup();
+        });
+        t.start();
+
+        if (!ret) {
+            // upgrade process failed
+            stackedFeedbackPacket.isUpgradeProcessFailed = true;
+        } else {
+            // upgrade process succeeds, compare results here
+            testID2upResults = executor.testId2newVersionResult;
+            for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
+                Pair<Boolean, String> compareRes = executor
+                        .checkResultConsistency(
+                                testID2oriResults.get(tp.testPacketID),
+                                testID2upResults.get(tp.testPacketID));
+
+                if (!compareRes.left) {
+                    // Log the failure info into feedback packet
+                    StringBuilder failureReport = new StringBuilder();
+                    failureReport.append(
+                            "Results are inconsistent between two versions\n");
+                    failureReport.append(compareRes.right);
+
+                    failureReport.append("Original Command Sequence\n");
+                    for (String commandStr : tp.originalCommandSequenceList) {
+                        failureReport.append(commandStr + "\n");
+                    }
+                    failureReport.append("\n\n");
+                    failureReport.append("Read Command Sequence\n");
+                    for (String commandStr : tp.validationCommandSequneceList) {
+                        failureReport.append(commandStr + "\n");
+                    }
+                    FeedbackPacket feedbackPacket = testID2FeedbackPacket
+                            .get(tp.testPacketID);
+                    feedbackPacket.isInconsistent = true;
+                    feedbackPacket.inconsistencyReport = failureReport
+                            .toString();
+                    stackedFeedbackPacket.addFeedbackPacket(feedbackPacket);
+                }
+            }
         }
-        return fb;
+        return stackedFeedbackPacket;
+    }
+
+    private String recordAllStackedTests(StackedTestPacket stackedTestPacket) {
+        StringBuilder sb = new StringBuilder();
+        for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
+            for (String cmdStr : tp.originalCommandSequenceList) {
+                sb.append(cmdStr + "\n");
+            }
+            sb.append("\n");
+            for (String cmdStr : tp.validationCommandSequneceList) {
+                sb.append(cmdStr + "\n");
+            }
+            sb.append("\n\n");
+        }
+        return sb.toString();
     }
 
     public ExecutionDataStore collect(Executor executor, String version) {
         List<String> agentIdList = sessionGroup
                 .get(executor.executorID + "_" + version);
         if (agentIdList == null) {
-            new UnexpectedException("No agent connection with executor "
-                    + executor.executorID.toString()).printStackTrace();
+            new UnexpectedException(
+                    "No agent connection with executor " + executor.executorID)
+                            .printStackTrace();
             return null;
         } else {
             // Add to the original coverage
@@ -317,10 +250,7 @@ public class FuzzingClient {
                 if (astore == null) {
                     logger.info("no data");
                 } else {
-                    /**
-                     * astore: Map: Classname -> int[] probes. this will merge
-                     * the probe of each classes.
-                     */
+                    // astore : classname -> int[]
                     execStore.merge(astore);
                     logger.info("astore size: " + astore.getContents().size());
                 }

@@ -89,7 +89,7 @@ public class Main {
 
             // Start fuzzing process
             Fuzzer fuzzer = new Fuzzer();
-            fuzzer.start();
+            // fuzzer.start();
         }
     }
 }

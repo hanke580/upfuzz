@@ -90,7 +90,7 @@ public class Fuzzer {
 
     public Fuzzer() {
         if (Config.getConf().system.equals("cassandra")) {
-            executor = new CassandraExecutor(null, null);
+            executor = new CassandraExecutor();
             commandPool = new CassandraCommandPool();
             stateClass = CassandraState.class;
 
@@ -107,7 +107,7 @@ public class Fuzzer {
             });
 
         } else if (Config.getConf().system.equals("hdfs")) {
-            executor = new HdfsExecutor(null, null);
+            executor = new HdfsExecutor();
             commandPool = new HdfsCommandPool();
             stateClass = HdfsState.class;
 
@@ -146,169 +146,6 @@ public class Fuzzer {
                 }
             }
         }
-    }
-
-    public void start() {
-        startTime = System.nanoTime();
-
-        while (true) {
-            if (queue.isEmpty()) {
-
-                Seed seed = null;
-                while (seed == null) {
-                    seed = Executor.generateSeed(commandPool, stateClass);
-                }
-                Pair<CommandSequence, CommandSequence> commandSequencePair = new Pair<>(
-                        seed.originalCommandSequence,
-                        seed.validationCommandSequnece);
-                fuzzOne(rand, commandSequencePair.left,
-                        commandSequencePair.right, curCoverage, upCoverage,
-                        queue, fuzzingClient, false);
-            } else {
-                Pair<CommandSequence, CommandSequence> commandSequencePair = queue
-                        .poll();
-                fuzzOne(rand, commandSequencePair.left,
-                        commandSequencePair.right, curCoverage, upCoverage,
-                        queue, fuzzingClient, true);
-            }
-        }
-    }
-
-    public boolean fuzzOne(Random rand, CommandSequence commandSequence,
-            CommandSequence validationCommandSequence,
-            ExecutionDataStore curCoverage, ExecutionDataStore upCoverage,
-            Queue<Pair<CommandSequence, CommandSequence>> queue,
-            FuzzingClient fuzzingClient, boolean fromCorpus) {
-
-        // Fuzz this command sequence for lots of times
-        if (fromCorpus) {
-
-            // String cmd1 = "INSERT";
-            // String cmd2 = "DROP";
-            // Map<Set<Integer>, Set<Set<Integer>>> ordersOf2Cmd = new
-            // HashMap<>();
-            // Set<Set<Integer>> ordersOf1Cmd = new HashSet<>();
-            // Set<String> orderOfAllCmds = new HashSet<>();
-            boolean hasNewOrder = false;
-            ExecutionDataStore seedOriginalCoverage = null;
-            ExecutionDataStore seedUpgradeCoverage = null;
-
-            List<Pair<CommandSequence, CommandSequence>> roundCorpus = new LinkedList<>();
-            List<ExecutionDataStore> roundCoverage = new LinkedList<>();
-            List<Integer> seedIdxList = new LinkedList<>();
-            String seedStr = "";
-            for (String cmdStr : commandSequence.getCommandStringList()) {
-                seedStr += cmdStr;
-            }
-
-            // Add a single round only to collect the coverage of the root seed
-            FeedBack fb = null;
-            try {
-                fb = fuzzingClient.start(commandSequence,
-                        validationCommandSequence, testID);
-            } catch (Exception e) {
-                e.printStackTrace();
-                Utilities.clearCassandraDataDir();
-            }
-            seedOriginalCoverage = fb.originalCodeCoverage;
-            seedUpgradeCoverage = fb.upgradedCodeCoverage;
-
-            if (Utilities.hasNewBits(curCoverage, fb.originalCodeCoverage)) {
-                curCoverage.merge(fb.originalCodeCoverage);
-                saveSeed(commandSequence, validationCommandSequence);
-            }
-
-            // Only run the mutated seeds
-            for (int i = 0; i < TEST_NUM; i++) {
-                printInfo(queue.size() + roundCorpus.size(),
-                        fuzzingClient.crashID, testID);
-
-                CommandSequence mutatedCommandSequence = SerializationUtils
-                        .clone(commandSequence);
-                try {
-                    int j = 0;
-                    for (; j < MUTATE_RETRY_TIME; j++) {
-                        // Learned from syzkaller
-                        // 1/3 probability that the mutation could be
-                        // stacked
-                        // But if exceeds MUTATE_RETRY_TIME(10) stacked
-                        // mutation, this sequence will be dropped
-                        if (mutatedCommandSequence.mutate() == true
-                                && Utilities.oneOf(rand, 3))
-                            break;
-                    }
-                    if (j == MUTATE_RETRY_TIME) {
-                        // Discard current seq since the mutation keeps
-                        // failing
-                        // or too much mutation is stacked together
-                        continue;
-                    }
-
-                    // hasNewOrder = checkIfHasNewOrder_AllCmds(
-                    // mutatedCommandSequence.getCommandStringList(),
-                    // orderOfAllCmds);
-                    System.out.println("Mutated Command Sequence:");
-                    for (String cmdStr : mutatedCommandSequence
-                            .getCommandStringList()) {
-                        System.out.println(cmdStr);
-                    }
-                    System.out.println();
-                    validationCommandSequence = mutatedCommandSequence
-                            .generateRelatedReadSequence();
-                    System.out.println("Read Command Sequence:");
-                    for (String readCmdStr : validationCommandSequence
-                            .getCommandStringList()) {
-                        System.out.println(readCmdStr);
-                    }
-                    System.out.println();
-                    if (validationCommandSequence.commands.isEmpty() == true) {
-                        validationCommandSequence = Executor
-                                .prepareValidationCommandSequence(commandPool,
-                                        mutatedCommandSequence.state);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    i--;
-                    continue;
-                }
-                fb = null;
-                try {
-                    fb = fuzzingClient.start(mutatedCommandSequence,
-                            validationCommandSequence, testID);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Utilities.clearCassandraDataDir();
-                    i--;
-                    continue;
-                }
-                updateStatus(mutatedCommandSequence, validationCommandSequence,
-                        curCoverage, upCoverage, hasNewOrder,
-                        seedOriginalCoverage, seedUpgradeCoverage,
-                        commandSequence, roundCorpus, roundCoverage,
-                        seedIdxList, seedStr, fb);
-            }
-
-            for (Pair<CommandSequence, CommandSequence> seed : roundCorpus) {
-                queue.add(seed);
-            }
-            round++;
-
-        } else {
-            printInfo(queue.size(), fuzzingClient.crashID, testID);
-            // Only run the current seed, no mutation
-            FeedBack fb = null;
-            try {
-                fb = fuzzingClient.start(commandSequence,
-                        validationCommandSequence, testID);
-            } catch (Exception e) {
-                e.printStackTrace();
-                Utilities.clearCassandraDataDir();
-            }
-
-            updateStatus(commandSequence, validationCommandSequence,
-                    curCoverage, upCoverage, queue, false, fb);
-        }
-        return true;
     }
 
     private void updateStatus(CommandSequence commandSequence,

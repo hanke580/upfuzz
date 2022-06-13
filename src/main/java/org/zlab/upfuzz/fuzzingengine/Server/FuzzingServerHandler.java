@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.Packet.Packet.PacketType;
 import org.zlab.upfuzz.fuzzingengine.Packet.FeedbackPacket;
 import org.zlab.upfuzz.fuzzingengine.Packet.RegisterPacket;
+import org.zlab.upfuzz.fuzzingengine.Packet.StackedFeedbackPacket;
 import org.zlab.upfuzz.fuzzingengine.Packet.StackedTestPacket;
 
 public class FuzzingServerHandler implements Runnable {
@@ -53,8 +54,10 @@ public class FuzzingServerHandler implements Runnable {
 
     private void readFeedbackPacket() throws IOException {
         int intType = in.read();
-        assert intType == PacketType.FeedbackPacket.value;
-        FeedbackPacket feedbackPacket = FeedbackPacket.read(in);
+        assert intType == PacketType.StackedFeedbackPacket.value;
+        StackedFeedbackPacket stackedFeedbackPacket = StackedFeedbackPacket
+                .read(in);
+        fuzzingServer.updateStatus(stackedFeedbackPacket);
     }
 
     private void readRegisterPacket() throws IOException {

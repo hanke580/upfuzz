@@ -10,7 +10,7 @@ public interface IExecutor {
 
     void teardown();
 
-    List<String> executeCommands(CommandSequence commandSequence);
+    List<String> executeCommands(List<String> commandList);
 
     void execute(CommandSequence commandSequence,
             CommandSequence validationCommandSequence, int testId);

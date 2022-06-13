@@ -9,6 +9,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.Packet.Packet;
 import org.zlab.upfuzz.fuzzingengine.Packet.RegisterPacket;
+import org.zlab.upfuzz.fuzzingengine.Packet.StackedFeedbackPacket;
+import org.zlab.upfuzz.fuzzingengine.Packet.StackedTestPacket;
 
 class FuzzingClientSocket implements Runnable {
     static Logger logger = LogManager.getLogger(FuzzingClientSocket.class);
@@ -43,7 +45,17 @@ class FuzzingClientSocket implements Runnable {
                 intType = in.read();
                 Packet.PacketType type = Packet.PacketType.values()[intType];
                 switch (type) {
-                case RegisterPacket: {
+                // Now there's only StackedFeedbackPacket, there'll be
+                // rolling upgrade instructions when testing rolling
+                // upgrade
+                case StackedFeedbackPacket: {
+                    // Run executor
+                    StackedTestPacket stackedTestPacket = StackedTestPacket
+                            .read(in);
+                    StackedFeedbackPacket stackedFeedbackPacket = fuzzingClient
+                            .executeStackedTestPacket(stackedTestPacket);
+                    stackedFeedbackPacket.write(out);
+                    break;
                 }
                 }
                 readHeader();

@@ -1779,4 +1779,11 @@ public class CommandTests {
         return commandSequence;
     }
 
+    @Test
+    public void t() throws IOException {
+        ProcessBuilder pb = new ProcessBuilder("/bin/sh", "-c",
+                "rm -rf /Users/hanke/Desktop/dd");
+        pb.start();
+    }
+
 }

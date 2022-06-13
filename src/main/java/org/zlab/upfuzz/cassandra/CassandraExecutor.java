@@ -49,11 +49,6 @@ public class CassandraExecutor extends Executor {
 
     static final String excludes = "org.apache.cassandra.metrics.*:org.apache.cassandra.net.*:org.apache.cassandra.io.sstable.format.SSTableReader.*:org.apache.cassandra.service.*";
 
-    public CassandraExecutor(CommandSequence commandSequence,
-            CommandSequence validationCommandSequence) {
-        super(commandSequence, validationCommandSequence, "cassandra");
-    }
-
     public CassandraExecutor() {
         super("cassandra");
     }
@@ -168,6 +163,7 @@ public class CassandraExecutor extends Executor {
         this.cqlsh.destroy();
     }
 
+    @Override
     public void upgradeteardown() {
         ProcessBuilder pb = new ProcessBuilder("bin/nodetool", "stopdaemon");
         pb.directory(new File(Config.getConf().newSystemPath));
@@ -246,9 +242,8 @@ public class CassandraExecutor extends Executor {
     }
 
     @Override
-    public List<String> executeCommands(CommandSequence commandSequence) {
+    public List<String> executeCommands(List<String> commandList) {
         // commandSequence = prepareCommandSequence();
-        List<String> commandList = commandSequence.getCommandStringList();
         List<String> ret = new LinkedList<>();
         try {
             if (cqlsh == null)
@@ -278,10 +273,7 @@ public class CassandraExecutor extends Executor {
         return ret;
     }
 
-    public List<String> newVersionExecuteCommands(
-            CommandSequence commandSequence) {
-        // commandSequence = prepareCommandSequence();
-        List<String> commandList = commandSequence.getCommandStringList();
+    public List<String> newVersionExecuteCommands(List<String> commandList) {
         List<String> ret = new LinkedList<>();
         try {
             // TODO: Put the cqlsh daemon outside, so that one instance for one
@@ -336,49 +328,15 @@ public class CassandraExecutor extends Executor {
         return 0;
     }
 
-    /**
-     * 1. Move the data folder to the new version Cassandra
-     * 2. Start the new version cassandra with the Upgrade symbol
-     * 3. Check whether there is any exception happen during the
-     * 4. Run some commands, check consistency
-     *
-     * upgrade process...
-     * Also need to control the java version.
-     */
     @Override
     public boolean upgradeTest() {
-        /**
-         * Data consistency check
-         * If the return size is different, exception when executing the commands,
-         * or the results are different. Record both results, report as a potential
-         * bug.
-         *
-         * A crash seed should contain:
-         * 1. Two command sequences.
-         * 2. The results on old and new version.
-         * 3. The reason why it's different
-         *      - Upgrade process throw an exception
-         *      - The result of a specific command is different
-         */
-        // If there is any exception when executing the commands, it should also
-        // be caught
-
         // Upgrade Startup
         ProcessBuilder pb = new ProcessBuilder("bin/cassandra");
-        // Map<String, String> env = pb.environment();
-        // env.put("JAVA_TOOL_OPTIONS",
-        // "-javaagent:" + Config.getConf().jacocoAgentPath + jacocoOptions
-        // + ",includes=" + classToIns
-        // + ",output=dfe,address=localhost,sessionid=" + systemID
-        // + "-" + executorID + "_upgraded");
-
         pb.directory(new File(Config.getConf().newSystemPath));
         pb.redirectOutput(
                 Paths.get(Config.getConf().newSystemPath, "logs.txt").toFile());
         // long startTime = System.currentTimeMillis();
         Utilities.runProcess(pb, "Upgrade Cassandra");
-        // Process upgradeCassandraProcess = Utilities.runProcess(pb, "Upgrade
-        // Cassandra");
 
         // Add a retry time here
         boolean started = false;
@@ -396,150 +354,68 @@ public class CassandraExecutor extends Executor {
             }
         }
 
-        FailureType failureType = null;
-        String failureInfo = null;
-
         if (!started) {
             // Retry the upgrade, clear the folder, kill the hang process
             logger.info("[FAILURE LOG] New version cannot start");
-            failureType = FailureType.UPGRADE_FAIL;
-            failureInfo = "New version cassandra cannot start\n";
-
-            testId2Failure.put(-1, new Pair<>(failureType, failureInfo));
             return false;
         }
 
-        // long endTime = System.currentTimeMillis();
-        // logger.info("Upgrade System Start Time = " + (endTime -
-        // startTime)/1000. + "s");
         try {
             this.cqlsh = new CassandraCqlshDaemon(
                     Config.getConf().newSystemPath);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
-
-        // while (!isNewCassandraReady(Config.getConf().newSystemPath)) {
-        // // Problem : why would the process be dead?
-        // // TODO: Enable this checking, add a retry times
-        // if (!upgradeCassandraProcess.isAlive()) {
-        // // Throw a specific exception, if this is upgrade, it means we met a
-        // bug
-        // logger.info("[FAILURE LOG] New version cannot start");
-        // failureType = FailureType.UPGRADE_FAIL;
-        // failureInfo = "New version cassandra cannot start";
-
-        // return false;
-        // }
-        // try {
-        // logger.info("Upgrade System Waiting...");
-        // Thread.sleep(1000);
-        // } catch (InterruptedException e) {
-        // e.printStackTrace();
-        // }
-        // }
-
-        // startTime = System.currentTimeMillis();
         for (Integer testId : testId2commandSequence.keySet()) {
             testId2newVersionResult.put(testId, newVersionExecuteCommands(
                     testId2commandSequence.get(testId).right));
         }
 
-        // Iterate all results, find out the one with difference
-        for (Integer testId : testId2commandSequence.keySet()) {
-            // logger.info("\n\t testId = " + testId);
+        return true;
+    }
+
+    public Pair<Boolean, String> checkResultConsistency(List<String> oriResult,
+            List<String> upResult) {
+        // This could be override by each system to filter some false positive
+        // Such as: the exception is the same, but the print format is different
+
+        StringBuilder failureInfo = new StringBuilder("");
+        if (oriResult.size() != upResult.size()) {
+            failureInfo.append("The result size is different\n");
+            return new Pair<>(false, failureInfo.toString());
+        } else {
             boolean ret = true;
-            failureType = null;
-            failureInfo = null;
+            for (int i = 0; i < oriResult.size(); i++) {
+                if (oriResult.get(i).compareTo(upResult.get(i)) != 0) {
 
-            List<String> oldVersionResult = testId2oldVersionResult.get(testId);
-            List<String> newVersionResult = testId2newVersionResult.get(testId);
-
-            // logger.info("old version size = " +
-            // oldVersionResult.size() + " new version size = " +
-            // newVersionResult.size());
-
-            // logger.info("new version result:");
-            // for (String str: newVersionResult) {
-            // logger.info(str);
-            // }
-            if (newVersionResult.size() != oldVersionResult.size()) {
-                failureType = FailureType.RESULT_INCONSISTENCY;
-                failureInfo = "The result size is different, old version result size = "
-                        + oldVersionResult.size()
-                        + "  while new version result size"
-                        + newVersionResult.size();
-                ret = false;
-            } else {
-                for (int i = 0; i < newVersionResult.size(); i++) {
-
-                    if (oldVersionResult.get(i)
-                            .compareTo(newVersionResult.get(i)) != 0) {
-
-                        // SyntaxException
-                        if (oldVersionResult.get(i).contains("SyntaxException")
-                                && newVersionResult.get(i)
-                                        .contains("SyntaxException")) {
-                            continue;
-                        }
-
-                        // InvalidRequest
-                        if (oldVersionResult.get(i).contains("InvalidRequest")
-                                && newVersionResult.get(i)
-                                        .contains("InvalidRequest")) {
-                            continue;
-                        }
-
-                        if (oldVersionResult.get(i).contains("0 rows")
-                                && newVersionResult.get(i).contains("0 rows")) {
-                            continue;
-                        }
-
-                        // logger.info("old version result: " +
-                        // oldVersionResult.get(i));
-                        // logger.info("new version result: " +
-                        // newVersionResult.get(i));
-
-                        failureType = FailureType.RESULT_INCONSISTENCY;
-
-                        String errorMsg = "Result not the same at read sequence id = "
-                                + i + "\n" + "Old Version Result: "
-                                + oldVersionResult.get(i) + "  "
-                                + "New Version Result: "
-                                + newVersionResult.get(i) + "\n";
-
-                        if (failureInfo == null) {
-                            failureInfo = errorMsg;
-                        } else {
-                            failureInfo += errorMsg;
-                        }
-                        ret = false;
-                        // break; // Try to log all the difference for this
-                        // instance
+                    // SyntaxException
+                    if (oriResult.get(i).contains("SyntaxException")
+                            && upResult.get(i).contains("SyntaxException")) {
+                        continue;
                     }
+
+                    // InvalidRequest
+                    if (oriResult.get(i).contains("InvalidRequest")
+                            && upResult.get(i).contains("InvalidRequest")) {
+                        continue;
+                    }
+
+                    if (oriResult.get(i).contains("0 rows")
+                            && upResult.get(i).contains("0 rows")) {
+                        continue;
+                    }
+
+                    String errorMsg = "Result not the same at read sequence id = "
+                            + i + "\n" + "Old Version Result: "
+                            + oriResult.get(i) + "  " + "New Version Result: "
+                            + upResult.get(i) + "\n";
+
+                    failureInfo.append(errorMsg);
+                    ret = false;
                 }
             }
-            if (!ret) {
-                testId2Failure.put(testId,
-                        new Pair<>(failureType, failureInfo));
-            }
+            return new Pair<>(ret, failureInfo.toString());
         }
-
-        // endTime = System.currentTimeMillis();
-        // logger.info("Upgrade System comparing results = " + (endTime -
-        // startTime)/1000. + "s");
-        // Shutdown
-        // startTime = System.currentTimeMillis();
-        upgradeteardown();
-        // endTime = System.currentTimeMillis();
-        // logger.info("New version Stop = " + (endTime -
-        // startTime)/1000. + "s");
-
-        // true means upgrade test succeeded, false means an inconsistency
-        // exists
-        return testId2Failure.isEmpty();
     }
 
     @Override
