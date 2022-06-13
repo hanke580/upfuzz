@@ -36,8 +36,8 @@ public class Config {
         public String initSeedDir = null;
         public String crashDir = null;
         public String corpusDir = null;
-        public int mutationEpoch = 2000;
-        public int STACKED_TESTS_NUM = 100;
+        public int mutationEpoch = 500;
+        public int STACKED_TESTS_NUM = 50;
         public long timeInterval = 600; // seconds, record time
 
         @Override

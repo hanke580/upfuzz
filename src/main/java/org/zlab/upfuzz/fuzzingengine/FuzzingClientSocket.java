@@ -40,15 +40,16 @@ class FuzzingClientSocket implements Runnable {
     public void run() {
         writeRegisterPacket();
         while (true) {
-            int intType;
+            int intType = -1;
             try {
                 intType = in.read();
+                System.out.println("intType = " + intType);
                 Packet.PacketType type = Packet.PacketType.values()[intType];
                 switch (type) {
                 // Now there's only StackedFeedbackPacket, there'll be
                 // rolling upgrade instructions when testing rolling
                 // upgrade
-                case StackedFeedbackPacket: {
+                case StackedTestPacket: {
                     // Run executor
                     StackedTestPacket stackedTestPacket = StackedTestPacket
                             .read(in);
@@ -60,6 +61,7 @@ class FuzzingClientSocket implements Runnable {
                 }
                 readHeader();
             } catch (IOException e) {
+                System.out.println("intType = " + intType);
                 e.printStackTrace();
             }
         }

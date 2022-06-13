@@ -32,6 +32,9 @@ public class CommandSequenceTests {
         }
         System.out.println("command size = " + l.size());
 
+        if (l.size() == 0)
+            return;
+
         System.out.println("\n-----------Sequence Mutation Start-----------");
         commandSequence.mutate();
         System.out.println("-----------Sequence Mutation End-----------\n");

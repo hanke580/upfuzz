@@ -23,14 +23,21 @@ public class StackedTestPacket extends Packet {
     private List<TestPacket> tpList;
 
     public StackedTestPacket() {
+        this.type = PacketType.StackedTestPacket;
         tpList = new LinkedList<>();
     }
 
     public void addTestPacket(Seed seed, int testID) {
-        tpList.add(new TestPacket(Config.getConf().system, testID,
-                seed.originalCommandSequence.getCommandStringList(),
-                seed.upgradedCommandSequence.getCommandStringList(),
-                seed.validationCommandSequnece.getCommandStringList()));
+        if (seed.upgradedCommandSequence == null) {
+            tpList.add(new TestPacket(Config.getConf().system, testID,
+                    seed.originalCommandSequence.getCommandStringList(), null,
+                    seed.validationCommandSequnece.getCommandStringList()));
+        } else {
+            tpList.add(new TestPacket(Config.getConf().system, testID,
+                    seed.originalCommandSequence.getCommandStringList(),
+                    seed.upgradedCommandSequence.getCommandStringList(),
+                    seed.validationCommandSequnece.getCommandStringList()));
+        }
     }
 
     public void addTestPacket(TestPacket tp) {
@@ -59,6 +66,7 @@ public class StackedTestPacket extends Packet {
     }
 
     public void write(OutputStream out) throws IOException {
+        out.write(type.value);
         out.write(new Gson().toJson(this).getBytes());
     }
 }

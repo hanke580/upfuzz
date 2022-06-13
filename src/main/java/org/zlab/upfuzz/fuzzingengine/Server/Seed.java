@@ -26,10 +26,15 @@ public class Seed implements Serializable {
     }
 
     public boolean mutate() {
-        if (mutateImpl(originalCommandSequence)) {
-            validationCommandSequnece = originalCommandSequence
-                    .generateRelatedReadSequence();
-            return true;
+        try {
+            if (mutateImpl(originalCommandSequence)) {
+                validationCommandSequnece = originalCommandSequence
+                        .generateRelatedReadSequence();
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
         return false;
     }

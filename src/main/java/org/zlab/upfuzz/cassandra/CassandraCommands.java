@@ -647,7 +647,7 @@ public class CassandraCommands {
                 List<Object> primaryValues = new ArrayList<>();
 
                 for (int i = 0; i < primaryCols.size(); i++) {
-                    // Index may not be exist in the column???
+                    // Index may not exist in the column???
                     if (columnsNames.indexOf(primaryCols.get(i)) == -1) {
                         System.out.println(
                                 "primaryCols not exist in the columns Names");
@@ -660,6 +660,9 @@ public class CassandraCommands {
                         }
                         stringBuilder.append("]");
                         System.out.println(stringBuilder);
+                        System.out.println("column name parameter = "
+                                + this.params.get(2).toString());
+
                         throw new RuntimeException();
                     }
                     primaryValues.add(((Parameter) insertValues

@@ -405,18 +405,23 @@ public abstract class ParameterType implements Serializable {
         @Override
         public boolean isValid(State s, Command c, Parameter p) {
             List<Parameter> valueList = (List<Parameter>) p.value;
+
             Object targetCollection = configuration.operate(s, c);
             if (mapFunc != null) {
                 targetCollection = ((Collection<T>) targetCollection).stream()
                         .map(mapFunc).collect(Collectors.toList());
             }
             List<Parameter> targetList = (List<Parameter>) targetCollection;
-
-            for (int i = 0; i < valueList.size(); i++) {
-                if (!targetList.contains(valueList.get(i))) {
-                    return false;
-                }
+            List<String> targetStrings = new LinkedList<>();
+            for (Parameter m : targetList) {
+                targetStrings.add(m.toString());
             }
+
+            for (Parameter m : valueList) {
+                if (!targetStrings.contains(m.toString()))
+                    return false;
+            }
+
             return true;
         }
 
@@ -518,23 +523,29 @@ public abstract class ParameterType implements Serializable {
 
         @Override
         public boolean isValid(State s, Command c, Parameter p) {
-            List<Parameter> valueList = (List<Parameter>) p.value;
+
             Object targetCollection = configuration.operate(s, c);
             if (mapFunc != null) {
                 targetCollection = ((Collection<T>) targetCollection).stream()
                         .map(mapFunc).collect(Collectors.toList());
             }
             List<Parameter> targetList = (List<Parameter>) targetCollection;
+            List<String> targetStrings = new LinkedList<>();
+            for (Parameter m : targetList) {
+                targetStrings.add(m.toString());
+            }
+
+            List<Parameter> valueList = (List<Parameter>) p.value;
+
+            if (valueList.size() >= targetList.size())
+                return false;
 
             for (int i = 0; i < valueList.size(); i++) {
-                if (!targetList.get(i).equals(valueList.get(i))) { // Should we
-                                                                   // make
-                                                                   // parameter
-                                                                   // comparable
-                                                                   // here?
+                if (!targetStrings.get(i).equals(valueList.get(i).toString())) {
                     return false;
                 }
             }
+
             return true;
         }
 
@@ -1129,16 +1140,20 @@ public abstract class ParameterType implements Serializable {
         @Override
         public Parameter generateRandomParameter(State s, Command c) {
             /**
-             * use ConcreteType t to generate a parameter, it should be a concreteGenericType
-             * Check whether this parameter contains everything in the collection
-             * If not, add the rest to the collection
+             * use ConcreteType t to generate a parameter, it should be a 
+             * concreteGenericType. Check whether this parameter contains
+             * everything in the collection. If not, add the rest to the 
+             * collection.
              */
             Parameter p = t.generateRandomParameter(s, c);
             // assert p.type instanceof ConcreteGenericTypeOne;
+            List<String> curStrings = new LinkedList<>();
             List<Parameter> l = (List<Parameter>) p.value;
+            for (Parameter m : l) {
+                curStrings.add(m.toString());
+            }
 
             Collection targetCollection = configuration.operate(s, c);
-
             List<Parameter> targetSet;
             if (mapFunc != null) {
                 targetSet = (List) (((Collection) targetCollection).stream()
@@ -1148,7 +1163,7 @@ public abstract class ParameterType implements Serializable {
             }
 
             for (Parameter m : targetSet) {
-                if (!l.contains(m)) {
+                if (!curStrings.contains(m.toString())) {
                     l.add(m);
                 }
             }
@@ -1164,6 +1179,27 @@ public abstract class ParameterType implements Serializable {
         @Override
         public boolean isValid(State s, Command c, Parameter p) {
             assert p.value instanceof Parameter;
+            // Make sure it satisfies the super set relation
+            List<String> curStrings = new LinkedList<>();
+            List<Parameter> l = (List<Parameter>) p.value;
+            for (Parameter m : l) {
+                curStrings.add(m.toString());
+            }
+
+            Collection targetCollection = configuration.operate(s, c);
+            List<Parameter> targetSet;
+            if (mapFunc != null) {
+                targetSet = (List) (((Collection) targetCollection).stream()
+                        .map(mapFunc).collect(Collectors.toList()));
+            } else {
+                targetSet = (List) (((Collection) targetCollection));
+            }
+
+            for (Parameter m : targetSet) {
+                if (!curStrings.contains(m.toString())) {
+                    return false;
+                }
+            }
             return ((Parameter) p.value).isValid(s, c);
         }
 

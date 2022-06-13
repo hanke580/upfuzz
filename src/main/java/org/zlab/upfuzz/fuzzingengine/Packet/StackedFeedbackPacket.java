@@ -21,6 +21,7 @@ public class StackedFeedbackPacket extends Packet {
     // (2) Result Inconsistency: Report the target seed's inconsistency
 
     public StackedFeedbackPacket() {
+        this.type = PacketType.StackedFeedbackPacket;
         fpList = new LinkedList<>();
     }
 
@@ -50,6 +51,7 @@ public class StackedFeedbackPacket extends Packet {
     }
 
     public void write(OutputStream out) throws IOException {
+        out.write(type.value);
         out.write(new Gson().toJson(this).getBytes());
     }
 }
