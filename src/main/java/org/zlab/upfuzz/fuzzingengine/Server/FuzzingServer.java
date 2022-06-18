@@ -3,10 +3,17 @@ package org.zlab.upfuzz.fuzzingengine.Server;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.SerializationUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.State;
@@ -26,6 +33,8 @@ import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
 public class FuzzingServer {
+
+    static Logger logger = LogManager.getLogger(FuzzingServer.class);
 
     // Seed Corpus (tuple(Seed, Info))
     public Corpus corpus = new Corpus();
@@ -118,6 +127,7 @@ public class FuzzingServer {
         if (!stackedTestPackets.isEmpty()) {
             return stackedTestPackets.poll();
         }
+        logger.debug("test packet queue is empty, try generate some");
         fuzzOne();
         assert !stackedTestPackets.isEmpty();
         return stackedTestPackets.poll();
@@ -137,6 +147,11 @@ public class FuzzingServer {
                     testID2Seed.put(testID, seed);
                     stackedTestPacket.addTestPacket(seed, testID++);
                 }
+            }
+            if (stackedTestPacket != null && stackedTestPacket.size() != 0) {
+                stackedTestPackets.add(stackedTestPacket);
+            } else {
+                logger.error("failed to generate any test packet");
             }
         } else {
             // get a seed from corpus, now fuzz it for a epoch
