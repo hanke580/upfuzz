@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,6 +27,12 @@ class FuzzingClientSocket implements Runnable {
         try {
             socket = new Socket(Config.getConf().serverHost,
                     Config.getConf().serverPort);
+            try {
+                socket.setSendBufferSize(1048576);
+                socket.setReceiveBufferSize(1048576);
+            } catch (SocketException e) {
+                logger.error(e);
+            }
             in = socket.getInputStream();
             out = socket.getOutputStream();
         } catch (IOException e) {

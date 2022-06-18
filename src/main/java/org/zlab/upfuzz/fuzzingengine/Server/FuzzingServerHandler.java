@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 
 import com.google.gson.Gson;
 
@@ -26,6 +27,12 @@ public class FuzzingServerHandler implements Runnable {
     FuzzingServerHandler(FuzzingServer fuzzingServer, Socket socket) {
         this.fuzzingServer = fuzzingServer;
         this.socket = socket;
+        try {
+            socket.setSendBufferSize(1048576);
+            socket.setReceiveBufferSize(1048576);
+        } catch (SocketException e) {
+            logger.error(e);
+        }
         try {
             in = socket.getInputStream();
             out = socket.getOutputStream();

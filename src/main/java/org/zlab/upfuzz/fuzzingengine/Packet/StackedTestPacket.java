@@ -7,7 +7,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.google.gson.Gson;
-import org.junit.Test;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.Server.Seed;
 
@@ -19,6 +21,7 @@ public class StackedTestPacket extends Packet {
     // This wraps the test packet so that we can
     // control the number of tests we want to
     // execute in one instance.
+    static Logger logger = LogManager.getLogger(StackedTestPacket.class);
 
     private List<TestPacket> tpList;
 
@@ -53,10 +56,20 @@ public class StackedTestPacket extends Packet {
     }
 
     public static StackedTestPacket read(InputStream in) {
-        byte[] bytes = new byte[65536];
-        int len;
+        byte[] bytes = new byte[1048576];
+        int len = 0;
         try {
-            len = in.read(bytes);
+            len = in.read(bytes, len, 1048576 - len);
+            int available = in.available();
+            logger.debug("input stream available : " + available);
+            while (available > 0) {
+                int size = in.read(bytes, len, 1048576 - len);
+                logger.debug("read length : " + size);
+                logger.debug("input stream available : " + available);
+                available = in.available();
+                len += size;
+            }
+            logger.debug("receive stacked test packet length : " + len);
             return new Gson().fromJson(new String(bytes, 0, len),
                     StackedTestPacket.class);
         } catch (IOException e) {
@@ -67,6 +80,8 @@ public class StackedTestPacket extends Packet {
 
     public void write(OutputStream out) throws IOException {
         out.write(type.value);
-        out.write(new Gson().toJson(this).getBytes());
+        String packetStr = new Gson().toJson(this);
+        logger.debug("send packet size: " + packetStr.getBytes().length);
+        out.write(packetStr.getBytes());
     }
 }

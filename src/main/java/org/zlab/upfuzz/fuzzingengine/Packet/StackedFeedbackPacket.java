@@ -38,7 +38,7 @@ public class StackedFeedbackPacket extends Packet {
     }
 
     public static StackedFeedbackPacket read(InputStream in) {
-        byte[] bytes = new byte[65536];
+        byte[] bytes = new byte[1048576];
         int len;
         try {
             len = in.read(bytes);
