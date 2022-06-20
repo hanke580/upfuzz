@@ -164,7 +164,7 @@ public class CassandraExecutor extends Executor {
     }
 
     @Override
-    public void upgradeteardown() {
+    public void upgradeTeardown() {
         ProcessBuilder pb = new ProcessBuilder("bin/nodetool", "stopdaemon");
         pb.directory(new File(Config.getConf().newSystemPath));
         Process p;

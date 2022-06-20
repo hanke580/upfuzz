@@ -52,7 +52,7 @@ public abstract class Executor implements IExecutor {
 
     abstract public void teardown();
 
-    abstract public void upgradeteardown();
+    abstract public void upgradeTeardown();
 
     abstract public List<String> executeCommands(List<String> commandList);
 

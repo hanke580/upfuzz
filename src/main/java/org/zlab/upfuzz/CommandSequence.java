@@ -1,18 +1,24 @@
 package org.zlab.upfuzz;
 
+import java.io.Serializable;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.cassandra.CassandraCommands;
 import org.zlab.upfuzz.utils.INTType;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.STRINGType;
 
-import java.io.Serializable;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
-
-import javax.swing.text.Utilities;
-
 public class CommandSequence implements Serializable {
+    static Logger logger = LogManager.getLogger(CommandSequence.class);
 
     public static final int MAX_CMD_SEQ_LEN = 20;
     public final static int RETRY_GENERATE_TIME = 400;
@@ -99,7 +105,7 @@ public class CommandSequence implements Serializable {
 
                 // Compute the state up to the position
                 pos = rand.nextInt(commands.size());
-                System.out.println("\t\tMutate Command Pos " + pos);
+                logger.trace("\t\tMutate Command Pos " + pos);
                 for (int i = 0; i < pos; i++) {
                     commands.get(i).updateState(state);
                 }
@@ -131,7 +137,7 @@ public class CommandSequence implements Serializable {
                 pos = org.zlab.upfuzz.utils.Utilities.biasRand(rand,
                         commands.size() + 1, 5);
                 // pos = rand.nextInt(commands.size() + 1);
-                System.out.println("\t\tMutate Command Pos " + pos);
+                logger.trace("\t\tMutate Command Pos " + pos);
                 for (int i = 0; i < pos; i++) {
                     commands.get(i).updateState(state);
                 }

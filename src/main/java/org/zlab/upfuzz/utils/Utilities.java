@@ -2,21 +2,41 @@ package org.zlab.upfuzz.utils;
 
 import static java.lang.String.format;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
-import java.util.Map.Entry;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionData;
 import org.jacoco.core.data.ExecutionDataStore;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.fuzzingengine.Config;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-
 public class Utilities {
+    static Logger logger = LogManager.getLogger(Utilities.class);
+
     public static List<Integer> permutation(int size) {
         List<Integer> indexArray = new ArrayList<>();
         for (int i = 0; i < size; i++) {
@@ -72,26 +92,23 @@ public class Utilities {
                     if ((curProbes[i] == 0 && testSequenceProbes[i] != 0)
                             || (curProbes[i] != 0
                                     && testSequenceProbes[i] == 0)) {
-                        System.out.println();
-                        System.out.print("cur probes: ");
+                        logger.debug("cur probes: ");
                         for (int j = 0; j < curProbes.length; j++) {
-                            System.out.print(curProbes[j] + " ");
+                            logger.debug(curProbes[j] + " ");
                         }
-                        System.out.println();
-                        System.out.print("test probes: ");
+                        logger.debug("test probes: ");
                         for (int j = 0; j < testSequenceProbes.length; j++) {
-                            System.out.print(testSequenceProbes[j] + " ");
+                            logger.debug(testSequenceProbes[j] + " ");
                         }
-                        System.out.println();
 
-                        System.out.println("probe len = " + curProbes.length);
-                        System.out.println("Class " + testSequenceData.getName()
+                        logger.debug("probe len = " + curProbes.length);
+                        logger.debug("Class " + testSequenceData.getName()
                                 + " id: [" + i + "]" + " is different!");
                         return false;
                     }
                 }
             } else {
-                System.out.println(
+                logger.debug(
                         "curData not triggered " + testSequenceData.getName());
                 return false;
             }

@@ -1,14 +1,17 @@
 package org.zlab.upfuzz.fuzzingengine.Server;
 
+import java.io.Serializable;
+import java.util.Random;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.fuzzingengine.Packet.StackedTestPacket;
 import org.zlab.upfuzz.utils.Utilities;
 
-import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Random;
-
 public class Seed implements Serializable {
+    static Logger logger = LogManager.getLogger(Seed.class);
+
     private final int MUTATE_RETRY_TIME = 10;
     private final Random rand;
 
@@ -33,7 +36,7 @@ public class Seed implements Serializable {
                 return true;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Generate related read sequence error", e);
             return false;
         }
         return false;
@@ -47,7 +50,7 @@ public class Seed implements Serializable {
                     break;
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Mutation error", e);
                 return false;
             }
         }

@@ -147,9 +147,8 @@ public class AgentServerHandler
         synchronized (okCMD) {
             try {
                 okCMD.await(1000, TimeUnit.MILLISECONDS);
-                logger.info("ok");
             } catch (InterruptedException e) {
-                logger.info("timeout");
+                logger.error("handler collect " + sessionId + "... timeout");
             }
         }
     }

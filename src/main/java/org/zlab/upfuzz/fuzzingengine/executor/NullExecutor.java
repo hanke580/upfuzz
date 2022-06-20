@@ -23,7 +23,7 @@ public class NullExecutor extends Executor {
     }
 
     @Override
-    public void upgradeteardown() {
+    public void upgradeTeardown() {
 
     }
 

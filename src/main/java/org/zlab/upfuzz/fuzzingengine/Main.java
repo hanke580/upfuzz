@@ -79,7 +79,6 @@ public class Main {
                         Thread.sleep(200);
                         logger.info("Fuzzing process end, have a good day ...");
                         // some cleaning up code...
-
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         e.printStackTrace();

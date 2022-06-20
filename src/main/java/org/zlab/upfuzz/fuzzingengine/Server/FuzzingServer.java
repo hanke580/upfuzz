@@ -255,20 +255,21 @@ public class FuzzingServer {
         Long timeElapsed = TimeUnit.MILLISECONDS
                 .convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
 
-        System.out.println(
-                "\n\n------------------- Executing one fuzzing test -------------------");
-        System.out.println("[Fuzz Status]\n"
-                + "================================================================="
-                + "====================================================\n" + "|"
-                + "Queue Size = " + corpus.queue.size() + "|" + "Round = "
-                + round + "|" + "Crash Found = " + crashID + "|"
-                + "Current Test ID = " + testID + "|" + "Finished Test Num = "
-                + finishedTestID + "Covered Branches Num = "
-                + originalCoveredBranches + "|" + "Total Branch Num = "
-                + originalProbeNum + "|" + "Time Elapsed = "
-                + timeElapsed / 1000. + "s" + "|" + "\n"
-                + "-----------------------------------------------------------------"
-                + "----------------------------------------------------");
+        logger.info(
+                "\n\n------------------- Executing one fuzzing test -------------------"
+                        + "[Fuzz Status]\n"
+                        + "================================================================="
+                        + "====================================================\n"
+                        + "|" + "Queue Size = " + corpus.queue.size() + "|"
+                        + "Round = " + round + "|" + "Crash Found = " + crashID
+                        + "|" + "Current Test ID = " + testID + "|"
+                        + "Finished Test Num = " + finishedTestID
+                        + "Covered Branches Num = " + originalCoveredBranches
+                        + "|" + "Total Branch Num = " + originalProbeNum + "|"
+                        + "Time Elapsed = " + timeElapsed / 1000. + "s" + "|"
+                        + "\n"
+                        + "-----------------------------------------------------------------"
+                        + "----------------------------------------------------");
 
         // Print the coverage status
         // for (Pair<Integer, Integer> timeCoveragePair :

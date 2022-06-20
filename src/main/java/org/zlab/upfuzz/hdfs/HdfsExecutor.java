@@ -234,7 +234,7 @@ public class HdfsExecutor extends Executor {
     }
 
     @Override
-    public void upgradeteardown() {
+    public void upgradeTeardown() {
     }
 
     @Override

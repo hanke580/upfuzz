@@ -90,6 +90,15 @@ public class FuzzingClient {
             e.printStackTrace();
             // System.exit(1);
         }
+
+
+        // FIX orphan process
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                executor.teardown();
+                executor.upgradeTeardown();
+            }
+        });
     }
 
     public void start() throws InterruptedException {
@@ -158,7 +167,7 @@ public class FuzzingClient {
         boolean ret = executor.upgradeTest();
 
         t = new Thread(() -> {
-            executor.upgradeteardown();
+            executor.upgradeTeardown();
             executor.clearState();
             executor.startup();
         });
@@ -242,6 +251,8 @@ public class FuzzingClient {
 
             ExecutionDataStore execStore = new ExecutionDataStore();
             for (String agentId : agentIdList) {
+                if (agentId.split("-")[2].equals("null"))
+                    continue;
                 logger.info("get coverage from " + agentId);
                 ExecutionDataStore astore = agentStore.get(agentId);
                 if (astore == null) {
@@ -249,7 +260,7 @@ public class FuzzingClient {
                 } else {
                     // astore : classname -> int[]
                     execStore.merge(astore);
-                    logger.info("astore size: " + astore.getContents().size());
+                    logger.trace("astore size: " + astore.getContents().size());
                 }
             }
             logger.info("codecoverage size: " + execStore.getContents().size());
