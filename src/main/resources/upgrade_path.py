@@ -102,26 +102,21 @@ class Version:
                     exit(exit_code)
 
             # build the image
-            docker_client = docker.APIClient("unix:///var/run/docker.sock")
-            generator = docker_client.build(path=source_path, tag=image_name)
-            while True:
-                try:
-                    output = generator.__next__()
-                    output = output.decode("utf8").strip("\r\n")
-                    json_output = json.loads(output)
-                    if 'stream' in json_output:
-                        click.echo(json_output['stream'].strip('\n'))
-                except StopIteration:
-                    click.echo("Docker image build complete.")
-                    break
-                except ValueError:
-                    click.echo("Error parsing output from docker image build: %s" % output)
-            print("generator " + (generator == None))
-            print(generator.attrs)
-            print(generator.id)
-            print(generator.labels)
-            print(generator.tags)
-            # client.images.build(path=image_path, tag=image_name)
+            docker_client = docker.DockerClient("unix:///var/run/docker.sock")
+            # generator = docker_client.build(path=source_path, tag=image_name)
+            # while True:
+            #     try:
+            #         output = generator.__next__()
+            #         output = output.decode("utf8").strip("\r\n")
+            #         json_output = json.loads(output)
+            #         if 'stream' in json_output:
+            #             click.echo(json_output['stream'].strip('\n'))
+            #     except StopIteration:
+            #         click.echo("Docker image build complete.")
+            #         break
+            #     except ValueError:
+            #         click.echo("Error parsing output from docker image build: %s" % output)
+            client.images.build(path=image_path, tag=image_name)
         pass
 
     # TODO: This should be changed to use the compile docker image.
