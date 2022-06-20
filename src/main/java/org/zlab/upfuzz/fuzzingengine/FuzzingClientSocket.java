@@ -1,5 +1,8 @@
 package org.zlab.upfuzz.fuzzingengine;
 
+import java.io.DataInput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -18,8 +21,8 @@ class FuzzingClientSocket implements Runnable {
 
     final FuzzingClient fuzzingClient;
 
-    InputStream in;
-    OutputStream out;
+    DataInputStream in;
+    DataOutputStream out;
     Socket socket;
 
     FuzzingClientSocket(FuzzingClient fuzzingClient) {
@@ -33,8 +36,8 @@ class FuzzingClientSocket implements Runnable {
             } catch (SocketException e) {
                 logger.error(e);
             }
-            in = socket.getInputStream();
-            out = socket.getOutputStream();
+            in = new DataInputStream(socket.getInputStream());
+            out = new DataOutputStream(socket.getOutputStream());
         } catch (IOException e) {
             logger.error("failed to connect fuzzing server "
                     + Config.getConf().serverHost + ":"
@@ -49,7 +52,7 @@ class FuzzingClientSocket implements Runnable {
         while (true) {
             int intType = -1;
             try {
-                intType = in.read();
+                intType = in.readInt();
                 System.out.println("intType = " + intType);
                 Packet.PacketType type = Packet.PacketType.values()[intType];
                 switch (type) {

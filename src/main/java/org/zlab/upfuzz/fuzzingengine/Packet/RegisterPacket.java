@@ -1,5 +1,7 @@
 package org.zlab.upfuzz.fuzzingengine.Packet;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -29,7 +31,7 @@ public class RegisterPacket extends Packet {
                 + socket.getLocalSocketAddress().toString();
     }
 
-    public static RegisterPacket read(InputStream in) {
+    public static RegisterPacket read(DataInputStream in) {
         byte[] bytes = new byte[65536];
         int len;
         try {
@@ -43,9 +45,9 @@ public class RegisterPacket extends Packet {
         return null;
     }
 
-    public void write(OutputStream out) {
+    public void write(DataOutputStream out) {
         try {
-            out.write(type.value);
+            out.writeInt(type.value);
             String jsonStr = new Gson().toJson(this);
             logger.debug("write register packet:" + jsonStr);
             out.write(jsonStr.getBytes());

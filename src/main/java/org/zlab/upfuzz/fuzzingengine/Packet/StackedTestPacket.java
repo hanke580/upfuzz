@@ -1,5 +1,7 @@
 package org.zlab.upfuzz.fuzzingengine.Packet;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -55,18 +57,16 @@ public class StackedTestPacket extends Packet {
         return tpList.size();
     }
 
-    public static StackedTestPacket read(InputStream in) {
-        byte[] bytes = new byte[4194304];
-        int len = 0;
+    public static StackedTestPacket read(DataInputStream in) {
         try {
-            len = in.read(bytes, len, 4194304 - len);
-            int available = in.available();
-            logger.debug("input stream available : " + available);
-            while (available > 0) {
-                int size = in.read(bytes, len, 4194304 - len);
-                logger.debug("read length : " + size);
-                logger.debug("input stream available : " + available);
-                available = in.available();
+            int packetLength = in.readInt();
+            byte[] bytes = new byte[packetLength + 1];
+            int len = 0;
+            len = in.read(bytes, len, packetLength - len);
+            logger.debug("packet length: " + packetLength);
+            while (len < packetLength) {
+                int size = in.read(bytes, len, packetLength - len);
+                logger.debug("packet read extra: " + size);
                 len += size;
             }
             logger.debug("receive stacked test packet length : " + len);
@@ -78,11 +78,12 @@ public class StackedTestPacket extends Packet {
         return null;
     }
 
-    public void write(OutputStream out) throws IOException {
-        out.write(type.value);
+    public void write(DataOutputStream out) throws IOException {
+        out.writeInt(type.value);
         String packetStr = new Gson().toJson(this);
-        logger.debug("send stacked test packet size: "
-                + packetStr.getBytes().length);
-        out.write(packetStr.getBytes());
+        byte[] packetByte = packetStr.getBytes();
+        logger.debug("send stacked test packet size: " + packetByte.length);
+        out.writeInt(packetByte.length);
+        out.write(packetByte);
     }
 }
