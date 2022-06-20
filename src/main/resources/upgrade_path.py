@@ -88,9 +88,10 @@ class Version:
                 + self.version_number
                 + "/build-image"
             )
-            if not os.path.exists(source_path):
+            repo_path = source_path + "/" +self.application.abbr
+            if not os.path.exists(repo_path):
                 exit_code = utils.clone_repo(
-                    self.application.name, self.version_number, source_path
+                    self.application.name, self.version_number, repo_path
                 )
                 if exit_code:
                     print(
@@ -116,7 +117,7 @@ class Version:
             #         break
             #     except ValueError:
             #         click.echo("Error parsing output from docker image build: %s" % output)
-            client.images.build(path=image_path, tag=image_name)
+            client.images.build(path=source_path, tag=image_name)
         pass
 
     # TODO: This should be changed to use the compile docker image.
