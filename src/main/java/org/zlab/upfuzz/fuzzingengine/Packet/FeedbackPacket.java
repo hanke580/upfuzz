@@ -24,7 +24,7 @@ public class FeedbackPacket extends Packet {
     }
 
     public static FeedbackPacket read(InputStream in) {
-        byte[] bytes = new byte[1048576];
+        byte[] bytes = new byte[4194304];
         int len;
         try {
             len = in.read(bytes);

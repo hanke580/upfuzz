@@ -5,6 +5,7 @@ import json
 import optparse
 import os
 import sys
+import subprocess
 import time
 import csv
 import codecs
@@ -124,14 +125,16 @@ class TCPHandler(object):
     client.
     """
     shell = None
-    origin_stdout = None
-    origin_stderr = None
+    origin_stdout = sys.stdout
+    origin_stderr = sys.stderr
 
     def __init__(self, request, client_address, server):
-        self.log_stream = StringIO()
-        self.origin_stdout = sys.stdout
-        self.origin_stderr = sys.stderr
-        sys.stdout = sys.stderr = self.log_stream
+        self.stdout_buffer = Tee("stdout")
+        self.stderr_buffer = Tee("stderr")
+        # self.origin_stdout = sys.stdout
+        # self.origin_stderr = sys.stderr
+        sys.stdout = self.stdout_buffer
+        sys.stderr = self.stderr_buffer
         self.shell = get_shell(*read_options(sys.argv[1:], os.environ))
         self.request = request
         self.client_address = client_address
@@ -160,9 +163,11 @@ class TCPHandler(object):
                     "cmd": cmd,
                     "exitValue": 0 if ret == True else 1,
                     "timeUsage": end_time - start_time,
-                    "message": self.log_stream.getvalue(),
+                    "message": self.stdout_buffer.getvalue(),
+                    "error": self.stderr_buffer.getvalue(),
                 }
-                self.log_stream.truncate(0)
+                self.stdout_buffer.truncate(0)
+                self.stderr_buffer.truncate(0)
                 self.request.sendall(json.dumps(resp).encode("ascii"))
         except Exception as e:
             print(e)
@@ -174,7 +179,43 @@ class TCPHandler(object):
     def finish(self):
         pass
 
+
+class Tee(object):
+    """
+    replace the stdout but also write to a buffer
+    """
+
+    def __init__(self, io_type):
+        self.io = io_type
+        if self.io == "stdout":
+            self.origin = sys.stdout
+        elif self.io == "stderr":
+            self.origin = sys.stderr
+        self.buffer = StringIO()
+
+    def __del__(self):
+        if self.io == "stdout":
+            sys.stdout = self.origin
+        elif self.io == "stderr":
+            sys.stderr = self.origin
+
+    def write(self, data):
+        self.origin.write(data)
+        self.buffer.write(data)
+
+    def flush(self):
+        self.origin.flush()
+
+    def getvalue(self):
+        return self.buffer.getvalue()
+
+    def truncate(self, index):
+        return self.buffer.truncate(index)
+
+    def isatty(self):
+        return True
+
 if __name__ == "__main__":
-    port = __reserved_port__
+    port = %__reserved_port__
     server = socketserver.TCPServer(("localhost", int(port)), TCPHandler)
     server.serve_forever()

@@ -18,10 +18,10 @@ import org.jacoco.core.runtime.RemoteControlWriter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class ClientHandler
+public class AgentServerHandler
         implements Runnable, ISessionInfoVisitor, IExecutionDataVisitor {
 
-    static Logger logger = LogManager.getLogger(ClientHandler.class);
+    static Logger logger = LogManager.getLogger(AgentServerHandler.class);
 
     private final FuzzingClient client;
     private final Socket socket;
@@ -41,7 +41,7 @@ public class ClientHandler
 
     private byte[] buffer;
 
-    ClientHandler(final FuzzingClient client, final Socket socket,
+    AgentServerHandler(final FuzzingClient client, final Socket socket,
             ExecutionDataWriter fileWriter) throws IOException {
         this.client = client;
         this.socket = socket;
@@ -134,9 +134,15 @@ public class ClientHandler
 
     }
 
-    public void collect() throws IOException {
+    public void collect() {
+        // FIXME frequently collect null
         logger.info("handler collect " + sessionId + "...");
-        writer.visitDumpCommand(true, true);
+        try {
+            writer.visitDumpCommand(true, true);
+        } catch (IOException e) {
+            logger.error("agent connection " + sessionId + "closed");
+            return;
+        }
         okCMD = new CountDownLatch(1);
         synchronized (okCMD) {
             try {

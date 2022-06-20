@@ -28,8 +28,8 @@ public class FuzzingServerHandler implements Runnable {
         this.fuzzingServer = fuzzingServer;
         this.socket = socket;
         try {
-            socket.setSendBufferSize(1048576);
-            socket.setReceiveBufferSize(1048576);
+            socket.setSendBufferSize(4194304);
+            socket.setReceiveBufferSize(4194304);
         } catch (SocketException e) {
             logger.error(e);
         }

@@ -40,14 +40,14 @@ public class FuzzingClient {
 
     /* key: String -> agent Id
      * value: ClientHandler -> the socket to a agent */
-    public Map<String, ClientHandler> agentHandler;
+    public Map<String, AgentServerHandler> agentHandler;
 
     /* key: UUID String -> executor Id
      * value: List<String> -> list of all alive agents with the executor Id */
     public Map<String, List<String>> sessionGroup;
 
     /* socket for client and agents to communicate*/
-    public ClientSocket clientSocket;
+    public AgentServerSocket clientSocket;
 
     public static int epoch;
     public static int crashID;
@@ -67,6 +67,7 @@ public class FuzzingClient {
             executor = new HdfsExecutor();
         }
         t = new Thread(() -> executor.startup()); // Startup before tests
+        t.start();
     }
 
     private void init() {
@@ -82,7 +83,7 @@ public class FuzzingClient {
         testId2Sequence = new HashMap<>();
 
         try {
-            clientSocket = new ClientSocket(this);
+            clientSocket = new AgentServerSocket(this);
             clientSocket.setDaemon(true);
             clientSocket.start();
         } catch (Exception e) {
@@ -232,14 +233,10 @@ public class FuzzingClient {
                 if (agentId.split("-")[2].equals("null"))
                     continue;
                 logger.info("collect conn " + agentId);
-                ClientHandler conn = agentHandler.get(agentId);
+                AgentServerHandler conn = agentHandler.get(agentId);
                 if (conn != null) {
-                    try {
-                        agentStore.remove(agentId);
-                        conn.collect();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    agentStore.remove(agentId);
+                    conn.collect();
                 }
             }
 

@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.nio.file.Paths;
 
 import com.google.gson.Gson;
@@ -25,8 +26,12 @@ public class CassandraCqlshDaemon {
     private int MAX_RETRY = 100;
     private Process cqlsh;
     private Socket socket;
+    private String cassandraVersion;
+    private String cqlshPythonScript;
+    private String python;
 
     public static String cqlshPython2Script;
+
     public static String cqlshPython3Script;
 
     static {
@@ -52,21 +57,21 @@ public class CassandraCqlshDaemon {
 
     public CassandraCqlshDaemon(String cassandraRoot)
             throws IOException, InterruptedException {
-        String cassandraVersion = Utilities.getGitTag(cassandraRoot);
-        String cqlshPythonScript = null;
-        String python = null;
+        cassandraVersion = Utilities.getGitTag(cassandraRoot);
+        cqlshPythonScript = null;
+        python = null;
         // Get path, two options
         // System.out.println("cassandra version\n" + cassandraVersion);
 
         char majorVersion;
 
+        // FIXME use majorversion to determine python version
         try {
             majorVersion = cassandraVersion.split("-")[1].charAt(0);
         } catch (Exception e) {
             majorVersion = cassandraRoot.split("cassandra-")[1].charAt(0);
         }
         logger.debug("cassandra version: " + majorVersion);
-        majorVersion = '3';
 
         if (majorVersion <= '3') {
             logger.info("use python2 cqlsh script");
@@ -78,6 +83,11 @@ public class CassandraCqlshDaemon {
             cqlshPythonScript = cqlshPython3Script;
         }
 
+        startCqlshDaemon(cassandraRoot);
+    }
+
+    private void startCqlshDaemon(String cassandraRoot)
+            throws IOException, InterruptedException {
         boolean flag = false;
         flag = true;
         for (int i = 0; i < MAX_RETRY; ++i) {
@@ -100,20 +110,34 @@ public class CassandraCqlshDaemon {
             }
             BufferedWriter bw = new BufferedWriter(
                     new FileWriter(cqlshDaemonFile));
-            bw.write(cqlshPythonScript.replace("__reserved_port__",
+            bw.write(cqlshPythonScript.replace("%__reserved_port__",
                     Integer.toString(port)));
             bw.close();
 
-            cqlsh = Utilities.exec(
-                    new String[] { python, cqlshDaemonFile.toString() },
-                    new File(cassandraRoot));
+            File logFile = Paths.get(cassandraRoot, "cqlsh_daemon.log")
+                    .toFile();
+            ProcessBuilder cqlshBuilder = new ProcessBuilder(python,
+                    "bin/cqlsh_daemon.py");
+            cqlshBuilder.directory(new File(cassandraRoot));
+            cqlshBuilder.redirectErrorStream(true);
+            cqlshBuilder.redirectOutput(logFile);
 
-            // byte[] bytes = new byte[102400];
-            // int cnt1 = cqlsh.getInputStream().read(bytes);
-            // System.out.println("cqlsh:\n" + new String(bytes, 0, cnt1));
+            // FIXME python script sometime crash but not terminated
+            cqlsh = cqlshBuilder.start();
 
-            Thread.sleep(1000);
-            socket = new Socket("localhost", port);
+            Thread.sleep(500);
+            if (cqlsh.isAlive()) {
+                try {
+                    socket = new Socket("localhost", port);
+                    return;
+                } catch (IOException e) {
+                    logger.error(e);
+                }
+            } else {
+                logger.error("failed to start cqlsh daemon, check "
+                        + Paths.get(cassandraRoot, "cqlsh_daemon.log")
+                        + " for information");
+            }
             // TODO: Add a catch, when the connection is rejected regenerate it.
         } else {
             throw new IllegalStateException("Cannot fina an available port");
@@ -139,6 +163,9 @@ public class CassandraCqlshDaemon {
         char[] chars = new char[10240];
 
         int cnt = br.read(chars);
+        if (cnt == -1) {
+            throw new IllegalStateException("cqlsh daemon crashed");
+        }
         String cqlshMess = new String(chars, 0, cnt);
 
         // System.out.println("receive size: " + cqlshMess.length() + " \n" +
@@ -167,6 +194,7 @@ public class CassandraCqlshDaemon {
         public String cmd;
         public int exitValue;
         public String message;
+        public String error;
         public double timeUsage;
 
         public CqlshPacket() {

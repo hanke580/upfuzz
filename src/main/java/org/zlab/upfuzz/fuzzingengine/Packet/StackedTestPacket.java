@@ -56,14 +56,14 @@ public class StackedTestPacket extends Packet {
     }
 
     public static StackedTestPacket read(InputStream in) {
-        byte[] bytes = new byte[1048576];
+        byte[] bytes = new byte[4194304];
         int len = 0;
         try {
-            len = in.read(bytes, len, 1048576 - len);
+            len = in.read(bytes, len, 4194304 - len);
             int available = in.available();
             logger.debug("input stream available : " + available);
             while (available > 0) {
-                int size = in.read(bytes, len, 1048576 - len);
+                int size = in.read(bytes, len, 4194304 - len);
                 logger.debug("read length : " + size);
                 logger.debug("input stream available : " + available);
                 available = in.available();
@@ -81,7 +81,8 @@ public class StackedTestPacket extends Packet {
     public void write(OutputStream out) throws IOException {
         out.write(type.value);
         String packetStr = new Gson().toJson(this);
-        logger.debug("send packet size: " + packetStr.getBytes().length);
+        logger.debug("send stacked test packet size: "
+                + packetStr.getBytes().length);
         out.write(packetStr.getBytes());
     }
 }

@@ -28,8 +28,8 @@ class FuzzingClientSocket implements Runnable {
             socket = new Socket(Config.getConf().serverHost,
                     Config.getConf().serverPort);
             try {
-                socket.setSendBufferSize(1048576);
-                socket.setReceiveBufferSize(1048576);
+                socket.setSendBufferSize(4194304);
+                socket.setReceiveBufferSize(4194304);
             } catch (SocketException e) {
                 logger.error(e);
             }

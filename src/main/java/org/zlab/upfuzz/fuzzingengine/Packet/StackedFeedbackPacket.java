@@ -1,18 +1,23 @@
 package org.zlab.upfuzz.fuzzingengine.Packet;
 
-import com.google.gson.Gson;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.google.gson.Gson;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 /**
  * Client: Execute and reply the execute information
  */
 
 public class StackedFeedbackPacket extends Packet {
+    static Logger logger = LogManager.getLogger(StackedFeedbackPacket.class);
+
     private final List<FeedbackPacket> fpList;
     public boolean isUpgradeProcessFailed;
     public String stackedCommandSequenceStr;
@@ -38,10 +43,19 @@ public class StackedFeedbackPacket extends Packet {
     }
 
     public static StackedFeedbackPacket read(InputStream in) {
-        byte[] bytes = new byte[1048576];
-        int len;
+        byte[] bytes = new byte[4194304];
+        int len = 0;
         try {
-            len = in.read(bytes);
+            len = in.read(bytes, len, 4194304 - len);
+            int available = in.available();
+            logger.debug("try read length " + len + " avail: " + available);
+            while (available > 0) {
+                int size = in.read(bytes, len, 4194304 - len);
+                len += size;
+                available = in.available();
+            }
+            logger.debug("get packet length " + len + ":\n"
+                    + new String(bytes, 0, len));
             return new Gson().fromJson(new String(bytes, 0, len),
                     StackedFeedbackPacket.class);
         } catch (IOException e) {
@@ -52,6 +66,9 @@ public class StackedFeedbackPacket extends Packet {
 
     public void write(OutputStream out) throws IOException {
         out.write(type.value);
-        out.write(new Gson().toJson(this).getBytes());
+        String packetStr = new Gson().toJson(this);
+        logger.debug("send stacked feedback packet size: "
+                + packetStr.getBytes().length + "\n" + packetStr);
+        out.write(packetStr.getBytes());
     }
 }
