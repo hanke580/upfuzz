@@ -65,8 +65,17 @@ test {
 }
 
 task copyDependencies(type: Copy) {
-from configurations.default
-into 'dependencies'
+	from configurations.default
+	into 'dependencies'
+}
+
+sourceSets {
+	main {
+		resources {
+			exclude 'cassandra/**/cassandra'
+			exclude 'hadoop/**/hadoop'
+		}
+	}
 }
 
 task compileMavenProject() {

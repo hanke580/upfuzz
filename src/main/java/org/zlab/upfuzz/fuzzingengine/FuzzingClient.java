@@ -91,7 +91,6 @@ public class FuzzingClient {
             // System.exit(1);
         }
 
-
         // FIX orphan process
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {

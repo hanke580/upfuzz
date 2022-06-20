@@ -5,11 +5,15 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.CustomExceptions;
 import org.zlab.upfuzz.State;
@@ -18,9 +22,6 @@ import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * validity procedure
@@ -74,6 +75,27 @@ public class CassandraExecutor extends Executor {
             e.printStackTrace();
         }
         return ret == 0;
+    }
+
+    public void buildDocker(String version) {
+        URL pyScript = CassandraExecutor.class.getClassLoader()
+                .getResource("build.py");
+        String pyScriptPath = pyScript.getPath();
+        File workdir = Paths.get(pyScriptPath).getParent().toFile();
+        try {
+            // Process accessDockerSocket = Utilities.exec(
+            //         new String[] { "sudo", "chmod", "0666", "/var/run/docker.sock" },
+            //         workdir);
+
+            Process buildProcess = Utilities.exec(
+                    new String[] { "python3", pyScriptPath, systemID, version },
+                    workdir);
+            byte[] bytes = new byte[131072];
+            int len = buildProcess.getInputStream().read(bytes);
+            logger.debug(new String(bytes, 0, len));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
