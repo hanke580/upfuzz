@@ -217,5 +217,6 @@ class Tee(object):
 
 if __name__ == "__main__":
     port = 18251
+    # TODO change to client and retry with timeout
     server = socketserver.TCPServer(("localhost", int(port)), TCPHandler)
     server.serve_forever()
