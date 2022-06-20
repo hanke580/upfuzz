@@ -116,6 +116,11 @@ class Version:
                     break
                 except ValueError:
                     click.echo("Error parsing output from docker image build: %s" % output)
+            print("generator " + (generator == None))
+            print(generator.attrs)
+            print(generator.id)
+            print(generator.labels)
+            print(generator.tags)
             # client.images.build(path=image_path, tag=image_name)
         pass
 
