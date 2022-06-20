@@ -19,8 +19,9 @@ RUN apt-get update && apt-get install -y openssh-server supervisor vim ant maven
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 ADD general-setup.sh /usr/local/bin/general-setup.sh
 RUN sh /usr/local/bin/general-setup.sh
+COPY org.jacoco.agent.rt.jar /org.jacoco.agent.rt.jar
 
-# 2. System setup. 
+# 2. System setup.
 
 COPY cassandra /cassandra
 WORKDIR /cassandra

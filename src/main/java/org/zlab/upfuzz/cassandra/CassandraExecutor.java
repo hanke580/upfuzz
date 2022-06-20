@@ -90,16 +90,16 @@ public class CassandraExecutor extends Executor {
             Process buildProcess = Utilities.exec(
                     new String[] { "python3", pyScriptPath, systemID, version },
                     workdir);
-            byte[] bytes = new byte[131072];
-            int len = buildProcess.getInputStream().read(bytes);
-            logger.debug(new String(bytes, 0, len));
-        } catch (IOException e) {
+            int exit = buildProcess.waitFor();
+            logger.info("Build docker" + (exit == 0 ? " succeed." : " failed"));
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
     }
 
     @Override
     public void startup() {
+        buildDocker("cassandra-3.11.13");
 
         // May change classToIns according to the system...
         logger.info("[Old Version] Cassandra Start...");

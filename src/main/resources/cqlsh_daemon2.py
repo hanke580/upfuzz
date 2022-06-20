@@ -216,6 +216,7 @@ class Tee(object):
         return True
 
 if __name__ == "__main__":
-    port = %__reserved_port__
+    # port = %__reserved_port__
+    port = 18251
     server = socketserver.TCPServer(("localhost", int(port)), TCPHandler)
     server.serve_forever()
