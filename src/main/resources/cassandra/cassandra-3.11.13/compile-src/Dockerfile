@@ -26,6 +26,7 @@ COPY org.jacoco.agent.rt.jar /org.jacoco.agent.rt.jar
 COPY cassandra /cassandra
 WORKDIR /cassandra
 RUN ant
+COPY cqlsh_daemon.py /cassandra/bin/cqlsh_daemon.py
 ADD cass-setup.sh /usr/local/bin/cass-setup.sh
 # This file contains relatively permanent configurations. 
 RUN sh /usr/local/bin/cass-setup.sh

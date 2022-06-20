@@ -102,7 +102,7 @@ class Version:
                         + self.version_number
                     )
                     exit(exit_code)
-            shutil.copyfile("org.jacoco.agent.rt.jar", source_path)
+            shutil.copy("org.jacoco.agent.rt.jar", source_path + "/org.jacoco.agent.rt.jar")
             # build the image
             docker_client = docker.DockerClient("unix:///var/run/docker.sock")
             # generator = docker_client.build(path=source_path, tag=image_name)

@@ -5,7 +5,7 @@ services:
 
     DC3N1:
         container_name: container_cass_cassandra-3.11.13_executor_uuid_N1
-        image: image_cass_cassandra-3.11.13
+        image: image_cassandra_cassandra-3.11.13
         command: bash -c 'sleep 0 && /usr/bin/supervisord'
         networks:
             network_cassandra-3.11.13_to_cassandra-4.0-alpha1_stressTest_dc1ring:
@@ -33,7 +33,7 @@ services:
 
     DC3N2:
         container_name: container_cass_cassandra-4.0-alpha1_executor_uuid_N2
-        image: image_cass_cassandra-4.0-alpha1
+        image: image_cassandra_cassandra-3.11.13
         command: bash -c 'sleep 0 && /usr/bin/supervisord'
         networks:
             network_cassandra-3.11.13_to_cassandra-4.0-alpha1_stressTest_dc1ring:
