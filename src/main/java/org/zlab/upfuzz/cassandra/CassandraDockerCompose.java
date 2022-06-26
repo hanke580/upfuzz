@@ -192,7 +192,7 @@ public class CassandraDockerCompose {
             Process buildProcess = Utilities.exec(
                     new String[] { "docker-compose", "up", "-d" },
                     workdir);
-            int ret = buildProcess.exitValue();
+            int ret = buildProcess.waitFor();
             if (ret == 0) {
                 logger.info("docker-compose up");
             } else {
@@ -201,7 +201,7 @@ public class CassandraDockerCompose {
                 System.exit(ret);
             }
             return ret;
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
         return -1;
