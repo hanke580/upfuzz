@@ -171,8 +171,8 @@ public class CassandraDockerCompose {
         return false;
     }
 
-    public boolean start() {
-        DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+    public int start() {
+        DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss");
         String timestamp = formatter.format(System.currentTimeMillis());
 
         File workdir = new File("fuzzing_storage/" + systemID + "/"
@@ -192,10 +192,18 @@ public class CassandraDockerCompose {
             Process buildProcess = Utilities.exec(
                     new String[] { "docker-compose", "up", "-d" },
                     workdir);
-            return true;
+            int ret = buildProcess.exitValue();
+            if (ret == 0) {
+                logger.info("docker-compose up");
+            } else {
+                String errorMessage = Utilities.readProcess(buildProcess);
+                logger.error("docker-compose up\n" + errorMessage);
+                System.exit(ret);
+            }
+            return ret;
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return false;
+        return -1;
     }
 }

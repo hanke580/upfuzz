@@ -85,8 +85,8 @@ public class CassandraExecutor extends Executor {
         docker.buildDocker();
         // May change classToIns according to the system...
         logger.info("[Old Version] Cassandra Start...");
-        boolean ret = docker.start();
-        if (ret == false) {
+        int ret = docker.start();
+        if (ret != 0) {
             logger.error("cassandra " + executorID + " failed to started");
         }
         logger.info("cassandra " + executorID + " started");
