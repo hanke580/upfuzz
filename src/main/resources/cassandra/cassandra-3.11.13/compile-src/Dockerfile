@@ -27,8 +27,9 @@ COPY cassandra /cassandra
 WORKDIR /cassandra
 RUN ant
 COPY cqlsh_daemon.py /cassandra/bin/cqlsh_daemon.py
+COPY cqlsh_init.sh /cassandra/bin/cqlsh_init.sh
+# This file contains relatively permanent configurations.
 ADD cass-setup.sh /usr/local/bin/cass-setup.sh
-# This file contains relatively permanent configurations. 
 RUN sh /usr/local/bin/cass-setup.sh
 ENV CASSANDRA_CONFIG /cassandra/conf
 # This file contains all the runtime configurations (configurations that might
