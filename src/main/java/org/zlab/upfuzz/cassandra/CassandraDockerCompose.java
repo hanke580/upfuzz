@@ -30,7 +30,7 @@ public class CassandraDockerCompose {
             + "        command: bash -c 'sleep 0 && /usr/bin/supervisord'\n"
             + "        networks:\n"
             + "            network_cassandra-3.11.13_to_cassandra-4.0-alpha1_stressTest_dc1ring:\n"
-            + "                ipv4_address: 192.168.24.242\n"
+            + "                ipv4_address: ${originalClusterIP}\n"
             + "        volumes:\n"
             + "            - ./persistent/data/n1data:/var/lib/cassandra\n"
             + "            - ./persistent/log/n1log:/var/log/cassandra\n"
@@ -38,7 +38,7 @@ public class CassandraDockerCompose {
             + "        environment:\n"
             + "            - CASSANDRA_CONFIG=/cassandra/conf\n"
             + "            - CASSANDRA_CLUSTER_NAME=dev_cluster\n"
-            + "            - CASSANDRA_SEEDS=192.168.24.242,\n"
+            + "            - CASSANDRA_SEEDS=${originalClusterIP},\n"
             + "            - CASSANDRA_LOGGING_LEVEL=DEBUG\n"
             + "            - ${JAVA_TOOL_OPTIONS_ORIGINAL}\n"
             + "        expose:\n"
@@ -59,7 +59,7 @@ public class CassandraDockerCompose {
             + "        command: bash -c 'sleep 0 && /usr/bin/supervisord'\n"
             + "        networks:\n"
             + "            network_cassandra-3.11.13_to_cassandra-4.0-alpha1_stressTest_dc1ring:\n"
-            + "                ipv4_address: 192.168.24.243\n"
+            + "                ipv4_address: ${upgradedClusterIP}\n"
             + "        volumes:\n"
             + "            - ./persistent/data/n2data:/var/lib/cassandra\n"
             + "            - ./persistent/log/n2log:/var/log/cassandra\n"
@@ -67,9 +67,9 @@ public class CassandraDockerCompose {
             + "        environment:\n"
             + "            - CASSANDRA_CONFIG=/cassandra/conf\n"
             + "            - CASSANDRA_CLUSTER_NAME=dev_cluster\n"
-            + "            - CASSANDRA_SEEDS=192.168.24.242,\n"
+            + "            - CASSANDRA_SEEDS=${originalClusterIP},\n"
             + "            - CASSANDRA_LOGGING_LEVEL=DEBUG\n"
-            + "            - ${JAVA_TOOL_OPTIONS_UPGRADED}\n"
+            + "            - ${JAVA_TOOL_OPTIONS_ORIGINAL}\n"
             + "        expose:\n"
             + "        depends_on:\n"
             + "                - DC3N1\n"
@@ -91,7 +91,7 @@ public class CassandraDockerCompose {
             + "        ipam:\n"
             + "            driver: default\n"
             + "            config:\n"
-            + "                - subnet: 192.168.24.241/28\n";
+            + "                - subnet: ${subnet}\n";
 
     String subnet;
     String systemID;
@@ -110,10 +110,10 @@ public class CassandraDockerCompose {
         // rename services
 
         // 192.168.24.[(0001~1111)|0000] / 28
-        subnet = "192.168.24.240/28";
+        this.subnet = "192.168.24.241/28";
         // + Integer.toString(RandomUtils.nextInt(1, 16) << 4) + "/28";
-        this.originalClusterIP = "192.168.24.241";
-        this.upgradedClusterIP = "192.168.24.241";
+        this.originalClusterIP = "192.168.24.242";
+        this.upgradedClusterIP = "192.168.24.243";
         this.systemID = executor.systemID;
         this.executorID = executor.executorID;
         this.originalVersion = Config.getConf().originalVersion;
@@ -142,6 +142,9 @@ public class CassandraDockerCompose {
 
         variableMap.put("JAVA_TOOL_OPTIONS_ORIGINAL", javaToolOptsOri);
         variableMap.put("JAVA_TOOL_OPTIONS_UPGRADED", javaToolOptsUpg);
+        variableMap.put("subnet", subnet);
+        variableMap.put("originalClusterIP", originalClusterIP);
+        variableMap.put("upgradedClusterIP", upgradedClusterIP);
         StringSubstitutor sub = new StringSubstitutor(variableMap);
         this.composeYaml = sub.replace(template);
     }
