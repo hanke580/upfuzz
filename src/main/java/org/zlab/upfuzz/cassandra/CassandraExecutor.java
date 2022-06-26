@@ -57,28 +57,28 @@ public class CassandraExecutor extends Executor {
         docker = new CassandraDockerCompose(this);
     }
 
-    // public boolean isCassandraReady(String oldSystemPath) {
-    //     // ProcessBuilder isReadyBuilder = new ProcessBuilder();
-    //     Process isReady;
-    //     int ret = 0;
-    //     try {
-    //         isReady = Utilities.exec(
-    //                 new String[] { "bin/cqlsh", "-e", "describe cluster" },
-    //                 oldSystemPath);
-    //         BufferedReader in = new BufferedReader(
-    //                 new InputStreamReader(isReady.getInputStream()));
-    //         String line;
-    //         while ((line = in.readLine()) != null) {
-    //             // logger.info(line);
-    //         }
-    //         isReady.waitFor();
-    //         in.close();
-    //         ret = isReady.exitValue();
-    //     } catch (IOException | InterruptedException e) {
-    //         e.printStackTrace();
-    //     }
-    //     return ret == 0;
-    // }
+    public boolean isCassandraReady(String oldSystemPath) {
+        // ProcessBuilder isReadyBuilder = new ProcessBuilder();
+        Process isReady;
+        int ret = 0;
+        try {
+            isReady = Utilities.exec(
+                    new String[] { "bin/cqlsh", "-e", "describe cluster" },
+                    oldSystemPath);
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(isReady.getInputStream()));
+            String line;
+            while ((line = in.readLine()) != null) {
+                // logger.info(line);
+            }
+            isReady.waitFor();
+            in.close();
+            ret = isReady.exitValue();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        return ret == 0;
+    }
 
     @Override
     public void startup() {
