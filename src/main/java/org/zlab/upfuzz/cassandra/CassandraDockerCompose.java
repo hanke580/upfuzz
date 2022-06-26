@@ -1,6 +1,8 @@
 package org.zlab.upfuzz.cassandra;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Paths;
@@ -9,8 +11,8 @@ import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.text.StringSubstitutor;
 import org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.text.StringSubstitutor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.Config;
@@ -166,10 +168,17 @@ public class CassandraDockerCompose {
         File workdir = new File("fuzzing_storage/" + systemID + "/"
                 + originalVersion + "/" + upgradedVersion + "/" + timestamp);
 
+        File composeFile = new File(workdir, "docker-compose.yaml");
         if (!workdir.exists()) {
             workdir.mkdirs();
         }
+
         try {
+            composeFile.createNewFile();
+            BufferedWriter writer = new BufferedWriter(
+                    new FileWriter(composeFile));
+            writer.write(composeYaml);
+            writer.close();
             Process buildProcess = Utilities.exec(
                     new String[] { "docker-compose", "up", "-d" },
                     workdir);
