@@ -55,45 +55,45 @@ public class CassandraCqlshDaemon {
         }
     }
 
-    public CassandraCqlshDaemon(CassandraDockerCompose docker) {
+    public CassandraCqlshDaemon(String ipAddress) {
         port = 18251;
         try {
-            socket = new Socket(docker.subnet, port);
+            socket = new Socket(ipAddress, port);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public CassandraCqlshDaemon(String cassandraRoot)
-            throws IOException, InterruptedException {
-        cassandraVersion = Utilities.getGitTag(cassandraRoot);
-        cqlshPythonScript = null;
-        python = null;
-        // Get path, two options
-        // System.out.println("cassandra version\n" + cassandraVersion);
+    // public CassandraCqlshDaemon(String cassandraRoot)
+    // throws IOException, InterruptedException {
+    // cassandraVersion = Utilities.getGitTag(cassandraRoot);
+    // cqlshPythonScript = null;
+    // python = null;
+    // // Get path, two options
+    // // System.out.println("cassandra version\n" + cassandraVersion);
 
-        char majorVersion;
+    // char majorVersion;
 
-        // FIXME use majorversion to determine python version
-        try {
-            majorVersion = cassandraVersion.split("-")[1].charAt(0);
-        } catch (Exception e) {
-            majorVersion = cassandraRoot.split("cassandra-")[1].charAt(0);
-        }
-        logger.debug("cassandra version: " + majorVersion);
+    // // FIXME use majorversion to determine python version
+    // try {
+    // majorVersion = cassandraVersion.split("-")[1].charAt(0);
+    // } catch (Exception e) {
+    // majorVersion = cassandraRoot.split("cassandra-")[1].charAt(0);
+    // }
+    // logger.debug("cassandra version: " + majorVersion);
 
-        if (majorVersion <= '3') {
-            logger.info("use python2 cqlsh script");
-            python = "python2";
-            cqlshPythonScript = cqlshPython2Script;
-        } else {
-            logger.info("use python3 cqlsh script");
-            python = "python3";
-            cqlshPythonScript = cqlshPython3Script;
-        }
+    // if (majorVersion <= '3') {
+    // logger.info("use python2 cqlsh script");
+    // python = "python2";
+    // cqlshPythonScript = cqlshPython2Script;
+    // } else {
+    // logger.info("use python3 cqlsh script");
+    // python = "python3";
+    // cqlshPythonScript = cqlshPython3Script;
+    // }
 
-        startCqlshDaemon(cassandraRoot);
-    }
+    // startCqlshDaemon(cassandraRoot);
+    // }
 
     private void startCqlshDaemon(String cassandraRoot)
             throws IOException, InterruptedException {

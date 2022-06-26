@@ -94,11 +94,13 @@ public class CassandraDockerCompose {
             + "                - subnet: 192.168.24.241/28\n";
 
     String subnet;
-    private String systemID;
-    private String executorID;
-    private String originalVersion;
-    private String upgradedVersion;
-    private String composeYaml;
+    String systemID;
+    String executorID;
+    String originalVersion;
+    String upgradedVersion;
+    String composeYaml;
+    String originalClusterIP;
+    String upgradedClusterIP;
 
     static final String excludes = "org.apache.cassandra.metrics.*:org.apache.cassandra.net.*:org.apache.cassandra.io.sstable.format.SSTableReader.*:org.apache.cassandra.service.*";
 
@@ -108,8 +110,10 @@ public class CassandraDockerCompose {
         // rename services
 
         // 192.168.24.[(0001~1111)|0000] / 28
-        subnet = "192.168.24. "
-                + Integer.toString(RandomUtils.nextInt(1, 16) << 4) + "/28";
+        subnet = "192.168.24.240/28";
+        // + Integer.toString(RandomUtils.nextInt(1, 16) << 4) + "/28";
+        this.originalClusterIP = "192.168.24.241";
+        this.upgradedClusterIP = "192.168.24.241";
         this.systemID = executor.systemID;
         this.executorID = executor.executorID;
         this.originalVersion = Config.getConf().originalVersion;
@@ -148,12 +152,18 @@ public class CassandraDockerCompose {
         String pyScriptPath = pyScript.getPath();
         File workdir = Paths.get(pyScriptPath).getParent().toFile();
         try {
+            logger.info("Build Dockerfile " + systemID + " " + originalVersion);
             Process buildProcess = Utilities.exec(
                     new String[] { "python3", pyScriptPath, systemID,
                             originalVersion },
                     workdir);
             int exit = buildProcess.waitFor();
-            logger.info("Build docker" + (exit == 0 ? " succeed." : " failed"));
+            if (exit == 0) {
+                logger.info("Build docker succeed.");
+            } else {
+                String errorMessage = Utilities.readProcess(buildProcess);
+                logger.error("Build docker failed\n" + errorMessage);
+            }
             return (exit == 0);
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();

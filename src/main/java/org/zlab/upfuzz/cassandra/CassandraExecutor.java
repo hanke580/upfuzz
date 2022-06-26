@@ -91,7 +91,7 @@ public class CassandraExecutor extends Executor {
         }
         logger.info("cassandra " + executorID + " started");
 
-        cqlsh = new CassandraCqlshDaemon(docker);
+        cqlsh = new CassandraCqlshDaemon(docker.originalClusterIP);
 
         logger.info("cqlsh daemon connected");
         // ProcessBuilder cassandraProcessBuilder = new ProcessBuilder(
@@ -259,7 +259,7 @@ public class CassandraExecutor extends Executor {
         List<String> ret = new LinkedList<>();
         try {
             if (cqlsh == null)
-                cqlsh = new CassandraCqlshDaemon(docker);
+                cqlsh = new CassandraCqlshDaemon(docker.originalClusterIP);
             for (String cmd : commandList) {
                 // System.out.println(
                 // "\n\n------------------------------------------------------------
@@ -309,7 +309,7 @@ public class CassandraExecutor extends Executor {
                 // + (endTime - startTime) / 1000. + "\n");
             }
             // cqlsh.destroy();
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
