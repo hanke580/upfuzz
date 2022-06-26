@@ -38,6 +38,8 @@ public class CassandraExecutor extends Executor {
 
     CassandraCqlshDaemon cqlsh = null;
 
+    private CassandraDockerCompose docker;
+
     Process cassandraProcess;
     // static final String jacocoOptions =
     // "=append=false,includes=org.apache.cassandra.*,output=dfe,address=localhost,sessionid=";
@@ -52,6 +54,7 @@ public class CassandraExecutor extends Executor {
 
     public CassandraExecutor() {
         super("cassandra");
+        docker = new CassandraDockerCompose(this);
     }
 
     public boolean isCassandraReady(String oldSystemPath) {
@@ -77,80 +80,64 @@ public class CassandraExecutor extends Executor {
         return ret == 0;
     }
 
-    public void buildDocker(String version) {
-        URL pyScript = CassandraExecutor.class.getClassLoader()
-                .getResource("build.py");
-        String pyScriptPath = pyScript.getPath();
-        File workdir = Paths.get(pyScriptPath).getParent().toFile();
-        try {
-            // Process accessDockerSocket = Utilities.exec(
-            //         new String[] { "sudo", "chmod", "0666", "/var/run/docker.sock" },
-            //         workdir);
-
-            Process buildProcess = Utilities.exec(
-                    new String[] { "python3", pyScriptPath, systemID, version },
-                    workdir);
-            int exit = buildProcess.waitFor();
-            logger.info("Build docker" + (exit == 0 ? " succeed." : " failed"));
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
     @Override
     public void startup() {
-        buildDocker("cassandra-3.11.13");
-
+        docker.buildDocker();
         // May change classToIns according to the system...
         logger.info("[Old Version] Cassandra Start...");
-
-        ProcessBuilder cassandraProcessBuilder = new ProcessBuilder(
-                "bin/cassandra", "-f");
-        Map<String, String> env = cassandraProcessBuilder.environment();
-        env.put("JAVA_TOOL_OPTIONS",
-                "-javaagent:" + Config.getConf().jacocoAgentPath + jacocoOptions
-                        + ",includes=" + classToIns + ",excludes=" + excludes
-                        + ",output=dfe,address=localhost,sessionid=" + systemID
-                        + "-" + executorID + "_original");
-        cassandraProcessBuilder
-                .directory(new File(Config.getConf().oldSystemPath));
-        cassandraProcessBuilder.redirectErrorStream(true);
-        cassandraProcessBuilder.redirectOutput(
-                Paths.get(Config.getConf().oldSystemPath, "logs.txt").toFile());
-        try {
-            long startTime = System.currentTimeMillis();
-            cassandraProcess = cassandraProcessBuilder.start();
-            // byte[] out = cassandraProcess.getInputStream().readAllBytes();
-            // BufferedReader in = new BufferedReader(new
-            // InputStreamReader(cassandraProcess.getInputStream()));
-            // String line;
-            // while ((line = in.readLine()) != null) {
-            // logger.info(line);
-            // System.out.flush();
-            // }
-            // in.close();
-            // cassandraProcess.waitFor();
-            logger.info("cassandra " + executorID + " started");
-            while (!isCassandraReady(Config.getConf().oldSystemPath)) {
-                if (!cassandraProcess.isAlive()) {
-                    // logger.info("cassandra process crushed\nCheck " +
-                    // Config.getConf().cassandraOutputFile
-                    // + " for details");
-                    // System.exit(1);
-                    throw new CustomExceptions.systemStartFailureException(
-                            "Cassandra Start fails", null);
-                }
-                logger.info("Wait for " + systemID + " ready...");
-                Thread.sleep(2000);
-            }
-            long endTime = System.currentTimeMillis();
-            logger.info("cassandra " + executorID + " ready.. time usage:"
-                    + (endTime - startTime) / 1000. + "\n");
-
-            cqlsh = new CassandraCqlshDaemon(Config.getConf().oldSystemPath);
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
+        boolean ret = docker.start();
+        if (ret == false) {
+            logger.error("cassandra " + executorID + " failed to started");
         }
+        logger.info("cassandra " + executorID + " started");
+
+        // ProcessBuilder cassandraProcessBuilder = new ProcessBuilder(
+        // "bin/cassandra", "-f");
+        // Map<String, String> env = cassandraProcessBuilder.environment();
+        // env.put("JAVA_TOOL_OPTIONS",
+        // "-javaagent:" + Config.getConf().jacocoAgentPath + jacocoOptions
+        // + ",includes=" + classToIns + ",excludes=" + excludes
+        // + ",output=dfe,address=localhost,sessionid=" + systemID
+        // + "-" + executorID + "_original");
+        // cassandraProcessBuilder
+        // .directory(new File(Config.getConf().oldSystemPath));
+        // cassandraProcessBuilder.redirectErrorStream(true);
+        // cassandraProcessBuilder.redirectOutput(
+        // Paths.get(Config.getConf().oldSystemPath, "logs.txt").toFile());
+        // try {
+        // long startTime = System.currentTimeMillis();
+        // cassandraProcess = cassandraProcessBuilder.start();
+        // // byte[] out = cassandraProcess.getInputStream().readAllBytes();
+        // // BufferedReader in = new BufferedReader(new
+        // // InputStreamReader(cassandraProcess.getInputStream()));
+        // // String line;
+        // // while ((line = in.readLine()) != null) {
+        // // logger.info(line);
+        // // System.out.flush();
+        // // }
+        // // in.close();
+        // // cassandraProcess.waitFor();
+        // logger.info("cassandra " + executorID + " started");
+        // while (!isCassandraReady(Config.getConf().oldSystemPath)) {
+        // if (!cassandraProcess.isAlive()) {
+        // // logger.info("cassandra process crushed\nCheck " +
+        // // Config.getConf().cassandraOutputFile
+        // // + " for details");
+        // // System.exit(1);
+        // throw new CustomExceptions.systemStartFailureException(
+        // "Cassandra Start fails", null);
+        // }
+        // logger.info("Wait for " + systemID + " ready...");
+        // Thread.sleep(2000);
+        // }
+        // long endTime = System.currentTimeMillis();
+        // logger.info("cassandra " + executorID + " ready.. time usage:"
+        // + (endTime - startTime) / 1000. + "\n");
+
+        // cqlsh = new CassandraCqlshDaemon(Config.getConf().oldSystemPath);
+        // } catch (IOException | InterruptedException e) {
+        // e.printStackTrace();
+        // }
     }
 
     @Override

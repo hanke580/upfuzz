@@ -27,6 +27,10 @@ public class Config {
         public String clientHost = "localhost";
         public Integer clientPort = 6300;
         public String instClassFilePath = null;
+
+        public String originalVersion = null;
+        public String upgradedVersion = null;
+
         public String oldSystemPath = null;
         public String newSystemPath = null;
         public String jacocoAgentPath = null;

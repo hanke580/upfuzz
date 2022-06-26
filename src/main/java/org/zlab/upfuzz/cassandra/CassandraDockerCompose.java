@@ -1,0 +1,182 @@
+package org.zlab.upfuzz.cassandra;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Paths;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.text.StringSubstitutor;
+import org.apache.commons.lang3.RandomUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.zlab.upfuzz.fuzzingengine.Config;
+import org.zlab.upfuzz.utils.Utilities;
+
+public class CassandraDockerCompose {
+    static Logger logger = LogManager.getLogger(CassandraDockerCompose.class);
+    static String template = ""
+            + "version: '3'\n"
+            + "services:\n"
+            + "\n"
+            + "    DC3N1:\n"
+            + "        container_name: container_cass_cassandra-3.11.13_executor_uuid_N1\n"
+            + "        image: image_cassandra_cassandra-3.11.13\n"
+            + "        command: bash -c 'sleep 0 && /usr/bin/supervisord'\n"
+            + "        networks:\n"
+            + "            network_cassandra-3.11.13_to_cassandra-4.0-alpha1_stressTest_dc1ring:\n"
+            + "                ipv4_address: 192.168.24.242\n"
+            + "        volumes:\n"
+            + "            - ./persistent/data/n1data:/var/lib/cassandra\n"
+            + "            - ./persistent/log/n1log:/var/log/cassandra\n"
+            + "            - ./persistent/consolelog/n1consolelog:/var/log/supervisor\n"
+            + "        environment:\n"
+            + "            - CASSANDRA_CONFIG=/cassandra/conf\n"
+            + "            - CASSANDRA_CLUSTER_NAME=dev_cluster\n"
+            + "            - CASSANDRA_SEEDS=192.168.24.242,\n"
+            + "            - CASSANDRA_LOGGING_LEVEL=DEBUG\n"
+            + "            - ${JAVA_TOOL_OPTIONS_ORIGINAL}\n"
+            + "        expose:\n"
+            + "            - 7000\n"
+            + "            - 7001\n"
+            + "            - 7199\n"
+            + "            - 9042\n"
+            + "            - 9160\n"
+            + "            - 18251\n"
+            + "        ulimits:\n"
+            + "            memlock: -1\n"
+            + "            nproc: 32768\n"
+            + "            nofile: 100000\n"
+            + "\n"
+            + "    DC3N2:\n"
+            + "        container_name: container_cass_cassandra-4.0-alpha1_executor_uuid_N2\n"
+            + "        image: image_cassandra_cassandra-3.11.13\n"
+            + "        command: bash -c 'sleep 0 && /usr/bin/supervisord'\n"
+            + "        networks:\n"
+            + "            network_cassandra-3.11.13_to_cassandra-4.0-alpha1_stressTest_dc1ring:\n"
+            + "                ipv4_address: 192.168.24.243\n"
+            + "        volumes:\n"
+            + "            - ./persistent/data/n2data:/var/lib/cassandra\n"
+            + "            - ./persistent/log/n2log:/var/log/cassandra\n"
+            + "            - ./persistent/consolelog/n2consolelog:/var/log/supervisor\n"
+            + "        environment:\n"
+            + "            - CASSANDRA_CONFIG=/cassandra/conf\n"
+            + "            - CASSANDRA_CLUSTER_NAME=dev_cluster\n"
+            + "            - CASSANDRA_SEEDS=192.168.24.242,\n"
+            + "            - CASSANDRA_LOGGING_LEVEL=DEBUG\n"
+            + "            - ${JAVA_TOOL_OPTIONS_UPGRADED}\n"
+            + "        expose:\n"
+            + "        depends_on:\n"
+            + "                - DC3N1\n"
+            + "        expose:\n"
+            + "            - 7000\n"
+            + "            - 7001\n"
+            + "            - 7199\n"
+            + "            - 9042\n"
+            + "            - 9160\n"
+            + "            - 18251\n"
+            + "        ulimits:\n"
+            + "            memlock: -1\n"
+            + "            nproc: 32768\n"
+            + "            nofile: 100000\n"
+            + "\n"
+            + "networks:\n"
+            + "    network_cassandra-3.11.13_to_cassandra-4.0-alpha1_stressTest_dc1ring:\n"
+            + "        driver: bridge\n"
+            + "        ipam:\n"
+            + "            driver: default\n"
+            + "            config:\n"
+            + "                - subnet: 192.168.24.241/28\n";
+
+    private String subnet;
+    private String systemID;
+    private String executorID;
+    private String originalVersion;
+    private String upgradedVersion;
+    private String composeYaml;
+
+    static final String excludes = "org.apache.cassandra.metrics.*:org.apache.cassandra.net.*:org.apache.cassandra.io.sstable.format.SSTableReader.*:org.apache.cassandra.service.*";
+
+    CassandraDockerCompose(CassandraExecutor executor) {
+        // TODO update docker-compose template
+        // replace subnet
+        // rename services
+
+        // 192.168.24.[(0001~1111)|0000] / 28
+        subnet = "192.168.24. "
+                + Integer.toString(RandomUtils.nextInt(1, 16) << 4) + "/28";
+        this.systemID = executor.systemID;
+        this.executorID = executor.executorID;
+        this.originalVersion = Config.getConf().originalVersion;
+        this.upgradedVersion = Config.getConf().upgradedVersion;
+
+        formatComposeYaml();
+    }
+
+    private void formatComposeYaml() {
+        Map<String, String> variableMap = new HashMap<>();
+        String javaToolOptsOri = "-javaagent:"
+                + Config.getConf().jacocoAgentPath
+                + "=append=false"
+                + ",includes=" + Config.getConf().instClassFilePath
+                + ",excludes=" + excludes
+                + ",output=dfe,address=localhost,sessionid=" + systemID
+                + "-" + executorID + "_original";
+
+        String javaToolOptsUpg = "-javaagent:"
+                + Config.getConf().jacocoAgentPath
+                + "=append=false"
+                + ",includes=" + Config.getConf().instClassFilePath
+                + ",excludes=" + excludes
+                + ",output=dfe,address=localhost,sessionid=" + systemID
+                + "-" + executorID + "_upgraded";
+
+        variableMap.put("JAVA_TOOL_OPTIONS_ORIGINAL", javaToolOptsOri);
+        variableMap.put("JAVA_TOOL_OPTIONS_UPGRADED", javaToolOptsUpg);
+        StringSubstitutor sub = new StringSubstitutor(variableMap);
+        this.composeYaml = sub.replace(template);
+    }
+
+    public boolean buildDocker() {
+        URL pyScript = CassandraDockerCompose.class.getClassLoader()
+                .getResource("build.py");
+        String pyScriptPath = pyScript.getPath();
+        File workdir = Paths.get(pyScriptPath).getParent().toFile();
+        try {
+            Process buildProcess = Utilities.exec(
+                    new String[] { "python3", pyScriptPath, systemID,
+                            originalVersion },
+                    workdir);
+            int exit = buildProcess.waitFor();
+            logger.info("Build docker" + (exit == 0 ? " succeed." : " failed"));
+            return (exit == 0);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean start() {
+        DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+        String timestamp = formatter.format(System.currentTimeMillis());
+
+        File workdir = new File("fuzzing_storage/" + systemID + "/"
+                + originalVersion + "/" + upgradedVersion + "/" + timestamp);
+
+        if (!workdir.exists()) {
+            workdir.mkdirs();
+        }
+        try {
+            Process buildProcess = Utilities.exec(
+                    new String[] { "docker-compose", "up", "-d" },
+                    workdir);
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+}

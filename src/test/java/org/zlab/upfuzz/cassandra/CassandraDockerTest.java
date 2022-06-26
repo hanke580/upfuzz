@@ -18,9 +18,4 @@ public class CassandraDockerTest {
         Config.setInstance(config);
         executor = new CassandraExecutor();
     }
-
-    @Test
-    public void testBuildDocker() {
-        executor.buildDocker("3.11.13");
-    }
 }
