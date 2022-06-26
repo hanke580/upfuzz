@@ -55,6 +55,15 @@ public class CassandraCqlshDaemon {
         }
     }
 
+    public CassandraCqlshDaemon(CassandraDockerCompose docker) {
+        port = 18251;
+        try {
+            socket = new Socket(docker.subnet, port);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public CassandraCqlshDaemon(String cassandraRoot)
             throws IOException, InterruptedException {
         cassandraVersion = Utilities.getGitTag(cassandraRoot);
@@ -201,6 +210,7 @@ public class CassandraCqlshDaemon {
             cmd = "";
             exitValue = 0;
             message = "";
+            error = "";
             timeUsage = -1;
         }
     }

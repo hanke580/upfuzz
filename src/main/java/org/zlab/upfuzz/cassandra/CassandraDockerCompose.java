@@ -93,7 +93,7 @@ public class CassandraDockerCompose {
             + "            config:\n"
             + "                - subnet: 192.168.24.241/28\n";
 
-    private String subnet;
+    String subnet;
     private String systemID;
     private String executorID;
     private String originalVersion;
