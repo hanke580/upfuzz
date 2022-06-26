@@ -277,7 +277,7 @@ public class CassandraExecutor extends Executor {
                 // + (endTime - startTime) / 1000. + "\n");
             }
             // cqlsh.destroy();
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
