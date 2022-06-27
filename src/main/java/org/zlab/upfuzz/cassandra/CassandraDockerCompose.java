@@ -104,6 +104,7 @@ public class CassandraDockerCompose {
     String hostIP;
     String originalClusterIP;
     String upgradedClusterIP;
+    File workdir;
 
     static final String inclueds = "org.apache.cassandra.*";
     static final String excludes = "org.apache.cassandra.metrics.*:org.apache.cassandra.net.*:org.apache.cassandra.io.sstable.format.SSTableReader.*:org.apache.cassandra.service.*";
@@ -123,6 +124,13 @@ public class CassandraDockerCompose {
         this.executorID = executor.executorID;
         this.originalVersion = Config.getConf().originalVersion;
         this.upgradedVersion = Config.getConf().upgradedVersion;
+
+        DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+        String timestamp = formatter.format(System.currentTimeMillis());
+
+        workdir = new File(
+                "fuzzing_storage/" + systemID + "/" + originalVersion + "/" +
+                        upgradedVersion + "/" + timestamp);
 
         formatComposeYaml();
     }
@@ -159,13 +167,13 @@ public class CassandraDockerCompose {
         URL pyScript = CassandraDockerCompose.class.getClassLoader()
                 .getResource("build.py");
         String pyScriptPath = pyScript.getPath();
-        File workdir = Paths.get(pyScriptPath).getParent().toFile();
+        File scriptPath = Paths.get(pyScriptPath).getParent().toFile();
         try {
             logger.info("Build Dockerfile " + systemID + " " + originalVersion);
             Process buildProcess = Utilities.exec(
                     new String[] { "python3", pyScriptPath, systemID,
                             originalVersion },
-                    workdir);
+                    scriptPath);
             int exit = buildProcess.waitFor();
             if (exit == 0) {
                 logger.info("Build docker succeed.");
@@ -181,12 +189,6 @@ public class CassandraDockerCompose {
     }
 
     public int start() {
-        DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss");
-        String timestamp = formatter.format(System.currentTimeMillis());
-
-        File workdir = new File(
-                "fuzzing_storage/" + systemID + "/" + originalVersion + "/" +
-                        upgradedVersion + "/" + timestamp);
 
         File composeFile = new File(workdir, "docker-compose.yaml");
         if (!workdir.exists()) {
@@ -214,5 +216,15 @@ public class CassandraDockerCompose {
             e.printStackTrace();
         }
         return -1;
+    }
+
+    public void teardown() {
+        try {
+            Process buildProcess = Utilities.exec(
+                    new String[] { "docker-compose", "down" }, workdir);
+        } catch (IOException e) {
+            logger.error("failed to teardown docker", e);
+        }
+
     }
 }

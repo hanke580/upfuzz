@@ -145,34 +145,36 @@ public class CassandraExecutor extends Executor {
 
     @Override
     public void teardown() {
-        ProcessBuilder pb = new ProcessBuilder("bin/nodetool", "stopdaemon");
-        pb.directory(new File(Config.getConf().oldSystemPath));
-        Process p;
-        try {
-            p = pb.start();
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(p.getInputStream()));
-            String line;
-            while ((line = in.readLine()) != null) {
-                logger.info(line);
-                System.out.flush();
-            }
-            p.waitFor();
-            in.close();
-            assert !cassandraProcess.isAlive();
-            logger.info("cassandra " + executorID + " shutdown successfully");
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-        // Remove the data folder
-        pb = new ProcessBuilder("rm", "-rf", "data", "logs.txt");
-        pb.directory(new File(Config.getConf().oldSystemPath));
-        try {
-            pb.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        this.cqlsh.destroy();
+        docker.teardown();
+
+        // ProcessBuilder pb = new ProcessBuilder("bin/nodetool", "stopdaemon");
+        // pb.directory(new File(Config.getConf().oldSystemPath));
+        // Process p;
+        // try {
+        // p = pb.start();
+        // BufferedReader in = new BufferedReader(
+        // new InputStreamReader(p.getInputStream()));
+        // String line;
+        // while ((line = in.readLine()) != null) {
+        // logger.info(line);
+        // System.out.flush();
+        // }
+        // p.waitFor();
+        // in.close();
+        // assert !cassandraProcess.isAlive();
+        // logger.info("cassandra " + executorID + " shutdown successfully");
+        // } catch (IOException | InterruptedException e) {
+        // e.printStackTrace();
+        // }
+        // // Remove the data folder
+        // pb = new ProcessBuilder("rm", "-rf", "data", "logs.txt");
+        // pb.directory(new File(Config.getConf().oldSystemPath));
+        // try {
+        // pb.start();
+        // } catch (IOException e) {
+        // e.printStackTrace();
+        // }
+        // this.cqlsh.destroy();
     }
 
     @Override
