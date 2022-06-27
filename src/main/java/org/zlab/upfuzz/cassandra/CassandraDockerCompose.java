@@ -24,7 +24,7 @@ public class CassandraDockerCompose {
             + "services:\n"
             + "\n"
             + "    DC3N1:\n"
-            + "        container_name: cassandra-3.11.13_{executorID}_N1\n"
+            + "        container_name: cassandra-3.11.13_${executorID}_N1\n"
             + "        image: image_cassandra_cassandra-3.11.13-compile\n"
             + "        command: bash -c 'sleep 0 && /usr/bin/supervisord'\n"
             + "        networks:\n"
