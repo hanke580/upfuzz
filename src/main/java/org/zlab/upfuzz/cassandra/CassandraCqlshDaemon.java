@@ -59,8 +59,13 @@ public class CassandraCqlshDaemon {
         port = 18251;
         try {
             socket = new Socket();
-            socket.connect(new InetSocketAddress(ipAddress, port), 30 * 1000);
-        } catch (IOException e) {
+            int retry = 3;
+            for (int i = 0; i < retry; ++i) {
+                socket.connect(new InetSocketAddress(ipAddress, port),
+                        30 * 1000);
+                Thread.sleep(5 * 1000);
+            }
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
     }
