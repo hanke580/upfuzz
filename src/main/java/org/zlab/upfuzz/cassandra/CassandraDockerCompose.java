@@ -132,14 +132,16 @@ public class CassandraDockerCompose {
                 + Config.getConf().jacocoAgentPath + "=append=false"
                 + ",includes=" + Config.getConf().instClassFilePath +
                 ",excludes=" + excludes +
-                ",output=dfe,address=" + hostIP + ",sessionid=" + systemID + "-" +
+                ",output=dfe,address=" + hostIP + ",sessionid=" + systemID + "-"
+                +
                 executorID + "_original";
 
         String javaToolOptsUpg = "JAVA_TOOL_OPTIONS=-javaagent:"
                 + Config.getConf().jacocoAgentPath + "=append=false"
                 + ",includes=" + Config.getConf().instClassFilePath +
                 ",excludes=" + excludes +
-                ",output=dfe,address="  + hostIP + ",sessionid=" + systemID + "-" +
+                ",output=dfe,address=" + hostIP + ",sessionid=" + systemID + "-"
+                +
                 executorID + "_upgraded";
 
         variableMap.put("JAVA_TOOL_OPTIONS_ORIGINAL", javaToolOptsOri);
