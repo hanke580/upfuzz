@@ -26,6 +26,8 @@ COPY org.jacoco.agent.rt.jar /org.jacoco.agent.rt.jar
 COPY cassandra /cassandra
 WORKDIR /cassandra
 RUN ant
+ENV https_proxy http://172.17.0.1:2334
+ENV https_proxy http://172.17.0.1:2334
 COPY cqlsh_daemon.py /cassandra/bin/cqlsh_daemon.py
 COPY cqlsh_init.sh /cassandra/bin/cqlsh_init.sh
 # This file contains relatively permanent configurations.

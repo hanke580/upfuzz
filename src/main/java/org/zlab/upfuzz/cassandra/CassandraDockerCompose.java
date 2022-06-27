@@ -72,7 +72,6 @@ public class CassandraDockerCompose {
             + "            - CASSANDRA_LOGGING_LEVEL=DEBUG\n"
             + "            - CQLSH_HOST=${upgradedClusterIP}\n"
             + "            - ${JAVA_TOOL_OPTIONS_ORIGINAL}\n"
-            + "        expose:\n"
             + "        depends_on:\n"
             + "                - DC3N1\n"
             + "        expose:\n"
@@ -129,14 +128,14 @@ public class CassandraDockerCompose {
 
     private void formatComposeYaml() {
         Map<String, String> variableMap = new HashMap<>();
-        String javaToolOptsOri = "-javaagent:"
+        String javaToolOptsOri = "JAVA_TOOL_OPTIONS=-javaagent:"
                 + Config.getConf().jacocoAgentPath + "=append=false"
                 + ",includes=" + Config.getConf().instClassFilePath +
                 ",excludes=" + excludes +
                 ",output=dfe,address=" + hostIP + ",sessionid=" + systemID + "-" +
                 executorID + "_original";
 
-        String javaToolOptsUpg = "-javaagent:"
+        String javaToolOptsUpg = "JAVA_TOOL_OPTIONS=-javaagent:"
                 + Config.getConf().jacocoAgentPath + "=append=false"
                 + ",includes=" + Config.getConf().instClassFilePath +
                 ",excludes=" + excludes +
