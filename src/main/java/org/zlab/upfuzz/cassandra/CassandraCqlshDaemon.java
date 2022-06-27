@@ -57,11 +57,11 @@ public class CassandraCqlshDaemon {
 
     public CassandraCqlshDaemon(String ipAddress) {
         port = 18251;
-        socket = new Socket();
         int retry = 5;
         for (int i = 0; i < retry; ++i) {
             try {
                 Thread.sleep(5 * 1000);
+                socket = new Socket();
                 socket.connect(new InetSocketAddress(ipAddress, port),
                         30 * 1000);
                 return;
