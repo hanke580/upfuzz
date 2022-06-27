@@ -129,7 +129,7 @@ public class CassandraDockerCompose {
     private void formatComposeYaml() {
         Map<String, String> variableMap = new HashMap<>();
         String javaToolOptsOri = "JAVA_TOOL_OPTIONS=-javaagent:"
-                + Config.getConf().jacocoAgentPath + "=append=false"
+                + "/org.jacoco.agent.rt.jar" + "=append=false"
                 + ",includes=" + Config.getConf().instClassFilePath +
                 ",excludes=" + excludes +
                 ",output=dfe,address=" + hostIP + ",sessionid=" + systemID + "-"
@@ -137,7 +137,7 @@ public class CassandraDockerCompose {
                 executorID + "_original";
 
         String javaToolOptsUpg = "JAVA_TOOL_OPTIONS=-javaagent:"
-                + Config.getConf().jacocoAgentPath + "=append=false"
+                + "/org.jacoco.agent.rt.jar" + "=append=false"
                 + ",includes=" + Config.getConf().instClassFilePath +
                 ",excludes=" + excludes +
                 ",output=dfe,address=" + hostIP + ",sessionid=" + systemID + "-"
