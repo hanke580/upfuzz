@@ -57,7 +57,7 @@ public class CassandraCqlshDaemon {
 
     public CassandraCqlshDaemon(String ipAddress) {
         port = 18251;
-        int retry = 6;
+        int retry = 30;
         for (int i = 0; i < retry; ++i) {
             try {
                 logger.info("Connect to cqlsh ...");
