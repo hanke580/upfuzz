@@ -22,7 +22,7 @@ public class AgentServerSocket extends Thread {
             throws UnknownHostException, IOException {
         this.client = client;
         this.server = new ServerSocket(Config.getConf().clientPort, 0,
-                InetAddress.getByName("192.168.24.241"));
+                InetAddress.getByName("0.0.0.0"));
         logger.info("Client socket Server start at: "
                 + this.server.getLocalSocketAddress());
         this.fileWriter = new ExecutionDataWriter(
