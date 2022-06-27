@@ -15,7 +15,7 @@ FROM openjdk:8-jdk
 # multiple processes. 
 # Remember to open port 22 for sshd.
 #RUN apt-get update && apt-get install -y --allow-unauthenticated openssh-server supervisor
-RUN apt-get update && apt-get install -y openssh-server supervisor vim ant maven
+RUN apt-get update && apt-get install -y openssh-server supervisor vim ant maven python-six
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 ADD general-setup.sh /usr/local/bin/general-setup.sh
 RUN sh /usr/local/bin/general-setup.sh
