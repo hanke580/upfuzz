@@ -105,6 +105,7 @@ public class CassandraDockerCompose {
     String originalClusterIP;
     String upgradedClusterIP;
 
+    static final String inclueds = "org.apache.cassandra.*";
     static final String excludes = "org.apache.cassandra.metrics.*:org.apache.cassandra.net.*:org.apache.cassandra.io.sstable.format.SSTableReader.*:org.apache.cassandra.service.*";
 
     CassandraDockerCompose(CassandraExecutor executor) {
@@ -130,7 +131,7 @@ public class CassandraDockerCompose {
         Map<String, String> variableMap = new HashMap<>();
         String javaToolOptsOri = "JAVA_TOOL_OPTIONS=-javaagent:"
                 + "/org.jacoco.agent.rt.jar" + "=append=false"
-                + ",includes=" + Config.getConf().instClassFilePath +
+                + ",includes=" + inclueds +
                 ",excludes=" + excludes +
                 ",output=dfe,address=" + hostIP + ",sessionid=" + systemID + "-"
                 +
@@ -138,7 +139,7 @@ public class CassandraDockerCompose {
 
         String javaToolOptsUpg = "JAVA_TOOL_OPTIONS=-javaagent:"
                 + "/org.jacoco.agent.rt.jar" + "=append=false"
-                + ",includes=" + Config.getConf().instClassFilePath +
+                + ",includes=" + inclueds +
                 ",excludes=" + excludes +
                 ",output=dfe,address=" + hostIP + ",sessionid=" + systemID + "-"
                 +
