@@ -7,7 +7,7 @@ while true; do
   if [[ "$?" -eq 0 ]]; then
     break
   fi
-  sleep 1
+  sleep 5
 done
 
 python /cassandra/bin/cqlsh_daemon.py

@@ -8,8 +8,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.nio.file.Paths;
 
 import com.google.gson.Gson;
@@ -58,7 +58,8 @@ public class CassandraCqlshDaemon {
     public CassandraCqlshDaemon(String ipAddress) {
         port = 18251;
         try {
-            socket = new Socket(ipAddress, port);
+            socket = new Socket();
+            socket.connect(new InetSocketAddress(ipAddress, port), 30 * 1000);
         } catch (IOException e) {
             e.printStackTrace();
         }
