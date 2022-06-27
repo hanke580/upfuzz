@@ -10,7 +10,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.logging.log4j.LogManager;
@@ -25,7 +24,7 @@ public class CassandraDockerCompose {
             + "services:\n"
             + "\n"
             + "    DC3N1:\n"
-            + "        container_name: container_cass_cassandra-3.11.13_executor_uuid_N1\n"
+            + "        container_name: cassandra-3.11.13_{executorID}_N1\n"
             + "        image: image_cassandra_cassandra-3.11.13-compile\n"
             + "        command: bash -c 'sleep 0 && /usr/bin/supervisord'\n"
             + "        networks:\n"
@@ -40,6 +39,7 @@ public class CassandraDockerCompose {
             + "            - CASSANDRA_CLUSTER_NAME=dev_cluster\n"
             + "            - CASSANDRA_SEEDS=${originalClusterIP},\n"
             + "            - CASSANDRA_LOGGING_LEVEL=DEBUG\n"
+            + "            - CQLSH_HOST=${originalClusterIP}\n"
             + "            - ${JAVA_TOOL_OPTIONS_ORIGINAL}\n"
             + "        expose:\n"
             + "            - 7000\n"
@@ -54,7 +54,7 @@ public class CassandraDockerCompose {
             + "            nofile: 100000\n"
             + "\n"
             + "    DC3N2:\n"
-            + "        container_name: container_cass_cassandra-4.0-alpha1_executor_uuid_N2\n"
+            + "        container_name: cassandra-4.0_${executorID}_N2\n"
             + "        image: image_cassandra_cassandra-3.11.13-compile\n"
             + "        command: bash -c 'sleep 0 && /usr/bin/supervisord'\n"
             + "        networks:\n"
@@ -69,6 +69,7 @@ public class CassandraDockerCompose {
             + "            - CASSANDRA_CLUSTER_NAME=dev_cluster\n"
             + "            - CASSANDRA_SEEDS=${originalClusterIP},\n"
             + "            - CASSANDRA_LOGGING_LEVEL=DEBUG\n"
+            + "            - CQLSH_HOST=${upgradedClusterIP}\n"
             + "            - ${JAVA_TOOL_OPTIONS_ORIGINAL}\n"
             + "        expose:\n"
             + "        depends_on:\n"
@@ -125,24 +126,23 @@ public class CassandraDockerCompose {
     private void formatComposeYaml() {
         Map<String, String> variableMap = new HashMap<>();
         String javaToolOptsOri = "-javaagent:"
-                + Config.getConf().jacocoAgentPath
-                + "=append=false"
-                + ",includes=" + Config.getConf().instClassFilePath
-                + ",excludes=" + excludes
-                + ",output=dfe,address=localhost,sessionid=" + systemID
-                + "-" + executorID + "_original";
+                + Config.getConf().jacocoAgentPath + "=append=false"
+                + ",includes=" + Config.getConf().instClassFilePath +
+                ",excludes=" + excludes +
+                ",output=dfe,address=localhost,sessionid=" + systemID + "-" +
+                executorID + "_original";
 
         String javaToolOptsUpg = "-javaagent:"
-                + Config.getConf().jacocoAgentPath
-                + "=append=false"
-                + ",includes=" + Config.getConf().instClassFilePath
-                + ",excludes=" + excludes
-                + ",output=dfe,address=localhost,sessionid=" + systemID
-                + "-" + executorID + "_upgraded";
+                + Config.getConf().jacocoAgentPath + "=append=false"
+                + ",includes=" + Config.getConf().instClassFilePath +
+                ",excludes=" + excludes +
+                ",output=dfe,address=localhost,sessionid=" + systemID + "-" +
+                executorID + "_upgraded";
 
         variableMap.put("JAVA_TOOL_OPTIONS_ORIGINAL", javaToolOptsOri);
         variableMap.put("JAVA_TOOL_OPTIONS_UPGRADED", javaToolOptsUpg);
         variableMap.put("subnet", subnet);
+        variableMap.put("executorID", executorID);
         variableMap.put("originalClusterIP", originalClusterIP);
         variableMap.put("upgradedClusterIP", upgradedClusterIP);
         StringSubstitutor sub = new StringSubstitutor(variableMap);
@@ -178,8 +178,9 @@ public class CassandraDockerCompose {
         DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss");
         String timestamp = formatter.format(System.currentTimeMillis());
 
-        File workdir = new File("fuzzing_storage/" + systemID + "/"
-                + originalVersion + "/" + upgradedVersion + "/" + timestamp);
+        File workdir = new File(
+                "fuzzing_storage/" + systemID + "/" + originalVersion + "/" +
+                        upgradedVersion + "/" + timestamp);
 
         File composeFile = new File(workdir, "docker-compose.yaml");
         if (!workdir.exists()) {
@@ -193,8 +194,7 @@ public class CassandraDockerCompose {
             writer.write(composeYaml);
             writer.close();
             Process buildProcess = Utilities.exec(
-                    new String[] { "docker-compose", "up", "-d" },
-                    workdir);
+                    new String[] { "docker-compose", "up", "-d" }, workdir);
             int ret = buildProcess.waitFor();
             if (ret == 0) {
                 logger.info("docker-compose up");
