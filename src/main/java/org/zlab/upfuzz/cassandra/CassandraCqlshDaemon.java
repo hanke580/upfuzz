@@ -57,17 +57,19 @@ public class CassandraCqlshDaemon {
 
     public CassandraCqlshDaemon(String ipAddress) {
         port = 18251;
-        int retry = 10;
+        int retry = 6;
         for (int i = 0; i < retry; ++i) {
             try {
-                Thread.sleep(30 * 1000);
+                logger.info("Connect to cqlsh ...");
                 socket = new Socket();
                 socket.connect(new InetSocketAddress(ipAddress, port),
                         30 * 1000);
                 return;
-            } catch (IOException | InterruptedException e) {
-                // e.printStackTrace();
-                logger.info("Connect to cqlsh ...");
+            } catch (IOException e) {
+            }
+            try {
+                Thread.sleep(10 * 1000);
+            } catch (InterruptedException e) {
             }
         }
         throw new IllegalAccessError("cannot connect to cqlsh at " + ipAddress);

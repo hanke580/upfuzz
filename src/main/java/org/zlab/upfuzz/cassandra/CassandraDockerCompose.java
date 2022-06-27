@@ -42,6 +42,7 @@ public class CassandraDockerCompose {
             + "            - CQLSH_HOST=${originalClusterIP}\n"
             + "            - ${JAVA_TOOL_OPTIONS_ORIGINAL}\n"
             + "        expose:\n"
+            + "            - 6300\n"
             + "            - 7000\n"
             + "            - 7001\n"
             + "            - 7199\n"
@@ -75,6 +76,7 @@ public class CassandraDockerCompose {
             + "        depends_on:\n"
             + "                - DC3N1\n"
             + "        expose:\n"
+            + "            - 6300\n"
             + "            - 7000\n"
             + "            - 7001\n"
             + "            - 7199\n"
@@ -100,6 +102,7 @@ public class CassandraDockerCompose {
     String originalVersion;
     String upgradedVersion;
     String composeYaml;
+    String hostIP;
     String originalClusterIP;
     String upgradedClusterIP;
 
@@ -113,6 +116,7 @@ public class CassandraDockerCompose {
         // 192.168.24.[(0001~1111)|0000] / 28
         this.subnet = "192.168.24.241/28";
         // + Integer.toString(RandomUtils.nextInt(1, 16) << 4) + "/28";
+        this.hostIP = "192.168.24.241";
         this.originalClusterIP = "192.168.24.242";
         this.upgradedClusterIP = "192.168.24.243";
         this.systemID = executor.systemID;
@@ -129,14 +133,14 @@ public class CassandraDockerCompose {
                 + Config.getConf().jacocoAgentPath + "=append=false"
                 + ",includes=" + Config.getConf().instClassFilePath +
                 ",excludes=" + excludes +
-                ",output=dfe,address=localhost,sessionid=" + systemID + "-" +
+                ",output=dfe,address=" + hostIP + ",sessionid=" + systemID + "-" +
                 executorID + "_original";
 
         String javaToolOptsUpg = "-javaagent:"
                 + Config.getConf().jacocoAgentPath + "=append=false"
                 + ",includes=" + Config.getConf().instClassFilePath +
                 ",excludes=" + excludes +
-                ",output=dfe,address=localhost,sessionid=" + systemID + "-" +
+                ",output=dfe,address="  + hostIP + ",sessionid=" + systemID + "-" +
                 executorID + "_upgraded";
 
         variableMap.put("JAVA_TOOL_OPTIONS_ORIGINAL", javaToolOptsOri);
