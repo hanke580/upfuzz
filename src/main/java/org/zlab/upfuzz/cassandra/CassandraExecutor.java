@@ -291,8 +291,7 @@ public class CassandraExecutor extends Executor {
             // cqlsh daemon
 
             if (cqlsh == null)
-                cqlsh = new CassandraCqlshDaemon(
-                        Config.getConf().newSystemPath);
+                cqlsh = new CassandraCqlshDaemon(docker.upgradedClusterIP);
             for (String cmd : commandList) {
                 // System.out
                 // .println("\n\n------------------------------------------------------------\nexecutor
@@ -372,8 +371,7 @@ public class CassandraExecutor extends Executor {
         }
 
         try {
-            this.cqlsh = new CassandraCqlshDaemon(
-                    Config.getConf().newSystemPath);
+            this.cqlsh = new CassandraCqlshDaemon(docker.upgradedClusterIP);
         } catch (Exception e) {
             e.printStackTrace();
         }
