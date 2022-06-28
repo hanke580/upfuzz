@@ -64,15 +64,6 @@ public class CassandraExecutor extends Executor {
         agentHandler = new HashMap<>();
         sessionGroup = new HashMap<>();
 
-        try {
-            clientSocket = new AgentServerSocket(this);
-            clientSocket.setDaemon(true);
-            clientSocket.start();
-        } catch (Exception e) {
-            e.printStackTrace();
-            // System.exit(1);
-        }
-
     }
 
     public boolean isCassandraReady(String oldSystemPath) {
@@ -108,6 +99,15 @@ public class CassandraExecutor extends Executor {
             logger.error("cassandra " + executorID + " failed to started");
         }
         logger.info("cassandra " + executorID + " started");
+
+        try {
+            clientSocket = new AgentServerSocket(this);
+            clientSocket.setDaemon(true);
+            clientSocket.start();
+        } catch (Exception e) {
+            logger.error(e);
+            System.exit(1);
+        }
 
         cqlsh = new CassandraCqlshDaemon(docker.originalClusterIP());
 
