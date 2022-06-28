@@ -5,19 +5,23 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.rmi.UnexpectedException;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.CommandSequence;
-import org.zlab.upfuzz.CustomExceptions;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.cassandra.CassandraCqlshDaemon.CqlshPacket;
+import org.zlab.upfuzz.docker.DockerBuilder;
+import org.zlab.upfuzz.fuzzingengine.AgentServerHandler;
+import org.zlab.upfuzz.fuzzingengine.AgentServerSocket;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.utils.Pair;
@@ -34,11 +38,9 @@ import org.zlab.upfuzz.utils.Utilities;
  */
 public class CassandraExecutor extends Executor {
 
-    static Logger logger = LogManager.getLogger(CassandraExecutor.class);
-
     CassandraCqlshDaemon cqlsh = null;
 
-    private CassandraDockerCompose docker;
+    DockerBuilder docker;
 
     Process cassandraProcess;
     // static final String jacocoOptions =
@@ -54,7 +56,25 @@ public class CassandraExecutor extends Executor {
 
     public CassandraExecutor() {
         super("cassandra");
+
+        logger = LogManager.getLogger(CassandraExecutor.class);
+
         docker = new CassandraDockerCompose(this);
+
+        // TODO: GC the old coverage since we already get the overall coverage.
+        agentStore = new HashMap<>();
+        agentHandler = new HashMap<>();
+        sessionGroup = new HashMap<>();
+
+        try {
+            clientSocket = new AgentServerSocket(this);
+            clientSocket.setDaemon(true);
+            clientSocket.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+            // System.exit(1);
+        }
+
     }
 
     public boolean isCassandraReady(String oldSystemPath) {
@@ -91,7 +111,7 @@ public class CassandraExecutor extends Executor {
         }
         logger.info("cassandra " + executorID + " started");
 
-        cqlsh = new CassandraCqlshDaemon(docker.originalClusterIP);
+        cqlsh = new CassandraCqlshDaemon(docker.originalClusterIP());
 
         logger.info("cqlsh daemon connected");
         // ProcessBuilder cassandraProcessBuilder = new ProcessBuilder(
@@ -261,7 +281,7 @@ public class CassandraExecutor extends Executor {
         List<String> ret = new LinkedList<>();
         try {
             if (cqlsh == null)
-                cqlsh = new CassandraCqlshDaemon(docker.originalClusterIP);
+                cqlsh = new CassandraCqlshDaemon(docker.originalClusterIP());
             for (String cmd : commandList) {
                 // System.out.println(
                 // "\n\n------------------------------------------------------------
@@ -293,7 +313,7 @@ public class CassandraExecutor extends Executor {
             // cqlsh daemon
 
             if (cqlsh == null)
-                cqlsh = new CassandraCqlshDaemon(docker.upgradedClusterIP);
+                cqlsh = new CassandraCqlshDaemon(docker.upgradedClusterIP());
             for (String cmd : commandList) {
                 // System.out
                 // .println("\n\n------------------------------------------------------------\nexecutor
@@ -373,7 +393,7 @@ public class CassandraExecutor extends Executor {
         }
 
         try {
-            this.cqlsh = new CassandraCqlshDaemon(docker.upgradedClusterIP);
+            this.cqlsh = new CassandraCqlshDaemon(docker.upgradedClusterIP());
         } catch (Exception e) {
             e.printStackTrace();
         }

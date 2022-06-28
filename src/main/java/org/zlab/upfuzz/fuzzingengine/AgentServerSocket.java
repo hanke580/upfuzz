@@ -7,22 +7,22 @@ import java.net.ServerSocket;
 import java.net.UnknownHostException;
 
 import org.jacoco.core.data.ExecutionDataWriter;
-
+import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class AgentServerSocket extends Thread {
     static Logger logger = LogManager.getLogger(AgentServerSocket.class);
 
-    final FuzzingClient client;
+    final Executor executor;
     final ServerSocket server;
     final ExecutionDataWriter fileWriter;
 
-    AgentServerSocket(FuzzingClient client)
+    public AgentServerSocket(Executor executor)
             throws UnknownHostException, IOException {
-        this.client = client;
+        this.executor = executor;
         this.server = new ServerSocket(Config.getConf().clientPort, 0,
-                InetAddress.getByName("0.0.0.0"));
+                InetAddress.getByName(executor.getSubnet()));
         logger.info("Client socket Server start at: "
                 + this.server.getLocalSocketAddress());
         this.fileWriter = new ExecutionDataWriter(
@@ -34,7 +34,7 @@ public class AgentServerSocket extends Thread {
         AgentServerHandler handler;
         while (true) {
             try {
-                handler = new AgentServerHandler(client, server.accept(),
+                handler = new AgentServerHandler(executor, server.accept(),
                         fileWriter);
                 new Thread(handler).start();
             } catch (IOException e) {

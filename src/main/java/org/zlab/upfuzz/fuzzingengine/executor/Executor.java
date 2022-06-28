@@ -1,14 +1,20 @@
 package org.zlab.upfuzz.fuzzingengine.executor;
 
 import java.lang.reflect.InvocationTargetException;
+import java.rmi.UnexpectedException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.logging.log4j.Logger;
+import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.State;
+import org.zlab.upfuzz.docker.DockerBuilder;
+import org.zlab.upfuzz.fuzzingengine.AgentServerHandler;
+import org.zlab.upfuzz.fuzzingengine.AgentServerSocket;
 import org.zlab.upfuzz.fuzzingengine.Packet.TestPacket;
 import org.zlab.upfuzz.fuzzingengine.Server.Seed;
 import org.zlab.upfuzz.utils.Pair;
@@ -25,6 +31,25 @@ public abstract class Executor implements IExecutor {
     public Map<Integer, Pair<List<String>, List<String>>> testId2commandSequence;
     public Map<Integer, List<String>> testId2oldVersionResult;
     public Map<Integer, List<String>> testId2newVersionResult;
+
+    public DockerBuilder docker;
+
+    protected Logger logger;
+    /**
+     * key: String -> agentId value: Codecoverage for this agent
+     */
+    public Map<String, ExecutionDataStore> agentStore;
+
+    /* key: String -> agent Id
+     * value: ClientHandler -> the socket to a agent */
+    public Map<String, AgentServerHandler> agentHandler;
+
+    /* key: UUID String -> executor Id
+     * value: List<String> -> list of all alive agents with the executor Id */
+    public Map<String, List<String>> sessionGroup;
+
+    /* socket for client and agents to communicate*/
+    public AgentServerSocket clientSocket;
 
     protected Executor() {
         testId2commandSequence = new HashMap<>();
@@ -114,6 +139,48 @@ public abstract class Executor implements IExecutor {
         return oldVersionResult;
     }
 
+    public ExecutionDataStore collect(String version) {
+        List<String> agentIdList = sessionGroup
+                .get(executorID + "_" + version);
+        if (agentIdList == null) {
+            new UnexpectedException(
+                    "No agent connection with executor " + executorID)
+                            .printStackTrace();
+            return null;
+        } else {
+            // Add to the original coverage
+            for (String agentId : agentIdList) {
+                if (agentId.split("-")[2].equals("null"))
+                    continue;
+                logger.info("collect conn " + agentId);
+                AgentServerHandler conn = agentHandler.get(agentId);
+                if (conn != null) {
+                    agentStore.remove(agentId);
+                    conn.collect();
+                }
+            }
+
+            ExecutionDataStore execStore = new ExecutionDataStore();
+            for (String agentId : agentIdList) {
+                if (agentId.split("-")[2].equals("null"))
+                    continue;
+                logger.info("get coverage from " + agentId);
+                ExecutionDataStore astore = agentStore.get(agentId);
+                if (astore == null) {
+                    logger.info("no data");
+                } else {
+                    // astore : classname -> int[]
+                    execStore.merge(astore);
+                    logger.trace("astore size: " + astore.getContents().size());
+                }
+            }
+            logger.info("codecoverage size: " + execStore.getContents().size());
+            // Send coverage back
+
+            return execStore;
+        }
+    }
+
     abstract public int saveSnapshot();
 
     abstract public int moveSnapShot();
@@ -125,4 +192,7 @@ public abstract class Executor implements IExecutor {
         return new Pair<>(true, "");
     }
 
+    public String getSubnet() {
+        return docker.getHostIP();
+    }
 }

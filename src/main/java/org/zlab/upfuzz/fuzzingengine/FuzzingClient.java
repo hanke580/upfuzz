@@ -33,22 +33,6 @@ public class FuzzingClient {
 
     public static final int epochNum = 60; // Validation per epochNum
 
-    /**
-     * key: String -> agentId value: Codecoverage for this agent
-     */
-    public Map<String, ExecutionDataStore> agentStore;
-
-    /* key: String -> agent Id
-     * value: ClientHandler -> the socket to a agent */
-    public Map<String, AgentServerHandler> agentHandler;
-
-    /* key: UUID String -> executor Id
-     * value: List<String> -> list of all alive agents with the executor Id */
-    public Map<String, List<String>> sessionGroup;
-
-    /* socket for client and agents to communicate*/
-    public AgentServerSocket clientSocket;
-
     public static int epoch;
     public static int crashID;
     public static int epochStartTestId;
@@ -71,25 +55,12 @@ public class FuzzingClient {
     }
 
     private void init() {
-        // TODO: GC the old coverage since we already get the overall coverage.
-        agentStore = new HashMap<>();
-        agentHandler = new HashMap<>();
-        sessionGroup = new HashMap<>();
 
         epoch = 0;
         crashID = 0;
         epochStartTestId = 0; // FIXME: It might not be zero
 
         testId2Sequence = new HashMap<>();
-
-        try {
-            clientSocket = new AgentServerSocket(this);
-            clientSocket.setDaemon(true);
-            clientSocket.start();
-        } catch (Exception e) {
-            e.printStackTrace();
-            // System.exit(1);
-        }
 
         // FIX orphan process
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -140,7 +111,7 @@ public class FuzzingClient {
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             executor.execute(tp);
             fb = new FeedBack();
-            fb.originalCodeCoverage = collect(executor, "original");
+            fb.originalCodeCoverage = executor.collect("original");
             if (fb.originalCodeCoverage == null) {
                 logger.info("ERROR: null origin code coverage");
                 System.exit(1);
@@ -225,48 +196,6 @@ public class FuzzingClient {
             sb.append("\n\n");
         }
         return sb.toString();
-    }
-
-    public ExecutionDataStore collect(Executor executor, String version) {
-        List<String> agentIdList = sessionGroup
-                .get(executor.executorID + "_" + version);
-        if (agentIdList == null) {
-            new UnexpectedException(
-                    "No agent connection with executor " + executor.executorID)
-                            .printStackTrace();
-            return null;
-        } else {
-            // Add to the original coverage
-            for (String agentId : agentIdList) {
-                if (agentId.split("-")[2].equals("null"))
-                    continue;
-                logger.info("collect conn " + agentId);
-                AgentServerHandler conn = agentHandler.get(agentId);
-                if (conn != null) {
-                    agentStore.remove(agentId);
-                    conn.collect();
-                }
-            }
-
-            ExecutionDataStore execStore = new ExecutionDataStore();
-            for (String agentId : agentIdList) {
-                if (agentId.split("-")[2].equals("null"))
-                    continue;
-                logger.info("get coverage from " + agentId);
-                ExecutionDataStore astore = agentStore.get(agentId);
-                if (astore == null) {
-                    logger.info("no data");
-                } else {
-                    // astore : classname -> int[]
-                    execStore.merge(astore);
-                    logger.trace("astore size: " + astore.getContents().size());
-                }
-            }
-            logger.info("codecoverage size: " + execStore.getContents().size());
-            // Send coverage back
-
-            return execStore;
-        }
     }
 
     enum FuzzingClientActions {

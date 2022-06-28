@@ -14,10 +14,11 @@ import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.zlab.upfuzz.docker.DockerBuilder;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.utils.Utilities;
 
-public class CassandraDockerCompose {
+public class CassandraDockerCompose implements DockerBuilder {
     static Logger logger = LogManager.getLogger(CassandraDockerCompose.class);
     static String template = ""
             + "version: '3'\n"
@@ -227,9 +228,26 @@ public class CassandraDockerCompose {
         try {
             Process buildProcess = Utilities.exec(
                     new String[] { "docker-compose", "down" }, workdir);
-        } catch (IOException e) {
+            int ret = buildProcess.waitFor();
+            logger.info("teardown docker-compose in " + workdir);
+        } catch (IOException | InterruptedException e) {
             logger.error("failed to teardown docker", e);
         }
 
+    }
+
+    @Override
+    public String getHostIP() {
+        return hostIP;
+    }
+
+    @Override
+    public String originalClusterIP() {
+        return originalClusterIP;
+    }
+
+    @Override
+    public String upgradedClusterIP() {
+        return upgradedClusterIP;
     }
 }

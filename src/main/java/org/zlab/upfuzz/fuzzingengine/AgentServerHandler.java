@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionData;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.jacoco.core.data.ExecutionDataWriter;
@@ -14,16 +16,14 @@ import org.jacoco.core.data.ISessionInfoVisitor;
 import org.jacoco.core.data.SessionInfo;
 import org.jacoco.core.runtime.RemoteControlReader;
 import org.jacoco.core.runtime.RemoteControlWriter;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 
 public class AgentServerHandler
         implements Runnable, ISessionInfoVisitor, IExecutionDataVisitor {
 
     static Logger logger = LogManager.getLogger(AgentServerHandler.class);
 
-    private final FuzzingClient client;
+    private final Executor executor;
     private final Socket socket;
     private String sessionId;
     private SessionInfo sesInfo;
@@ -41,9 +41,9 @@ public class AgentServerHandler
 
     private byte[] buffer;
 
-    AgentServerHandler(final FuzzingClient client, final Socket socket,
+    AgentServerHandler(final Executor executor, final Socket socket,
             ExecutionDataWriter fileWriter) throws IOException {
-        this.client = client;
+        this.executor = executor;
         this.socket = socket;
         this.fileWriter = fileWriter;
 
@@ -86,15 +86,15 @@ public class AgentServerHandler
             return;
         }
         logger.info("Agent " + info.getId() + " registered");
-        client.agentHandler.put(sessionId, this);
+        executor.agentHandler.put(sessionId, this);
         logger.info("agent handler add " + sessionId);
 
-        String identifier = sessionSplit[0], executor = sessionSplit[1],
+        String identifier = sessionSplit[0], executorID = sessionSplit[1],
                 index = sessionSplit[2];
-        if (!client.sessionGroup.containsKey(executor)) {
-            client.sessionGroup.put(executor, new ArrayList<>());
+        if (!executor.sessionGroup.containsKey(executorID)) {
+            executor.sessionGroup.put(executorID, new ArrayList<>());
         }
-        client.sessionGroup.get(executor).add(sessionId);
+        executor.sessionGroup.get(executorID).add(sessionId);
         registered = true;
     }
 
@@ -113,8 +113,8 @@ public class AgentServerHandler
     public void visitClassExecution(final ExecutionData data) {
         // logger.info(sessionId + " get data");
         // logger.info(data.getName());
-        if (client.agentStore.containsKey(sessionId)) {
-            ExecutionDataStore store = client.agentStore.get(sessionId);
+        if (executor.agentStore.containsKey(sessionId)) {
+            ExecutionDataStore store = executor.agentStore.get(sessionId);
 
             ExecutionData preData = store.get(data.getId());
             if (preData != null) {
@@ -122,11 +122,11 @@ public class AgentServerHandler
                 data.merge(preData, false);
             }
             store.put(data);
-            client.agentStore.put(sessionId, store);
+            executor.agentStore.put(sessionId, store);
         } else {
             ExecutionDataStore store = new ExecutionDataStore();
             store.put(data);
-            client.agentStore.put(sessionId, store);
+            executor.agentStore.put(sessionId, store);
         }
         // synchronized (fileWriter) {
         // fileWriter.visitClassExecution(data);
