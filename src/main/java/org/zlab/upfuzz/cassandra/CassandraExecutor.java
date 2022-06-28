@@ -40,8 +40,6 @@ public class CassandraExecutor extends Executor {
 
     CassandraCqlshDaemon cqlsh = null;
 
-    DockerBuilder docker;
-
     Process cassandraProcess;
     // static final String jacocoOptions =
     // "=append=false,includes=org.apache.cassandra.*,output=dfe,address=localhost,sessionid=";
