@@ -95,11 +95,13 @@ public class CassandraDockerCompose {
             + "            config:\n"
             + "                - subnet: ${subnet}\n";
 
-    String subnet;
     String systemID;
     String executorID;
     String originalVersion;
     String upgradedVersion;
+
+    String subnet;
+    int subnetID;
     String composeYaml;
     String hostIP;
     String originalClusterIP;
@@ -115,11 +117,14 @@ public class CassandraDockerCompose {
         // rename services
 
         // 192.168.24.[(0001~1111)|0000] / 28
-        this.subnet = "192.168.24.241/28";
-        // + Integer.toString(RandomUtils.nextInt(1, 16) << 4) + "/28";
-        this.hostIP = "192.168.24.241";
-        this.originalClusterIP = "192.168.24.242";
-        this.upgradedClusterIP = "192.168.24.243";
+        //
+        this.subnetID = RandomUtils.nextInt(1, 256);
+        this.subnet = "192.168.+ " + Integer.toString(subnetID) + ".1/24";
+        this.hostIP = "192.168.+ " + Integer.toString(subnetID) + ".1";
+        this.originalClusterIP = "192.168." + Integer.toString(subnetID)
+                + ".2";
+        this.upgradedClusterIP = "192.168.24" + Integer.toString(subnetID)
+                + ".3";
         this.systemID = executor.systemID;
         this.executorID = executor.executorID;
         this.originalVersion = Config.getConf().originalVersion;
