@@ -119,8 +119,8 @@ public class CassandraDockerCompose {
         // 192.168.24.[(0001~1111)|0000] / 28
         //
         this.subnetID = RandomUtils.nextInt(1, 256);
-        this.subnet = "192.168.+ " + Integer.toString(subnetID) + ".1/24";
-        this.hostIP = "192.168.+ " + Integer.toString(subnetID) + ".1";
+        this.subnet = "192.168." + Integer.toString(subnetID) + ".1/24";
+        this.hostIP = "192.168." + Integer.toString(subnetID) + ".1";
         this.originalClusterIP = "192.168." + Integer.toString(subnetID)
                 + ".2";
         this.upgradedClusterIP = "192.168." + Integer.toString(subnetID)
