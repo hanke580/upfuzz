@@ -123,7 +123,7 @@ public class CassandraDockerCompose {
         this.hostIP = "192.168.+ " + Integer.toString(subnetID) + ".1";
         this.originalClusterIP = "192.168." + Integer.toString(subnetID)
                 + ".2";
-        this.upgradedClusterIP = "192.168.24" + Integer.toString(subnetID)
+        this.upgradedClusterIP = "192.168." + Integer.toString(subnetID)
                 + ".3";
         this.systemID = executor.systemID;
         this.executorID = executor.executorID;
