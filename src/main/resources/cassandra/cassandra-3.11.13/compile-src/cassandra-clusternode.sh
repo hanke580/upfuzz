@@ -16,10 +16,10 @@ echo "Before starting Cassandra on $IP... Config dir $CASSANDRA_CONFIG" > /tmp.l
 grep address $CASSANDRA_CONFIG/cassandra.yaml >> /tmp.log 2>&1 
 
 # Dunno why zeroes here
-sed -i -e "s/^rpc_address.*/rpc_address: $IP/" $CASSANDRA_CONFIG/cassandra.yaml >>  /tmp.log 2>&1 
+# sed -i -e "s/^rpc_address.*/rpc_address: $IP/" $CASSANDRA_CONFIG/cassandra.yaml >>  /tmp.log 2>&1
 
 # Listen on IP:port of the container
-sed -i -e "s/^listen_address.*/listen_address: $IP/" $CASSANDRA_CONFIG/cassandra.yaml >>  /tmp.log 2>&1 
+# sed -i -e "s/^listen_address.*/listen_address: $IP/" $CASSANDRA_CONFIG/cassandra.yaml >>  /tmp.log 2>&1
 
 # Change the logging level accordingly
 if [ -z "$CASSANDRA_LOGGING_LEVEL" ]; then
