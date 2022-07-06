@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.codehaus.plexus.logging.LoggerManager;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.CommandSequence;
@@ -20,6 +22,11 @@ import org.zlab.upfuzz.fuzzingengine.Server.Seed;
 import org.zlab.upfuzz.utils.Pair;
 
 public abstract class Executor implements IExecutor {
+    protected final Logger logger = LogManager.getLogger(getClass());
+
+    public int agentPort;
+
+    public Long timestamp = 0L;
 
     public enum FailureType {
         UPGRADE_FAIL, RESULT_INCONSISTENCY
@@ -32,9 +39,9 @@ public abstract class Executor implements IExecutor {
     public Map<Integer, List<String>> testId2oldVersionResult;
     public Map<Integer, List<String>> testId2newVersionResult;
 
-    public DockerBuilder docker;
+    public DockerBuilder originalClusterDocker;
+    public DockerBuilder upgradedClusterDocker;
 
-    protected Logger logger;
     /**
      * key: String -> agentId value: Codecoverage for this agent
      */
@@ -49,7 +56,7 @@ public abstract class Executor implements IExecutor {
     public Map<String, List<String>> sessionGroup;
 
     /* socket for client and agents to communicate*/
-    public AgentServerSocket clientSocket;
+    public AgentServerSocket agentSocket;
 
     protected Executor() {
         testId2commandSequence = new HashMap<>();
@@ -193,6 +200,6 @@ public abstract class Executor implements IExecutor {
     }
 
     public String getSubnet() {
-        return docker.getHostIP();
+        return originalClusterDocker.getHostIP();
     }
 }

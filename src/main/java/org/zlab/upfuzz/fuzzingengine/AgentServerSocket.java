@@ -21,8 +21,8 @@ public class AgentServerSocket extends Thread {
     public AgentServerSocket(Executor executor)
             throws UnknownHostException, IOException {
         this.executor = executor;
-        this.server = new ServerSocket(Config.getConf().clientPort, 0,
-                InetAddress.getByName(executor.getSubnet()));
+        this.server = new ServerSocket(0, 0,
+                InetAddress.getByName("0.0.0.0"));
         logger.info("Client socket Server start at: "
                 + this.server.getLocalSocketAddress());
         this.fileWriter = new ExecutionDataWriter(
@@ -41,5 +41,11 @@ public class AgentServerSocket extends Thread {
                 e.printStackTrace();
             }
         }
+    }
+
+    public int getPort() {
+        logger.debug(server.getLocalSocketAddress());
+        logger.debug(server.getLocalPort());
+        return server.getLocalPort();
     }
 }

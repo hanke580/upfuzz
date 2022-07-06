@@ -13,6 +13,7 @@ import java.net.Socket;
 import java.nio.file.Paths;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.logging.log4j.LogManager;
@@ -63,12 +64,12 @@ public class CassandraCqlshDaemon {
                 logger.info("Connect to cqlsh ...");
                 socket = new Socket();
                 socket.connect(new InetSocketAddress(ipAddress, port),
-                        30 * 1000);
+                        3 * 1000);
                 return;
             } catch (IOException e) {
             }
             try {
-                Thread.sleep(10 * 1000);
+                Thread.sleep(3 * 1000);
             } catch (InterruptedException e) {
             }
         }
@@ -186,13 +187,16 @@ public class CassandraCqlshDaemon {
         if (cnt == -1) {
             throw new IllegalStateException("cqlsh daemon crashed");
         }
-        String cqlshMess = new String(chars, 0, cnt);
+        String cqlshMessage = new String(chars, 0, cnt);
 
         // System.out.println("receive size: " + cqlshMess.length() + " \n" +
         // cqlshMess);
 
-        CqlshPacket cqlshPacket = new Gson().fromJson(cqlshMess,
+        CqlshPacket cqlshPacket = new Gson().fromJson(cqlshMessage,
                 CqlshPacket.class);
+        ;
+        logger.trace("CqlshMessage:\n" + new GsonBuilder().setPrettyPrinting()
+                .create().toJson(cqlshPacket));
         return cqlshPacket;
     }
 
@@ -230,6 +234,9 @@ public class CassandraCqlshDaemon {
      * Destroy the current process.
      */
     public void destroy() {
-        cqlsh.destroy();
+        // Do need to destroy
+        // docker-compose are in charge
+        //
+        // cqlsh.destroy();
     }
 }

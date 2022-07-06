@@ -123,12 +123,22 @@ public class FuzzingClient {
             testID2oriResults.put(tp.testPacketID, oriResult);
         }
 
+        // FIXME for local debug
+        // while (true) {
+        // try {
+        // Thread.sleep(1000);
+        // } catch (InterruptedException e) {
+        // e.printStackTrace();
+        // break;
+        // }
+        // }
+
         // Perform upgrade (1) check whether upgrade succeeds (2) new version
         // read
         // results, compare
+        executor.teardown();
         executor.saveSnapshot();
         executor.moveSnapShot();
-        executor.teardown();
 
         StackedFeedbackPacket stackedFeedbackPacket = new StackedFeedbackPacket();
         stackedFeedbackPacket.stackedCommandSequenceStr = recordAllStackedTests(
