@@ -9,12 +9,11 @@ import java.util.Map;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.codehaus.plexus.logging.LoggerManager;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.docker.DockerBuilder;
+import org.zlab.upfuzz.docker.IDockerCluster;
 import org.zlab.upfuzz.fuzzingengine.AgentServerHandler;
 import org.zlab.upfuzz.fuzzingengine.AgentServerSocket;
 import org.zlab.upfuzz.fuzzingengine.Packet.TestPacket;
@@ -39,8 +38,8 @@ public abstract class Executor implements IExecutor {
     public Map<Integer, List<String>> testId2oldVersionResult;
     public Map<Integer, List<String>> testId2newVersionResult;
 
-    public DockerBuilder originalClusterDocker;
-    public DockerBuilder upgradedClusterDocker;
+    public IDockerCluster originalCluster;
+    public IDockerCluster upgradedCluster;
 
     /**
      * key: String -> agentId value: Codecoverage for this agent
@@ -200,6 +199,6 @@ public abstract class Executor implements IExecutor {
     }
 
     public String getSubnet() {
-        return originalClusterDocker.getHostIP();
+        return originalCluster.getNetworkIP();
     }
 }

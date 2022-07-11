@@ -16,10 +16,10 @@ echo "Before starting Cassandra on $IP... Config dir $CASSANDRA_CONFIG" > /tmp.l
 grep address $CASSANDRA_CONFIG/cassandra.yaml >> /tmp.log 2>&1 
 
 # Dunno why zeroes here
-# sed -i -e "s/^rpc_address.*/rpc_address: $IP/" $CASSANDRA_CONFIG/cassandra.yaml >>  /tmp.log 2>&1
+sed -i -e "s/^rpc_address.*/rpc_address: $IP/" $CASSANDRA_CONFIG/cassandra.yaml >>  /tmp.log 2>&1
 
 # Listen on IP:port of the container
-# sed -i -e "s/^listen_address.*/listen_address: $IP/" $CASSANDRA_CONFIG/cassandra.yaml >>  /tmp.log 2>&1
+sed -i -e "s/^listen_address.*/listen_address: $IP/" $CASSANDRA_CONFIG/cassandra.yaml >>  /tmp.log 2>&1
 
 # Change the logging level accordingly
 if [ -z "$CASSANDRA_LOGGING_LEVEL" ]; then
@@ -36,7 +36,7 @@ if [ -z "$CASSANDRA_SEEDS" ]; then
 	echo "No seeds specified, being my own seed..."
 	CASSANDRA_SEEDS=$SEEDS
 fi
-# sed -i -e "s/- seeds: \"127.0.0.1\"/- seeds: \"$CASSANDRA_SEEDS\"/" $CASSANDRA_CONFIG/cassandra.yaml
+sed -i -e "s/- seeds: \"127.0.0.1\"/- seeds: \"$CASSANDRA_SEEDS\"/" $CASSANDRA_CONFIG/cassandra.yaml
 
 # With virtual nodes disabled, we need to manually specify the token
 # Not needed for Cassandra 0.8

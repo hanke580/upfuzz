@@ -3,16 +3,16 @@ package org.zlab.upfuzz.docker;
 import java.io.File;
 import java.nio.file.Path;
 
-public interface DockerBuilder {
-    String getHostIP();
-
-    String originalClusterIP();
+public interface IDockerCluster {
+    String getNetworkIP();
 
     int start();
 
     void teardown();
 
-    boolean buildDocker();
+    boolean build();
 
     Path getDataPath();
+
+    IDocker getDocker(int i);
 }

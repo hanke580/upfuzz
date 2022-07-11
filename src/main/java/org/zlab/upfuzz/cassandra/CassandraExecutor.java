@@ -51,9 +51,6 @@ public class CassandraExecutor extends Executor {
 
         timestamp = System.currentTimeMillis();
 
-        originalClusterDocker = new CassandraDockerCompose(this, "original");
-        upgradedClusterDocker = new CassandraDockerCompose(this, "upgraded");
-
         // TODO: GC the old coverage since we already get the overall coverage.
         agentStore = new HashMap<>();
         agentHandler = new HashMap<>();
@@ -95,19 +92,25 @@ public class CassandraExecutor extends Executor {
             System.exit(1);
         }
 
-        originalClusterDocker.buildDocker();
-        upgradedClusterDocker.buildDocker();
+        originalCluster = new CassandraDockerCluster(this, "original",
+                Config.getConf().originalVersion, 2);
+        upgradedCluster = new CassandraDockerCluster(this, "upgraded",
+                Config.getConf().upgradedVersion, 2);
+
+        originalCluster.build();
+        upgradedCluster.build();
+
+        originalCluster.start();
 
         // May change classToIns according to the system...
         logger.info("[Old Version] Cassandra Start...");
-        int ret = originalClusterDocker.start();
+        int ret = originalCluster.start();
         if (ret != 0) {
             logger.error("cassandra " + executorID + " failed to started");
         }
         logger.info("cassandra " + executorID + " started");
 
-        cqlsh = new CassandraCqlshDaemon(
-                originalClusterDocker.originalClusterIP());
+        cqlsh = ((CassandraDocker) originalCluster.getDocker(0)).cqlsh;
 
         logger.info("cqlsh daemon connected");
         // ProcessBuilder cassandraProcessBuilder = new ProcessBuilder(
@@ -161,7 +164,7 @@ public class CassandraExecutor extends Executor {
 
     @Override
     public void teardown() {
-        originalClusterDocker.teardown();
+        originalCluster.teardown();
 
         // ProcessBuilder pb = new ProcessBuilder("bin/nodetool", "stopdaemon");
         // pb.directory(new File(Config.getConf().oldSystemPath));
@@ -195,7 +198,7 @@ public class CassandraExecutor extends Executor {
 
     @Override
     public void upgradeTeardown() {
-        upgradedClusterDocker.teardown();
+        upgradedCluster.teardown();
         // ProcessBuilder pb = new ProcessBuilder("bin/nodetool", "stopdaemon");
         // pb.directory(new File(Config.getConf().newSystemPath));
         // Process p;
@@ -278,8 +281,7 @@ public class CassandraExecutor extends Executor {
         List<String> ret = new LinkedList<>();
         try {
             if (cqlsh == null)
-                cqlsh = new CassandraCqlshDaemon(
-                        originalClusterDocker.originalClusterIP());
+                cqlsh = ((CassandraDocker) originalCluster.getDocker(0)).cqlsh;
             for (String cmd : commandList) {
                 // System.out.println(
                 // "\n\n------------------------------------------------------------
@@ -349,8 +351,8 @@ public class CassandraExecutor extends Executor {
         // Copy the data dir
         // Path oldDataPath = Paths.get(Config.getConf().oldSystemPath, "data");
         // Path newDataPath = Paths.get(Config.getConf().newSystemPath);
-        Path oldDataPath = originalClusterDocker.getDataPath();
-        Path newDataPath = originalClusterDocker.getDataPath();
+        Path oldDataPath = originalCluster.getDataPath();
+        Path newDataPath = originalCluster.getDataPath();
 
         ProcessBuilder pb = new ProcessBuilder("cp", "-r",
                 oldDataPath.toString(), newDataPath.toString());
@@ -375,7 +377,7 @@ public class CassandraExecutor extends Executor {
         // // long startTime = System.currentTimeMillis();
         // Utilities.runProcess(pb, "Upgrade Cassandra");
 
-        upgradedClusterDocker.start();
+        upgradedCluster.start();
 
         // // Add a retry time here
         // boolean started = false;
@@ -400,8 +402,7 @@ public class CassandraExecutor extends Executor {
         // }
 
         try {
-            this.cqlsh = new CassandraCqlshDaemon(
-                    upgradedClusterDocker.originalClusterIP());
+            this.cqlsh = ((CassandraDocker) upgradedCluster.getDocker(0)).cqlsh;
         } catch (Exception e) {
             logger.error("Failed to connect to upgraded cassandra cluster", e);
         }
