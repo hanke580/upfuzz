@@ -50,7 +50,14 @@ public class FuzzingClient {
         } else if (Config.getConf().system.equals("hdfs")) {
             executor = new HdfsExecutor();
         }
-        t = new Thread(() -> executor.startup()); // Startup before tests
+        t = new Thread(() -> {
+            try {
+                executor.startup();
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+        }); // Startup before tests
         t.start();
     }
 
@@ -82,9 +89,10 @@ public class FuzzingClient {
      * test cases of stackedFeedbackPacket, perform an upgrade process, check
      * the (1) upgrade process failed (2) result inconsistency
      * @param stackedTestPacket the stacked test packets from server
+     * @throws Exception
      */
     public StackedFeedbackPacket executeStackedTestPacket(
-            StackedTestPacket stackedTestPacket) {
+            StackedTestPacket stackedTestPacket) throws Exception {
         // Run all the tests, collect (1) coverage and (2) old version read
         // results
 
@@ -109,6 +117,8 @@ public class FuzzingClient {
 
         FeedBack fb;
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
+            logger.info("Execute testpacket " + tp.systemID + " "
+                    + tp.testPacketID);
             executor.execute(tp);
             fb = new FeedBack();
             fb.originalCodeCoverage = executor.collect("original");
@@ -123,20 +133,10 @@ public class FuzzingClient {
             testID2oriResults.put(tp.testPacketID, oriResult);
         }
 
-        // FIXME for local debug
-        // while (true) {
-        // try {
-        // Thread.sleep(1000);
-        // } catch (InterruptedException e) {
-        // e.printStackTrace();
-        // break;
-        // }
-        // }
-
         // Perform upgrade (1) check whether upgrade succeeds (2) new version
         // read
         // results, compare
-        executor.teardown();
+        // executor.teardown();
         executor.saveSnapshot();
         executor.moveSnapShot();
 
@@ -146,19 +146,15 @@ public class FuzzingClient {
 
         boolean ret = executor.upgradeTest();
 
-        t = new Thread(() -> {
-            executor.upgradeTeardown();
-            executor.clearState();
-            executor.startup();
-        });
-        t.start();
-
         if (!ret) {
             // upgrade process failed
+            logger.info("upgrade failed");
             stackedFeedbackPacket.isUpgradeProcessFailed = true;
         } else {
             // upgrade process succeeds, compare results here
-            testID2upResults = executor.testId2newVersionResult;
+            logger.info("upgrade succeed");
+            testID2upResults = executor.getTestId2newVersionResult();
+
             for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
                 Pair<Boolean, String> compareRes = executor
                         .checkResultConsistency(
@@ -190,6 +186,12 @@ public class FuzzingClient {
                 }
             }
         }
+        t = new Thread(() -> {
+            executor.upgradeTeardown();
+            executor.clearState();
+        });
+        t.start();
+
         return stackedFeedbackPacket;
     }
 

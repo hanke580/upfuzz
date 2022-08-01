@@ -70,9 +70,10 @@ class FuzzingClientSocket implements Runnable {
                 }
                 }
                 readHeader();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 System.out.println("intType = " + intType);
                 e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
     }

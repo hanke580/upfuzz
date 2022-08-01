@@ -38,8 +38,7 @@ public abstract class Executor implements IExecutor {
     public Map<Integer, List<String>> testId2oldVersionResult;
     public Map<Integer, List<String>> testId2newVersionResult;
 
-    public IDockerCluster originalCluster;
-    public IDockerCluster upgradedCluster;
+    public IDockerCluster dockerCluster;
 
     /**
      * key: String -> agentId value: Codecoverage for this agent
@@ -69,6 +68,24 @@ public abstract class Executor implements IExecutor {
         this.systemID = systemID;
     }
 
+    public Map<Integer, List<String>> getTestId2newVersionResult() {
+        return testId2newVersionResult;
+    }
+
+    public void setTestId2newVersionResult(
+            Map<Integer, List<String>> testId2newVersionResult) {
+        this.testId2newVersionResult = testId2newVersionResult;
+    }
+
+    public Map<Integer, List<String>> getTestId2oldVersionResult() {
+        return testId2oldVersionResult;
+    }
+
+    public void setTestId2oldVersionResult(
+            Map<Integer, List<String>> testId2oldVersionResult) {
+        this.testId2oldVersionResult = testId2oldVersionResult;
+    }
+
     public void clearState() {
         testId2commandSequence.clear();
         testId2oldVersionResult.clear();
@@ -79,7 +96,7 @@ public abstract class Executor implements IExecutor {
         return systemID + "-" + executorID;
     }
 
-    abstract public void startup();
+    abstract public void startup() throws Exception;
 
     abstract public void teardown();
 
@@ -199,6 +216,6 @@ public abstract class Executor implements IExecutor {
     }
 
     public String getSubnet() {
-        return originalCluster.getNetworkIP();
+        return dockerCluster.getNetworkIP();
     }
 }

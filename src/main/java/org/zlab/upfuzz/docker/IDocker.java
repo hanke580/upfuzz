@@ -6,11 +6,13 @@ import java.nio.file.Path;
 public interface IDocker {
     String getNetworkIP();
 
-    int start();
+    int start() throws Exception;
 
     void teardown();
 
-    boolean build();
+    boolean build() throws Exception;
+
+    void upgrade() throws Exception;
 
     Path getDataPath();
 

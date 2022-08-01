@@ -10,7 +10,7 @@ import time
 import csv
 import codecs
 import SocketServer as socketserver
-
+import socket
 
 from six import StringIO
 
@@ -216,7 +216,18 @@ class Tee(object):
         return True
 
 if __name__ == "__main__":
-    port = 18251
+    port = os.getenv("CQLSH_DAEMON_PORT")
+    if port:
+        port = int(port)
+    if not isinstance(port, int):
+        raise TypeError("port must be an integer")
     # TODO change to client and retry with timeout
-    server = socketserver.TCPServer(("0.0.0.0", int(port)), TCPHandler)
-    server.serve_forever()
+    print("use port: " + str(port))
+    while True:
+        try:
+            server = socketserver.TCPServer(("0.0.0.0", port), TCPHandler)
+            server.serve_forever()
+        except socket.error:
+            pass
+        except:
+            exit()

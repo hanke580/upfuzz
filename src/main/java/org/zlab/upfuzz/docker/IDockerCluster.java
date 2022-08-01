@@ -10,9 +10,11 @@ public interface IDockerCluster {
 
     void teardown();
 
-    boolean build();
+    boolean build() throws Exception;
 
     Path getDataPath();
+
+    void upgrade() throws Exception;
 
     IDocker getDocker(int i);
 }

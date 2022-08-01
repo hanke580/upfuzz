@@ -9,11 +9,12 @@ import sys
 import time
 import csv
 import codecs
-
+import socket
 
 from six import StringIO
 
 from cqlsh import (
+    DEFAULT_CQLSHRC,
     setup_cqlruleset,
     setup_cqldocs,
     init_history,
@@ -23,6 +24,7 @@ from cqlsh import (
     VersionNotSupported,
 )
 
+from cqlshlib import cql3handling, pylexotron, sslhandling, cqlshhandling, authproviderhandling
 from cqlshlib.util import get_file_encoding_bomsize, trim_if_present
 from cqlshlib.formatting import (
     DEFAULT_TIMESTAMP_FORMAT,
@@ -98,32 +100,35 @@ def get_shell(options, hostname, port):
                 )
 
     try:
-        shell = Shell(
-            hostname,
-            port,
-            color=options.color,
-            username=options.username,
-            password=options.password,
-            stdin=stdin,
-            tty=options.tty,
-            completekey=options.completekey,
-            browser=options.browser,
-            protocol_version=options.protocol_version,
-            cqlver=options.cqlversion,
-            keyspace=options.keyspace,
-            display_timestamp_format=options.time_format,
-            display_nanotime_format=options.nanotime_format,
-            display_date_format=options.date_format,
-            display_float_precision=options.float_precision,
-            display_double_precision=options.double_precision,
-            display_timezone=timezone,
-            max_trace_wait=options.max_trace_wait,
-            ssl=options.ssl,
-            single_statement=options.execute,
-            request_timeout=options.request_timeout,
-            connect_timeout=options.connect_timeout,
-            encoding=options.encoding,
-        )
+        shell = Shell(hostname,
+                      port,
+                      color=options.color,
+                      username=options.username,
+                      stdin=stdin,
+                      tty=options.tty,
+                      completekey=options.completekey,
+                      browser=options.browser,
+                      protocol_version=options.protocol_version,
+                      cqlver=options.cqlversion,
+                      keyspace=options.keyspace,
+                      display_timestamp_format=options.time_format,
+                      display_nanotime_format=options.nanotime_format,
+                      display_date_format=options.date_format,
+                      display_float_precision=options.float_precision,
+                      display_double_precision=options.double_precision,
+                      display_timezone=timezone,
+                      max_trace_wait=options.max_trace_wait,
+                      ssl=options.ssl,
+                      single_statement=options.execute,
+                      request_timeout=options.request_timeout,
+                      connect_timeout=options.connect_timeout,
+                      encoding=options.encoding,
+                      auth_provider=authproviderhandling.load_auth_provider(
+                          config_file=DEFAULT_CQLSHRC,
+                          cred_file=options.credentials,
+                          username=options.username,
+                          password=options.password))
+
     except KeyboardInterrupt:
         sys.exit("Connection aborted.")
     except CQL_ERRORS as e:
@@ -145,7 +150,7 @@ def get_shell(options, hostname, port):
     return shell
 
 
-class TCPHandlere(socketserver.BaseRequestHandler):
+class TCPHandler(socketserver.BaseRequestHandler):
     """
     The request handler class for our server.
 
@@ -155,16 +160,32 @@ class TCPHandlere(socketserver.BaseRequestHandler):
     """
 
     shell = None
-    origin_stdout = None
-    origin_stderr = None
+    origin_stdout = sys.stdout
+    origin_stderr = sys.stderr
 
     def __init__(self, request, client_address, server):
-        self.log_stream = StringIO()
-        self.origin_stdout = sys.stdout
-        self.origin_stderr = sys.stderr
-        sys.stdout = sys.stderr = self.log_stream
+        self.stdout_buffer = Tee("stdout")
+        self.stderr_buffer = Tee("stderr")
+        # self.origin_stdout = sys.stdout
+        # self.origin_stderr = sys.stderr
+        sys.stdout = self.stdout_buffer
+        sys.stderr = self.stderr_buffer
         self.shell = get_shell(*read_options(sys.argv[1:], os.environ))
-        super(TCPHandlere, self).__init__(request, client_address, server)
+        self.request = request
+        self.client_address = client_address
+        self.server = server
+        self.setup()
+        try:
+            self.handle()
+        finally:
+            self.finish()
+
+        # self.log_stream = StringIO()
+        # self.origin_stdout = sys.stdout
+        # self.origin_stderr = sys.stderr
+        # sys.stdout = sys.stderr = self.log_stream
+        # self.shell = get_shell(*read_options(sys.argv[1:], os.environ))
+        # super(TCPHandlere, self).__init__(request, client_address, server)
 
     def handle(self):
         # self.request is the TCP socket connected to the client
@@ -183,16 +204,69 @@ class TCPHandlere(socketserver.BaseRequestHandler):
                     "cmd": cmd,
                     "exitValue": 0 if ret == True else 1,
                     "timeUsage": end_time - start_time,
-                    "message": self.log_stream.getvalue(),
+                    "message": self.stdout_buffer.getvalue(),
+                    "error": self.stderr_buffer.getvalue(),
                 }
-                self.log_stream.truncate(0)
+                self.stdout_buffer.truncate(0)
+                self.stderr_buffer.truncate(0)
                 self.request.sendall(json.dumps(resp).encode("ascii"))
         except BrokenPipeError as e:
             print(e)
             exit(1)
 
+class Tee(object):
+    """
+    replace the stdout but also write to a buffer
+    """
+
+    def __init__(self, io_type):
+        self.io = io_type
+        if self.io == "stdout":
+            self.origin = sys.stdout
+        elif self.io == "stderr":
+            self.origin = sys.stderr
+        self.buffer = StringIO()
+
+    def __del__(self):
+        if self.io == "stdout":
+            sys.stdout = self.origin
+        elif self.io == "stderr":
+            sys.stderr = self.origin
+
+    def write(self, data):
+        self.origin.write(data)
+        self.buffer.write(data)
+
+    def flush(self):
+        self.origin.flush()
+
+    def getvalue(self):
+        return self.buffer.getvalue()
+
+    def truncate(self, index):
+        return self.buffer.truncate(index)
+
+    def isatty(self):
+        return True
+
 
 if __name__ == "__main__":
-    port = __reserved_port__
-    server = socketserver.TCPServer(("localhost", int(port)), TCPHandlere)
-    server.serve_forever()
+    port = os.getenv("CQLSH_DAEMON_PORT")
+    host = os.getenv("CQLSH_HOST")
+    if not host:
+        print("No CQLSH_HOST set")
+        exit()
+    if port:
+        port = int(port)
+    if not isinstance(port, int):
+        raise TypeError("port must be an integer")
+    print("use " + host + ":" + str(port))
+    while True:
+        try:
+            server = socketserver.TCPServer((host, port), TCPHandler)
+            server.serve_forever()
+        except socket.error as e:
+            time.sleep(5)
+            print(e)
+        except:
+            exit()

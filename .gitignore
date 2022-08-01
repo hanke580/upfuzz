@@ -6,6 +6,10 @@ config.json
 corpus/
 *.exec
 bu.sh
+**/compile-src/cassandra
+prebuild/
+fuzzing_storage
+
 
 ##############################
 ## python

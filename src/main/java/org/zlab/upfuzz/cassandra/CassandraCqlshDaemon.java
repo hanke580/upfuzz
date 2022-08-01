@@ -56,15 +56,36 @@ public class CassandraCqlshDaemon {
         }
     }
 
+    public CassandraCqlshDaemon(String ipAddress, int port) {
+        int retry = 30;
+        for (int i = 0; i < retry; ++i) {
+            try {
+                logger.info("Connect to cqlsh:" + ipAddress + "...");
+                socket = new Socket();
+                socket.connect(new InetSocketAddress(ipAddress, port),
+                        3 * 1000);
+                logger.info("Cqlsh connected: " + ipAddress);
+                return;
+            } catch (IOException e) {
+            }
+            try {
+                Thread.sleep(3 * 1000);
+            } catch (InterruptedException e) {
+            }
+        }
+        throw new IllegalAccessError("cannot connect to cqlsh at " + ipAddress);
+    }
+
     public CassandraCqlshDaemon(String ipAddress) {
         port = 18251;
         int retry = 30;
         for (int i = 0; i < retry; ++i) {
             try {
-                logger.info("Connect to cqlsh ...");
+                logger.info("Connect to cqlsh:" + ipAddress + "...");
                 socket = new Socket();
                 socket.connect(new InetSocketAddress(ipAddress, port),
                         3 * 1000);
+                logger.info("Cqlsh connected: " + ipAddress);
                 return;
             } catch (IOException e) {
             }
@@ -194,7 +215,7 @@ public class CassandraCqlshDaemon {
 
         CqlshPacket cqlshPacket = new Gson().fromJson(cqlshMessage,
                 CqlshPacket.class);
-        ;
+
         logger.trace("CqlshMessage:\n" + new GsonBuilder().setPrettyPrinting()
                 .create().toJson(cqlshPacket));
         return cqlshPacket;

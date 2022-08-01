@@ -4,9 +4,12 @@ import java.io.File;
 
 public abstract class DockerMeta {
     public File workdir;
+    public String[] env;
+    public String name;
     public String type;
     public String system;
-    public String version;
+    public String originalVersion;
+    public String upgradedVersion;
     public String networkName;
     public String subnet;
     public String networkIP;

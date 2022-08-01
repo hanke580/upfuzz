@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface IExecutor {
 
-    public void startup();
+    void startup() throws Exception;
 
     void teardown();
 

@@ -66,7 +66,7 @@ public class AgentServerHandler
                 okCMD.countDown();
             }
 
-            logger.info("connection closed");
+            logger.debug("connection closed");
             socket.close();
             // synchronized (fileWriter) {
             // fileWriter.flush();
@@ -85,9 +85,9 @@ public class AgentServerHandler
             System.err.println("Invalid sessionId " + sessionId);
             return;
         }
-        logger.info("Agent " + info.getId() + " registered");
+        logger.info("Agent" + socket.getRemoteSocketAddress().toString() + " "
+                + info.getId() + " registered");
         executor.agentHandler.put(sessionId, this);
-        logger.info("agent handler add " + sessionId);
 
         String identifier = sessionSplit[0], executorID = sessionSplit[1],
                 index = sessionSplit[2];
@@ -102,7 +102,7 @@ public class AgentServerHandler
         if (!registered) {
             register(info);
         } else {
-            logger.info(
+            logger.debug(
                     "Retrieving execution Data for session: " + info.getId());
         }
         // synchronized (fileWriter) {
@@ -140,7 +140,7 @@ public class AgentServerHandler
         try {
             writer.visitDumpCommand(true, true);
         } catch (IOException e) {
-            logger.error("agent connection " + sessionId + "closed");
+            logger.debug("agent connection " + sessionId + " closed");
             return;
         }
         okCMD = new CountDownLatch(1);

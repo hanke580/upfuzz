@@ -50,7 +50,7 @@ public class CassandraDockerCluster implements IDockerCluster {
     static final String inclueds = "org.apache.cassandra.*";
     static final String excludes = "org.apache.cassandra.metrics.*:org.apache.cassandra.net.*:org.apache.cassandra.io.sstable.format.SSTableReader.*:org.apache.cassandra.service.*";
 
-    CassandraDockerCluster(CassandraExecutor executor, String type,
+    CassandraDockerCluster(CassandraExecutor executor,
             String version,
             int nodeNum) {
         this.networkName = MessageFormat.format(
@@ -72,32 +72,33 @@ public class CassandraDockerCluster implements IDockerCluster {
         this.executor = executor;
         this.executorID = executor.executorID;
         this.version = version;
-        this.type = type;
+        this.type = "original";
         this.originalVersion = Config.getConf().originalVersion;
         this.upgradedVersion = Config.getConf().upgradedVersion;
         this.system = executor.systemID;
         this.dockers = new CassandraDocker[nodeNum];
+
+        DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+        String executorTimestamp = formatter.format(executor.timestamp);
+        this.workdir = new File(
+                "fuzzing_storage/" + executor.systemID + "/" + originalVersion
+                        + "/" +
+                        upgradedVersion + "/" + executorTimestamp + "-"
+                        + executor.executorID);
+
     }
 
-    public boolean build() {
+    public boolean build() throws IOException {
         for (int i = 0; i < dockers.length; ++i) {
             dockers[i] = new CassandraDocker(this, i);
+            dockers[i].build();
         }
-        dockers[0].build();
         return true;
     }
 
     public int start() {
-        DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
-        String executorTimestamp = formatter.format(executor.timestamp);
-        String dockerTimestamp = formatter.format(System.currentTimeMillis());
-
-        workdir = new File(
-                "fuzzing_storage/" + executor.systemID + "/" + originalVersion
-                        + "/" +
-                        upgradedVersion + "/" + executorTimestamp + "-"
-                        + executor.executorID + "/" + dockerTimestamp
-                        + "/" + type);
+        // String dockerTimestamp =
+        // formatter.format(System.currentTimeMillis());
 
         File composeFile = new File(workdir, "docker-compose.yaml");
         if (!workdir.exists()) {
@@ -131,6 +132,15 @@ public class CassandraDockerCluster implements IDockerCluster {
         return -1;
     }
 
+    public void upgrade() throws Exception {
+        logger.info("Cluster upgrading...");
+        type = "upgraded";
+        for (int i = 0; i < dockers.length; ++i) {
+            dockers[i].upgrade();
+        }
+        logger.info("Cluster upgraded");
+    }
+
     public void teardown() {
         try {
             Process buildProcess = Utilities.exec(
@@ -141,10 +151,6 @@ public class CassandraDockerCluster implements IDockerCluster {
             logger.error("failed to teardown docker", e);
         }
 
-    }
-
-    public Path getDataPath() {
-        return Paths.get(workdir.toString(), "/persistent/data/n1data");
     }
 
     @Override
@@ -184,6 +190,11 @@ public class CassandraDockerCluster implements IDockerCluster {
         formatMap.put("networkName", networkName);
         StringSubstitutor sub = new StringSubstitutor(formatMap);
         this.composeYaml = sub.replace(template);
+    }
+
+    @Override
+    public Path getDataPath() {
+        return Paths.get(workdir.toString(), "persistent");
     }
 
 }

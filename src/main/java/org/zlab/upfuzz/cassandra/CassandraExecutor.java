@@ -81,7 +81,7 @@ public class CassandraExecutor extends Executor {
     }
 
     @Override
-    public void startup() {
+    public void startup() throws Exception {
         try {
             agentSocket = new AgentServerSocket(this);
             agentSocket.setDaemon(true);
@@ -92,25 +92,20 @@ public class CassandraExecutor extends Executor {
             System.exit(1);
         }
 
-        originalCluster = new CassandraDockerCluster(this, "original",
+        dockerCluster = new CassandraDockerCluster(this,
                 Config.getConf().originalVersion, 2);
-        upgradedCluster = new CassandraDockerCluster(this, "upgraded",
-                Config.getConf().upgradedVersion, 2);
 
-        originalCluster.build();
-        upgradedCluster.build();
-
-        originalCluster.start();
+        dockerCluster.build();
 
         // May change classToIns according to the system...
         logger.info("[Old Version] Cassandra Start...");
-        int ret = originalCluster.start();
+        int ret = dockerCluster.start();
         if (ret != 0) {
             logger.error("cassandra " + executorID + " failed to started");
         }
         logger.info("cassandra " + executorID + " started");
 
-        cqlsh = ((CassandraDocker) originalCluster.getDocker(0)).cqlsh;
+        cqlsh = ((CassandraDocker) dockerCluster.getDocker(0)).cqlsh;
 
         logger.info("cqlsh daemon connected");
         // ProcessBuilder cassandraProcessBuilder = new ProcessBuilder(
@@ -164,7 +159,7 @@ public class CassandraExecutor extends Executor {
 
     @Override
     public void teardown() {
-        originalCluster.teardown();
+        dockerCluster.teardown();
 
         // ProcessBuilder pb = new ProcessBuilder("bin/nodetool", "stopdaemon");
         // pb.directory(new File(Config.getConf().oldSystemPath));
@@ -198,7 +193,7 @@ public class CassandraExecutor extends Executor {
 
     @Override
     public void upgradeTeardown() {
-        upgradedCluster.teardown();
+        // dockerCluster.teardown();
         // ProcessBuilder pb = new ProcessBuilder("bin/nodetool", "stopdaemon");
         // pb.directory(new File(Config.getConf().newSystemPath));
         // Process p;
@@ -281,22 +276,14 @@ public class CassandraExecutor extends Executor {
         List<String> ret = new LinkedList<>();
         try {
             if (cqlsh == null)
-                cqlsh = ((CassandraDocker) originalCluster.getDocker(0)).cqlsh;
+                cqlsh = ((CassandraDocker) dockerCluster.getDocker(0)).cqlsh;
             for (String cmd : commandList) {
-                // System.out.println(
-                // "\n\n------------------------------------------------------------
-                // executor command:\n"
-                // + cmd
-                // +
-                // "\n------------------------------------------------------------\n");
+                logger.trace("cqlsh execute: " + cmd);
                 long startTime = System.currentTimeMillis();
                 CqlshPacket cp = cqlsh.execute(cmd);
                 long endTime = System.currentTimeMillis();
 
                 ret.add(cp.message);
-                // logger.info("ret is: " + cp.exitValue + "\ntime: " +
-                // cp.timeUsage + "\ntime usage(network):"
-                // + (endTime - startTime) / 1000. + "\n");
             }
             // cqlsh.destroy();
         } catch (IOException e) {
@@ -351,19 +338,21 @@ public class CassandraExecutor extends Executor {
         // Copy the data dir
         // Path oldDataPath = Paths.get(Config.getConf().oldSystemPath, "data");
         // Path newDataPath = Paths.get(Config.getConf().newSystemPath);
-        Path oldDataPath = originalCluster.getDataPath();
-        Path newDataPath = originalCluster.getDataPath();
+        //
+        //
+        // Path oldDataPath = originalCluster.getDataPath();
+        // Path newDataPath = originalCluster.getDataPath();
 
-        ProcessBuilder pb = new ProcessBuilder("cp", "-r",
-                oldDataPath.toString(), newDataPath.toString());
-        pb.directory(new File(Config.getConf().oldSystemPath));
-        try {
-            Utilities.runProcess(pb,
-                    "[Executor] Copy the data folder to the new version")
-                    .waitFor();
-        } catch (InterruptedException e) {
-            logger.error("Failed to copy data folder", e);
-        }
+        // ProcessBuilder pb = new ProcessBuilder("cp", "-r",
+        // oldDataPath.toString(), newDataPath.toString());
+        // pb.directory(new File(Config.getConf().oldSystemPath));
+        // try {
+        // Utilities.runProcess(pb,
+        // "[Executor] Copy the data folder to the new version")
+        // .waitFor();
+        // } catch (InterruptedException e) {
+        // logger.error("Failed to copy data folder", e);
+        // }
         return 0;
     }
 
@@ -376,8 +365,6 @@ public class CassandraExecutor extends Executor {
         // Paths.get(Config.getConf().newSystemPath, "logs.txt").toFile());
         // // long startTime = System.currentTimeMillis();
         // Utilities.runProcess(pb, "Upgrade Cassandra");
-
-        upgradedCluster.start();
 
         // // Add a retry time here
         // boolean started = false;
@@ -402,7 +389,8 @@ public class CassandraExecutor extends Executor {
         // }
 
         try {
-            this.cqlsh = ((CassandraDocker) upgradedCluster.getDocker(0)).cqlsh;
+            dockerCluster.upgrade();
+            this.cqlsh = ((CassandraDocker) dockerCluster.getDocker(0)).cqlsh;
         } catch (Exception e) {
             logger.error("Failed to connect to upgraded cassandra cluster", e);
         }
@@ -410,6 +398,7 @@ public class CassandraExecutor extends Executor {
             testId2newVersionResult.put(testId, newVersionExecuteCommands(
                     testId2commandSequence.get(testId).right));
         }
+        logger.info("upgrade test done");
 
         return true;
     }
@@ -418,6 +407,13 @@ public class CassandraExecutor extends Executor {
             List<String> upResult) {
         // This could be override by each system to filter some false positive
         // Such as: the exception is the same, but the print format is different
+
+        if (oriResult == null) {
+            logger.error("original result are null!");
+        }
+        if (upResult == null) {
+            logger.error("upgraded result are null!");
+        }
 
         StringBuilder failureInfo = new StringBuilder("");
         if (oriResult.size() != upResult.size()) {
