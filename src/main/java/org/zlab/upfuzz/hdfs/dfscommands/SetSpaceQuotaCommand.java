@@ -31,7 +31,7 @@ public class SetSpaceQuotaCommand extends DfsadminCommand {
         Parameter quota = new INTType(0, 100).generateRandomParameter(null,
                 null);
 
-        Parameter storageType = new ParameterType.InCollectionType(
+        Parameter storage = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
                 (s, c) -> (((SetSpaceQuotaCommand) c).storageTypeOptions),
                 null).generateRandomParameter(null, null);
@@ -41,7 +41,7 @@ public class SetSpaceQuotaCommand extends DfsadminCommand {
 
         params.add(setSpaceQuotaCmd);
         params.add(quota);
-        params.add(storageType);
+        params.add(storage);
         params.add(dir);
     }
 
