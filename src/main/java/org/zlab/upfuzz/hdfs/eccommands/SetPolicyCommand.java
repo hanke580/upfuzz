@@ -5,22 +5,9 @@ import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomHadoopPathType;
 import org.zlab.upfuzz.hdfs.HdfsState;
-import org.zlab.upfuzz.hdfs.dfscommands.SetSpaceQuotaCommand;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 
-import java.util.LinkedList;
-import java.util.List;
-
 public class SetPolicyCommand extends ErasureCodingCommand {
-
-    public static List<String> policies = new LinkedList<>();
-
-    static {
-        policies.add("RS-3-2-1024k");
-        policies.add("RS-6-3-1024k");
-        policies.add("RS-LEGACY-6-3-1024k");
-        policies.add("XOR-2-1-1024k");
-    }
 
     public SetPolicyCommand(HdfsState hdfsState) {
         Parameter setPolicyCmd = new CONSTANTSTRINGType("-setPolicy")
@@ -37,7 +24,7 @@ public class SetPolicyCommand extends ErasureCodingCommand {
 
         Parameter policy = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
-                (s, c) -> (((SetPolicyCommand) c).policies),
+                (s, c) -> (((ErasureCodingCommand) c).policies),
                 null).generateRandomParameter(null, null);
 
         Parameter replicateOpt = new ParameterType.OptionalType(
@@ -54,6 +41,5 @@ public class SetPolicyCommand extends ErasureCodingCommand {
 
     @Override
     public void updateState(State state) {
-
     }
 }
