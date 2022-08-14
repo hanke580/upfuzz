@@ -8,7 +8,6 @@ import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 
 public class CountCommand extends DfsCommand {
 
-
     /**
      * bin/hdfs dfs -count -q -h -t ARCHIVE /dir
      */
