@@ -12,6 +12,7 @@ public class CassandraTable implements Serializable {
     public String name;
     public List<Parameter> colName2Type;
     public List<Parameter> primaryColName2Type;
+    // Doesn't support composite key now
 
     Set<String> indexes;
 

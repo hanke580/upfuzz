@@ -1278,6 +1278,19 @@ public class CassandraCommands {
                     .generateRandomParameter(state, this);
             this.params.add(insertValues); // Param4
 
+            // Whether use the last columns from where Columns for ORDER BY
+            ParameterType.ConcreteType useOrderType = new BOOLType();
+            Parameter useOrder = useOrderType.generateRandomParameter(state,
+                    this);
+            this.params.add(useOrder); // Param 5
+
+            // Use ASC or DESC
+            // true: ASC, false: DESC
+            ParameterType.ConcreteType ascOrdescType = new BOOLType();
+            Parameter ascOrdesc = ascOrdescType.generateRandomParameter(state,
+                    this);
+            this.params.add(ascOrdesc); // Param 6
+
             updateExecutableCommandString();
         }
 
@@ -1298,8 +1311,13 @@ public class CassandraCommands {
                 }
             }
 
-            sb.append(" FROM " + params.get(0) + "." + params.get(1));
-            if (((List) params.get(3).getValue()).size() > 0) {
+            sb.append(" FROM ").append(params.get(0)).append(".")
+                    .append(params.get(1));
+
+            int whereColsSize = ((List) params.get(3).getValue()).size();
+
+            if (whereColsSize > 0) {
+
                 sb.append(" " + "WHERE" + " ");
                 ParameterType.ConcreteType whereColumnsType = new ParameterType.StreamMapType(
                         null, (s, c) -> (Collection) c.params.get(3).getValue(),
@@ -1312,11 +1330,30 @@ public class CassandraCommands {
 
                 assert whereColumns.size() == whereValues.size();
 
-                for (int i = 0; i < whereColumns.size(); i++) {
-                    sb.append(whereColumns.get(i).toString() + " = "
-                            + whereValues.get(i).toString());
-                    if (i < whereColumns.size() - 1) {
-                        sb.append(" AND ");
+                // Has a where clause
+                if (whereColsSize > 1 && params.size() == 7
+                        && (Boolean) params.get(5).value) {
+                    // has an [order by] clause
+                    int i = 0;
+                    for (; i < whereColumns.size() - 1; i++) {
+                        sb.append(whereColumns.get(i).toString()).append(" = ")
+                                .append(whereValues.get(i).toString());
+                        if (i < whereColumns.size() - 2) {
+                            sb.append(" AND ");
+                        }
+                    }
+                    String order = (Boolean) params.get(6).getValue() ? "ASC"
+                            : "DESC";
+                    sb.append(" ORDER BY ")
+                            .append(whereColumns.get(i).toString()).append(" ")
+                            .append(order);
+                } else {
+                    for (int i = 0; i < whereColumns.size(); i++) {
+                        sb.append(whereColumns.get(i).toString() + " = "
+                                + whereValues.get(i).toString());
+                        if (i < whereColumns.size() - 1) {
+                            sb.append(" AND ");
+                        }
                     }
                 }
             }

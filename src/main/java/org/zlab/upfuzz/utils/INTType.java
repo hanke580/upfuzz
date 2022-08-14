@@ -18,7 +18,7 @@ public class INTType extends ParameterType.ConcreteType {
     public static final int RETRY_POOL_TIME = 5;
 
     // public static final INTType instance = new INTType();
-    public static final String signature = "java.lang.String";
+    public static final String signature = "java.lang.Int";
 
     public INTType() {
         max = null;
