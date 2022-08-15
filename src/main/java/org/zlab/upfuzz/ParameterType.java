@@ -182,20 +182,21 @@ public abstract class ParameterType implements Serializable {
             Collection targetCollection = configuration.operate(s, c);
             if (((Collection) targetCollection).isEmpty())
                 return true;
-            List l;
+            List<Parameter> targetList;
             if (mapFunc == null) {
-                l = (List) (targetCollection).stream()
+                targetList = (List) (targetCollection).stream()
                         .collect(Collectors.toList());
             } else {
-                l = (List) (targetCollection).stream().map(mapFunc)
+                targetList = (List) (targetCollection).stream().map(mapFunc)
                         .collect(Collectors.toList());
             }
-            if (l.contains(p.value)) {
-                return false;
-            } else {
-                assert p.value instanceof Parameter;
-                return ((Parameter) p.value).isValid(s, c);
+
+            List<String> targetStringList = new LinkedList<>();
+            for (Parameter parameter : targetList) {
+                targetStringList.add(parameter.toString());
             }
+
+            return !targetStringList.contains(p.value.toString());
         }
 
         @Override

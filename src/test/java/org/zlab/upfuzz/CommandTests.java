@@ -943,6 +943,28 @@ public class CommandTests {
     }
 
     @Test
+    public void testALTER_TABLE_RENAMECommandGeneration() {
+
+        CassandraState s = new CassandraState();
+
+        CREATE_KEYSPACE cmd0 = new CREATE_KEYSPACE(
+                s);
+        cmd0.updateState(s);
+        System.out.println(cmd0.constructCommandString());
+
+        CREATE_TABLE cmd1 = new CREATE_TABLE(
+                s);
+        cmd1.updateState(s);
+        System.out.println(cmd1.constructCommandString());
+
+        ALTER_TABLE_RENAME cmd2 = new ALTER_TABLE_RENAME(
+                s);
+        System.out.println(cmd2.constructCommandString());
+
+        cmd2.updateState(s);
+    }
+
+    @Test
     public void testReadCommandSequence()
             throws InvocationTargetException, NoSuchMethodException,
             InstantiationException, IllegalAccessException {

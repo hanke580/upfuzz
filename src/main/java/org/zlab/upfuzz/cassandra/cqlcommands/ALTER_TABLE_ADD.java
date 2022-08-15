@@ -73,6 +73,12 @@ public class ALTER_TABLE_ADD extends CassandraCommands {
                         new ParameterType.NotEmpty(STRINGType.instance),
                         CassandraTypes.TYPEType.instance);
 
+        // The mechanism is incorrect here
+        // the newly added column should have the same type like the other
+        // columns
+        // One way is to clone a type here or create a same type
+        // But not urgent for now
+
         Parameter p = new Parameter(columnType,
                 new Pair<>(params.get(2), params.get(3)));
         ((CassandraState) state).getTable(this.params.get(0).toString(),
