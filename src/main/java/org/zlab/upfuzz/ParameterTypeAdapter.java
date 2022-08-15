@@ -10,9 +10,6 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
-import org.zlab.upfuzz.cassandra.CassandraCommands.CREAT_KEYSPACE;
-import org.zlab.upfuzz.utils.STRINGType;
-
 public class ParameterTypeAdapter<T>
         implements JsonSerializer<T>, JsonDeserializer<T> {
 
@@ -24,10 +21,10 @@ public class ParameterTypeAdapter<T>
         final JsonElement data = get(wrapper, "type_value");
         final Type actualType = typeForName(typeName);
 
-        // if (actualType.equals(CREAT_KEYSPACE.class)) {
+        // if (actualType.equals(CREATE_KEYSPACE.class)) {
         // System.err.println("wow !");
         // CassandraState s = new CassandraState();
-        // return (T) new CassandraCommands.CREAT_KEYSPACE(s);
+        // return (T) new CassandraCommands.CREATE_KEYSPACE(s);
         // }
         return context.deserialize(data, actualType);
     }
