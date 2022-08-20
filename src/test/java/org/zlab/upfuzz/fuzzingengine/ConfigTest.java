@@ -1,15 +1,12 @@
 package org.zlab.upfuzz.fuzzingengine;
 
 import com.google.gson.Gson;
-
+import junit.framework.TestCase;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.fuzzingengine.Config.Configuration;
 
-import junit.framework.TestCase;
-
 public class ConfigTest extends TestCase {
     protected void setUp() {
-
     }
 
     @Test

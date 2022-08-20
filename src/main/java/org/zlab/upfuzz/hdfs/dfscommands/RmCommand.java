@@ -3,11 +3,11 @@ package org.zlab.upfuzz.hdfs.dfscommands;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.ConcatenateType;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.OrType;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomHadoopPathType;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomLocalPathType;
+import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.INTType;
 
@@ -15,15 +15,23 @@ public class RmCommand extends DfsCommand {
 
     /*
      * Delete files specified as args.
-     * If trash is enabled, file system instead moves the deleted file to a trash directory (given by FileSystem#getTrashRoot).
-     * Currently, the trash feature is disabled by default. User can enable trash by setting a value greater than zero for parameter fs.trash.interval (in core-site.xml).
-     * See expunge about deletion of files in trash.
-     * Options:
-     * The -f option will not display a diagnostic message or modify the exit status to reflect an error if the file does not exist.
-     * The -R option deletes the directory and any content under it recursively.
-     * The -r option is equivalent to -R.
-     * The -skipTrash option will bypass trash, if enabled, and delete the specified file(s) immediately. This can be useful when it is necessary to delete files from an over-quota directory.
-     * The -safely option will require safety confirmation before deleting directory with total number of files greater than hadoop.shell.delete.limit.num.files (in core-site.xml, default: 100). It can be used with -skipTrash to prevent accidental deletion of large directories. Delay is expected when walking over large directory recursively to count the number of files to be deleted before the confirmation.*
+     * If trash is enabled, file system instead moves the deleted file to a
+     * trash directory (given by FileSystem#getTrashRoot). Currently, the trash
+     * feature is disabled by default. User can enable trash by setting a value
+     * greater than zero for parameter fs.trash.interval (in core-site.xml). See
+     * expunge about deletion of files in trash. Options: The -f option will not
+     * display a diagnostic message or modify the exit status to reflect an
+     * error if the file does not exist. The -R option deletes the directory and
+     * any content under it recursively. The -r option is equivalent to -R. The
+     * -skipTrash option will bypass trash, if enabled, and delete the specified
+     * file(s) immediately. This can be useful when it is necessary to delete
+     * files from an over-quota directory. The -safely option will require
+     * safety confirmation before deleting directory with total number of files
+     * greater than hadoop.shell.delete.limit.num.files (in core-site.xml,
+     * default: 100). It can be used with -skipTrash to prevent accidental
+     * deletion of large directories. Delay is expected when walking over large
+     * directory recursively to count the number of files to be deleted before
+     * the confirmation.*
      */
     public RmCommand(HdfsState hdfsState) {
         Parameter rmcmd = new CONSTANTSTRINGType("-rm")

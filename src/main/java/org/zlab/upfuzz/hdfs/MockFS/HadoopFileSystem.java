@@ -6,7 +6,6 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.zlab.upfuzz.hdfs.MockFS.INode.IType;
@@ -228,10 +227,10 @@ public class HadoopFileSystem implements Serializable {
     }
 
     /**
-    * 1. copy dir to null
-    * 2. copy dir to dir
-    * 3. copy dir to file (INVALID)
-    */
+     * 1. copy dir to null
+     * 2. copy dir to dir
+     * 3. copy dir to file (INVALID)
+     */
     public Boolean copyDirTo(INode source, String dest, Boolean flag) {
         INode destNode = getNode(dest);
         if (destNode == null) {

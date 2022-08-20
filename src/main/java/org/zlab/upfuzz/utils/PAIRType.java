@@ -1,11 +1,10 @@
 package org.zlab.upfuzz.utils;
 
+import java.util.List;
 import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-
-import java.util.List;
 
 public class PAIRType extends ParameterType.GenericTypeTwo {
     public static final PAIRType instance = new PAIRType();
@@ -30,7 +29,8 @@ public class PAIRType extends ParameterType.GenericTypeTwo {
 
     @Override
     public Parameter generateRandomParameter(State s, Command c,
-            List<ConcreteType> types, Object init) {
+            List<ConcreteType> types,
+            Object init) {
         assert init instanceof Pair;
         Pair<Object, Object> initValues = (Pair<Object, Object>) init;
 
@@ -81,8 +81,8 @@ public class PAIRType extends ParameterType.GenericTypeTwo {
         ConcreteType t1 = types.get(0); // TEXTType
         ConcreteType t2 = types.get(1); // TYPEType
 
-        return t1.isValid(s, c, initValues.left)
-                && t2.isValid(s, c, initValues.right);
+        return t1.isValid(s, c, initValues.left) &&
+                t2.isValid(s, c, initValues.right);
     }
 
     @Override

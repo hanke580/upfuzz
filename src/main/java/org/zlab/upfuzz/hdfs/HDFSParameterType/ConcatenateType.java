@@ -3,7 +3,6 @@ package org.zlab.upfuzz.hdfs.HDFSParameterType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;

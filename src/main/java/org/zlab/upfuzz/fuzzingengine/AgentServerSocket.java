@@ -5,11 +5,10 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.UnknownHostException;
-
-import org.jacoco.core.data.ExecutionDataWriter;
-import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jacoco.core.data.ExecutionDataWriter;
+import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 
 public class AgentServerSocket extends Thread {
     static Logger logger = LogManager.getLogger(AgentServerSocket.class);
@@ -21,10 +20,9 @@ public class AgentServerSocket extends Thread {
     public AgentServerSocket(Executor executor)
             throws UnknownHostException, IOException {
         this.executor = executor;
-        this.server = new ServerSocket(0, 0,
-                InetAddress.getByName("0.0.0.0"));
-        logger.info("Client socket Server start at: "
-                + this.server.getLocalSocketAddress());
+        this.server = new ServerSocket(0, 0, InetAddress.getByName("0.0.0.0"));
+        logger.info("Client socket Server start at: " +
+                this.server.getLocalSocketAddress());
         this.fileWriter = new ExecutionDataWriter(
                 new FileOutputStream("./zlab-jacoco.exec"));
     }

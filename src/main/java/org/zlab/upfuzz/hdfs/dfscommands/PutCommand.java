@@ -3,18 +3,20 @@ package org.zlab.upfuzz.hdfs.dfscommands;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.ConcatenateType;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomHadoopPathType;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomLocalPathType;
+import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.INTType;
 
 public class PutCommand extends DfsCommand {
 
     /*
-     * Copy single src, or multiple srcs from local file system to the destination file system. Also reads input from stdin and writes to destination file system if the source is set to “-”
-     * Copying fails if the file already exists, unless the -f flag is given.
+     * Copy single src, or multiple srcs from local file system to the
+     * destination file system. Also reads input from stdin and writes to
+     * destination file system if the source is set to “-” Copying fails if the
+     * file already exists, unless the -f flag is given.
      */
     public PutCommand(HdfsState hdfsState) {
         Parameter putcmd = new CONSTANTSTRINGType("-put")
@@ -63,7 +65,8 @@ public class PutCommand extends DfsCommand {
         Parameter poolQueueParameter = new INTType(1024, 65536 + 1)
                 .generateRandomParameter(null, null);
         Parameter threadQueueOption = new ParameterType.OptionalType(
-                new ConcatenateType(qOption, poolQueueParameter), null)
+                new ConcatenateType(qOption, poolQueueParameter),
+                null)
                         .generateRandomParameter(null, null);
 
         Parameter srcParameter = new RandomLocalPathType()

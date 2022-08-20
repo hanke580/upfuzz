@@ -3,17 +3,19 @@ package org.zlab.upfuzz.hdfs.dfscommands;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.ConcatenateType;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomHadoopPathType;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomLocalPathType;
+import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.INTType;
 
 public class LsCommand extends DfsCommand {
 
     /*
-     * Moves files from source to destination. This command allows multiple sources as well in which case the destination needs to be a directory. Moving files across file systems is not permitted.
+     * Moves files from source to destination. This command allows multiple
+     * sources as well in which case the destination needs to be a directory.
+     * Moving files across file systems is not permitted.
      */
     public LsCommand(HdfsState hdfsState) {
         Parameter lsCmd = new CONSTANTSTRINGType("-ls")

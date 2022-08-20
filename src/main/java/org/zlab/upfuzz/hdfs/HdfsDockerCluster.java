@@ -1,4 +1,4 @@
-package org.zlab.upfuzz.cassandra;
+package org.zlab.upfuzz.hdfs;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -6,28 +6,29 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.rmi.UnexpectedException;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.docker.DockerCluster;
+import org.zlab.upfuzz.docker.DockerMeta;
 import org.zlab.upfuzz.docker.IDocker;
 import org.zlab.upfuzz.docker.IDockerCluster;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.utils.Utilities;
 
-public class CassandraDockerCluster implements IDockerCluster {
-    static Logger logger = LogManager.getLogger(CassandraDockerCluster.class);
+public class HdfsDockerCluster implements IDockerCluster {
+    static Logger logger = LogManager.getLogger(HdfsDockerCluster.class);
 
-    CassandraDocker[] dockers;
+    HdfsDocker[] dockers;
 
     String version;
     String originalVersion;
@@ -49,7 +50,7 @@ public class CassandraDockerCluster implements IDockerCluster {
     static final String inclueds = "org.apache.cassandra.*";
     static final String excludes = "org.apache.cassandra.metrics.*:org.apache.cassandra.net.*:org.apache.cassandra.io.sstable.format.SSTableReader.*:org.apache.cassandra.service.*";
 
-    CassandraDockerCluster(CassandraExecutor executor, String version,
+    HdfsDockerCluster(HdfsExecutor executor, String version,
             int nodeNum) {
         this.networkName = MessageFormat.format(
                 "network_{0}_{1}_to_{2}_{3}", executor.systemID,
@@ -74,7 +75,7 @@ public class CassandraDockerCluster implements IDockerCluster {
         this.originalVersion = Config.getConf().originalVersion;
         this.upgradedVersion = Config.getConf().upgradedVersion;
         this.system = executor.systemID;
-        this.dockers = new CassandraDocker[nodeNum];
+        this.dockers = new HdfsDocker[nodeNum];
 
         DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
         String executorTimestamp = formatter.format(System.currentTimeMillis());
@@ -85,7 +86,7 @@ public class CassandraDockerCluster implements IDockerCluster {
 
     public boolean build() throws IOException {
         for (int i = 0; i < dockers.length; ++i) {
-            dockers[i] = new CassandraDocker(this, i);
+            dockers[i] = new HdfsDocker(this, i);
             dockers[i].build();
         }
         return true;

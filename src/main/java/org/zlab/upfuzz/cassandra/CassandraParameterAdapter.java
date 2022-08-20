@@ -1,8 +1,5 @@
 package org.zlab.upfuzz.cassandra;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Type;
-
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -10,7 +7,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-
+import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import org.zlab.upfuzz.cassandra.CassandraCommands.CREAT_KEYSPACE;
 import org.zlab.upfuzz.cassandra.CassandraTypes.TEXTType;
 
@@ -19,7 +17,8 @@ public class CassandraParameterAdapter<T>
 
     @Override
     public T deserialize(JsonElement json, Type typeOfT,
-            JsonDeserializationContext context) throws JsonParseException {
+            JsonDeserializationContext context)
+            throws JsonParseException {
         final JsonObject wrapper = (JsonObject) json;
         final JsonElement typeName = get(wrapper, "__gson_type");
         final JsonElement data = get(wrapper, "__gson_data");
@@ -73,8 +72,9 @@ public class CassandraParameterAdapter<T>
     private JsonElement get(final JsonObject wrapper, String memberName) {
         final JsonElement json = wrapper.get(memberName);
         if (json == null)
-            throw new JsonParseException("no '" + memberName
-                    + "' member found in what was expected to be an interface wrapper");
+            throw new JsonParseException(
+                    "no '" + memberName +
+                            "' member found in what was expected to be an interface wrapper");
         return json;
     }
 }

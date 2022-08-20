@@ -10,7 +10,6 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.codehaus.plexus.util.FileUtils;
@@ -85,7 +84,8 @@ public class LocalFileSystem extends FileSystem {
             File[] files = Files
                     .find(Paths.get(localRoot), Integer.MAX_VALUE,
                             (filePath, fileAttr) -> true)
-                    .map(path -> path.toFile()).toArray(size -> new File[size]);
+                    .map(path -> path.toFile())
+                    .toArray(size -> new File[size]);
             Long ed = System.currentTimeMillis();
             // System.out.println("files size: " + files.length + "\n" + (ed -
             // st));

@@ -5,7 +5,6 @@ import java.rmi.UnexpectedException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -90,6 +89,7 @@ public abstract class Executor implements IExecutor {
         testId2commandSequence.clear();
         testId2oldVersionResult.clear();
         testId2newVersionResult.clear();
+        executorID = RandomStringUtils.randomAlphanumeric(8);
     }
 
     public String getSysExecID() {
@@ -140,7 +140,8 @@ public abstract class Executor implements IExecutor {
     public void execute(CommandSequence commandSequence,
             CommandSequence validationCommandSequence, int testId) {
         // startup();
-        testId2commandSequence.put(testId,
+        testId2commandSequence.put(
+                testId,
                 new Pair<>(commandSequence.getCommandStringList(),
                         validationCommandSequence.getCommandStringList()));
         executeCommands(commandSequence.getCommandStringList());
@@ -148,7 +149,8 @@ public abstract class Executor implements IExecutor {
     }
 
     public void execute(TestPacket testPacket) {
-        testId2commandSequence.put(testPacket.testPacketID,
+        testId2commandSequence.put(
+                testPacket.testPacketID,
                 new Pair<>(testPacket.originalCommandSequenceList,
                         testPacket.validationCommandSequneceList));
         executeCommands(testPacket.originalCommandSequenceList);
@@ -163,11 +165,10 @@ public abstract class Executor implements IExecutor {
     }
 
     public ExecutionDataStore collect(String version) {
-        List<String> agentIdList = sessionGroup
-                .get(executorID + "_" + version);
+        List<String> agentIdList = sessionGroup.get(executorID + "_" + version);
         if (agentIdList == null) {
-            new UnexpectedException(
-                    "No agent connection with executor " + executorID)
+            new UnexpectedException("No agent connection with executor " +
+                    executorID)
                             .printStackTrace();
             return null;
         } else {
@@ -175,7 +176,7 @@ public abstract class Executor implements IExecutor {
             for (String agentId : agentIdList) {
                 if (agentId.split("-")[2].equals("null"))
                     continue;
-                logger.info("collect conn " + agentId);
+                logger.trace("collect conn " + agentId);
                 AgentServerHandler conn = agentHandler.get(agentId);
                 if (conn != null) {
                     agentStore.remove(agentId);
@@ -187,7 +188,7 @@ public abstract class Executor implements IExecutor {
             for (String agentId : agentIdList) {
                 if (agentId.split("-")[2].equals("null"))
                     continue;
-                logger.info("get coverage from " + agentId);
+                logger.trace("get coverage from " + agentId);
                 ExecutionDataStore astore = agentStore.get(agentId);
                 if (astore == null) {
                     logger.info("no data");
@@ -197,7 +198,8 @@ public abstract class Executor implements IExecutor {
                     logger.trace("astore size: " + astore.getContents().size());
                 }
             }
-            logger.info("codecoverage size: " + execStore.getContents().size());
+            logger.debug("codecoverage of " + executorID + "_" + version
+                    + " size: " + execStore.getContents().size());
             // Send coverage back
 
             return execStore;

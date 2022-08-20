@@ -1,24 +1,26 @@
 package org.zlab.upfuzz;
 
-import org.zlab.upfuzz.cassandra.CassandraCommands;
-
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.zlab.upfuzz.cassandra.CassandraCommands;
 
 /**
  * How a parameter can be generated is only defined in its type.
- * If you want special rules for a parameter, you need to implement a type class for it.
+ * If you want special rules for a parameter, you need to implement a type class
+ * for it.
  */
 public abstract class ParameterType implements Serializable {
 
     public static abstract class ConcreteType extends ParameterType {
         /**
-         * generateRandomParameter() follows rules to generate a parameter with a random value.
+         * generateRandomParameter() follows rules to generate a parameter with
+         * a random value.
          * @param s // current state
          * @param c // current command
-         *  these rules might use the state and other parameters in the current command.
+         *  these rules might use the state and other parameters in the current
+         * command.
          */
         public abstract Parameter generateRandomParameter(State s, Command c,
                 Object init);
@@ -58,7 +60,6 @@ public abstract class ParameterType implements Serializable {
             }
             return clone;
         }
-
     }
 
     public static abstract class GenericType extends ParameterType {
@@ -66,8 +67,8 @@ public abstract class ParameterType implements Serializable {
         public abstract Parameter generateRandomParameter(State s, Command c,
                 List<ConcreteType> types);
 
-        public abstract Parameter generateRandomParameter(State s, Command c,
-                List<ConcreteType> types, Object init);
+        public abstract Parameter generateRandomParameter(
+                State s, Command c, List<ConcreteType> types, Object init);
 
         public abstract String generateStringValue(Parameter p,
                 List<ConcreteType> types);
@@ -105,7 +106,8 @@ public abstract class ParameterType implements Serializable {
         }
 
         public ConfigurableType(ConcreteType t,
-                FetchCollectionLambda configuration, Predicate predicate) {
+                FetchCollectionLambda configuration,
+                Predicate predicate) {
             this.t = t;
             this.configuration = configuration;
             this.predicate = predicate;
@@ -130,7 +132,6 @@ public abstract class ParameterType implements Serializable {
          * If we only save the pure values, if will be very easy for use.
          * But this value will need to be updated if it's mutated.
          */
-
     }
 
     public static class NotInCollectionType extends ConfigurableType {
@@ -184,10 +185,13 @@ public abstract class ParameterType implements Serializable {
                 return true;
             List l;
             if (mapFunc == null) {
-                l = (List) (targetCollection).stream()
+                l = (List) (targetCollection)
+                        .stream()
                         .collect(Collectors.toList());
             } else {
-                l = (List) (targetCollection).stream().map(mapFunc)
+                l = (List) (targetCollection)
+                        .stream()
+                        .map(mapFunc)
                         .collect(Collectors.toList());
             }
             if (l.contains(p.value)) {
@@ -290,17 +294,23 @@ public abstract class ParameterType implements Serializable {
 
         SerializableFunction<T, U> mapFunc;
 
-        public SubsetType(ConcreteType t, FetchCollectionLambda configuration,
+        public SubsetType(
+                ConcreteType t, FetchCollectionLambda configuration,
                 SerializableFunction<T, U> mapFunc) { // change to
                                                       // concreteGenericType
             /**
              * In this case, the ConcreteType should be List<Pair<xxx>>.
-             * The set we select from will be the target set targetSet. Let's suppose it's also List<Pair<TEXT, TYPEType>>
-             * - we rewrite the generateRandomParameter() in this concreteGenericType
-             * - Instead of calling t.generateValue function, it should now construct values by select from targetSet.
-             * - Do it by anonymous class extends List, and we write the subset generateRandomParameter() for it.
+             * The set we select from will be the target set targetSet. Let's
+             * suppose it's also List<Pair<TEXT, TYPEType>>
+             * - we rewrite the generateRandomParameter() in this
+             * concreteGenericType
+             * - Instead of calling t.generateValue function, it should now
+             * construct values by select from targetSet.
+             * - Do it by anonymous class extends List, and we write the subset
+             * generateRandomParameter() for it.
              *
-             * TODO: This type can actually be removed. It can be used for checking.
+             * TODO: This type can actually be removed. It can be used for
+             * checking.
              */
             super(t, configuration);
             this.mapFunc = mapFunc;
@@ -318,8 +328,10 @@ public abstract class ParameterType implements Serializable {
             Object targetCollection = configuration.operate(s, c);
 
             if (mapFunc != null) {
-                targetCollection = ((Collection<T>) targetCollection).stream()
-                        .map(mapFunc).collect(Collectors.toList());
+                targetCollection = ((Collection<T>) targetCollection)
+                        .stream()
+                        .map(mapFunc)
+                        .collect(Collectors.toList());
             }
 
             // TODO: Make all the collection contain the parameter
@@ -352,13 +364,15 @@ public abstract class ParameterType implements Serializable {
             Object targetCollection = configuration.operate(s, c);
 
             if (mapFunc != null) {
-                targetCollection = ((Collection<T>) targetCollection).stream()
-                        .map(mapFunc).collect(Collectors.toList());
+                targetCollection = ((Collection<T>) targetCollection)
+                        .stream()
+                        .map(mapFunc)
+                        .collect(Collectors.toList());
             }
 
             /**
-             * Pick a subset from the configuration, it will also be a list of parameters
-             * Return new Parameter(SubsetType, value)
+             * Pick a subset from the configuration, it will also be a list of
+             * parameters Return new Parameter(SubsetType, value)
              */
 
             // TODO: Make all the collection contain the parameter
@@ -408,8 +422,10 @@ public abstract class ParameterType implements Serializable {
 
             Object targetCollection = configuration.operate(s, c);
             if (mapFunc != null) {
-                targetCollection = ((Collection<T>) targetCollection).stream()
-                        .map(mapFunc).collect(Collectors.toList());
+                targetCollection = ((Collection<T>) targetCollection)
+                        .stream()
+                        .map(mapFunc)
+                        .collect(Collectors.toList());
             }
             List<Parameter> targetList = (List<Parameter>) targetCollection;
             List<String> targetStrings = new LinkedList<>();
@@ -491,8 +507,10 @@ public abstract class ParameterType implements Serializable {
             Object targetCollection = configuration.operate(s, c);
 
             if (mapFunc != null) {
-                targetCollection = ((Collection<T>) targetCollection).stream()
-                        .map(mapFunc).collect(Collectors.toList());
+                targetCollection = ((Collection<T>) targetCollection)
+                        .stream()
+                        .map(mapFunc)
+                        .collect(Collectors.toList());
             }
 
             List<Object> targetSet = new ArrayList<Object>(
@@ -526,8 +544,10 @@ public abstract class ParameterType implements Serializable {
 
             Object targetCollection = configuration.operate(s, c);
             if (mapFunc != null) {
-                targetCollection = ((Collection<T>) targetCollection).stream()
-                        .map(mapFunc).collect(Collectors.toList());
+                targetCollection = ((Collection<T>) targetCollection)
+                        .stream()
+                        .map(mapFunc)
+                        .collect(Collectors.toList());
             }
             List<Parameter> targetList = (List<Parameter>) targetCollection;
             List<String> targetStrings = new LinkedList<>();
@@ -548,7 +568,6 @@ public abstract class ParameterType implements Serializable {
 
             return true;
         }
-
     }
 
     /**
@@ -558,15 +577,19 @@ public abstract class ParameterType implements Serializable {
 
         SerializableFunction mapFunc;
 
-        public StreamMapType(ConcreteType t,
-                FetchCollectionLambda configuration,
+        public StreamMapType(
+                ConcreteType t, FetchCollectionLambda configuration,
                 SerializableFunction mapFunc) { // change to concreteGenericType
             /**
              * In this case, the ConcreteType should be List<Pair<xxx>>.
-             * The set we select from will be the target set targetSet. Let's suppose it's also List<Pair<TEXT, TYPEType>>
-             * - we rewrite the generateRandomParameter() in this concreteGenericType
-             * - Instead of calling t.generateValue function, it should now construct values by select from targetSet.
-             * - Do it by anonymous class extends List, and we write the subset generateRandomParameter() for it.
+             * The set we select from will be the target set targetSet. Let's
+             * suppose it's also List<Pair<TEXT, TYPEType>>
+             * - we rewrite the generateRandomParameter() in this
+             * concreteGenericType
+             * - Instead of calling t.generateValue function, it should now
+             * construct values by select from targetSet.
+             * - Do it by anonymous class extends List, and we write the subset
+             * generateRandomParameter() for it.
              */
             super(t, configuration);
             this.mapFunc = mapFunc;
@@ -591,8 +614,10 @@ public abstract class ParameterType implements Serializable {
             Object tmpCollection;
 
             if (mapFunc != null) {
-                tmpCollection = ((Collection) targetCollection).stream()
-                        .map(mapFunc).collect(Collectors.toList());
+                tmpCollection = ((Collection) targetCollection)
+                        .stream()
+                        .map(mapFunc)
+                        .collect(Collectors.toList());
             } else {
                 tmpCollection = (Collection) targetCollection;
             }
@@ -728,7 +753,8 @@ public abstract class ParameterType implements Serializable {
 
         public InCollectionType(ConcreteType t,
                 FetchCollectionLambda configuration,
-                SerializableFunction mapFunc, Predicate predicate) {
+                SerializableFunction mapFunc,
+                Predicate predicate) {
             super(t, configuration, predicate);
             this.mapFunc = mapFunc;
         }
@@ -767,11 +793,14 @@ public abstract class ParameterType implements Serializable {
             List l;
 
             if (mapFunc == null) {
-                l = (List) (((Collection) targetCollection).stream()
+                l = (List) (((Collection) targetCollection)
+                        .stream()
                         .collect(Collectors.toList()));
             } else {
-                l = (List) (((Collection) targetCollection).stream()
-                        .map(mapFunc).collect(Collectors.toList()));
+                l = (List) (((Collection) targetCollection)
+                        .stream()
+                        .map(mapFunc)
+                        .collect(Collectors.toList()));
             }
 
             assert init instanceof String;
@@ -810,11 +839,14 @@ public abstract class ParameterType implements Serializable {
             List l;
 
             if (mapFunc == null) {
-                l = (List) (((Collection) targetCollection).stream()
+                l = (List) (((Collection) targetCollection)
+                        .stream()
                         .collect(Collectors.toList()));
             } else {
-                l = (List) (((Collection) targetCollection).stream()
-                        .map(mapFunc).collect(Collectors.toList()));
+                l = (List) (((Collection) targetCollection)
+                        .stream()
+                        .map(mapFunc)
+                        .collect(Collectors.toList()));
             }
             idx = rand.nextInt(l.size());
 
@@ -825,7 +857,6 @@ public abstract class ParameterType implements Serializable {
                 Parameter ret = new Parameter(t, l.get(idx));
                 return new Parameter(this, ret);
             }
-
         }
 
         @Override
@@ -842,11 +873,14 @@ public abstract class ParameterType implements Serializable {
             Object targetCollection = configuration.operate(s, c);
 
             if (mapFunc == null) {
-                l = (List) (((Collection) targetCollection).stream()
+                l = (List) (((Collection) targetCollection)
+                        .stream()
                         .collect(Collectors.toList()));
             } else {
-                l = (List) (((Collection) targetCollection).stream()
-                        .map(mapFunc).collect(Collectors.toList()));
+                l = (List) (((Collection) targetCollection)
+                        .stream()
+                        .map(mapFunc)
+                        .collect(Collectors.toList()));
             }
             /**
              * Since we are basically generating the string.
@@ -889,11 +923,14 @@ public abstract class ParameterType implements Serializable {
             Random rand = new Random();
             List l;
             if (mapFunc == null) {
-                l = (List) (((Collection) targetCollection).stream()
+                l = (List) (((Collection) targetCollection)
+                        .stream()
                         .collect(Collectors.toList()));
             } else {
-                l = (List) (((Collection) targetCollection).stream()
-                        .map(mapFunc).collect(Collectors.toList()));
+                l = (List) (((Collection) targetCollection)
+                        .stream()
+                        .map(mapFunc)
+                        .collect(Collectors.toList()));
             }
             if (l.isEmpty() == true) {
                 // Throw an exception, since the input sequence is already not
@@ -958,8 +995,10 @@ public abstract class ParameterType implements Serializable {
 
             List<Parameter> l;
             if (mapFunc != null) {
-                l = (List<Parameter>) ((Collection) targetCollection).stream()
-                        .map(mapFunc).collect(Collectors.toList());
+                l = (List<Parameter>) ((Collection) targetCollection)
+                        .stream()
+                        .map(mapFunc)
+                        .collect(Collectors.toList());
             } else {
                 l = (List<Parameter>) targetCollection;
             }
@@ -973,8 +1012,8 @@ public abstract class ParameterType implements Serializable {
             for (int i = 0; i < l.size(); i++) {
                 assert l.get(i).getValue() instanceof ConcreteType;
                 ConcreteType concreteType = (ConcreteType) l.get(i).getValue();
-                ret.add(concreteType.generateRandomParameter(s, c,
-                        initValues.get(i)));
+                ret.add(concreteType.generateRandomParameter(
+                        s, c, initValues.get(i)));
             }
             return new Parameter(this, ret);
         }
@@ -988,8 +1027,10 @@ public abstract class ParameterType implements Serializable {
 
             List<Parameter> l;
             if (mapFunc != null) {
-                l = (List<Parameter>) ((Collection) targetCollection).stream()
-                        .map(mapFunc).collect(Collectors.toList());
+                l = (List<Parameter>) ((Collection) targetCollection)
+                        .stream()
+                        .map(mapFunc)
+                        .collect(Collectors.toList());
             } else {
                 l = (List<Parameter>) targetCollection;
             }
@@ -1039,7 +1080,9 @@ public abstract class ParameterType implements Serializable {
             List<Parameter> typeList;
             if (mapFunc != null) {
                 typeList = (List<Parameter>) ((Collection) targetCollection)
-                        .stream().map(mapFunc).collect(Collectors.toList());
+                        .stream()
+                        .map(mapFunc)
+                        .collect(Collectors.toList());
             } else {
                 typeList = (List<Parameter>) targetCollection;
             }
@@ -1060,8 +1103,8 @@ public abstract class ParameterType implements Serializable {
              * TODO: But for the List Type comparing, we also need to add that.
              */
             for (int i = 0; i < typeList.size(); i++) {
-                if (!typeList.get(i).getValue().toString()
-                        .equals(valueList.get(i).type.toString())) {
+                if (!typeList.get(i).getValue().toString().equals(
+                        valueList.get(i).type.toString())) {
                     return false;
                 }
             }
@@ -1101,8 +1144,8 @@ public abstract class ParameterType implements Serializable {
                 int mutateIdx = rand.nextInt(values.size());
                 if (CassandraCommands.DEBUG) {
                     mutateIdx = 3;
-                    System.out.println(
-                            "\t[Type2Value] Mutate Idx = " + mutateIdx);
+                    System.out.println("\t[Type2Value] Mutate Idx = " +
+                            mutateIdx);
                 }
                 values.get(mutateIdx).mutate(s, c);
             }
@@ -1140,9 +1183,9 @@ public abstract class ParameterType implements Serializable {
         @Override
         public Parameter generateRandomParameter(State s, Command c) {
             /**
-             * use ConcreteType t to generate a parameter, it should be a 
+             * use ConcreteType t to generate a parameter, it should be a
              * concreteGenericType. Check whether this parameter contains
-             * everything in the collection. If not, add the rest to the 
+             * everything in the collection. If not, add the rest to the
              * collection.
              */
             Parameter p = t.generateRandomParameter(s, c);
@@ -1156,8 +1199,10 @@ public abstract class ParameterType implements Serializable {
             Collection targetCollection = configuration.operate(s, c);
             List<Parameter> targetSet;
             if (mapFunc != null) {
-                targetSet = (List) (((Collection) targetCollection).stream()
-                        .map(mapFunc).collect(Collectors.toList()));
+                targetSet = (List) (((Collection) targetCollection)
+                        .stream()
+                        .map(mapFunc)
+                        .collect(Collectors.toList()));
             } else {
                 targetSet = (List) (((Collection) targetCollection));
             }
@@ -1189,8 +1234,10 @@ public abstract class ParameterType implements Serializable {
             Collection targetCollection = configuration.operate(s, c);
             List<Parameter> targetSet;
             if (mapFunc != null) {
-                targetSet = (List) (((Collection) targetCollection).stream()
-                        .map(mapFunc).collect(Collectors.toList()));
+                targetSet = (List) (((Collection) targetCollection)
+                        .stream()
+                        .map(mapFunc)
+                        .collect(Collectors.toList()));
             } else {
                 targetSet = (List) (((Collection) targetCollection));
             }
@@ -1312,7 +1359,8 @@ public abstract class ParameterType implements Serializable {
         }
 
         public static ConcreteGenericType constructConcreteGenericType(
-                GenericType t, ConcreteType t1, ConcreteType t2) {
+                GenericType t, ConcreteType t1,
+                ConcreteType t2) {
             ConcreteGenericType ret = new ConcreteGenericTypeTwo(t, t1, t2);
             if (!cache.keySet().contains(ret)) {
                 cache.put(ret, ret);
@@ -1347,7 +1395,6 @@ public abstract class ParameterType implements Serializable {
             this.t = t;
             this.typesInTemplate.add(t1);
         }
-
     }
 
     public static class ConcreteGenericTypeTwo extends ConcreteGenericType {

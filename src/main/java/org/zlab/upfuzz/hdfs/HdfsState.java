@@ -21,7 +21,6 @@ public class HdfsState extends State {
     @Override
     public void clearState() {
         // TODO Auto-generated method stub
-
     }
 
     public INode getRandomHadoopPath() {

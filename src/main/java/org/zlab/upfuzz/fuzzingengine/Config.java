@@ -1,9 +1,7 @@
 package org.zlab.upfuzz.fuzzingengine;
 
-import java.lang.reflect.Field;
-
 import com.google.gson.GsonBuilder;
-
+import java.lang.reflect.Field;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -46,8 +44,11 @@ public class Config {
 
         @Override
         public String toString() {
-            return new GsonBuilder().setPrettyPrinting().disableHtmlEscaping()
-                    .create().toJson(this, Configuration.class);
+            return new GsonBuilder()
+                    .setPrettyPrinting()
+                    .disableHtmlEscaping()
+                    .create()
+                    .toJson(this, Configuration.class);
         }
 
         public Boolean checkNull() {

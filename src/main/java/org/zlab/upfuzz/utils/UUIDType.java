@@ -1,11 +1,10 @@
 package org.zlab.upfuzz.utils;
 
+import java.util.UUID;
 import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-
-import java.util.UUID;
 
 public class UUIDType extends ParameterType.ConcreteType {
 

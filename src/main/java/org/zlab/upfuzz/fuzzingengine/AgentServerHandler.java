@@ -5,7 +5,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionData;
@@ -85,8 +84,8 @@ public class AgentServerHandler
             System.err.println("Invalid sessionId " + sessionId);
             return;
         }
-        logger.info("Agent" + socket.getRemoteSocketAddress().toString() + " "
-                + info.getId() + " registered");
+        logger.info("Agent" + socket.getRemoteSocketAddress().toString() + " " +
+                info.getId() + " registered");
         executor.agentHandler.put(sessionId, this);
 
         String identifier = sessionSplit[0], executorID = sessionSplit[1],
@@ -102,8 +101,8 @@ public class AgentServerHandler
         if (!registered) {
             register(info);
         } else {
-            logger.debug(
-                    "Retrieving execution Data for session: " + info.getId());
+            logger.debug("Retrieving execution Data for session: " +
+                    info.getId());
         }
         // synchronized (fileWriter) {
         // fileWriter.visitSessionInfo(info);
@@ -131,7 +130,6 @@ public class AgentServerHandler
         // synchronized (fileWriter) {
         // fileWriter.visitClassExecution(data);
         // }
-
     }
 
     public void collect() {

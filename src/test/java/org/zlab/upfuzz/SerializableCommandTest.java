@@ -1,11 +1,10 @@
 package org.zlab.upfuzz;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
+import java.util.LinkedList;
+import java.util.List;
+import junit.framework.TestCase;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.ParameterType.ConcreteGenericType;
@@ -21,11 +20,8 @@ import org.zlab.upfuzz.cassandra.LambdaInterfaceAdapter;
 import org.zlab.upfuzz.utils.PAIRType;
 import org.zlab.upfuzz.utils.STRINGType;
 
-import junit.framework.TestCase;
-
 public class SerializableCommandTest extends TestCase {
 
     public void testNothing() {
-
     }
 }

@@ -1,11 +1,10 @@
 package org.zlab.upfuzz.utils;
 
+import java.util.*;
 import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-
-import java.util.*;
 
 public class INTType extends ParameterType.ConcreteType {
 
@@ -136,5 +135,4 @@ public class INTType extends ParameterType.ConcreteType {
     public static void cleanPool() {
         intPool.clear();
     }
-
 }

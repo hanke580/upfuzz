@@ -1,5 +1,7 @@
 package org.zlab.upfuzz.cassandra;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -11,10 +13,6 @@ import java.io.OutputStreamWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.file.Paths;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,9 +35,11 @@ public class CassandraCqlshDaemon {
 
     static {
         InputStream cqlsh_daemon2 = CassandraCqlshDaemon.class.getClassLoader()
-                .getResourceAsStream("cqlsh_daemon2.py");
+                .getResourceAsStream(
+                        "cqlsh_daemon2.py");
         InputStream cqlsh_daemon3 = CassandraCqlshDaemon.class.getClassLoader()
-                .getResourceAsStream("cqlsh_daemon3.py");
+                .getResourceAsStream(
+                        "cqlsh_daemon3.py");
         if (cqlsh_daemon2 == null) {
             System.err.println("cannot find cqlsh_daemon.py");
         }
@@ -58,9 +58,10 @@ public class CassandraCqlshDaemon {
 
     public CassandraCqlshDaemon(String ipAddress, int port) {
         int retry = 30;
+        logger.info("Connect to cqlsh:" + ipAddress + "...");
         for (int i = 0; i < retry; ++i) {
             try {
-                logger.info("Connect to cqlsh:" + ipAddress + "...");
+                logger.debug("Connect to cqlsh:" + ipAddress + "..." + i);
                 socket = new Socket();
                 socket.connect(new InetSocketAddress(ipAddress, port),
                         3 * 1000);
@@ -176,9 +177,9 @@ public class CassandraCqlshDaemon {
                     logger.error(e);
                 }
             } else {
-                logger.error("failed to start cqlsh daemon, check "
-                        + Paths.get(cassandraRoot, "cqlsh_daemon.log")
-                        + " for information");
+                logger.error("failed to start cqlsh daemon, check " +
+                        Paths.get(cassandraRoot, "cqlsh_daemon.log") +
+                        " for information");
             }
             // TODO: Add a catch, when the connection is rejected regenerate it.
         } else {
@@ -216,8 +217,10 @@ public class CassandraCqlshDaemon {
         CqlshPacket cqlshPacket = new Gson().fromJson(cqlshMessage,
                 CqlshPacket.class);
 
-        logger.trace("CqlshMessage:\n" + new GsonBuilder().setPrettyPrinting()
-                .create().toJson(cqlshPacket));
+        logger.trace(
+                "CqlshMessage:\n" +
+                        new GsonBuilder().setPrettyPrinting().create()
+                                .toJson(cqlshPacket));
         return cqlshPacket;
     }
 
@@ -225,7 +228,8 @@ public class CassandraCqlshDaemon {
         Process p;
         try {
             p = Utilities.exec(new String[] { "bin/sh", "-c",
-                    "netstat -tunlp | grep -P \":" + port + "[\\s$]\"" },
+                    "netstat -tunlp | grep -P \":" +
+                            port + "[\\s$]\"" },
                     new File("/"));
             int ret = p.waitFor();
             return ret == 1;

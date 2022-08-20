@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
-
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -113,7 +112,6 @@ public class FuzzingServer {
                 }
             }));
         }
-
     }
 
     public void start() {
@@ -197,7 +195,8 @@ public class FuzzingServer {
             printInfo();
 
             finishedTestID++;
-            if (Utilities.hasNewBits(curCoverage,
+            if (Utilities.hasNewBits(
+                    curCoverage,
                     feedbackPacket.feedBack.originalCodeCoverage)) {
                 // Write Seed to Disk + Add to Corpus
                 Seed seed = testID2Seed.get(feedbackPacket.testPacketID);
@@ -207,8 +206,8 @@ public class FuzzingServer {
                 curCoverage.merge(feedbackPacket.feedBack.originalCodeCoverage);
             }
 
-            if (!stackedFeedbackPacket.isUpgradeProcessFailed
-                    && feedbackPacket.isInconsistent) {
+            if (!stackedFeedbackPacket.isUpgradeProcessFailed &&
+                    feedbackPacket.isInconsistent) {
                 // Write Bug report (Inconsistency)
                 if (crashSubDir == null) {
                     crashSubDir = createCrashSubDir();
@@ -217,7 +216,8 @@ public class FuzzingServer {
                 String sb = "";
                 sb += "Result Inconsistency between two versions\n";
                 sb += feedbackPacket.inconsistencyReport;
-                Path crashReport = Paths.get(crashSubDir.toString(),
+                Path crashReport = Paths.get(
+                        crashSubDir.toString(),
                         "crash_" + feedbackPacket.testPacketID + ".report");
                 Utilities.write2TXT(crashReport.toFile(), sb, false);
                 crashID++;
@@ -226,22 +226,23 @@ public class FuzzingServer {
             testID2Seed.remove(feedbackPacket.testPacketID);
         }
 
-        Long timeElapsed = TimeUnit.SECONDS
-                .convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
-        if (timeElapsed - lastTimePoint > Config.getConf().timeInterval
-                || lastTimePoint == 0) {
+        Long timeElapsed = TimeUnit.SECONDS.convert(
+                System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
+        if (timeElapsed - lastTimePoint > Config.getConf().timeInterval ||
+                lastTimePoint == 0) {
             // Insert a record (time: coverage)
-            originalCoverageAlongTime
-                    .add(new Pair(timeElapsed, originalCoveredBranches));
-            upgradedCoverageAlongTime
-                    .add(new Pair(timeElapsed, upgradedCoveredBranches));
+            originalCoverageAlongTime.add(
+                    new Pair(timeElapsed, originalCoveredBranches));
+            upgradedCoverageAlongTime.add(
+                    new Pair(timeElapsed, upgradedCoveredBranches));
             lastTimePoint = timeElapsed;
         }
         System.out.println();
     }
 
     private Path createCrashSubDir() {
-        while (Paths.get(Config.getConf().crashDir, "crash_" + epoch).toFile()
+        while (Paths.get(Config.getConf().crashDir, "crash_" + epoch)
+                .toFile()
                 .exists()) {
             epoch++;
         }
@@ -252,23 +253,29 @@ public class FuzzingServer {
     }
 
     public void printInfo() {
-        Long timeElapsed = TimeUnit.MILLISECONDS
-                .convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
+        Long timeElapsed = TimeUnit.MILLISECONDS.convert(
+                System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
 
         logger.info(
                 "\n\n------------------- Executing one fuzzing test -------------------"
                         + "[Fuzz Status]\n"
-                        + "================================================================="
+                        +
+                        "================================================================="
                         + "====================================================\n"
-                        + "|" + "Queue Size = " + corpus.queue.size() + "|"
-                        + "Round = " + round + "|" + "Crash Found = " + crashID
-                        + "|" + "Current Test ID = " + testID + "|"
-                        + "Finished Test Num = " + finishedTestID
-                        + "Covered Branches Num = " + originalCoveredBranches
-                        + "|" + "Total Branch Num = " + originalProbeNum + "|"
-                        + "Time Elapsed = " + timeElapsed / 1000. + "s" + "|"
+                        + "|"
+                        + "Queue Size = " + corpus.queue.size() + "|"
+                        + "Round = " + round + "|"
+                        + "Crash Found = " + crashID + "|"
+                        + "Current Test ID = " + testID + "|"
+                        + "Finished Test Num = " + finishedTestID +
+                        "Covered Branches Num = " + originalCoveredBranches
+                        + "|"
+                        + "Total Branch Num = " + originalProbeNum + "|"
+                        + "Time Elapsed = " + timeElapsed / 1000. + "s"
+                        + "|"
                         + "\n"
-                        + "-----------------------------------------------------------------"
+                        +
+                        "-----------------------------------------------------------------"
                         + "----------------------------------------------------");
 
         // Print the coverage status

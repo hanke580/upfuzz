@@ -8,7 +8,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.Packet.Packet;
@@ -39,9 +38,9 @@ class FuzzingClientSocket implements Runnable {
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
         } catch (IOException e) {
-            logger.error("failed to connect fuzzing server "
-                    + Config.getConf().serverHost + ":"
-                    + Config.getConf().serverPort);
+            logger.error("failed to connect fuzzing server " +
+                    Config.getConf().serverHost + ":" +
+                    Config.getConf().serverPort);
             e.printStackTrace();
         }
     }
@@ -64,7 +63,8 @@ class FuzzingClientSocket implements Runnable {
                     StackedTestPacket stackedTestPacket = StackedTestPacket
                             .read(in);
                     StackedFeedbackPacket stackedFeedbackPacket = fuzzingClient
-                            .executeStackedTestPacket(stackedTestPacket);
+                            .executeStackedTestPacket(
+                                    stackedTestPacket);
                     stackedFeedbackPacket.write(out);
                     break;
                 }

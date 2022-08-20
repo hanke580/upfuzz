@@ -2,15 +2,12 @@ package org.zlab.upfuzz.hdfs.MockFS;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
+import junit.framework.TestCase;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.hdfs.MockFS.INode.IType;
 
-import junit.framework.TestCase;
-
 public class FileSystemTest extends TestCase {
     protected void setUp() {
-
     }
 
     @Test

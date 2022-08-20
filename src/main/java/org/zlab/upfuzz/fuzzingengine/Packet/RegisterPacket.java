@@ -1,5 +1,6 @@
 package org.zlab.upfuzz.fuzzingengine.Packet;
 
+import com.google.gson.Gson;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -8,9 +9,6 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-
-import com.google.gson.Gson;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.Config;
@@ -27,8 +25,8 @@ public class RegisterPacket extends Packet {
     public RegisterPacket(Socket socket) {
         this.systemId = Config.getConf().system;
         this.type = PacketType.RegisterPacket;
-        this.clientId = socket.getLocalAddress().getHostName()
-                + socket.getLocalSocketAddress().toString();
+        this.clientId = socket.getLocalAddress().getHostName() +
+                socket.getLocalSocketAddress().toString();
     }
 
     public static RegisterPacket read(DataInputStream in) {
@@ -36,8 +34,8 @@ public class RegisterPacket extends Packet {
         int len;
         try {
             len = in.read(bytes);
-            RegisterPacket registerPacket = new Gson()
-                    .fromJson(new String(bytes, 0, len), RegisterPacket.class);
+            RegisterPacket registerPacket = new Gson().fromJson(
+                    new String(bytes, 0, len), RegisterPacket.class);
             return registerPacket;
         } catch (IOException e) {
             e.printStackTrace();

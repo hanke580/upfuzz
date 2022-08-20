@@ -9,7 +9,6 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.CommandSequence;
@@ -92,8 +91,8 @@ public class CassandraExecutor extends Executor {
             System.exit(1);
         }
 
-        dockerCluster = new CassandraDockerCluster(this,
-                Config.getConf().originalVersion, 2);
+        dockerCluster = new CassandraDockerCluster(
+                this, Config.getConf().originalVersion, 2);
 
         dockerCluster.build();
 
@@ -243,7 +242,8 @@ public class CassandraExecutor extends Executor {
             commandSequence = CommandSequence.generateSequence(
                     CassandraCommands.commandClassList,
                     CassandraCommands.createCommandClassList,
-                    CassandraState.class, null);
+                    CassandraState.class,
+                    null);
             // TODO: If it's generating read with a initial state, no need to
             // generate with createTable...
             validationCommandSequence = CommandSequence.generateSequence(
@@ -395,8 +395,9 @@ public class CassandraExecutor extends Executor {
             logger.error("Failed to connect to upgraded cassandra cluster", e);
         }
         for (Integer testId : testId2commandSequence.keySet()) {
-            testId2newVersionResult.put(testId, newVersionExecuteCommands(
-                    testId2commandSequence.get(testId).right));
+            testId2newVersionResult.put(
+                    testId, newVersionExecuteCommands(
+                            testId2commandSequence.get(testId).right));
         }
         logger.info("upgrade test done");
 
@@ -425,26 +426,26 @@ public class CassandraExecutor extends Executor {
                 if (oriResult.get(i).compareTo(upResult.get(i)) != 0) {
 
                     // SyntaxException
-                    if (oriResult.get(i).contains("SyntaxException")
-                            && upResult.get(i).contains("SyntaxException")) {
+                    if (oriResult.get(i).contains("SyntaxException") &&
+                            upResult.get(i).contains("SyntaxException")) {
                         continue;
                     }
 
                     // InvalidRequest
-                    if (oriResult.get(i).contains("InvalidRequest")
-                            && upResult.get(i).contains("InvalidRequest")) {
+                    if (oriResult.get(i).contains("InvalidRequest") &&
+                            upResult.get(i).contains("InvalidRequest")) {
                         continue;
                     }
 
-                    if (oriResult.get(i).contains("0 rows")
-                            && upResult.get(i).contains("0 rows")) {
+                    if (oriResult.get(i).contains("0 rows") &&
+                            upResult.get(i).contains("0 rows")) {
                         continue;
                     }
 
                     String errorMsg = "Result not the same at read sequence id = "
-                            + i + "\n" + "Old Version Result: "
-                            + oriResult.get(i) + "  " + "New Version Result: "
-                            + upResult.get(i) + "\n";
+                            + i + "\n"
+                            + "Old Version Result: " + oriResult.get(i) + "  "
+                            + "New Version Result: " + upResult.get(i) + "\n";
 
                     failureInfo.append(errorMsg);
                     ret = false;

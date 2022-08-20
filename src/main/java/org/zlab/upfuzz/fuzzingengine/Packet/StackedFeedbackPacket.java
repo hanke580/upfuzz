@@ -1,5 +1,6 @@
 package org.zlab.upfuzz.fuzzingengine.Packet;
 
+import com.google.gson.Gson;
 import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
@@ -8,9 +9,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
-
-import com.google.gson.Gson;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -69,8 +67,8 @@ public class StackedFeedbackPacket extends Packet {
         out.writeInt(type.value);
         String packetStr = new Gson().toJson(this);
         byte[] packetByte = packetStr.getBytes();
-        logger.debug("send stacked feedback packet size: "
-                + packetStr.getBytes().length);
+        logger.debug("send stacked feedback packet size: " +
+                packetStr.getBytes().length);
         out.writeInt(packetByte.length);
         out.write(packetByte);
     }

@@ -1,5 +1,6 @@
 package org.zlab.upfuzz.fuzzingengine.Packet;
 
+import com.google.gson.Gson;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -7,9 +8,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
-
-import com.google.gson.Gson;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.Config;
@@ -34,11 +32,13 @@ public class StackedTestPacket extends Packet {
 
     public void addTestPacket(Seed seed, int testID) {
         if (seed.upgradedCommandSequence == null) {
-            tpList.add(new TestPacket(Config.getConf().system, testID,
+            tpList.add(new TestPacket(
+                    Config.getConf().system, testID,
                     seed.originalCommandSequence.getCommandStringList(), null,
                     seed.validationCommandSequnece.getCommandStringList()));
         } else {
-            tpList.add(new TestPacket(Config.getConf().system, testID,
+            tpList.add(new TestPacket(
+                    Config.getConf().system, testID,
                     seed.originalCommandSequence.getCommandStringList(),
                     seed.upgradedCommandSequence.getCommandStringList(),
                     seed.validationCommandSequnece.getCommandStringList()));

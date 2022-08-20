@@ -1,5 +1,6 @@
 package org.zlab.upfuzz.fuzzingengine;
 
+import info.debatty.java.stringsimilarity.QGram;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -13,7 +14,6 @@ import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
 import org.apache.commons.lang3.SerializationUtils;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.CommandPool;
@@ -30,8 +30,6 @@ import org.zlab.upfuzz.hdfs.HdfsExecutor;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
-
-import info.debatty.java.stringsimilarity.QGram;
 
 public class Fuzzer {
     /**
@@ -154,10 +152,11 @@ public class Fuzzer {
             Queue<Pair<CommandSequence, CommandSequence>> queue,
             boolean hasNewOrder, FeedBack testFeedBack) {
 
-        System.out.println("fb original cc: "
-                + (testFeedBack.originalCodeCoverage == null));
-        System.out.println("fb size: "
-                + testFeedBack.originalCodeCoverage.getContents().size());
+        System.out.println("fb original cc: " +
+                (testFeedBack.originalCodeCoverage == null));
+        System.out.println(
+                "fb size: " +
+                        testFeedBack.originalCodeCoverage.getContents().size());
 
         // Check new bits, update covered branches, add record (time, coverage)
         // pair
@@ -214,14 +213,14 @@ public class Fuzzer {
         // upgradedProbeNum = upgradedCoverageStatus.right;
         // }
 
-        Long timeElapsed = TimeUnit.SECONDS
-                .convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
+        Long timeElapsed = TimeUnit.SECONDS.convert(
+                System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
         if (timeElapsed - lastTimePoint > timeInterval || lastTimePoint == 0) {
             // Insert a record (time: coverage)
-            originalCoverageAlongTime
-                    .add(new Pair(timeElapsed, originalCoveredBranches));
-            upgradedCoverageAlongTime
-                    .add(new Pair(timeElapsed, upgradedCoveredBranches));
+            originalCoverageAlongTime.add(
+                    new Pair(timeElapsed, originalCoveredBranches));
+            upgradedCoverageAlongTime.add(
+                    new Pair(timeElapsed, upgradedCoveredBranches));
             lastTimePoint = timeElapsed;
         }
         testID++;
@@ -235,8 +234,9 @@ public class Fuzzer {
             ExecutionDataStore seedUpgradeCoverage,
             CommandSequence seedCommandSequence,
             List<Pair<CommandSequence, CommandSequence>> roundCorpus,
-            List<ExecutionDataStore> roundCoverage, List<Integer> seedIdxList,
-            String seedStr, FeedBack testFeedBack) {
+            List<ExecutionDataStore> roundCoverage,
+            List<Integer> seedIdxList, String seedStr,
+            FeedBack testFeedBack) {
         // Check new bits, update covered branches, add record (time, coverage)
         // pair
         if (hasNewOrder) {
@@ -295,17 +295,18 @@ public class Fuzzer {
                 assert roundCorpus.size() == seedIdxList.size();
 
                 System.out.println("round corpus size = " + roundCorpus.size());
-                System.out.println(
-                        "roundCoverage size = " + roundCoverage.size());
+                System.out.println("roundCoverage size = " +
+                        roundCoverage.size());
                 System.out.println("seedIdxList size = " + seedIdxList);
 
                 int i = 0;
                 for (; i < roundCorpus.size(); i++) {
                     System.out.println("Comparing with " + seedIdxList.get(i));
-                    if (Utilities.isEqualCoverage(roundCoverage.get(i),
+                    if (Utilities.isEqualCoverage(
+                            roundCoverage.get(i),
                             testFeedBack.originalCodeCoverage)) {
-                        System.out.println("Found Identical Seed! Seed idx = "
-                                + seedIdxList.get(i));
+                        System.out.println("Found Identical Seed! Seed idx = " +
+                                seedIdxList.get(i));
                         break;
                     }
                 }
@@ -313,8 +314,9 @@ public class Fuzzer {
                     // Not found, keep this seed
                     // corpus [s0, s1], s0: {b1, b2}, s1: {b2, b3}, s3: {b1, b3}
                     System.out.println("NOT FOUND!");
-                    roundCorpus.add(new Pair<>(commandSequence,
-                            validationCommandSequence));
+                    roundCorpus.add(
+                            new Pair<>(commandSequence,
+                                    validationCommandSequence));
                     roundCoverage.add(testFeedBack.originalCodeCoverage);
                     seedIdxList.add(seedID);
                     saveSeed(commandSequence, validationCommandSequence);
@@ -340,10 +342,12 @@ public class Fuzzer {
                     if (qGram.distance(seedStr, str1) > qGram.distance(seedStr,
                             str2)) {
                         roundCorpus.remove(i);
-                        roundCorpus.add(i, new Pair<>(commandSequence,
-                                validationCommandSequence));
+                        roundCorpus.add(i,
+                                new Pair<>(commandSequence,
+                                        validationCommandSequence));
                         appendSeedFile(commandSequence,
-                                validationCommandSequence, seedIdxList.get(i));
+                                validationCommandSequence,
+                                seedIdxList.get(i));
                     }
                 }
             } else {
@@ -377,14 +381,14 @@ public class Fuzzer {
         // upgradedProbeNum = upgradedCoverageStatus.right;
         // }
 
-        Long timeElapsed = TimeUnit.SECONDS
-                .convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
+        Long timeElapsed = TimeUnit.SECONDS.convert(
+                System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
         if (timeElapsed - lastTimePoint > timeInterval || lastTimePoint == 0) {
             // Insert a record (time: coverage)
-            originalCoverageAlongTime
-                    .add(new Pair(timeElapsed, originalCoveredBranches));
-            upgradedCoverageAlongTime
-                    .add(new Pair(timeElapsed, upgradedCoveredBranches));
+            originalCoverageAlongTime.add(
+                    new Pair(timeElapsed, originalCoveredBranches));
+            upgradedCoverageAlongTime.add(
+                    new Pair(timeElapsed, upgradedCoveredBranches));
             lastTimePoint = timeElapsed;
         }
         testID++;
@@ -420,7 +424,8 @@ public class Fuzzer {
     }
 
     public static void appendSeedFile(CommandSequence commandSequence,
-            CommandSequence validationCommandSequence, int seedIdx) {
+            CommandSequence validationCommandSequence,
+            int seedIdx) {
         // Serialize the seed of the queue in to disk
         StringBuilder sb = new StringBuilder();
         sb.append("\n APPEND SEED \n");
@@ -447,22 +452,30 @@ public class Fuzzer {
     // existing seeds
 
     public void printInfo(int queueSize, int crashID, int testID) {
-        Long timeElapsed = TimeUnit.MILLISECONDS
-                .convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
+        Long timeElapsed = TimeUnit.MILLISECONDS.convert(
+                System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
 
         System.out.println(
                 "\n\n------------------- Executing one fuzzing test -------------------");
-        System.out.println("[Fuzz Status]\n"
-                + "================================================================="
-                + "====================================================\n" + "|"
-                + "Queue Size = " + queueSize + "|" + "Round = " + round + "|"
-                + "Crash Found = " + crashID + "|" + "Current Test ID = "
-                + testID + "|" + "Covered Branches Num = "
-                + originalCoveredBranches + "|" + "Total Branch Num = "
-                + originalProbeNum + "|" + "Time Elapsed = "
-                + timeElapsed / 1000. + "s" + "|" + "\n"
-                + "-----------------------------------------------------------------"
-                + "----------------------------------------------------");
+        System.out.println(
+                "[Fuzz Status]\n"
+                        +
+                        "================================================================="
+                        + "====================================================\n"
+                        + "|"
+                        + "Queue Size = " + queueSize + "|"
+                        + "Round = " + round + "|"
+                        + "Crash Found = " + crashID + "|"
+                        + "Current Test ID = " + testID + "|"
+                        + "Covered Branches Num = " + originalCoveredBranches
+                        + "|"
+                        + "Total Branch Num = " + originalProbeNum + "|"
+                        + "Time Elapsed = " + timeElapsed / 1000. + "s"
+                        + "|"
+                        + "\n"
+                        +
+                        "-----------------------------------------------------------------"
+                        + "----------------------------------------------------");
 
         // Print the coverage status
         // for (Pair<Integer, Integer> timeCoveragePair :
@@ -484,7 +497,8 @@ public class Fuzzer {
     }
 
     public static boolean checkIfHasNewOrder_Two_Cmd(List<String> cmdStrList,
-            String cmd1, String cmd2,
+            String cmd1,
+            String cmd2,
             Map<Set<Integer>, Set<Set<Integer>>> orders) {
         // Care about the order between two commands
         boolean hasNewOrder;
@@ -514,7 +528,8 @@ public class Fuzzer {
     }
 
     public static boolean checkIfHasNewOrder_OneCmd(List<String> cmdStrList,
-            String cmd1, Set<Set<Integer>> orders) {
+            String cmd1,
+            Set<Set<Integer>> orders) {
         // Care about only the position of target command
         boolean hasNewOrder;
         Set<Integer> cmd1Pos = new HashSet<>();

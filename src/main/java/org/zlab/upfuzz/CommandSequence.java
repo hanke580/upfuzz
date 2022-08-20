@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.cassandra.CassandraCommands;
@@ -30,7 +29,8 @@ public class CommandSequence implements Serializable {
     public final Class<? extends State> stateClass;
     public State state;
 
-    public CommandSequence(List<Command> commands,
+    public CommandSequence(
+            List<Command> commands,
             List<Map.Entry<Class<? extends Command>, Integer>> commandClassList,
             List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList,
             Class<? extends State> stateClass, State state) {
@@ -134,8 +134,8 @@ public class CommandSequence implements Serializable {
                  * Insert a command
                  */
                 // Compute the state up to the position
-                pos = org.zlab.upfuzz.utils.Utilities.biasRand(rand,
-                        commands.size() + 1, 5);
+                pos = org.zlab.upfuzz.utils.Utilities.biasRand(
+                        rand, commands.size() + 1, 5);
                 // pos = rand.nextInt(commands.size() + 1);
                 logger.trace("\t\tMutate Command Pos " + pos);
                 for (int i = 0; i < pos; i++) {
@@ -357,8 +357,8 @@ public class CommandSequence implements Serializable {
         /**
          * Check whether current command is valid. Fix if not valid.
          * TODO: What if it cannot be fixed?
-         * - simple solution, just return a false, and make command sequence remove it.
-         * Update the command string
+         * - simple solution, just return a false, and make command sequence
+         * remove it. Update the command string
          */
         boolean fixable = command.regenerateIfNotValid(state);
         if (fixable)
@@ -404,5 +404,4 @@ public class CommandSequence implements Serializable {
             INTType.intPool.add((Integer) val);
         }
     }
-
 }

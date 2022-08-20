@@ -29,7 +29,5 @@ public class ConfigurableTypeTests {
         // CassandraCommands.CREATETABLE cmd = new
         // CassandraCommands.CREATETABLE(s);
         // System.out.println(cmd.constructCommandString());
-
     }
-
 }

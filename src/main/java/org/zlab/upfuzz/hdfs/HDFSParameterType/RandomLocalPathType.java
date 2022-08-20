@@ -1,7 +1,6 @@
 package org.zlab.upfuzz.hdfs.HDFSParameterType;
 
 import java.io.File;
-
 import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType.ConcreteType;
@@ -39,7 +38,6 @@ public class RandomLocalPathType extends ConcreteType {
     @Override
     public void regenerate(State s, Command c, Parameter p) {
         // TODO Auto-generated method stub
-
     }
 
     @Override
@@ -53,5 +51,4 @@ public class RandomLocalPathType extends ConcreteType {
         // TODO Auto-generated method stub
         return false;
     }
-
 }

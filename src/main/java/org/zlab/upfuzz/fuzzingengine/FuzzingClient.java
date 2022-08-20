@@ -10,7 +10,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.jacoco.core.data.ExecutionDataWriter;
 import org.zlab.upfuzz.CommandSequence;
@@ -24,9 +25,6 @@ import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.hdfs.HdfsExecutor;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class FuzzingClient {
     static Logger logger = LogManager.getLogger(FuzzingClient.class);
@@ -92,7 +90,8 @@ public class FuzzingClient {
      * @throws Exception
      */
     public StackedFeedbackPacket executeStackedTestPacket(
-            StackedTestPacket stackedTestPacket) throws Exception {
+            StackedTestPacket stackedTestPacket)
+            throws Exception {
         // Run all the tests, collect (1) coverage and (2) old version read
         // results
 
@@ -117,8 +116,8 @@ public class FuzzingClient {
 
         FeedBack fb;
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
-            logger.info("Execute testpacket " + tp.systemID + " "
-                    + tp.testPacketID);
+            logger.trace("Execute testpacket " + tp.systemID + " " +
+                    tp.testPacketID);
             executor.execute(tp);
             fb = new FeedBack();
             fb.originalCodeCoverage = executor.collect("original");
@@ -126,7 +125,8 @@ public class FuzzingClient {
                 logger.info("ERROR: null origin code coverage");
                 System.exit(1);
             }
-            testID2FeedbackPacket.put(tp.testPacketID,
+            testID2FeedbackPacket.put(
+                    tp.testPacketID,
                     new FeedbackPacket(tp.testPacketID, tp.systemID, fb));
 
             List<String> oriResult = executor.executeRead(tp.testPacketID);
@@ -186,9 +186,18 @@ public class FuzzingClient {
                 }
             }
         }
+        logger.info(executor.systemID + " executor: " + executor.executorID
+                + " finished execution");
         t = new Thread(() -> {
             executor.upgradeTeardown();
             executor.clearState();
+            executor.teardown();
+            try {
+                executor.startup();
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
         });
         t.start();
 

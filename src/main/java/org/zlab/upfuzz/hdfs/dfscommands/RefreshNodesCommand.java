@@ -8,7 +8,9 @@ import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 public class RefreshNodesCommand extends DfsadminCommand {
 
     /**
-     * Re-read the hosts and exclude files to update the set of Datanodes that are allowed to connect to the Namenode and those that should be decommissioned or recommissioned.
+     * Re-read the hosts and exclude files to update the set of Datanodes that
+     * are allowed to connect to the Namenode and those that should be
+     * decommissioned or recommissioned.
      */
     public RefreshNodesCommand(HdfsState hdfsState) {
         Parameter refreshNodesCmd = new CONSTANTSTRINGType("-refreshNodes")

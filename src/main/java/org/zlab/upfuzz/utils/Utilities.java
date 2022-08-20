@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionData;
@@ -90,9 +89,8 @@ public class Utilities {
                 final int[] testSequenceProbes = testSequenceData.getProbes();
                 for (int i = 0; i < curProbes.length; i++) {
                     // Now only try with the boolean first
-                    if ((curProbes[i] == 0 && testSequenceProbes[i] != 0)
-                            || (curProbes[i] != 0
-                                    && testSequenceProbes[i] == 0)) {
+                    if ((curProbes[i] == 0 && testSequenceProbes[i] != 0) ||
+                            (curProbes[i] != 0 && testSequenceProbes[i] == 0)) {
                         logger.debug("cur probes: ");
                         for (int j = 0; j < curProbes.length; j++) {
                             logger.debug(curProbes[j] + " ");
@@ -103,19 +101,19 @@ public class Utilities {
                         }
 
                         logger.debug("probe len = " + curProbes.length);
-                        logger.debug("Class " + testSequenceData.getName()
-                                + " id: [" + i + "]" + " is different!");
+                        logger.debug("Class " + testSequenceData.getName() +
+                                " id: [" + i + "]"
+                                + " is different!");
                         return false;
                     }
                 }
             } else {
-                logger.debug(
-                        "curData not triggered " + testSequenceData.getName());
+                logger.debug("curData not triggered " +
+                        testSequenceData.getName());
                 return false;
             }
         }
         return true;
-
     }
 
     public static boolean hasNewBits(ExecutionDataStore curCoverage,
@@ -154,11 +152,12 @@ public class Utilities {
                             }
                             System.out.println();
 
-                            System.out
-                                    .println("probe len = " + curProbes.length);
-                            System.out.println("Class "
-                                    + testSequenceData.getName() + " id: [" + i
-                                    + "]" + " is different!");
+                            System.out.println("probe len = " +
+                                    curProbes.length);
+                            System.out.println("Class " +
+                                    testSequenceData.getName() +
+                                    " id: [" + i + "]"
+                                    + " is different!");
                             return true;
                         }
                     }
@@ -321,8 +320,10 @@ public class Utilities {
 
     public static String getGitTag(String path)
             throws IOException, InterruptedException {
-        Process p = exec(new String[] { "git", "describe", "--abbrev=0",
-                "--tags", "HEAD" }, path);
+        Process p = exec(
+                new String[] { "git", "describe", "--abbrev=0", "--tags",
+                        "HEAD" },
+                path);
         String gitBranch = readProcess(p).replace("\n", "");
         return gitBranch;
     }
@@ -463,8 +464,8 @@ public class Utilities {
                 // Only instrument class that's inside org.apache.cassandra.*
                 if (ClassName.contains("cassandra")) {
                     if (funcToInst.containsKey(ClassName)) {
-                        funcToInst.get(ClassName)
-                                .add(new AbstractMap.SimpleEntry<>(MethodName,
+                        funcToInst.get(ClassName).add(
+                                new AbstractMap.SimpleEntry<>(MethodName,
                                         ParamDesc));
                     } else {
                         List<Map.Entry<String, String>> list = new ArrayList<>();

@@ -57,5 +57,4 @@ public class OrType extends ParameterType.ConcreteType {
         // TODO Auto-generated method stub
         return null;
     }
-
 }

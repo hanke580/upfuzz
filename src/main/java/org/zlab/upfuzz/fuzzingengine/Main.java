@@ -1,13 +1,11 @@
 package org.zlab.upfuzz.fuzzingengine;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
-
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -26,15 +24,21 @@ public class Main {
     public static void main(String[] args)
             throws ParseException, InterruptedException {
         final Options options = new Options();
-        Option clazzOption = Option.builder("class").argName("type").hasArg()
-                .desc("start a dfe server or client or fuzzer").required()
+        Option clazzOption = Option.builder("class")
+                .argName("type")
+                .hasArg()
+                .desc("start a dfe server or client or fuzzer")
+                .required()
                 .build();
         // Option actionOption =
         // Option.builder("action").argName("action").hasArg().desc("start a dfe
         // server or client")
         // .required().build();
-        Option configFileOption = Option.builder("config").argName("config")
-                .hasArg().desc("Configuration file location").build();
+        Option configFileOption = Option.builder("config")
+                .argName("config")
+                .hasArg()
+                .desc("Configuration file location")
+                .build();
         options.addOption(clazzOption);
         // options.addOption(actionOption);
         options.addOption(configFileOption);

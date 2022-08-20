@@ -3,7 +3,6 @@ package org.zlab.upfuzz.fuzzingengine.Server;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.Config;
@@ -23,8 +22,8 @@ class FuzzingServerSocket implements Runnable {
             final ServerSocket server = new ServerSocket(
                     Config.getConf().serverPort, 0,
                     InetAddress.getByName(Config.getConf().serverHost));
-            logger.info("fuzzing server start at "
-                    + server.getLocalSocketAddress());
+            logger.info("fuzzing server start at " +
+                    server.getLocalSocketAddress());
             while (true) {
                 try {
                     FuzzingServerHandler handler = new FuzzingServerHandler(

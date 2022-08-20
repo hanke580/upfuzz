@@ -6,15 +6,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.cassandra.CassandraCommands;
 
 /**
- * User need to implement two methods constructCommandString() and updateState().
- * If our custom mutation is not enough, they can implement their mutation by
- * overriding mutate() method.
+ * User need to implement two methods constructCommandString() and
+ * updateState(). If our custom mutation is not enough, they can implement their
+ * mutation by overriding mutate() method.
  */
 public abstract class Command implements Serializable {
     static Logger logger = LogManager.getLogger(Command.class);
@@ -42,7 +41,8 @@ public abstract class Command implements Serializable {
     public abstract void updateState(State state);
 
     public boolean mutate(State s) throws IllegalAccessException,
-            NoSuchMethodException, InvocationTargetException {
+            NoSuchMethodException,
+            InvocationTargetException {
         Random rand = new Random();
 
         for (int i = 0; i < RETRY_TIMES; i++) {

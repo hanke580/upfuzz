@@ -1,16 +1,14 @@
 package org.zlab.upfuzz.fuzzingengine;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.Socket;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonIOException;
-import com.google.gson.JsonSyntaxException;
-
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.junit.jupiter.api.BeforeAll;
@@ -33,7 +31,6 @@ public class FuzzingClientTest {
             e.printStackTrace();
             assert false;
         }
-
     }
 
     @Test

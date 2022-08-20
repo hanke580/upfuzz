@@ -1,8 +1,7 @@
 package org.zlab.upfuzz.fuzzingengine.executor;
 
-import org.zlab.upfuzz.CommandSequence;
-
 import java.util.List;
+import org.zlab.upfuzz.CommandSequence;
 
 public interface IExecutor {
 

@@ -124,13 +124,15 @@ public class CassandraTypes {
             }
 
             ConcreteType type = ConcreteGenericType
-                    .constructConcreteGenericType(instance, t); // LIST<WhateverType>
+                    .constructConcreteGenericType(
+                            instance, t); // LIST<WhateverType>
             return new Parameter(type, value);
         }
 
         @Override
         public Parameter generateRandomParameter(State s, Command c,
-                List<ConcreteType> types, Object init) {
+                List<ConcreteType> types,
+                Object init) {
             assert init instanceof List;
             List<Object> initValues = (List<Object>) init;
 
@@ -146,7 +148,8 @@ public class CassandraTypes {
             }
 
             ConcreteType type = ConcreteGenericType
-                    .constructConcreteGenericType(instance, t); // LIST<WhateverType>
+                    .constructConcreteGenericType(
+                            instance, t); // LIST<WhateverType>
             return new Parameter(type, value);
         }
 
@@ -189,8 +192,8 @@ public class CassandraTypes {
             /**
              * TODO: The Type should also be the same.
              * Otherwise, if the type is different from the current list
-             * List<TYPEType> vs List<STRING>. The latter one should also be inValid!
-             * Now only make sure each parameter is correct
+             * List<TYPEType> vs List<STRING>. The latter one should also be
+             * inValid! Now only make sure each parameter is correct
              */
             for (Parameter v : value) {
                 if (!v.isValid(s, c)) {
@@ -261,16 +264,17 @@ public class CassandraTypes {
             }
 
             ConcreteType type = ConcreteGenericType
-                    .constructConcreteGenericType(this.instance, t); // LIST<WhateverType>
+                    .constructConcreteGenericType(
+                            this.instance, t); // LIST<WhateverType>
 
             return new Parameter(type, value);
         }
     }
 
     /**
-     * TODO: This TYPEType should also be able to enumerate user defined types in
-     * Cassandra. It is feasible by using the current state: find the user defined
-     * types and use an instance of UnionType to represent them.
+     * TODO: This TYPEType should also be able to enumerate user defined types
+     * in Cassandra. It is feasible by using the current state: find the user
+     * defined types and use an instance of UnionType to represent them.
      */
     public static class TYPEType extends ParameterType.ConcreteType {
         public static final TYPEType instance = new TYPEType();
@@ -369,10 +373,10 @@ public class CassandraTypes {
 
         /**
          * TYPEType refers to a String that defines a type in Cassandra.
-         * E.g., CREATE TABLE command could use a text, or Set<text>, a user defined
-         * type. Its value should be a ParameterType! It could either be a normal
-         * type or a templated type. If it is a templated type, we need to continue
-         * generating generic types in templates.
+         * E.g., CREATE TABLE command could use a text, or Set<text>, a user
+         * defined type. Its value should be a ParameterType! It could either be
+         * a normal type or a templated type. If it is a templated type, we need
+         * to continue generating generic types in templates.
          */
         @Override
         public Parameter generateRandomParameter(State s, Command c) {

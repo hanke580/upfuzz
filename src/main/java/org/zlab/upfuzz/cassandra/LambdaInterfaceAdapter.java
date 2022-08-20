@@ -1,7 +1,5 @@
 package org.zlab.upfuzz.cassandra;
 
-import java.lang.reflect.Type;
-
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -9,7 +7,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-
+import java.lang.reflect.Type;
 import org.zlab.upfuzz.FetchCollectionLambda;
 
 public class LambdaInterfaceAdapter
@@ -18,7 +16,8 @@ public class LambdaInterfaceAdapter
 
     @Override
     public FetchCollectionLambda deserialize(JsonElement json, Type typeOfT,
-            JsonDeserializationContext context) throws JsonParseException {
+            JsonDeserializationContext context)
+            throws JsonParseException {
         return null;
     }
 
@@ -28,5 +27,4 @@ public class LambdaInterfaceAdapter
         JsonObject empty = new JsonObject();
         return empty;
     }
-
 }

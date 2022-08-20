@@ -1,7 +1,6 @@
 package org.zlab.upfuzz.hdfs.dfscommands;
 
 import java.util.Arrays;
-
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.ParameterType.ConcreteType;
@@ -17,7 +16,8 @@ public class SetaclCommand extends DfsCommand {
 
         // -setacl
         Parameter setaclcmd = new CONSTANTSTRINGType("-setacl")
-                .generateRandomParameter(null, null);
+                .generateRandomParameter(null,
+                        null);
 
         // [-R]
         Parameter hyphenR = new ParameterType.OptionalType(
@@ -32,7 +32,8 @@ public class SetaclCommand extends DfsCommand {
                                 .generateRandomParameter(null, null),
                         new CONSTANTSTRINGType("-k")
                                 .generateRandomParameter(null, null)),
-                null).generateRandomParameter(null, null);
+                null)
+                        .generateRandomParameter(null, null);
 
         // -m|-x
         Parameter MandX = new ParameterType.InCollectionType(
@@ -42,7 +43,8 @@ public class SetaclCommand extends DfsCommand {
                                 .generateRandomParameter(null, null),
                         new CONSTANTSTRINGType("-x")
                                 .generateRandomParameter(null, null)),
-                null).generateRandomParameter(null, null);
+                null)
+                        .generateRandomParameter(null, null);
 
         // acl_spec
         Parameter aclSpec = new CONSTANTSTRINGType("acl")

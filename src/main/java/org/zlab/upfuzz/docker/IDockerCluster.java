@@ -6,7 +6,7 @@ import java.nio.file.Path;
 public interface IDockerCluster {
     String getNetworkIP();
 
-    int start();
+    int start() throws Exception;
 
     void teardown();
 

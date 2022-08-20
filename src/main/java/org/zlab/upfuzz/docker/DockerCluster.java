@@ -7,5 +7,4 @@ public abstract class DockerCluster implements IDockerCluster {
         segments[3] = Integer.toString(index + 2);
         return String.join(".", segments);
     }
-
 }

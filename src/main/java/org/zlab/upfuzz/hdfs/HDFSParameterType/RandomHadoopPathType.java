@@ -38,7 +38,6 @@ public class RandomHadoopPathType extends ConcreteType {
     @Override
     public void regenerate(State s, Command c, Parameter p) {
         // TODO Auto-generated method stub
-
     }
 
     @Override
@@ -52,5 +51,4 @@ public class RandomHadoopPathType extends ConcreteType {
         // TODO Auto-generated method stub
         return false;
     }
-
 }

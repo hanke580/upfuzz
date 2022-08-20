@@ -1,7 +1,6 @@
 package org.zlab.upfuzz.hdfs;
 
 import java.util.AbstractMap;
-
 import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.hdfs.dfscommands.CatCommand;
 import org.zlab.upfuzz.hdfs.dfscommands.CpCommand;
@@ -31,8 +30,9 @@ public class HdfsCommandPool extends CommandPool {
                 new AbstractMap.SimpleImmutableEntry<>(LsCommand.class, 3));
         createCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(CatCommand.class, 1));
-        createCommandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
-                RollEditsCommand.class, 2));
+        createCommandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(RollEditsCommand.class,
+                        2));
         createCommandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
                 SaveNamespaceCommand.class, 2));
         createCommandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
@@ -46,7 +46,5 @@ public class HdfsCommandPool extends CommandPool {
                 new AbstractMap.SimpleImmutableEntry<>(CatCommand.class, 2));
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(ReportCommand.class, 1));
-
     }
-
 }

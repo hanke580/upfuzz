@@ -1,10 +1,8 @@
 package org.zlab.upfuzz.fuzzingengine.Packet;
 
+import com.google.gson.Gson;
 import java.io.IOException;
 import java.io.InputStream;
-
-import com.google.gson.Gson;
-
 import org.zlab.upfuzz.fuzzingengine.FeedBack;
 
 public class FeedbackPacket extends Packet {

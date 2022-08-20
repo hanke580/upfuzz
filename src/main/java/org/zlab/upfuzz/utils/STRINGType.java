@@ -1,13 +1,12 @@
 package org.zlab.upfuzz.utils;
 
+import java.math.BigInteger;
+import java.util.*;
 import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.cassandra.CassandraCommands;
-
-import java.math.BigInteger;
-import java.util.*;
 
 public class STRINGType extends ParameterType.ConcreteType {
 
@@ -97,10 +96,11 @@ public class STRINGType extends ParameterType.ConcreteType {
 
     @Override
     public boolean isValid(State s, Command c, Parameter p) {
-        if (p == null || !(p.type instanceof STRINGType) || contains(
-                CassandraCommands.reservedKeywords, (String) p.value)) // Specially
-                                                                       // for
-                                                                       // Cassandra
+        if (p == null || !(p.type instanceof STRINGType) ||
+                contains(CassandraCommands.reservedKeywords,
+                        (String) p.value)) // Specially
+                                           // for
+                                           // Cassandra
             return false;
         return true;
     }
@@ -319,5 +319,4 @@ public class STRINGType extends ParameterType.ConcreteType {
     public static void cleanPool() {
         stringPool.clear();
     }
-
 }

@@ -1,4 +1,4 @@
-package org.zlab.upfuzz.cassandra;
+package org.zlab.upfuzz.hdfs;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -17,17 +17,14 @@ import org.zlab.upfuzz.docker.DockerMeta;
 import org.zlab.upfuzz.docker.IDocker;
 import org.zlab.upfuzz.utils.Utilities;
 
-public class CassandraDocker extends DockerMeta implements IDocker {
+public class HdfsDocker extends DockerMeta implements IDocker {
     protected final Logger logger = LogManager.getLogger(getClass());
 
     String composeYaml;
     String javaToolOpts;
     String containerName;
-    int cqlshDaemonPort = 18251;
 
-    public CassandraCqlshDaemon cqlsh;
-
-    public CassandraDocker(CassandraDockerCluster dockerCluster, int index)
+    public HdfsDocker(HdfsDockerCluster dockerCluster, int index)
             throws IOException {
         this.index = index;
         type = "original";
@@ -44,7 +41,7 @@ public class CassandraDocker extends DockerMeta implements IDocker {
         includes = dockerCluster.inclueds;
         excludes = dockerCluster.excludes;
         executorID = dockerCluster.executorID;
-        name = "cassandra-" + originalVersion + "_" + upgradedVersion + "_" +
+        name = "hdfs-" + originalVersion + "_" + upgradedVersion + "_" +
                 executorID + "_N" + index;
     }
 
@@ -56,7 +53,7 @@ public class CassandraDocker extends DockerMeta implements IDocker {
     public String formatComposeYaml() {
         Map<String, String> formatMap = new HashMap<>();
 
-        containerName = "cassandra-" + originalVersion + "_" + upgradedVersion +
+        containerName = "hdfs-" + originalVersion + "_" + upgradedVersion +
                 "_" + executorID + "_N" + index;
         formatMap.put("projectRoot", System.getProperty("user.dir"));
         formatMap.put("system", system);
@@ -79,15 +76,14 @@ public class CassandraDocker extends DockerMeta implements IDocker {
     @Override
     public int start() throws IOException, InterruptedException {
         // String dir = "/" + system + "/" + originalVersion;
-        // Process cass = exec(new String[] { "-e", "CASSANDRA_HOME=" + dir,
+        // Process cass = exec(new String[] { "-e", "HDFS_HOME=" + dir,
         // name,
         // dir + "/bin/cqlsh_init.sh" });
         // int res = cass.waitFor();
         // String log = Utilities.readProcess(cass);
-        // logger.debug("start cassandra docker " + index + ": " + dir +
+        // logger.debug("start hdfs docker " + index + ": " + dir +
         // " ret: " + res + "\n" + log);
         //
-        cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort);
         return 0;
     }
 
@@ -111,7 +107,7 @@ public class CassandraDocker extends DockerMeta implements IDocker {
     @Override
     public boolean build() throws IOException {
         // FIXME skip this for local test
-        // URL pyScript = CassandraDockerCompose.class.getClassLoader()
+        // URL pyScript = HdfsDockerCompose.class.getClassLoader()
         // .getResource("build.py");
         // String pyScriptPath = pyScript.getPath();
         // File scriptPath = Paths.get(pyScriptPath).getParent().toFile();
@@ -133,8 +129,8 @@ public class CassandraDocker extends DockerMeta implements IDocker {
         // e.printStackTrace();
         // }
 
-        String cassandraHome = "/cassandra/" + originalVersion;
-        String cassandraConf = "/etc/" + originalVersion;
+        String hdfsHome = "/hdfs/" + originalVersion;
+        String hdfsConf = "/etc/" + originalVersion;
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
                 + "/org.jacoco.agent.rt.jar"
                 + "=append=false"
@@ -144,9 +140,8 @@ public class CassandraDocker extends DockerMeta implements IDocker {
                 "\"";
 
         env = new String[] {
-                "CASSANDRA_HOME=\"" + cassandraHome + "\"",
-                "CASSANDRA_CONF=\"" + cassandraConf + "\"", javaToolOpts,
-                "CQLSH_DAEMON_PORT=\"" + cqlshDaemonPort + "\"",
+                "HDFS_HOME=\"" + hdfsHome + "\"",
+                "HDFS_CONF=\"" + hdfsConf + "\"", javaToolOpts,
                 "PYTHON=python2" };
         setEnvironment();
         return false;
@@ -169,22 +164,20 @@ public class CassandraDocker extends DockerMeta implements IDocker {
                 ",output=dfe,address=" + hostIP + ",port=" + agentPort +
                 ",sessionid=" + system + "-" + executorID + "_" + type +
                 "\"";
-        cqlshDaemonPort ^= 1;
-        String cassandraHome = "/cassandra/" + upgradedVersion;
-        String cassandraConf = "/etc/" + upgradedVersion;
+        String hdfsHome = "/hdfs/" + upgradedVersion;
+        String hdfsConf = "/etc/" + upgradedVersion;
         env = new String[] {
-                "CASSANDRA_HOME=\"" + cassandraHome + "\"",
-                "CASSANDRA_CONF=\"" + cassandraConf + "\"", javaToolOpts,
-                "CQLSH_DAEMON_PORT=\"" + cqlshDaemonPort + "\"",
+                "HDFS_HOME=\"" + hdfsHome + "\"",
+                "HDFS_CONF=\"" + hdfsConf + "\"", javaToolOpts,
                 "PYTHON=python2" };
         setEnvironment();
-        String restartCommand = "supervisorctl restart upfuzz_cassandra:";
+        String restartCommand = "supervisorctl restart upfuzz_hdfs:";
         Process restart = exec(
                 new String[] { "/bin/bash", "-c", restartCommand }, env);
         ret = restart.waitFor();
+        Thread.sleep(10000);
         String message = Utilities.readProcess(restart);
         logger.debug("original version restart: " + ret + "\n" + message);
-        cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort);
     }
 
     @Override
@@ -199,25 +192,25 @@ public class CassandraDocker extends DockerMeta implements IDocker {
 
     static String template = ""
             + "    DC3N${index}:\n"
-            + "        container_name: cassandra-${originalVersion}_${upgradedVersion}_${executorID}_N${index}\n"
+            + "        container_name: hdfs-${originalVersion}_${upgradedVersion}_${executorID}_N${index}\n"
             + "        image: upfuzz_${system}:${originalVersion}_${upgradedVersion}\n"
             + "        command: bash -c 'sleep 0 && /usr/bin/supervisord'\n"
             + "        networks:\n"
             + "            ${networkName}:\n"
             + "                ipv4_address: ${networkIP}\n"
             + "        volumes:\n"
-            + "            - ./persistent/node_${index}/data:/var/lib/cassandra\n"
-            + "            - ./persistent/node_${index}/log:/var/log/cassandra\n"
+            + "            - ./persistent/node_${index}/data:/var/lib/hdfs\n"
+            + "            - ./persistent/node_${index}/log:/var/log/hdfs\n"
             + "            - ./persistent/node_${index}/env.sh:/usr/bin/set_env\n"
             + "            - ./persistent/node_${index}/consolelog:/var/log/supervisor\n"
             + "            - ${projectRoot}/prebuild/${system}/${originalVersion}:/${system}/${originalVersion}\n"
             + "            - ${projectRoot}/prebuild/${system}/${upgradedVersion}:/${system}/${upgradedVersion}\n"
             + "        environment:\n"
-            + "            - CASSANDRA_CLUSTER_NAME=dev_cluster\n"
-            + "            - CASSANDRA_SEEDS=${seedIP},\n"
-            + "            - CASSANDRA_LOGGING_LEVEL=DEBUG\n"
+            + "            - HDFS_CLUSTER_NAME=dev_cluster\n"
+            + "            - HDFS_SEEDS=${seedIP},\n"
+            + "            - HDFS_LOGGING_LEVEL=DEBUG\n"
             + "            - CQLSH_HOST=${networkIP}\n"
-            + "            - CASSANDRA_LOG_DIR=/var/log/cassandra\n"
+            + "            - HDFS_LOG_DIR=/var/log/hdfs\n"
             + "        expose:\n"
             + "            - ${agentPort}\n"
             + "            - 7000\n"

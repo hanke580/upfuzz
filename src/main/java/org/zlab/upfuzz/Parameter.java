@@ -1,8 +1,7 @@
 package org.zlab.upfuzz;
 
-import org.apache.commons.lang3.SerializationUtils;
-
 import java.io.Serializable;
+import org.apache.commons.lang3.SerializationUtils;
 
 public class Parameter implements Serializable {
 

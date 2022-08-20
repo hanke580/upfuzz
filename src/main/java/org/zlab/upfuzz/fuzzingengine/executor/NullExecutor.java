@@ -1,7 +1,6 @@
 package org.zlab.upfuzz.fuzzingengine.executor;
 
 import java.util.List;
-
 import org.zlab.upfuzz.CommandSequence;
 
 /* NullExecutor
@@ -14,17 +13,14 @@ public class NullExecutor extends Executor {
 
     @Override
     public void startup() {
-
     }
 
     @Override
     public void teardown() {
-
     }
 
     @Override
     public void upgradeTeardown() {
-
     }
 
     @Override
