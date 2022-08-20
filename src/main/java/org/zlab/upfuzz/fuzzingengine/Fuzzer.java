@@ -548,34 +548,4 @@ public class Fuzzer {
         return hasNewOrder;
     }
 
-    public static boolean checkIfHasNewOrder_AllCmds(List<String> cmdStrList,
-            Set<String> orderSet) {
-        // Care about only the position of target command
-        String order = getStringOrder(cmdStrList);
-        if (orderSet.contains(order)) {
-            return false;
-        } else {
-            orderSet.add(order);
-            return true;
-        }
-    }
-
-    // Get the order of all commands, format like 1-2-3-3-4 <===> CCIID
-    public static String getStringOrder(List<String> cmdStrList) {
-        StringBuilder sb = new StringBuilder();
-        for (String cmdStr : cmdStrList) {
-            for (int i = 0; i < CassandraCommands.commandNameList.size(); i++) {
-                if (cmdStr.contains(CassandraCommands.commandNameList.get(i))) {
-                    if (sb.toString().length() == 0) {
-                        sb.append(i);
-                    } else {
-                        sb.append("-" + i);
-                    }
-                    break;
-                }
-                // If nothing found, temporally do not care about this command
-            }
-        }
-        return sb.toString();
-    }
 }

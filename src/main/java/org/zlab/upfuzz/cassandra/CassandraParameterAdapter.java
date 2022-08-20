@@ -1,5 +1,8 @@
 package org.zlab.upfuzz.cassandra;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Type;
+
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -7,10 +10,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import java.lang.reflect.Field;
-import java.lang.reflect.Type;
-import org.zlab.upfuzz.cassandra.CassandraCommands.CREAT_KEYSPACE;
+
 import org.zlab.upfuzz.cassandra.CassandraTypes.TEXTType;
+import org.zlab.upfuzz.cassandra.cqlcommands.CREATE_KEYSPACE;
 
 public class CassandraParameterAdapter<T>
         implements JsonSerializer<T>, JsonDeserializer<T> {
@@ -24,10 +26,10 @@ public class CassandraParameterAdapter<T>
         final JsonElement data = get(wrapper, "__gson_data");
         final Type actualType = typeForName(typeName);
 
-        if (actualType.equals(CREAT_KEYSPACE.class)) {
+        if (actualType.equals(CREATE_KEYSPACE.class)) {
             System.err.println("wow !");
             CassandraState s = new CassandraState();
-            return (T) new CassandraCommands.CREAT_KEYSPACE(s);
+            return (T) new CREATE_KEYSPACE(s);
         }
         return context.deserialize(data, actualType);
     }

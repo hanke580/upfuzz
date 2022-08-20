@@ -240,14 +240,14 @@ public class CassandraExecutor extends Executor {
         CommandSequence validationCommandSequence = null;
         try {
             commandSequence = CommandSequence.generateSequence(
-                    CassandraCommands.commandClassList,
-                    CassandraCommands.createCommandClassList,
-                    CassandraState.class,
-                    null);
+                    CassandraCommands.cassandraCommandPool.commandClassList,
+                    CassandraCommands.cassandraCommandPool.createCommandClassList,
+                    CassandraState.class, null);
             // TODO: If it's generating read with a initial state, no need to
             // generate with createTable...
             validationCommandSequence = CommandSequence.generateSequence(
-                    CassandraCommands.readCommandClassList, null,
+                    CassandraCommands.cassandraCommandPool.readCommandClassList,
+                    null,
                     CassandraState.class, commandSequence.state);
         } catch (NoSuchMethodException | InvocationTargetException
                 | InstantiationException | IllegalAccessException e) {
@@ -261,7 +261,8 @@ public class CassandraExecutor extends Executor {
         CommandSequence validationCommandSequence = null;
         try {
             validationCommandSequence = CommandSequence.generateSequence(
-                    CassandraCommands.readCommandClassList, null,
+                    CassandraCommands.cassandraCommandPool.readCommandClassList,
+                    null,
                     CassandraState.class, state);
         } catch (NoSuchMethodException | InvocationTargetException
                 | InstantiationException | IllegalAccessException e) {

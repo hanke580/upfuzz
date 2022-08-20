@@ -59,7 +59,11 @@ public class Parameter implements Serializable {
     }
 
     public void setValue(Object val) {
-        this.getValue();
+        if (this.value instanceof Parameter) {
+            ((Parameter) this.value).setValue(val);
+        } else {
+            this.value = val;
+        }
     }
 
     @Override
