@@ -227,7 +227,7 @@ public class FuzzingServer {
         }
 
         Long timeElapsed = TimeUnit.SECONDS.convert(
-                System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
+                System.nanoTime(), TimeUnit.NANOSECONDS) - startTime;
         if (timeElapsed - lastTimePoint > Config.getConf().timeInterval ||
                 lastTimePoint == 0) {
             // Insert a record (time: coverage)
@@ -253,8 +253,8 @@ public class FuzzingServer {
     }
 
     public void printInfo() {
-        Long timeElapsed = TimeUnit.MILLISECONDS.convert(
-                System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
+        Long timeElapsed = TimeUnit.SECONDS.convert(
+                System.nanoTime(), TimeUnit.NANOSECONDS) - startTime;
 
         logger.info(
                 "\n\n------------------- Executing one fuzzing test -------------------"
@@ -267,11 +267,11 @@ public class FuzzingServer {
                         + "Round = " + round + "|"
                         + "Crash Found = " + crashID + "|"
                         + "Current Test ID = " + testID + "|"
-                        + "Finished Test Num = " + finishedTestID +
+                        + "Finished Test Num = " + finishedTestID + "|" +
                         "Covered Branches Num = " + originalCoveredBranches
                         + "|"
                         + "Total Branch Num = " + originalProbeNum + "|"
-                        + "Time Elapsed = " + timeElapsed / 1000. + "s"
+                        + "Time Elapsed = " + timeElapsed + "s"
                         + "|"
                         + "\n"
                         +

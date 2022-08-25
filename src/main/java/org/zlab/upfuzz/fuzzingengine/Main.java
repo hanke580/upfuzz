@@ -6,6 +6,9 @@ import com.google.gson.JsonSyntaxException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -58,6 +61,22 @@ public class Main {
             }
         }
         Config.getConf().checkNull();
+
+        if (Config.getConf().corpusDir == null) {
+            // create a corpus dir in the folder
+            Path corpusPath = Paths.get(System.getProperty("user.dir"))
+                    .resolve("corpus");
+            corpusPath.toFile().mkdir();
+            Config.instance.corpusDir = corpusPath.toString();
+        }
+
+        if (Config.getConf().crashDir == null) {
+            // create a corpus dir in the folder
+            Path crashPath = Paths.get(System.getProperty("user.dir"))
+                    .resolve("crash");
+            crashPath.toFile().mkdir();
+            Config.instance.crashDir = crashPath.toString();
+        }
 
         String type = cmd.getOptionValue(clazzOption);
         logger.info("start " + type);

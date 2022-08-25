@@ -15,6 +15,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.SerializationUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.CommandSequence;
@@ -32,6 +34,8 @@ import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
 public class Fuzzer {
+    static Logger logger = LogManager.getLogger(Fuzzer.class);
+
     /**
      * start from one seed, fuzz it for a certain times. Also check the coverage
      * here?
@@ -398,29 +402,34 @@ public class Fuzzer {
     public static void saveSeed(CommandSequence commandSequence,
             CommandSequence validationCommandSequence) {
         // Serialize the seed of the queue in to disk
-        File corpusDir = new File(Config.getConf().corpusDir);
-        if (!corpusDir.exists()) {
-            corpusDir.mkdirs();
+        if (Config.getConf().corpusDir == null) {
+            logger.info("corpusDir is not provided!");
+        } else {
+            File corpusDir = new File(Config.getConf().corpusDir);
+            if (!corpusDir.exists()) {
+                corpusDir.mkdirs();
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("Seed Id = " + seedID + "\n");
+            sb.append("Command Sequence\n");
+            for (String commandStr : commandSequence.getCommandStringList()) {
+                sb.append(commandStr);
+                sb.append("\n");
+            }
+            sb.append("Read Command Sequence\n");
+            for (String commandStr : validationCommandSequence
+                    .getCommandStringList()) {
+                sb.append(commandStr);
+                sb.append("\n");
+            }
+            Path crashReportPath = Paths.get(Config.getConf().corpusDir,
+                    "seed_" + seedID + ".txt");
+
+            Utilities.write2TXT(crashReportPath.toFile(), sb.toString(), false);
+            seedID++;
         }
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("Seed Id = " + seedID + "\n");
-        sb.append("Command Sequence\n");
-        for (String commandStr : commandSequence.getCommandStringList()) {
-            sb.append(commandStr);
-            sb.append("\n");
-        }
-        sb.append("Read Command Sequence\n");
-        for (String commandStr : validationCommandSequence
-                .getCommandStringList()) {
-            sb.append(commandStr);
-            sb.append("\n");
-        }
-        Path crashReportPath = Paths.get(Config.getConf().corpusDir,
-                "seed_" + seedID + ".txt");
-
-        Utilities.write2TXT(crashReportPath.toFile(), sb.toString(), false);
-        seedID++;
     }
 
     public static void appendSeedFile(CommandSequence commandSequence,
