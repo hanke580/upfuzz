@@ -6,6 +6,7 @@ import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.cassandra.CassandraCommands;
 import org.zlab.upfuzz.cassandra.CassandraState;
+import org.zlab.upfuzz.cassandra.CommandTests;
 
 public class CommandSequenceTests {
 
@@ -57,7 +58,16 @@ public class CommandSequenceTests {
             NoSuchMethodException, InstantiationException {
         CommandSequence commandSequence = CommandTests
                 .cass13939CommandSequence();
+
+        System.out.println("Ready to execute mutation!");
+
         boolean mutateStatus = commandSequence.mutate();
+
+        // FIXME
+        // Sometimes the mutation can be run in a forever loop
+        // We need to find out when will it happen and fix it
+        // This should be a bug in the mutation logic.
+
         if (!mutateStatus) {
             System.out.println("Mutate failed");
         } else {
