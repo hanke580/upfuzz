@@ -1,0 +1,5 @@
+{
+  "originalVersion" : "apache-cassandra-3.11.13",
+  "upgradedVersion" : "apache-cassandra-3.11.14",
+  "system" : "cassandra"
+}
