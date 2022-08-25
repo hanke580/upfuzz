@@ -1,4 +1,4 @@
-package org.zlab.upfuzz;
+package org.zlab.upfuzz.cassandra;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -6,6 +6,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import org.junit.jupiter.api.Test;
+import org.zlab.upfuzz.Command;
+import org.zlab.upfuzz.CommandSequence;
+import org.zlab.upfuzz.CustomExceptions;
+import org.zlab.upfuzz.Parameter;
+import org.zlab.upfuzz.ParameterType;
+import org.zlab.upfuzz.CustomExceptions.PredicateUnSatisfyException;
+import org.zlab.upfuzz.ParameterType.ConcreteType;
 import org.zlab.upfuzz.cassandra.CassandraCommands;
 import org.zlab.upfuzz.cassandra.cqlcommands.*;
 import org.zlab.upfuzz.cassandra.CassandraState;
