@@ -957,12 +957,17 @@ public abstract class ParameterType implements Serializable {
                 idxList.remove(
                         collectionStringList.indexOf(p.value.toString()));
             } catch (IndexOutOfBoundsException e) {
+                // FIXME: string mismatch.
+                // The initial value does not exist in the current list.
+                // The type of the value2type is changed, while the given type
+                // is not changed along with it.
+
                 logger.info(e);
                 logger.info("\n\n collectionStringList List: ");
                 for (String str : collectionStringList) {
-                    logger.info("\t\t", str);
+                    logger.info("\t\t " + str);
                 }
-                logger.info("target String: ", p.value.toString());
+                logger.info("target String: " + p.value.toString());
                 logger.info("\n");
 
             }
@@ -1148,20 +1153,22 @@ public abstract class ParameterType implements Serializable {
             Random rand = new Random();
 
             int i = rand.nextInt(1);
-            if (CassandraCommands.DEBUG) {
-                i = 0;
-            }
             switch (i) {
             case 0:
                 // Pick one
                 List<Parameter> values = (List<Parameter>) p.value;
-                int mutateIdx = rand.nextInt(values.size());
-                if (CassandraCommands.DEBUG) {
-                    mutateIdx = 3;
-                    System.out.println("\t[Type2Value] Mutate Idx = " +
-                            mutateIdx);
+                if (values.isEmpty()) {
+                    logger.info("there's no values for p currently");
+                    return false;
+                } else {
+                    int mutateIdx = rand.nextInt(values.size());
+                    if (CassandraCommands.DEBUG) {
+                        mutateIdx = 3;
+                        System.out.println("\t[Type2Value] Mutate Idx = " +
+                                mutateIdx);
+                    }
+                    values.get(mutateIdx).mutate(s, c);
                 }
-                values.get(mutateIdx).mutate(s, c);
             }
             // Parameter ret = generateRandomParameter(s, c);
             // p.value = ret.value;

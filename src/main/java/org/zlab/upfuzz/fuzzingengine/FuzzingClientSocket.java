@@ -65,6 +65,11 @@ class FuzzingClientSocket implements Runnable {
                     StackedFeedbackPacket stackedFeedbackPacket = fuzzingClient
                             .executeStackedTestPacket(
                                     stackedTestPacket);
+                    logger.info("[Client] Writing test packet back to server");
+
+                    logger.info("[Client] fp size = "
+                            + stackedFeedbackPacket.size());
+
                     stackedFeedbackPacket.write(out);
                     break;
                 }

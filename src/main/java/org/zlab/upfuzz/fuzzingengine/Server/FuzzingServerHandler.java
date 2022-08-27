@@ -44,6 +44,9 @@ public class FuzzingServerHandler implements Runnable {
             while (true) {
                 StackedTestPacket stackedTestPacket = fuzzingServer
                         .getOneTest();
+
+                logger.info("server tp list size = "
+                        + stackedTestPacket.getTestPacketList().size());
                 stackedTestPacket.write(out);
                 readFeedbackPacket();
             }
@@ -56,10 +59,13 @@ public class FuzzingServerHandler implements Runnable {
     }
 
     private void readFeedbackPacket() throws IOException {
+        logger.info("Reading Feedback Packet!");
         int intType = in.readInt();
         assert intType == PacketType.StackedFeedbackPacket.value;
         StackedFeedbackPacket stackedFeedbackPacket = StackedFeedbackPacket
                 .read(in);
+        logger.info("Get a FB packet");
+
         fuzzingServer.updateStatus(stackedFeedbackPacket);
     }
 

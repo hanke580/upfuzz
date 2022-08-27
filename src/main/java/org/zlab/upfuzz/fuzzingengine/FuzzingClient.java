@@ -161,8 +161,13 @@ public class FuzzingClient {
                                 testID2oriResults.get(tp.testPacketID),
                                 testID2upResults.get(tp.testPacketID));
 
+                FeedbackPacket feedbackPacket = testID2FeedbackPacket
+                        .get(tp.testPacketID);
+
                 if (!compareRes.left) {
                     // Log the failure info into feedback packet
+
+                    // Creating the failure report
                     StringBuilder failureReport = new StringBuilder();
                     failureReport.append(
                             "Results are inconsistent between two versions\n");
@@ -177,13 +182,15 @@ public class FuzzingClient {
                     for (String commandStr : tp.validationCommandSequneceList) {
                         failureReport.append(commandStr + "\n");
                     }
-                    FeedbackPacket feedbackPacket = testID2FeedbackPacket
-                            .get(tp.testPacketID);
+
+                    // Create the feedback packet
                     feedbackPacket.isInconsistent = true;
                     feedbackPacket.inconsistencyReport = failureReport
                             .toString();
-                    stackedFeedbackPacket.addFeedbackPacket(feedbackPacket);
+                } else {
+                    feedbackPacket.isInconsistent = false;
                 }
+                stackedFeedbackPacket.addFeedbackPacket(feedbackPacket);
             }
         }
         logger.info(executor.systemID + " executor: " + executor.executorID

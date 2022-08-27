@@ -189,6 +189,10 @@ public class FuzzingServer {
             crashID++;
         }
 
+        logger.info("update Status");
+
+        logger.info("fp size = " + stackedFeedbackPacket.getFpList().size());
+
         Path crashSubDir = null;
         for (FeedbackPacket feedbackPacket : stackedFeedbackPacket
                 .getFpList()) {

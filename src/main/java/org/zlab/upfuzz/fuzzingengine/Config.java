@@ -34,12 +34,12 @@ public class Config {
         public String jacocoAgentPath = null;
         public String system = null;
         public String dataDir = null;
-        // public String logFile = null;
+        public String logFile = null;
         public String initSeedDir = null;
         public String crashDir = null;
         public String corpusDir = null;
         public int mutationEpoch = 100;
-        public int STACKED_TESTS_NUM = 60;
+        public int STACKED_TESTS_NUM = 10;
         public long timeInterval = 600; // seconds, record time
 
         @Override
