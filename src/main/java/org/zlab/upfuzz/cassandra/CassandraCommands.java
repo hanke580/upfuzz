@@ -81,7 +81,9 @@ public abstract class CassandraCommands extends Command {
 
         ParameterType.ConcreteType keyspaceNameType = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
-                (s, c) -> ((CassandraState) s).keyspace2tables.keySet(), null);
+                (s, c) -> Utilities.strings2Parameters(
+                        ((CassandraState) s).keyspace2tables.keySet()),
+                null);
         return keyspaceNameType.generateRandomParameter(state, command, init);
     }
 
@@ -94,9 +96,10 @@ public abstract class CassandraCommands extends Command {
 
         ParameterType.ConcreteType TableNameType = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
-                (s, c) -> ((CassandraState) s).keyspace2tables
-                        .get(c.params.get(0).toString())
-                        .keySet(),
+                (s, c) -> Utilities
+                        .strings2Parameters(((CassandraState) s).keyspace2tables
+                                .get(c.params.get(0).toString())
+                                .keySet()),
                 null);
         return TableNameType.generateRandomParameter(state, command, init);
     }

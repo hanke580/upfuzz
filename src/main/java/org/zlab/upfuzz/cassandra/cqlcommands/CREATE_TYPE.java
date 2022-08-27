@@ -9,6 +9,7 @@ import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.cassandra.CassandraTypes;
 import org.zlab.upfuzz.utils.PAIRType;
 import org.zlab.upfuzz.utils.STRINGType;
+import org.zlab.upfuzz.utils.Utilities;
 
 /**
  * INSERT INTO [keyspace_name.] table_name (column_list)
@@ -34,8 +35,9 @@ public class CREATE_TYPE extends CassandraCommands {
 
         ParameterType.ConcreteType typeNameType = new ParameterType.NotInCollectionType(
                 new ParameterType.NotEmpty(STRINGType.instance),
-                (s, c) -> ((CassandraState) s).keyspace2UDTs
-                        .get(c.params.get(0).toString()),
+                (s, c) -> Utilities
+                        .strings2Parameters(((CassandraState) s).keyspace2UDTs
+                                .get(c.params.get(0).toString())),
                 null);
         Parameter typeName = typeNameType
                 .generateRandomParameter(cassandraState, this);

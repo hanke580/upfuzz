@@ -85,11 +85,24 @@ public class CommandSequence implements Serializable {
         if (CassandraCommands.DEBUG) {
             System.out.println("String Pool:" + STRINGType.stringPool);
             System.out.println("Int Pool: " + INTType.intPool);
+
+            logger.info("Print command list");
+            for (Command command : commands) {
+                logger.info(command.toString());
+            }
+            logger.info("\n");
+
         }
 
         Random rand = new Random();
         for (int mutateRetryIdx = 0; mutateRetryIdx < RETRY_MUTATE_TIME; mutateRetryIdx++) {
+
             int choice = rand.nextInt(3);
+
+            logger.info("Doing mutation");
+
+            // When choice = 1 or 2, the program will stuck at mutation stage
+            // Mutating a specific command
 
             assert commands.size() > 0;
             Constructor<?> constructor = stateClass.getConstructor();
@@ -105,7 +118,7 @@ public class CommandSequence implements Serializable {
 
                 // Compute the state up to the position
                 pos = rand.nextInt(commands.size());
-                logger.trace("\t\tMutate Command Pos " + pos);
+                logger.info("\t\tMutate Command Pos " + pos);
                 for (int i = 0; i < pos; i++) {
                     commands.get(i).updateState(state);
                 }
@@ -137,16 +150,20 @@ public class CommandSequence implements Serializable {
                 pos = org.zlab.upfuzz.utils.Utilities.biasRand(
                         rand, commands.size() + 1, 5);
                 // pos = rand.nextInt(commands.size() + 1);
-                logger.trace("\t\tMutate Command Pos " + pos);
+                logger.info("\t\tMutate Command Pos " + pos);
                 for (int i = 0; i < pos; i++) {
                     commands.get(i).updateState(state);
                 }
                 Command command;
+                logger.info("\t\t Try to generate a command");
+
                 command = generateSingleCommand(commandClassList, state);
                 while (command == null) {
+                    logger.info("\t\t Try to generate a command1");
                     command = generateSingleCommand(createCommandClassList,
                             state);
                 }
+                logger.info("\t\t Loop end");
                 commands.add(pos, command);
                 commands.get(pos).updateState(state);
             } else if (choice == 3) { // Disabled temporally
@@ -236,6 +253,9 @@ public class CommandSequence implements Serializable {
                 }
                 Class<? extends Command> clazz = commandClassList.get(cmdIdx)
                         .getKey();
+
+                logger.info("\t\t clazz = " + clazz);
+
                 Constructor<?> constructor = null;
                 try {
                     // TODO use state.getClass()
@@ -245,14 +265,19 @@ public class CommandSequence implements Serializable {
                 }
                 command = (Command) constructor.newInstance(state);
                 command.updateState(state);
+                logger.info("return1");
                 break;
             } catch (Exception e) {
                 // e.printStackTrace(); // DEBUG
+                e.printStackTrace();
+                logger.info("return2");
                 command = null;
                 break;
                 // continue;
             }
         }
+
+        logger.info("return3");
 
         return command;
     }

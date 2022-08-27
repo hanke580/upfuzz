@@ -4,6 +4,9 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.cassandra.CassandraCommands;
 
 /**
@@ -12,6 +15,7 @@ import org.zlab.upfuzz.cassandra.CassandraCommands;
  * for it.
  */
 public abstract class ParameterType implements Serializable {
+    static Logger logger = LogManager.getLogger(Command.class);
 
     public static abstract class ConcreteType extends ParameterType {
         /**
@@ -949,7 +953,19 @@ public abstract class ParameterType implements Serializable {
             for (int i = 0; i < l.size(); i++) {
                 idxList.add(i);
             }
-            idxList.remove(collectionStringList.indexOf(p.value.toString()));
+            try {
+                idxList.remove(
+                        collectionStringList.indexOf(p.value.toString()));
+            } catch (IndexOutOfBoundsException e) {
+                logger.info(e);
+                logger.info("\n\n collectionStringList List: ");
+                for (String str : collectionStringList) {
+                    logger.info("\t\t", str);
+                }
+                logger.info("target String: ", p.value.toString());
+                logger.info("\n");
+
+            }
 
             int idx = rand.nextInt(idxList.size());
 

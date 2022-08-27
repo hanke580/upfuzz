@@ -7,6 +7,7 @@ import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.cassandra.CassandraCommands;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
+import org.zlab.upfuzz.utils.Utilities;
 
 public class DROP_INDEX extends CassandraCommands {
     public DROP_INDEX(State state) {
@@ -23,9 +24,10 @@ public class DROP_INDEX extends CassandraCommands {
 
         ParameterType.ConcreteType indexNameType = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
-                (s, c) -> ((CassandraState) s).getTable(
-                        c.params.get(0).toString(),
-                        c.params.get(1).toString()).indexes,
+                (s, c) -> Utilities
+                        .strings2Parameters(((CassandraState) s).getTable(
+                                c.params.get(0).toString(),
+                                c.params.get(1).toString()).indexes),
                 null);
         Parameter indexName = indexNameType.generateRandomParameter(state,
                 this);

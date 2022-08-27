@@ -14,13 +14,16 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import org.zlab.upfuzz.Parameter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -509,5 +512,14 @@ public class Utilities {
         T[] result = Arrays.copyOf(array1, array1.length + array2.length);
         System.arraycopy(array2, 0, result, array1.length, array2.length);
         return result;
+    }
+
+    public static Set<Parameter> strings2Parameters(
+            Collection<String> strings) {
+        Set<Parameter> ret = new HashSet<>();
+        for (String str : strings) {
+            ret.add(new Parameter(CONSTANTSTRINGType.instance, str));
+        }
+        return ret;
     }
 }

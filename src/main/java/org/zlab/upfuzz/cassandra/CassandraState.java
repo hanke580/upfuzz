@@ -4,7 +4,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.State;
+import org.zlab.upfuzz.utils.Utilities;
 
 public class CassandraState extends State {
     public Map<String, Map<String, CassandraTable>> keyspace2tables = new HashMap<>();
@@ -24,12 +27,13 @@ public class CassandraState extends State {
         }
     }
 
-    public Set<String> getKeyspaces() {
-        return keyspace2tables.keySet();
+    public Set<Parameter> getKeyspaces() {
+        return Utilities.strings2Parameters(keyspace2tables.keySet());
     }
 
-    public Set<String> getTablesInKeyspace(String keyspaceName) {
-        return keyspace2tables.get(keyspaceName).keySet();
+    public Set<Parameter> getTablesInKeyspace(String keyspaceName) {
+        return Utilities
+                .strings2Parameters(keyspace2tables.get(keyspaceName).keySet());
     }
 
     public CassandraTable getTable(String keyspaceName, String tableName) {

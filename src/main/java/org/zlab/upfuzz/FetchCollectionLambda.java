@@ -4,5 +4,5 @@ import java.io.Serializable;
 import java.util.Collection;
 
 public interface FetchCollectionLambda extends Serializable {
-    Collection operate(State state, Command command);
+    Collection<Parameter> operate(State state, Command command);
 }

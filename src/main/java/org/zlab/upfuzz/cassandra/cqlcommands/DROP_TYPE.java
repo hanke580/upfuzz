@@ -8,6 +8,7 @@ import org.zlab.upfuzz.cassandra.CassandraCommands;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.STRINGType;
+import org.zlab.upfuzz.utils.Utilities;
 
 public class DROP_TYPE extends CassandraCommands {
     public DROP_TYPE(State state) {
@@ -21,8 +22,9 @@ public class DROP_TYPE extends CassandraCommands {
 
         ParameterType.ConcreteType typeNameType = new ParameterType.InCollectionType(
                 STRINGType.instance,
-                (s, c) -> ((CassandraState) s).keyspace2UDTs
-                        .get(this.params.get(0).toString()),
+                (s, c) -> Utilities
+                        .strings2Parameters(((CassandraState) s).keyspace2UDTs
+                                .get(this.params.get(0).toString())),
                 null);
 
         Parameter typeName = typeNameType

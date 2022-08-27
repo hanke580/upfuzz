@@ -7,6 +7,7 @@ import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomHadoopPathType;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.INTType;
+import org.zlab.upfuzz.utils.Utilities;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -33,7 +34,8 @@ public class SetSpaceQuotaCommand extends DfsadminCommand {
 
         Parameter storage = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
-                (s, c) -> (((SetSpaceQuotaCommand) c).storageTypeOptions),
+                (s, c) -> Utilities.strings2Parameters(
+                        (((SetSpaceQuotaCommand) c).storageTypeOptions)),
                 null).generateRandomParameter(null, null);
 
         Parameter dir = new RandomHadoopPathType()

@@ -5,6 +5,7 @@ import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
+import org.zlab.upfuzz.utils.Utilities;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -31,7 +32,8 @@ public class HelpCommand extends ErasureCodingCommand {
 
         Parameter cmd = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
-                (s, c) -> (((HelpCommand) c).ecCommands),
+                (s, c) -> Utilities
+                        .strings2Parameters((((HelpCommand) c).ecCommands)),
                 null).generateRandomParameter(null, null);
 
         params.add(helpCmd);

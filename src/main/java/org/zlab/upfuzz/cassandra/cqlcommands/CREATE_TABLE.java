@@ -12,8 +12,11 @@ import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.PAIRType;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.STRINGType;
+import org.zlab.upfuzz.utils.Utilities;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 public class CREATE_TABLE extends CassandraCommands {
     /**
@@ -36,8 +39,9 @@ public class CREATE_TABLE extends CassandraCommands {
 
         ParameterType.ConcreteType tableNameType = new ParameterType.NotInCollectionType(
                 new ParameterType.NotEmpty(STRINGType.instance),
-                (s, c) -> ((CassandraState) s).keyspace2tables
-                        .get(this.params.get(0).toString()).keySet(),
+                (s, c) -> Utilities
+                        .strings2Parameters(((CassandraState) s).keyspace2tables
+                                .get(this.params.get(0).toString()).keySet()),
                 null);
 
         Parameter tableName = tableNameType
@@ -92,8 +96,9 @@ public class CREATE_TABLE extends CassandraCommands {
 
         ParameterType.ConcreteType tableNameType = new ParameterType.NotInCollectionType(
                 new ParameterType.NotEmpty(STRINGType.instance),
-                (s, c) -> ((CassandraState) s).keyspace2tables
-                        .get(this.params.get(0).toString()).keySet(),
+                (s, c) -> Utilities
+                        .strings2Parameters(((CassandraState) s).keyspace2tables
+                                .get(this.params.get(0).toString()).keySet()),
                 null);
 
         Parameter tableName = tableNameType

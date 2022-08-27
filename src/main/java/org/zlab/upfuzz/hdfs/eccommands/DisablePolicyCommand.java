@@ -5,6 +5,7 @@ import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
+import org.zlab.upfuzz.utils.Utilities;
 
 public class DisablePolicyCommand extends ErasureCodingCommand {
 
@@ -17,7 +18,8 @@ public class DisablePolicyCommand extends ErasureCodingCommand {
 
         Parameter policy = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
-                (s, c) -> (((ErasureCodingCommand) c).policies),
+                (s, c) -> Utilities.strings2Parameters(
+                        (((ErasureCodingCommand) c).policies)),
                 null).generateRandomParameter(null, null);
 
         params.add(disablePolicyCmd);
