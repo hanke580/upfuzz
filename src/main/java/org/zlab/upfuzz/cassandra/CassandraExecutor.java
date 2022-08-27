@@ -92,7 +92,7 @@ public class CassandraExecutor extends Executor {
         }
 
         dockerCluster = new CassandraDockerCluster(
-                this, Config.getConf().originalVersion, 2);
+                this, Config.getConf().originalVersion, 1);
 
         dockerCluster.build();
 
@@ -107,6 +107,11 @@ public class CassandraExecutor extends Executor {
         cqlsh = ((CassandraDocker) dockerCluster.getDocker(0)).cqlsh;
 
         logger.info("cqlsh daemon connected");
+
+        for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+            logger.info(ste);
+        }
+
         // ProcessBuilder cassandraProcessBuilder = new ProcessBuilder(
         // "bin/cassandra", "-f");
         // Map<String, String> env = cassandraProcessBuilder.environment();
