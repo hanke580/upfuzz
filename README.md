@@ -69,6 +69,7 @@ cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-3.11.
 
 5. Modify the `src/main/resources/cassandra/cassandra-3.11.13/compile-src/cassandra-clusternode.sh` file. You should change the `ORG_VERSION` and `UPG_VERSION` to the name of the target system. In this example, it would be
 ```bash
+vim src/main/resources/cassandra/cassandra-3.11.13/compile-src/cassandra-clusternode.sh
 ORG_VERSION=apache-cassandra-3.11.13
 UPG_VERSION=apache-cassandra-3.11.14
 ```
