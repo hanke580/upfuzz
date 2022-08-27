@@ -153,11 +153,10 @@ public class FuzzingServer {
             }
         } else {
             // get a seed from corpus, now fuzz it for a epoch
+            stackedTestPacket = new StackedTestPacket();
             for (int i = 0; i < Config.getConf().mutationEpoch; i++) {
-                if (i % Config.getConf().STACKED_TESTS_NUM == 0) {
-                    if (i != 0) {
-                        stackedTestPackets.add(stackedTestPacket);
-                    }
+                if (i != 0 && i % Config.getConf().STACKED_TESTS_NUM == 0) {
+                    stackedTestPackets.add(stackedTestPacket);
                     stackedTestPacket = new StackedTestPacket();
                 } else {
                     // Mutation
