@@ -33,11 +33,14 @@ dependencies {
 
 	implementation 'info.debatty:java-string-similarity:2.0.0'
 
-	implementation 'com.github.st-saint:jacoco:e1b5bf8437'
+	implementation 'com.github.hanke580.jacoco:jacoco:6428add1b0'
+
+	implementation 'org.codehaus.plexus:plexus-utils:1.5.12'
+
+	implementation group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
 
 
 	// https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple
-	implementation group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
 
 	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
 	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.0'

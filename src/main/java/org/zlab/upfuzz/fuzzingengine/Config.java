@@ -39,7 +39,7 @@ public class Config {
         public String crashDir = null;
         public String corpusDir = null;
         public int mutationEpoch = 100;
-        public int STACKED_TESTS_NUM = 10;
+        public int STACKED_TESTS_NUM = 60;
         public long timeInterval = 600; // seconds, record time
 
         @Override
