@@ -1,5 +1,7 @@
 # Change log
 
+## server-client
++ `2022-06-09` *9f0de384* change Jacoco to thread safe. When doing read, block the write process. Another way is to buffer the write when it's doing read.
 
 ## server-client
 + `2022-06-09` *f8985e3* use corpus entry and stacked test packet
