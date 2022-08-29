@@ -90,7 +90,7 @@ public class FuzzingServerHandler implements Runnable {
 
     public static void printClientNum() {
         synchronized (FuzzingServerHandler.class) {
-            logger.info("\nLive clients: " + clientNum);
+            logger.info("Current Live clients: " + clientNum);
         }
     }
 

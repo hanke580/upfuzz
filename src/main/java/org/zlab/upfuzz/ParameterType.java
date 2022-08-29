@@ -1158,7 +1158,8 @@ public abstract class ParameterType implements Serializable {
                 // Pick one
                 List<Parameter> values = (List<Parameter>) p.value;
                 if (values.isEmpty()) {
-                    logger.info("there's no values for p currently");
+                    logger.info("there's no values for p currently" +
+                            " Problem Command: " + c.toString());
                     return false;
                 } else {
                     int mutateIdx = rand.nextInt(values.size());

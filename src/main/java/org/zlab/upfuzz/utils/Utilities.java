@@ -94,19 +94,19 @@ public class Utilities {
                     // Now only try with the boolean first
                     if ((curProbes[i] == 0 && testSequenceProbes[i] != 0) ||
                             (curProbes[i] != 0 && testSequenceProbes[i] == 0)) {
-                        logger.debug("cur probes: ");
-                        for (int j = 0; j < curProbes.length; j++) {
-                            logger.debug(curProbes[j] + " ");
-                        }
-                        logger.debug("test probes: ");
-                        for (int j = 0; j < testSequenceProbes.length; j++) {
-                            logger.debug(testSequenceProbes[j] + " ");
-                        }
+                        // logger.debug("cur probes: ");
+                        // for (int j = 0; j < curProbes.length; j++) {
+                        // logger.debug(curProbes[j] + " ");
+                        // }
+                        // logger.debug("test probes: ");
+                        // for (int j = 0; j < testSequenceProbes.length; j++) {
+                        // logger.debug(testSequenceProbes[j] + " ");
+                        // }
 
-                        logger.debug("probe len = " + curProbes.length);
-                        logger.debug("Class " + testSequenceData.getName() +
-                                " id: [" + i + "]"
-                                + " is different!");
+                        // logger.debug("probe len = " + curProbes.length);
+                        // logger.debug("Class " + testSequenceData.getName() +
+                        // " id: [" + i + "]"
+                        // + " is different!");
                         return false;
                     }
                 }

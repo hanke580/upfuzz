@@ -222,7 +222,9 @@ public class FuzzingServer {
                 Path crashReport = Paths.get(
                         crashSubDir.toString(),
                         "crash_" + feedbackPacket.testPacketID + ".report");
-                Utilities.write2TXT(crashReport.toFile(), sb, false);
+
+                // FIXME: Uncomment this when the results lost problem is fixed
+                // Utilities.write2TXT(crashReport.toFile(), sb, false);
                 crashID++;
             }
             // Remove the seed from the waiting list
