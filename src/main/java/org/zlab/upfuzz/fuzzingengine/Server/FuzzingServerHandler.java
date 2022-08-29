@@ -15,6 +15,8 @@ import org.zlab.upfuzz.fuzzingengine.Packet.StackedTestPacket;
 public class FuzzingServerHandler implements Runnable {
     static Logger logger = LogManager.getLogger(FuzzingServerHandler.class);
 
+    private static int clientNum = 0;
+
     private FuzzingServer fuzzingServer;
     private Socket socket;
     DataInputStream in;
@@ -40,6 +42,10 @@ public class FuzzingServerHandler implements Runnable {
     @Override
     public void run() {
         try {
+            synchronized (FuzzingServerHandler.class) {
+                clientNum++;
+                logger.info("live client number: " + clientNum);
+            }
             readRegisterPacket();
             while (true) {
                 StackedTestPacket stackedTestPacket = fuzzingServer
@@ -55,6 +61,13 @@ public class FuzzingServerHandler implements Runnable {
             // socket.getOutputStream().write(gs.toJson(tp).getBytes());
         } catch (IOException e) {
             logger.error(e);
+            synchronized (FuzzingServerHandler.class) {
+                clientNum--;
+                logger.info(
+                        "one client crash with exception, current live clients: "
+                                + clientNum);
+            }
+
         }
     }
 
@@ -74,4 +87,11 @@ public class FuzzingServerHandler implements Runnable {
         assert intType == PacketType.RegisterPacket.value;
         RegisterPacket registerPacket = RegisterPacket.read(in);
     }
+
+    public static void printClientNum() {
+        synchronized (FuzzingServerHandler.class) {
+            logger.info("\nLive clients: " + clientNum);
+        }
+    }
+
 }

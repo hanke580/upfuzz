@@ -190,13 +190,13 @@ public class FuzzingServer {
 
         logger.info("update Status");
 
+        FuzzingServerHandler.printClientNum();
+
         logger.info("fp size = " + stackedFeedbackPacket.getFpList().size());
 
         Path crashSubDir = null;
         for (FeedbackPacket feedbackPacket : stackedFeedbackPacket
                 .getFpList()) {
-            printInfo();
-
             finishedTestID++;
             if (Utilities.hasNewBits(
                     curCoverage,
@@ -240,6 +240,7 @@ public class FuzzingServer {
                     new Pair(timeElapsed, upgradedCoveredBranches));
             lastTimePoint = timeElapsed;
         }
+        printInfo();
         System.out.println();
     }
 
