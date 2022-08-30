@@ -120,6 +120,9 @@ public class CassandraDockerCluster implements IDockerCluster {
                     logger.info("docker-compose up " + workdir);
                     break;
                 } else {
+                    Utilities.exec(
+                            new String[] { "docker", "network", "prune" },
+                            workdir);
                     refreshNetwork();
                     String errorMessage = Utilities.readProcess(buildProcess);
                     logger.warn("docker-compose up\n" + errorMessage);
