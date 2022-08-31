@@ -134,3 +134,5 @@ The client process runs in the physical machine. Inside the docker, there is a C
 * With the cqlsh daemon, we only have one initialization process for a single Cassandra instance.
 
 The client in the physical machine communicates with the cqlsh daemon via socket.
+
+Multiple processes are started and controlled by `supervisord`. When the Cassandra instance in the container needs to do an upgrade, `FuzzingClient` will use `docker exec` to issue a supervisorctl restart command to the docker for the upgrade process.

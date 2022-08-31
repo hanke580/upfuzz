@@ -70,7 +70,7 @@ public class CassandraCqlshDaemon {
             } catch (IOException e) {
             }
             try {
-                Thread.sleep(3 * 1000);
+                Thread.sleep(10 * 1000);
             } catch (InterruptedException e) {
             }
         }
