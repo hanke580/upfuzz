@@ -114,3 +114,23 @@ java -cp "build/classes/java/main/:dependencies/*:dependencies/:build/resources/
 ```
 
 Usually after ~20 attempts, the Cassandra cluster should be stable and run the test.
+
+
+## Architecture
+
+The testing framework is a  **one server, multiple clients** structure. Each client retrieves a test packet from the server and starts executing it. The client process starts up a cluster which contains multiple docker containers, and then sends command sequences to the system instance inside the docker via network packet.
+
+To test the upgrade process of a specific system, you need to incorporate it into the testing framework. There are some system-specific parts like (1) System related shell commands and (2) How does the system start up, upgrade and shutdown.
+
+There is an interface `Executor`. To deploy a distributed system in the testing framework, you need to implement this interface.
+
+The testing framework also provides a frontend for users to implement the user/admin level commands with constraints. It tries to make the fuzzer generate the syntax valid commands so that we can test the deep logic of the stateful systems.
+
+
+### Example: Cassandra
+
+The client process runs in the physical machine. Inside the docker, there is a Cassandra cqlsh daemon running. The goal of the cqlsh daemon is to avoid the initialization cost for cqlsh.
+* Without the cqlsh daemon, each time we issue a single command, it needs to initialize a process. This means that if our test case contains 20 commands, there will be 20 times the cost for this initialization.
+* With the cqlsh daemon, we only have one initialization process for a single Cassandra instance.
+
+The client in the physical machine communicates with the cqlsh daemon via socket.

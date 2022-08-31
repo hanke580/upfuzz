@@ -1,21 +1,10 @@
 package org.zlab.upfuzz.fuzzingengine;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.rmi.UnexpectedException;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jacoco.core.data.ExecutionDataStore;
-import org.jacoco.core.data.ExecutionDataWriter;
-import org.zlab.upfuzz.CommandSequence;
-import org.zlab.upfuzz.CustomExceptions;
 import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.fuzzingengine.Packet.FeedbackPacket;
 import org.zlab.upfuzz.fuzzingengine.Packet.StackedFeedbackPacket;
@@ -24,7 +13,6 @@ import org.zlab.upfuzz.fuzzingengine.Packet.TestPacket;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.hdfs.HdfsExecutor;
 import org.zlab.upfuzz.utils.Pair;
-import org.zlab.upfuzz.utils.Utilities;
 
 public class FuzzingClient {
     static Logger logger = LogManager.getLogger(FuzzingClient.class);
