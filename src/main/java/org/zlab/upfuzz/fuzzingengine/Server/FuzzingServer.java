@@ -152,19 +152,23 @@ public class FuzzingServer {
                 logger.error("failed to generate any test packet");
             }
         } else {
-            // get a seed from corpus, now fuzz it for a epoch
+            // get a seed from corpus, now fuzz it for an epoch
             stackedTestPacket = new StackedTestPacket();
             for (int i = 0; i < Config.getConf().mutationEpoch; i++) {
+                logger.info("Generating " + i + " packet");
                 if (i != 0 && i % Config.getConf().STACKED_TESTS_NUM == 0) {
                     stackedTestPackets.add(stackedTestPacket);
                     stackedTestPacket = new StackedTestPacket();
+                }
+                // Mutation
+                // If mutation fails, drop this mutation, so the
+                // testpack size might decrease...
+                Seed mutateSeed = SerializationUtils.clone(seed);
+                if (mutateSeed.mutate()) {
+                    testID2Seed.put(testID, mutateSeed);
+                    stackedTestPacket.addTestPacket(mutateSeed, testID++);
                 } else {
-                    // Mutation
-                    Seed mutateSeed = SerializationUtils.clone(seed);
-                    if (mutateSeed.mutate()) {
-                        testID2Seed.put(testID, mutateSeed);
-                        stackedTestPacket.addTestPacket(mutateSeed, testID++);
-                    }
+                    i--;
                 }
             }
             if (stackedTestPacket != null && stackedTestPacket.size() != 0) {
