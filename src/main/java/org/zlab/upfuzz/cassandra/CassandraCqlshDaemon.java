@@ -77,6 +77,31 @@ public class CassandraCqlshDaemon {
         throw new IllegalAccessError("cannot connect to cqlsh at " + ipAddress);
     }
 
+    public CassandraCqlshDaemon(String ipAddress, int port, String executorID) {
+        int retry = 30;
+        logger.info("[HKLOG] executor ID = " + executorID + "  "
+                + "Connect to cqlsh:" + ipAddress + "...");
+        for (int i = 0; i < retry; ++i) {
+            try {
+                logger.debug("[HKLOG] executor ID = " + executorID + "  "
+                        + "Connect to cqlsh:" + ipAddress + "..." + i);
+                socket = new Socket();
+                socket.connect(new InetSocketAddress(ipAddress, port),
+                        3 * 1000);
+                logger.info("[HKLOG] executor ID = " + executorID + "  "
+                        + "Cqlsh connected: " + ipAddress);
+                return;
+            } catch (IOException e) {
+            }
+            try {
+                Thread.sleep(10 * 1000);
+            } catch (InterruptedException e) {
+            }
+        }
+        throw new IllegalAccessError("[HKLOG] executor ID = " + executorID
+                + "  " + "cannot connect to cqlsh at " + ipAddress);
+    }
+
     public CassandraCqlshDaemon(String ipAddress) {
         port = 18251;
         int retry = 30;

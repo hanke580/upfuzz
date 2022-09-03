@@ -168,6 +168,7 @@ public class FuzzingServer {
                     testID2Seed.put(testID, mutateSeed);
                     stackedTestPacket.addTestPacket(mutateSeed, testID++);
                 } else {
+                    logger.info("Mutation failed");
                     i--;
                 }
             }
@@ -234,6 +235,12 @@ public class FuzzingServer {
             // Remove the seed from the waiting list
             testID2Seed.remove(feedbackPacket.testPacketID);
         }
+
+        // Update the coveredBranches to the newest value
+        Pair<Integer, Integer> coverageStatus = Utilities
+                .getCoverageStatus(curCoverage);
+        originalCoveredBranches = coverageStatus.left;
+        originalProbeNum = coverageStatus.right;
 
         Long timeElapsed = TimeUnit.SECONDS.convert(
                 System.nanoTime(), TimeUnit.NANOSECONDS) - startTime;

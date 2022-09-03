@@ -11,7 +11,7 @@ import org.zlab.upfuzz.utils.Utilities;
 public class Seed implements Serializable {
     static Logger logger = LogManager.getLogger(Seed.class);
 
-    private final int MUTATE_RETRY_TIME = 10;
+    private final int MAX_STACK_MUTATION = 10;
     private final Random rand;
 
     // Write commands
@@ -42,18 +42,22 @@ public class Seed implements Serializable {
     }
 
     private boolean mutateImpl(CommandSequence commandSequence) {
-        int i = 0;
-        for (; i < MUTATE_RETRY_TIME; i++) {
+        boolean ret = false;
+        for (int i = 0; i < MAX_STACK_MUTATION; i++) {
             try {
-                if (commandSequence.mutate() && Utilities.oneOf(rand, 3)) {
+                // At least one mutation succeeds
+                if (commandSequence.mutate())
+                    ret = true;
+
+                // 1/3 prob stop mutation, 2/3 prob keep stacking mutations
+                if (Utilities.oneOf(rand, 3))
                     break;
-                }
             } catch (Exception e) {
                 logger.error("Mutation error", e);
                 return false;
             }
         }
-        return i != MUTATE_RETRY_TIME;
+        return ret;
     }
 
     public StackedTestPacket toPacket() {

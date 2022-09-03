@@ -87,7 +87,8 @@ public class CassandraDocker extends DockerMeta implements IDocker {
         // logger.debug("start cassandra docker " + index + ": " + dir +
         // " ret: " + res + "\n" + log);
         //
-        cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort);
+        cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort,
+                executorID);
         return 0;
     }
 
@@ -154,6 +155,14 @@ public class CassandraDocker extends DockerMeta implements IDocker {
 
     public void upgrade() throws Exception {
         int ret = 0;
+
+        logger.info("[HKLOG] FLUSING!");
+        Process flushCass = exec(new String[] {
+                "/" + system + "/" + originalVersion + "/"
+                        + "bin/nodetool",
+                "flush" });
+        ret = flushCass.waitFor();
+
         Process stopCass = exec(new String[] {
                 "/" + system + "/" + originalVersion + "/"
                         + "bin/nodetool",
@@ -184,7 +193,8 @@ public class CassandraDocker extends DockerMeta implements IDocker {
         ret = restart.waitFor();
         String message = Utilities.readProcess(restart);
         logger.debug("original version restart: " + ret + "\n" + message);
-        cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort);
+        cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort,
+                executorID);
     }
 
     @Override

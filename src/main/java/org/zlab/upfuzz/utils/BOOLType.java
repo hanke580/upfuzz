@@ -53,7 +53,7 @@ public class BOOLType extends ParameterType.ConcreteType {
 
     @Override
     public boolean mutate(State s, Command c, Parameter p) {
-        p.value = generateRandomParameter(s, c).value;
+        p.value = !(boolean) p.value;
         return true;
     }
 

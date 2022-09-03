@@ -110,6 +110,7 @@ public class CassandraDockerCluster implements IDockerCluster {
 
                 formatComposeYaml();
                 composeFile.createNewFile();
+                logger.info("\n\n compose yaml \n" + composeYaml + "\n\n");
                 writer.write(composeYaml);
                 writer.close();
 

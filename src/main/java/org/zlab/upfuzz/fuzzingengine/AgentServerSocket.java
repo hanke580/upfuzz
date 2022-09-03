@@ -21,7 +21,8 @@ public class AgentServerSocket extends Thread {
             throws UnknownHostException, IOException {
         this.executor = executor;
         this.server = new ServerSocket(0, 0, InetAddress.getByName("0.0.0.0"));
-        logger.info("Client socket Server start at: " +
+        logger.info("Executor: " + executor.executorID
+                + "  Client socket Server start at: " +
                 this.server.getLocalSocketAddress());
         this.fileWriter = new ExecutionDataWriter(
                 new FileOutputStream("./zlab-jacoco.exec"));

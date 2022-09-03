@@ -50,7 +50,8 @@ public abstract class Command implements Serializable {
             if (CassandraCommands.DEBUG) {
                 mutateParamIdx = 2;
             }
-            logger.trace("\tMutate Parameter Pos = " + mutateParamIdx);
+            logger.debug("\tMutate Parameter Pos = " + mutateParamIdx
+                    + " command = " + this.toString());
             if (params.get(mutateParamIdx).mutate(s, this) == true)
                 return true;
         }

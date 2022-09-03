@@ -19,6 +19,5 @@ echo "CLIENT_NUM: $CLIENT_NUM";
 
 for i in $(seq $CLIENT_NUM)
 do
-  echo "hello $i" 
   java -cp "build/classes/java/main/:dependencies/*:dependencies/:build/resources/main" org/zlab/upfuzz/fuzzingengine/Main -class client -config ./config.json &
 done
