@@ -177,8 +177,12 @@ public class SELECT extends CassandraCommands {
                 }
                 String order = (Boolean) params.get(6).getValue() ? "ASC"
                         : "DESC";
+
+                // Pick the 1th column in the primary key since currently we do
+                // not support composite partition key, so the second column is
+                // always the first clustering column
                 sb.append(" ORDER BY ")
-                        .append(whereColumns.get(i).toString()).append(" ")
+                        .append(whereColumns.get(1).toString()).append(" ")
                         .append(order);
             } else {
                 for (int i = 0; i < whereColumns.size(); i++) {
