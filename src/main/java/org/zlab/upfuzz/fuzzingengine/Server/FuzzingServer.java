@@ -229,7 +229,7 @@ public class FuzzingServer {
                         "crash_" + feedbackPacket.testPacketID + ".report");
 
                 // FIXME: Uncomment this when the results lost problem is fixed
-                // Utilities.write2TXT(crashReport.toFile(), sb, false);
+                Utilities.write2TXT(crashReport.toFile(), sb, false);
                 crashID++;
             }
             // Remove the seed from the waiting list
