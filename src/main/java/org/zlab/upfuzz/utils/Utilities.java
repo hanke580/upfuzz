@@ -523,4 +523,29 @@ public class Utilities {
         }
         return ret;
     }
+
+    public static void saveSeed(CommandSequence commandSequence,
+            CommandSequence validationCommandSequence, Path filePath) {
+        try {
+            FileOutputStream fileOut = new FileOutputStream(filePath.toFile());
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(
+                    new Pair<>(commandSequence, validationCommandSequence));
+            out.close();
+            fileOut.close();
+            System.out.println("Serialized data is saved in " +
+                    filePath.toString());
+        } catch (IOException i) {
+            i.printStackTrace();
+            return;
+        }
+    }
+
+    public static void printCommandSequence(CommandSequence cs) {
+        System.out.println("Command Sequence:");
+        for (String str : cs.getCommandStringList()) {
+            System.out.println("str: " + str);
+        }
+        System.out.println();
+    }
 }

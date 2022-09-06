@@ -319,4 +319,8 @@ public class STRINGType extends ParameterType.ConcreteType {
     public static void cleanPool() {
         stringPool.clear();
     }
+
+    public static void addToPool(String val) {
+        stringPool.add(val);
+    }
 }

@@ -135,4 +135,8 @@ public class INTType extends ParameterType.ConcreteType {
     public static void cleanPool() {
         intPool.clear();
     }
+
+    public static void addToPool(int val) {
+        intPool.add(val);
+    }
 }

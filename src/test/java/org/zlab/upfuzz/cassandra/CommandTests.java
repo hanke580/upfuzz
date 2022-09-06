@@ -5,6 +5,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+
+import org.apache.logging.log4j.util.PropertySource.Util;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.CommandPool;
@@ -20,6 +22,8 @@ import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.cassandra.CassandraTypes;
 import org.zlab.upfuzz.utils.INTType;
 import org.zlab.upfuzz.utils.Pair;
+import org.zlab.upfuzz.utils.STRINGType;
+import org.zlab.upfuzz.utils.Utilities;
 
 public class CommandTests {
 
@@ -306,6 +310,8 @@ public class CommandTests {
             c.printStackTrace();
             return;
         }
+
+        Utilities.printCommandSequence(e.left);
 
         commandSequence.mutate();
         boolean useIdx = false;
@@ -1120,22 +1126,26 @@ public class CommandTests {
 
     @Test
     public void test_cass14803() {
-        CommandSequence cass14803_cq = cass14803CommandSequence();
-
         CommandPool commandPool = new CassandraCommandPool();
+        CommandSequence cass14803_cq = cass14803CommandSequence();
+        CommandSequence read_cq = null;
         try {
-            CommandSequence read_cq = CommandSequence.generateSequence(
+            read_cq = CommandSequence.generateSequence(
                     commandPool.readCommandClassList, null,
                     CassandraState.class,
                     cass14803_cq.state);
-
-            System.out.println("Read Sequence");
-            for (String str : read_cq.getCommandStringList()) {
-                System.out.println(str);
-            }
+            // CommandSequence read_cq =
+            // cass14803_cq.generateRelatedReadSequence();
         } catch (Exception e) {
             e.printStackTrace();
         }
+        assert (read_cq != null);
+        System.out.println("Read Sequence");
+        for (String str : read_cq.getCommandStringList()) {
+            System.out.println(str);
+        }
+        Path filePath = Paths.get("/tmp/seed_cass14803.ser");
+        Utilities.saveSeed(cass14803_cq, read_cq, filePath);
     }
 
     public static CommandSequence cass14803CommandSequence() {
@@ -1197,6 +1207,11 @@ public class CommandTests {
                 "myKS", "tb", columns_INSERT, Values_INSERT);
         tmpCmd.updateState(s);
         l.add(tmpCmd);
+
+        INTType.addToPool(100);
+        INTType.addToPool(0);
+        INTType.addToPool(1);
+        STRINGType.addToPool(LONGSTRING_1025_LEN);
 
         for (Command cmd : l) {
             System.out.println(cmd);

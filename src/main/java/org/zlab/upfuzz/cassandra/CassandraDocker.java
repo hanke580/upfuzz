@@ -15,6 +15,7 @@ import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.docker.DockerCluster;
 import org.zlab.upfuzz.docker.DockerMeta;
 import org.zlab.upfuzz.docker.IDocker;
+import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.utils.Utilities;
 
 public class CassandraDocker extends DockerMeta implements IDocker {
@@ -157,11 +158,21 @@ public class CassandraDocker extends DockerMeta implements IDocker {
         int ret = 0;
 
         logger.info("[HKLOG] FLUSING!");
-        Process flushCass = exec(new String[] {
-                "/" + system + "/" + originalVersion + "/"
-                        + "bin/nodetool",
-                "flush" });
-        ret = flushCass.waitFor();
+
+        if (Config.getConf().originalVersion.contains("2.1.0")) {
+            Process flushCass = exec(new String[] {
+                    "/" + system + "/" + originalVersion + "/"
+                            + "bin/nodetool",
+                    "-h", "::FFFF:127.0.0.1",
+                    "flush" });
+            ret = flushCass.waitFor();
+        } else {
+            Process flushCass = exec(new String[] {
+                    "/" + system + "/" + originalVersion + "/"
+                            + "bin/nodetool",
+                    "flush" });
+            ret = flushCass.waitFor();
+        }
 
         Process stopCass = exec(new String[] {
                 "/" + system + "/" + originalVersion + "/"
