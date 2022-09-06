@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.Command;
+import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.CustomExceptions;
 import org.zlab.upfuzz.Parameter;
@@ -1104,6 +1105,98 @@ public class CommandTests {
                 s, "myKS", "monkey_species", "population INT");
         cmd11.updateState(s);
         l.add(cmd11);
+
+        for (Command cmd : l) {
+            System.out.println(cmd);
+        }
+
+        CommandSequence commandSequence = new CommandSequence(l,
+                CassandraCommands.cassandraCommandPool.commandClassList,
+                CassandraCommands.cassandraCommandPool.createCommandClassList,
+                CassandraState.class,
+                s);
+        return commandSequence;
+    }
+
+    @Test
+    public void test_cass14803() {
+        CommandSequence cass14803_cq = cass14803CommandSequence();
+
+        CommandPool commandPool = new CassandraCommandPool();
+        try {
+            CommandSequence read_cq = CommandSequence.generateSequence(
+                    commandPool.readCommandClassList, null,
+                    CassandraState.class,
+                    cass14803_cq.state);
+
+            System.out.println("Read Sequence");
+            for (String str : read_cq.getCommandStringList()) {
+                System.out.println(str);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static CommandSequence cass14803CommandSequence() {
+        List<Command> l = new LinkedList<>();
+
+        CassandraState s = new CassandraState();
+
+        // Command 0
+        CREATE_KEYSPACE cmd0 = new CREATE_KEYSPACE(
+                s, "myKS", 1, false);
+        cmd0.updateState(s);
+        l.add(cmd0);
+
+        // Command 1
+        List<Pair<String, ParameterType.ConcreteType>> columns = new ArrayList<>();
+        columns.add(new Pair<>("k", new INTType()));
+        columns.add(new Pair<>("c", new INTType()));
+        columns.add(new Pair<>("v1", CassandraTypes.TEXTType.instance));
+        columns.add(
+                new Pair<>("v2", CassandraTypes.TEXTType.instance));
+
+        List<String> primaryColumns = new ArrayList<>();
+        primaryColumns.add("k INT");
+        primaryColumns.add("c INT");
+
+        CREATE_TABLE cmd1 = new CREATE_TABLE(
+                s, "myKS", "tb", columns, primaryColumns, null);
+        cmd1.updateState(s);
+        l.add(cmd1);
+
+        // Command 2
+        // 'Monkey', 0, 30, 'AAAAAAAAAAAAAAAAAAAAAAAAAAA'
+        List<String> columns_INSERT = new ArrayList<>();
+        columns_INSERT.add("k INT");
+        columns_INSERT.add("c INT");
+        columns_INSERT.add("v1 TEXT");
+        columns_INSERT.add("v2 TEXT");
+
+        String LONGSTRING_1025_LEN = "";
+        for (int i = 0; i < 1025; i++) {
+            LONGSTRING_1025_LEN += "A";
+        }
+
+        List<Object> Values_INSERT = new ArrayList<>();
+        Values_INSERT.add(100);
+        Values_INSERT.add(0);
+        Values_INSERT.add(LONGSTRING_1025_LEN);
+        Values_INSERT.add(LONGSTRING_1025_LEN);
+
+        INSERT cmd2 = new INSERT(s, "myKS",
+                "tb", columns_INSERT, Values_INSERT);
+        cmd2.updateState(s);
+        l.add(cmd2);
+
+        // Command3
+        Values_INSERT.remove(1);
+        Values_INSERT.add(1, 1);
+        INSERT tmpCmd = new INSERT(s,
+                "myKS", "tb", columns_INSERT, Values_INSERT);
+        tmpCmd.updateState(s);
+        l.add(tmpCmd);
 
         for (Command cmd : l) {
             System.out.println(cmd);
