@@ -155,7 +155,7 @@ public class FuzzingServer {
             // get a seed from corpus, now fuzz it for an epoch
             stackedTestPacket = new StackedTestPacket();
             for (int i = 0; i < Config.getConf().mutationEpoch; i++) {
-                logger.info("Generating " + i + " packet");
+                // logger.info("Generating " + i + " packet");
                 if (i != 0 && i % Config.getConf().STACKED_TESTS_NUM == 0) {
                     stackedTestPackets.add(stackedTestPacket);
                     stackedTestPacket = new StackedTestPacket();
@@ -165,6 +165,11 @@ public class FuzzingServer {
                 // testpack size might decrease...
                 Seed mutateSeed = SerializationUtils.clone(seed);
                 if (mutateSeed.mutate()) {
+
+                    logger.info("After mutation");
+                    Utilities.printCommandSequence(mutateSeed.originalCommandSequence);
+                    Utilities.printCommandSequence(mutateSeed.validationCommandSequnece);
+
                     testID2Seed.put(testID, mutateSeed);
                     stackedTestPacket.addTestPacket(mutateSeed, testID++);
                 } else {

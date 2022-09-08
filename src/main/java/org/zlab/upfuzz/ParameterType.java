@@ -833,6 +833,16 @@ public abstract class ParameterType implements Serializable {
             Object targetCollection = configuration.operate(s, c);
 
             if (((Collection) targetCollection).isEmpty() == true) {
+
+                // FIXME: Enable this to check the buggy mutation
+                // logger.info("command: " + c);
+
+                // for (StackTraceElement ste : Thread.currentThread()
+                // .getStackTrace()) {
+                // System.out.println(ste.toString());
+                // }
+                // logger.info("\n");
+
                 throw new CustomExceptions.EmptyCollectionException(
                         "InCollection Type got empty Collection", null);
             }

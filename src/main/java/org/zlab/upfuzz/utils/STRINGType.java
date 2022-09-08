@@ -8,9 +8,13 @@ import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.cassandra.CassandraCommands;
 
-public class STRINGType extends ParameterType.ConcreteType {
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-    public static final int MAX_LEN = 30; // Probably need refactor
+public class STRINGType extends ParameterType.ConcreteType {
+    static Logger logger = LogManager.getLogger(STRINGType.class);
+
+    public static final int MAX_LEN = 40; // Probably need refactor
 
     public static Set<String> stringPool = new HashSet<>();
     public static final String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -67,8 +71,8 @@ public class STRINGType extends ParameterType.ConcreteType {
         // Count a possibility for fetching from the pool
         if (stringPool.isEmpty() == false) {
             Random rand = new Random();
-            int choice = rand.nextInt(10);
-            if (choice <= 8) {
+            int choice = rand.nextInt(5);
+            if (choice <= 3) {
                 // 80%: it will pick from the Pool
                 List<String> stringPoolList = new ArrayList<>(stringPool);
                 int idx = rand.nextInt(stringPoolList.size());

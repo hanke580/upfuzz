@@ -236,6 +236,8 @@ public class CassandraCqlshDaemon {
         }
         String cqlshMessage = new String(chars, 0, cnt);
 
+        logger.info("[HKLOG] length of cqlshMessage: " + cqlshMessage.length());
+
         // System.out.println("receive size: " + cqlshMess.length() + " \n" +
         // cqlshMess);
 

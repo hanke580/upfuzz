@@ -1125,11 +1125,12 @@ public class CommandTests {
     }
 
     @Test
-    public void test_cass14803() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public void test_cass14803()
+            throws InvocationTargetException, NoSuchMethodException,
+            InstantiationException, IllegalAccessException {
         CommandPool commandPool = new CassandraCommandPool();
         CommandSequence cass14803_cq = cass14803CommandSequence();
 
-        
         CommandSequence read_cq = null;
         try {
             read_cq = CommandSequence.generateSequence(

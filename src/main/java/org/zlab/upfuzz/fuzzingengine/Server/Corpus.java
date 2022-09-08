@@ -27,6 +27,9 @@ public class Corpus {
                 if (commandSequencePair != null) {
                     // Fuzzer.saveSeed(commandSequencePair.left,
                     // commandSequencePair.right);
+                    Utilities.printCommandSequence(commandSequencePair.left);
+                    Utilities.printCommandSequence(commandSequencePair.right);
+
                     queue.add(new Seed(commandSequencePair.left,
                             commandSequencePair.right));
                 }

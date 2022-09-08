@@ -49,9 +49,11 @@ public class Seed implements Serializable {
                 if (commandSequence.mutate())
                     ret = true;
 
+                break;
+                // FIXME: Enable the stacked mutation
                 // 1/3 prob stop mutation, 2/3 prob keep stacking mutations
-                if (Utilities.oneOf(rand, 3))
-                    break;
+                // if (Utilities.oneOf(rand, 3))
+                // break;
             } catch (Exception e) {
                 logger.error("Mutation error", e);
                 return false;
