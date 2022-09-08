@@ -1248,7 +1248,7 @@ public abstract class ParameterType implements Serializable {
             assert p.value instanceof Parameter;
             // Make sure it satisfies the super set relation
             List<String> curStrings = new LinkedList<>();
-            List<Parameter> l = (List<Parameter>) p.value;
+            List<Parameter> l = (List<Parameter>) p.getValue();
             for (Parameter m : l) {
                 curStrings.add(m.toString());
             }

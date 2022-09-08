@@ -1125,9 +1125,11 @@ public class CommandTests {
     }
 
     @Test
-    public void test_cass14803() {
+    public void test_cass14803() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         CommandPool commandPool = new CassandraCommandPool();
         CommandSequence cass14803_cq = cass14803CommandSequence();
+
+        
         CommandSequence read_cq = null;
         try {
             read_cq = CommandSequence.generateSequence(
@@ -1146,6 +1148,10 @@ public class CommandTests {
         }
         Path filePath = Paths.get("/tmp/seed_cass14803.ser");
         Utilities.saveSeed(cass14803_cq, read_cq, filePath);
+
+        cass14803_cq.mutate();
+
+        Utilities.printCommandSequence(cass14803_cq);
     }
 
     public static CommandSequence cass14803CommandSequence() {
