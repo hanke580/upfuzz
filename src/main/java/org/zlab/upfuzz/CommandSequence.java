@@ -86,7 +86,7 @@ public class CommandSequence implements Serializable {
          * 3: Delete a command // Temporary not chosen  // 0
          */
         separateFromFormerTest();
-        addParamToTypePool();
+        initializeTypePool();
 
         if (CassandraCommands.DEBUG) {
             System.out.println("String Pool:" + STRINGType.stringPool);
@@ -211,7 +211,7 @@ public class CommandSequence implements Serializable {
             commands = validCommands;
             this.state = state;
 
-            cleanTypePool();
+            ParameterType.BasicConcreteType.clearPool();
 
             return true;
         }
@@ -321,8 +321,7 @@ public class CommandSequence implements Serializable {
             // some command generation might fail.
         }
 
-        cleanTypePool();
-
+        ParameterType.BasicConcreteType.clearPool();
         return new CommandSequence(commands, commandClassList,
                 createCommandClassList, stateClass, state);
     }
@@ -381,37 +380,4 @@ public class CommandSequence implements Serializable {
         return true;
     }
 
-    public static void cleanTypePool() {
-        STRINGType.clearPool();
-        INTType.clearPool();
-    }
-
-    public void addParamToTypePool() {
-        for (Command command : commands) {
-            // For each parameter, if the type is String or Int
-            // Add them to the pool
-            for (Parameter param : command.params) {
-                Object val = param.getValue();
-                add2Pool(val);
-            }
-        }
-    }
-
-    public void add2Pool(Object val) {
-        if (val instanceof List) {
-            List<Parameter> list = (List<Parameter>) val;
-            for (Parameter param : list) {
-                add2Pool(param.getValue());
-            }
-        } else if (val instanceof Pair) {
-            Pair<Parameter, Parameter> pair = (Pair<Parameter, Parameter>) val;
-            add2Pool(pair.left.getValue());
-            add2Pool(pair.right.getValue());
-        } else if (val instanceof String) {
-            if (!((String) val).contains(" "))
-                STRINGType.stringPool.add((String) val);
-        } else if (val instanceof Integer) {
-            INTType.intPool.add((Integer) val);
-        }
-    }
 }

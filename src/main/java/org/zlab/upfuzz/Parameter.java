@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Collection;
 
 import org.apache.commons.lang3.SerializationUtils;
+import org.zlab.upfuzz.utils.Pair;
 
 public class Parameter implements Serializable {
 
@@ -88,6 +89,16 @@ public class Parameter implements Serializable {
                                     "you should wrap the inner value into Parameter");
                 }
             }
+        } else if (this.value instanceof Pair) {
+            // Both left and right should be a parameter
+            Pair valuePair = (Pair) this.value;
+            try {
+                ((Parameter) valuePair.left).updateTypePool();
+                ((Parameter) valuePair.right).updateTypePool();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
         }
     }
 

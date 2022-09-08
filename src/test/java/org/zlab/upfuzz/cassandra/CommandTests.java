@@ -1133,11 +1133,17 @@ public class CommandTests {
 
         CommandSequence read_cq = null;
         try {
+
+            // If you want to generate some read sequence which is related
+            // to a write command sequence, first use the write command
+            // sequence to initialize the type pool, and then pass the state
+
             cass14803_cq.initializeTypePool();
             read_cq = CommandSequence.generateSequence(
                     commandPool.readCommandClassList, null,
                     CassandraState.class,
                     cass14803_cq.state);
+
             // CommandSequence read_cq =
             // cass14803_cq.generateRelatedReadSequence();
         } catch (Exception e) {

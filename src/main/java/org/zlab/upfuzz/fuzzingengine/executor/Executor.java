@@ -11,6 +11,7 @@ import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.CommandSequence;
+import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.docker.IDockerCluster;
 import org.zlab.upfuzz.fuzzingengine.AgentServerHandler;
@@ -109,6 +110,7 @@ public abstract class Executor implements IExecutor {
         CommandSequence originalCommandSequence = null;
         CommandSequence validationCommandSequence = null;
         try {
+            ParameterType.BasicConcreteType.clearPool();
             originalCommandSequence = CommandSequence.generateSequence(
                     commandPool.commandClassList,
                     commandPool.createCommandClassList, stateClass, null);
