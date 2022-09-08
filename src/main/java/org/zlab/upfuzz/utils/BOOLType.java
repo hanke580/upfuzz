@@ -43,7 +43,6 @@ public class BOOLType extends ParameterType.ConcreteType {
         if (isValid(s, c, p)) {
             p.value = generateRandomParameter(s, c).value;
         }
-
     }
 
     @Override

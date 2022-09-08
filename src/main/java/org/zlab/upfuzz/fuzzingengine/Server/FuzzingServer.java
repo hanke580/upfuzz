@@ -164,7 +164,7 @@ public class FuzzingServer {
                 // If mutation fails, drop this mutation, so the
                 // testpack size might decrease...
                 Seed mutateSeed = SerializationUtils.clone(seed);
-                if (mutateSeed.mutate()) {
+                if (mutateSeed.mutate(commandPool, stateClass)) {
 
                     logger.info("After mutation");
                     Utilities.printCommandSequence(

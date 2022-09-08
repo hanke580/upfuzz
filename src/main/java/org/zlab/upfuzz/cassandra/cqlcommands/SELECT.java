@@ -72,17 +72,12 @@ public class SELECT extends CassandraCommands {
     public SELECT(State state) {
 
         Parameter keyspaceName = chooseKeyspace(state, this, null);
-        this.params.add(keyspaceName); // Param0
+        this.params.add(keyspaceName); // Param 0
 
         Parameter TableName = chooseTable(state, this, null);
-        this.params.add(TableName); // Param1
+        this.params.add(TableName); // Param 1
 
-        // Pick the subset of the primary columns, and make sure it's on the
-        // right order
-        // First Several Type
-        /**
-         * Subset of primary columns
-         */
+        // Subset of primary columns
         ParameterType.ConcreteType selectColumnsType = new ParameterType.SubsetType<>(
                 null,
                 (s, c) -> ((CassandraState) s).getTable(
@@ -143,12 +138,10 @@ public class SELECT extends CassandraCommands {
                 }
             }
         }
-
         sb.append(" FROM ").append(params.get(0)).append(".")
                 .append(params.get(1));
 
         int whereColsSize = ((List) params.get(3).getValue()).size();
-
         if (whereColsSize > 0) {
 
             sb.append(" " + "WHERE" + " ");

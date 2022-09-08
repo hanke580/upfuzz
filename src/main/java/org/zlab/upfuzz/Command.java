@@ -72,7 +72,6 @@ public abstract class Command implements Serializable {
                 }
             } catch (Exception e) {
                 // This parameter cannot be fixed
-                e.printStackTrace();
                 return false;
             }
         }

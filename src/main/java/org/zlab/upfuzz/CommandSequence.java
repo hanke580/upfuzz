@@ -13,12 +13,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.cassandra.CassandraCommands;
 import org.zlab.upfuzz.utils.INTType;
-import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.STRINGType;
 
 public class CommandSequence implements Serializable {
     static Logger logger = LogManager.getLogger(CommandSequence.class);
 
+    public static final int MIN_CMD_SEQ_LEN = 20;
     public static final int MAX_CMD_SEQ_LEN = 50;
     public final static int RETRY_GENERATE_TIME = 50;
     public final static int RETRY_MUTATE_TIME = 20;
@@ -278,13 +278,13 @@ public class CommandSequence implements Serializable {
 
         Random rand = new Random();
         assert MAX_CMD_SEQ_LEN > 0;
-        int len = rand.nextInt(MAX_CMD_SEQ_LEN) + 1;
+        int len = rand.nextInt(MAX_CMD_SEQ_LEN - MIN_CMD_SEQ_LEN)
+                + MIN_CMD_SEQ_LEN;
 
         Constructor<?> constructor = stateClass.getConstructor();
         if (state == null)
             state = (State) constructor.newInstance();
 
-        // len = 8; // Debug
         List<Command> commands = new LinkedList<>();
 
         // List<Class<? extends Command>> tmpCommandClassList = new

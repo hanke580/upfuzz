@@ -1,10 +1,15 @@
 package org.zlab.upfuzz.fuzzingengine.Server;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.zlab.upfuzz.Command;
+import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.CommandSequence;
+import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.fuzzingengine.Packet.StackedTestPacket;
 import org.zlab.upfuzz.utils.Utilities;
 
@@ -27,11 +32,16 @@ public class Seed implements Serializable {
         this.validationCommandSequnece = validationCommandSequnece;
     }
 
-    public boolean mutate() {
+    public boolean mutate(CommandPool commandPool,
+            Class<? extends State> stateClass) {
         try {
             if (mutateImpl(originalCommandSequence)) {
-                validationCommandSequnece = originalCommandSequence
-                        .generateRelatedReadSequence();
+
+                originalCommandSequence.initializeTypePool();
+                validationCommandSequnece = CommandSequence.generateSequence(
+                        commandPool.readCommandClassList,
+                        commandPool.createCommandClassList,
+                        stateClass, originalCommandSequence.state);
                 return true;
             }
         } catch (Exception e) {
