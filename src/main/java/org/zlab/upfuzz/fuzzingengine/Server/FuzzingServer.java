@@ -167,8 +167,10 @@ public class FuzzingServer {
                 if (mutateSeed.mutate()) {
 
                     logger.info("After mutation");
-                    Utilities.printCommandSequence(mutateSeed.originalCommandSequence);
-                    Utilities.printCommandSequence(mutateSeed.validationCommandSequnece);
+                    Utilities.printCommandSequence(
+                            mutateSeed.originalCommandSequence);
+                    Utilities.printCommandSequence(
+                            mutateSeed.validationCommandSequnece);
 
                     testID2Seed.put(testID, mutateSeed);
                     stackedTestPacket.addTestPacket(mutateSeed, testID++);

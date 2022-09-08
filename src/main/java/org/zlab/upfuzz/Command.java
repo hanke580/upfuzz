@@ -79,6 +79,12 @@ public abstract class Command implements Serializable {
         return true;
     }
 
+    public void updateTypePool() {
+        for (Parameter param : params) {
+            param.updateTypePool();
+        }
+    }
+
     public Set<Command> generateRelatedReadCommand(State state) {
         return null;
     };

@@ -6,7 +6,7 @@ import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 
-public class INTType extends ParameterType.ConcreteType {
+public class INTType extends ParameterType.BasicConcreteType {
 
     private final int MAX_VALUE = Integer.MAX_VALUE;
 
@@ -132,11 +132,16 @@ public class INTType extends ParameterType.ConcreteType {
         return "INT";
     }
 
-    public static void cleanPool() {
-        intPool.clear();
+    @Override
+    public boolean addToPool(Object val) {
+        if (val instanceof Integer) {
+            intPool.add((Integer) val);
+            return true;
+        }
+        return false;
     }
 
-    public static void addToPool(int val) {
-        intPool.add(val);
+    public static void clearPool() {
+        intPool.clear();
     }
 }

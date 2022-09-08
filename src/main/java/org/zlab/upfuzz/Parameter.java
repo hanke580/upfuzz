@@ -1,6 +1,8 @@
 package org.zlab.upfuzz;
 
 import java.io.Serializable;
+import java.util.Collection;
+
 import org.apache.commons.lang3.SerializationUtils;
 
 public class Parameter implements Serializable {
@@ -63,6 +65,29 @@ public class Parameter implements Serializable {
             ((Parameter) this.value).setValue(val);
         } else {
             this.value = val;
+        }
+    }
+
+    public void updateTypePool() {
+        if (this.type instanceof ParameterType.BasicConcreteType) {
+            // add the value into the pool
+            ((ParameterType.BasicConcreteType) this.type).addToPool(this.value);
+            return;
+        }
+
+        if (this.value instanceof Parameter) {
+            ((Parameter) this.value).updateTypePool();
+        } else if (this.value instanceof Collection) {
+
+            for (Object p : ((Collection) this.value)) {
+                if (p instanceof Parameter) {
+                    ((Parameter) p).updateTypePool();
+                } else {
+                    throw new RuntimeException(
+                            "The value is not Collection<Parameter> type," +
+                                    "you should wrap the inner value into Parameter");
+                }
+            }
         }
     }
 

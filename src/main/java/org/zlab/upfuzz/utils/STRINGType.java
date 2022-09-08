@@ -11,7 +11,7 @@ import org.zlab.upfuzz.cassandra.CassandraCommands;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class STRINGType extends ParameterType.ConcreteType {
+public class STRINGType extends ParameterType.BasicConcreteType {
     static Logger logger = LogManager.getLogger(STRINGType.class);
 
     public static final int MAX_LEN = 40; // Probably need refactor
@@ -320,11 +320,16 @@ public class STRINGType extends ParameterType.ConcreteType {
         return "STRING";
     }
 
-    public static void cleanPool() {
-        stringPool.clear();
+    @Override
+    public boolean addToPool(Object val) {
+        if (val instanceof String) {
+            stringPool.add((String) val);
+            return true;
+        }
+        return false;
     }
 
-    public static void addToPool(String val) {
-        stringPool.add(val);
+    public static void clearPool() {
+        stringPool.clear();
     }
 }

@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.cassandra.CassandraCommands;
+import org.zlab.upfuzz.utils.INTType;
+import org.zlab.upfuzz.utils.STRINGType;
 
 /**
  * How a parameter can be generated is only defined in its type.
@@ -63,6 +65,19 @@ public abstract class ParameterType implements Serializable {
                 throw new RuntimeException(e);
             }
             return clone;
+        }
+    }
+
+    public static abstract class BasicConcreteType extends ConcreteType {
+        // Basic Concrete Type can generate parameters without
+        // ConcreteType field. Like String, Int...
+        // They can also contain a Type Pool
+
+        public abstract boolean addToPool(Object val);
+
+        public static void clearPool() {
+            STRINGType.clearPool();
+            INTType.clearPool();
         }
     }
 

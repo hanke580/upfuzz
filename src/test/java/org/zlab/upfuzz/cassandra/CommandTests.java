@@ -1133,6 +1133,7 @@ public class CommandTests {
 
         CommandSequence read_cq = null;
         try {
+            cass14803_cq.initializeTypePool();
             read_cq = CommandSequence.generateSequence(
                     commandPool.readCommandClassList, null,
                     CassandraState.class,
@@ -1215,10 +1216,10 @@ public class CommandTests {
         tmpCmd.updateState(s);
         l.add(tmpCmd);
 
-        INTType.addToPool(100);
-        INTType.addToPool(0);
-        INTType.addToPool(1);
-        STRINGType.addToPool(LONGSTRING_1025_LEN);
+        // INTType.addToPool(100);
+        // INTType.addToPool(0);
+        // INTType.addToPool(1);
+        // STRINGType.addToPool(LONGSTRING_1025_LEN);
 
         for (Command cmd : l) {
             System.out.println(cmd);

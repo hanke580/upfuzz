@@ -19,7 +19,7 @@ import org.zlab.upfuzz.utils.STRINGType;
 public class CommandSequence implements Serializable {
     static Logger logger = LogManager.getLogger(CommandSequence.class);
 
-    public static final int MAX_CMD_SEQ_LEN = 20;
+    public static final int MAX_CMD_SEQ_LEN = 50;
     public final static int RETRY_GENERATE_TIME = 50;
     public final static int RETRY_MUTATE_TIME = 20;
 
@@ -67,6 +67,12 @@ public class CommandSequence implements Serializable {
         // }
         // System.out.println("\n");
         return true;
+    }
+
+    public void initializeTypePool() {
+        for (Command command : commands) {
+            command.updateTypePool();
+        }
     }
 
     public boolean mutate()
@@ -376,8 +382,8 @@ public class CommandSequence implements Serializable {
     }
 
     public static void cleanTypePool() {
-        STRINGType.cleanPool();
-        INTType.cleanPool();
+        STRINGType.clearPool();
+        INTType.clearPool();
     }
 
     public void addParamToTypePool() {
