@@ -171,14 +171,14 @@ public class CassandraDockerCluster implements IDockerCluster {
                     new String[] { "docker-compose", "down" }, workdir);
             int ret = buildProcess.waitFor();
             // try {
-            //     if (workdir.delete()) {
-            //         logger.info("folder deleted successfully");
-            //     } else {
-            //         logger.info("cannot delete");
-            //     }
+            // if (workdir.delete()) {
+            // logger.info("folder deleted successfully");
+            // } else {
+            // logger.info("cannot delete");
+            // }
             // } catch (Exception e) {
-            //     e.printStackTrace();
-            //     System.exit(1);
+            // e.printStackTrace();
+            // System.exit(1);
             // }
             logger.info("teardown docker-compose in " + workdir);
         } catch (IOException | InterruptedException e) {
