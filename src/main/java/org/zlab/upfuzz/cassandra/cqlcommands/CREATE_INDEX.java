@@ -26,7 +26,7 @@ public class CREATE_INDEX extends CassandraCommands {
         this.params.add(TableName); // P1
 
         ParameterType.ConcreteType indexNameType = new ParameterType.NotInCollectionType(
-                new ParameterType.NotEmpty(STRINGType.instance),
+                new ParameterType.NotEmpty(new STRINGType(10)),
                 (s, c) -> Utilities
                         .strings2Parameters(((CassandraState) s).getTable(
                                 c.params.get(0).toString(),

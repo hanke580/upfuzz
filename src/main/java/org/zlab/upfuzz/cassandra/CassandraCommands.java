@@ -70,7 +70,7 @@ public abstract class CassandraCommands extends Command {
             "UNLOGGED", "UPDATE", "USE", "USER",
             "USERS", "USING", "UUID", "VALUES",
             "VARCHAR", "VARINT", "VIEW", "WHERE",
-            "WITH", "WRITETIM", "IS" };
+            "WITH", "WRITETIM", "IS", "OR" };
 
     /**
      * This helper function will randomly pick keyspace and return its

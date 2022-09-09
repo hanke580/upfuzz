@@ -29,7 +29,7 @@ public class UUIDType extends ParameterType.ConcreteType {
     public Parameter generateRandomParameter(State s, Command c) {
         Parameter ret = new Parameter(UUIDType.instance, generateUUID());
         while (!isValid(s, c, ret)) {
-            ret = new Parameter(STRINGType.instance, generateUUID());
+            ret = new Parameter(this, generateUUID());
         }
         // Original Codes:
         return ret;

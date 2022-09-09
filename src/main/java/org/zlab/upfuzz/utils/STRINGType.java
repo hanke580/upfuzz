@@ -24,6 +24,7 @@ public class STRINGType extends ParameterType.BasicConcreteType {
 
     public STRINGType(int MAX_LEN) {
         this.MAX_LEN = MAX_LEN;
+        assert MAX_LEN > 1;
     }
 
     public STRINGType() {
@@ -60,7 +61,7 @@ public class STRINGType extends ParameterType.BasicConcreteType {
         }
         assert init instanceof String;
         String initValue = (String) init;
-        return new Parameter(STRINGType.instance, initValue);
+        return new Parameter(this, initValue);
     }
 
     @Override
@@ -72,7 +73,7 @@ public class STRINGType extends ParameterType.BasicConcreteType {
         // }
         // Random rand = new Random();
         // int idx = rand.nextInt(sList.size());
-        // return new Parameter(STRINGType.instance, sList.get(idx));
+        // return new Parameter(this, sList.get(idx));
 
         Parameter ret;
 
@@ -82,20 +83,24 @@ public class STRINGType extends ParameterType.BasicConcreteType {
             int choice = rand.nextInt(5);
             if (choice <= 3) {
                 // 80%: it will pick from the Pool
+
+                // Try 3 times see whether it can get a valid String
                 List<String> stringPoolList = new ArrayList<>(stringPool);
-                int idx = rand.nextInt(stringPoolList.size());
-                ret = new Parameter(STRINGType.instance,
-                        stringPoolList.get(idx));
-                return ret;
+
+                for (int i = 0; i < 3; i++) {
+                    int idx = rand.nextInt(stringPoolList.size());
+                    ret = new Parameter(this,
+                            stringPoolList.get(idx));
+
+                    if (isValid(s, c, ret)) {
+                        return ret;
+                    }
+                }
             }
         }
-        ret = new Parameter(STRINGType.instance, generateRandomString());
-        if (CassandraCommands.DEBUG) {
-        }
+        ret = new Parameter(this, generateRandomString());
         while (!isValid(s, c, ret)) {
-            if (CassandraCommands.DEBUG) {
-            }
-            ret = new Parameter(STRINGType.instance, generateRandomString());
+            ret = new Parameter(this, generateRandomString());
         }
         stringPool.add((String) ret.value);
         return ret;

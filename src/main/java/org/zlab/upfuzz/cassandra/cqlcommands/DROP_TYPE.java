@@ -21,7 +21,7 @@ public class DROP_TYPE extends CassandraCommands {
         this.params.add(keyspaceName); // 0
 
         ParameterType.ConcreteType typeNameType = new ParameterType.InCollectionType(
-                STRINGType.instance,
+                new STRINGType(10),
                 (s, c) -> Utilities
                         .strings2Parameters(((CassandraState) s).keyspace2UDTs
                                 .get(this.params.get(0).toString())),

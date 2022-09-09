@@ -45,19 +45,23 @@ public class CassandraTypes {
         public static final String signature = ""; // TODO: Choose the right
                                                    // signature
 
-        private TEXTType() {
+        public TEXTType() {
+            super();
+        }
+
+        public TEXTType(int MAX_LEN) {
+            super(MAX_LEN);
         }
 
         @Override
         public Parameter generateRandomParameter(State s, Command c) {
             String str = generateRandomString();
 
-            Parameter tmp = STRINGType.instance.generateRandomParameter(s, c);
-            while (((String) tmp.getValue()).isEmpty()) {
-                tmp = STRINGType.instance.generateRandomParameter(s, c);
+            while (str.isEmpty()) {
+                str = generateRandomString();
             }
 
-            return new Parameter(TEXTType.instance, tmp.getValue());
+            return new Parameter(this, str);
         }
 
         @Override
@@ -68,12 +72,11 @@ public class CassandraTypes {
             }
             assert init instanceof String;
             String initValue = (String) init;
-            return new Parameter(TEXTType.instance, initValue);
+            return new Parameter(this, initValue);
         }
 
         @Override
         public String generateStringValue(Parameter p) {
-            assert Objects.equals(p.type, instance);
             assert p.value instanceof String;
             return "'" + (String) p.value + "'";
         }

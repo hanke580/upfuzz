@@ -34,7 +34,7 @@ public class CREATE_TYPE extends CassandraCommands {
         this.params.add(keyspaceName); // 0
 
         ParameterType.ConcreteType typeNameType = new ParameterType.NotInCollectionType(
-                new ParameterType.NotEmpty(STRINGType.instance),
+                new ParameterType.NotEmpty(new STRINGType(10)),
                 (s, c) -> Utilities
                         .strings2Parameters(((CassandraState) s).keyspace2UDTs
                                 .get(c.params.get(0).toString())),
@@ -51,7 +51,7 @@ public class CREATE_TYPE extends CassandraCommands {
                                         .constructConcreteGenericType(
                                                 PAIRType.instance,
                                                 new ParameterType.NotEmpty(
-                                                        STRINGType.instance),
+                                                        new STRINGType(10)),
                                                 CassandraTypes.TYPEType.instance)));
 
         Parameter columns = columnsType

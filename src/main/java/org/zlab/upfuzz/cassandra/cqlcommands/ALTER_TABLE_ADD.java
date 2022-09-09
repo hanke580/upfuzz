@@ -36,7 +36,7 @@ public class ALTER_TABLE_ADD extends CassandraCommands {
          */
 
         ParameterType.ConcreteType addColumnNameType = new ParameterType.NotInCollectionType(
-                new ParameterType.NotEmpty(STRINGType.instance),
+                new ParameterType.NotEmpty(new STRINGType(10)),
                 (s, c) -> ((CassandraState) s).getTable(
                         c.params.get(0).toString(),
                         c.params.get(1).toString()).colName2Type,
@@ -70,7 +70,7 @@ public class ALTER_TABLE_ADD extends CassandraCommands {
 
         ParameterType.ConcreteType columnType = ParameterType.ConcreteGenericType
                 .constructConcreteGenericType(PAIRType.instance,
-                        new ParameterType.NotEmpty(STRINGType.instance),
+                        new ParameterType.NotEmpty(new STRINGType(10)),
                         CassandraTypes.TYPEType.instance);
 
         // The mechanism is incorrect here
