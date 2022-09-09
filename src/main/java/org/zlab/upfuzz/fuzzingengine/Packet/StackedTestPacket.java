@@ -66,7 +66,7 @@ public class StackedTestPacket extends Packet {
             logger.debug("packet length: " + packetLength);
             while (len < packetLength) {
                 int size = in.read(bytes, len, packetLength - len);
-                logger.debug("packet read extra: " + size);
+                // logger.debug("packet read extra: " + size);
                 len += size;
             }
             logger.debug("receive stacked test packet length : " + len);
@@ -82,7 +82,7 @@ public class StackedTestPacket extends Packet {
         out.writeInt(type.value);
         String packetStr = new Gson().toJson(this);
         byte[] packetByte = packetStr.getBytes();
-        logger.debug("send stacked test packet size: " + packetByte.length);
+        // logger.debug("send stacked test packet size: " + packetByte.length);
         out.writeInt(packetByte.length);
         out.write(packetByte);
     }

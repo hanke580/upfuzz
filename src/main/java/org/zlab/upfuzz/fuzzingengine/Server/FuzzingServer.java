@@ -125,7 +125,6 @@ public class FuzzingServer {
         if (!stackedTestPackets.isEmpty()) {
             return stackedTestPackets.poll();
         }
-        logger.debug("test packet queue is empty, try generate some");
         fuzzOne();
         assert !stackedTestPackets.isEmpty();
         return stackedTestPackets.poll();
@@ -165,12 +164,6 @@ public class FuzzingServer {
                 // testpack size might decrease...
                 Seed mutateSeed = SerializationUtils.clone(seed);
                 if (mutateSeed.mutate(commandPool, stateClass)) {
-
-                    logger.info("After mutation");
-                    Utilities.printCommandSequence(
-                            mutateSeed.originalCommandSequence);
-                    Utilities.printCommandSequence(
-                            mutateSeed.validationCommandSequnece);
 
                     testID2Seed.put(testID, mutateSeed);
                     stackedTestPacket.addTestPacket(mutateSeed, testID++);

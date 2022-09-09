@@ -150,7 +150,7 @@ class TCPHandler(object):
         # print("handler")
         try:
             while True:
-                self.data = self.request.recv(10240).strip()
+                self.data = self.request.recv(51200).strip()
                 if not self.data:
                     exit(0)
 

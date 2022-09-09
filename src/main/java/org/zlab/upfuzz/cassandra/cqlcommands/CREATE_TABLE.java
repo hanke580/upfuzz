@@ -38,7 +38,7 @@ public class CREATE_TABLE extends CassandraCommands {
         params.add(keyspaceName); // [0]
 
         ParameterType.ConcreteType tableNameType = new ParameterType.NotInCollectionType(
-                new ParameterType.NotEmpty(STRINGType.instance),
+                new ParameterType.NotEmpty(new STRINGType(10)),
                 (s, c) -> Utilities
                         .strings2Parameters(((CassandraState) s).keyspace2tables
                                 .get(this.params.get(0).toString()).keySet()),
@@ -56,7 +56,7 @@ public class CREATE_TABLE extends CassandraCommands {
                                         .constructConcreteGenericType(
                                                 PAIRType.instance,
                                                 new ParameterType.NotEmpty(
-                                                        STRINGType.instance),
+                                                        new STRINGType(20)),
                                                 CassandraTypes.TYPEType.instance)));
 
         Parameter columns = columnsType
@@ -95,7 +95,7 @@ public class CREATE_TABLE extends CassandraCommands {
         params.add(keyspaceName); // [0]
 
         ParameterType.ConcreteType tableNameType = new ParameterType.NotInCollectionType(
-                new ParameterType.NotEmpty(STRINGType.instance),
+                new ParameterType.NotEmpty(new STRINGType(10)),
                 (s, c) -> Utilities
                         .strings2Parameters(((CassandraState) s).keyspace2tables
                                 .get(this.params.get(0).toString()).keySet()),
@@ -113,7 +113,7 @@ public class CREATE_TABLE extends CassandraCommands {
                                         .constructConcreteGenericType(
                                                 PAIRType.instance,
                                                 new ParameterType.NotEmpty(
-                                                        STRINGType.instance),
+                                                        new STRINGType(20)),
                                                 CassandraTypes.TYPEType.instance)));
 
         Parameter columns = columnsType

@@ -14,7 +14,7 @@ import org.apache.logging.log4j.Logger;
 public class STRINGType extends ParameterType.BasicConcreteType {
     static Logger logger = LogManager.getLogger(STRINGType.class);
 
-    public static final int MAX_LEN = 40; // Probably need refactor
+    public int MAX_LEN = 256; // Probably need refactor
 
     public static Set<String> stringPool = new HashSet<>();
     public static final String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -22,7 +22,14 @@ public class STRINGType extends ParameterType.BasicConcreteType {
     public static final STRINGType instance = new STRINGType();
     public static final String signature = "java.lang.String";
 
-    public static String generateRandomString() {
+    public STRINGType(int MAX_LEN) {
+        this.MAX_LEN = MAX_LEN;
+    }
+
+    public STRINGType() {
+    }
+
+    public String generateRandomString() {
         // Now when calling text, it's impossible to generate empty string!
         StringBuilder sb = new StringBuilder();
         Random random = new Random();
@@ -37,8 +44,9 @@ public class STRINGType extends ParameterType.BasicConcreteType {
     }
 
     public static boolean contains(String[] strArray, String str) {
+        // case-insensitive
         for (String str_ : strArray) {
-            if (str.equals(str_)) {
+            if (str.toLowerCase().equals(str_.toLowerCase())) {
                 return true;
             }
         }
@@ -105,6 +113,8 @@ public class STRINGType extends ParameterType.BasicConcreteType {
                         (String) p.value)) // Specially
                                            // for
                                            // Cassandra
+            return false;
+        if (((String) p.value).length() > MAX_LEN)
             return false;
         return true;
     }

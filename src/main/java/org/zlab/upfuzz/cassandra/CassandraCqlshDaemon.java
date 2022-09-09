@@ -228,7 +228,8 @@ public class CassandraCqlshDaemon {
         // cqlsh.getInputStream().read(output);
         // System.out.println(new String(output));
 
-        char[] chars = new char[10240];
+        // FIXME: Also need to modify cqlsh_daemon
+        char[] chars = new char[51200];
 
         int cnt = br.read(chars);
         if (cnt == -1) {
@@ -236,18 +237,28 @@ public class CassandraCqlshDaemon {
         }
         String cqlshMessage = new String(chars, 0, cnt);
 
-        logger.info("[HKLOG] length of cqlshMessage: " + cqlshMessage.length());
+        // logger.info("[HKLOG] length of cqlshMessage: " +
+        // cqlshMessage.length());
 
-        // System.out.println("receive size: " + cqlshMess.length() + " \n" +
-        // cqlshMess);
+        Gson gson = new GsonBuilder()
+                .setLenient()
+                .create();
 
-        CqlshPacket cqlshPacket = new Gson().fromJson(cqlshMessage,
-                CqlshPacket.class);
+        // logger.info("cqlshMessage: " + cqlshMessage);
+        CqlshPacket cqlshPacket = null;
+        try {
+            cqlshPacket = gson.fromJson(cqlshMessage,
+                    CqlshPacket.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error("ERROR: Cannot read from json\n WRONG_CQLSH MESSAGE: "
+                    + cqlshMessage);
+        }
 
-        logger.trace(
-                "CqlshMessage:\n" +
-                        new GsonBuilder().setPrettyPrinting().create()
-                                .toJson(cqlshPacket));
+        // logger.info(
+        // "CqlshMessage:\n" +
+        // new GsonBuilder().setPrettyPrinting().create()
+        // .toJson(cqlshPacket));
         return cqlshPacket;
     }
 

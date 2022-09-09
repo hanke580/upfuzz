@@ -17,8 +17,8 @@ public class CassandraCommandPool extends CommandPool {
                 new AbstractMap.SimpleImmutableEntry<>(INSERT.class, 8));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(DELETE.class, 6));
-        commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(SELECT.class, 8));
+        // commandClassList.add(
+        // new AbstractMap.SimpleImmutableEntry<>(SELECT.class, 8));
 
         createCommandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
                 CREATE_KEYSPACE.class, 2));
