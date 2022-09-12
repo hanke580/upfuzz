@@ -80,7 +80,7 @@ public class AgentServerHandler
         sesInfo = info;
         sessionId = info.getId();
         String[] sessionSplit = sessionId.split("-");
-        if (sessionSplit.length != 3) {
+        if (sessionSplit.length != 4) {
             System.err.println("Invalid sessionId " + sessionId);
             return;
         }
@@ -89,10 +89,12 @@ public class AgentServerHandler
         executor.agentHandler.put(sessionId, this);
 
         String identifier = sessionSplit[0], executorID = sessionSplit[1],
-                index = sessionSplit[2];
+                index = sessionSplit[2], nodeID = sessionSplit[3];
         if (!executor.sessionGroup.containsKey(executorID)) {
             executor.sessionGroup.put(executorID, new ArrayList<>());
         }
+        logger.info("adding sessionId: " + sessionId);
+        logger.info("executorID: " + executorID);
         executor.sessionGroup.get(executorID).add(sessionId);
         registered = true;
     }

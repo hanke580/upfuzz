@@ -43,6 +43,7 @@ public class Config {
         public long timeInterval = 600; // seconds, record time
         public boolean keepDir = true; // set to false if start a long running
                                        // test
+        public int nodeNum = 2;
 
         @Override
         public String toString() {

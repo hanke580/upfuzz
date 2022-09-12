@@ -176,9 +176,9 @@ public abstract class Executor implements IExecutor {
         } else {
             // Add to the original coverage
             for (String agentId : agentIdList) {
-                if (agentId.split("-")[2].equals("null"))
+                if (agentId.split("-")[3].equals("null"))
                     continue;
-                logger.trace("collect conn " + agentId);
+                logger.info("collect conn " + agentId);
                 AgentServerHandler conn = agentHandler.get(agentId);
                 if (conn != null) {
                     agentStore.remove(agentId);
@@ -188,9 +188,9 @@ public abstract class Executor implements IExecutor {
 
             ExecutionDataStore execStore = new ExecutionDataStore();
             for (String agentId : agentIdList) {
-                if (agentId.split("-")[2].equals("null"))
+                if (agentId.split("-")[3].equals("null"))
                     continue;
-                logger.trace("get coverage from " + agentId);
+                logger.info("get coverage from " + agentId);
                 ExecutionDataStore astore = agentStore.get(agentId);
                 if (astore == null) {
                     logger.info("no data");

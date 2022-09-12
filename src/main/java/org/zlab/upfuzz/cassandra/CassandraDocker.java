@@ -142,7 +142,8 @@ public class CassandraDocker extends DockerMeta implements IDocker {
                 + "=append=false"
                 + ",includes=" + includes + ",excludes=" + excludes +
                 ",output=dfe,address=" + hostIP + ",port=" + agentPort +
-                ",sessionid=" + system + "-" + executorID + "_" + type +
+                ",sessionid=" + system + "-" + executorID + "_"
+                + type + "-" + index +
                 "\"";
 
         env = new String[] {
@@ -188,6 +189,7 @@ public class CassandraDocker extends DockerMeta implements IDocker {
                 + ",includes=" + includes + ",excludes=" + excludes +
                 ",output=dfe,address=" + hostIP + ",port=" + agentPort +
                 ",sessionid=" + system + "-" + executorID + "_" + type +
+                "-" + index +
                 "\"";
         cqlshDaemonPort ^= 1;
         String cassandraHome = "/cassandra/" + upgradedVersion;

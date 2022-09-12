@@ -92,7 +92,8 @@ public class CassandraExecutor extends Executor {
         }
 
         dockerCluster = new CassandraDockerCluster(
-                this, Config.getConf().originalVersion, 1);
+                this, Config.getConf().originalVersion,
+                Config.getConf().nodeNum);
 
         dockerCluster.build();
 
@@ -281,6 +282,7 @@ public class CassandraExecutor extends Executor {
         // commandSequence = prepareCommandSequence();
         List<String> ret = new LinkedList<>();
         try {
+            // TODO: support sending commands to different nodes
             if (cqlsh == null)
                 cqlsh = ((CassandraDocker) dockerCluster.getDocker(0)).cqlsh;
             for (String cmd : commandList) {
