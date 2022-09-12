@@ -166,6 +166,16 @@ public class CassandraDockerCluster implements IDockerCluster {
     }
 
     public void teardown() {
+
+        // Chmod so that we can read/write them on the host machine
+        try {
+            for (int i = 0; i < dockers.length; ++i) {
+                dockers[i].chmodDir();
+            }
+        } catch (Exception e) {
+            logger.error("fail to chmod dir");
+        }
+
         try {
             Process buildProcess = Utilities.exec(
                     new String[] { "docker-compose", "down" }, workdir);
@@ -183,6 +193,18 @@ public class CassandraDockerCluster implements IDockerCluster {
             logger.info("teardown docker-compose in " + workdir);
         } catch (IOException | InterruptedException e) {
             logger.error("failed to teardown docker", e);
+        }
+
+        if (!Config.getConf().keepDir) {
+            try {
+                Utilities.exec(new String[] { "rm", "-rf",
+                        this.workdir
+                                .getAbsolutePath() },
+                        ".");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            logger.info("[teardown] deleting dir");
         }
     }
 

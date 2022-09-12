@@ -41,6 +41,8 @@ public class Config {
         public int mutationEpoch = 120;
         public int STACKED_TESTS_NUM = 60;
         public long timeInterval = 600; // seconds, record time
+        public boolean keepDir = true; // set to false if start a long running
+                                       // test
 
         @Override
         public String toString() {

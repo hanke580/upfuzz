@@ -218,6 +218,13 @@ public class CassandraDocker extends DockerMeta implements IDocker {
         return workdir.toPath();
     }
 
+    public void chmodDir() throws IOException, InterruptedException {
+        exec(new String[] { "chmod", "-R", "777", "/var/log/cassandra" });
+        exec(new String[] { "chmod", "-R", "777", "/var/lib/cassandra" });
+        exec(new String[] { "chmod", "-R", "777", "/var/log/supervisor" });
+        exec(new String[] { "chmod", "-R", "777", "/usr/bin/set_env" });
+    }
+
     static String template = ""
             + "    DC3N${index}:\n"
             + "        container_name: cassandra-${originalVersion}_${upgradedVersion}_${executorID}_N${index}\n"
