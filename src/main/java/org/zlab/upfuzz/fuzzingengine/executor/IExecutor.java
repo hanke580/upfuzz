@@ -11,9 +11,6 @@ public interface IExecutor {
 
     List<String> executeCommands(List<String> commandList);
 
-    void execute(CommandSequence commandSequence,
-            CommandSequence validationCommandSequence, int testId);
-
     /**
      * Given the generated snapshot, upgrade it to the new version.
      * Check whether any exception happens.

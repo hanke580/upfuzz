@@ -24,12 +24,6 @@ public class NullExecutor extends Executor {
     }
 
     @Override
-    public void execute(CommandSequence commandSequence,
-            CommandSequence validationCommandSequence, int testId) {
-        return;
-    }
-
-    @Override
     public int saveSnapshot() {
         return 0;
     }

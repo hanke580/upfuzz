@@ -139,17 +139,6 @@ public abstract class Executor implements IExecutor {
         return validationCommandSequence;
     }
 
-    public void execute(CommandSequence commandSequence,
-            CommandSequence validationCommandSequence, int testId) {
-        // startup();
-        testId2commandSequence.put(
-                testId,
-                new Pair<>(commandSequence.getCommandStringList(),
-                        validationCommandSequence.getCommandStringList()));
-        executeCommands(commandSequence.getCommandStringList());
-        // saveSnapshot(); // Flush, only keep the data folder
-    }
-
     public void execute(TestPacket testPacket) {
         testId2commandSequence.put(
                 testPacket.testPacketID,

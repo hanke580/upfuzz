@@ -1,16 +1,12 @@
 package org.zlab.upfuzz.cassandra;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.cassandra.CassandraCqlshDaemon.CqlshPacket;
@@ -109,136 +105,15 @@ public class CassandraExecutor extends Executor {
 
         logger.info("cqlsh daemon connected");
 
-        for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
-            logger.info(ste);
-        }
-
-        // ProcessBuilder cassandraProcessBuilder = new ProcessBuilder(
-        // "bin/cassandra", "-f");
-        // Map<String, String> env = cassandraProcessBuilder.environment();
-        // env.put("JAVA_TOOL_OPTIONS",
-        // "-javaagent:" + Config.getConf().jacocoAgentPath + jacocoOptions
-        // + ",includes=" + classToIns + ",excludes=" + excludes
-        // + ",output=dfe,address=localhost,sessionid=" + systemID
-        // + "-" + executorID + "_original");
-        // cassandraProcessBuilder
-        // .directory(new File(Config.getConf().oldSystemPath));
-        // cassandraProcessBuilder.redirectErrorStream(true);
-        // cassandraProcessBuilder.redirectOutput(
-        // Paths.get(Config.getConf().oldSystemPath, "logs.txt").toFile());
-        // try {
-        // long startTime = System.currentTimeMillis();
-        // cassandraProcess = cassandraProcessBuilder.start();
-        // // byte[] out = cassandraProcess.getInputStream().readAllBytes();
-        // // BufferedReader in = new BufferedReader(new
-        // // InputStreamReader(cassandraProcess.getInputStream()));
-        // // String line;
-        // // while ((line = in.readLine()) != null) {
-        // // logger.info(line);
-        // // System.out.flush();
-        // // }
-        // // in.close();
-        // // cassandraProcess.waitFor();
-        // logger.info("cassandra " + executorID + " started");
-        // while (!isCassandraReady(Config.getConf().oldSystemPath)) {
-        // if (!cassandraProcess.isAlive()) {
-        // // logger.info("cassandra process crushed\nCheck " +
-        // // Config.getConf().cassandraOutputFile
-        // // + " for details");
-        // // System.exit(1);
-        // throw new CustomExceptions.systemStartFailureException(
-        // "Cassandra Start fails", null);
-        // }
-        // logger.info("Wait for " + systemID + " ready...");
-        // Thread.sleep(2000);
-        // }
-        // long endTime = System.currentTimeMillis();
-        // logger.info("cassandra " + executorID + " ready.. time usage:"
-        // + (endTime - startTime) / 1000. + "\n");
-
-        // cqlsh = new CassandraCqlshDaemon(Config.getConf().oldSystemPath);
-        // } catch (IOException | InterruptedException e) {
-        // e.printStackTrace();
-        // }
     }
 
     @Override
     public void teardown() {
         dockerCluster.teardown();
-
-        // ProcessBuilder pb = new ProcessBuilder("bin/nodetool", "stopdaemon");
-        // pb.directory(new File(Config.getConf().oldSystemPath));
-        // Process p;
-        // try {
-        // p = pb.start();
-        // BufferedReader in = new BufferedReader(
-        // new InputStreamReader(p.getInputStream()));
-        // String line;
-        // while ((line = in.readLine()) != null) {
-        // logger.info(line);
-        // System.out.flush();
-        // }
-        // p.waitFor();
-        // in.close();
-        // assert !cassandraProcess.isAlive();
-        // logger.info("cassandra " + executorID + " shutdown successfully");
-        // } catch (IOException | InterruptedException e) {
-        // e.printStackTrace();
-        // }
-        // // Remove the data folder
-        // pb = new ProcessBuilder("rm", "-rf", "data", "logs.txt");
-        // pb.directory(new File(Config.getConf().oldSystemPath));
-        // try {
-        // pb.start();
-        // } catch (IOException e) {
-        // e.printStackTrace();
-        // }
-        // this.cqlsh.destroy();
     }
 
     @Override
     public void upgradeTeardown() {
-        // dockerCluster.teardown();
-        // ProcessBuilder pb = new ProcessBuilder("bin/nodetool", "stopdaemon");
-        // pb.directory(new File(Config.getConf().newSystemPath));
-        // Process p;
-        // try {
-        // p = pb.start();
-        // BufferedReader in = new BufferedReader(
-        // new InputStreamReader(p.getInputStream()));
-        // String line;
-        // while ((line = in.readLine()) != null) {
-        // // logger.info(line);
-        // // System.out.flush();
-        // }
-        // p.waitFor();
-        // in.close();
-        // logger.info(
-        // "new cassandra " + executorID + " shutdown successfully");
-
-        // // p.wait();
-        // } catch (IOException | InterruptedException e) {
-        // e.printStackTrace();
-        // }
-        // // Remove the data folder
-        // pb = new ProcessBuilder("rm", "-rf", "data", "logs.txt");
-        // pb.directory(new File(Config.getConf().newSystemPath));
-        // try {
-        // pb.start();
-        // } catch (IOException e) {
-        // e.printStackTrace();
-        // }
-
-        // logger.info("Upgrade folder has been removed");
-
-        // // Stop all running cassandra instances
-        // // pgrep -u vagrant -f cassandra | xargs kill -9
-        // pb = new ProcessBuilder("pgrep", "-u", "vagrant", "cassandra",
-        // "| xargs kill -9");
-        // pb.directory(new File(Config.getConf().newSystemPath));
-        // Utilities.runProcess(pb, "kill cassandra instances");
-
-        // this.cqlsh.destroy();
     }
 
     public Pair<CommandSequence, CommandSequence> prepareCommandSequence() {
@@ -334,68 +209,15 @@ public class CassandraExecutor extends Executor {
     public int saveSnapshot() {
         // Do nothing when using docker-compose
         return 0;
-        // Flush
-        // ProcessBuilder pb = new ProcessBuilder("bin/nodetool", "flush");
-        // pb.directory(new File(Config.getConf().oldSystemPath));
-        // Utilities.runProcess(pb, "[Executor] Old Version System Flush");
-        // return 0;
     }
 
     @Override
     public int moveSnapShot() {
-        // Copy the data dir
-        // Path oldDataPath = Paths.get(Config.getConf().oldSystemPath, "data");
-        // Path newDataPath = Paths.get(Config.getConf().newSystemPath);
-        //
-        //
-        // Path oldDataPath = originalCluster.getDataPath();
-        // Path newDataPath = originalCluster.getDataPath();
-
-        // ProcessBuilder pb = new ProcessBuilder("cp", "-r",
-        // oldDataPath.toString(), newDataPath.toString());
-        // pb.directory(new File(Config.getConf().oldSystemPath));
-        // try {
-        // Utilities.runProcess(pb,
-        // "[Executor] Copy the data folder to the new version")
-        // .waitFor();
-        // } catch (InterruptedException e) {
-        // logger.error("Failed to copy data folder", e);
-        // }
         return 0;
     }
 
     @Override
     public boolean upgradeTest() {
-        // Upgrade Startup
-        // ProcessBuilder pb = new ProcessBuilder("bin/cassandra");
-        // pb.directory(new File(Config.getConf().newSystemPath));
-        // pb.redirectOutput(
-        // Paths.get(Config.getConf().newSystemPath, "logs.txt").toFile());
-        // // long startTime = System.currentTimeMillis();
-        // Utilities.runProcess(pb, "Upgrade Cassandra");
-
-        // // Add a retry time here
-        // boolean started = false;
-        // int RETRY_START_UPGRADE = 25;
-        // for (int i = 0; i < RETRY_START_UPGRADE; i++) {
-        // if (isCassandraReady(Config.getConf().newSystemPath)) {
-        // started = true;
-        // break;
-        // }
-        // try {
-        // logger.info("Upgrade System Waiting...");
-        // Thread.sleep(3000);
-        // } catch (InterruptedException e) {
-        // e.printStackTrace();
-        // }
-        // }
-
-        // if (!started) {
-        // // Retry the upgrade, clear the folder, kill the hang process
-        // logger.info("[FAILURE LOG] New version cannot start");
-        // return false;
-        // }
-
         try {
             dockerCluster.upgrade();
             this.cqlsh = ((CassandraDocker) dockerCluster.getDocker(0)).cqlsh;
