@@ -1,22 +1,32 @@
 package org.zlab.upfuzz.cassandra;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+
+import javax.management.RuntimeErrorException;
+import javax.swing.event.InternalFrameAdapter;
 
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.yaml.snakeyaml.nodes.NodeId;
 import org.zlab.upfuzz.docker.DockerCluster;
 import org.zlab.upfuzz.docker.IDocker;
 import org.zlab.upfuzz.docker.IDockerCluster;
@@ -26,6 +36,9 @@ import org.zlab.upfuzz.utils.Utilities;
 
 public class CassandraDockerCluster implements IDockerCluster {
     static Logger logger = LogManager.getLogger(CassandraDockerCluster.class);
+
+    int nodeNum;
+    String networkID;
 
     CassandraDocker[] dockers;
 
@@ -74,6 +87,7 @@ public class CassandraDockerCluster implements IDockerCluster {
         this.originalVersion = Config.getConf().originalVersion;
         this.upgradedVersion = Config.getConf().upgradedVersion;
         this.system = executor.systemID;
+        this.nodeNum = nodeNum;
         this.dockers = new CassandraDocker[nodeNum];
 
         DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
@@ -138,6 +152,47 @@ public class CassandraDockerCluster implements IDockerCluster {
             logger.error("docker-compose up\n" + errorMessage);
             // System.exit(ret);
         }
+
+        try {
+            // Get network full name here, so that later we can disconnect and
+            // reconnect
+            Process getNameProcess = Utilities.exec(
+                    new String[] { "/bin/sh", "-c",
+                            "docker network ls | grep " + networkName },
+                    workdir);
+            getNameProcess.waitFor();
+
+            BufferedReader stdInput = new BufferedReader(
+                    new InputStreamReader(getNameProcess.getInputStream()));
+
+            BufferedReader stdError = new BufferedReader(
+                    new InputStreamReader(getNameProcess.getErrorStream()));
+
+            System.out.println("[HKLOG]This is the output of the process");
+            List<String> results = new ArrayList<>();
+            String s = null;
+            while ((s = stdInput.readLine()) != null) {
+                results.add(s);
+            }
+            if (results.size() != 1) {
+                throw new RuntimeException(
+                        "There should be one matching network, but there is "
+                                + results.size() + " matching");
+            }
+            this.networkID = results.get(0).split(" ")[0];
+
+            System.out.println("network ID = " + this.networkID);
+            // Read any errors from the attempted command
+            System.out.println(
+                    "Here is the standard error of the command (if any):\n");
+            while ((s = stdError.readLine()) != null) {
+                System.out.println(s);
+            }
+            System.out.println("[HKLOG]This is the end");
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+
         for (int i = 0; i < dockers.length; ++i) {
             try {
                 dockers[i].start();
@@ -250,5 +305,79 @@ public class CassandraDockerCluster implements IDockerCluster {
     @Override
     public Path getDataPath() {
         return Paths.get(workdir.toString(), "persistent");
+    }
+
+    // Fault Injection
+    // If we crash a docker container, the cqlsh might also be killed.
+    // So next time if we want to issue a command, we might need to send
+    // the command to a different node.
+
+    // Disconnect the network of a set of containers
+    // Inside the nodes, they also cannot communicate with each other (Not
+    // Partition)
+    public boolean disconnectNetwork(Set<Integer> nodeIndexes) {
+        // First check whether all indexes is valid
+        int maxNodeIndex = Collections.max(nodeIndexes);
+        int minNodeIndex = Collections.min(nodeIndexes);
+
+        if (maxNodeIndex >= nodeNum || minNodeIndex < 0) {
+            throw new RuntimeException(
+                    "The nodeIndex is out of range. maxNodeIndex = "
+                            + maxNodeIndex
+                            + ", minNodeIndex = " + minNodeIndex
+                            + ", nodeNum = " + nodeNum);
+        }
+        for (int nodeIndex : nodeIndexes) {
+            try {
+                if (!disconnectNetwork(dockers[nodeIndex]))
+                    return false;
+            } catch (IOException | InterruptedException e) {
+                logger.error("Cannot disconnect network of container "
+                        + dockers[nodeIndex].containerName + " exception: "
+                        + e);
+            }
+        }
+        return true;
+    }
+
+    // Disconnect one container from network
+    private boolean disconnectNetwork(CassandraDocker docker)
+            throws IOException, InterruptedException {
+        String[] disconnectNetworkCMD = new String[] {
+                "docker", "network", "disconnect", "-f", networkID,
+                docker.containerName
+        };
+        Process disconnProcess = Utilities.exec(disconnectNetworkCMD, workdir);
+        int ret = disconnProcess.waitFor();
+
+        return ret == 0 ? true : false;
+    }
+
+    public boolean killContainer(int nodeIndex) {
+        if (nodeIndex >= nodeNum || nodeIndex < 0) {
+            throw new RuntimeException(
+                    "The nodeIndex is out of range. nodeIndex = "
+                            + nodeIndex + ", nodeNum = " + nodeNum);
+        }
+        try {
+            return killContainer(dockers[nodeIndex]);
+        } catch (IOException | InterruptedException e) {
+            logger.error("Cannot delete container index "
+                    + dockers[nodeIndex].containerName, e);
+            return false;
+        }
+
+    }
+
+    private boolean killContainer(CassandraDocker docker)
+            throws IOException, InterruptedException {
+        String[] killContainerCMD = new String[] {
+                "docker", "kill", docker.containerName
+        };
+        Process killContainerProcess = Utilities.exec(killContainerCMD,
+                workdir);
+        int ret = killContainerProcess.waitFor();
+
+        return ret == 0 ? true : false;
     }
 }

@@ -5,6 +5,8 @@ import java.rmi.UnexpectedException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -39,6 +41,21 @@ public abstract class Executor implements IExecutor {
     public Map<Integer, List<String>> testId2newVersionResult;
 
     public IDockerCluster dockerCluster;
+
+    // kill the container
+    public boolean crashNode(int index) {
+        return false;
+    }
+
+    // cut off the network between two containers
+    public boolean linkFailure(int n1, int n2) {
+        return false;
+    }
+
+    // network partitions on a set of containers
+    public boolean partition(Set<Integer> nodes) {
+        return false;
+    }
 
     /**
      * key: String -> agentId value: Codecoverage for this agent

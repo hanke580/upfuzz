@@ -25,7 +25,7 @@ import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.utils.Utilities;
 
-public class HdfsDockerCluster implements IDockerCluster {
+public class HdfsDockerCluster extends DockerCluster {
     static Logger logger = LogManager.getLogger(HdfsDockerCluster.class);
 
     HdfsDocker[] dockers;
