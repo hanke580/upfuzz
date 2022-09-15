@@ -23,7 +23,6 @@ public class CassandraDocker extends DockerMeta implements IDocker {
 
     String composeYaml;
     String javaToolOpts;
-    String containerName;
     int cqlshDaemonPort = 18251;
 
     public CassandraCqlshDaemon cqlsh;
@@ -161,21 +160,21 @@ public class CassandraDocker extends DockerMeta implements IDocker {
         logger.info("[HKLOG] FLUSING!");
 
         if (Config.getConf().originalVersion.contains("2.1.0")) {
-            Process flushCass = exec(new String[] {
+            Process flushCass = runInContainer(new String[] {
                     "/" + system + "/" + originalVersion + "/"
                             + "bin/nodetool",
                     "-h", "::FFFF:127.0.0.1",
                     "flush" });
             ret = flushCass.waitFor();
         } else {
-            Process flushCass = exec(new String[] {
+            Process flushCass = runInContainer(new String[] {
                     "/" + system + "/" + originalVersion + "/"
                             + "bin/nodetool",
                     "flush" });
             ret = flushCass.waitFor();
         }
 
-        Process stopCass = exec(new String[] {
+        Process stopCass = runInContainer(new String[] {
                 "/" + system + "/" + originalVersion + "/"
                         + "bin/nodetool",
                 "stopdaemon" });
@@ -201,7 +200,7 @@ public class CassandraDocker extends DockerMeta implements IDocker {
                 "PYTHON=python2" };
         setEnvironment();
         String restartCommand = "supervisorctl restart upfuzz_cassandra:";
-        Process restart = exec(
+        Process restart = runInContainer(
                 new String[] { "/bin/bash", "-c", restartCommand }, env);
         ret = restart.waitFor();
         String message = Utilities.readProcess(restart);
@@ -221,10 +220,14 @@ public class CassandraDocker extends DockerMeta implements IDocker {
     }
 
     public void chmodDir() throws IOException, InterruptedException {
-        exec(new String[] { "chmod", "-R", "777", "/var/log/cassandra" });
-        exec(new String[] { "chmod", "-R", "777", "/var/lib/cassandra" });
-        exec(new String[] { "chmod", "-R", "777", "/var/log/supervisor" });
-        exec(new String[] { "chmod", "-R", "777", "/usr/bin/set_env" });
+        runInContainer(
+                new String[] { "chmod", "-R", "777", "/var/log/cassandra" });
+        runInContainer(
+                new String[] { "chmod", "-R", "777", "/var/lib/cassandra" });
+        runInContainer(
+                new String[] { "chmod", "-R", "777", "/var/log/supervisor" });
+        runInContainer(
+                new String[] { "chmod", "-R", "777", "/usr/bin/set_env" });
     }
 
     static String template = ""
@@ -260,28 +263,5 @@ public class CassandraDocker extends DockerMeta implements IDocker {
             + "            memlock: -1\n"
             + "            nproc: 32768\n"
             + "            nofile: 100000\n";
-
-    public Process exec(String[] cmd, String[] env)
-            throws IOException, InterruptedException {
-        StringBuilder sb = new StringBuilder();
-        ArrayList<String> cmds = new ArrayList<>();
-        cmds.add("docker");
-        cmds.add("exec");
-        for (int i = 0; i < env.length; ++i) {
-            cmds.add("-e");
-            cmds.add(env[i]);
-        }
-        cmds.add(containerName);
-        cmds.addAll(Arrays.asList(cmd));
-        logger.debug(String.join(" ", cmds));
-        return Utilities.exec(cmds.toArray(new String[] {}), workdir);
-    }
-
-    public Process exec(String[] cmd) throws IOException, InterruptedException {
-        String[] dockerCMD = Utilities.concatArray(
-                new String[] { "docker", "exec", containerName }, cmd);
-        logger.debug(String.join(" ", dockerCMD));
-        return Utilities.exec(dockerCMD, workdir);
-    }
 
 }
