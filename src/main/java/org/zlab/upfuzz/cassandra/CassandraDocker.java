@@ -12,13 +12,14 @@ import java.util.Map;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.zlab.upfuzz.docker.Docker;
 import org.zlab.upfuzz.docker.DockerCluster;
 import org.zlab.upfuzz.docker.DockerMeta;
 import org.zlab.upfuzz.docker.IDocker;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.utils.Utilities;
 
-public class CassandraDocker extends DockerMeta implements IDocker {
+public class CassandraDocker extends Docker {
     protected final Logger logger = LogManager.getLogger(getClass());
 
     String composeYaml;
@@ -53,6 +54,7 @@ public class CassandraDocker extends DockerMeta implements IDocker {
         return networkIP;
     }
 
+    @Override
     public String formatComposeYaml() {
         Map<String, String> formatMap = new HashMap<>();
 

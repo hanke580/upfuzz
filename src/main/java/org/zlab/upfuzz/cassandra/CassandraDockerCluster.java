@@ -20,6 +20,7 @@ import org.apache.commons.text.StringSubstitutor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.docker.DockerCluster;
+import org.zlab.upfuzz.docker.DockerMeta;
 import org.zlab.upfuzz.docker.IDocker;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.utils.Utilities;
@@ -27,7 +28,7 @@ import org.zlab.upfuzz.utils.Utilities;
 public class CassandraDockerCluster extends DockerCluster {
     static Logger logger = LogManager.getLogger(CassandraDockerCluster.class);
 
-    CassandraDocker[] dockers;
+    // CassandraDocker[] dockers;
     String seedIP;
 
     static final String includes = "org.apache.cassandra.*";
@@ -41,7 +42,7 @@ public class CassandraDockerCluster extends DockerCluster {
         this.seedIP = DockerCluster.getKthIP(hostIP, 0);
     }
 
-    public boolean build() throws IOException {
+    public boolean build() throws Exception {
         for (int i = 0; i < dockers.length; ++i) {
             dockers[i] = new CassandraDocker(this, i);
             dockers[i].build();
@@ -112,9 +113,8 @@ public class CassandraDockerCluster extends DockerCluster {
             BufferedReader stdError = new BufferedReader(
                     new InputStreamReader(getNameProcess.getErrorStream()));
 
-            System.out.println("[HKLOG]This is the output of the process");
             List<String> results = new ArrayList<>();
-            String s = null;
+            String s;
             while ((s = stdInput.readLine()) != null) {
                 results.add(s);
             }
@@ -126,13 +126,6 @@ public class CassandraDockerCluster extends DockerCluster {
             this.networkID = results.get(0).split(" ")[0];
 
             System.out.println("network ID = " + this.networkID);
-            // Read any errors from the attempted command
-            System.out.println(
-                    "Here is the standard error of the command (if any):\n");
-            while ((s = stdError.readLine()) != null) {
-                System.out.println(s);
-            }
-            System.out.println("[HKLOG]This is the end");
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
@@ -140,7 +133,7 @@ public class CassandraDockerCluster extends DockerCluster {
         for (int i = 0; i < dockers.length; ++i) {
             try {
                 dockers[i].start();
-            } catch (IOException | InterruptedException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -152,7 +145,11 @@ public class CassandraDockerCluster extends DockerCluster {
         this.subnet = "192.168." + Integer.toString(subnetID) + ".1/24";
         this.hostIP = "192.168." + Integer.toString(subnetID) + ".1";
         this.seedIP = DockerCluster.getKthIP(hostIP, 0);
-        this.build();
+        try {
+            this.build();
+        } catch (Exception e) {
+            logger.error("Cannot build cluster " + e);
+        }
     }
 
     public void upgrade() throws Exception {
@@ -285,7 +282,7 @@ public class CassandraDockerCluster extends DockerCluster {
     }
 
     // Disconnect one container from network
-    private boolean disconnectNetwork(CassandraDocker docker)
+    private boolean disconnectNetwork(DockerMeta docker)
             throws IOException, InterruptedException {
         String[] disconnectNetworkCMD = new String[] {
                 "docker", "network", "disconnect", "-f", networkID,
@@ -297,31 +294,4 @@ public class CassandraDockerCluster extends DockerCluster {
         return ret == 0 ? true : false;
     }
 
-    public boolean killContainer(int nodeIndex) {
-        if (nodeIndex >= nodeNum || nodeIndex < 0) {
-            throw new RuntimeException(
-                    "The nodeIndex is out of range. nodeIndex = "
-                            + nodeIndex + ", nodeNum = " + nodeNum);
-        }
-        try {
-            return killContainer(dockers[nodeIndex]);
-        } catch (IOException | InterruptedException e) {
-            logger.error("Cannot delete container index "
-                    + dockers[nodeIndex].containerName, e);
-            return false;
-        }
-
-    }
-
-    private boolean killContainer(CassandraDocker docker)
-            throws IOException, InterruptedException {
-        String[] killContainerCMD = new String[] {
-                "docker", "kill", docker.containerName
-        };
-        Process killContainerProcess = Utilities.exec(killContainerCMD,
-                workdir);
-        int ret = killContainerProcess.waitFor();
-
-        return ret == 0 ? true : false;
-    }
 }

@@ -15,7 +15,7 @@ import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.docker.IDockerCluster;
+import org.zlab.upfuzz.docker.DockerCluster;
 import org.zlab.upfuzz.fuzzingengine.AgentServerHandler;
 import org.zlab.upfuzz.fuzzingengine.AgentServerSocket;
 import org.zlab.upfuzz.fuzzingengine.Packet.TestPacket;
@@ -40,7 +40,7 @@ public abstract class Executor implements IExecutor {
     public Map<Integer, List<String>> testId2oldVersionResult;
     public Map<Integer, List<String>> testId2newVersionResult;
 
-    public IDockerCluster dockerCluster;
+    public DockerCluster dockerCluster;
 
     // kill the container
     public boolean crashNode(int index) {
@@ -161,6 +161,9 @@ public abstract class Executor implements IExecutor {
                 testPacket.testPacketID,
                 new Pair<>(testPacket.originalCommandSequenceList,
                         testPacket.validationCommandSequneceList));
+
+        // testPacket should contain List<Event>
+        // It can be (1) cqlsh command (2) a fault (3) admin command
         executeCommands(testPacket.originalCommandSequenceList);
     }
 

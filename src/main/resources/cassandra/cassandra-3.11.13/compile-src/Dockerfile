@@ -22,6 +22,8 @@ RUN apt install apt-transport-https ca-certificates
 RUN apt-get update && apt-get install -y openssh-server iproute2 net-tools iputils-ping supervisor vim ant maven python python3 python3-pip python-six psmisc
 
 RUN pip3 install six
+RUN apt-get install iptables -y
+
 ADD general-setup.sh /usr/local/bin/general-setup.sh
 RUN sh /usr/local/bin/general-setup.sh
 COPY org.jacoco.agent.rt.jar /org.jacoco.agent.rt.jar

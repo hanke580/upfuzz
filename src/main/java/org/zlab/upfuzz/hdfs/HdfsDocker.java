@@ -12,12 +12,13 @@ import java.util.Map;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.zlab.upfuzz.docker.Docker;
 import org.zlab.upfuzz.docker.DockerCluster;
 import org.zlab.upfuzz.docker.DockerMeta;
 import org.zlab.upfuzz.docker.IDocker;
 import org.zlab.upfuzz.utils.Utilities;
 
-public class HdfsDocker extends DockerMeta implements IDocker {
+public class HdfsDocker extends Docker {
     protected final Logger logger = LogManager.getLogger(getClass());
 
     String composeYaml;
@@ -245,5 +246,10 @@ public class HdfsDocker extends DockerMeta implements IDocker {
                 new String[] { "docker", "exec", containerName }, cmd);
         logger.debug(String.join(" ", dockerCMD));
         return Utilities.exec(dockerCMD, workdir);
+    }
+
+    @Override
+    public void chmodDir() throws IOException, InterruptedException {
+
     }
 }

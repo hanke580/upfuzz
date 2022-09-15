@@ -1,6 +1,7 @@
 package org.zlab.upfuzz.docker;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
@@ -9,8 +10,16 @@ import java.util.UUID;
 import org.apache.commons.lang3.RandomUtils;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.zlab.upfuzz.utils.Utilities;
 
 public abstract class DockerCluster implements IDockerCluster {
+    static Logger logger = LogManager.getLogger(DockerCluster.class);
+
+    protected Docker[] dockers;
+
+    public Network network;
 
     public String version;
     public String originalVersion;
@@ -65,6 +74,44 @@ public abstract class DockerCluster implements IDockerCluster {
         this.workdir = new File("fuzzing_storage/" + executor.systemID + "/" +
                 originalVersion + "/" + upgradedVersion + "/" +
                 executorTimestamp + "-" + executor.executorID);
+        this.network = new Network();
+    }
+
+    // partition two nodes
+    // Always provide the node index to clients
+    public boolean partition(int nodeIndex1, int nodeIndex2) {
+        if (!checkIndex(nodeIndex1) || !checkIndex(nodeIndex2))
+            return false;
+        if (nodeIndex1 == nodeIndex2)
+            return false;
+        return network.biPartition(dockers[nodeIndex1], dockers[nodeIndex2]);
+    }
+
+    public boolean killContainer(int nodeIndex) {
+        if (!checkIndex(nodeIndex))
+            return false;
+
+        boolean ret = true;
+        try {
+            String[] killContainerCMD = new String[] {
+                    "docker", "kill", dockers[nodeIndex].containerName
+            };
+            Process killContainerProcess = Utilities.exec(killContainerCMD,
+                    workdir);
+            ret = killContainerProcess.waitFor() == 0;
+        } catch (IOException | InterruptedException e) {
+            logger.error("Cannot delete container index "
+                    + dockers[nodeIndex].containerName, e);
+            return false;
+        }
+        return ret;
+    }
+
+    public boolean checkIndex(int nodeIndex) {
+        if (nodeIndex >= nodeNum || nodeIndex < 0) {
+            return false;
+        }
+        return true;
     }
 
 }

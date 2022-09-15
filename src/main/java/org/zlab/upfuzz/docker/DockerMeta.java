@@ -56,4 +56,16 @@ public abstract class DockerMeta {
         return Utilities.exec(dockerCMD, workdir);
     }
 
+    public Process runInContainerWithPrivilege(String[] cmd)
+            throws IOException {
+        String[] dockerCMD = Utilities.concatArray(
+                new String[] { "docker", "exec", "--privileged",
+                        containerName },
+                cmd);
+        logger.debug(String.join(" ", dockerCMD));
+        return Utilities.exec(dockerCMD, workdir);
+    }
+
+    public abstract String formatComposeYaml();
+
 }

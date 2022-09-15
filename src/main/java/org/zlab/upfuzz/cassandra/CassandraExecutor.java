@@ -154,6 +154,9 @@ public class CassandraExecutor extends Executor {
 
     @Override
     public List<String> executeCommands(List<String> commandList) {
+        // TODO: Use Event here, since not all commands are executed
+        // through the cqlsh shell
+
         // commandSequence = prepareCommandSequence();
         List<String> ret = new LinkedList<>();
         try {
@@ -168,6 +171,16 @@ public class CassandraExecutor extends Executor {
 
                 ret.add(cp.message);
             }
+            // When the first tp is executed, inject a fault here for testing
+            // method
+            // Set the nodeNum in cluster as 2
+            // dockerCluster.partition(0, 1);
+
+            // if (Config.getConf().nodeNum > 1 && !partition_test) {
+            // // kill a container
+            // dockerCluster.killContainer(1);
+            // }
+
             // cqlsh.destroy();
         } catch (IOException e) {
             e.printStackTrace();
