@@ -38,7 +38,7 @@ public class HdfsDocker extends DockerMeta implements IDocker {
         networkIP = DockerCluster.getKthIP(hostIP, index);
         seedIP = dockerCluster.seedIP;
         agentPort = dockerCluster.agentPort;
-        includes = dockerCluster.inclueds;
+        includes = dockerCluster.includes;
         excludes = dockerCluster.excludes;
         executorID = dockerCluster.executorID;
         name = "hdfs-" + originalVersion + "_" + upgradedVersion + "_" +

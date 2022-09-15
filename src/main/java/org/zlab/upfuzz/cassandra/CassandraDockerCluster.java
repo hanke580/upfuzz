@@ -8,93 +8,37 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.DateFormat;
-import java.text.MessageFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
-
-import javax.management.RuntimeErrorException;
-import javax.swing.event.InternalFrameAdapter;
 
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.yaml.snakeyaml.nodes.NodeId;
 import org.zlab.upfuzz.docker.DockerCluster;
 import org.zlab.upfuzz.docker.IDocker;
-import org.zlab.upfuzz.docker.IDockerCluster;
 import org.zlab.upfuzz.fuzzingengine.Config;
-import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.utils.Utilities;
 
-public class CassandraDockerCluster implements IDockerCluster {
+public class CassandraDockerCluster extends DockerCluster {
     static Logger logger = LogManager.getLogger(CassandraDockerCluster.class);
 
-    int nodeNum;
-    String networkID;
-
     CassandraDocker[] dockers;
-
-    String version;
-    String originalVersion;
-    String upgradedVersion;
-
-    Executor executor;
-    String executorID;
-    String system;
-    String type;
-    String subnet;
     String seedIP;
-    int agentPort;
-    int subnetID;
-    String networkName;
-    String composeYaml;
-    String hostIP;
-    File workdir;
 
-    static final String inclueds = "org.apache.cassandra.*";
+    static final String includes = "org.apache.cassandra.*";
     static final String excludes = "org.apache.cassandra.metrics.*:org.apache.cassandra.net.*:org.apache.cassandra.io.sstable.format.SSTableReader.*:org.apache.cassandra.service.*";
 
     CassandraDockerCluster(CassandraExecutor executor, String version,
             int nodeNum) {
-        this.networkName = MessageFormat.format(
-                "network_{0}_{1}_to_{2}_{3}", executor.systemID,
-                Config.getConf().originalVersion,
-                Config.getConf().upgradedVersion,
-                UUID.randomUUID());
+        super(executor, version, nodeNum);
 
-        // replace subnet
-        // rename services
-
-        // 192.168.24.[(0001~1111)|0000] / 28
-        //
-        this.subnetID = RandomUtils.nextInt(1, 256);
-        this.subnet = "192.168." + Integer.toString(subnetID) + ".1/24";
-        this.hostIP = "192.168." + Integer.toString(subnetID) + ".1";
-        this.seedIP = DockerCluster.getKthIP(hostIP, 0);
-        this.agentPort = executor.agentPort;
-        this.executor = executor;
-        this.executorID = executor.executorID;
-        this.version = version;
-        this.type = "original";
-        this.originalVersion = Config.getConf().originalVersion;
-        this.upgradedVersion = Config.getConf().upgradedVersion;
-        this.system = executor.systemID;
-        this.nodeNum = nodeNum;
         this.dockers = new CassandraDocker[nodeNum];
-
-        DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
-        String executorTimestamp = formatter.format(System.currentTimeMillis());
-        this.workdir = new File("fuzzing_storage/" + executor.systemID + "/" +
-                originalVersion + "/" + upgradedVersion + "/" +
-                executorTimestamp + "-" + executor.executorID);
+        this.seedIP = DockerCluster.getKthIP(hostIP, 0);
     }
 
     public boolean build() throws IOException {
