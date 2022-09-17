@@ -119,11 +119,13 @@ public class CassandraDockerCluster extends DockerCluster {
                 results.add(s);
             }
             if (results.size() != 1) {
-                throw new RuntimeException(
+                logger.error(
                         "There should be one matching network, but there is "
                                 + results.size() + " matching");
+                this.networkID = null;
+            } else {
+                this.networkID = results.get(0).split(" ")[0];
             }
-            this.networkID = results.get(0).split(" ")[0];
 
             System.out.println("network ID = " + this.networkID);
         } catch (IOException | InterruptedException e) {
