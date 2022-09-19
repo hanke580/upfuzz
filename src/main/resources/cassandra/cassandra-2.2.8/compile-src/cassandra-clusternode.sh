@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Get running container's IP
+IP=$(hostname --ip-address | cut -f 1 -d ' ')
+if [ $# == 1 ]; then
+    SEEDS="$1,$IP"
+else SEEDS="$IP"; fi
+
+# Change it to the target systems
+ORG_VERSION=apache-cassandra-2.2.8
+UPG_VERSION=apache-cassandra-3.0.15-13939
+
+# create necessary dirs (some version of cassandra cannot create these)
+mkdir -p /var/log/cassandra
+mkdir -p /var/lib/cassandra
+
+if [[ ! -f "/tmp/.setup_conf" ]]; then
+    echo "copy and format configurations"
+    for VERSION in ${ORG_VERSION} ${UPG_VERSION}; do
+        echo "cp -r \"/cassandra/${VERSION}/conf\" \"/etc/${VERSION}\""
+        cp -r "/cassandra/${VERSION}/conf" "/etc/${VERSION}"
+        CONFIG="/etc/${VERSION}"
+
+        # Note that runtime setup such as SEED is set in
+        #sed -i 's/Xss128k/Xss256k/' /cassandra/conf/cassandra-env.sh
+        sed -i 's/#MAX_HEAP_SIZE="4G"/MAX_HEAP_SIZE="512M"/' ${CONFIG}/cassandra-env.sh
+        sed -i 's/#HEAP_NEWSIZE="800M"/HEAP_NEWSIZE="200M"/' ${CONFIG}/cassandra-env.sh
+
+        # config on-disk data locations
+        sed -i 's/^# data_file_directories/data_file_directories/' ${CONFIG}/cassandra.yaml
+        sed -i 's/^#     - \/var\/lib\/cassandra\/data/    - \/var\/lib\/cassandra\/data/' ${CONFIG}/cassandra.yaml
+        sed -i 's/^# hints_directory/hints_directory/' ${CONFIG}/cassandra.yaml
+        sed -i 's/^# commitlog_directory/commitlog_directory/' ${CONFIG}/cassandra.yaml
+        sed -i 's/^# cdc_raw_directory/cdc_raw_directory/' ${CONFIG}/cassandra.yaml
+        sed -i 's/^# saved_caches_directory/saved_caches_directory/' ${CONFIG}/cassandra.yaml
+
+        # Setup cluster name
+        if [ -z "$CASSANDRA_CLUSTER_NAME" ]; then
+            echo "No cluster name specified, preserving default one"
+        else
+            sed -i -e "s/^cluster_name:.*/cluster_name: $CASSANDRA_CLUSTER_NAME/" ${CONFIG}/cassandra.yaml
+        fi
+
+        echo "Before starting Cassandra on $IP... Config dir $CASSANDRA_HOME/conf" >/tmp.log
+        grep address ${CONFIG}/cassandra.yaml >>/tmp.log 2>&1
+
+        # Dunno why zeroes here
+        sed -i -e "s/^rpc_address.*/rpc_address: $IP/" ${CONFIG}/cassandra.yaml >>/tmp.log 2>&1
+
+        # Listen on IP:port of the container
+        sed -i -e "s/^listen_address.*/listen_address: $IP/" ${CONFIG}/cassandra.yaml >>/tmp.log 2>&1
+
+        # FIXME skip now
+        # # Change the logging level accordingly
+        # if [ -z "$CASSANDRA_LOGGING_LEVEL" ]; then
+        #     echo "No log level specified, preserving default INFO"
+        # else
+        #     sed -i -e "s/^log4j.rootLogger=.*/log4j.rootLogger=$CASSANDRA_LOGGING_LEVEL,stdout,R/" ${CONFIG}/log4j-server.properties >>/tmp.log 2>&1
+        # fi
+
+        echo "after" >>/tmp.log
+        grep address ${CONFIG}/cassandra.yaml >>/tmp.log 2>&1
+
+        # Configure Cassandra seeds
+        if [ -z "$CASSANDRA_SEEDS" ]; then
+            echo "No seeds specified, being my own seed..."
+            CASSANDRA_SEEDS=$SEEDS
+        fi
+        sed -i -e "s/- seeds: .*/- seeds: \"$CASSANDRA_SEEDS\"/" ${CONFIG}/cassandra.yaml
+
+        # With virtual nodes disabled, we need to manually specify the token
+        # Not needed for Cassandra 0.8
+        #if [ -z "$CASSANDRA_TOKEN" ]; then
+        #	echo "Missing initial token for Cassandra"
+        #	exit -1
+        #fi
+        #echo "JVM_OPTS=\"\$JVM_OPTS -Dcassandra.initial_token=$CASSANDRA_TOKEN\"" >> $CASSANDRA_HOME/conf/cassandra-env.sh
+
+        # Most likely not needed
+        #echo "JVM_OPTS=\"\$JVM_OPTS -Djava.rmi.server.hostname=$IP\"" >> $CASSANDRA_HOME/conf/cassandra-env.sh
+    done
+    echo "setup done"
+    touch "/tmp/.setup_conf"
+fi
+echo "Starting Cassandra on $IP..."
+echo "Starting Cassandra on $IP... Config dir $CASSANDRA_HOME/conf" >>/tmp.log
+
+echo "ENV: HOME:${CASSANDRA_HOME}\nCONF:${CASSANDRA_CONF}"
+#exec cassandra -f
+exec $CASSANDRA_HOME/bin/cassandra -fR
+# use R so that Cassandra can be run as root
