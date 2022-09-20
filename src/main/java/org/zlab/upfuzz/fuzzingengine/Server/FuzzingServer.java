@@ -203,7 +203,7 @@ public class FuzzingServer {
         for (FeedbackPacket feedbackPacket : stackedFeedbackPacket
                 .getFpList()) {
             finishedTestID++;
-            if (Utilities.hasNewBits(
+            if (Config.getConf().useFeedBack && Utilities.hasNewBits(
                     curCoverage,
                     feedbackPacket.feedBack.originalCodeCoverage)) {
                 // Write Seed to Disk + Add to Corpus

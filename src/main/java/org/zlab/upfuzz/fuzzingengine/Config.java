@@ -44,6 +44,7 @@ public class Config {
         public boolean keepDir = true; // set to false if start a long running
                                        // test
         public int nodeNum = 2;
+        public boolean useFeedBack = true;
 
         @Override
         public String toString() {
