@@ -17,8 +17,6 @@ import org.zlab.upfuzz.utils.Pair;
 public class FuzzingClient {
     static Logger logger = LogManager.getLogger(FuzzingClient.class);
 
-    public static final int epochNum = 60; // Validation per epochNum
-
     public static int epoch;
     public static int crashID;
     public static int epochStartTestId;

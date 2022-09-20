@@ -20,6 +20,11 @@ import org.zlab.upfuzz.fuzzingengine.AgentServerHandler;
 import org.zlab.upfuzz.fuzzingengine.AgentServerSocket;
 import org.zlab.upfuzz.fuzzingengine.Packet.TestPacket;
 import org.zlab.upfuzz.fuzzingengine.Server.Seed;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.Fault;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.IsolateFailure;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.LinkFailure;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.NodeFailure;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.PartitionFailure;
 import org.zlab.upfuzz.utils.Pair;
 
 public abstract class Executor implements IExecutor {
@@ -230,5 +235,29 @@ public abstract class Executor implements IExecutor {
 
     public String getSubnet() {
         return dockerCluster.getNetworkIP();
+    }
+
+    public boolean handleFaults(Fault fault) {
+        if (fault instanceof LinkFailure) {
+            // Link failure between two nodes
+            LinkFailure linkFailure = (LinkFailure) fault;
+            return dockerCluster.linkFailure(linkFailure.nodeIndex1,
+                    linkFailure.nodeIndex2);
+        } else if (fault instanceof NodeFailure) {
+            // Crash a node
+            NodeFailure nodeFailure = (NodeFailure) fault;
+            return dockerCluster.killContainer(nodeFailure.nodeIndex);
+
+        } else if (fault instanceof IsolateFailure) {
+            // Isolate a single node from the rest nodes
+            IsolateFailure isolateFailure = (IsolateFailure) fault;
+            return dockerCluster.isolateNode(isolateFailure.nodeIndex);
+        } else if (fault instanceof PartitionFailure) {
+            // Partition two sets of nodes
+            PartitionFailure partitionFailure = (PartitionFailure) fault;
+            return dockerCluster.partition(partitionFailure.nodeSet1,
+                    partitionFailure.nodeSet2);
+        }
+        return false;
     }
 }

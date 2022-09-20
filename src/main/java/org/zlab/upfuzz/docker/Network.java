@@ -4,12 +4,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.util.Set;
 
 public class Network {
     static Logger logger = LogManager.getLogger(Network.class);
 
-    public boolean partitionTwoSets(Docker[] nodeSet1,
-            Docker[] nodeSet2) {
+    public boolean partitionTwoSets(Set<Docker> nodeSet1,
+            Set<Docker> nodeSet2) {
         for (Docker node1 : nodeSet1) {
             for (Docker node2 : nodeSet2) {
                 if (!biPartition(node1, node2)) {
@@ -20,7 +21,7 @@ public class Network {
         return true;
     }
 
-    public boolean isolateNode(Docker local, Docker[] peers) {
+    public boolean isolateNode(Docker local, Set<Docker> peers) {
         for (Docker node : peers) {
             if (node.containerName != local.containerName) {
                 if (!biPartition(node, local))

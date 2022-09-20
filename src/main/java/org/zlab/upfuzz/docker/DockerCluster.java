@@ -5,7 +5,8 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.RandomUtils;
 import org.zlab.upfuzz.fuzzingengine.Config;
@@ -79,12 +80,47 @@ public abstract class DockerCluster implements IDockerCluster {
 
     // partition two nodes
     // Always provide the node index to clients
-    public boolean partition(int nodeIndex1, int nodeIndex2) {
+    public boolean linkFailure(int nodeIndex1, int nodeIndex2) {
         if (!checkIndex(nodeIndex1) || !checkIndex(nodeIndex2))
             return false;
         if (nodeIndex1 == nodeIndex2)
             return false;
         return network.biPartition(dockers[nodeIndex1], dockers[nodeIndex2]);
+    }
+
+    public boolean isolateNode(int nodeIndex) {
+        if (!checkIndex(nodeIndex))
+            return false;
+        Set<Docker> peers = new HashSet<>();
+        for (int i = 0; i < nodeNum; i++) {
+            if (i != nodeIndex)
+                peers.add(dockers[i]);
+        }
+        return network.isolateNode(dockers[nodeIndex], peers);
+    }
+
+    public boolean partition(Set<Integer> nodeSet1, Set<Integer> nodeSet2) {
+        if (Collections.disjoint(nodeSet1, nodeSet2)) {
+            // There shouldn't be common nodes
+            return false;
+        }
+        for (int nodeIndex : nodeSet1) {
+            if (!checkIndex(nodeIndex))
+                return false;
+        }
+        for (int nodeIndex : nodeSet2) {
+            if (!checkIndex((nodeIndex)))
+                return false;
+        }
+
+        Set<Docker> dockerSet1 = nodeSet1.stream()
+                .map(nodeIndex -> dockers[nodeIndex])
+                .collect(Collectors.toSet());
+        Set<Docker> dockerSet2 = nodeSet2.stream()
+                .map(nodeIndex -> dockers[nodeIndex])
+                .collect(Collectors.toSet());
+
+        return network.partitionTwoSets(dockerSet1, dockerSet2);
     }
 
     public boolean killContainer(int nodeIndex) {
