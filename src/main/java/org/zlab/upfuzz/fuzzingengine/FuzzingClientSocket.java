@@ -10,10 +10,8 @@ import java.net.Socket;
 import java.net.SocketException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.zlab.upfuzz.fuzzingengine.Packet.Packet;
-import org.zlab.upfuzz.fuzzingengine.Packet.RegisterPacket;
-import org.zlab.upfuzz.fuzzingengine.Packet.StackedFeedbackPacket;
-import org.zlab.upfuzz.fuzzingengine.Packet.StackedTestPacket;
+import org.zlab.upfuzz.fuzzingengine.Packet.*;
+import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 
 class FuzzingClientSocket implements Runnable {
     static Logger logger = LogManager.getLogger(FuzzingClientSocket.class);
@@ -65,13 +63,21 @@ class FuzzingClientSocket implements Runnable {
                     StackedFeedbackPacket stackedFeedbackPacket = fuzzingClient
                             .executeStackedTestPacket(
                                     stackedTestPacket);
-                    logger.info("[Client] Writing test packet back to server");
+                    logger.debug(
+                            "[Client] Writing stacked feedback packet back to server");
 
-                    logger.info("[Client] fp size = "
+                    logger.debug("[Client] fp size = "
                             + stackedFeedbackPacket.size());
 
                     stackedFeedbackPacket.write(out);
                     break;
+                }
+                case TestPlanPacket: {
+                    TestPlanPacket testPlanPacket = TestPlanPacket.read(in);
+                    TestPlanFeedbackPacket feedbackPacket = fuzzingClient
+                            .executeTestPlanPacket(testPlanPacket);
+                    logger.info(
+                            "[Client] Writing testplan feedback packet to server");
                 }
                 }
                 readHeader();

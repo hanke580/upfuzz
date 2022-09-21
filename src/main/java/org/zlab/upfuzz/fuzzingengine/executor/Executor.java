@@ -11,20 +11,20 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionDataStore;
-import org.zlab.upfuzz.CommandPool;
-import org.zlab.upfuzz.CommandSequence;
-import org.zlab.upfuzz.ParameterType;
-import org.zlab.upfuzz.State;
+import org.zlab.upfuzz.*;
 import org.zlab.upfuzz.docker.DockerCluster;
 import org.zlab.upfuzz.fuzzingengine.AgentServerHandler;
 import org.zlab.upfuzz.fuzzingengine.AgentServerSocket;
 import org.zlab.upfuzz.fuzzingengine.Packet.TestPacket;
 import org.zlab.upfuzz.fuzzingengine.Server.Seed;
-import org.zlab.upfuzz.fuzzingengine.testplan.event.Fault;
+import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.Fault;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.IsolateFailure;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.LinkFailure;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.NodeFailure;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.PartitionFailure;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.UpgradeOp;
 import org.zlab.upfuzz.utils.Pair;
 
 public abstract class Executor implements IExecutor {
@@ -119,7 +119,7 @@ public abstract class Executor implements IExecutor {
         return systemID + "-" + executorID;
     }
 
-    abstract public void startup() throws Exception;
+    abstract public void startup();
 
     abstract public void teardown();
 
@@ -147,6 +147,7 @@ public abstract class Executor implements IExecutor {
         }
     }
 
+    // Dead code for now
     public static CommandSequence prepareValidationCommandSequence(
             CommandPool commandPool, State state) {
         CommandSequence validationCommandSequence = null;
@@ -171,6 +172,42 @@ public abstract class Executor implements IExecutor {
         // It can be (1) cqlsh command (2) a fault (3) admin command
         executeCommands(testPacket.originalCommandSequenceList);
     }
+
+    public boolean execute(TestPlan testPlan) {
+        // Base
+        // - If there is any exception happen during this process, we should
+        // report it.
+        // - How about we monitor the output of each command
+        // - We compare the results of commands between full-stop upgrade and
+        // rolling upgrade
+        boolean status = true;
+        for (Event event : testPlan.getEvents()) {
+            if (event instanceof Fault) {
+                if (!handleFaults((Fault) event)) {
+                    status = false;
+                    break;
+                }
+            } else if (event instanceof Command) {
+                if (!handleCommand((Command) event)) {
+                    status = false;
+                    break;
+                }
+            } else if (event instanceof UpgradeOp) {
+                if (!handleUpgradeOp((UpgradeOp) event)) {
+                    status = false;
+                    break;
+                }
+            }
+        }
+        return status;
+    }
+
+    // Send to shell daemon to improve the performance
+    abstract public void execShellCommand(Command command);
+
+    // Execute with "docker exec" on the wordDir
+    // Slower, but more general
+    abstract public void execNormalCommand(Command command);
 
     public List<String> executeRead(int testId) {
         List<String> oldVersionResult = executeCommands(
@@ -260,4 +297,15 @@ public abstract class Executor implements IExecutor {
         }
         return false;
     }
+
+    public boolean handleCommand(Command command) {
+        // TODO
+        return false;
+    }
+
+    public boolean handleUpgradeOp(UpgradeOp upgradeOp) {
+        // TODO
+        return false;
+    }
+
 }

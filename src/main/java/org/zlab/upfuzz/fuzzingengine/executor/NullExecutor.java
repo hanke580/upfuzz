@@ -1,6 +1,8 @@
 package org.zlab.upfuzz.fuzzingengine.executor;
 
 import java.util.List;
+
+import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.CommandSequence;
 
 /* NullExecutor
@@ -41,6 +43,16 @@ public class NullExecutor extends Executor {
     @Override
     public List<String> executeCommands(List<String> commandList) {
         return null;
+    }
+
+    @Override
+    public void execShellCommand(Command command) {
+
+    }
+
+    @Override
+    public void execNormalCommand(Command command) {
+
     }
 
     @Override

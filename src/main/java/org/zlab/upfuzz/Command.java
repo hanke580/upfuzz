@@ -9,13 +9,14 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.cassandra.CassandraCommands;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 
 /**
  * User need to implement two methods constructCommandString() and
  * updateState(). If our custom mutation is not enough, they can implement their
  * mutation by overriding mutate() method.
  */
-public abstract class Command implements Serializable {
+public abstract class Command implements Serializable, Event {
     static Logger logger = LogManager.getLogger(Command.class);
 
     public static final int RETRY_TIMES = 5;

@@ -7,12 +7,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+
+import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.cassandra.CassandraCqlshDaemon.CqlshPacket;
 import org.zlab.upfuzz.fuzzingengine.AgentServerSocket;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
+import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
@@ -76,7 +79,7 @@ public class CassandraExecutor extends Executor {
     }
 
     @Override
-    public void startup() throws Exception {
+    public void startup() {
         try {
             agentSocket = new AgentServerSocket(this);
             agentSocket.setDaemon(true);
@@ -91,20 +94,31 @@ public class CassandraExecutor extends Executor {
                 this, Config.getConf().originalVersion,
                 Config.getConf().nodeNum);
 
-        dockerCluster.build();
+        try {
+            dockerCluster.build();
+        } catch (Exception e) {
+            logger.error("docker cluster cannot build with exception: ", e);
+            System.exit(1);
+        }
 
         // May change classToIns according to the system...
         logger.info("[Old Version] Cassandra Start...");
-        int ret = dockerCluster.start();
-        if (ret != 0) {
-            logger.error("cassandra " + executorID + " failed to started");
+
+        // What should we do if the docker cluster start up throws an exception?
+        try {
+            int ret = dockerCluster.start();
+            if (ret != 0) {
+                logger.error("cassandra " + executorID + " failed to started");
+                System.exit(1);
+            }
+        } catch (Exception e) {
+            // TODO: try to clear the state and restart
+            logger.error("docker cluster start up failed", e);
         }
+
         logger.info("cassandra " + executorID + " started");
-
         cqlsh = ((CassandraDocker) dockerCluster.getDocker(0)).cqlsh;
-
         logger.info("cqlsh daemon connected");
-
     }
 
     @Override
@@ -152,6 +166,7 @@ public class CassandraExecutor extends Executor {
         return validationCommandSequence;
     }
 
+    // We only execute commmands within the cqlsh shell
     @Override
     public List<String> executeCommands(List<String> commandList) {
         // TODO: Use Event here, since not all commands are executed
@@ -187,6 +202,16 @@ public class CassandraExecutor extends Executor {
             return null;
         }
         return ret;
+    }
+
+    @Override
+    public void execShellCommand(Command command) {
+
+    }
+
+    @Override
+    public void execNormalCommand(Command command) {
+
     }
 
     public List<String> newVersionExecuteCommands(List<String> commandList) {

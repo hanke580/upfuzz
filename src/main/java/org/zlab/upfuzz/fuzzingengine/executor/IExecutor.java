@@ -5,7 +5,7 @@ import org.zlab.upfuzz.CommandSequence;
 
 public interface IExecutor {
 
-    void startup() throws Exception;
+    void startup();
 
     void teardown();
 

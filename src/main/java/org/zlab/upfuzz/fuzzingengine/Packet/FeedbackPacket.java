@@ -6,18 +6,18 @@ import java.io.InputStream;
 import org.zlab.upfuzz.fuzzingengine.FeedBack;
 
 public class FeedbackPacket extends Packet {
-    public int testPacketID;
     public String systemID;
+    public int testPacketID;
 
     public FeedBack feedBack;
     public boolean isInconsistent; // true if inconsistent
     public String inconsistencyReport; // The inconsistency information should
                                        // be placed here
 
-    public FeedbackPacket(int testPacketID, String systemID,
+    public FeedbackPacket(String systemID, int testPacketID,
             FeedBack feedBack) {
-        this.testPacketID = testPacketID;
         this.systemID = systemID;
+        this.testPacketID = testPacketID;
         this.feedBack = feedBack;
     }
 

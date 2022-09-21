@@ -22,6 +22,7 @@ import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.Fuzzer;
 import org.zlab.upfuzz.fuzzingengine.Packet.FeedbackPacket;
+import org.zlab.upfuzz.fuzzingengine.Packet.Packet;
 import org.zlab.upfuzz.fuzzingengine.Packet.StackedFeedbackPacket;
 import org.zlab.upfuzz.fuzzingengine.Packet.StackedTestPacket;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
@@ -121,7 +122,8 @@ public class FuzzingServer {
         // new Thread(new FuzzingServerDispatcher(this)).start();
     }
 
-    public synchronized StackedTestPacket getOneTest() {
+    public synchronized Packet getOneTest() {
+        // TODO: getOneTest could return a stacked or single test plan
         if (!stackedTestPackets.isEmpty()) {
             return stackedTestPackets.poll();
         }

@@ -6,19 +6,15 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.cassandra.CassandraExecutor;
-import org.zlab.upfuzz.fuzzingengine.Packet.FeedbackPacket;
-import org.zlab.upfuzz.fuzzingengine.Packet.StackedFeedbackPacket;
-import org.zlab.upfuzz.fuzzingengine.Packet.StackedTestPacket;
-import org.zlab.upfuzz.fuzzingengine.Packet.TestPacket;
+import org.zlab.upfuzz.fuzzingengine.Packet.*;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
+import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.hdfs.HdfsExecutor;
 import org.zlab.upfuzz.utils.Pair;
 
 public class FuzzingClient {
     static Logger logger = LogManager.getLogger(FuzzingClient.class);
 
-    public static int epoch;
-    public static int crashID;
     public static int epochStartTestId;
 
     public Executor executor;
@@ -46,11 +42,7 @@ public class FuzzingClient {
     }
 
     private void init() {
-
-        epoch = 0;
-        crashID = 0;
         epochStartTestId = 0; // FIXME: It might not be zero
-
         testId2Sequence = new HashMap<>();
 
         // FIX orphan process
@@ -68,22 +60,7 @@ public class FuzzingClient {
         clientThread.join();
     }
 
-    /**
-     * start the old version system, execute and count the coverage of all
-     * test cases of stackedFeedbackPacket, perform an upgrade process, check
-     * the (1) upgrade process failed (2) result inconsistency
-     * @param stackedTestPacket the stacked test packets from server
-     * @throws Exception
-     */
-    public StackedFeedbackPacket executeStackedTestPacket(
-            StackedTestPacket stackedTestPacket)
-            throws Exception {
-        // Run all the tests, collect (1) coverage and (2) old version read
-        // results
-
-        // Check whether system start up is successful
-        assert t != null;
-
+    public void waitForClusterUp() {
         try {
             t.join();
         } catch (InterruptedException e) {
@@ -95,6 +72,35 @@ public class FuzzingClient {
             executor.clearState();
             executor.startup();
         }
+    }
+
+    public void restartCluster() {
+        t = new Thread(() -> {
+            executor.upgradeTeardown();
+            executor.clearState();
+            executor.teardown();
+            try {
+                executor.startup();
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+        });
+        t.start();
+    }
+
+    /**
+     * start the old version system, execute and count the coverage of all
+     * test cases of stackedFeedbackPacket, perform an upgrade process, check
+     * the (1) upgrade process failed (2) result inconsistency
+     * @param stackedTestPacket the stacked test packets from server
+     * @throws Exception
+     */
+    public StackedFeedbackPacket executeStackedTestPacket(
+            StackedTestPacket stackedTestPacket)
+            throws Exception {
+        // make sure the system has is up
+        waitForClusterUp();
 
         Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();
         Map<Integer, List<String>> testID2oriResults = new HashMap<>();
@@ -113,7 +119,7 @@ public class FuzzingClient {
             }
             testID2FeedbackPacket.put(
                     tp.testPacketID,
-                    new FeedbackPacket(tp.testPacketID, tp.systemID, fb));
+                    new FeedbackPacket(tp.systemID, tp.testPacketID, fb));
 
             List<String> oriResult = executor.executeRead(tp.testPacketID);
             testID2oriResults.put(tp.testPacketID, oriResult);
@@ -181,20 +187,41 @@ public class FuzzingClient {
         }
         logger.info(executor.systemID + " executor: " + executor.executorID
                 + " finished execution");
-        t = new Thread(() -> {
-            executor.upgradeTeardown();
-            executor.clearState();
-            executor.teardown();
-            try {
-                executor.startup();
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            }
-        });
-        t.start();
-
+        restartCluster();
         return stackedFeedbackPacket;
+    }
+
+    // Test Plan: The commands are interleaving with upgrade operations and
+    // faults. So we only collect the final coverage.
+    public TestPlanFeedbackPacket executeTestPlanPacket(
+            TestPlanPacket testPlanPacket) {
+        waitForClusterUp();
+        // TestPlan only contains one test sequence
+        // We need to compare the results between two versions for once
+        // Then we return the feedback packet
+        boolean status = executor.execute(testPlanPacket.getTestPlan());
+        // For test plan, we don't distinguish the old version coverage
+        // and the new verison coverage. We only collect the final coverage
+
+        if (!status) {
+            // The test plan has some problems
+            // - (1) Some event cannot execute correctly
+            // - (2) There is an inconsistency between rolling upgrade and
+            // full-stop upgrade
+            // We should report it.
+        }
+
+        FeedBack fb = new FeedBack();
+        fb.upgradedCodeCoverage = executor.collect("upgraded");
+        if (fb.upgradedCodeCoverage == null) {
+            logger.info("ERROR: null upgrade code coverage");
+            System.exit(1);
+        }
+        TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
+                testPlanPacket.systemID, testPlanPacket.testPacketID, fb);
+
+        restartCluster();
+        return testPlanFeedbackPacket;
     }
 
     private String recordAllStackedTests(StackedTestPacket stackedTestPacket) {

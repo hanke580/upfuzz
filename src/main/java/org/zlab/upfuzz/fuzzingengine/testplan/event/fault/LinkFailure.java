@@ -1,7 +1,5 @@
 package org.zlab.upfuzz.fuzzingengine.testplan.event.fault;
 
-import org.zlab.upfuzz.fuzzingengine.testplan.event.Fault;
-
 public class LinkFailure extends Fault {
     public int nodeIndex1;
     public int nodeIndex2;

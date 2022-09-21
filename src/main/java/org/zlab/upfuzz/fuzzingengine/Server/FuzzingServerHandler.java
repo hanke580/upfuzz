@@ -7,6 +7,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.zlab.upfuzz.fuzzingengine.Packet.Packet;
 import org.zlab.upfuzz.fuzzingengine.Packet.Packet.PacketType;
 import org.zlab.upfuzz.fuzzingengine.Packet.RegisterPacket;
 import org.zlab.upfuzz.fuzzingengine.Packet.StackedFeedbackPacket;
@@ -48,7 +49,7 @@ public class FuzzingServerHandler implements Runnable {
             }
             readRegisterPacket();
             while (true) {
-                StackedTestPacket stackedTestPacket = fuzzingServer
+                StackedTestPacket stackedTestPacket = (StackedTestPacket) fuzzingServer
                         .getOneTest();
 
                 // logger.info("server tp list size = "

@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.codehaus.plexus.util.FileUtils;
+import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.CustomExceptions;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
@@ -251,6 +252,16 @@ public class HdfsExecutor extends Executor {
             }
         }
         return ret;
+    }
+
+    @Override
+    public void execShellCommand(Command command) {
+
+    }
+
+    @Override
+    public void execNormalCommand(Command command) {
+
     }
 
     /**
