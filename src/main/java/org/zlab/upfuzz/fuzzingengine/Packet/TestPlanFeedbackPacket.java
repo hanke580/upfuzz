@@ -5,6 +5,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.FeedBack;
 
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,26 +37,25 @@ public class TestPlanFeedbackPacket extends Packet {
         this.feedBack = feedBack;
     }
 
-    public static TestPlanPacket read(InputStream in) {
-        byte[] bytes = new byte[4194304];
-        int len;
+    public static TestPlanFeedbackPacket read(DataInputStream in) {
         try {
-            len = in.read(bytes);
+            int packetLength = in.readInt();
+            byte[] bytes = new byte[packetLength + 1];
+            int len = 0;
+            len = in.read(bytes, len, packetLength - len);
+            logger.debug("packet length: " + packetLength);
+            while (len < packetLength) {
+                int size = in.read(bytes, len, packetLength - len);
+                // logger.debug("packet read extra: " + size);
+                len += size;
+            }
+            logger.debug("receive stacked test packet length : " + len);
             return new Gson().fromJson(new String(bytes, 0, len),
-                    TestPlanPacket.class);
+                    TestPlanFeedbackPacket.class);
         } catch (IOException e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    public void write(DataOutputStream out) throws IOException {
-        out.writeInt(type.value);
-        String packetStr = new Gson().toJson(this);
-        byte[] packetByte = packetStr.getBytes();
-        logger.debug("send test plan feedback packet size: " +
-                packetStr.getBytes().length);
-        out.writeInt(packetByte.length);
-        out.write(packetByte);
-    }
 }

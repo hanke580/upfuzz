@@ -51,11 +51,4 @@ public class TestPlanPacket extends Packet {
         return null;
     }
 
-    public void write(DataOutputStream out) throws IOException {
-        out.writeInt(type.value);
-        String packetStr = new Gson().toJson(this);
-        byte[] packetByte = packetStr.getBytes();
-        out.writeInt(packetByte.length);
-        out.write(packetByte);
-    }
 }

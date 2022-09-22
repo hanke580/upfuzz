@@ -39,16 +39,21 @@ public class Config {
         public String crashDir = null;
         public String corpusDir = null;
         public int mutationEpoch = 120;
+        public int testPlanEpoch = 10; // each seed can randomly generate 10
+                                       // test plans
         public int STACKED_TESTS_NUM = 60;
         public long timeInterval = 600; // seconds, record time
         public boolean keepDir = true; // set to false if start a long running
                                        // test
-        public int nodeNum = 2;
+        public int nodeNum = 1;
         // Whether we shuffle the upgrade order
         public boolean shuffleUpgradeOrder = false;
         // The max number of faults in a test plan (inclusive)
-        public int faultMaxNum = 2;
+        public int faultMaxNum = 2; // disable faults for now
         public boolean useFeedBack = true;
+
+        public boolean testPlanMode = true;
+        public boolean stackedTestPacketMode = true;
 
         @Override
         public String toString() {

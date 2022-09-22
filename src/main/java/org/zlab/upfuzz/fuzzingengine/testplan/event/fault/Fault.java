@@ -9,7 +9,7 @@ import org.zlab.upfuzz.utils.Utilities;
 import java.util.List;
 import java.util.Random;
 
-public abstract class Fault implements Event {
+public abstract class Fault extends Event {
     static Logger logger = LogManager.getLogger(Fault.class);
 
     public static Random rand = new Random();

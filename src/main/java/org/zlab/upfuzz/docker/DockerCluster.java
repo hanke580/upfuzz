@@ -19,6 +19,7 @@ public abstract class DockerCluster implements IDockerCluster {
     static Logger logger = LogManager.getLogger(DockerCluster.class);
 
     protected Docker[] dockers;
+    protected DockerMeta.DockerState[] dockerStates;
 
     public Network network;
 
@@ -52,7 +53,6 @@ public abstract class DockerCluster implements IDockerCluster {
         // rename services
 
         // 192.168.24.[(0001~1111)|0000] / 28
-        //
         this.networkName = MessageFormat.format(
                 "network_{0}_{1}_to_{2}_{3}", executor.systemID,
                 Config.getConf().originalVersion,
@@ -76,6 +76,37 @@ public abstract class DockerCluster implements IDockerCluster {
                 originalVersion + "/" + upgradedVersion + "/" +
                 executorTimestamp + "-" + executor.executorID);
         this.network = new Network();
+    }
+
+    public void upgrade() throws Exception {
+        logger.info("Cluster upgrading...");
+        type = "upgraded";
+        for (int i = 0; i < dockers.length; ++i) {
+            dockers[i].upgrade();
+        }
+        logger.info("Cluster upgraded");
+    }
+
+    // Can be override if the system follows some special
+    // upgrade order
+    public void upgrade(int nodeIndex) throws Exception {
+        // upgrade a specific node
+        logger.info(String.format("Upgrade a Node[%d]", nodeIndex));
+        dockers[nodeIndex].upgrade();
+        dockerStates[nodeIndex] = DockerMeta.DockerState.upgraded;
+        updateClusterState();
+        logger.info(String.format("Node[%d] is upgraded", nodeIndex));
+    }
+
+    public void updateClusterState() {
+        int upgradeNodeNum = 0;
+        for (int i = 0; i < Config.getConf().nodeNum; i++) {
+            if (dockerStates[i] == DockerMeta.DockerState.upgraded) {
+                upgradeNodeNum++;
+            }
+        }
+        if (upgradeNodeNum == nodeNum)
+            type = "upgraded";
     }
 
     // partition two nodes

@@ -10,8 +10,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public abstract class DockerMeta {
-
     static Logger logger = LogManager.getLogger(DockerMeta.class);
+
+    public enum DockerState {
+        upgraded, original
+    }
 
     public File workdir;
     public String[] env;

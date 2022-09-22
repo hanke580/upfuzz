@@ -78,12 +78,4 @@ public class StackedTestPacket extends Packet {
         return null;
     }
 
-    public void write(DataOutputStream out) throws IOException {
-        out.writeInt(type.value);
-        String packetStr = new Gson().toJson(this);
-        byte[] packetByte = packetStr.getBytes();
-        // logger.debug("send stacked test packet size: " + packetByte.length);
-        out.writeInt(packetByte.length);
-        out.write(packetByte);
-    }
 }

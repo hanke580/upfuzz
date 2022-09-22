@@ -13,6 +13,7 @@ import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.CustomExceptions;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
 import org.zlab.upfuzz.utils.Utilities;
 
 public class HdfsExecutor extends Executor {
@@ -255,8 +256,8 @@ public class HdfsExecutor extends Executor {
     }
 
     @Override
-    public void execShellCommand(Command command) {
-
+    public String execShellCommand(ShellCommand command) {
+        return null;
     }
 
     @Override

@@ -28,7 +28,6 @@ import org.zlab.upfuzz.utils.Utilities;
 public class CassandraDockerCluster extends DockerCluster {
     static Logger logger = LogManager.getLogger(CassandraDockerCluster.class);
 
-    // CassandraDocker[] dockers;
     String seedIP;
 
     static final String includes = "org.apache.cassandra.*";
@@ -39,6 +38,11 @@ public class CassandraDockerCluster extends DockerCluster {
         super(executor, version, nodeNum);
 
         this.dockers = new CassandraDocker[nodeNum];
+        this.dockerStates = new DockerMeta.DockerState[nodeNum];
+
+        for (int i = 0; i < nodeNum; i++) {
+            this.dockerStates[i] = DockerMeta.DockerState.original;
+        }
         this.seedIP = DockerCluster.getKthIP(hostIP, 0);
     }
 
@@ -152,15 +156,6 @@ public class CassandraDockerCluster extends DockerCluster {
         } catch (Exception e) {
             logger.error("Cannot build cluster " + e);
         }
-    }
-
-    public void upgrade() throws Exception {
-        logger.info("Cluster upgrading...");
-        type = "upgraded";
-        for (int i = 0; i < dockers.length; ++i) {
-            dockers[i].upgrade();
-        }
-        logger.info("Cluster upgraded");
     }
 
     public void teardown() {

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.CommandSequence;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
 
 /* NullExecutor
  * DO NOTHING
@@ -46,7 +47,8 @@ public class NullExecutor extends Executor {
     }
 
     @Override
-    public void execShellCommand(Command command) {
+    public String execShellCommand(ShellCommand command) {
+        return null;
 
     }
 

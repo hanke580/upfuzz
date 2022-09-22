@@ -7,11 +7,8 @@ import java.net.Socket;
 import java.net.SocketException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.zlab.upfuzz.fuzzingengine.Packet.Packet;
+import org.zlab.upfuzz.fuzzingengine.Packet.*;
 import org.zlab.upfuzz.fuzzingengine.Packet.Packet.PacketType;
-import org.zlab.upfuzz.fuzzingengine.Packet.RegisterPacket;
-import org.zlab.upfuzz.fuzzingengine.Packet.StackedFeedbackPacket;
-import org.zlab.upfuzz.fuzzingengine.Packet.StackedTestPacket;
 
 public class FuzzingServerHandler implements Runnable {
     static Logger logger = LogManager.getLogger(FuzzingServerHandler.class);
@@ -49,12 +46,10 @@ public class FuzzingServerHandler implements Runnable {
             }
             readRegisterPacket();
             while (true) {
-                StackedTestPacket stackedTestPacket = (StackedTestPacket) fuzzingServer
+                Packet testPacket = fuzzingServer
                         .getOneTest();
 
-                // logger.info("server tp list size = "
-                // + stackedTestPacket.getTestPacketList().size());
-                stackedTestPacket.write(out);
+                testPacket.write(out);
                 readFeedbackPacket();
             }
             // TestPacket tp = fuzzingServer.getOneTest();
@@ -74,11 +69,17 @@ public class FuzzingServerHandler implements Runnable {
 
     private void readFeedbackPacket() throws IOException {
         int intType = in.readInt();
-        assert intType == PacketType.StackedFeedbackPacket.value;
-        StackedFeedbackPacket stackedFeedbackPacket = StackedFeedbackPacket
-                .read(in);
 
-        fuzzingServer.updateStatus(stackedFeedbackPacket);
+        if (intType == PacketType.StackedFeedbackPacket.value) {
+            StackedFeedbackPacket stackedFeedbackPacket = StackedFeedbackPacket
+                    .read(in);
+
+            fuzzingServer.updateStatus(stackedFeedbackPacket);
+        } else if (intType == PacketType.TestPlanFeedbackPacket.value) {
+            TestPlanFeedbackPacket testPlanFeedbackPacket = TestPlanFeedbackPacket
+                    .read(in);
+            fuzzingServer.updateStatus(testPlanFeedbackPacket);
+        }
     }
 
     private void readRegisterPacket() throws IOException {

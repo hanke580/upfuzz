@@ -20,6 +20,7 @@ import org.zlab.upfuzz.fuzzingengine.Packet.*;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.Fault;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.FaultRecover;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.UpgradeOp;
@@ -124,12 +125,33 @@ public class FuzzingServer {
 
     public synchronized Packet getOneTest() {
         // TODO: getOneTest could return a stacked or single test plan
-        if (!stackedTestPackets.isEmpty()) {
-            return stackedTestPackets.poll();
+        // We should always dispatch test plan to a specific set of clients
+        // And the stacked tests to another set of clients.
+
+        // Do we dispatch a test plan or a stacked test packet?
+        // When we do testing, we start 20 clients for single-node full stop
+        // upgrade
+        // testing. And 10-20 nodes for rolling upgrade testing.
+        // We make the full-stop upgrade to explore the test space, and utilize
+        // the
+        // seed from the corpus to generate the testPlan
+
+        // Start from simple. Start up three nodes and only execute the test
+        // plan!
+
+        if (!testPlanPackets.isEmpty()) {
+            return testPlanPackets.poll();
         }
-        fuzzOne();
-        assert !stackedTestPackets.isEmpty();
-        return stackedTestPackets.poll();
+        fuzzTestPlan();
+        assert !testPlanPackets.isEmpty();
+        return testPlanPackets.poll();
+
+        // if (!stackedTestPackets.isEmpty()) {
+        // return stackedTestPackets.poll();
+        // }
+        // fuzzOne();
+        // assert !stackedTestPackets.isEmpty();
+        // return stackedTestPackets.poll();
     }
 
     private void fuzzOne() {
@@ -170,7 +192,6 @@ public class FuzzingServer {
                 // testpack size might decrease...
                 Seed mutateSeed = SerializationUtils.clone(seed);
                 if (mutateSeed.mutate(commandPool, stateClass)) {
-
                     testID2Seed.put(testID, mutateSeed);
                     stackedTestPacket.addTestPacket(mutateSeed, testID++);
                 } else {
@@ -184,16 +205,44 @@ public class FuzzingServer {
         }
     }
 
+    private void fuzzTestPlan() {
+        // We use the seed from the corpus and generate a set of test plans
+        // Do we consume a seed? We shouldn't. Since we don't mutate seed.
+        // Do we add seed back? Do we want this code coverage? I think so,
+        // There should be some coverage that can only be reached during the
+        // rolling upgrade.
+        // Then we should also keep a corpus of test plan. And the mutation to
+        // the test plan would be changing the order between upgradeOp, faults
+        // and commands.
+
+        // Let's go with the simplest one. Randomly generate a seed, then a test
+        // plan. And finally, execute it.
+        Seed seed = corpus.getSeed();
+        round++;
+        if (seed == null) {
+            seed = Executor.generateSeed(commandPool, stateClass);
+            if (seed != null) {
+                for (int i = 0; i < Config.getConf().testPlanEpoch; i++) {
+                    TestPlan testPlan = generateTestPlan(seed);
+                    testPlanPackets.add(new TestPlanPacket(
+                            Config.getConf().system, testID++, testPlan));
+                }
+            }
+        }
+    }
+
     public TestPlan generateTestPlan(Seed seed) {
+        // TODO: we should prefer to generate commands when there
+        // are nodes in multiple versions
         List<Event> events = new LinkedList<>();
-        int nodeNum = 3; // default for three nodes
+
         // Some systems might have special requirements for
         // upgrade, like HDFS needs to upgrade NN first
         int faultNum = rand.nextInt(Config.getConf().faultMaxNum + 1);
         List<Pair<Fault, FaultRecover>> faultPairs = new LinkedList<>();
         for (int i = 0; i < faultNum; i++) {
             Pair<Fault, FaultRecover> faultPair = Fault
-                    .randomGenerateFault(nodeNum);
+                    .randomGenerateFault(Config.getConf().nodeNum);
             if (faultPair != null) {
                 faultPairs.add(faultPair);
             } else {
@@ -210,7 +259,7 @@ public class FuzzingServer {
             faultMap.put(idx++, faultPair);
         }
         Map<Integer, UpgradeOp> upgradeOpMap = new HashMap<>();
-        for (int i = 0; i < nodeNum; i++) {
+        for (int i = 0; i < Config.getConf().nodeNum; i++) {
             upgradeOpMap.put(idx++, new UpgradeOp(i));
         }
         List<Integer> eventIndexes = new LinkedList<>();
@@ -238,21 +287,26 @@ public class FuzzingServer {
         // TODO: If the node is current down, we should switch to
         // another node for execution.
         // Randomly interleave the commands with the upgradeOp&faults
+
+        List<Event> shellCommands = ShellCommand.seed2Events(seed);
+
         int upgradeOpAndFaultsSize = upgradeOpAndFaults.size();
-        int commandsSize = seed.originalCommandSequence.getSize();
+        int commandsSize = shellCommands.size();
         int totalEventSize = upgradeOpAndFaultsSize + commandsSize;
         int upgradeOpAndFaultsIdx = 0;
         int commandIdx = 0;
         for (int i = 0; i < totalEventSize; i++) {
-            if (rand.nextBoolean()) {
+            // Magic Number: Prefer to execute commands first
+            // Also make the commands more separate
+            if (Utilities.oneOf(rand, 5)) {
                 if (upgradeOpAndFaultsIdx < upgradeOpAndFaults.size())
                     events.add(upgradeOpAndFaults.get(upgradeOpAndFaultsIdx++));
                 else
                     break;
             } else {
                 if (commandIdx < commandsSize)
-                    events.add(seed.originalCommandSequence.commands
-                            .get(commandIdx));
+                    events.add(shellCommands
+                            .get(commandIdx++));
                 else
                     break;
             }
@@ -263,10 +317,17 @@ public class FuzzingServer {
             }
         } else if (commandIdx < commandsSize) {
             for (int i = commandIdx; i < commandsSize; i++) {
-                events.add(seed.originalCommandSequence.commands.get(i));
+                events.add(shellCommands.get(i));
             }
         }
         return new TestPlan(events);
+    }
+
+    public synchronized void updateStatus(
+            TestPlanFeedbackPacket testPlanFeedbackPacket) {
+        logger.info("test plan feedback: update status");
+        // TODO: update status for test plan feed back
+
     }
 
     public synchronized void updateStatus(

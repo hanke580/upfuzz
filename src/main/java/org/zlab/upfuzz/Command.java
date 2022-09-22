@@ -16,7 +16,7 @@ import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
  * updateState(). If our custom mutation is not enough, they can implement their
  * mutation by overriding mutate() method.
  */
-public abstract class Command implements Serializable, Event {
+public abstract class Command implements Serializable {
     static Logger logger = LogManager.getLogger(Command.class);
 
     public static final int RETRY_TIMES = 5;

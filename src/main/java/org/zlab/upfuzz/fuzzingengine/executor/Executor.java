@@ -19,6 +19,7 @@ import org.zlab.upfuzz.fuzzingengine.Packet.TestPacket;
 import org.zlab.upfuzz.fuzzingengine.Server.Seed;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.Fault;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.IsolateFailure;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.LinkFailure;
@@ -187,8 +188,8 @@ public abstract class Executor implements IExecutor {
                     status = false;
                     break;
                 }
-            } else if (event instanceof Command) {
-                if (!handleCommand((Command) event)) {
+            } else if (event instanceof ShellCommand) {
+                if (!handleCommand((ShellCommand) event)) {
                     status = false;
                     break;
                 }
@@ -203,7 +204,7 @@ public abstract class Executor implements IExecutor {
     }
 
     // Send to shell daemon to improve the performance
-    abstract public void execShellCommand(Command command);
+    abstract public String execShellCommand(ShellCommand command);
 
     // Execute with "docker exec" on the wordDir
     // Slower, but more general
@@ -298,14 +299,21 @@ public abstract class Executor implements IExecutor {
         return false;
     }
 
-    public boolean handleCommand(Command command) {
-        // TODO
-        return false;
+    public boolean handleCommand(ShellCommand command) {
+        // TODO: also handle normal commands
+        execShellCommand(command);
+        return true;
     }
 
     public boolean handleUpgradeOp(UpgradeOp upgradeOp) {
         // TODO
-        return false;
+        try {
+            dockerCluster.upgrade(upgradeOp.nodeIndex);
+        } catch (Exception e) {
+            logger.error("upgrade failed due to an exception " + e);
+            return false;
+        }
+        return true;
     }
 
 }

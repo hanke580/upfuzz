@@ -209,6 +209,7 @@ public class FuzzingClient {
             // - (2) There is an inconsistency between rolling upgrade and
             // full-stop upgrade
             // We should report it.
+            logger.error("The test plan execution met a problem");
         }
 
         FeedBack fb = new FeedBack();

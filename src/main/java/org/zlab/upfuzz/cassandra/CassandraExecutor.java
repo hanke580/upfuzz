@@ -16,6 +16,7 @@ import org.zlab.upfuzz.fuzzingengine.AgentServerSocket;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
@@ -205,8 +206,21 @@ public class CassandraExecutor extends Executor {
     }
 
     @Override
-    public void execShellCommand(Command command) {
-
+    public String execShellCommand(ShellCommand command) {
+        String ret;
+        try {
+            if (cqlsh == null)
+                cqlsh = ((CassandraDocker) dockerCluster.getDocker(0)).cqlsh;
+            logger.trace("cqlsh execute: " + command);
+            long startTime = System.currentTimeMillis();
+            CqlshPacket cp = cqlsh.execute(command.getCommand());
+            long endTime = System.currentTimeMillis();
+            ret = cp.message;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return ret;
     }
 
     @Override

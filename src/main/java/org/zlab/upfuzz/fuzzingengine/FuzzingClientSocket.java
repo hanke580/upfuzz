@@ -68,14 +68,14 @@ class FuzzingClientSocket implements Runnable {
 
                     logger.debug("[Client] fp size = "
                             + stackedFeedbackPacket.size());
-
                     stackedFeedbackPacket.write(out);
                     break;
                 }
                 case TestPlanPacket: {
                     TestPlanPacket testPlanPacket = TestPlanPacket.read(in);
-                    TestPlanFeedbackPacket feedbackPacket = fuzzingClient
+                    TestPlanFeedbackPacket testPlanFeedbackPacket = fuzzingClient
                             .executeTestPlanPacket(testPlanPacket);
+                    testPlanFeedbackPacket.write(out);
                     logger.info(
                             "[Client] Writing testplan feedback packet to server");
                 }
@@ -91,7 +91,11 @@ class FuzzingClientSocket implements Runnable {
 
     private void writeRegisterPacket() {
         RegisterPacket registerPacket = new RegisterPacket(socket);
-        registerPacket.write(out);
+        try {
+            registerPacket.write(out);
+        } catch (IOException e) {
+            logger.error("write register packet exception, " + e);
+        }
     }
 
     private void readHeader() {

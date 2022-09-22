@@ -1,14 +1,17 @@
 package org.zlab.upfuzz.fuzzingengine;
 
-import com.google.gson.Gson;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.cassandra.CassandraCommandPool;
 import org.zlab.upfuzz.cassandra.CassandraState;
+import org.zlab.upfuzz.fuzzingengine.Packet.TestPlanFeedbackPacket;
+import org.zlab.upfuzz.fuzzingengine.Packet.TestPlanPacket;
 import org.zlab.upfuzz.fuzzingengine.Server.FuzzingServer;
 import org.zlab.upfuzz.fuzzingengine.Server.Seed;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
+
+import java.io.*;
 
 public class FuzzingServerTest {
     @Test
@@ -27,6 +30,28 @@ public class FuzzingServerTest {
                 System.out.println("null event!");
             }
             System.out.println(event);
+        }
+    }
+
+    // @Test
+    public void testTestPlanSerialization() {
+        CassandraCommandPool commandPool = new CassandraCommandPool();
+        Class stateClass = CassandraState.class;
+        Seed seed = Executor.generateSeed(commandPool, stateClass);
+        Config config = new Config();
+
+        FuzzingServer fuzzingServer = new FuzzingServer();
+        TestPlan testPlan = fuzzingServer.generateTestPlan(seed);
+        try {
+            DataOutputStream os = new DataOutputStream(
+                    new FileOutputStream("tmp.txt"));
+
+            TestPlanPacket testPlanPacket = new TestPlanPacket("cassandra", 2,
+                    testPlan);
+            testPlanPacket.write(os);
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

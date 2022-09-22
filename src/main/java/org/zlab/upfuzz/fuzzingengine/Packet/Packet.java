@@ -1,7 +1,21 @@
 package org.zlab.upfuzz.fuzzingengine.Packet;
 
-public class Packet {
+import com.google.gson.Gson;
+
+import java.io.DataOutputStream;
+import java.io.IOException;
+
+public abstract class Packet {
     PacketType type;
+
+    public void write(DataOutputStream out) throws IOException {
+        out.writeInt(type.value);
+        String packetStr = new Gson().toJson(this);
+        byte[] packetByte = packetStr.getBytes();
+        // logger.debug("send stacked test packet size: " + packetByte.length);
+        out.writeInt(packetByte.length);
+        out.write(packetByte);
+    }
 
     public enum PacketType {
         RegisterPacket(0), StackedTestPacket(1), StackedFeedbackPacket(

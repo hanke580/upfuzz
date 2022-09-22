@@ -5,7 +5,7 @@ import java.util.List;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 
 public class TestPlan {
-    private List<Event> events;
+    public List<Event> events;
 
     public TestPlan(List<Event> events) {
         this.events = events;
