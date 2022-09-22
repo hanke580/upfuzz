@@ -13,4 +13,10 @@ public class LinkFailure extends Fault {
     public FaultRecover generateRecover() {
         return new LinkFailureRecover(nodeIndex1, nodeIndex2);
     }
+
+    @Override
+    public String toString() {
+        return String.format("[Fault] LinkFailure: Node[%d], Node[%d]",
+                nodeIndex1, nodeIndex2);
+    }
 }

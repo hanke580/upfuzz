@@ -1030,7 +1030,7 @@ public class CommandTests {
         l.add(cmd11);
 
         for (Command cmd : l) {
-            System.out.println(cmd);
+            System.out.println(cmd.executableCommandString);
         }
 
         CommandSequence commandSequence = new CommandSequence(l,
@@ -1113,7 +1113,7 @@ public class CommandTests {
         l.add(cmd11);
 
         for (Command cmd : l) {
-            System.out.println(cmd);
+            System.out.println(cmd.executableCommandString);
         }
 
         CommandSequence commandSequence = new CommandSequence(l,
@@ -1228,7 +1228,7 @@ public class CommandTests {
         // STRINGType.addToPool(LONGSTRING_1025_LEN);
 
         for (Command cmd : l) {
-            System.out.println(cmd);
+            System.out.println(cmd.executableCommandString);
         }
 
         CommandSequence commandSequence = new CommandSequence(l,
@@ -1305,7 +1305,7 @@ public class CommandTests {
         l.add(cmd11);
 
         for (Command cmd : l) {
-            System.out.println(cmd);
+            System.out.println(cmd.executableCommandString);
         }
 
         CommandSequence commandSequence = new CommandSequence(l,
@@ -1382,7 +1382,7 @@ public class CommandTests {
         l.add(cmd11);
 
         for (Command cmd : l) {
-            System.out.println(cmd);
+            System.out.println(cmd.executableCommandString);
         }
 
         CommandSequence commandSequence = new CommandSequence(l,
@@ -1460,7 +1460,7 @@ public class CommandTests {
         l.add(cmd11);
 
         for (Command cmd : l) {
-            System.out.println(cmd);
+            System.out.println(cmd.executableCommandString);
         }
 
         CommandSequence commandSequence = new CommandSequence(l,
@@ -1546,7 +1546,7 @@ public class CommandTests {
         l.add(cmd11);
 
         for (Command cmd : l) {
-            System.out.println(cmd);
+            System.out.println(cmd.executableCommandString);
         }
 
         CommandSequence commandSequence = new CommandSequence(l,
@@ -1623,7 +1623,7 @@ public class CommandTests {
         l.add(cmd11);
 
         for (Command cmd : l) {
-            System.out.println(cmd);
+            System.out.println(cmd.executableCommandString);
         }
 
         CommandSequence commandSequence = new CommandSequence(l,
@@ -1703,7 +1703,7 @@ public class CommandTests {
         // l.add(cmd11);
 
         for (Command cmd : l) {
-            System.out.println(cmd);
+            System.out.println(cmd.executableCommandString);
         }
 
         CommandSequence commandSequence = new CommandSequence(l,
@@ -1774,7 +1774,7 @@ public class CommandTests {
         }
 
         for (Command cmd : l) {
-            System.out.println(cmd);
+            System.out.println(cmd.executableCommandString);
         }
 
         CommandSequence commandSequence = new CommandSequence(l,
@@ -1914,7 +1914,7 @@ public class CommandTests {
         l.add(cmd11);
 
         for (Command cmd : l) {
-            System.out.println(cmd);
+            System.out.println(cmd.executableCommandString);
         }
 
         CommandSequence commandSequence = new CommandSequence(l,

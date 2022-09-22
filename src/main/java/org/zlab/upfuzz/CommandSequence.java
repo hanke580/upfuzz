@@ -356,7 +356,7 @@ public class CommandSequence implements Serializable {
         List<String> commandStringList = new ArrayList<>();
         for (Command command : commands) {
             if (command != null) {
-                commandStringList.add(command.toString());
+                commandStringList.add(command.executableCommandString);
             }
         }
         return commandStringList;
@@ -380,4 +380,12 @@ public class CommandSequence implements Serializable {
         return true;
     }
 
+    public int getSize() {
+        if (commands != null) {
+            return commands.size();
+        } else {
+            logger.error("Empty command sequence");
+            return -1;
+        }
+    }
 }

@@ -8,4 +8,11 @@ public class LinkFailureRecover extends FaultRecover {
         this.nodeIndex1 = nodeIndex1;
         this.nodeIndex2 = nodeIndex2;
     }
+
+    @Override
+    public String toString() {
+        return String.format(
+                "[FaultRecover] Recover from LinkFailure: Node[%d], Node[%d]",
+                nodeIndex1, nodeIndex2);
+    }
 }

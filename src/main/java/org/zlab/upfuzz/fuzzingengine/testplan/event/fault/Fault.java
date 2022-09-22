@@ -26,13 +26,13 @@ public abstract class Fault implements Event {
 
         int faultIdx = rand.nextInt(faultTypes.length);
         Fault fault = null;
+        int nodeIndex;
         switch (faultTypes[faultIdx]) {
-        case IsolateFailure -> {
-            int nodeIndex = rand.nextInt(nodeNum);
+        case IsolateFailure:
+            nodeIndex = rand.nextInt(nodeNum);
             fault = new IsolateFailure(nodeIndex);
             break;
-        }
-        case LinkFailure -> {
+        case LinkFailure:
             List<Integer> nodeIndexes = Utilities.pickKoutofN(2, nodeNum);
             if (nodeIndexes == null || nodeIndexes.isEmpty()) {
                 logger.error("Problem with node indexes");
@@ -41,12 +41,11 @@ public abstract class Fault implements Event {
             int nodeIndex2 = nodeIndexes.get(1);
             fault = new LinkFailure(nodeIndex1, nodeIndex2);
             break;
-        }
-        case NodeFailure -> {
-            int nodeIndex = rand.nextInt(nodeNum);
+
+        case NodeFailure:
+            nodeIndex = rand.nextInt(nodeNum);
             fault = new NodeFailure(nodeIndex);
             break;
-        }
         }
         if (fault == null)
             return null;

@@ -6,4 +6,11 @@ public class IsolateFailureRecover extends FaultRecover {
     public IsolateFailureRecover(int nodeIndex) {
         this.nodeIndex = nodeIndex;
     }
+
+    @Override
+    public String toString() {
+        return String.format(
+                "[FaultRecover] Recover from Isolate Failure: Node[%d]",
+                nodeIndex);
+    }
 }

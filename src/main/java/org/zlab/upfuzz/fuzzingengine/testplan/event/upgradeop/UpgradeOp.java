@@ -8,4 +8,9 @@ public class UpgradeOp implements Event {
     public UpgradeOp(int nodeIndex) {
         this.nodeIndex = nodeIndex;
     }
+
+    @Override
+    public String toString() {
+        return String.format("[UpgradeOp] Upgrade Node[%d]", nodeIndex);
+    }
 }

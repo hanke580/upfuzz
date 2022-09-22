@@ -11,4 +11,9 @@ public class IsolateFailure extends Fault {
     public FaultRecover generateRecover() {
         return new IsolateFailureRecover(nodeIndex);
     }
+
+    @Override
+    public String toString() {
+        return String.format("[Fault] Isolate Node[%d]", nodeIndex);
+    }
 }

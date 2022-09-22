@@ -18,6 +18,7 @@ import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.Fuzzer;
 import org.zlab.upfuzz.fuzzingengine.Packet.*;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
+import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.Fault;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.FaultRecover;
@@ -139,7 +140,7 @@ public class FuzzingServer {
         // All packets have been dispatched, now fuzz next seeds
         Seed seed = corpus.getSeed();
         round++;
-        StackedTestPacket stackedTestPacket = null;
+        StackedTestPacket stackedTestPacket;
         if (seed == null) {
             // corpus is empty, random generate one test packet and wait
             stackedTestPacket = new StackedTestPacket();
@@ -183,35 +184,11 @@ public class FuzzingServer {
         }
     }
 
-    // Given a seed, generate several test plans
-    public void generateTestPlan(Seed seed) {
-        // make sure the test plan is executable
-        // E.g. crash(1) -> upgrade(1): this is an non-executable sequence
-
-        // TODO: Test plan should also designate nodeNum.
-        // But currently we use 3 nodes by default.
-
-        // We try the simplest form: Randomly select one faults, and the
-        // recovery
-        // (1) Generate a sequence which contains the faults and upgradeOp
-        // (2) Interleave the command sequence with the operation sequence
-
-        // Generate a valid sequence which contains fault and upgradeOp
-        // Always flush before upgrade the specific node
-
+    public TestPlan generateTestPlan(Seed seed) {
         List<Event> events = new LinkedList<>();
-
-        // Random set the upgrade order
         int nodeNum = 3; // default for three nodes
-        for (int i = 0; i < nodeNum; i++) {
-            events.add(new UpgradeOp(i));
-        }
-
         // Some systems might have special requirements for
         // upgrade, like HDFS needs to upgrade NN first
-        if (Config.getConf().shuffleUpgradeOrder)
-            Collections.shuffle(events);
-
         int faultNum = rand.nextInt(Config.getConf().faultMaxNum + 1);
         List<Pair<Fault, FaultRecover>> faultPairs = new LinkedList<>();
         for (int i = 0; i < faultNum; i++) {
@@ -223,7 +200,73 @@ public class FuzzingServer {
                 logger.info("Fault Generation Failed");
             }
         }
-        // TODO: interleave the faults with commands
+
+        // Currently we don't inject an upgrade op between the fault
+        // and its recover. But we can do this later.
+        // We still need to keep the validity of the sequence
+        Map<Integer, Pair<Fault, FaultRecover>> faultMap = new HashMap<>();
+        int idx = 0;
+        for (Pair<Fault, FaultRecover> faultPair : faultPairs) {
+            faultMap.put(idx++, faultPair);
+        }
+        Map<Integer, UpgradeOp> upgradeOpMap = new HashMap<>();
+        for (int i = 0; i < nodeNum; i++) {
+            upgradeOpMap.put(idx++, new UpgradeOp(i));
+        }
+        List<Integer> eventIndexes = new LinkedList<>();
+        for (int i = 0; i < idx; i++) {
+            eventIndexes.add(i);
+        }
+        Collections.shuffle(eventIndexes);
+
+        int nodeIdx = 0;
+        List<Event> upgradeOpAndFaults = new LinkedList<>();
+        for (int i = 0; i < idx; i++) { // scan event indexes
+            if (faultMap.containsKey(eventIndexes.get(i))) {
+                upgradeOpAndFaults.add(faultMap.get(eventIndexes.get(i)).left);
+                upgradeOpAndFaults.add(faultMap.get(eventIndexes.get(i)).right);
+            } else {
+                if (Config.getConf().shuffleUpgradeOrder) {
+                    upgradeOpAndFaults
+                            .add(upgradeOpMap.get(eventIndexes.get(i)));
+                } else {
+                    upgradeOpAndFaults.add(new UpgradeOp(nodeIdx++));
+                }
+            }
+        }
+
+        // TODO: If the node is current down, we should switch to
+        // another node for execution.
+        // Randomly interleave the commands with the upgradeOp&faults
+        int upgradeOpAndFaultsSize = upgradeOpAndFaults.size();
+        int commandsSize = seed.originalCommandSequence.getSize();
+        int totalEventSize = upgradeOpAndFaultsSize + commandsSize;
+        int upgradeOpAndFaultsIdx = 0;
+        int commandIdx = 0;
+        for (int i = 0; i < totalEventSize; i++) {
+            if (rand.nextBoolean()) {
+                if (upgradeOpAndFaultsIdx < upgradeOpAndFaults.size())
+                    events.add(upgradeOpAndFaults.get(upgradeOpAndFaultsIdx++));
+                else
+                    break;
+            } else {
+                if (commandIdx < commandsSize)
+                    events.add(seed.originalCommandSequence.commands
+                            .get(commandIdx));
+                else
+                    break;
+            }
+        }
+        if (upgradeOpAndFaultsIdx < upgradeOpAndFaultsSize) {
+            for (int i = upgradeOpAndFaultsIdx; i < upgradeOpAndFaultsSize; i++) {
+                events.add(upgradeOpAndFaults.get(i));
+            }
+        } else if (commandIdx < commandsSize) {
+            for (int i = commandIdx; i < commandsSize; i++) {
+                events.add(seed.originalCommandSequence.commands.get(i));
+            }
+        }
+        return new TestPlan(events);
     }
 
     public synchronized void updateStatus(

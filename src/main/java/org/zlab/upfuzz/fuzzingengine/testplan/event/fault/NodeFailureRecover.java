@@ -7,4 +7,11 @@ public class NodeFailureRecover extends FaultRecover {
         this.nodeIndex = nodeIndex;
     }
 
+    @Override
+    public String toString() {
+        return String.format(
+                "[FaultRecover] Recover from Node Failure: Node[%d]",
+                nodeIndex);
+    }
+
 }

@@ -173,7 +173,7 @@ public class CREATE_TABLE extends CassandraCommands {
 
         String ret = "CREATE TABLE " + IF_NOT_EXIST.toString() + " "
                 + keyspaceName.toString() + "." + tableName.toString()
-                + " (" + columns.toString() + ",\n PRIMARY KEY ("
+                + " (" + columns.toString() + ", PRIMARY KEY ("
                 + primaryColumnsName.toString() + " )" + ");";
 
         return ret;

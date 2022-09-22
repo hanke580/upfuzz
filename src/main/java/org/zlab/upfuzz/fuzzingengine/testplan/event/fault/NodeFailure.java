@@ -9,6 +9,11 @@ public class NodeFailure extends Fault {
 
     @Override
     public FaultRecover generateRecover() {
-        return null;
+        return new NodeFailureRecover(nodeIndex);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("[Fault] NodeFailure: Node[%d]", nodeIndex);
     }
 }

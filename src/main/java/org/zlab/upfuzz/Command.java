@@ -34,7 +34,7 @@ public abstract class Command implements Serializable, Event {
 
     @Override
     public String toString() {
-        return executableCommandString;
+        return String.format("[COMMAND] Execute {%s}", executableCommandString);
     }
 
     public abstract String constructCommandString();
