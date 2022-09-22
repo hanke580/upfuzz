@@ -8,4 +8,9 @@ public class LinkFailure extends Fault {
         this.nodeIndex1 = nodeIndex1;
         this.nodeIndex2 = nodeIndex2;
     }
+
+    @Override
+    public FaultRecover generateRecover() {
+        return new LinkFailureRecover(nodeIndex1, nodeIndex2);
+    }
 }

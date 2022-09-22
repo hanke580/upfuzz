@@ -17,17 +17,8 @@ import java.io.ObjectOutputStream;
 import org.zlab.upfuzz.Parameter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionData;
@@ -409,6 +400,23 @@ public class Utilities {
             throw new RuntimeException("n in oneOf <= 0");
         }
         return rand.nextInt(y) < x;
+    }
+
+    public static List<Integer> pickKoutofN(int k, int n) {
+        if (k > n || n <= 0)
+            return null;
+        List<Integer> indexes = new LinkedList<>();
+        for (int i = 0; i <= n; i++) {
+            indexes.add(i);
+        }
+        if (k == n)
+            return indexes;
+        Collections.shuffle(indexes);
+        List<Integer> retIndexes = new LinkedList<>();
+        for (int i = 0; i < k; i++) {
+            retIndexes.add(indexes.get(i));
+        }
+        return retIndexes;
     }
 
     public static boolean write2TXT(File file, String content, boolean append) {

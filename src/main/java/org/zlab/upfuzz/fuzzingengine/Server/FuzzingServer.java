@@ -3,12 +3,7 @@ package org.zlab.upfuzz.fuzzingengine.Server;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.logging.log4j.LogManager;
@@ -21,11 +16,12 @@ import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.Fuzzer;
-import org.zlab.upfuzz.fuzzingengine.Packet.FeedbackPacket;
-import org.zlab.upfuzz.fuzzingengine.Packet.Packet;
-import org.zlab.upfuzz.fuzzingengine.Packet.StackedFeedbackPacket;
-import org.zlab.upfuzz.fuzzingengine.Packet.StackedTestPacket;
+import org.zlab.upfuzz.fuzzingengine.Packet.*;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.Fault;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.FaultRecover;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.UpgradeOp;
 import org.zlab.upfuzz.hdfs.HdfsCommandPool;
 import org.zlab.upfuzz.hdfs.HdfsExecutor;
 import org.zlab.upfuzz.hdfs.HdfsState;
@@ -33,8 +29,8 @@ import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
 public class FuzzingServer {
-
     static Logger logger = LogManager.getLogger(FuzzingServer.class);
+    static Random rand = new Random();
 
     // Seed Corpus (tuple(Seed, Info))
     public Corpus corpus = new Corpus();
@@ -49,6 +45,8 @@ public class FuzzingServer {
     private final Map<Integer, Seed> testID2Seed;
     // stackedTestPackets to be sent to clients
     private final Queue<StackedTestPacket> stackedTestPackets;
+    // test plan could contains (1) cmd (2) fault (3) upgrade op
+    private final Queue<TestPlanPacket> testPlanPackets;
 
     // When merge new branches, increase this number
     public static int originalCoveredBranches = 0;
@@ -72,6 +70,7 @@ public class FuzzingServer {
     public FuzzingServer() {
         testID2Seed = new HashMap<>();
         stackedTestPackets = new LinkedList<>();
+        testPlanPackets = new LinkedList<>();
         curCoverage = new ExecutionDataStore();
         upCoverage = new ExecutionDataStore();
 
@@ -133,6 +132,10 @@ public class FuzzingServer {
     }
 
     private void fuzzOne() {
+        // It should also generate test plan
+
+        // Pick one test case from the corpus, fuzz it for mutationEpoch
+        // Add the new tests into the stackedTestPackets
         // All packets have been dispatched, now fuzz next seeds
         Seed seed = corpus.getSeed();
         round++;
@@ -178,6 +181,49 @@ public class FuzzingServer {
                 stackedTestPackets.add(stackedTestPacket);
             }
         }
+    }
+
+    // Given a seed, generate several test plans
+    public void generateTestPlan(Seed seed) {
+        // make sure the test plan is executable
+        // E.g. crash(1) -> upgrade(1): this is an non-executable sequence
+
+        // TODO: Test plan should also designate nodeNum.
+        // But currently we use 3 nodes by default.
+
+        // We try the simplest form: Randomly select one faults, and the
+        // recovery
+        // (1) Generate a sequence which contains the faults and upgradeOp
+        // (2) Interleave the command sequence with the operation sequence
+
+        // Generate a valid sequence which contains fault and upgradeOp
+        // Always flush before upgrade the specific node
+
+        List<Event> events = new LinkedList<>();
+
+        // Random set the upgrade order
+        int nodeNum = 3; // default for three nodes
+        for (int i = 0; i < nodeNum; i++) {
+            events.add(new UpgradeOp(i));
+        }
+
+        // Some systems might have special requirements for
+        // upgrade, like HDFS needs to upgrade NN first
+        if (Config.getConf().shuffleUpgradeOrder)
+            Collections.shuffle(events);
+
+        int faultNum = rand.nextInt(Config.getConf().faultMaxNum + 1);
+        List<Pair<Fault, FaultRecover>> faultPairs = new LinkedList<>();
+        for (int i = 0; i < faultNum; i++) {
+            Pair<Fault, FaultRecover> faultPair = Fault
+                    .randomGenerateFault(nodeNum);
+            if (faultPair != null) {
+                faultPairs.add(faultPair);
+            } else {
+                logger.info("Fault Generation Failed");
+            }
+        }
+        // TODO: interleave the faults with commands
     }
 
     public synchronized void updateStatus(

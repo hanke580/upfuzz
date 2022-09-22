@@ -2,4 +2,13 @@ package org.zlab.upfuzz.fuzzingengine.testplan.event.fault;
 
 public class IsolateFailure extends Fault {
     public int nodeIndex;
+
+    public IsolateFailure(int nodeIndex) {
+        this.nodeIndex = nodeIndex;
+    }
+
+    @Override
+    public FaultRecover generateRecover() {
+        return new IsolateFailureRecover(nodeIndex);
+    }
 }

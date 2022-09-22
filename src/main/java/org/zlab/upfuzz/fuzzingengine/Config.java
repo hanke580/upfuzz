@@ -44,6 +44,10 @@ public class Config {
         public boolean keepDir = true; // set to false if start a long running
                                        // test
         public int nodeNum = 2;
+        // Whether we shuffle the upgrade order
+        public boolean shuffleUpgradeOrder = true;
+        // The max number of faults in a test plan (inclusive)
+        public int faultMaxNum = 2;
         public boolean useFeedBack = true;
 
         @Override

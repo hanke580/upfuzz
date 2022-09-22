@@ -7,4 +7,8 @@ public class NodeFailure extends Fault {
         this.nodeIndex = nodeIndex;
     }
 
+    @Override
+    public FaultRecover generateRecover() {
+        return null;
+    }
 }
