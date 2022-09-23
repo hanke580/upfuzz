@@ -32,6 +32,8 @@ public class TestPlanFeedbackPacket extends Packet {
 
     public TestPlanFeedbackPacket(String systemID, int testPacketID,
             FeedBack feedBack) {
+        this.type = PacketType.TestPlanFeedbackPacket;
+
         this.systemID = systemID;
         this.testPacketID = testPacketID;
         this.feedBack = feedBack;

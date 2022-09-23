@@ -2,6 +2,7 @@ package org.zlab.upfuzz.fuzzingengine.testplan;
 
 import java.util.List;
 
+import com.google.gson.JsonSerializer;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 
 public class TestPlan {

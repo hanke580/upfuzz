@@ -91,7 +91,7 @@ public abstract class DockerCluster implements IDockerCluster {
     // upgrade order
     public void upgrade(int nodeIndex) throws Exception {
         // upgrade a specific node
-        logger.info(String.format("Upgrade a Node[%d]", nodeIndex));
+        logger.info(String.format("Upgrade Node[%d]", nodeIndex));
         dockers[nodeIndex].upgrade();
         dockerStates[nodeIndex] = DockerMeta.DockerState.upgraded;
         updateClusterState();

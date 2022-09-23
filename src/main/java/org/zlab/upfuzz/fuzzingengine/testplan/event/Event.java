@@ -1,5 +1,15 @@
 package org.zlab.upfuzz.fuzzingengine.testplan.event;
 
+import com.fasterxml.jackson.annotation.JsonTypeId;
+import com.google.gson.Gson;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.zlab.upfuzz.fuzzingengine.Packet.TestPlanPacket;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 /**
  * Event is the base class for all the operations during the upgrade process.
  *      (1) A user/admin command
@@ -7,9 +17,12 @@ package org.zlab.upfuzz.fuzzingengine.testplan.event;
  *      (3) An upgrade command
  */
 public class Event {
-    int type;
+    static Logger logger = LogManager.getLogger(Event.class);
 
-    public Event() {
+    protected String type;
+
+    public Event(String type) {
+        this.type = type;
     };
 
 }

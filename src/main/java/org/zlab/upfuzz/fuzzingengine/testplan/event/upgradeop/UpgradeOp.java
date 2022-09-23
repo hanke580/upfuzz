@@ -6,6 +6,7 @@ public class UpgradeOp extends Event {
     public int nodeIndex;
 
     public UpgradeOp(int nodeIndex) {
+        super("UpgradeOp");
         this.nodeIndex = nodeIndex;
     }
 

@@ -23,6 +23,8 @@ public class FeedbackPacket extends Packet {
 
     public FeedbackPacket(String systemID, int testPacketID,
             FeedBack feedBack) {
+        this.type = PacketType.FeedbackPacket;
+
         this.systemID = systemID;
         this.testPacketID = testPacketID;
         this.feedBack = feedBack;

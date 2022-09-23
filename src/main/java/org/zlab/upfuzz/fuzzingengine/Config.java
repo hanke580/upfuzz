@@ -49,7 +49,7 @@ public class Config {
         // Whether we shuffle the upgrade order
         public boolean shuffleUpgradeOrder = false;
         // The max number of faults in a test plan (inclusive)
-        public int faultMaxNum = 2; // disable faults for now
+        public int faultMaxNum = 0; // disable faults for now
         public boolean useFeedBack = true;
 
         public boolean testPlanMode = true;

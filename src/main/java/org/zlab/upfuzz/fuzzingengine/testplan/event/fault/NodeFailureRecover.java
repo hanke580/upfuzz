@@ -4,6 +4,7 @@ public class NodeFailureRecover extends FaultRecover {
     public int nodeIndex;
 
     public NodeFailureRecover(int nodeIndex) {
+        super("NodeFailureRecover");
         this.nodeIndex = nodeIndex;
     }
 

@@ -14,6 +14,7 @@ public class ShellCommand extends Event {
     String command;
 
     public ShellCommand(String command) {
+        super("ShellCommand");
         this.command = command;
     }
 

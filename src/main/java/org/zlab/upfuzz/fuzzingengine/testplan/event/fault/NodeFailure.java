@@ -4,6 +4,7 @@ public class NodeFailure extends Fault {
     public int nodeIndex;
 
     public NodeFailure(int nodeIndex) {
+        super("NodeFailure");
         this.nodeIndex = nodeIndex;
     }
 

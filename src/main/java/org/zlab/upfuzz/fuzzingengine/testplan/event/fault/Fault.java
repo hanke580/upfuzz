@@ -15,6 +15,10 @@ public abstract class Fault extends Event {
     public static Random rand = new Random();
     static FaultPool.FaultType[] faultTypes = FaultPool.FaultType.values();
 
+    public Fault(String type) {
+        super(type);
+    }
+
     public static Pair<Fault, FaultRecover> randomGenerateFault(int nodeNum) {
         assert nodeNum > 0;
 

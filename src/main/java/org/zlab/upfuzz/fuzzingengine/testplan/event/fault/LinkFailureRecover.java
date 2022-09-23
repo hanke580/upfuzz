@@ -5,6 +5,7 @@ public class LinkFailureRecover extends FaultRecover {
     public int nodeIndex2;
 
     public LinkFailureRecover(int nodeIndex1, int nodeIndex2) {
+        super("LinkFailureRecover");
         this.nodeIndex1 = nodeIndex1;
         this.nodeIndex2 = nodeIndex2;
     }

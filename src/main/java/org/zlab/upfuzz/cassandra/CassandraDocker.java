@@ -206,7 +206,7 @@ public class CassandraDocker extends Docker {
                 new String[] { "/bin/bash", "-c", restartCommand }, env);
         ret = restart.waitFor();
         String message = Utilities.readProcess(restart);
-        logger.debug("original version restart: " + ret + "\n" + message);
+        logger.debug("upgrade version restart: " + ret + "\n" + message);
         cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort,
                 executorID);
     }

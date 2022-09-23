@@ -4,6 +4,7 @@ public class IsolateFailure extends Fault {
     public int nodeIndex;
 
     public IsolateFailure(int nodeIndex) {
+        super("IsolateFailure");
         this.nodeIndex = nodeIndex;
     }
 

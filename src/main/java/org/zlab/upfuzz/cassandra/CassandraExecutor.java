@@ -207,10 +207,22 @@ public class CassandraExecutor extends Executor {
 
     @Override
     public String execShellCommand(ShellCommand command) {
+        // Test Plan related
         String ret;
         try {
-            if (cqlsh == null)
-                cqlsh = ((CassandraDocker) dockerCluster.getDocker(0)).cqlsh;
+            // We update the cqlsh each time
+            // (1) Try to find a working cqlsh
+            // - We can do this by maintain a state of cluster
+            // - [live, crash]
+            // - If some node is marked as live but it's down
+            // - This could be a bug.
+            // (2) When the cqlsh daemon crash, we catch this
+            // exception, log it's test plan, report to the
+            // server, and keep testing
+            // TODO: If the cqlsh daemon crash
+
+            // Always use the latest cqlsh
+            cqlsh = ((CassandraDocker) dockerCluster.getDocker(0)).cqlsh;
             logger.trace("cqlsh execute: " + command);
             long startTime = System.currentTimeMillis();
             CqlshPacket cp = cqlsh.execute(command.getCommand());

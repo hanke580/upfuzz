@@ -5,6 +5,7 @@ public class LinkFailure extends Fault {
     public int nodeIndex2;
 
     public LinkFailure(int nodeIndex1, int nodeIndex2) {
+        super("LinkFailure");
         this.nodeIndex1 = nodeIndex1;
         this.nodeIndex2 = nodeIndex2;
     }

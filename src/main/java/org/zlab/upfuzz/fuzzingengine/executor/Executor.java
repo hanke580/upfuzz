@@ -183,6 +183,7 @@ public abstract class Executor implements IExecutor {
         // rolling upgrade
         boolean status = true;
         for (Event event : testPlan.getEvents()) {
+            logger.info(String.format("\nhandle %s\n", event));
             if (event instanceof Fault) {
                 if (!handleFaults((Fault) event)) {
                     status = false;

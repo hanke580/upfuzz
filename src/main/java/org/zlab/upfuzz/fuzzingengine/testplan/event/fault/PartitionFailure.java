@@ -7,6 +7,7 @@ public class PartitionFailure extends Fault {
     public Set<Integer> nodeSet2;
 
     public PartitionFailure(Set<Integer> nodeSet1, Set<Integer> nodeSet2) {
+        super("PartitionFailure");
         this.nodeSet1 = nodeSet1;
         this.nodeSet2 = nodeSet2;
     }

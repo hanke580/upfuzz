@@ -17,6 +17,11 @@ public abstract class Packet {
         out.write(packetByte);
     }
 
+    public String getGsonStr() throws IOException {
+        String packetStr = new Gson().toJson(this);
+        return packetStr;
+    }
+
     public enum PacketType {
         RegisterPacket(0), StackedTestPacket(1), StackedFeedbackPacket(
                 2), FeedbackPacket(

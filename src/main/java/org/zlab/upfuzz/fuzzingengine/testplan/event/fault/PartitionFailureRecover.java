@@ -8,6 +8,7 @@ public class PartitionFailureRecover extends FaultRecover {
 
     public PartitionFailureRecover(Set<Integer> nodeSet1,
             Set<Integer> nodeSet2) {
+        super("PartitionFailureRecover");
         this.nodeSet1 = nodeSet1;
         this.nodeSet2 = nodeSet2;
     }
