@@ -222,7 +222,18 @@ public class CassandraExecutor extends Executor {
             // TODO: If the cqlsh daemon crash
 
             // Always use the latest cqlsh
-            cqlsh = ((CassandraDocker) dockerCluster.getDocker(0)).cqlsh;
+
+            // Default we should choose the first node
+            // We can make sure that the at least one node is up
+            // pick the first node that's alive
+            for (int i = 0; i < dockerCluster.nodeNum; i++) {
+                if (dockerCluster.dockerStates[i].alive) {
+                    cqlsh = ((CassandraDocker) dockerCluster
+                            .getDocker(i)).cqlsh;
+                    break;
+                }
+            }
+            // cqlsh = ((CassandraDocker) dockerCluster.getDocker(0)).cqlsh;
             logger.trace("cqlsh execute: " + command);
             long startTime = System.currentTimeMillis();
             CqlshPacket cp = cqlsh.execute(command.getCommand());

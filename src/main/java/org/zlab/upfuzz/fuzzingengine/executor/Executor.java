@@ -10,9 +10,11 @@ import java.util.Set;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.util.JsonUtils;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.*;
 import org.zlab.upfuzz.docker.DockerCluster;
+import org.zlab.upfuzz.docker.DockerMeta;
 import org.zlab.upfuzz.fuzzingengine.AgentServerHandler;
 import org.zlab.upfuzz.fuzzingengine.AgentServerSocket;
 import org.zlab.upfuzz.fuzzingengine.Packet.TestPacket;
@@ -20,11 +22,7 @@ import org.zlab.upfuzz.fuzzingengine.Server.Seed;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
-import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.Fault;
-import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.IsolateFailure;
-import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.LinkFailure;
-import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.NodeFailure;
-import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.PartitionFailure;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.*;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.UpgradeOp;
 import org.zlab.upfuzz.utils.Pair;
 
@@ -32,7 +30,6 @@ public abstract class Executor implements IExecutor {
     protected final Logger logger = LogManager.getLogger(getClass());
 
     public int agentPort;
-
     public Long timestamp = 0L;
 
     public enum FailureType {
@@ -47,21 +44,6 @@ public abstract class Executor implements IExecutor {
     public Map<Integer, List<String>> testId2newVersionResult;
 
     public DockerCluster dockerCluster;
-
-    // kill the container
-    public boolean crashNode(int index) {
-        return false;
-    }
-
-    // cut off the network between two containers
-    public boolean linkFailure(int n1, int n2) {
-        return false;
-    }
-
-    // network partitions on a set of containers
-    public boolean partition(Set<Integer> nodes) {
-        return false;
-    }
 
     /**
      * key: String -> agentId value: Codecoverage for this agent
@@ -185,7 +167,12 @@ public abstract class Executor implements IExecutor {
         for (Event event : testPlan.getEvents()) {
             logger.info(String.format("\nhandle %s\n", event));
             if (event instanceof Fault) {
-                if (!handleFaults((Fault) event)) {
+                if (!handleFault((Fault) event)) {
+                    status = false;
+                    break;
+                }
+            } else if (event instanceof FaultRecover) {
+                if (!handleFaultRecover((FaultRecover) event)) {
                     status = false;
                     break;
                 }
@@ -276,7 +263,7 @@ public abstract class Executor implements IExecutor {
         return dockerCluster.getNetworkIP();
     }
 
-    public boolean handleFaults(Fault fault) {
+    public boolean handleFault(Fault fault) {
         if (fault instanceof LinkFailure) {
             // Link failure between two nodes
             LinkFailure linkFailure = (LinkFailure) fault;
@@ -285,6 +272,7 @@ public abstract class Executor implements IExecutor {
         } else if (fault instanceof NodeFailure) {
             // Crash a node
             NodeFailure nodeFailure = (NodeFailure) fault;
+            dockerCluster.dockerStates[nodeFailure.nodeIndex].alive = false;
             return dockerCluster.killContainer(nodeFailure.nodeIndex);
 
         } else if (fault instanceof IsolateFailure) {
@@ -300,14 +288,55 @@ public abstract class Executor implements IExecutor {
         return false;
     }
 
+    public boolean handleFaultRecover(FaultRecover faultRecover) {
+        if (faultRecover instanceof LinkFailureRecover) {
+            // Link failure between two nodes
+            LinkFailureRecover linkFailureRecover = (LinkFailureRecover) faultRecover;
+            return dockerCluster.linkFailureRecover(
+                    linkFailureRecover.nodeIndex1,
+                    linkFailureRecover.nodeIndex2);
+        } else if (faultRecover instanceof NodeFailureRecover) {
+            // Crash a node
+            NodeFailureRecover nodeFailureRecover = (NodeFailureRecover) faultRecover;
+            dockerCluster.dockerStates[nodeFailureRecover.nodeIndex].alive = false;
+            return dockerCluster
+                    .killContainerRecover(nodeFailureRecover.nodeIndex);
+        } else if (faultRecover instanceof IsolateFailureRecover) {
+            // Isolate a single node from the rest nodes
+            IsolateFailureRecover isolateFailureRecover = (IsolateFailureRecover) faultRecover;
+            return dockerCluster
+                    .isolateNodeRecover(isolateFailureRecover.nodeIndex);
+        } else if (faultRecover instanceof PartitionFailureRecover) {
+            // Partition two sets of nodes
+            PartitionFailureRecover partitionFailureRecover = (PartitionFailureRecover) faultRecover;
+            return dockerCluster.partitionRecover(
+                    partitionFailureRecover.nodeSet1,
+                    partitionFailureRecover.nodeSet2);
+        }
+        return false;
+    }
+
     public boolean handleCommand(ShellCommand command) {
         // TODO: also handle normal commands
+
+        // Some checks to make sure that at least one server
+        // is up
+        int liveContainers = 0;
+        for (DockerMeta.DockerState dockerState : dockerCluster.dockerStates) {
+            if (dockerState.alive)
+                liveContainers++;
+        }
+        if (liveContainers == 0) {
+            logger.error("All node is down, cannot execute shell commands!");
+            // This shouldn't appear, but if it happens, we should report
+            // TODO: report to server as a buggy case
+            System.exit(1);
+        }
         execShellCommand(command);
         return true;
     }
 
     public boolean handleUpgradeOp(UpgradeOp upgradeOp) {
-        // TODO
         try {
             dockerCluster.upgrade(upgradeOp.nodeIndex);
         } catch (Exception e) {

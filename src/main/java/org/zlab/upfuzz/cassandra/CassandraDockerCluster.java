@@ -38,11 +38,6 @@ public class CassandraDockerCluster extends DockerCluster {
         super(executor, version, nodeNum);
 
         this.dockers = new CassandraDocker[nodeNum];
-        this.dockerStates = new DockerMeta.DockerState[nodeNum];
-
-        for (int i = 0; i < nodeNum; i++) {
-            this.dockerStates[i] = DockerMeta.DockerState.original;
-        }
         this.seedIP = DockerCluster.getKthIP(hostIP, 0);
     }
 

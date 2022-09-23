@@ -12,7 +12,17 @@ import java.util.Arrays;
 public abstract class DockerMeta {
     static Logger logger = LogManager.getLogger(DockerMeta.class);
 
-    public enum DockerState {
+    public static class DockerState {
+        public DockerVersion dockerVersion;
+        public boolean alive;
+
+        public DockerState(DockerVersion dockerVersion, boolean alive) {
+            this.dockerVersion = dockerVersion;
+            this.alive = alive;
+        }
+    }
+
+    public enum DockerVersion {
         upgraded, original
     }
 

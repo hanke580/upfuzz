@@ -1,7 +1,7 @@
 package org.zlab.upfuzz.fuzzingengine.testplan.event.fault;
 
 public class IsolateFailureRecover extends FaultRecover {
-    int nodeIndex;
+    public int nodeIndex;
 
     public IsolateFailureRecover(int nodeIndex) {
         super("IsolateFailureRecover");
