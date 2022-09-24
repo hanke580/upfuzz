@@ -19,12 +19,14 @@ public class TestPlanFeedbackPacket extends Packet {
     // If the upgradeOp failed, this will be marked as true
     // We expect the system upgrade op should always succeed
     // no matter whether the normal command is correct or not
-    public boolean isUpgradeOperationFailed;
+
+    public boolean isEventFailed; // One event failed.
+    public String eventFailedReport;
 
     // For test plan, we only collect the new version coverage
     public FeedBack feedBack;
 
-    // We might want to compare the state between
+    // TODO: We might want to compare the state between
     // (1) Rolling upgrade and (2) Full-stop upgrade
     public boolean isInconsistent; // true if inconsistent
     public String inconsistencyReport; // The inconsistency information should

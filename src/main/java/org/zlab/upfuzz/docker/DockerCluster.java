@@ -123,6 +123,7 @@ public abstract class DockerCluster implements IDockerCluster {
             return false;
         if (nodeIndex1 == nodeIndex2)
             return false;
+        logger.info("[LinkFailure] node" + nodeIndex1 + ", node" + nodeIndex2);
         return network.biPartition(dockers[nodeIndex1], dockers[nodeIndex2]);
     }
 
@@ -210,14 +211,13 @@ public abstract class DockerCluster implements IDockerCluster {
         if (!checkIndex(nodeIndex))
             return false;
 
-        boolean ret = true;
         try {
             String[] killContainerCMD = new String[] {
                     "docker", "kill", dockers[nodeIndex].containerName
             };
             Process killContainerProcess = Utilities.exec(killContainerCMD,
                     workdir);
-            ret = killContainerProcess.waitFor() == 0;
+            killContainerProcess.waitFor();
         } catch (IOException | InterruptedException e) {
             logger.error("Cannot delete container index "
                     + dockers[nodeIndex].containerName, e);
@@ -225,7 +225,7 @@ public abstract class DockerCluster implements IDockerCluster {
         }
 
         dockerStates[nodeIndex].alive = false;
-        return ret;
+        return true;
     }
 
     // Is it currently in the new version or the old version?
@@ -234,10 +234,22 @@ public abstract class DockerCluster implements IDockerCluster {
     public boolean killContainerRecover(int nodeIndex) {
         if (!checkIndex(nodeIndex))
             return false;
-        // TODO: impl container restart
-        // dockerStates[nodeIndex].alive = true;
+
+        // docker-compose recover SERVICE_NAME
+        try {
+            String[] killContainerCMD = new String[] {
+                    "docker-compose", "restart", dockers[nodeIndex].serviceName
+            };
+            Process killContainerProcess = Utilities.exec(killContainerCMD,
+                    workdir);
+            killContainerProcess.waitFor();
+        } catch (IOException | InterruptedException e) {
+            logger.error("Cannot delete container index "
+                    + dockers[nodeIndex].containerName, e);
+            return false;
+        }
+        dockerStates[nodeIndex].alive = true;
         return true;
-        // return false;
     }
 
     public boolean checkIndex(int nodeIndex) {

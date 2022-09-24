@@ -53,6 +53,9 @@ public abstract class Fault extends Event {
         }
         if (fault == null)
             return null;
+
+        // TODO: Set a certain probability that the fault recover could be null?
+
         return new Pair<>(fault, fault.generateRecover());
     }
 

@@ -47,6 +47,7 @@ public class CassandraDocker extends Docker {
         executorID = dockerCluster.executorID;
         name = "cassandra-" + originalVersion + "_" + upgradedVersion + "_" +
                 executorID + "_N" + index;
+        serviceName = "DC3N" + index;
     }
 
     @Override
@@ -72,9 +73,10 @@ public class CassandraDocker extends Docker {
         formatMap.put("networkIP", networkIP);
         formatMap.put("agentPort", Integer.toString(agentPort));
         formatMap.put("executorID", executorID);
+        formatMap.put("serviceName", serviceName);
+
         StringSubstitutor sub = new StringSubstitutor(formatMap);
         this.composeYaml = sub.replace(template);
-
         return composeYaml;
     }
 
@@ -233,7 +235,7 @@ public class CassandraDocker extends Docker {
     }
 
     static String template = ""
-            + "    DC3N${index}:\n"
+            + "    ${serviceName}:\n"
             + "        container_name: cassandra-${originalVersion}_${upgradedVersion}_${executorID}_N${index}\n"
             + "        image: upfuzz_${system}:${originalVersion}_${upgradedVersion}\n"
             + "        command: bash -c 'sleep 0 && /usr/bin/supervisord'\n"

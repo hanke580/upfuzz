@@ -45,12 +45,13 @@ public class Config {
         public long timeInterval = 600; // seconds, record time
         public boolean keepDir = true; // set to false if start a long running
                                        // test
-        public int nodeNum = 1;
+        public int nodeNum = 3;
         // Whether we shuffle the upgrade order
         public boolean shuffleUpgradeOrder = false;
         // The max number of faults in a test plan (inclusive)
-        public int faultMaxNum = 0; // disable faults for now
+        public int faultMaxNum = 10; // disable faults for now
         public boolean useFeedBack = true;
+        public boolean upgradeWithFault = false;
 
         public boolean testPlanMode = true;
         public boolean stackedTestPacketMode = true;

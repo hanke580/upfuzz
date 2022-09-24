@@ -74,7 +74,9 @@ public class CassandraCqlshDaemon {
             } catch (InterruptedException e) {
             }
         }
-        throw new IllegalAccessError("cannot connect to cqlsh at " + ipAddress);
+        throw new RuntimeException("cannot connect to cqlsh at " + ipAddress);
+        // throw new IllegalAccessError("cannot connect to cqlsh at " +
+        // ipAddress);
     }
 
     public CassandraCqlshDaemon(String ipAddress, int port, String executorID) {

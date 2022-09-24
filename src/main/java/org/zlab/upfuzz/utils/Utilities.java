@@ -556,4 +556,9 @@ public class Utilities {
         }
         System.out.println();
     }
+
+    public static int randWithRange(Random rand, int min, int max) {
+        // [min, max)
+        return rand.nextInt(max - min) + min;
+    }
 }

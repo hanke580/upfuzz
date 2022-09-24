@@ -5,7 +5,7 @@ import java.rmi.UnexpectedException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -32,9 +32,7 @@ public abstract class Executor implements IExecutor {
     public int agentPort;
     public Long timestamp = 0L;
 
-    public enum FailureType {
-        UPGRADE_FAIL, RESULT_INCONSISTENCY
-    }
+    public int eventIdx;
 
     public String executorID;
     public String systemID = "UnknowDS";
@@ -56,7 +54,7 @@ public abstract class Executor implements IExecutor {
 
     /* key: UUID String -> executor Id
      * value: List<String> -> list of all alive agents with the executor Id */
-    public Map<String, List<String>> sessionGroup;
+    public ConcurrentHashMap<String, List<String>> sessionGroup;
 
     /* socket for client and agents to communicate*/
     public AgentServerSocket agentSocket;
@@ -163,26 +161,33 @@ public abstract class Executor implements IExecutor {
         // - How about we monitor the output of each command
         // - We compare the results of commands between full-stop upgrade and
         // rolling upgrade
+        eventIdx = 0;
+
         boolean status = true;
-        for (Event event : testPlan.getEvents()) {
+        for (eventIdx = 0; eventIdx < testPlan.getEvents().size(); eventIdx++) {
+            Event event = testPlan.events.get(eventIdx);
             logger.info(String.format("\nhandle %s\n", event));
             if (event instanceof Fault) {
                 if (!handleFault((Fault) event)) {
+                    logger.error("fault problem");
                     status = false;
                     break;
                 }
             } else if (event instanceof FaultRecover) {
                 if (!handleFaultRecover((FaultRecover) event)) {
+                    logger.error("FaultRecover execution problem");
                     status = false;
                     break;
                 }
             } else if (event instanceof ShellCommand) {
                 if (!handleCommand((ShellCommand) event)) {
+                    logger.error("ShellCommand problem");
                     status = false;
                     break;
                 }
             } else if (event instanceof UpgradeOp) {
                 if (!handleUpgradeOp((UpgradeOp) event)) {
+                    logger.error("UpgradeOp problem");
                     status = false;
                     break;
                 }

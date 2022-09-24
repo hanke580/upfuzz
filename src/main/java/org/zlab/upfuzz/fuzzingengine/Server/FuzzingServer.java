@@ -23,6 +23,7 @@ import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.Fault;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.FaultRecover;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.NodeFailure;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.UpgradeOp;
 import org.zlab.upfuzz.hdfs.HdfsCommandPool;
 import org.zlab.upfuzz.hdfs.HdfsExecutor;
@@ -231,9 +232,9 @@ public class FuzzingServer {
         }
     }
 
+    // We never upgrade a node with fault, all fault will be
+    // recovered before upgrading the node
     public TestPlan generateTestPlan(Seed seed) {
-        // TODO: we should prefer to generate commands when there
-        // are nodes in multiple versions
         List<Event> events = new LinkedList<>();
 
         // Some systems might have special requirements for
@@ -250,36 +251,79 @@ public class FuzzingServer {
             }
         }
 
-        // Currently we don't inject an upgrade op between the fault
-        // and its recover. But we can do this later.
-        // We still need to keep the validity of the sequence
-        Map<Integer, Pair<Fault, FaultRecover>> faultMap = new HashMap<>();
-        int idx = 0;
-        for (Pair<Fault, FaultRecover> faultPair : faultPairs) {
-            faultMap.put(idx++, faultPair);
-        }
-        Map<Integer, UpgradeOp> upgradeOpMap = new HashMap<>();
-        for (int i = 0; i < Config.getConf().nodeNum; i++) {
-            upgradeOpMap.put(idx++, new UpgradeOp(i));
-        }
-        List<Integer> eventIndexes = new LinkedList<>();
-        for (int i = 0; i < idx; i++) {
-            eventIndexes.add(i);
-        }
-        Collections.shuffle(eventIndexes);
+        // TODO
+        // Another way: We shuffle upgradeOp, faults
+        // Then we find each fault, and randomly inject the recover in its
+        // behind.
 
-        int nodeIdx = 0;
         List<Event> upgradeOpAndFaults = new LinkedList<>();
-        for (int i = 0; i < idx; i++) { // scan event indexes
-            if (faultMap.containsKey(eventIndexes.get(i))) {
-                upgradeOpAndFaults.add(faultMap.get(eventIndexes.get(i)).left);
-                upgradeOpAndFaults.add(faultMap.get(eventIndexes.get(i)).right);
-            } else {
-                if (Config.getConf().shuffleUpgradeOrder) {
+        if (Config.getConf().upgradeWithFault) {
+            // ugprade operation can happen when there is a failure
+            for (int i = 0; i < Config.getConf().nodeNum; i++) {
+                upgradeOpAndFaults.add(new UpgradeOp(i));
+            }
+            for (Pair<Fault, FaultRecover> faultPair : faultPairs) {
+                int pos1 = rand.nextInt(upgradeOpAndFaults.size() + 1);
+                upgradeOpAndFaults.add(pos1, faultPair.left);
+                int pos2 = Utilities.randWithRange(rand, pos1 + 1,
+                        upgradeOpAndFaults.size() + 1);
+                if (faultPair.left instanceof NodeFailure) {
+                    // the recover must be in the front of node upgrade
+                    int nodeIndex = ((NodeFailure) faultPair.left).nodeIndex;
+                    int nodeUpgradePos = 0;
+                    for (; nodeUpgradePos < upgradeOpAndFaults
+                            .size(); nodeUpgradePos++) {
+                        if (upgradeOpAndFaults
+                                .get(nodeUpgradePos) instanceof UpgradeOp
+                                && ((UpgradeOp) upgradeOpAndFaults.get(
+                                        nodeUpgradePos)).nodeIndex == nodeIndex) {
+                            break;
+                        }
+                    }
+                    assert nodeUpgradePos != pos1;
+                    if (nodeUpgradePos > pos1) {
+                        // [pos1 + 1, nodeUpgradePos]: Num: nodeUpgradePos -
+                        // pos1
+                        // rand.nextInt(nodeUpgradePos - pos1) + pos1 + 1
+                        pos2 = Utilities.randWithRange(rand, pos1 + 1,
+                                nodeUpgradePos + 1);
+                    }
+                }
+                upgradeOpAndFaults.add(pos2, faultPair.right);
+            }
+        } else {
+            // Currently we don't inject an upgrade op between the fault
+            // and its recover. But we can do this later.
+            // We still need to keep the validity of the sequence
+            Map<Integer, Pair<Fault, FaultRecover>> faultMap = new HashMap<>();
+            int idx = 0;
+            for (Pair<Fault, FaultRecover> faultPair : faultPairs) {
+                faultMap.put(idx++, faultPair);
+            }
+            Map<Integer, UpgradeOp> upgradeOpMap = new HashMap<>();
+            for (int i = 0; i < Config.getConf().nodeNum; i++) {
+                upgradeOpMap.put(idx++, new UpgradeOp(i));
+            }
+            List<Integer> eventIndexes = new LinkedList<>();
+            for (int i = 0; i < idx; i++) {
+                eventIndexes.add(i);
+            }
+            Collections.shuffle(eventIndexes);
+
+            int nodeIdx = 0;
+            for (int i = 0; i < idx; i++) { // scan event indexes
+                if (faultMap.containsKey(eventIndexes.get(i))) {
                     upgradeOpAndFaults
-                            .add(upgradeOpMap.get(eventIndexes.get(i)));
+                            .add(faultMap.get(eventIndexes.get(i)).left);
+                    upgradeOpAndFaults
+                            .add(faultMap.get(eventIndexes.get(i)).right);
                 } else {
-                    upgradeOpAndFaults.add(new UpgradeOp(nodeIdx++));
+                    if (Config.getConf().shuffleUpgradeOrder) {
+                        upgradeOpAndFaults
+                                .add(upgradeOpMap.get(eventIndexes.get(i)));
+                    } else {
+                        upgradeOpAndFaults.add(new UpgradeOp(nodeIdx++));
+                    }
                 }
             }
         }
@@ -327,6 +371,34 @@ public class FuzzingServer {
             TestPlanFeedbackPacket testPlanFeedbackPacket) {
         logger.info("test plan feedback: update status");
         // TODO: update status for test plan feed back
+        // Do we utilize the feedback?
+        // Do we mutate the test plan?
+
+        if (Config.getConf().useFeedBack && Utilities.hasNewBits(curCoverage,
+                testPlanFeedbackPacket.feedBack.upgradedCodeCoverage)) {
+            // Add to test plan corpus???
+            Pair<Integer, Integer> upCoverageStatus = Utilities
+                    .getCoverageStatus(
+                            testPlanFeedbackPacket.feedBack.upgradedCodeCoverage);
+            logger.info(String.format(
+                    "[TestPlan Coverage] covered branch num = %d, total branch = %d",
+                    upCoverageStatus.left, upCoverageStatus.right));
+        }
+
+        if (testPlanFeedbackPacket.isEventFailed) {
+            // event execution failed
+            Path crashSubDir = createCrashSubDir();
+
+            String sb = "[Event Execution Failed]\n";
+            sb += testPlanFeedbackPacket.eventFailedReport;
+            Path crashReport = Paths.get(
+                    crashSubDir.toString(),
+                    "crash_" + testPlanFeedbackPacket.testPacketID + ".report");
+            Utilities.write2TXT(crashReport.toFile(), sb, false);
+            crashID++;
+        } else if (testPlanFeedbackPacket.isInconsistent) {
+            // comparing the read/state failed
+        }
 
     }
 

@@ -59,6 +59,16 @@ public class Network {
             ret1 = uniPartition(node1, node2);
             ret2 = uniPartition(node2, node1);
         }
+        if (!ret1) {
+            logger.error(String.format(
+                    "[biPartition] Cannot uniPartition docker[%s] to docker[%s]",
+                    node1.serviceName, node2.serviceName));
+        }
+        if (!ret2) {
+            logger.error(String.format(
+                    "[biPartition] Cannot uniPartition docker[%s] to docker[%s]",
+                    node2.serviceName, node1.serviceName));
+        }
         return ret1 && ret2;
     }
 

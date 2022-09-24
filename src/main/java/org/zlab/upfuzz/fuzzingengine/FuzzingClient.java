@@ -8,7 +8,6 @@ import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.fuzzingengine.Packet.*;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
-import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.hdfs.HdfsExecutor;
 import org.zlab.upfuzz.utils.Pair;
 
@@ -19,9 +18,26 @@ public class FuzzingClient {
 
     public Executor executor;
 
+    // If the cluster cannot start up for 3 times, it means some serious
+    // problems
+    int CLUSTER_START_RETRY = 3;
+
     private Thread t; // new version stop + old version restart
 
     public static Map<Integer, Pair<List<String>, List<String>>> testId2Sequence;
+
+    public void clusterStartUp() {
+        for (int i = 0; i < CLUSTER_START_RETRY; i++) {
+            try {
+                executor.startup();
+                return;
+            } catch (Exception e) {
+                executor.teardown();
+                e.printStackTrace();
+            }
+        }
+        throw new RuntimeException("cluster cannot start up");
+    }
 
     FuzzingClient() {
         init();
@@ -31,12 +47,7 @@ public class FuzzingClient {
             executor = new HdfsExecutor();
         }
         t = new Thread(() -> {
-            try {
-                executor.startup();
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            }
+            clusterStartUp();
         }); // Startup before tests
         t.start();
     }
@@ -74,17 +85,12 @@ public class FuzzingClient {
         }
     }
 
-    public void restartCluster() {
+    public void clusterRestart() {
         t = new Thread(() -> {
             executor.upgradeTeardown();
             executor.clearState();
             executor.teardown();
-            try {
-                executor.startup();
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            }
+            clusterStartUp();
         });
         t.start();
     }
@@ -187,7 +193,7 @@ public class FuzzingClient {
         }
         logger.info(executor.systemID + " executor: " + executor.executorID
                 + " finished execution");
-        restartCluster();
+        clusterRestart();
         return stackedFeedbackPacket;
     }
 
@@ -203,15 +209,6 @@ public class FuzzingClient {
         // For test plan, we don't distinguish the old version coverage
         // and the new verison coverage. We only collect the final coverage
 
-        if (!status) {
-            // The test plan has some problems
-            // - (1) Some event cannot execute correctly
-            // - (2) There is an inconsistency between rolling upgrade and
-            // full-stop upgrade
-            // We should report it.
-            logger.error("The test plan execution met a problem");
-        }
-
         FeedBack fb = new FeedBack();
         fb.upgradedCodeCoverage = executor.collect("upgraded");
         if (fb.upgradedCodeCoverage == null) {
@@ -220,8 +217,34 @@ public class FuzzingClient {
         }
         TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
                 testPlanPacket.systemID, testPlanPacket.testPacketID, fb);
+        if (!status) {
+            // Now we only support checking the state of events
+            // The test plan has some problems
+            // - (1) Some event cannot execute correctly
+            // - (2) There is an inconsistency between rolling upgrade and
+            // full-stop upgrade
+            // - (3) Node crashed unexpectedly.
+            // We should report it.
+            int buggyEventIdx = executor.eventIdx;
+            testPlanFeedbackPacket.isEventFailed = true;
 
-        restartCluster();
+            String eventFailedReport = "";
+            eventFailedReport += String.format(
+                    "Test plan execution failed at event[%d]\n\n",
+                    buggyEventIdx);
+            eventFailedReport += testPlanPacket.getTestPlan().toString();
+            testPlanFeedbackPacket.eventFailedReport = eventFailedReport;
+
+            testPlanFeedbackPacket.isInconsistent = true;
+            testPlanFeedbackPacket.inconsistencyReport = "";
+
+            logger.error(String.format(
+                    "The test plan execution met a problem when executing event[%d]",
+                    buggyEventIdx));
+        }
+
+        // TODO: We should also control the nodeNum in the test file
+        clusterRestart();
         return testPlanFeedbackPacket;
     }
 

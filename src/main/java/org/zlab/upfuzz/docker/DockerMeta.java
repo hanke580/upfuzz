@@ -44,6 +44,7 @@ public abstract class DockerMeta {
     public int index;
     public String executorID;
     public String containerName;
+    public String serviceName;
 
     public Process runInContainer(String[] cmd, String[] env)
             throws IOException, InterruptedException {

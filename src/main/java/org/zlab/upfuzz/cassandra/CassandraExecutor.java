@@ -7,6 +7,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.CommandSequence;
@@ -53,7 +54,7 @@ public class CassandraExecutor extends Executor {
         // TODO: GC the old coverage since we already get the overall coverage.
         agentStore = new HashMap<>();
         agentHandler = new HashMap<>();
-        sessionGroup = new HashMap<>();
+        sessionGroup = new ConcurrentHashMap<>();
     }
 
     public boolean isCassandraReady(String oldSystemPath) {
