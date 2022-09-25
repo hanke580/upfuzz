@@ -55,6 +55,8 @@ public class Config {
         public boolean alwaysRecoverFault = false;
         public float noRecoverProb = 0.5f;
 
+        public boolean fullStopTest = true;
+
         public boolean testPlanMode = true;
         public boolean stackedTestPacketMode = true;
 

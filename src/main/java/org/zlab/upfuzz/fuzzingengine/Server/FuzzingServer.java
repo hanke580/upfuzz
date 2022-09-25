@@ -138,19 +138,21 @@ public class FuzzingServer {
         // Start from simple. Start up three nodes and only execute the test
         // plan!
 
-        if (!testPlanPackets.isEmpty()) {
+        if (Config.getConf().fullStopTest) {
+            if (!stackedTestPackets.isEmpty()) {
+                return stackedTestPackets.poll();
+            }
+            fuzzOne();
+            assert !stackedTestPackets.isEmpty();
+            return stackedTestPackets.poll();
+        } else {
+            if (!testPlanPackets.isEmpty()) {
+                return testPlanPackets.poll();
+            }
+            fuzzTestPlan();
+            assert !testPlanPackets.isEmpty();
             return testPlanPackets.poll();
         }
-        fuzzTestPlan();
-        assert !testPlanPackets.isEmpty();
-        return testPlanPackets.poll();
-
-        // if (!stackedTestPackets.isEmpty()) {
-        // return stackedTestPackets.poll();
-        // }
-        // fuzzOne();
-        // assert !stackedTestPackets.isEmpty();
-        // return stackedTestPackets.poll();
     }
 
     private void fuzzOne() {
