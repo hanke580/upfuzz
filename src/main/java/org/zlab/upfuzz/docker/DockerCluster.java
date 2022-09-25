@@ -123,6 +123,13 @@ public abstract class DockerCluster implements IDockerCluster {
             return false;
         if (nodeIndex1 == nodeIndex2)
             return false;
+        // If one of the node is down, what should we do?
+        // - We shouldn't inject faults here right? The
+        // - container is completely down
+        if (!dockerStates[nodeIndex1].alive
+                || !dockerStates[nodeIndex2].alive) {
+            return false;
+        }
         logger.info("[LinkFailure] node" + nodeIndex1 + ", node" + nodeIndex2);
         return network.biPartition(dockers[nodeIndex1], dockers[nodeIndex2]);
     }
@@ -138,6 +145,8 @@ public abstract class DockerCluster implements IDockerCluster {
 
     public boolean isolateNode(int nodeIndex) {
         if (!checkIndex(nodeIndex))
+            return false;
+        if (!dockerStates[nodeIndex].alive)
             return false;
         Set<Docker> peers = new HashSet<>();
         for (int i = 0; i < nodeNum; i++) {
@@ -164,11 +173,11 @@ public abstract class DockerCluster implements IDockerCluster {
             return false;
         }
         for (int nodeIndex : nodeSet1) {
-            if (!checkIndex(nodeIndex))
+            if (!checkIndex(nodeIndex) || !dockerStates[nodeIndex].alive)
                 return false;
         }
         for (int nodeIndex : nodeSet2) {
-            if (!checkIndex((nodeIndex)))
+            if (!checkIndex(nodeIndex) || !dockerStates[nodeIndex].alive)
                 return false;
         }
 
@@ -244,9 +253,15 @@ public abstract class DockerCluster implements IDockerCluster {
                     containerRecoverCMD,
                     workdir);
             containerRecoverProcess.waitFor();
+
+            // recreate the cqlsh connection
+            logger.info(String.format("[HKLOG] Wait for node to restart",
+                    nodeIndex));
+            dockers[nodeIndex].start();
+
             logger.info(
                     String.format("Node%d recover successfully!", nodeIndex));
-        } catch (IOException | InterruptedException e) {
+        } catch (Exception e) {
             logger.error("Cannot delete container index "
                     + dockers[nodeIndex].containerName, e);
             return false;

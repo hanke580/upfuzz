@@ -335,7 +335,7 @@ public class STRINGType extends ParameterType.BasicConcreteType {
 
     @Override
     public boolean addToPool(Object val) {
-        if (val instanceof String) {
+        if (val instanceof String && !((String) val).contains(" ")) {
             stringPool.add((String) val);
             return true;
         }

@@ -65,7 +65,7 @@ public class AgentServerHandler
                 okCMD.countDown();
             }
 
-            logger.debug("connection closed");
+            // logger.debug("connection closed");
             socket.close();
             // synchronized (fileWriter) {
             // fileWriter.flush();
@@ -93,8 +93,8 @@ public class AgentServerHandler
         if (!executor.sessionGroup.containsKey(executorID)) {
             executor.sessionGroup.put(executorID, new ArrayList<>());
         }
-        logger.info("adding sessionId: " + sessionId);
-        logger.info("executorID: " + executorID);
+        // logger.info("adding sessionId: " + sessionId);
+        // logger.info("executorID: " + executorID);
         executor.sessionGroup.get(executorID).add(sessionId);
         registered = true;
     }

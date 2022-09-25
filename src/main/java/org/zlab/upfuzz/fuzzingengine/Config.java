@@ -51,9 +51,9 @@ public class Config {
         // The max number of faults in a test plan (inclusive)
         public int faultMaxNum = 2; // disable faults for now
         public boolean useFeedBack = true;
-        public boolean upgradeWithFault = true;
         public boolean alwaysRecoverFault = false;
         public float noRecoverProb = 0.5f;
+        public boolean useExampleTestPlan = false;
 
         public boolean fullStopTest = true;
 

@@ -159,7 +159,7 @@ public class CassandraDocker extends Docker {
     }
 
     public void upgrade() throws Exception {
-        int ret = 0;
+        int ret;
 
         logger.info("[HKLOG] FLUSING!");
 

@@ -169,9 +169,15 @@ public abstract class Executor implements IExecutor {
             logger.info(String.format("\nhandle %s\n", event));
             if (event instanceof Fault) {
                 if (!handleFault((Fault) event)) {
-                    logger.error("fault problem");
-                    status = false;
-                    break;
+                    // If a fault cannot be injected, there could be two faults
+                    // which are stacked together
+                    // nodefailure(1) -> isolate(1): isolate cannot finish
+                    // because
+                    // node1 is down
+                    // We should keep executing anyway
+                    logger.error(
+                            String.format("Cannot Inject {%s} here", event));
+
                 }
             } else if (event instanceof FaultRecover) {
                 if (!handleFaultRecover((FaultRecover) event)) {

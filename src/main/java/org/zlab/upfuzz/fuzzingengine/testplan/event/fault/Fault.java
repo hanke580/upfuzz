@@ -7,6 +7,7 @@ import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
@@ -64,6 +65,15 @@ public abstract class Fault extends Event {
         }
 
         return new Pair<>(fault, faultRecover);
+    }
+
+    public static List<Pair<Fault, FaultRecover>> randomGenerateFaults(
+            int nodeNum, int faultNum) {
+        List<Pair<Fault, FaultRecover>> faults = new LinkedList<>();
+        for (int i = 0; i < faultNum; i++) {
+            faults.add(randomGenerateFault(nodeNum));
+        }
+        return faults;
     }
 
     abstract public FaultRecover generateRecover();
