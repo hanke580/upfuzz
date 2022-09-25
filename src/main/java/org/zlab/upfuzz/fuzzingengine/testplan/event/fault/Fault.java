@@ -2,6 +2,7 @@ package org.zlab.upfuzz.fuzzingengine.testplan.event.fault;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
@@ -55,8 +56,14 @@ public abstract class Fault extends Event {
             return null;
 
         // TODO: Set a certain probability that the fault recover could be null?
+        FaultRecover faultRecover = fault.generateRecover();
+        if (!Config.getConf().alwaysRecoverFault) {
+            if (rand.nextFloat() < Config.getConf().noRecoverProb) {
+                faultRecover = null;
+            }
+        }
 
-        return new Pair<>(fault, fault.generateRecover());
+        return new Pair<>(fault, faultRecover);
     }
 
     abstract public FaultRecover generateRecover();

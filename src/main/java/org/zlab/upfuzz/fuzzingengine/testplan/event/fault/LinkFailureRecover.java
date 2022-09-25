@@ -13,7 +13,7 @@ public class LinkFailureRecover extends FaultRecover {
     @Override
     public String toString() {
         return String.format(
-                "[FaultRecover] Recover from LinkFailure: Node[%d], Node[%d]",
+                "[FaultRecover] LinkFailure Recover: Node[%d], Node[%d]",
                 nodeIndex1, nodeIndex2);
     }
 }

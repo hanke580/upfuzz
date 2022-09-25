@@ -11,7 +11,7 @@ public class IsolateFailureRecover extends FaultRecover {
     @Override
     public String toString() {
         return String.format(
-                "[FaultRecover] Recover from Isolate Failure: Node[%d]",
+                "[FaultRecover] IsolateFailure: Node[%d]",
                 nodeIndex);
     }
 }

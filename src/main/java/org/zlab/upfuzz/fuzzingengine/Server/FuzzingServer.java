@@ -21,9 +21,7 @@ import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
-import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.Fault;
-import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.FaultRecover;
-import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.NodeFailure;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.*;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.UpgradeOp;
 import org.zlab.upfuzz.hdfs.HdfsCommandPool;
 import org.zlab.upfuzz.hdfs.HdfsExecutor;
@@ -255,7 +253,6 @@ public class FuzzingServer {
         // Another way: We shuffle upgradeOp, faults
         // Then we find each fault, and randomly inject the recover in its
         // behind.
-
         List<Event> upgradeOpAndFaults = new LinkedList<>();
         if (Config.getConf().upgradeWithFault) {
             // ugprade operation can happen when there is a failure
@@ -281,7 +278,14 @@ public class FuzzingServer {
                         }
                     }
                     assert nodeUpgradePos != pos1;
-                    if (nodeUpgradePos > pos1) {
+                    if (nodeUpgradePos > pos1
+                            && nodeUpgradePos < upgradeOpAndFaults.size()) {
+                        if (faultPair.right == null) {
+                            // Remove the upgrade operation since there's no
+                            // recover
+                            upgradeOpAndFaults.remove(nodeUpgradePos);
+                            continue;
+                        }
                         // [pos1 + 1, nodeUpgradePos]: Num: nodeUpgradePos -
                         // pos1
                         // rand.nextInt(nodeUpgradePos - pos1) + pos1 + 1
@@ -289,12 +293,11 @@ public class FuzzingServer {
                                 nodeUpgradePos + 1);
                     }
                 }
-                upgradeOpAndFaults.add(pos2, faultPair.right);
+                if (faultPair.right != null)
+                    upgradeOpAndFaults.add(pos2, faultPair.right);
             }
         } else {
-            // Currently we don't inject an upgrade op between the fault
-            // and its recover. But we can do this later.
-            // We still need to keep the validity of the sequence
+            // Upgrade will not be executed under a fault
             Map<Integer, Pair<Fault, FaultRecover>> faultMap = new HashMap<>();
             int idx = 0;
             for (Pair<Fault, FaultRecover> faultPair : faultPairs) {
@@ -313,10 +316,13 @@ public class FuzzingServer {
             int nodeIdx = 0;
             for (int i = 0; i < idx; i++) { // scan event indexes
                 if (faultMap.containsKey(eventIndexes.get(i))) {
-                    upgradeOpAndFaults
-                            .add(faultMap.get(eventIndexes.get(i)).left);
-                    upgradeOpAndFaults
-                            .add(faultMap.get(eventIndexes.get(i)).right);
+                    Pair<Fault, FaultRecover> faultPair = faultMap
+                            .get(eventIndexes.get(i));
+                    upgradeOpAndFaults.add(faultPair.left);
+                    if (faultPair.right != null) {
+                        upgradeOpAndFaults
+                                .add(faultPair.right);
+                    }
                 } else {
                     if (Config.getConf().shuffleUpgradeOrder) {
                         upgradeOpAndFaults
@@ -326,6 +332,41 @@ public class FuzzingServer {
                     }
                 }
             }
+
+            // An addition scan to remove the upgrade op after a node failure
+            // without crash
+            Set<Integer> removeIdx = new HashSet<>();
+            for (int i = 0; i < upgradeOpAndFaults.size(); i++) {
+                if (upgradeOpAndFaults.get(i) instanceof NodeFailure) {
+                    int nodeIndex = ((NodeFailure) upgradeOpAndFaults
+                            .get(i)).nodeIndex;
+                    // find whether there is any upgrade operation of this node
+                    for (int j = i + 1; j < upgradeOpAndFaults.size(); j++) {
+                        if (upgradeOpAndFaults
+                                .get(j) instanceof NodeFailureRecover) {
+                            if (((NodeFailureRecover) upgradeOpAndFaults
+                                    .get(j)).nodeIndex == nodeIndex) {
+                                break;
+                            }
+                        }
+                        if (upgradeOpAndFaults.get(j) instanceof UpgradeOp) {
+                            if (((UpgradeOp) upgradeOpAndFaults
+                                    .get(j)).nodeIndex == nodeIndex) {
+                                // remove this upgrade op
+                                removeIdx.add(j);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            List<Event> updatedUpgradeOpAndFaults = new LinkedList<>();
+            for (int i = 0; i < upgradeOpAndFaults.size(); i++) {
+                if (!removeIdx.contains(i)) {
+                    updatedUpgradeOpAndFaults.add(upgradeOpAndFaults.get(i));
+                }
+            }
+            upgradeOpAndFaults = updatedUpgradeOpAndFaults;
         }
 
         // TODO: If the node is current down, we should switch to

@@ -49,9 +49,11 @@ public class Config {
         // Whether we shuffle the upgrade order
         public boolean shuffleUpgradeOrder = false;
         // The max number of faults in a test plan (inclusive)
-        public int faultMaxNum = 10; // disable faults for now
+        public int faultMaxNum = 2; // disable faults for now
         public boolean useFeedBack = true;
-        public boolean upgradeWithFault = false;
+        public boolean upgradeWithFault = true;
+        public boolean alwaysRecoverFault = false;
+        public float noRecoverProb = 0.5f;
 
         public boolean testPlanMode = true;
         public boolean stackedTestPacketMode = true;
