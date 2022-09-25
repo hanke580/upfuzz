@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.fuzzingengine.Packet.*;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
@@ -76,9 +77,6 @@ public class FuzzingClient {
             t.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
-            // clean system state, restart the executor
-            // (1) clean system state
-            // (2) restart
             executor.teardown();
             executor.clearState();
             executor.startup();
@@ -110,13 +108,14 @@ public class FuzzingClient {
 
         Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();
         Map<Integer, List<String>> testID2oriResults = new HashMap<>();
-        Map<Integer, List<String>> testID2upResults;
+        Map<Integer, List<String>> testID2upResults = new HashMap<>();
 
         FeedBack fb;
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             logger.trace("Execute testpacket " + tp.systemID + " " +
                     tp.testPacketID);
-            executor.execute(tp);
+            executor.execute(tp.originalCommandSequenceList);
+
             fb = new FeedBack();
             fb.originalCodeCoverage = executor.collect("original");
             if (fb.originalCodeCoverage == null) {
@@ -127,22 +126,19 @@ public class FuzzingClient {
                     tp.testPacketID,
                     new FeedbackPacket(tp.systemID, tp.testPacketID, fb));
 
-            List<String> oriResult = executor.executeRead(tp.testPacketID);
+            List<String> oriResult = executor
+                    .execute(tp.validationCommandSequneceList);
             testID2oriResults.put(tp.testPacketID, oriResult);
         }
 
-        // Perform upgrade (1) check whether upgrade succeeds (2) new version
-        // read
-        // results, compare
-        // executor.teardown();
         executor.saveSnapshot();
-        executor.moveSnapShot();
 
         StackedFeedbackPacket stackedFeedbackPacket = new StackedFeedbackPacket();
         stackedFeedbackPacket.stackedCommandSequenceStr = recordAllStackedTests(
                 stackedTestPacket);
 
-        boolean ret = executor.upgradeTest();
+        // Upgrade should only contain the upgrade process
+        boolean ret = executor.upgrade();
 
         if (!ret) {
             // upgrade process failed
@@ -151,7 +147,22 @@ public class FuzzingClient {
         } else {
             // upgrade process succeeds, compare results here
             logger.info("upgrade succeed");
-            testID2upResults = executor.getTestId2newVersionResult();
+
+            for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
+                List<String> upResult = executor
+                        .execute(tp.validationCommandSequneceList);
+                testID2upResults.put(tp.testPacketID, upResult);
+                ExecutionDataStore upgradeCoverage = executor
+                        .collect("upgraded");
+                if (upgradeCoverage == null) {
+                    logger.info("ERROR: null upgrade code coverage");
+                    System.exit(1);
+                }
+                testID2FeedbackPacket.get(
+                        tp.testPacketID).feedBack.upgradedCodeCoverage = upgradeCoverage;
+            }
+
+            // Check read results consistency
 
             for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
                 Pair<Boolean, String> compareRes = executor

@@ -32,16 +32,6 @@ public class NullExecutor extends Executor {
     }
 
     @Override
-    public int moveSnapShot() {
-        return 0;
-    }
-
-    @Override
-    public boolean upgradeTest() {
-        return true;
-    }
-
-    @Override
     public List<String> executeCommands(List<String> commandList) {
         return null;
     }
@@ -49,7 +39,6 @@ public class NullExecutor extends Executor {
     @Override
     public String execShellCommand(ShellCommand command) {
         return null;
-
     }
 
     @Override
@@ -58,6 +47,7 @@ public class NullExecutor extends Executor {
     }
 
     @Override
-    public void upgrade() throws Exception {
+    public boolean upgrade() {
+        return false;
     }
 }

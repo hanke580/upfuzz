@@ -28,7 +28,7 @@ public class HdfsExecutor extends Executor {
     }
 
     @Override
-    public boolean upgradeTest() {
+    public boolean upgrade() {
         try {
             System.out.println("start hadoop...");
             ProcessBuilder hdfsProcessBuilder = new ProcessBuilder(
@@ -306,7 +306,7 @@ public class HdfsExecutor extends Executor {
      * rolling upgrade.
      * @throws InterruptedException
      */
-    public void upgrade() throws IOException, InterruptedException {
+    public void upgrade_() throws IOException, InterruptedException {
 
         // Prepare Rolling Upgrade
 
@@ -374,9 +374,4 @@ public class HdfsExecutor extends Executor {
         return 0;
     }
 
-    @Override
-    public int moveSnapShot() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
 }

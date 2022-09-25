@@ -188,17 +188,6 @@ public class CassandraExecutor extends Executor {
 
                 ret.add(cp.message);
             }
-            // When the first tp is executed, inject a fault here for testing
-            // method
-            // Set the nodeNum in cluster as 2
-            // dockerCluster.partition(0, 1);
-
-            // if (Config.getConf().nodeNum > 1 && !partition_test) {
-            // // kill a container
-            // dockerCluster.killContainer(1);
-            // }
-
-            // cqlsh.destroy();
         } catch (IOException e) {
             e.printStackTrace();
             return null;
@@ -288,25 +277,14 @@ public class CassandraExecutor extends Executor {
     }
 
     @Override
-    public int moveSnapShot() {
-        return 0;
-    }
-
-    @Override
-    public boolean upgradeTest() {
+    public boolean upgrade() {
+        // Only perform upgrade
         try {
             dockerCluster.upgrade();
             this.cqlsh = ((CassandraDocker) dockerCluster.getDocker(0)).cqlsh;
         } catch (Exception e) {
             logger.error("Failed to connect to upgraded cassandra cluster", e);
         }
-        for (Integer testId : testId2commandSequence.keySet()) {
-            testId2newVersionResult.put(
-                    testId, newVersionExecuteCommands(
-                            testId2commandSequence.get(testId).right));
-        }
-        logger.info("upgrade test done");
-
         return true;
     }
 
@@ -361,8 +339,4 @@ public class CassandraExecutor extends Executor {
         }
     }
 
-    @Override
-    public void upgrade() throws Exception {
-        // TODO Auto-generated method stub
-    }
 }

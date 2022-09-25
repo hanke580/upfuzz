@@ -16,5 +16,5 @@ public interface IExecutor {
      * Check whether any exception happens.
      * @return
      */
-    boolean upgradeTest();
+    boolean upgrade();
 }

@@ -61,8 +61,8 @@ public class FuzzingServer {
     public static long lastTimePoint = 0;
     public long startTime;
 
-    ExecutionDataStore curCoverage;
-    ExecutionDataStore upCoverage;
+    ExecutionDataStore curOriCoverage;
+    ExecutionDataStore curUpCoverage;
 
     public static int round = 0;
     public static int epoch = 0;
@@ -72,8 +72,8 @@ public class FuzzingServer {
         testID2Seed = new HashMap<>();
         stackedTestPackets = new LinkedList<>();
         testPlanPackets = new LinkedList<>();
-        curCoverage = new ExecutionDataStore();
-        upCoverage = new ExecutionDataStore();
+        curOriCoverage = new ExecutionDataStore();
+        curUpCoverage = new ExecutionDataStore();
 
         startTime = TimeUnit.SECONDS.convert(System.nanoTime(),
                 TimeUnit.NANOSECONDS);
@@ -279,7 +279,7 @@ public class FuzzingServer {
         // Do we utilize the feedback?
         // Do we mutate the test plan?
 
-        if (Config.getConf().useFeedBack && Utilities.hasNewBits(curCoverage,
+        if (Config.getConf().useFeedBack && Utilities.hasNewBits(curOriCoverage,
                 testPlanFeedbackPacket.feedBack.upgradedCodeCoverage)) {
             // Add to test plan corpus???
             Pair<Integer, Integer> upCoverageStatus = Utilities
@@ -332,15 +332,28 @@ public class FuzzingServer {
         for (FeedbackPacket feedbackPacket : stackedFeedbackPacket
                 .getFpList()) {
             finishedTestID++;
-            if (Config.getConf().useFeedBack && Utilities.hasNewBits(
-                    curCoverage,
-                    feedbackPacket.feedBack.originalCodeCoverage)) {
-                // Write Seed to Disk + Add to Corpus
-                Seed seed = testID2Seed.get(feedbackPacket.testPacketID);
-                Fuzzer.saveSeed(seed.originalCommandSequence,
-                        seed.validationCommandSequnece);
-                corpus.addSeed(seed);
-                curCoverage.merge(feedbackPacket.feedBack.originalCodeCoverage);
+            if (Config.getConf().useFeedBack) {
+                boolean addToCorpus = false;
+                if (Utilities.hasNewBits(
+                        curOriCoverage,
+                        feedbackPacket.feedBack.originalCodeCoverage)) {
+                    // Write Seed to Disk + Add to Corpus
+                    curOriCoverage.merge(
+                            feedbackPacket.feedBack.originalCodeCoverage);
+                    addToCorpus = true;
+                }
+                if (Utilities.hasNewBits(curUpCoverage,
+                        feedbackPacket.feedBack.upgradedCodeCoverage)) {
+                    curUpCoverage.merge(
+                            feedbackPacket.feedBack.upgradedCodeCoverage);
+                    addToCorpus = true;
+                }
+                if (addToCorpus) {
+                    Seed seed = testID2Seed.get(feedbackPacket.testPacketID);
+                    Fuzzer.saveSeed(seed.originalCommandSequence,
+                            seed.validationCommandSequnece);
+                    corpus.addSeed(seed);
+                }
             }
 
             if (!stackedFeedbackPacket.isUpgradeProcessFailed &&
@@ -366,10 +379,15 @@ public class FuzzingServer {
         }
 
         // Update the coveredBranches to the newest value
-        Pair<Integer, Integer> coverageStatus = Utilities
-                .getCoverageStatus(curCoverage);
-        originalCoveredBranches = coverageStatus.left;
-        originalProbeNum = coverageStatus.right;
+        Pair<Integer, Integer> curOriCoverageStatus = Utilities
+                .getCoverageStatus(curOriCoverage);
+        originalCoveredBranches = curOriCoverageStatus.left;
+        originalProbeNum = curOriCoverageStatus.right;
+
+        Pair<Integer, Integer> curUpCoverageStatus = Utilities
+                .getCoverageStatus(curUpCoverage);
+        upgradedCoveredBranches = curUpCoverageStatus.left;
+        upgradedProbeNum = curUpCoverageStatus.right;
 
         Long timeElapsed = TimeUnit.SECONDS.convert(
                 System.nanoTime(), TimeUnit.NANOSECONDS) - startTime;
@@ -413,12 +431,14 @@ public class FuzzingServer {
                         + "Round = " + round + "|"
                         + "Crash Found = " + crashID + "|"
                         + "Current Test ID = " + testID + "|"
-                        + "Finished Test Num = " + finishedTestID + "|" +
-                        "Covered Branches Num = " + originalCoveredBranches
+                        + "Finished Test Num = " + finishedTestID + "|"
+                        + "Covered oriBranches Num = " + originalCoveredBranches
                         + "|"
-                        + "Total Branch Num = " + originalProbeNum + "|"
-                        + "Time Elapsed = " + timeElapsed + "s"
+                        + "Total oriBranch Num = " + originalProbeNum + "|"
+                        + "Covered upBranches Num = " + upgradedCoveredBranches
                         + "|"
+                        + "Total upBranch Num = " + upgradedProbeNum + "|"
+                        + "Time Elapsed = " + timeElapsed + "s" + "|"
                         + "\n"
                         +
                         "-----------------------------------------------------------------"

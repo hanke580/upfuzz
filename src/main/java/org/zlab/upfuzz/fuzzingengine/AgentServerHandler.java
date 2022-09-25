@@ -3,6 +3,7 @@ package org.zlab.upfuzz.fuzzingengine;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.LogManager;
@@ -84,14 +85,23 @@ public class AgentServerHandler
             System.err.println("Invalid sessionId " + sessionId);
             return;
         }
+        if (executor.agentHandler.containsKey(sessionId)
+                || sessionSplit[3].equals("null")) {
+            return;
+        }
         logger.info("Agent" + socket.getRemoteSocketAddress().toString() + " " +
-                info.getId() + " registered");
+                sessionId + " registered");
+        // There could be several process to monitor
+        // We need to update this variable
+        // How to make sure that handler is updated???
+        // We performed the upgrade but packet is not received.
+        // We might lose the coverage
         executor.agentHandler.put(sessionId, this);
 
         String identifier = sessionSplit[0], executorID = sessionSplit[1],
                 index = sessionSplit[2], nodeID = sessionSplit[3];
         if (!executor.sessionGroup.containsKey(executorID)) {
-            executor.sessionGroup.put(executorID, new ArrayList<>());
+            executor.sessionGroup.put(executorID, new HashSet<>());
         }
         // logger.info("adding sessionId: " + sessionId);
         // logger.info("executorID: " + executorID);

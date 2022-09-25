@@ -16,7 +16,7 @@ public class FeedbackPacket extends Packet {
     public String systemID;
     public int testPacketID;
 
-    public FeedBack feedBack;
+    public FeedBack feedBack; // It should contain each node
     public boolean isInconsistent; // true if inconsistent
     public String inconsistencyReport; // The inconsistency information should
                                        // be placed here

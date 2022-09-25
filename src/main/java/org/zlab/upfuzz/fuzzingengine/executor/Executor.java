@@ -5,19 +5,18 @@ import java.rmi.UnexpectedException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.util.JsonUtils;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.*;
 import org.zlab.upfuzz.docker.DockerCluster;
 import org.zlab.upfuzz.docker.DockerMeta;
 import org.zlab.upfuzz.fuzzingengine.AgentServerHandler;
 import org.zlab.upfuzz.fuzzingengine.AgentServerSocket;
-import org.zlab.upfuzz.fuzzingengine.Packet.TestPacket;
 import org.zlab.upfuzz.fuzzingengine.Server.Seed;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
@@ -37,10 +36,6 @@ public abstract class Executor implements IExecutor {
     public String executorID;
     public String systemID = "UnknowDS";
 
-    public Map<Integer, Pair<List<String>, List<String>>> testId2commandSequence;
-    public Map<Integer, List<String>> testId2oldVersionResult;
-    public Map<Integer, List<String>> testId2newVersionResult;
-
     public DockerCluster dockerCluster;
 
     /**
@@ -54,15 +49,12 @@ public abstract class Executor implements IExecutor {
 
     /* key: UUID String -> executor Id
      * value: List<String> -> list of all alive agents with the executor Id */
-    public ConcurrentHashMap<String, List<String>> sessionGroup;
+    public ConcurrentHashMap<String, Set<String>> sessionGroup;
 
     /* socket for client and agents to communicate*/
     public AgentServerSocket agentSocket;
 
     protected Executor() {
-        testId2commandSequence = new HashMap<>();
-        testId2oldVersionResult = new HashMap<>();
-        testId2newVersionResult = new HashMap<>();
         executorID = RandomStringUtils.randomAlphanumeric(8);
     }
 
@@ -71,28 +63,8 @@ public abstract class Executor implements IExecutor {
         this.systemID = systemID;
     }
 
-    public Map<Integer, List<String>> getTestId2newVersionResult() {
-        return testId2newVersionResult;
-    }
-
-    public void setTestId2newVersionResult(
-            Map<Integer, List<String>> testId2newVersionResult) {
-        this.testId2newVersionResult = testId2newVersionResult;
-    }
-
-    public Map<Integer, List<String>> getTestId2oldVersionResult() {
-        return testId2oldVersionResult;
-    }
-
-    public void setTestId2oldVersionResult(
-            Map<Integer, List<String>> testId2oldVersionResult) {
-        this.testId2oldVersionResult = testId2oldVersionResult;
-    }
-
     public void clearState() {
-        testId2commandSequence.clear();
-        testId2oldVersionResult.clear();
-        testId2newVersionResult.clear();
+
         executorID = RandomStringUtils.randomAlphanumeric(8);
     }
 
@@ -143,15 +115,8 @@ public abstract class Executor implements IExecutor {
         return validationCommandSequence;
     }
 
-    public void execute(TestPacket testPacket) {
-        testId2commandSequence.put(
-                testPacket.testPacketID,
-                new Pair<>(testPacket.originalCommandSequenceList,
-                        testPacket.validationCommandSequneceList));
-
-        // testPacket should contain List<Event>
-        // It can be (1) cqlsh command (2) a fault (3) admin command
-        executeCommands(testPacket.originalCommandSequenceList);
+    public List<String> execute(List<String> commands) {
+        return executeCommands(commands);
     }
 
     public boolean execute(TestPlan testPlan) {
@@ -169,12 +134,7 @@ public abstract class Executor implements IExecutor {
             logger.info(String.format("\nhandle %s\n", event));
             if (event instanceof Fault) {
                 if (!handleFault((Fault) event)) {
-                    // If a fault cannot be injected, there could be two faults
-                    // which are stacked together
-                    // nodefailure(1) -> isolate(1): isolate cannot finish
-                    // because
-                    // node1 is down
-                    // We should keep executing anyway
+                    // If fault injection fails, keep executing
                     logger.error(
                             String.format("Cannot Inject {%s} here", event));
 
@@ -209,16 +169,11 @@ public abstract class Executor implements IExecutor {
     // Slower, but more general
     abstract public void execNormalCommand(Command command);
 
-    public List<String> executeRead(int testId) {
-        List<String> oldVersionResult = executeCommands(
-                testId2commandSequence.get(testId).right);
-
-        testId2oldVersionResult.put(testId, oldVersionResult);
-        return oldVersionResult;
-    }
-
     public ExecutionDataStore collect(String version) {
-        List<String> agentIdList = sessionGroup.get(executorID + "_" + version);
+        // TODO: Separate the coverage here
+        Set<String> agentIdList = sessionGroup.get(executorID + "_" + version);
+        logger.info("agentIdList: " + agentIdList);
+        logger.info("executorID = " + executorID);
         if (agentIdList == null) {
             new UnexpectedException("No agent connection with executor " +
                     executorID)
@@ -260,10 +215,6 @@ public abstract class Executor implements IExecutor {
     }
 
     abstract public int saveSnapshot();
-
-    abstract public int moveSnapShot();
-
-    abstract public void upgrade() throws Exception;
 
     public Pair<Boolean, String> checkResultConsistency(List<String> oriResult,
             List<String> upResult) {
