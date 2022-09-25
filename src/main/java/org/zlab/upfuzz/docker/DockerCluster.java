@@ -237,12 +237,15 @@ public abstract class DockerCluster implements IDockerCluster {
 
         // docker-compose recover SERVICE_NAME
         try {
-            String[] killContainerCMD = new String[] {
+            String[] containerRecoverCMD = new String[] {
                     "docker-compose", "restart", dockers[nodeIndex].serviceName
             };
-            Process killContainerProcess = Utilities.exec(killContainerCMD,
+            Process containerRecoverProcess = Utilities.exec(
+                    containerRecoverCMD,
                     workdir);
-            killContainerProcess.waitFor();
+            containerRecoverProcess.waitFor();
+            logger.info(
+                    String.format("Node%d recover successfully!", nodeIndex));
         } catch (IOException | InterruptedException e) {
             logger.error("Cannot delete container index "
                     + dockers[nodeIndex].containerName, e);
