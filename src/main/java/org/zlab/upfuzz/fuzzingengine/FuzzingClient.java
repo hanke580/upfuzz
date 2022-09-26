@@ -226,6 +226,7 @@ public class FuzzingClient {
             logger.info("ERROR: null upgrade code coverage");
             System.exit(1);
         }
+        logger.info("Finished Execution");
         TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
                 testPlanPacket.systemID, testPlanPacket.testPacketID, fb);
         if (!status) {
@@ -255,6 +256,19 @@ public class FuzzingClient {
         }
 
         // TODO: We should also control the nodeNum in the test file
+        // Start up one cluster, execute the test plan, keep this cluster
+        // for debugging and exit.
+        if (Config.getConf().startUpOneCluster) {
+            logger.info("Start up a cluster and leave it for debugging");
+            try {
+                Thread.sleep(1800 * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.exit(1);
+
+        }
+
         clusterRestart();
         return testPlanFeedbackPacket;
     }

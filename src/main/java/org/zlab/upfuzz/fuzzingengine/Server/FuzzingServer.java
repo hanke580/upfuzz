@@ -256,11 +256,12 @@ public class FuzzingServer {
             logger.info("use example test plan");
             upgradeOpAndFaults = new LinkedList<>();
             // nodeNum should be 3
-            for (int i = 0; i < Config.getConf().nodeNum; i++) {
+            assert Config.getConf().nodeNum == 3;
+            for (int i = 0; i < Config.getConf().nodeNum - 1; i++) {
                 upgradeOpAndFaults.add(new UpgradeOp(i));
             }
-            upgradeOpAndFaults.add(0, new NodeFailure(0));
-            upgradeOpAndFaults.add(1, new NodeFailureRecover(0));
+            upgradeOpAndFaults.add(0, new LinkFailure(1, 2));
+            return new TestPlan(upgradeOpAndFaults);
         }
 
         // TODO: If the node is current down, we should switch to

@@ -60,6 +60,9 @@ public class Config {
         public boolean testPlanMode = true;
         public boolean stackedTestPacketMode = true;
 
+        // Debug option
+        public boolean startUpOneCluster = false;
+
         @Override
         public String toString() {
             return new GsonBuilder()

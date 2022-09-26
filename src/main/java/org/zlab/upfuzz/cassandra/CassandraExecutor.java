@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.CommandSequence;
@@ -216,10 +217,12 @@ public class CassandraExecutor extends Executor {
             // Default we should choose the first node
             // We can make sure that the at least one node is up
             // pick the first node that's alive
+            int cqlshNodeIndex = 0;
             for (int i = 0; i < dockerCluster.nodeNum; i++) {
                 if (dockerCluster.dockerStates[i].alive) {
                     cqlsh = ((CassandraDocker) dockerCluster
                             .getDocker(i)).cqlsh;
+                    cqlshNodeIndex = i;
                     break;
                 }
             }
@@ -228,6 +231,14 @@ public class CassandraExecutor extends Executor {
             long startTime = System.currentTimeMillis();
             CqlshPacket cp = cqlsh.execute(command.getCommand());
             long endTime = System.currentTimeMillis();
+
+            long timeElapsed = TimeUnit.SECONDS.convert(
+                    endTime - startTime, TimeUnit.MILLISECONDS);
+            logger.info(String.format(
+                    "Command is sent to node[%d] Command execution takes %d seconds",
+                    cqlshNodeIndex, timeElapsed));
+            logger.info("[HKLOG] Executing this command takes " + timeElapsed
+                    + " seconds");
             ret = cp.message;
         } catch (IOException e) {
             e.printStackTrace();
