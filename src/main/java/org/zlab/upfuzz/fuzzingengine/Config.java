@@ -46,22 +46,21 @@ public class Config {
         public boolean keepDir = true; // set to false if start a long running
                                        // test
         public int nodeNum = 3;
-        // Whether we shuffle the upgrade order
-        public boolean shuffleUpgradeOrder = false;
-        // The max number of faults in a test plan (inclusive)
+
+        public boolean shuffleUpgradeOrder = false; // Whether shuffle the
+                                                    // upgrade order
         public int faultMaxNum = 2; // disable faults for now
-        public boolean useFeedBack = true;
         public boolean alwaysRecoverFault = false;
         public float noRecoverProb = 0.5f;
-        public boolean useExampleTestPlan = false;
+
+        public boolean useFeedBack = true;
+        public boolean collUpFeedBack = true;
 
         public boolean fullStopTest = true;
 
-        public boolean testPlanMode = true;
-        public boolean stackedTestPacketMode = true;
-
         // Debug option
         public boolean startUpOneCluster = false;
+        public boolean useExampleTestPlan = false;
 
         @Override
         public String toString() {

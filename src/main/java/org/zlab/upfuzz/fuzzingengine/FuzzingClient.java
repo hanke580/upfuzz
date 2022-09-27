@@ -152,14 +152,16 @@ public class FuzzingClient {
                 List<String> upResult = executor
                         .execute(tp.validationCommandSequneceList);
                 testID2upResults.put(tp.testPacketID, upResult);
-                ExecutionDataStore upgradeCoverage = executor
-                        .collect("upgraded");
-                if (upgradeCoverage == null) {
-                    logger.info("ERROR: null upgrade code coverage");
-                    System.exit(1);
+                if (Config.getConf().collUpFeedBack) {
+                    ExecutionDataStore upgradeCoverage = executor
+                            .collect("upgraded");
+                    if (upgradeCoverage == null) {
+                        logger.info("ERROR: null upgrade code coverage");
+                        System.exit(1);
+                    }
+                    testID2FeedbackPacket.get(
+                            tp.testPacketID).feedBack.upgradedCodeCoverage = upgradeCoverage;
                 }
-                testID2FeedbackPacket.get(
-                        tp.testPacketID).feedBack.upgradedCodeCoverage = upgradeCoverage;
             }
 
             // Check read results consistency
