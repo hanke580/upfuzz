@@ -23,37 +23,9 @@ public class FuzzingClient {
     // problems
     int CLUSTER_START_RETRY = 3;
 
-    private Thread t; // new version stop + old version restart
-
     public static Map<Integer, Pair<List<String>, List<String>>> testId2Sequence;
 
-    public void clusterStartUp() {
-        for (int i = 0; i < CLUSTER_START_RETRY; i++) {
-            try {
-                executor.startup();
-                return;
-            } catch (Exception e) {
-                executor.teardown();
-                e.printStackTrace();
-            }
-        }
-        throw new RuntimeException("cluster cannot start up");
-    }
-
     FuzzingClient() {
-        init();
-        if (Config.getConf().system.equals("cassandra")) {
-            executor = new CassandraExecutor();
-        } else if (Config.getConf().system.equals("hdfs")) {
-            executor = new HdfsExecutor();
-        }
-        t = new Thread(() -> {
-            clusterStartUp();
-        }); // Startup before tests
-        t.start();
-    }
-
-    private void init() {
         epochStartTestId = 0; // FIXME: It might not be zero
         testId2Sequence = new HashMap<>();
 
@@ -72,25 +44,32 @@ public class FuzzingClient {
         clientThread.join();
     }
 
-    public void waitForClusterUp() {
-        try {
-            t.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            executor.teardown();
-            executor.clearState();
-            executor.startup();
+    public void initExecutor(int nodeNum) {
+        if (Config.getConf().system.equals("cassandra")) {
+            executor = new CassandraExecutor(nodeNum);
+        } else if (Config.getConf().system.equals("hdfs")) {
+            // TODO: modify later
+            executor = new HdfsExecutor();
         }
     }
 
-    public void clusterRestart() {
-        t = new Thread(() -> {
-            executor.upgradeTeardown();
-            executor.clearState();
-            executor.teardown();
-            clusterStartUp();
-        });
-        t.start();
+    public void startUpExecutor() {
+        for (int i = 0; i < CLUSTER_START_RETRY; i++) {
+            try {
+                executor.startup();
+                return;
+            } catch (Exception e) {
+                executor.teardown();
+                e.printStackTrace();
+            }
+        }
+        throw new RuntimeException("cluster cannot start up");
+    }
+
+    public void tearDownExecutor() {
+        executor.upgradeTeardown();
+        executor.clearState();
+        executor.teardown();
     }
 
     /**
@@ -104,7 +83,9 @@ public class FuzzingClient {
             StackedTestPacket stackedTestPacket)
             throws Exception {
         // make sure the system has is up
-        waitForClusterUp();
+
+        initExecutor(stackedTestPacket.nodeNum);
+        startUpExecutor();
 
         Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();
         Map<Integer, List<String>> testID2oriResults = new HashMap<>();
@@ -165,7 +146,6 @@ public class FuzzingClient {
             }
 
             // Check read results consistency
-
             for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
                 Pair<Boolean, String> compareRes = executor
                         .checkResultConsistency(
@@ -206,7 +186,7 @@ public class FuzzingClient {
         }
         logger.info(executor.systemID + " executor: " + executor.executorID
                 + " finished execution");
-        clusterRestart();
+        tearDownExecutor();
         return stackedFeedbackPacket;
     }
 
@@ -214,7 +194,9 @@ public class FuzzingClient {
     // faults. So we only collect the final coverage.
     public TestPlanFeedbackPacket executeTestPlanPacket(
             TestPlanPacket testPlanPacket) {
-        waitForClusterUp();
+        initExecutor(testPlanPacket.nodeNum);
+        startUpExecutor();
+
         // TestPlan only contains one test sequence
         // We need to compare the results between two versions for once
         // Then we return the feedback packet
@@ -271,7 +253,7 @@ public class FuzzingClient {
 
         }
 
-        clusterRestart();
+        tearDownExecutor();
         return testPlanFeedbackPacket;
     }
 

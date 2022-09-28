@@ -8,6 +8,7 @@ import info.debatty.java.stringsimilarity.Levenshtein;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Test;
+import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
@@ -25,6 +26,7 @@ public class TestPlanPacket extends Packet {
     static Logger logger = LogManager.getLogger(TestPlanPacket.class);
 
     public String systemID;
+    public int nodeNum;
     public int testPacketID;
     TestPlan testPlan;
 
@@ -60,6 +62,17 @@ public class TestPlanPacket extends Packet {
         this.type = PacketType.TestPlanPacket;
 
         this.systemID = systemID;
+        this.nodeNum = Config.getConf().nodeNum;
+        this.testPacketID = testPacketID;
+        this.testPlan = testPlan;
+    }
+
+    public TestPlanPacket(String systemID, int nodeNum, int testPacketID,
+            TestPlan testPlan) {
+        this.type = PacketType.TestPlanPacket;
+
+        this.systemID = systemID;
+        this.nodeNum = nodeNum;
         this.testPacketID = testPacketID;
         this.testPlan = testPlan;
     }

@@ -23,9 +23,17 @@ public class StackedTestPacket extends Packet {
     // execute in one instance.
     static Logger logger = LogManager.getLogger(StackedTestPacket.class);
 
+    public int nodeNum;
     private List<TestPacket> tpList;
 
     public StackedTestPacket() {
+        this.nodeNum = Config.getConf().nodeNum;
+        this.type = PacketType.StackedTestPacket;
+        tpList = new LinkedList<>();
+    }
+
+    public StackedTestPacket(int nodeNum) {
+        this.nodeNum = nodeNum;
         this.type = PacketType.StackedTestPacket;
         tpList = new LinkedList<>();
     }

@@ -47,6 +47,8 @@ public class CassandraExecutor extends Executor {
 
     static final String excludes = "org.apache.cassandra.metrics.*:org.apache.cassandra.net.*:org.apache.cassandra.io.sstable.format.SSTableReader.*:org.apache.cassandra.service.*";
 
+    public int nodeNum;
+
     public CassandraExecutor() {
         super("cassandra");
 
@@ -56,6 +58,22 @@ public class CassandraExecutor extends Executor {
         agentStore = new HashMap<>();
         agentHandler = new HashMap<>();
         sessionGroup = new ConcurrentHashMap<>();
+
+        this.nodeNum = Config.getConf().nodeNum; // Using default value in the
+                                                 // configuration
+    }
+
+    public CassandraExecutor(int nodeNum) {
+        super("cassandra");
+
+        timestamp = System.currentTimeMillis();
+
+        // TODO: GC the old coverage since we already get the overall coverage.
+        agentStore = new HashMap<>();
+        agentHandler = new HashMap<>();
+        sessionGroup = new ConcurrentHashMap<>();
+
+        this.nodeNum = nodeNum;
     }
 
     public boolean isCassandraReady(String oldSystemPath) {
@@ -95,7 +113,7 @@ public class CassandraExecutor extends Executor {
 
         dockerCluster = new CassandraDockerCluster(
                 this, Config.getConf().originalVersion,
-                Config.getConf().nodeNum);
+                nodeNum);
 
         try {
             dockerCluster.build();

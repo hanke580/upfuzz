@@ -64,7 +64,6 @@ public abstract class Executor implements IExecutor {
     }
 
     public void clearState() {
-
         executorID = RandomStringUtils.randomAlphanumeric(8);
     }
 

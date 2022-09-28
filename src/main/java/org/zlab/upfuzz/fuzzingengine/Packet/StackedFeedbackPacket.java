@@ -23,6 +23,8 @@ public class StackedFeedbackPacket extends Packet {
     public boolean isUpgradeProcessFailed;
     public String stackedCommandSequenceStr;
 
+    // public int nodeNum;
+
     // (1) Failed Upgrade Process: Report all command sequences
     // (2) Result Inconsistency: Report the target seed's inconsistency
 
