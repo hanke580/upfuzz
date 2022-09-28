@@ -91,21 +91,24 @@ public class FuzzingClient {
         Map<Integer, List<String>> testID2oriResults = new HashMap<>();
         Map<Integer, List<String>> testID2upResults = new HashMap<>();
 
-        FeedBack fb;
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             logger.trace("Execute testpacket " + tp.systemID + " " +
                     tp.testPacketID);
             executor.execute(tp.originalCommandSequenceList);
 
-            fb = new FeedBack();
-            fb.originalCodeCoverage = executor.collect("original");
-            if (fb.originalCodeCoverage == null) {
-                logger.info("ERROR: null origin code coverage");
-                System.exit(1);
+            FeedBack[] feedBacks = new FeedBack[stackedTestPacket.nodeNum];
+            for (int i = 0; i < stackedTestPacket.nodeNum; i++) {
+                feedBacks[i] = new FeedBack();
+            }
+            ExecutionDataStore[] oriCoverages = executor
+                    .collectCoverageSeparate("original");
+            for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
+                feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
             }
             testID2FeedbackPacket.put(
                     tp.testPacketID,
-                    new FeedbackPacket(tp.systemID, tp.testPacketID, fb));
+                    new FeedbackPacket(tp.systemID, stackedTestPacket.nodeNum,
+                            tp.testPacketID, feedBacks));
 
             List<String> oriResult = executor
                     .execute(tp.validationCommandSequneceList);
@@ -134,14 +137,13 @@ public class FuzzingClient {
                         .execute(tp.validationCommandSequneceList);
                 testID2upResults.put(tp.testPacketID, upResult);
                 if (Config.getConf().collUpFeedBack) {
-                    ExecutionDataStore upgradeCoverage = executor
-                            .collect("upgraded");
-                    if (upgradeCoverage == null) {
-                        logger.info("ERROR: null upgrade code coverage");
-                        System.exit(1);
+
+                    ExecutionDataStore[] upCoverages = executor
+                            .collectCoverageSeparate("upgraded");
+                    for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
+                        testID2FeedbackPacket.get(
+                                tp.testPacketID).feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
                     }
-                    testID2FeedbackPacket.get(
-                            tp.testPacketID).feedBack.upgradedCodeCoverage = upgradeCoverage;
                 }
             }
 
@@ -204,15 +206,20 @@ public class FuzzingClient {
         // For test plan, we don't distinguish the old version coverage
         // and the new verison coverage. We only collect the final coverage
 
-        FeedBack fb = new FeedBack();
-        fb.upgradedCodeCoverage = executor.collect("upgraded");
-        if (fb.upgradedCodeCoverage == null) {
-            logger.info("ERROR: null upgrade code coverage");
-            System.exit(1);
+        FeedBack[] feedBacks = new FeedBack[testPlanPacket.nodeNum];
+        for (int i = 0; i < testPlanPacket.nodeNum; i++) {
+            feedBacks[i] = new FeedBack();
         }
+        ExecutionDataStore[] upCoverages = executor
+                .collectCoverageSeparate("upgraded");
+        for (int nodeIdx = 0; nodeIdx < testPlanPacket.nodeNum; nodeIdx++) {
+            feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+        }
+
         logger.info("Finished Execution");
         TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
-                testPlanPacket.systemID, testPlanPacket.testPacketID, fb);
+                testPlanPacket.systemID, testPlanPacket.nodeNum,
+                testPlanPacket.testPacketID, feedBacks);
         if (!status) {
             // Now we only support checking the state of events
             // The test plan has some problems

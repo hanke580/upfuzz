@@ -15,6 +15,7 @@ import org.zlab.upfuzz.cassandra.CassandraCommandPool;
 import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.fuzzingengine.Config;
+import org.zlab.upfuzz.fuzzingengine.FeedBack;
 import org.zlab.upfuzz.fuzzingengine.Fuzzer;
 import org.zlab.upfuzz.fuzzingengine.Packet.*;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
@@ -226,10 +227,22 @@ public class FuzzingServer {
                 for (int i = 0; i < Config.getConf().testPlanEpoch; i++) {
                     TestPlan testPlan = generateTestPlan(seed);
                     testPlanPackets.add(new TestPlanPacket(
-                            Config.getConf().system, testID++, testPlan));
+                            Config.getConf().system, Config.getConf().nodeNum,
+                            testID++, testPlan));
                 }
             }
         }
+    }
+
+    public FeedBack mergeCoverage(FeedBack[] feedBacks) {
+        FeedBack fb = new FeedBack();
+        for (FeedBack feedBack : feedBacks) {
+            if (feedBack.originalCodeCoverage != null)
+                fb.originalCodeCoverage.merge(feedBack.originalCodeCoverage);
+            if (feedBack.upgradedCodeCoverage != null)
+                fb.upgradedCodeCoverage.merge(feedBack.upgradedCodeCoverage);
+        }
+        return fb;
     }
 
     // We never upgrade a node with fault, all fault will be
@@ -280,12 +293,13 @@ public class FuzzingServer {
         // Do we utilize the feedback?
         // Do we mutate the test plan?
 
+        FeedBack fb = mergeCoverage(testPlanFeedbackPacket.feedBacks);
         if (Config.getConf().useFeedBack && Utilities.hasNewBits(curOriCoverage,
-                testPlanFeedbackPacket.feedBack.upgradedCodeCoverage)) {
+                fb.upgradedCodeCoverage)) {
             // Add to test plan corpus???
             Pair<Integer, Integer> upCoverageStatus = Utilities
                     .getCoverageStatus(
-                            testPlanFeedbackPacket.feedBack.upgradedCodeCoverage);
+                            fb.upgradedCodeCoverage);
             logger.info(String.format(
                     "[TestPlan Coverage] covered branch num = %d, total branch = %d",
                     upCoverageStatus.left, upCoverageStatus.right));
@@ -335,18 +349,20 @@ public class FuzzingServer {
             finishedTestID++;
             if (Config.getConf().useFeedBack) {
                 boolean addToCorpus = false;
+                // Merge all the feedbacks
+                FeedBack fb = mergeCoverage(feedbackPacket.feedBacks);
                 if (Utilities.hasNewBits(
                         curOriCoverage,
-                        feedbackPacket.feedBack.originalCodeCoverage)) {
+                        fb.originalCodeCoverage)) {
                     // Write Seed to Disk + Add to Corpus
                     curOriCoverage.merge(
-                            feedbackPacket.feedBack.originalCodeCoverage);
+                            fb.originalCodeCoverage);
                     addToCorpus = true;
                 }
                 if (Utilities.hasNewBits(curUpCoverage,
-                        feedbackPacket.feedBack.upgradedCodeCoverage)) {
+                        fb.upgradedCodeCoverage)) {
                     curUpCoverage.merge(
-                            feedbackPacket.feedBack.upgradedCodeCoverage);
+                            fb.upgradedCodeCoverage);
                     addToCorpus = true;
                 }
                 if (addToCorpus) {

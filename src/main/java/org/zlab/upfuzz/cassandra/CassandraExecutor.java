@@ -47,8 +47,6 @@ public class CassandraExecutor extends Executor {
 
     static final String excludes = "org.apache.cassandra.metrics.*:org.apache.cassandra.net.*:org.apache.cassandra.io.sstable.format.SSTableReader.*:org.apache.cassandra.service.*";
 
-    public int nodeNum;
-
     public CassandraExecutor() {
         super("cassandra");
 

@@ -57,16 +57,6 @@ public class TestPlanPacket extends Packet {
                 .create();
     }
 
-    public TestPlanPacket(String systemID, int testPacketID,
-            TestPlan testPlan) {
-        this.type = PacketType.TestPlanPacket;
-
-        this.systemID = systemID;
-        this.nodeNum = Config.getConf().nodeNum;
-        this.testPacketID = testPacketID;
-        this.testPlan = testPlan;
-    }
-
     public TestPlanPacket(String systemID, int nodeNum, int testPacketID,
             TestPlan testPlan) {
         this.type = PacketType.TestPlanPacket;
@@ -88,6 +78,8 @@ public class TestPlanPacket extends Packet {
             in.read(systemIDBytes, 0, systemIDLen);
             String systemID = new String(systemIDBytes, StandardCharsets.UTF_8);
 
+            int nodeNum = in.readInt();
+
             int testPacketId = in.readInt();
 
             int eventsStrLen = in.readInt();
@@ -105,7 +97,8 @@ public class TestPlanPacket extends Packet {
 
             List<Event> events = gson.fromJson(eventsStr, listType);
             TestPlan testPlan = new TestPlan(events);
-            return new TestPlanPacket(systemID, testPacketId, testPlan);
+            return new TestPlanPacket(systemID, nodeNum, testPacketId,
+                    testPlan);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -120,6 +113,8 @@ public class TestPlanPacket extends Packet {
         int systemIDLen = systemID.length();
         out.writeInt(systemIDLen);
         out.write(systemID.getBytes(StandardCharsets.UTF_8));
+
+        out.writeInt(nodeNum);
 
         out.writeInt(testPacketID);
 

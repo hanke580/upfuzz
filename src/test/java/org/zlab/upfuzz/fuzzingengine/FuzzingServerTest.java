@@ -46,7 +46,7 @@ public class FuzzingServerTest {
         try {
             DataOutputStream os = new DataOutputStream(
                     new FileOutputStream("tmp.txt"));
-            testPlanPacket = new TestPlanPacket("cassandra", 2,
+            testPlanPacket = new TestPlanPacket("cassandra", 3, 2,
                     testPlan);
             testPlanPacket.write(os);
         } catch (IOException e) {
@@ -68,10 +68,6 @@ public class FuzzingServerTest {
 
     @Test
     public void test() {
-        Random rand = new Random();
-        for (int i = 0; i < 10; i++) {
-            System.out.println(rand.nextFloat());
-        }
     }
 
 }

@@ -6,4 +6,9 @@ import org.jacoco.core.data.ExecutionDataStore;
 public class FeedBack {
     public ExecutionDataStore originalCodeCoverage = null;
     public ExecutionDataStore upgradedCodeCoverage = null;
+
+    public FeedBack() {
+        originalCodeCoverage = new ExecutionDataStore();
+        upgradedCodeCoverage = new ExecutionDataStore();
+    }
 }

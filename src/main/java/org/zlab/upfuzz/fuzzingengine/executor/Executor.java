@@ -35,6 +35,7 @@ public abstract class Executor implements IExecutor {
 
     public String executorID;
     public String systemID = "UnknowDS";
+    public int nodeNum;
 
     public DockerCluster dockerCluster;
 
@@ -168,6 +169,8 @@ public abstract class Executor implements IExecutor {
     // Slower, but more general
     abstract public void execNormalCommand(Command command);
 
+    // We should also support collecting the code coverage of a single node
+
     public ExecutionDataStore collect(String version) {
         // TODO: Separate the coverage here
         Set<String> agentIdList = sessionGroup.get(executorID + "_" + version);
@@ -179,7 +182,7 @@ public abstract class Executor implements IExecutor {
                             .printStackTrace();
             return null;
         } else {
-            // Add to the original coverage
+            // Clear the code coverage
             for (String agentId : agentIdList) {
                 if (agentId.split("-")[3].equals("null"))
                     continue;
@@ -210,6 +213,51 @@ public abstract class Executor implements IExecutor {
             // Send coverage back
 
             return execStore;
+        }
+    }
+
+    public ExecutionDataStore[] collectCoverageSeparate(String version) {
+        // TODO: Separate the coverage here
+        Set<String> agentIdList = sessionGroup.get(executorID + "_" + version);
+        logger.info("agentIdList: " + agentIdList);
+        logger.info("executorID = " + executorID);
+        if (agentIdList == null) {
+            new UnexpectedException("No agent connection with executor " +
+                    executorID)
+                            .printStackTrace();
+            return null;
+        } else {
+            // Add to the original coverage
+            for (String agentId : agentIdList) {
+                if (agentId.split("-")[3].equals("null"))
+                    continue;
+                logger.info("collect conn " + agentId);
+                AgentServerHandler conn = agentHandler.get(agentId);
+                if (conn != null) {
+                    agentStore.remove(agentId);
+                    conn.collect();
+                }
+            }
+
+            ExecutionDataStore[] executionDataStores = new ExecutionDataStore[nodeNum];
+            for (int i = 0; i < executionDataStores.length; i++) {
+                executionDataStores[i] = new ExecutionDataStore();
+            }
+
+            for (String agentId : agentIdList) {
+                if (agentId.split("-")[3].equals("null"))
+                    continue;
+                logger.info("get coverage from " + agentId);
+                ExecutionDataStore astore = agentStore.get(agentId);
+                if (astore == null) {
+                    logger.info("no data");
+                } else {
+                    executionDataStores[Integer.valueOf(agentId.split("-")[2])]
+                            .merge(astore);
+                    logger.trace("astore size: " + astore.getContents().size());
+                }
+            }
+            return executionDataStores;
         }
     }
 

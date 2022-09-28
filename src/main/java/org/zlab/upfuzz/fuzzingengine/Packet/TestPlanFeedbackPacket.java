@@ -24,7 +24,7 @@ public class TestPlanFeedbackPacket extends Packet {
     public String eventFailedReport;
 
     // For test plan, we only collect the new version coverage
-    public FeedBack feedBack;
+    public FeedBack[] feedBacks;
 
     // TODO: We might want to compare the state between
     // (1) Rolling upgrade and (2) Full-stop upgrade
@@ -32,13 +32,14 @@ public class TestPlanFeedbackPacket extends Packet {
     public String inconsistencyReport; // The inconsistency information should
     // be placed here
 
-    public TestPlanFeedbackPacket(String systemID, int testPacketID,
-            FeedBack feedBack) {
+    public TestPlanFeedbackPacket(String systemID, int nodeNum,
+            int testPacketID,
+            FeedBack[] feedBacks) {
         this.type = PacketType.TestPlanFeedbackPacket;
 
         this.systemID = systemID;
         this.testPacketID = testPacketID;
-        this.feedBack = feedBack;
+        this.feedBacks = feedBacks;
     }
 
     public static TestPlanFeedbackPacket read(DataInputStream in) {

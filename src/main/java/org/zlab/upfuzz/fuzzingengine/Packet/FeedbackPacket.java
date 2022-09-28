@@ -8,26 +8,31 @@ import java.io.InputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.FeedBack;
 
 public class FeedbackPacket extends Packet {
     static Logger logger = LogManager.getLogger(FeedbackPacket.class);
 
     public String systemID;
+    public int nodeNum;
     public int testPacketID;
 
-    public FeedBack feedBack; // It should contain each node
+    // public FeedBack feedBack; // It should contain each node
+    public FeedBack[] feedBacks;
+
     public boolean isInconsistent; // true if inconsistent
     public String inconsistencyReport; // The inconsistency information should
                                        // be placed here
 
-    public FeedbackPacket(String systemID, int testPacketID,
-            FeedBack feedBack) {
+    public FeedbackPacket(String systemID, int nodeNum, int testPacketID,
+            FeedBack[] feedBacks) {
         this.type = PacketType.FeedbackPacket;
 
         this.systemID = systemID;
+        this.nodeNum = Config.getConf().nodeNum;
         this.testPacketID = testPacketID;
-        this.feedBack = feedBack;
+        this.feedBacks = feedBacks;
     }
 
     public static FeedbackPacket read(DataInputStream in) {
