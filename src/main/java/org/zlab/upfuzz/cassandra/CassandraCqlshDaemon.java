@@ -100,7 +100,7 @@ public class CassandraCqlshDaemon {
             } catch (InterruptedException e) {
             }
         }
-        throw new IllegalAccessError("[HKLOG] executor ID = " + executorID
+        throw new RuntimeException("[HKLOG] executor ID = " + executorID
                 + "  " + "cannot connect to cqlsh at " + ipAddress);
     }
 

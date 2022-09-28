@@ -11,7 +11,6 @@ import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 
 import java.io.*;
-import java.util.Random;
 
 public class FuzzingServerTest {
     @Test
