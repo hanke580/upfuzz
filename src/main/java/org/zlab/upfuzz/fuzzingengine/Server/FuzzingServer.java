@@ -288,11 +288,16 @@ public class FuzzingServer {
             logger.info("use example test plan");
             upgradeOpAndFaults = new LinkedList<>();
             // nodeNum should be 3
-            assert Config.getConf().nodeNum == 3;
-            for (int i = 0; i < Config.getConf().nodeNum - 1; i++) {
-                upgradeOpAndFaults.add(new UpgradeOp(i));
-            }
-            upgradeOpAndFaults.add(0, new LinkFailure(1, 2));
+            assert Config.getConf().nodeNum == 2;
+            // for (int i = 0; i < Config.getConf().nodeNum - 1; i++) {
+            // upgradeOpAndFaults.add(new UpgradeOp(i));
+            // }
+
+            upgradeOpAndFaults.add(new UpgradeOp(0));
+            upgradeOpAndFaults.add(new UpgradeOp(1));
+            upgradeOpAndFaults.add(new NodeFailure(1));
+
+            // upgradeOpAndFaults.add(0, new LinkFailure(1, 2));
             return new TestPlan(upgradeOpAndFaults);
         }
 
@@ -307,7 +312,6 @@ public class FuzzingServer {
 
     public synchronized void updateStatus(
             TestPlanFeedbackPacket testPlanFeedbackPacket) {
-        logger.info("test plan feedback: update status");
         // TODO: update status for test plan feed back
         // Do we utilize the feedback?
         // Do we mutate the test plan?
@@ -315,7 +319,8 @@ public class FuzzingServer {
         FeedBack fb = mergeCoverage(testPlanFeedbackPacket.feedBacks);
         if (Config.getConf().useFeedBack && Utilities.hasNewBits(curOriCoverage,
                 fb.upgradedCodeCoverage)) {
-            // Add to test plan corpus???
+            // Add to test plan corpus?
+
             Pair<Integer, Integer> upCoverageStatus = Utilities
                     .getCoverageStatus(
                             fb.upgradedCodeCoverage);
