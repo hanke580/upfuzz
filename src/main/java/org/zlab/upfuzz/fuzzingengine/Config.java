@@ -65,6 +65,8 @@ public class Config {
         public boolean startUpOneCluster = false;
         public boolean useExampleTestPlan = false;
 
+        public boolean debug = false;
+
         @Override
         public String toString() {
             return new GsonBuilder()

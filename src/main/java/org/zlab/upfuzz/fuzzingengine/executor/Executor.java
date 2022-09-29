@@ -339,7 +339,7 @@ public abstract class Executor implements IExecutor {
             logger.error("All node is down, cannot execute shell commands!");
             // This shouldn't appear, but if it happens, we should report
             // TODO: report to server as a buggy case
-            System.exit(1);
+            return false;
         }
         execShellCommand(command);
         return true;

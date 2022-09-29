@@ -233,11 +233,12 @@ public class CassandraExecutor extends Executor {
 
             long timeElapsed = TimeUnit.SECONDS.convert(
                     endTime - startTime, TimeUnit.MILLISECONDS);
-            logger.info(String.format(
-                    "Command is sent to node[%d] Command execution takes %d seconds",
-                    cqlshNodeIndex, timeElapsed));
-            logger.info("[HKLOG] Executing this command takes " + timeElapsed
-                    + " seconds");
+
+            if (Config.getConf().debug) {
+                logger.info(String.format(
+                        "Command is sent to node[%d], exec time: %ds",
+                        cqlshNodeIndex, timeElapsed));
+            }
             ret = cp.message;
         } catch (IOException e) {
             e.printStackTrace();
