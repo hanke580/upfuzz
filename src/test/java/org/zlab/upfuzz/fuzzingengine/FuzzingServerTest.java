@@ -46,7 +46,7 @@ public class FuzzingServerTest {
         try {
             DataOutputStream os = new DataOutputStream(
                     new FileOutputStream("tmp.txt"));
-            testPlanPacket = new TestPlanPacket("cassandra", 3, 2,
+            testPlanPacket = new TestPlanPacket("cassandra", 2,
                     testPlan);
             testPlanPacket.write(os);
         } catch (IOException e) {

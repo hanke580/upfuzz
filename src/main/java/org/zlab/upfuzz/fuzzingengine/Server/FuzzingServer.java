@@ -236,17 +236,18 @@ public class FuzzingServer {
         // Let's go with the simplest one. Randomly generate a seed, then a test
         // plan. And finally, execute it.
         Seed seed = corpus.getSeed();
-        round++;
-        if (seed == null) {
+
+        // ATTENTION: If we stuck here, it means there's a problem with
+        // the command pool or the state class
+        while (seed == null) {
             seed = Executor.generateSeed(commandPool, stateClass);
-            if (seed != null) {
-                for (int i = 0; i < Config.getConf().testPlanEpoch; i++) {
-                    TestPlan testPlan = generateTestPlan(seed);
-                    testPlanPackets.add(new TestPlanPacket(
-                            Config.getConf().system, Config.getConf().nodeNum,
-                            testID++, testPlan));
-                }
-            }
+        }
+
+        for (int i = 0; i < Config.getConf().testPlanEpoch; i++) {
+            TestPlan testPlan = generateTestPlan(seed);
+            testPlanPackets.add(new TestPlanPacket(
+                    Config.getConf().system,
+                    testID++, testPlan));
         }
     }
 
@@ -269,12 +270,15 @@ public class FuzzingServer {
     public TestPlan generateTestPlan(Seed seed) {
         // Some systems might have special requirements for
         // upgrade, like HDFS needs to upgrade NN first
+
+        int nodeNum = Config.getConf().nodeNum;
+
         int faultNum = rand.nextInt(Config.getConf().faultMaxNum + 1);
         List<Pair<Fault, FaultRecover>> faultPairs = Fault
-                .randomGenerateFaults(Config.getConf().nodeNum, faultNum);
+                .randomGenerateFaults(nodeNum, faultNum);
 
         List<Event> upgradeOps = new LinkedList<>();
-        for (int i = 0; i < Config.getConf().nodeNum; i++) {
+        for (int i = 0; i < nodeNum; i++) {
             upgradeOps.add(new UpgradeOp(i));
         }
         if (Config.getConf().shuffleUpgradeOrder) {
@@ -288,17 +292,17 @@ public class FuzzingServer {
             logger.info("use example test plan");
             upgradeOpAndFaults = new LinkedList<>();
             // nodeNum should be 3
-            assert Config.getConf().nodeNum == 2;
+            assert nodeNum == 2;
             // for (int i = 0; i < Config.getConf().nodeNum - 1; i++) {
             // upgradeOpAndFaults.add(new UpgradeOp(i));
             // }
 
             upgradeOpAndFaults.add(new UpgradeOp(0));
             upgradeOpAndFaults.add(new UpgradeOp(1));
-            upgradeOpAndFaults.add(new NodeFailure(1));
+            upgradeOpAndFaults.add(new NodeFailure(0));
 
             // upgradeOpAndFaults.add(0, new LinkFailure(1, 2));
-            return new TestPlan(upgradeOpAndFaults);
+            return new TestPlan(nodeNum, upgradeOpAndFaults);
         }
 
         // TODO: If the node is current down, we should switch to
@@ -307,7 +311,7 @@ public class FuzzingServer {
         List<Event> shellCommands = ShellCommand.seed2Events(seed);
         List<Event> events = interleaveWithOrder(upgradeOpAndFaults,
                 shellCommands);
-        return new TestPlan(events);
+        return new TestPlan(nodeNum, events);
     }
 
     public synchronized void updateStatus(

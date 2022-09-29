@@ -6,9 +6,11 @@ import com.google.gson.JsonSerializer;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 
 public class TestPlan {
+    public int nodeNum;
     public List<Event> events;
 
-    public TestPlan(List<Event> events) {
+    public TestPlan(int nodeNum, List<Event> events) {
+        this.nodeNum = nodeNum;
         this.events = events;
     }
 

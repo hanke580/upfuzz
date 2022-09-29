@@ -26,9 +26,8 @@ public class TestPlanPacket extends Packet {
     static Logger logger = LogManager.getLogger(TestPlanPacket.class);
 
     public String systemID;
-    public int nodeNum;
     public int testPacketID;
-    TestPlan testPlan;
+    public TestPlan testPlan;
 
     static RuntimeTypeAdapterFactory<Event> runtimeTypeAdapterFactory;
     static Type listType;
@@ -57,18 +56,21 @@ public class TestPlanPacket extends Packet {
                 .create();
     }
 
-    public TestPlanPacket(String systemID, int nodeNum, int testPacketID,
+    public TestPlanPacket(String systemID, int testPacketID,
             TestPlan testPlan) {
         this.type = PacketType.TestPlanPacket;
 
         this.systemID = systemID;
-        this.nodeNum = nodeNum;
         this.testPacketID = testPacketID;
         this.testPlan = testPlan;
     }
 
     public TestPlan getTestPlan() {
         return testPlan;
+    }
+
+    public int getNodeNum() {
+        return testPlan.nodeNum;
     }
 
     public static TestPlanPacket read(DataInputStream in) {
@@ -78,9 +80,9 @@ public class TestPlanPacket extends Packet {
             in.read(systemIDBytes, 0, systemIDLen);
             String systemID = new String(systemIDBytes, StandardCharsets.UTF_8);
 
-            int nodeNum = in.readInt();
-
             int testPacketId = in.readInt();
+
+            int nodeNum = in.readInt();
 
             int eventsStrLen = in.readInt();
             byte[] eventsStrBytes = new byte[eventsStrLen];
@@ -96,8 +98,8 @@ public class TestPlanPacket extends Packet {
                     StandardCharsets.UTF_8);
 
             List<Event> events = gson.fromJson(eventsStr, listType);
-            TestPlan testPlan = new TestPlan(events);
-            return new TestPlanPacket(systemID, nodeNum, testPacketId,
+            TestPlan testPlan = new TestPlan(nodeNum, events);
+            return new TestPlanPacket(systemID, testPacketId,
                     testPlan);
         } catch (IOException e) {
             e.printStackTrace();
@@ -114,9 +116,9 @@ public class TestPlanPacket extends Packet {
         out.writeInt(systemIDLen);
         out.write(systemID.getBytes(StandardCharsets.UTF_8));
 
-        out.writeInt(nodeNum);
-
         out.writeInt(testPacketID);
+
+        out.writeInt(testPlan.nodeNum);
 
         String eventsStr = gson.toJson(testPlan.getEvents());
         byte[] eventsByte = eventsStr.getBytes(StandardCharsets.UTF_8);

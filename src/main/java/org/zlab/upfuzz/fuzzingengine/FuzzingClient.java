@@ -197,8 +197,9 @@ public class FuzzingClient {
     public TestPlanFeedbackPacket executeTestPlanPacket(
             TestPlanPacket testPlanPacket) {
         String testPlanPacketStr = null;
+        int nodeNum = testPlanPacket.getNodeNum();
 
-        initExecutor(testPlanPacket.nodeNum);
+        initExecutor(testPlanPacket.getNodeNum());
         startUpExecutor();
 
         // TestPlan only contains one test sequence
@@ -208,19 +209,19 @@ public class FuzzingClient {
         // For test plan, we don't distinguish the old version coverage
         // and the new verison coverage. We only collect the final coverage
 
-        FeedBack[] feedBacks = new FeedBack[testPlanPacket.nodeNum];
-        for (int i = 0; i < testPlanPacket.nodeNum; i++) {
+        FeedBack[] feedBacks = new FeedBack[nodeNum];
+        for (int i = 0; i < nodeNum; i++) {
             feedBacks[i] = new FeedBack();
         }
         ExecutionDataStore[] upCoverages = executor
                 .collectCoverageSeparate("upgraded");
-        for (int nodeIdx = 0; nodeIdx < testPlanPacket.nodeNum; nodeIdx++) {
+        for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
             feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
         }
 
         logger.info("Finished Execution");
         TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
-                testPlanPacket.systemID, testPlanPacket.nodeNum,
+                testPlanPacket.systemID, nodeNum,
                 testPlanPacket.testPacketID, feedBacks);
         if (!status) {
             // Now we only support checking the state of events
@@ -278,7 +279,7 @@ public class FuzzingClient {
         StackedTestPacket stackedTestPacket = mixedTestPacket.stackedTestPacket;
         TestPlanPacket testPlanPacket = mixedTestPacket.testPlanPacket;
 
-        assert stackedTestPacket.nodeNum == testPlanPacket.nodeNum;
+        assert stackedTestPacket.nodeNum == testPlanPacket.getNodeNum();
         int nodeNum = stackedTestPacket.nodeNum;
 
         initExecutor(nodeNum);
@@ -328,7 +329,7 @@ public class FuzzingClient {
 
             // This can only be the upgrade failure
             TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
-                    testPlanPacket.systemID, testPlanPacket.nodeNum,
+                    testPlanPacket.systemID, nodeNum,
                     testPlanPacket.testPacketID, null);
             int buggyEventIdx = executor.eventIdx;
             testPlanFeedbackPacket.isEventFailed = true;
@@ -353,17 +354,17 @@ public class FuzzingClient {
             return mixedFeedbackPacket;
         }
 
-        FeedBack[] feedBacks = new FeedBack[testPlanPacket.nodeNum];
-        for (int i = 0; i < testPlanPacket.nodeNum; i++) {
+        FeedBack[] feedBacks = new FeedBack[nodeNum];
+        for (int i = 0; i < nodeNum; i++) {
             feedBacks[i] = new FeedBack();
         }
         ExecutionDataStore[] upCoverages = executor
                 .collectCoverageSeparate("upgraded");
-        for (int nodeIdx = 0; nodeIdx < testPlanPacket.nodeNum; nodeIdx++) {
+        for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
             feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
         }
         TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
-                testPlanPacket.systemID, testPlanPacket.nodeNum,
+                testPlanPacket.systemID, nodeNum,
                 testPlanPacket.testPacketID, feedBacks);
 
         // Execute the validation commands
@@ -438,7 +439,7 @@ public class FuzzingClient {
 
     private String recordTestPlanPacket(TestPlanPacket testPlanPacket) {
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("nodeNum = %d\n", testPlanPacket.nodeNum));
+        sb.append(String.format("nodeNum = %d\n", testPlanPacket.getNodeNum()));
         sb.append(testPlanPacket.getTestPlan().toString());
         return sb.toString();
     }
