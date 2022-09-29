@@ -25,12 +25,12 @@ public class FuzzingServerTest {
         FuzzingServer fuzzingServer = new FuzzingServer();
         TestPlan testPlan = fuzzingServer.generateTestPlan(seed);
 
-        for (Event event : testPlan.getEvents()) {
-            if (event == null) {
-                System.out.println("null event!");
-            }
-            System.out.println(event);
-        }
+        System.out.println(testPlan);
+        testPlan.mutate();
+        System.out.println("\nMutate Test Plan\n");
+
+        System.out.println(testPlan);
+
     }
 
     // @Test
