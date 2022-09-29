@@ -185,29 +185,12 @@ public class CassandraExecutor extends Executor {
         return validationCommandSequence;
     }
 
-    // We only execute commmands within the cqlsh shell
     @Override
     public List<String> executeCommands(List<String> commandList) {
         // TODO: Use Event here, since not all commands are executed
-        // through the cqlsh shell
-
-        // commandSequence = prepareCommandSequence();
         List<String> ret = new LinkedList<>();
-        try {
-            // TODO: support sending commands to different nodes
-            if (cqlsh == null)
-                cqlsh = ((CassandraDocker) dockerCluster.getDocker(0)).cqlsh;
-            for (String cmd : commandList) {
-                logger.trace("cqlsh execute: " + cmd);
-                long startTime = System.currentTimeMillis();
-                CqlshPacket cp = cqlsh.execute(cmd);
-                long endTime = System.currentTimeMillis();
-
-                ret.add(cp.message);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+        for (String command : commandList) {
+            ret.add(execShellCommand(new ShellCommand(command)));
         }
         return ret;
     }

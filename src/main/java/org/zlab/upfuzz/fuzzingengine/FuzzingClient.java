@@ -9,6 +9,7 @@ import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.fuzzingengine.Packet.*;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
+import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.hdfs.HdfsExecutor;
 import org.zlab.upfuzz.utils.Pair;
 
@@ -80,8 +81,8 @@ public class FuzzingClient {
      * @throws Exception
      */
     public StackedFeedbackPacket executeStackedTestPacket(
-            StackedTestPacket stackedTestPacket)
-            throws Exception {
+            StackedTestPacket stackedTestPacket) {
+        String stackedTestPacketStr = null;
         // make sure the system has is up
 
         initExecutor(stackedTestPacket.nodeNum);
@@ -118,7 +119,7 @@ public class FuzzingClient {
         executor.saveSnapshot();
 
         StackedFeedbackPacket stackedFeedbackPacket = new StackedFeedbackPacket();
-        stackedFeedbackPacket.stackedCommandSequenceStr = recordAllStackedTests(
+        stackedFeedbackPacket.stackedCommandSequenceStr = recordStackedTestPacket(
                 stackedTestPacket);
 
         // Upgrade should only contain the upgrade process
@@ -128,6 +129,13 @@ public class FuzzingClient {
             // upgrade process failed
             logger.info("upgrade failed");
             stackedFeedbackPacket.isUpgradeProcessFailed = true;
+            StringBuilder sb = new StringBuilder();
+            sb.append("[upgrade failed]\n[Full Command Sequence]\n");
+            if (stackedTestPacketStr == null)
+                stackedTestPacketStr = recordStackedTestPacket(
+                        stackedTestPacket);
+            sb.append(stackedTestPacketStr);
+            stackedFeedbackPacket.upgradeFailureReport = sb.toString();
         } else {
             // upgrade process succeeds, compare results here
             logger.info("upgrade succeed");
@@ -158,24 +166,16 @@ public class FuzzingClient {
                         .get(tp.testPacketID);
 
                 if (!compareRes.left) {
-                    // Log the failure info into feedback packet
-
-                    // Creating the failure report
                     StringBuilder failureReport = new StringBuilder();
                     failureReport.append(
                             "Results are inconsistent between two versions\n");
                     failureReport.append(compareRes.right);
-
-                    failureReport.append("Original Command Sequence\n");
-                    for (String commandStr : tp.originalCommandSequenceList) {
-                        failureReport.append(commandStr + "\n");
-                    }
-                    failureReport.append("\n\n");
-                    failureReport.append("Read Command Sequence\n");
-                    for (String commandStr : tp.validationCommandSequneceList) {
-                        failureReport.append(commandStr + "\n");
-                    }
-
+                    failureReport.append(recordSingleTestPacket(tp));
+                    failureReport.append("\n[Full Command Sequence]\n");
+                    if (stackedTestPacketStr == null)
+                        stackedTestPacketStr = recordStackedTestPacket(
+                                stackedTestPacket);
+                    failureReport.append(stackedTestPacketStr);
                     // Create the feedback packet
                     feedbackPacket.isInconsistent = true;
                     feedbackPacket.inconsistencyReport = failureReport
@@ -196,6 +196,8 @@ public class FuzzingClient {
     // faults. So we only collect the final coverage.
     public TestPlanFeedbackPacket executeTestPlanPacket(
             TestPlanPacket testPlanPacket) {
+        String testPlanPacketStr = null;
+
         initExecutor(testPlanPacket.nodeNum);
         startUpExecutor();
 
@@ -231,14 +233,18 @@ public class FuzzingClient {
             int buggyEventIdx = executor.eventIdx;
             testPlanFeedbackPacket.isEventFailed = true;
 
-            String eventFailedReport = "";
-            eventFailedReport += String.format(
+            StringBuilder eventFailedReport = new StringBuilder();
+            eventFailedReport.append(String.format(
                     "Test plan execution failed at event[%d]\n\n",
-                    buggyEventIdx);
-            eventFailedReport += testPlanPacket.getTestPlan().toString();
-            testPlanFeedbackPacket.eventFailedReport = eventFailedReport;
+                    buggyEventIdx));
+            if (testPlanPacketStr == null) {
+                testPlanPacketStr = recordTestPlanPacket(testPlanPacket);
+            }
+            eventFailedReport.append(testPlanPacketStr);
+            testPlanFeedbackPacket.eventFailedReport = eventFailedReport
+                    .toString();
 
-            testPlanFeedbackPacket.isInconsistent = true;
+            testPlanFeedbackPacket.isInconsistent = false;
             testPlanFeedbackPacket.inconsistencyReport = "";
 
             logger.error(String.format(
@@ -264,7 +270,158 @@ public class FuzzingClient {
         return testPlanFeedbackPacket;
     }
 
-    private String recordAllStackedTests(StackedTestPacket stackedTestPacket) {
+    public MixedFeedbackPacket executeMixedTestPacket(
+            MixedTestPacket mixedTestPacket) {
+
+        String mixedTestPacketStr = null;
+
+        StackedTestPacket stackedTestPacket = mixedTestPacket.stackedTestPacket;
+        TestPlanPacket testPlanPacket = mixedTestPacket.testPlanPacket;
+
+        assert stackedTestPacket.nodeNum == testPlanPacket.nodeNum;
+        int nodeNum = stackedTestPacket.nodeNum;
+
+        initExecutor(nodeNum);
+        startUpExecutor();
+
+        Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();
+        Map<Integer, List<String>> testID2oriResults = new HashMap<>();
+        Map<Integer, List<String>> testID2upResults = new HashMap<>();
+
+        for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
+            logger.trace("Execute testpacket " + tp.systemID + " " +
+                    tp.testPacketID);
+            executor.execute(tp.originalCommandSequenceList);
+
+            FeedBack[] feedBacks = new FeedBack[stackedTestPacket.nodeNum];
+            for (int i = 0; i < stackedTestPacket.nodeNum; i++) {
+                feedBacks[i] = new FeedBack();
+            }
+            ExecutionDataStore[] oriCoverages = executor
+                    .collectCoverageSeparate("original");
+            for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
+                feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
+            }
+            testID2FeedbackPacket.put(
+                    tp.testPacketID,
+                    new FeedbackPacket(tp.systemID, stackedTestPacket.nodeNum,
+                            tp.testPacketID, feedBacks));
+
+            List<String> oriResult = executor
+                    .execute(tp.validationCommandSequneceList);
+            testID2oriResults.put(tp.testPacketID, oriResult);
+        }
+
+        StackedFeedbackPacket stackedFeedbackPacket = new StackedFeedbackPacket();
+        stackedFeedbackPacket.stackedCommandSequenceStr = recordStackedTestPacket(
+                stackedTestPacket);
+
+        // Execute the test plan
+        boolean status = executor.execute(testPlanPacket.getTestPlan());
+
+        if (!status) {
+            // TODO
+            // We already met some problems with test plan, we'll stop here
+            // This case is considered as a failed case
+            // We need to record all the test cases and the plan as a crash
+            // report
+
+            // This can only be the upgrade failure
+            TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
+                    testPlanPacket.systemID, testPlanPacket.nodeNum,
+                    testPlanPacket.testPacketID, null);
+            int buggyEventIdx = executor.eventIdx;
+            testPlanFeedbackPacket.isEventFailed = true;
+
+            String eventFailedReport = "";
+            eventFailedReport += String.format(
+                    "Test plan execution failed at event[%d]\n\n",
+                    buggyEventIdx);
+            if (mixedTestPacketStr == null)
+                mixedTestPacketStr = recordMixedTestPacket(mixedTestPacket);
+            eventFailedReport += mixedTestPacketStr;
+            testPlanFeedbackPacket.eventFailedReport = eventFailedReport;
+
+            testPlanFeedbackPacket.isInconsistent = false;
+            testPlanFeedbackPacket.inconsistencyReport = "";
+
+            MixedFeedbackPacket mixedFeedbackPacket = new MixedFeedbackPacket(
+                    stackedFeedbackPacket, testPlanFeedbackPacket);
+            mixedFeedbackPacket.testPlanFailed = true;
+            mixedFeedbackPacket.stackedTestFailed = false;
+
+            return mixedFeedbackPacket;
+        }
+
+        FeedBack[] feedBacks = new FeedBack[testPlanPacket.nodeNum];
+        for (int i = 0; i < testPlanPacket.nodeNum; i++) {
+            feedBacks[i] = new FeedBack();
+        }
+        ExecutionDataStore[] upCoverages = executor
+                .collectCoverageSeparate("upgraded");
+        for (int nodeIdx = 0; nodeIdx < testPlanPacket.nodeNum; nodeIdx++) {
+            feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+        }
+        TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
+                testPlanPacket.systemID, testPlanPacket.nodeNum,
+                testPlanPacket.testPacketID, feedBacks);
+
+        // Execute the validation commands
+        for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
+            List<String> upResult = executor
+                    .execute(tp.validationCommandSequneceList);
+            testID2upResults.put(tp.testPacketID, upResult);
+            if (Config.getConf().collUpFeedBack) {
+
+                upCoverages = executor
+                        .collectCoverageSeparate("upgraded");
+                for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
+                    testID2FeedbackPacket.get(
+                            tp.testPacketID).feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+                }
+            }
+        }
+        // Check read results consistency
+        for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
+            Pair<Boolean, String> compareRes = executor
+                    .checkResultConsistency(
+                            testID2oriResults.get(tp.testPacketID),
+                            testID2upResults.get(tp.testPacketID));
+
+            FeedbackPacket feedbackPacket = testID2FeedbackPacket
+                    .get(tp.testPacketID);
+
+            if (!compareRes.left) {
+                // Log the failure info into feedback packet
+
+                // Creating the failure report
+                StringBuilder failureReport = new StringBuilder();
+                failureReport.append(
+                        "Results are inconsistent between two versions\n");
+                failureReport.append(compareRes.right);
+                failureReport.append(recordSingleTestPacket(tp));
+                failureReport.append("\n[Full Command Sequence]\n");
+                if (mixedTestPacketStr == null)
+                    mixedTestPacketStr = recordMixedTestPacket(mixedTestPacket);
+                failureReport.append(mixedTestPacketStr);
+
+                // Create the feedback packet
+                feedbackPacket.isInconsistent = true;
+                feedbackPacket.inconsistencyReport = failureReport
+                        .toString();
+            } else {
+                feedbackPacket.isInconsistent = false;
+            }
+            stackedFeedbackPacket.addFeedbackPacket(feedbackPacket);
+        }
+
+        tearDownExecutor();
+        return new MixedFeedbackPacket(stackedFeedbackPacket,
+                testPlanFeedbackPacket);
+    }
+
+    private String recordStackedTestPacket(
+            StackedTestPacket stackedTestPacket) {
         StringBuilder sb = new StringBuilder();
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             for (String cmdStr : tp.originalCommandSequenceList) {
@@ -275,6 +432,35 @@ public class FuzzingClient {
                 sb.append(cmdStr + "\n");
             }
             sb.append("\n\n");
+        }
+        return sb.toString();
+    }
+
+    private String recordTestPlanPacket(TestPlanPacket testPlanPacket) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("nodeNum = %d\n", testPlanPacket.nodeNum));
+        sb.append(testPlanPacket.getTestPlan().toString());
+        return sb.toString();
+    }
+
+    private String recordMixedTestPacket(MixedTestPacket mixedTestPacket) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(recordTestPlanPacket(mixedTestPacket.testPlanPacket));
+        sb.append("\n");
+        sb.append(recordStackedTestPacket(mixedTestPacket.stackedTestPacket));
+        return sb.toString();
+    }
+
+    private String recordSingleTestPacket(TestPacket tp) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[Original Command Sequence]\n");
+        for (String commandStr : tp.originalCommandSequenceList) {
+            sb.append(commandStr + "\n");
+        }
+        sb.append("\n\n");
+        sb.append("[Read Command Sequence]\n");
+        for (String commandStr : tp.validationCommandSequneceList) {
+            sb.append(commandStr + "\n");
         }
         return sb.toString();
     }

@@ -79,6 +79,14 @@ class FuzzingClientSocket implements Runnable {
                     logger.info(
                             "[Client] Writing testplan feedback packet to server");
                 }
+                case MixedTestPacket: {
+                    MixedTestPacket mixedTestPacket = MixedTestPacket.read(in);
+                    MixedFeedbackPacket mixedFeedbackPacket = fuzzingClient
+                            .executeMixedTestPacket(mixedTestPacket);
+                    mixedFeedbackPacket.write(out);
+                    logger.info(
+                            "[Client] Writing mixed test feedback packet to server");
+                }
                 }
                 readHeader();
             } catch (Exception e) {

@@ -24,8 +24,9 @@ public abstract class Packet {
 
     public enum PacketType {
         RegisterPacket(0), StackedTestPacket(1), StackedFeedbackPacket(
-                2), FeedbackPacket(
-                        3), TestPlanPacket(4), TestPlanFeedbackPacket(5);
+                2), FeedbackPacket(3), TestPlanPacket(
+                        4), TestPlanFeedbackPacket(
+                                5), MixedTestPacket(6), MixedFeedbackPacket(7);
 
         public int value;
 

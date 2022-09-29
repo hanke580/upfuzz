@@ -82,8 +82,8 @@ public abstract class Executor implements IExecutor {
 
     public static Seed generateSeed(CommandPool commandPool,
             Class<? extends State> stateClass) {
-        CommandSequence originalCommandSequence = null;
-        CommandSequence validationCommandSequence = null;
+        CommandSequence originalCommandSequence;
+        CommandSequence validationCommandSequence;
         try {
             ParameterType.BasicConcreteType.clearPool();
             originalCommandSequence = CommandSequence.generateSequence(

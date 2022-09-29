@@ -56,7 +56,10 @@ public class Config {
         public boolean useFeedBack = true;
         public boolean collUpFeedBack = true;
 
-        public boolean fullStopTest = true;
+        // 0: only full-stop test using StackedTestPacket
+        // 1: only test plan test using TestPlanPacket
+        // 2: mixed test using MixedTestPlan
+        public int testingMode = 0;
 
         // Debug option
         public boolean startUpOneCluster = false;

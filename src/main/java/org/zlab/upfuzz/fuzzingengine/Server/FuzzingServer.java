@@ -46,7 +46,7 @@ public class FuzzingServer {
     // seeds: sent to client and waiting for Feedback
     private final Map<Integer, Seed> testID2Seed;
     // stackedTestPackets to be sent to clients
-    private final Queue<StackedTestPacket> stackedTestPackets;
+    public final Queue<StackedTestPacket> stackedTestPackets;
     // test plan could contains (1) cmd (2) fault (3) upgrade op
     private final Queue<TestPlanPacket> testPlanPackets;
 
@@ -138,25 +138,41 @@ public class FuzzingServer {
 
         // Start from simple. Start up three nodes and only execute the test
         // plan!
-
-        if (Config.getConf().fullStopTest) {
-            if (!stackedTestPackets.isEmpty()) {
-                return stackedTestPackets.poll();
-            }
-            fuzzOne();
+        if (Config.getConf().testingMode == 0) {
+            if (stackedTestPackets.isEmpty())
+                fuzzOne();
             assert !stackedTestPackets.isEmpty();
             return stackedTestPackets.poll();
-        } else {
-            if (!testPlanPackets.isEmpty()) {
-                return testPlanPackets.poll();
-            }
-            fuzzTestPlan();
+        } else if (Config.getConf().testingMode == 1) {
+            if (testPlanPackets.isEmpty())
+                fuzzTestPlan();
             assert !testPlanPackets.isEmpty();
             return testPlanPackets.poll();
+        } else if (Config.getConf().testingMode == 2) {
+            return generateMixedTestPacket();
         }
+        throw new RuntimeException(
+                String.format("testing Mode [%d] is not in correct scope",
+                        Config.getConf().testingMode));
     }
 
-    private void fuzzOne() {
+    public MixedTestPacket generateMixedTestPacket() {
+        StackedTestPacket stackedTestPacket;
+        TestPlanPacket testPlanPacket;
+
+        if (stackedTestPackets.isEmpty())
+            fuzzOne();
+        stackedTestPacket = stackedTestPackets.poll();
+
+        if (testPlanPackets.isEmpty())
+            fuzzTestPlan();
+        testPlanPacket = testPlanPackets.poll();
+
+        return new MixedTestPacket(stackedTestPacket, testPlanPacket);
+
+    }
+
+    public void fuzzOne() {
         // It should also generate test plan
 
         // Pick one test case from the corpus, fuzz it for mutationEpoch
@@ -236,6 +252,9 @@ public class FuzzingServer {
 
     public FeedBack mergeCoverage(FeedBack[] feedBacks) {
         FeedBack fb = new FeedBack();
+        if (feedBacks == null) {
+            return fb;
+        }
         for (FeedBack feedBack : feedBacks) {
             if (feedBack.originalCodeCoverage != null)
                 fb.originalCodeCoverage.merge(feedBack.originalCodeCoverage);

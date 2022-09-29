@@ -21,6 +21,8 @@ public class StackedFeedbackPacket extends Packet {
 
     private final List<FeedbackPacket> fpList;
     public boolean isUpgradeProcessFailed;
+    public String upgradeFailureReport;
+
     public String stackedCommandSequenceStr;
 
     // public int nodeNum;
