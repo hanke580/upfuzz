@@ -9,6 +9,7 @@ import org.zlab.upfuzz.fuzzingengine.Packet.TestPlanPacket;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
 
 /**
  * Event is the base class for all the operations during the upgrade process.
@@ -16,7 +17,7 @@ import java.io.IOException;
  *      (2) A fault (Netowrk/Crash)
  *      (3) An upgrade command
  */
-public class Event {
+public class Event implements Serializable {
     static Logger logger = LogManager.getLogger(Event.class);
 
     protected String type;

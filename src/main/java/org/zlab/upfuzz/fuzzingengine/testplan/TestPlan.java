@@ -1,5 +1,6 @@
 package org.zlab.upfuzz.fuzzingengine.testplan;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -16,7 +17,7 @@ import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.UpgradeOp;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
-public class TestPlan {
+public class TestPlan implements Serializable {
     static Logger logger = LogManager.getLogger(TestPlan.class);
 
     public int nodeNum;
@@ -69,7 +70,6 @@ public class TestPlan {
                 mutateType = rand.nextInt(3);
             }
             if (mutateType == 0) {
-                logger.debug("Inject a Fault");
                 // Inject a fault
                 Pair<Fault, FaultRecover> faultPair = Fault
                         .randomGenerateFault(Config.getConf().nodeNum);
@@ -83,7 +83,6 @@ public class TestPlan {
                 }
                 return;
             } else if (mutateType == 1) {
-                logger.debug("Remove a Fault");
                 // Remove a fault
                 if (faultIdxes.isEmpty())
                     continue;
@@ -91,7 +90,6 @@ public class TestPlan {
                 events.remove((int) faultIdxes.get(pos));
                 return;
             } else if (mutateType == 2) {
-                logger.debug("Inject a FaultRecover");
                 // Inject a fault recover
                 if (faultIdxes.isEmpty())
                     continue;
@@ -103,8 +101,6 @@ public class TestPlan {
                 events.add(pos2, faultRecover);
                 return;
             } else if (mutateType == 3) {
-                logger.debug("Remove a FaultRecover");
-
                 // Remove a fault recover
                 if (faultRecoverIdxes.isEmpty())
                     continue;

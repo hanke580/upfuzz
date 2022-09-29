@@ -39,6 +39,8 @@ public class Config {
         public String crashDir = null;
         public String corpusDir = null;
         public int mutationEpoch = 120;
+        public int testPlanMutationEpoch = 20;
+
         public int testPlanEpoch = 10; // each seed can randomly generate 10
                                        // test plans
         public int STACKED_TESTS_NUM = 60;
@@ -82,7 +84,8 @@ public class Config {
                 try {
                     Object fieldObject = field.get(this);
                     if (fieldObject == null) {
-                        logger.error("Configuration failed to find: " + field);
+                        // logger.error("Configuration failed to find: " +
+                        // field);
                     }
                 } catch (IllegalArgumentException | IllegalAccessException e) {
                     e.printStackTrace();

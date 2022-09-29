@@ -36,6 +36,7 @@ public class FuzzingServer {
 
     // Seed Corpus (tuple(Seed, Info))
     public Corpus corpus = new Corpus();
+    public TestPlanCorpus testPlanCorpus = new TestPlanCorpus();
     private int testID = 0;
     private int finishedTestID = 0;
 
@@ -45,6 +46,8 @@ public class FuzzingServer {
 
     // seeds: sent to client and waiting for Feedback
     private final Map<Integer, Seed> testID2Seed;
+    private final Map<Integer, TestPlan> testID2TestPlan;
+
     // stackedTestPackets to be sent to clients
     public final Queue<StackedTestPacket> stackedTestPackets;
     // test plan could contains (1) cmd (2) fault (3) upgrade op
@@ -71,6 +74,7 @@ public class FuzzingServer {
 
     public FuzzingServer() {
         testID2Seed = new HashMap<>();
+        testID2TestPlan = new HashMap<>();
         stackedTestPackets = new LinkedList<>();
         testPlanPackets = new LinkedList<>();
         curOriCoverage = new ExecutionDataStore();
@@ -235,16 +239,26 @@ public class FuzzingServer {
 
         // Let's go with the simplest one. Randomly generate a seed, then a test
         // plan. And finally, execute it.
-        Seed seed = corpus.getSeed();
+        TestPlan testPlan = testPlanCorpus.getTestPlan();
 
-        // ATTENTION: If we stuck here, it means there's a problem with
-        // the command pool or the state class
-        while (seed == null) {
-            seed = Executor.generateSeed(commandPool, stateClass);
-        }
+        if (testPlan != null) {
+            for (int i = 0; i < Config.getConf().testPlanMutationEpoch; i++) {
+                TestPlan mutateTestPlan = SerializationUtils.clone(testPlan);
+                mutateTestPlan.mutate();
+                testID2TestPlan.put(testID, testPlan);
+                testPlanPackets.add(new TestPlanPacket(
+                        Config.getConf().system,
+                        testID++, testPlan));
+            }
+        } else {
+            Seed seed = corpus.peekSeed();
 
-        for (int i = 0; i < Config.getConf().testPlanEpoch; i++) {
-            TestPlan testPlan = generateTestPlan(seed);
+            // Might stuck here, this is serious
+            while (seed == null) {
+                seed = Executor.generateSeed(commandPool, stateClass);
+            }
+            testPlan = generateTestPlan(seed);
+            testID2TestPlan.put(testID, testPlan);
             testPlanPackets.add(new TestPlanPacket(
                     Config.getConf().system,
                     testID++, testPlan));
@@ -299,7 +313,7 @@ public class FuzzingServer {
 
             upgradeOpAndFaults.add(new UpgradeOp(0));
             upgradeOpAndFaults.add(new UpgradeOp(1));
-            upgradeOpAndFaults.add(new NodeFailure(0));
+            upgradeOpAndFaults.add(new NodeFailure(1));
 
             // upgradeOpAndFaults.add(0, new LinkFailure(1, 2));
             return new TestPlan(nodeNum, upgradeOpAndFaults);
@@ -324,13 +338,12 @@ public class FuzzingServer {
         if (Config.getConf().useFeedBack && Utilities.hasNewBits(curOriCoverage,
                 fb.upgradedCodeCoverage)) {
             // Add to test plan corpus?
+            testPlanCorpus.addTestPlan(
+                    testID2TestPlan.get(testPlanFeedbackPacket.testPacketID));
 
             Pair<Integer, Integer> upCoverageStatus = Utilities
                     .getCoverageStatus(
                             fb.upgradedCodeCoverage);
-            logger.info(String.format(
-                    "[TestPlan Coverage] covered branch num = %d, total branch = %d",
-                    upCoverageStatus.left, upCoverageStatus.right));
         }
 
         if (testPlanFeedbackPacket.isEventFailed) {
@@ -347,6 +360,7 @@ public class FuzzingServer {
         } else if (testPlanFeedbackPacket.isInconsistent) {
             // comparing the read/state failed
         }
+        testID2TestPlan.remove(testPlanFeedbackPacket.testPacketID);
 
     }
 

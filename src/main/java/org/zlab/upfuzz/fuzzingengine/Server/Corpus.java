@@ -44,6 +44,12 @@ public class Corpus {
         return queue.poll();
     }
 
+    public Seed peekSeed() {
+        if (queue.isEmpty())
+            return null;
+        return queue.peek();
+    }
+
     // Add one interesting seed to corpus
     public boolean addSeed(Seed seed) {
         queue.add(seed);
