@@ -28,6 +28,8 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # 2. System setup.
 
+# RUN echo "export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/" >> /hbase/conf/hbase-env.sh
+
 # build locally
 # COPY cassandra /cassandra
 # WORKDIR /cassandra
