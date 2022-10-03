@@ -58,8 +58,12 @@ If we do use IP for all, we need to add `dfs.namenode.datanode.registration.ip-h
 
 Set up the bashrc
 ```shell
-export HADOOP_HOME=/var/hadoop/hadoop-2.10.2
+export HADOOP_HOME=/etc/hadoop-2.10.2
 export PATH=${PATH}:${HADOOP_HOME}/bin:${HADOOP_HOME}/sbin
+
+echo "export HADOOP_HOME=/etc/hadoop-2.10.2" >> ~/.bashrc
+echo "export PATH=\${PATH}:\${HADOOP_HOME}/bin:\${HADOOP_HOME}/sbin" >> ~/.bashrc
+source ~/.bashrc
 ```
 
 **Start cluster**
