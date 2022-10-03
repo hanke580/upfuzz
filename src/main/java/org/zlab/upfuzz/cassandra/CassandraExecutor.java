@@ -17,7 +17,6 @@ import org.zlab.upfuzz.cassandra.CassandraCqlshDaemon.CqlshPacket;
 import org.zlab.upfuzz.fuzzingengine.AgentServerSocket;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
-import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
@@ -52,7 +51,6 @@ public class CassandraExecutor extends Executor {
 
         timestamp = System.currentTimeMillis();
 
-        // TODO: GC the old coverage since we already get the overall coverage.
         agentStore = new HashMap<>();
         agentHandler = new HashMap<>();
         sessionGroup = new ConcurrentHashMap<>();
@@ -66,7 +64,6 @@ public class CassandraExecutor extends Executor {
 
         timestamp = System.currentTimeMillis();
 
-        // TODO: GC the old coverage since we already get the overall coverage.
         agentStore = new HashMap<>();
         agentHandler = new HashMap<>();
         sessionGroup = new ConcurrentHashMap<>();
@@ -250,35 +247,6 @@ public class CassandraExecutor extends Executor {
     @Override
     public void execNormalCommand(Command command) {
 
-    }
-
-    public List<String> newVersionExecuteCommands(List<String> commandList) {
-        List<String> ret = new LinkedList<>();
-        try {
-            // TODO: Put the cqlsh daemon outside, so that one instance for one
-            // cqlsh daemon
-
-            for (String cmd : commandList) {
-                // System.out
-                // .println("\n\n------------------------------------------------------------\nexecutor
-                // command:\n"
-                // + cmd +
-                // "\n------------------------------------------------------------\n");
-                long startTime = System.currentTimeMillis();
-                CqlshPacket cp = cqlsh.execute(cmd);
-                long endTime = System.currentTimeMillis();
-
-                ret.add(cp.message);
-                // logger.info("ret is: " + cp.exitValue + "\ntime: " +
-                // cp.timeUsage + "\ntime usage(network):"
-                // + (endTime - startTime) / 1000. + "\n");
-            }
-            // cqlsh.destroy();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-        return ret;
     }
 
     @Override

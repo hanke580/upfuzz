@@ -1,0 +1,20 @@
+{
+  "originalVersion" : "hadoop-2.10.2",
+  "upgradedVersion" : "hadoop-2.10.2-dup",
+  "system" : "hdfs",
+  "serverPort" : "6399",
+  "clientPort" : "6400",
+  "initSeedDir" : "/project/upfuzz/initSeedDir",
+  "STACKED_TESTS_NUM" : "1",
+  "keepDir": true,
+  "nodeNum": 3,
+  "useFeedBack": true,
+  "faultMaxNum": 2,
+  "useExampleTestPlan": false,
+  "testingMode": 0,
+  "startUpOneCluster": true,
+  "debug": true,
+  "collUpFeedBack": true 
+
+  
+}

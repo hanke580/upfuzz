@@ -6,11 +6,18 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.util.LinkedList;
+import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 import org.codehaus.plexus.util.FileUtils;
 import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.CustomExceptions;
+import org.zlab.upfuzz.cassandra.CassandraCqlshDaemon;
+import org.zlab.upfuzz.cassandra.CassandraDocker;
+import org.zlab.upfuzz.fuzzingengine.AgentServerSocket;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
@@ -19,66 +26,42 @@ import org.zlab.upfuzz.utils.Utilities;
 public class HdfsExecutor extends Executor {
 
     static final String jacocoOptions = "=append=false,includes=org.apache.hadoop.*,output=dfe,address=localhost,port=6300,sessionid=";
-    Process hdfsProcess;
-    Process hdfsDN;
-    Process hdfsSNN;
+
+    HDFSShellDaemon hdfsShell = null;
 
     public HdfsExecutor() {
-        super("hadoop");
+        super("hdfs");
+
+        timestamp = System.currentTimeMillis();
+
+        agentStore = new HashMap<>();
+        agentHandler = new HashMap<>();
+        sessionGroup = new ConcurrentHashMap<>();
+
+        this.nodeNum = Config.getConf().nodeNum;
+    }
+
+    public HdfsExecutor(int nodeNum) {
+        super("hdfs");
+
+        timestamp = System.currentTimeMillis();
+
+        agentStore = new HashMap<>();
+        agentHandler = new HashMap<>();
+        sessionGroup = new ConcurrentHashMap<>();
+
+        this.nodeNum = nodeNum;
     }
 
     @Override
     public boolean upgrade() {
+        // Only perform upgrade
         try {
-            System.out.println("start hadoop...");
-            ProcessBuilder hdfsProcessBuilder = new ProcessBuilder(
-                    "sbin/start-dfs.sh");
-            Map<String, String> env = hdfsProcessBuilder.environment();
-            env.put("JAVA_TOOL_OPTIONS",
-                    "-javaagent:" + Config.getConf().jacocoAgentPath +
-                            jacocoOptions + systemID + "-" + executorID +
-                            "_upgraded");
-            hdfsProcessBuilder.directory(
-                    new File(Config.getConf().newSystemPath));
-            hdfsProcessBuilder.redirectErrorStream(true);
-            hdfsProcessBuilder.redirectOutput(
-                    Paths.get(Config.getConf().newSystemPath, "logs.txt")
-                            .toFile());
-
-            System.out.println("Executor starting hdfs");
-            long startTime = System.currentTimeMillis();
-            hdfsProcess = hdfsProcessBuilder.start();
-            // byte[] out = hdfsProcess.getInputStream().readAllBytes();
-            // BufferedReader in = new BufferedReader(new
-            // InputStreamReader(hdfsProcess.getInputStream()));
-            // String line;
-            // while ((line = in.readLine()) != null) {
-            // System.out.println(line);
-            // System.out.flush();
-            // }
-            // in.close();
-            // hdfsProcess.waitFor();
-            System.out.println("hdfs " + executorID + " started");
-            while (!isHdfsReady(Config.getConf().newSystemPath)) {
-                if (!hdfsProcess.isAlive()) {
-                    // System.out.println("hdfs process crushed\nCheck " +
-                    // Config.getConf().hdfsOutputFile
-                    // + " for details");
-                    // System.exit(1);
-                    throw new CustomExceptions.systemStartFailureException(
-                            "Hdfs Start fails", null);
-                }
-                System.out.println("Wait for " + systemID + " ready...");
-                Thread.sleep(1000);
-            }
-            long endTime = System.currentTimeMillis();
-            System.out.println("hdfs " + executorID + " ready \n time usage:" +
-                    (endTime - startTime) / 1000. + "\n");
-
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
+            dockerCluster.upgrade();
+        } catch (Exception e) {
+            logger.error("Failed to connect to upgraded cassandra cluster", e);
         }
-        return false;
+        return true;
     }
 
     public boolean isHdfsReady(String hdfsPath) {
@@ -126,91 +109,41 @@ public class HdfsExecutor extends Executor {
 
     @Override
     public void startup() {
-        stopDfs();
-
-        int ret = 0;
-        System.out.println("hadoop format disk...");
         try {
-            FileUtils.deleteDirectory(Config.getConf().dataDir);
-            ProcessBuilder hdfsFormatProcessBuilder = new ProcessBuilder(
-                    "bin/hdfs", "namenode", "-format");
-            hdfsFormatProcessBuilder.redirectErrorStream(true);
-            hdfsFormatProcessBuilder.directory(
-                    new File(Config.getConf().oldSystemPath));
-            hdfsFormatProcessBuilder.redirectOutput(
-                    Paths.get(Config.getConf().oldSystemPath, "format_logs.txt")
-                            .toFile());
-
-            Process hdfsFormatProcess = hdfsFormatProcessBuilder.start();
-
-            // hdfsFormatProcess.waitFor(1000, TimeUnit.MILLISECONDS);
-            // byte[] bytes = new byte[65536];
-            // int n = hdfsFormatProcess.getInputStream().read(bytes);
-            // while (n != -1) {
-            // System.out.println(
-            // "read n bytes: " + n + "\n" + new String(bytes, 0, n));
-            // n = hdfsFormatProcess.getInputStream().read(bytes);
-            // }
-            // String formatMessage = Utilities.readProcess(hdfsFormatProcess);
-            // System.out.println("format messsage: " + formatMessage);
-            // hdfsFormatProcess.getOutputStream().write("Y\n".getBytes());
-            ret = hdfsFormatProcess.waitFor();
-            System.out.println("format result: " + ret);
-            if (ret != 0) {
-                throw new CustomExceptions.systemStartFailureException(
-                        "hdfs format exception", null);
-            }
-
-            System.out.println("start hadoop...");
-            ProcessBuilder hdfsProcessBuilder = new ProcessBuilder("bin/hdfs",
-                    "--daemon", "start", "namenode");
-            ProcessBuilder hdfsDNBuilder = new ProcessBuilder("bin/hdfs",
-                    "--daemon", "start", "datanode");
-            ProcessBuilder hdfsSNNBuilder = new ProcessBuilder(
-                    "bin/hdfs", "--daemon", "start", "secondarynamenode");
-            // "sbin/start-dfs.sh");
-            String hdfsJacocoOption = "-javaagent:"
-                    + Config.getConf().jacocoAgentPath +
-                    jacocoOptions + systemID + "-" + executorID + "_original";
-            String path = Config.getConf().oldSystemPath;
-            setupProcess(hdfsProcessBuilder, path, hdfsJacocoOption, "NN.log");
-            setupProcess(hdfsDNBuilder, path, hdfsJacocoOption, "DN.log");
-            setupProcess(hdfsSNNBuilder, path, hdfsJacocoOption, "SNN.log");
-
-            System.out.println("Executor starting hdfs");
-            long startTime = System.currentTimeMillis();
-            hdfsProcess = hdfsProcessBuilder.start();
-            hdfsDN = hdfsDNBuilder.start();
-            hdfsSNN = hdfsSNNBuilder.start();
-            // byte[] out = hdfsProcess.getInputStream().readAllBytes();
-            // BufferedReader in = new BufferedReader(new
-            // InputStreamReader(hdfsProcess.getInputStream()));
-            // String line;
-            // while ((line = in.readLine()) != null) {
-            // System.out.println(line);
-            // System.out.flush();
-            // }
-            // in.close();
-            // hdfsProcess.waitFor();
-            System.out.println("hdfs " + executorID + " started");
-            while (!isHdfsReady(Config.getConf().oldSystemPath)) {
-                // if (!hdfsProcess.isAlive()) {
-                // // System.out.println("hdfs process crushed\nCheck " +
-                // // Config.getConf().hdfsOutputFile
-                // // + " for details");
-                // // System.exit(1);
-                // throw new CustomExceptions.systemStartFailureException(
-                // "Hdfs Start fails", null);
-                // }
-                System.out.println("Wait for " + systemID + " ready...");
-                Thread.sleep(1000);
-            }
-            long endTime = System.currentTimeMillis();
-            System.out.println("hdfs " + executorID + " ready \n time usage:" +
-                    (endTime - startTime) / 1000. + "\n");
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
+            agentSocket = new AgentServerSocket(this);
+            agentSocket.setDaemon(true);
+            agentSocket.start();
+            agentPort = agentSocket.getPort();
+        } catch (Exception e) {
+            logger.error(e);
+            System.exit(1);
         }
+
+        dockerCluster = new HdfsDockerCluster(this,
+                Config.getConf().originalVersion,
+                nodeNum);
+
+        try {
+            dockerCluster.build();
+        } catch (Exception e) {
+            logger.error("docker cluster cannot build with exception: ", e);
+            System.exit(1);
+        }
+
+        logger.info("[Old Version] HDFS Start...");
+
+        try {
+            int ret = dockerCluster.start();
+            if (ret != 0) {
+                logger.error("cassandra " + executorID + " failed to started");
+                System.exit(1);
+            }
+        } catch (Exception e) {
+            // TODO: try to clear the state and restart
+            logger.error("docker cluster start up failed", e);
+        }
+
+        logger.info("hdfs " + executorID + " started");
     }
 
     @Override
@@ -243,21 +176,46 @@ public class HdfsExecutor extends Executor {
     public List<String> executeCommands(List<String> commandList) {
         List<String> ret = new LinkedList<>();
         for (String cmd : commandList) {
-            System.out.println("cmd: " + cmd);
-            try {
-                Process p = Utilities.exec(new String[] { "bin/hdfs", cmd },
-                        Config.getConf().oldSystemPath);
-                p.waitFor();
-            } catch (IOException | InterruptedException e) {
-                e.printStackTrace();
-            }
+            execShellCommand(new ShellCommand(cmd));
         }
+        logger.info("[HKLOG] commands finished execution");
         return ret;
     }
 
     @Override
     public String execShellCommand(ShellCommand command) {
-        return null;
+        // execute with HDFS
+        String ret;
+        try {
+            // Cannot perform test plan
+            // We shouldn't crash nn
+            int nodeIndex = 0; // NN
+
+            assert dockerCluster.dockerStates[nodeIndex].alive;
+            hdfsShell = ((HdfsDocker) dockerCluster
+                    .getDocker(nodeIndex)).hdfsShell;
+
+            // cqlsh = ((CassandraDocker) dockerCluster.getDocker(0)).cqlsh;
+            logger.trace("hdfs shell execute: " + command);
+            long startTime = System.currentTimeMillis();
+            CassandraCqlshDaemon.CqlshPacket cp = hdfsShell
+                    .execute(command.getCommand());
+            long endTime = System.currentTimeMillis();
+
+            long timeElapsed = TimeUnit.SECONDS.convert(
+                    endTime - startTime, TimeUnit.MILLISECONDS);
+
+            if (Config.getConf().debug) {
+                logger.info(String.format(
+                        "Command is sent to node[%d], exec time: %ds",
+                        nodeIndex, timeElapsed));
+            }
+            ret = cp.message;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return ret;
     }
 
     @Override

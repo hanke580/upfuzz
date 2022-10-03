@@ -50,7 +50,7 @@ public class FuzzingClient {
             executor = new CassandraExecutor(nodeNum);
         } else if (Config.getConf().system.equals("hdfs")) {
             // TODO: modify later
-            executor = new HdfsExecutor();
+            executor = new HdfsExecutor(nodeNum);
         }
     }
 
@@ -60,8 +60,8 @@ public class FuzzingClient {
                 executor.startup();
                 return;
             } catch (Exception e) {
-                executor.teardown();
                 e.printStackTrace();
+                executor.teardown();
             }
         }
         throw new RuntimeException("cluster cannot start up");
@@ -123,6 +123,17 @@ public class FuzzingClient {
                 stackedTestPacket);
 
         // Upgrade should only contain the upgrade process
+
+        if (Config.getConf().debug) {
+            try {
+                logger.info("Sleep Client 20 mins for debugging!");
+                Thread.sleep(1200 * 1000);
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+
         boolean ret = executor.upgrade();
 
         if (!ret) {

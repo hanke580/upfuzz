@@ -41,7 +41,10 @@ public abstract class DockerCluster implements IDockerCluster {
     public String hostIP;
     public File workdir;
 
-    static public String getKthIP(String ip, int index) {
+    // This function do the shifting
+    // .1 runs the client
+    // .2 runs the first node
+    public static String getKthIP(String ip, int index) {
         String[] segments = ip.split("\\.");
         segments[3] = Integer.toString(index + 2);
         return String.join(".", segments);

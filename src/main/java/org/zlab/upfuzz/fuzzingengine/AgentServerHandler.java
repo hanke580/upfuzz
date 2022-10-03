@@ -43,6 +43,9 @@ public class AgentServerHandler
 
     AgentServerHandler(final Executor executor, final Socket socket,
             ExecutionDataWriter fileWriter) throws IOException {
+
+        logger.info("AgentServerHandler registering: "
+                + socket.getRemoteSocketAddress());
         this.executor = executor;
         this.socket = socket;
         this.fileWriter = fileWriter;
@@ -66,7 +69,8 @@ public class AgentServerHandler
                 okCMD.countDown();
             }
 
-            // logger.debug("connection closed");
+            logger.debug(String.format("connection %s, sessionId = %s closed",
+                    socket.getRemoteSocketAddress(), sessionId));
             socket.close();
             // synchronized (fileWriter) {
             // fileWriter.flush();
@@ -85,8 +89,12 @@ public class AgentServerHandler
             System.err.println("Invalid sessionId " + sessionId);
             return;
         }
-        if (executor.agentHandler.containsKey(sessionId)
-                || sessionSplit[3].equals("null")) {
+        // if (executor.agentHandler.containsKey(sessionId)
+        // || sessionSplit[3].equals("null")) {
+        if (sessionSplit[3].equals("null")) {
+            logger.info("Skip register: "
+                    + socket.getRemoteSocketAddress().toString() + " " +
+                    sessionId + " registered");
             return;
         }
         logger.info("Agent" + socket.getRemoteSocketAddress().toString() + " " +
@@ -150,6 +158,7 @@ public class AgentServerHandler
         try {
             writer.visitDumpCommand(true, true);
         } catch (IOException e) {
+            logger.error(e);
             logger.debug("agent connection " + sessionId + " closed");
             return;
         }

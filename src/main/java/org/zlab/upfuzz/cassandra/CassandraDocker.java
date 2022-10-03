@@ -26,6 +26,8 @@ public class CassandraDocker extends Docker {
     String javaToolOpts;
     int cqlshDaemonPort = 18251;
 
+    public String seedIP;
+
     public CassandraCqlshDaemon cqlsh;
 
     public CassandraDocker(CassandraDockerCluster dockerCluster, int index)

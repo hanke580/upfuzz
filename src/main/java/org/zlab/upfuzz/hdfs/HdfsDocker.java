@@ -23,7 +23,11 @@ public class HdfsDocker extends Docker {
 
     String composeYaml;
     String javaToolOpts;
-    String containerName;
+    int hdfsDaemonPort = 18251;
+
+    public String namenodeIP;
+
+    public HDFSShellDaemon hdfsShell;
 
     public HdfsDocker(HdfsDockerCluster dockerCluster, int index)
             throws IOException {
@@ -37,7 +41,7 @@ public class HdfsDocker extends Docker {
         subnet = dockerCluster.subnet;
         hostIP = dockerCluster.hostIP;
         networkIP = DockerCluster.getKthIP(hostIP, index);
-        seedIP = dockerCluster.seedIP;
+        namenodeIP = dockerCluster.namenodeIP;
         agentPort = dockerCluster.agentPort;
         includes = dockerCluster.includes;
         excludes = dockerCluster.excludes;
@@ -64,7 +68,7 @@ public class HdfsDocker extends Docker {
         formatMap.put("networkName", networkName);
         formatMap.put("JAVA_TOOL_OPTIONS", javaToolOpts);
         formatMap.put("subnet", subnet);
-        formatMap.put("seedIP", seedIP);
+        formatMap.put("namenodeIP", namenodeIP);
         formatMap.put("networkIP", networkIP);
         formatMap.put("agentPort", Integer.toString(agentPort));
         formatMap.put("executorID", executorID);
@@ -76,15 +80,9 @@ public class HdfsDocker extends Docker {
 
     @Override
     public int start() throws IOException, InterruptedException {
-        // String dir = "/" + system + "/" + originalVersion;
-        // Process cass = exec(new String[] { "-e", "HDFS_HOME=" + dir,
-        // name,
-        // dir + "/bin/cqlsh_init.sh" });
-        // int res = cass.waitFor();
-        // String log = Utilities.readProcess(cass);
-        // logger.debug("start hdfs docker " + index + ": " + dir +
-        // " ret: " + res + "\n" + log);
-        //
+        // Connect to the HDFS daemon
+        hdfsShell = new HDFSShellDaemon(getNetworkIP(), hdfsDaemonPort,
+                executorID);
         return 0;
     }
 
@@ -107,29 +105,6 @@ public class HdfsDocker extends Docker {
 
     @Override
     public boolean build() throws IOException {
-        // FIXME skip this for local test
-        // URL pyScript = HdfsDockerCompose.class.getClassLoader()
-        // .getResource("build.py");
-        // String pyScriptPath = pyScript.getPath();
-        // File scriptPath = Paths.get(pyScriptPath).getParent().toFile();
-        // try {
-        // logger.info("Build Dockerfile " + systemID + " " + originalVersion);
-        // Process buildProcess = Utilities.exec(
-        // new String[] { "python3", pyScriptPath, systemID,
-        // originalVersion },
-        // scriptPath);
-        // int exit = buildProcess.waitFor();
-        // if (exit == 0) {
-        // logger.info("Build docker succeed.");
-        // } else {
-        // String errorMessage = Utilities.readProcess(buildProcess);
-        // logger.error("Build docker failed\n" + errorMessage);
-        // }
-        // return (exit == 0);
-        // } catch (IOException | InterruptedException e) {
-        // e.printStackTrace();
-        // }
-
         String hdfsHome = "/hdfs/" + originalVersion;
         String hdfsConf = "/etc/" + originalVersion;
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
@@ -137,24 +112,25 @@ public class HdfsDocker extends Docker {
                 + "=append=false"
                 + ",includes=" + includes + ",excludes=" + excludes +
                 ",output=dfe,address=" + hostIP + ",port=" + agentPort +
-                ",sessionid=" + system + "-" + executorID + "_" + type +
+                ",sessionid=" + system + "-" + executorID + "_"
+                + type + "-" + index +
                 "\"";
 
         env = new String[] {
-                "HDFS_HOME=\"" + hdfsHome + "\"",
+                "HADOOP_HOME=\"" + hdfsHome + "\"",
                 "HDFS_CONF=\"" + hdfsConf + "\"", javaToolOpts,
-                "PYTHON=python2" };
+                "HDFS_SHELL_DAEMON_PORT=\"" + hdfsDaemonPort + "\"",
+                "PYTHON=python3" };
         setEnvironment();
         return false;
     }
 
     public void upgrade() throws Exception {
         int ret = 0;
-        Process stopCass = exec(new String[] {
-                "/" + system + "/" + originalVersion + "/"
-                        + "bin/nodetool",
-                "stopdaemon" });
-        ret = stopCass.waitFor();
+        Process stopHDFS = runInContainer(new String[] {
+                "stop-dfs.sh"
+        });
+        ret = stopHDFS.waitFor();
 
         logger.debug("original version stop: " + ret);
         type = "upgraded";
@@ -163,20 +139,23 @@ public class HdfsDocker extends Docker {
                 + "=append=false"
                 + ",includes=" + includes + ",excludes=" + excludes +
                 ",output=dfe,address=" + hostIP + ",port=" + agentPort +
-                ",sessionid=" + system + "-" + executorID + "_" + type +
+                ",sessionid=" + system + "-" + executorID + "_"
+                + type + "-" + index +
                 "\"";
+
+        hdfsDaemonPort ^= 1;
         String hdfsHome = "/hdfs/" + upgradedVersion;
         String hdfsConf = "/etc/" + upgradedVersion;
         env = new String[] {
-                "HDFS_HOME=\"" + hdfsHome + "\"",
+                "HADOOP_HOME=\"" + hdfsHome + "\"",
                 "HDFS_CONF=\"" + hdfsConf + "\"", javaToolOpts,
-                "PYTHON=python2" };
+                "HDFS_SHELL_DAEMON_PORT=\"" + hdfsDaemonPort + "\"",
+                "PYTHON=python3" };
         setEnvironment();
         String restartCommand = "supervisorctl restart upfuzz_hdfs:";
-        Process restart = exec(
+        Process restart = runInContainer(
                 new String[] { "/bin/bash", "-c", restartCommand }, env);
         ret = restart.waitFor();
-        Thread.sleep(10000);
         String message = Utilities.readProcess(restart);
         logger.debug("original version restart: " + ret + "\n" + message);
     }
@@ -184,7 +163,7 @@ public class HdfsDocker extends Docker {
     @Override
     public Path getDataPath() {
         return Paths.get(workdir.toString(),
-                "/persistent/node_" + index + "/data");
+                "/persistent/node_" + index + "/nndata");
     }
 
     public Path getWorkPath() {
@@ -200,7 +179,8 @@ public class HdfsDocker extends Docker {
             + "            ${networkName}:\n"
             + "                ipv4_address: ${networkIP}\n"
             + "        volumes:\n"
-            + "            - ./persistent/node_${index}/data:/var/lib/hdfs\n"
+            + "            - ./persistent/node_${index}/nndata:/var/hadoop/data/nameNode\n"
+            + "            - ./persistent/node_${index}/dndata:/var/hadoop/data/dataNode\n"
             + "            - ./persistent/node_${index}/log:/var/log/hdfs\n"
             + "            - ./persistent/node_${index}/env.sh:/usr/bin/set_env\n"
             + "            - ./persistent/node_${index}/consolelog:/var/log/supervisor\n"
@@ -208,45 +188,22 @@ public class HdfsDocker extends Docker {
             + "            - ${projectRoot}/prebuild/${system}/${upgradedVersion}:/${system}/${upgradedVersion}\n"
             + "        environment:\n"
             + "            - HDFS_CLUSTER_NAME=dev_cluster\n"
-            + "            - HDFS_SEEDS=${seedIP},\n"
+            + "            - namenodeIP=${namenodeIP},\n"
             + "            - HDFS_LOGGING_LEVEL=DEBUG\n"
-            + "            - CQLSH_HOST=${networkIP}\n"
-            + "            - HDFS_LOG_DIR=/var/log/hdfs\n"
+            + "            - HDFS_SHELL_HOST=${networkIP}\n"
+            + "            - HDFS_LOG_DIR=/var/log/hadoop\n"
             + "        expose:\n"
             + "            - ${agentPort}\n"
-            + "            - 7000\n"
-            + "            - 7001\n"
-            + "            - 7199\n"
-            + "            - 9042\n"
-            + "            - 9160\n"
-            + "            - 18251\n"
+            + "            - 50020\n"
+            + "            - 50010\n"
+            + "            - 50075\n"
+            + "            - 9000\n"
+            + "            - 50070\n"
+            + "            - 50090\n"
             + "        ulimits:\n"
             + "            memlock: -1\n"
             + "            nproc: 32768\n"
             + "            nofile: 100000\n";
-
-    public Process exec(String[] cmd, String[] env)
-            throws IOException, InterruptedException {
-        StringBuilder sb = new StringBuilder();
-        ArrayList<String> cmds = new ArrayList<>();
-        cmds.add("docker");
-        cmds.add("exec");
-        for (int i = 0; i < env.length; ++i) {
-            cmds.add("-e");
-            cmds.add(env[i]);
-        }
-        cmds.add(containerName);
-        cmds.addAll(Arrays.asList(cmd));
-        logger.debug(String.join(" ", cmds));
-        return Utilities.exec(cmds.toArray(new String[] {}), workdir);
-    }
-
-    public Process exec(String[] cmd) throws IOException, InterruptedException {
-        String[] dockerCMD = Utilities.concatArray(
-                new String[] { "docker", "exec", containerName }, cmd);
-        logger.debug(String.join(" ", dockerCMD));
-        return Utilities.exec(dockerCMD, workdir);
-    }
 
     @Override
     public void chmodDir() throws IOException, InterruptedException {

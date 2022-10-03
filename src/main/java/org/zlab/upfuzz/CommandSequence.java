@@ -263,6 +263,8 @@ public class CommandSequence implements Serializable {
                 continue;
             }
         }
+        if (command != null)
+            command.updateExecutableCommandString();
 
         return command;
     }

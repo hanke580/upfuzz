@@ -29,17 +29,18 @@ public class HdfsDockerCluster extends DockerCluster {
     static Logger logger = LogManager.getLogger(HdfsDockerCluster.class);
 
     HdfsDocker[] dockers;
-    String seedIP;
+    String namenodeIP;
 
-    static final String includes = "org.apache.cassandra.*";
-    static final String excludes = "org.apache.cassandra.metrics.*:org.apache.cassandra.net.*:org.apache.cassandra.io.sstable.format.SSTableReader.*:org.apache.cassandra.service.*";
+    static final String includes = "*";
+    static final String excludes = "org.apache.cassandra.metrics.*";
 
     HdfsDockerCluster(HdfsExecutor executor, String version,
             int nodeNum) {
         super(executor, version, nodeNum);
 
         this.dockers = new HdfsDocker[nodeNum];
-        this.seedIP = DockerCluster.getKthIP(hostIP, 0);
+        this.namenodeIP = DockerCluster.getKthIP(hostIP, 0); // 2 means the
+                                                             // first node
     }
 
     public boolean build() throws IOException {
@@ -93,6 +94,11 @@ public class HdfsDockerCluster extends DockerCluster {
             logger.error("docker-compose up\n" + errorMessage);
             // System.exit(ret);
         }
+        try {
+            Thread.sleep(30 * 1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         for (int i = 0; i < dockers.length; ++i) {
             try {
                 dockers[i].start();
@@ -107,7 +113,7 @@ public class HdfsDockerCluster extends DockerCluster {
         this.subnetID = RandomUtils.nextInt(1, 256);
         this.subnet = "192.168." + Integer.toString(subnetID) + ".1/24";
         this.hostIP = "192.168." + Integer.toString(subnetID) + ".1";
-        this.seedIP = DockerCluster.getKthIP(hostIP, 0);
+        this.namenodeIP = DockerCluster.getKthIP(hostIP, 0);
         this.build();
     }
 

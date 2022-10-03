@@ -11,8 +11,6 @@ RUN apt install apt-transport-https ca-certificates -y
 
 # Use supervisor to run multiple processes, in case the target system requires
 # multiple processes.
-# Remember to open port 22 for sshd.
-#RUN apt-get update && apt-get install -y --allow-unauthenticated openssh-server supervisor
 RUN apt-get update && apt-get install -y openssh-server iproute2 net-tools iputils-ping supervisor vim ant maven python python3 python3-pip python-six psmisc
 
 RUN pip3 install six
@@ -30,31 +28,14 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 RUN mkdir /hadoop-config
 COPY hadoop_config/* /hadoop-config/
 
+COPY hdfs_shell_init.sh /
+RUN chmod +x /hdfs_shell_init.sh
+
+#RUN mkdir /var/hadoop_conf
+#COPY hadoop_config/* /hadoop_conf/
+
 COPY config /root/.ssh/
 RUN chmod 644 /root/.ssh/config
-# RUN echo "export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/" >> /hbase/conf/hbase-env.sh
-
-# build locally
-# COPY cassandra /cassandra
-# WORKDIR /cassandra
-# RUN ant
-# COPY cqlsh_daemon.py /cassandra/bin/cqlsh_daemon.py
-
-# TODO: copy hshell init
-# when the system has started up, we start up the hshell
-# daemon process
-#COPY cqlsh_init.sh /cassandra/cqlsh_init.sh
-
-
-# This file contains relatively permanent configurations.
-# ADD cass-setup.sh /usr/local/bin/cass-setup.sh
-# RUN sh /usr/local/bin/cass-setup.sh
-
-# set CASSANDRA_HOME manually through docker shell
-# ENV CASSANDRA_CONFIG /cassandra/conf
-
-# This file contains all the runtime configurations (configurations that might
-# need to be modified everytime Cassandra is run, e.g., logging level.)
 
 ADD hdfs-clusternode.sh /usr/local/bin/hdfs-clusternode
 RUN chmod +x /usr/local/bin/hdfs-clusternode

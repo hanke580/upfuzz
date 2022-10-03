@@ -37,7 +37,6 @@ public abstract class DockerMeta {
     public String subnet;
     public String networkIP;
     public String hostIP;
-    public String seedIP;
     public int agentPort;
     public String includes;
     public String excludes;

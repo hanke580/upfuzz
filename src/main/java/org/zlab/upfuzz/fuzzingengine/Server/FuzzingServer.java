@@ -104,7 +104,7 @@ public class FuzzingServer {
                 }
             }));
 
-        } else if (Config.getConf().system.equals("hadoop")) {
+        } else if (Config.getConf().system.equals("hdfs")) {
             executor = new HdfsExecutor();
             commandPool = new HdfsCommandPool();
             stateClass = HdfsState.class;

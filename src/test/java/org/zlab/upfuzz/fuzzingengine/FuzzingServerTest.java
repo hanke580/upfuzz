@@ -3,6 +3,7 @@ package org.zlab.upfuzz.fuzzingengine;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.cassandra.CassandraCommandPool;
 import org.zlab.upfuzz.cassandra.CassandraState;
+import org.zlab.upfuzz.docker.DockerCluster;
 import org.zlab.upfuzz.fuzzingengine.Packet.StackedTestPacket;
 import org.zlab.upfuzz.fuzzingengine.Packet.TestPlanPacket;
 import org.zlab.upfuzz.fuzzingengine.Server.FuzzingServer;
@@ -68,6 +69,7 @@ public class FuzzingServerTest {
 
     @Test
     public void test() {
+        System.out.println(DockerCluster.getKthIP("123.2.2.44", 0));
 
     }
 

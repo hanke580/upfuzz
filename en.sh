@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker exec -it $1 /bin/bash
+docker exec -it --privileged $1 /bin/bash
