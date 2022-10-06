@@ -47,7 +47,7 @@ public class HDFSShellDaemon {
 
         bw.write(cmd);
         bw.flush();
-        logger.info(String.format("Command: %s", cmd));
+        // logger.info(String.format("Command: %s", cmd));
         BufferedReader br = new BufferedReader(
                 new InputStreamReader(socket.getInputStream()));
 

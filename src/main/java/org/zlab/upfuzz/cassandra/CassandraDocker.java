@@ -5,8 +5,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.text.StringSubstitutor;
@@ -14,8 +12,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.docker.Docker;
 import org.zlab.upfuzz.docker.DockerCluster;
-import org.zlab.upfuzz.docker.DockerMeta;
-import org.zlab.upfuzz.docker.IDocker;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.utils.Utilities;
 
@@ -210,7 +206,7 @@ public class CassandraDocker extends Docker {
                 new String[] { "/bin/bash", "-c", restartCommand }, env);
         ret = restart.waitFor();
         String message = Utilities.readProcess(restart);
-        logger.debug("upgrade version restart: " + ret + "\n" + message);
+        logger.debug("upgrade version start: " + ret + "\n" + message);
         cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort,
                 executorID);
     }

@@ -17,6 +17,8 @@ import org.jacoco.core.data.SessionInfo;
 import org.jacoco.core.runtime.RemoteControlReader;
 import org.jacoco.core.runtime.RemoteControlWriter;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
+import org.zlab.upfuzz.hdfs.HdfsDockerCluster;
+import org.zlab.upfuzz.utils.Utilities;
 
 public class AgentServerHandler
         implements Runnable, ISessionInfoVisitor, IExecutionDataVisitor {
@@ -44,8 +46,8 @@ public class AgentServerHandler
     AgentServerHandler(final Executor executor, final Socket socket,
             ExecutionDataWriter fileWriter) throws IOException {
 
-        logger.info("AgentServerHandler registering: "
-                + socket.getRemoteSocketAddress());
+        // logger.info("AgentServerHandler registering: "
+        // + socket.getRemoteSocketAddress());
         this.executor = executor;
         this.socket = socket;
         this.fileWriter = fileWriter;
@@ -69,8 +71,9 @@ public class AgentServerHandler
                 okCMD.countDown();
             }
 
-            logger.debug(String.format("connection %s, sessionId = %s closed",
-                    socket.getRemoteSocketAddress(), sessionId));
+            // logger.debug(String.format("connection %s, sessionId = %s
+            // closed",
+            // socket.getRemoteSocketAddress(), sessionId));
             socket.close();
             // synchronized (fileWriter) {
             // fileWriter.flush();
@@ -89,9 +92,20 @@ public class AgentServerHandler
             System.err.println("Invalid sessionId " + sessionId);
             return;
         }
-        // if (executor.agentHandler.containsKey(sessionId)
-        // || sessionSplit[3].equals("null")) {
-        if (sessionSplit[3].equals("null")) {
+
+        if (sessionSplit[0].equals("hdfs")
+                && !Utilities.contains(sessionSplit[3],
+                        HdfsDockerCluster.includeJacocoHandlers)) {
+            if (Config.getConf().debug) {
+                logger.info("Skip register: "
+                        + socket.getRemoteSocketAddress().toString() + " " +
+                        sessionId + ": not in target hdfs process");
+            }
+            return;
+        }
+
+        if (executor.agentHandler.containsKey(sessionId)
+                || sessionSplit[3].equals("null")) {
             logger.info("Skip register: "
                     + socket.getRemoteSocketAddress().toString() + " " +
                     sessionId + " registered");
@@ -158,7 +172,6 @@ public class AgentServerHandler
         try {
             writer.visitDumpCommand(true, true);
         } catch (IOException e) {
-            logger.error(e);
             logger.debug("agent connection " + sessionId + " closed");
             return;
         }

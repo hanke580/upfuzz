@@ -219,8 +219,8 @@ public abstract class Executor implements IExecutor {
     public ExecutionDataStore[] collectCoverageSeparate(String version) {
         // TODO: Separate the coverage here
         Set<String> agentIdList = sessionGroup.get(executorID + "_" + version);
-        logger.info("agentIdList: " + agentIdList);
-        logger.info("executorID = " + executorID);
+        // logger.info("agentIdList: " + agentIdList);
+        // logger.info("executorID = " + executorID);
         if (agentIdList == null) {
             new UnexpectedException("No agent connection with executor " +
                     executorID)

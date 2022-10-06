@@ -38,8 +38,8 @@ if [[ ! -f "/tmp/.setup_conf" ]]; then
 
         echo "export HADOOP_LOG_DIR=/var/hadoop/logs" >> ${CONFIG}\hadoop-env.sh
 
-        echo node1 > ${CONFIG}/slaves
-        echo node2 >> ${CONFIG}/slaves
+        echo datanode1 > ${CONFIG}/slaves
+        echo datanode2 >> ${CONFIG}/slaves
 
         # always configure a 3 node HDFS cluster, .3/.4 is the data node
     done
@@ -50,17 +50,19 @@ fi
 
 IP_MASK=$(echo $IP | cut -d "." -f -3)
 HDFS_NAMENODE=$IP_MASK.2
+HDFS_SECONDARY_NAMENODE=$IP_MASK.3
 HADOOP_HOME=/hdfs/$ORG_VERSION
 
 if [[ -z $(grep -F "master" "/etc/hosts") ]];
 then
         echo "$HDFS_NAMENODE    master" >> /etc/hosts
-        echo "$IP_MASK.3    node1" >> /etc/hosts
-        echo "$IP_MASK.4    node2" >> /etc/hosts
+        echo "$IP_MASK.3    secondarynn" >> /etc/hosts
+        echo "$IP_MASK.4    datanode1" >> /etc/hosts
+        echo "$IP_MASK.5    datanode2" >> /etc/hosts
 
-        echo "HADOOP_HOME=$HADOOP_HOME" >> ~/.bashrc
-        echo "PATH=\${PATH}:\${HADOOP_HOME}/bin:\${HADOOP_HOME}/sbin" >> ~/.bashrc
-        source ~/.bashrc
+        # echo "HADOOP_HOME=$HADOOP_HOME" >> ~/.bashrc
+        # echo "PATH=\${PATH}:\${HADOOP_HOME}/bin:\${HADOOP_HOME}/sbin" >> ~/.bashrc
+        # source ~/.bashrc
 fi
 
 #HADOOP_HOME=/etc/$ORG_VERSION
@@ -70,8 +72,10 @@ echo "Starting HDFS on $IP..."
 
 if [[ "$IP" == "$HDFS_NAMENODE" ]];
 then
-        $HADOOP_HOME/bin/hdfs namenode -format
         $HADOOP_HOME/sbin/hadoop-daemon.sh start namenode
+elif [[ "$IP" == "$HDFS_SECONDARY_NAMENODE" ]];
+then
+        $HADOOP_HOME/sbin/hadoop-daemon.sh start secondarynamenode
 else
         $HADOOP_HOME/sbin/hadoop-daemon.sh start datanode
 fi

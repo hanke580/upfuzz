@@ -37,6 +37,8 @@ RUN chmod +x /hdfs_shell_init.sh
 COPY config /root/.ssh/
 RUN chmod 644 /root/.ssh/config
 
+ADD hdfs_nn_format.sh /usr/local/bin/hdfs_nn_format
+RUN chmod +x /usr/local/bin/hdfs_nn_format
 ADD hdfs-clusternode.sh /usr/local/bin/hdfs-clusternode
 RUN chmod +x /usr/local/bin/hdfs-clusternode
 

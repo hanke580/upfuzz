@@ -35,4 +35,9 @@
         <name>dfs.namenode.datanode.registration.ip-hostname-check</name>
         <value>false</value>
     </property>
+    <property>
+        <name>dfs.secondary.http.address</name>
+        <value>secondarynn:50090</value>
+    </property>
+
 </configuration>

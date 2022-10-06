@@ -561,4 +561,15 @@ public class Utilities {
         // [min, max)
         return rand.nextInt(max - min) + min;
     }
+
+    public static boolean contains(String val, String[] set) {
+        for (String e : set) {
+            if (e.equals(val)) {
+                return true;
+            }
+        }
+        return false;
+
+    }
+
 }

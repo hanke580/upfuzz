@@ -6,23 +6,15 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.rmi.UnexpectedException;
-import java.text.DateFormat;
-import java.text.MessageFormat;
-import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.docker.DockerCluster;
-import org.zlab.upfuzz.docker.DockerMeta;
 import org.zlab.upfuzz.docker.IDocker;
-import org.zlab.upfuzz.docker.IDockerCluster;
 import org.zlab.upfuzz.fuzzingengine.Config;
-import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.utils.Utilities;
 
 public class HdfsDockerCluster extends DockerCluster {
@@ -31,8 +23,15 @@ public class HdfsDockerCluster extends DockerCluster {
     HdfsDocker[] dockers;
     String namenodeIP;
 
-    static final String includes = "*";
-    static final String excludes = "org.apache.cassandra.metrics.*";
+    static final String includes = "org.apache.hadoop.hdfs.*";
+    static final String excludes = "org.apache.cassandra.*";
+
+    public static String[] includeJacocoHandlers = {
+            "org.apache.hadoop.hdfs.server.namenode.NameNode",
+            "org.apache.hadoop.hdfs.server.namenode.SecondaryNameNode",
+            "org.apache.hadoop.hdfs.server.datanode.DataNode"
+            // Add secondary namenode
+    };
 
     HdfsDockerCluster(HdfsExecutor executor, String version,
             int nodeNum) {
@@ -127,13 +126,35 @@ public class HdfsDockerCluster extends DockerCluster {
     }
 
     public void teardown() {
+
+        // Chmod so that we can read/write them on the host machine
+        try {
+            for (int i = 0; i < dockers.length; ++i) {
+                dockers[i].chmodDir();
+            }
+        } catch (Exception e) {
+            logger.error("fail to chmod dir");
+        }
+
         try {
             Process buildProcess = Utilities.exec(
                     new String[] { "docker-compose", "down" }, workdir);
-            int ret = buildProcess.waitFor();
+            buildProcess.waitFor();
             logger.info("teardown docker-compose in " + workdir);
         } catch (IOException | InterruptedException e) {
             logger.error("failed to teardown docker", e);
+        }
+
+        if (!Config.getConf().keepDir) {
+            try {
+                Utilities.exec(new String[] { "rm", "-rf",
+                        this.workdir
+                                .getAbsolutePath() },
+                        ".");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            logger.info("[teardown] deleting dir");
         }
     }
 

@@ -9,7 +9,6 @@ import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.fuzzingengine.Packet.*;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
-import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.hdfs.HdfsExecutor;
 import org.zlab.upfuzz.utils.Pair;
 
@@ -124,15 +123,15 @@ public class FuzzingClient {
 
         // Upgrade should only contain the upgrade process
 
-        if (Config.getConf().debug) {
-            try {
-                logger.info("Sleep Client 20 mins for debugging!");
-                Thread.sleep(1200 * 1000);
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
+        // if (Config.getConf().debug) {
+        // try {
+        // logger.info("Sleep Client 20 mins for debugging!");
+        // Thread.sleep(1200 * 1000);
+        // } catch (InterruptedException e) {
+        // // TODO Auto-generated catch block
+        // e.printStackTrace();
+        // }
+        // }
 
         boolean ret = executor.upgrade();
 

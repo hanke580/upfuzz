@@ -25,7 +25,8 @@ import org.zlab.upfuzz.utils.Utilities;
 
 public class HdfsExecutor extends Executor {
 
-    static final String jacocoOptions = "=append=false,includes=org.apache.hadoop.*,output=dfe,address=localhost,port=6300,sessionid=";
+    // static final String jacocoOptions =
+    // "=append=false,includes=org.apache.hadoop.*,output=dfe,address=localhost,port=6300,sessionid=";
 
     HDFSShellDaemon hdfsShell = null;
 
@@ -148,24 +149,7 @@ public class HdfsExecutor extends Executor {
 
     @Override
     public void teardown() {
-        ProcessBuilder pb = new ProcessBuilder("sbin/stop-dfs.sh");
-        pb.directory(new File(Config.getConf().oldSystemPath));
-        Process p;
-        try {
-            p = pb.start();
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(p.getInputStream()));
-            String line;
-            while ((line = in.readLine()) != null) {
-                System.out.println(line);
-                System.out.flush();
-            }
-            p.waitFor();
-            in.close();
-            System.out.println("hdfs " + executorID + " shutdown ok!");
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
+        dockerCluster.teardown();
     }
 
     @Override
@@ -178,7 +162,6 @@ public class HdfsExecutor extends Executor {
         for (String cmd : commandList) {
             execShellCommand(new ShellCommand(cmd));
         }
-        logger.info("[HKLOG] commands finished execution");
         return ret;
     }
 
