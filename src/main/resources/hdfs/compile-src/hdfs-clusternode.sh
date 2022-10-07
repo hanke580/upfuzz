@@ -8,14 +8,14 @@ if [ $# == 1 ]; then
 else NAMENODE="$IP"; fi
 
 # Change it to the target systems
-ORG_VERSION=hadoop-2.10.2
-UPG_VERSION=hadoop-2.10.2-dup
+ORG_VERSION=hadoop-2.10.0
+UPG_VERSION=hadoop-3.2.0
 
 # create necessary dirs (some version of cassandra cannot create these)
 mkdir -p /var/log/hdfs
 mkdir -p /var/lib/hdfs
 
-if [[ ! -f "/tmp/.setup_conf" ]]; then
+if [[ ! -f "/var/log/.setup_conf" ]]; then
     echo "copy hadoop dir and format configurations"
     for VERSION in ${ORG_VERSION} ${UPG_VERSION}; do
 #        # Modify the binary where all container use one copy
@@ -34,17 +34,25 @@ if [[ ! -f "/tmp/.setup_conf" ]]; then
         CONFIG="/hdfs/${VERSION}/etc/hadoop/"
 
         # config on-disk data locations
-        sed -i 's/export JAVA_HOME=${JAVA_HOME}/export JAVA_HOME=\/usr\/lib\/jvm\/java-8-openjdk-amd64\//' ${CONFIG}/hadoop-env.sh
+        # sed -i 's/export JAVA_HOME=${JAVA_HOME}/export JAVA_HOME=\/usr\/lib\/jvm\/java-8-openjdk-amd64\//' ${CONFIG}/hadoop-env.sh
+
+        echo "export JAVA_HOME=\/usr\/lib\/jvm\/java-8-openjdk-amd64\/" >> ${CONFIG}/hadoop-env.sh
+        echo "export HDFS_NAMENODE_USER=\"root\"" >> ${CONFIG}/hadoop-env.sh
+        echo "export HDFS_DATANODE_USER=\"root\"" >> ${CONFIG}/hadoop-env.sh
+        echo "export HDFS_SECONDARYNAMENODE_USER=\"root\"" >> ${CONFIG}/hadoop-env.sh
 
         echo "export HADOOP_LOG_DIR=/var/hadoop/logs" >> ${CONFIG}\hadoop-env.sh
 
         echo datanode1 > ${CONFIG}/slaves
         echo datanode2 >> ${CONFIG}/slaves
 
+        echo datanode1 > ${CONFIG}/workers
+        echo datanode2 >> ${CONFIG}/workers
+
         # always configure a 3 node HDFS cluster, .3/.4 is the data node
     done
     echo "setup done"
-    touch "/tmp/.setup_conf"
+    touch "/var/log/.setup_conf"
 fi
 
 
