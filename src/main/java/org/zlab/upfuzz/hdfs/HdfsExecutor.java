@@ -21,6 +21,7 @@ import org.zlab.upfuzz.fuzzingengine.AgentServerSocket;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
+import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
 public class HdfsExecutor extends Executor {
@@ -313,6 +314,39 @@ public class HdfsExecutor extends Executor {
     public int saveSnapshot() {
         // TODO Auto-generated method stub
         return 0;
+    }
+
+    public Pair<Boolean, String> checkResultConsistency(List<String> oriResult,
+            List<String> upResult) {
+        // This could be override by each system to filter some false positive
+        // Such as: the exception is the same, but the print format is different
+
+        if (oriResult == null) {
+            logger.error("original result are null!");
+        }
+        if (upResult == null) {
+            logger.error("upgraded result are null!");
+        }
+
+        StringBuilder failureInfo = new StringBuilder("");
+        if (oriResult.size() != upResult.size()) {
+            failureInfo.append("The result size is different\n");
+            return new Pair<>(false, failureInfo.toString());
+        } else {
+            boolean ret = true;
+            for (int i = 0; i < oriResult.size(); i++) {
+                if (oriResult.get(i).compareTo(upResult.get(i)) != 0) {
+                    String errorMsg = "Result not the same at read sequence id = "
+                            + i + "\n"
+                            + "Old Version Result: " + oriResult.get(i) + "  "
+                            + "New Version Result: " + upResult.get(i) + "\n";
+
+                    failureInfo.append(errorMsg);
+                    ret = false;
+                }
+            }
+            return new Pair<>(ret, failureInfo.toString());
+        }
     }
 
 }

@@ -57,15 +57,25 @@ public abstract class DockerMeta {
         }
         cmds.add(containerName);
         cmds.addAll(Arrays.asList(cmd));
-        // logger.debug(String.join(" ", cmds));
+        logger.debug(String.join(" ", cmds));
         return Utilities.exec(cmds.toArray(new String[] {}), workdir);
+    }
+
+    public int runProcessInContainer(String[] cmd) {
+        try {
+            int ret = runInContainer(cmd).waitFor();
+            return ret;
+        } catch (IOException | InterruptedException e) {
+            logger.error("process failed in container: " + e);
+            return -1;
+        }
     }
 
     public Process runInContainer(String[] cmd)
             throws IOException {
         String[] dockerCMD = Utilities.concatArray(
                 new String[] { "docker", "exec", containerName }, cmd);
-        // logger.debug(String.join(" ", dockerCMD));
+        logger.debug(String.join(" ", dockerCMD));
         return Utilities.exec(dockerCMD, workdir);
     }
 

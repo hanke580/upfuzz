@@ -8,8 +8,8 @@ if [ $# == 1 ]; then
 else NAMENODE="$IP"; fi
 
 # Change it to the target systems
-ORG_VERSION=hadoop-2.10.0
-UPG_VERSION=hadoop-3.2.0
+ORG_VERSION=hadoop-3.3.0
+UPG_VERSION=hadoop-3.4.0-hdfs-15624
 
 # create necessary dirs (some version of cassandra cannot create these)
 mkdir -p /var/log/hdfs
@@ -59,7 +59,6 @@ fi
 IP_MASK=$(echo $IP | cut -d "." -f -3)
 HDFS_NAMENODE=$IP_MASK.2
 HDFS_SECONDARY_NAMENODE=$IP_MASK.3
-HADOOP_HOME=/hdfs/$ORG_VERSION
 
 if [[ -z $(grep -F "master" "/etc/hosts") ]];
 then
@@ -80,7 +79,19 @@ echo "Starting HDFS on $IP..."
 
 if [[ "$IP" == "$HDFS_NAMENODE" ]];
 then
-        $HADOOP_HOME/sbin/hadoop-daemon.sh start namenode
+        splitArr=(${HADOOP_HOME//\// })
+        CUR_VERSION=${splitArr[1]}
+	echo "cur version = $CUR_VERSION"
+	echo "org version = $ORG_VERSION"
+	echo "up  version = $UPG_VERSION"
+        if [[ $CUR_VERSION == $ORG_VERSION ]];
+        then
+		echo "start up old version $HADOOP_HOME"
+                $HADOOP_HOME/sbin/hadoop-daemon.sh start namenode
+        else
+		echo "start up new version $HADOOP_HOME"
+                $HADOOP_HOME/sbin/hadoop-daemon.sh start namenode -rollingUpgrade started
+        fi
 elif [[ "$IP" == "$HDFS_SECONDARY_NAMENODE" ]];
 then
         $HADOOP_HOME/sbin/hadoop-daemon.sh start secondarynamenode

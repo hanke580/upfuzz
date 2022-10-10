@@ -88,14 +88,31 @@ public abstract class DockerCluster implements IDockerCluster {
         }
     }
 
+    public int getFirstLiveNodeIdx() {
+        int idx = -1;
+        for (int i = 0; i < nodeNum; i++) {
+            if (dockerStates[i].alive) {
+                idx = i;
+                break;
+            }
+        }
+        return idx;
+    }
+
     public void upgrade() throws Exception {
         logger.info("Cluster upgrading...");
         type = "upgraded";
+        prepareUpgrade();
         for (int i = 0; i < dockers.length; ++i) {
             dockers[i].upgrade();
         }
         logger.info("Cluster upgraded");
     }
+
+    // Some preparation before upgrading nodes
+    // - prepare FSImage in HDFS
+    // - flush memTable in Cassandra
+    public abstract void prepareUpgrade() throws Exception;
 
     // Can be override if the system follows some special
     // upgrade order

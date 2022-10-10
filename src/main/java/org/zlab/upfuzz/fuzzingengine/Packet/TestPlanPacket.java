@@ -13,6 +13,7 @@ import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.*;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.PrepareUpgrade;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.UpgradeOp;
 
 import java.io.DataInputStream;
@@ -47,6 +48,7 @@ public class TestPlanPacket extends Packet {
                 .registerSubtype(PartitionFailureRecover.class,
                         "PartitionFailureRecover")
                 .registerSubtype(UpgradeOp.class, "UpgradeOp")
+                .registerSubtype(PrepareUpgrade.class, "PrepareUpgrade")
                 .registerSubtype(ShellCommand.class, "ShellCommand");
         listType = new TypeToken<List<Event>>() {
         }.getType();

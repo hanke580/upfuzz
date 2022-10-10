@@ -3,9 +3,8 @@ package org.zlab.upfuzz.hdfs.MockFS;
 import java.io.Serializable;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
+
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.zlab.upfuzz.hdfs.MockFS.INode.IType;
@@ -14,6 +13,14 @@ public class HadoopFileSystem implements Serializable {
     static int file_size = 1024;
 
     Map<String, INode> inodeMap = new HashMap<String, INode>();
+
+    Set<String> files = new HashSet<>();
+    Set<String> dirs = new HashSet<>();
+
+    public HadoopFileSystem() {
+        dirs.add("/");
+        dirs.add("/test");
+    }
 
     String[] user_id = new String[file_size];
 
@@ -43,6 +50,37 @@ public class HadoopFileSystem implements Serializable {
 
     private void addNode(INode node) {
         inodeMap.put(node.file_path, node);
+    }
+
+    public String getRandomFilePath() {
+        // If there is no file in FS, we return NULL
+        return null;
+    }
+
+    public String getRandomDirPath() {
+        // If there is no dir in FS, we return NULL
+        if (dirs.isEmpty())
+            return null;
+        String[] dirArr = dirs.toArray(new String[dirs.size()]);
+        int idx = new Random().nextInt(dirs.size());
+        return dirArr[idx];
+    }
+
+    public boolean createFile() {
+        return false;
+    }
+
+    public boolean createDir(String path) {
+        dirs.add(path);
+        return false;
+    }
+
+    public boolean removeFile() {
+        return false;
+    }
+
+    public boolean removeDir() {
+        return false;
     }
 
     public Integer remixHash(int x) {

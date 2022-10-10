@@ -94,6 +94,14 @@ public class FuzzingClient {
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             logger.trace("Execute testpacket " + tp.systemID + " " +
                     tp.testPacketID);
+            logger.debug("\nWRITE CMD SEQUENCE");
+            for (String cmd : tp.originalCommandSequenceList) {
+                logger.debug(cmd);
+            }
+            logger.debug("\nREAD CMD SEQUENCE");
+            for (String cmd : tp.validationCommandSequneceList) {
+                logger.debug(cmd);
+            }
             executor.execute(tp.originalCommandSequenceList);
 
             FeedBack[] feedBacks = new FeedBack[stackedTestPacket.nodeNum];
@@ -206,6 +214,10 @@ public class FuzzingClient {
     // faults. So we only collect the final coverage.
     public TestPlanFeedbackPacket executeTestPlanPacket(
             TestPlanPacket testPlanPacket) {
+
+        logger.debug("test plan: \n");
+        logger.debug(testPlanPacket.testPlan);
+
         String testPlanPacketStr = null;
         int nodeNum = testPlanPacket.getNodeNum();
 
@@ -216,6 +228,12 @@ public class FuzzingClient {
         // We need to compare the results between two versions for once
         // Then we return the feedback packet
         boolean status = executor.execute(testPlanPacket.getTestPlan());
+
+        // try {
+        // Thread.sleep(1200 * 1000);
+        // } catch (InterruptedException e) {
+        // }
+
         // For test plan, we don't distinguish the old version coverage
         // and the new verison coverage. We only collect the final coverage
 

@@ -1,6 +1,7 @@
 package org.zlab.upfuzz.fuzzingengine;
 
 import org.junit.jupiter.api.Test;
+import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.cassandra.CassandraCommandPool;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.docker.DockerCluster;
@@ -11,6 +12,8 @@ import org.zlab.upfuzz.fuzzingengine.Server.Seed;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
+import org.zlab.upfuzz.hdfs.HdfsCommandPool;
+import org.zlab.upfuzz.hdfs.HdfsState;
 
 import java.io.*;
 
@@ -18,8 +21,8 @@ public class FuzzingServerTest {
     @Test
     public void testTestPlanGeneration() {
 
-        CassandraCommandPool commandPool = new CassandraCommandPool();
-        Class stateClass = CassandraState.class;
+        CommandPool commandPool = new HdfsCommandPool();
+        Class stateClass = HdfsState.class;
         Seed seed = Executor.generateSeed(commandPool, stateClass);
         Config config = new Config();
 

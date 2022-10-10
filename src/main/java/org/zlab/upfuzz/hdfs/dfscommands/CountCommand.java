@@ -1,10 +1,14 @@
 package org.zlab.upfuzz.hdfs.dfscommands;
 
 import org.zlab.upfuzz.Parameter;
+import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
+import org.zlab.upfuzz.cassandra.CassandraTypes;
+import org.zlab.upfuzz.hdfs.HDFSParameterType.HDFSDirPathType;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomHadoopPathType;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
+import org.zlab.upfuzz.utils.Utilities;
 
 public class CountCommand extends DfsCommand {
 
@@ -18,10 +22,13 @@ public class CountCommand extends DfsCommand {
         Parameter countOptCmd = new CONSTANTSTRINGType("-q -h -t")
                 .generateRandomParameter(null, null);
 
-        Parameter storageType = new CONSTANTSTRINGType("DISK")
-                .generateRandomParameter(null, null);
+        Parameter storageType = new ParameterType.InCollectionType(
+                CONSTANTSTRINGType.instance,
+                (s, c) -> Utilities.strings2Parameters(
+                        SetSpaceQuotaCommand.storageTypeOptions),
+                null).generateRandomParameter(null, null);
 
-        Parameter dir = new RandomHadoopPathType()
+        Parameter dir = new HDFSDirPathType()
                 .generateRandomParameter(hdfsState, null);
 
         params.add(countCmd);

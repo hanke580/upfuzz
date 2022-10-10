@@ -23,6 +23,7 @@ import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.*;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.PrepareUpgrade;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.UpgradeOp;
 import org.zlab.upfuzz.hdfs.HdfsCommandPool;
 import org.zlab.upfuzz.hdfs.HdfsExecutor;
@@ -298,6 +299,7 @@ public class FuzzingServer {
         if (Config.getConf().shuffleUpgradeOrder) {
             Collections.shuffle(upgradeOps);
         }
+        upgradeOps.add(0, new PrepareUpgrade());
         List<Event> upgradeOpAndFaults = interleaveFaultAndUpgradeOp(faultPairs,
                 upgradeOps);
 
@@ -306,14 +308,21 @@ public class FuzzingServer {
             logger.info("use example test plan");
             upgradeOpAndFaults = new LinkedList<>();
             // nodeNum should be 3
-            assert nodeNum == 2;
+            assert nodeNum == 4;
             // for (int i = 0; i < Config.getConf().nodeNum - 1; i++) {
             // upgradeOpAndFaults.add(new UpgradeOp(i));
             // }
 
+            upgradeOpAndFaults.add(new PrepareUpgrade());
+
+            upgradeOpAndFaults.add(new ShellCommand("dfs -mkdir /root"));
+            upgradeOpAndFaults.add(new ShellCommand(
+                    "dfsadmin -setSpaceQuota 5 -storageType ARCHIVE /root"));
+
             upgradeOpAndFaults.add(new UpgradeOp(0));
-            upgradeOpAndFaults.add(new UpgradeOp(1));
-            upgradeOpAndFaults.add(new NodeFailure(1));
+            // upgradeOpAndFaults.add(new UpgradeOp(1));
+            // upgradeOpAndFaults.add(new UpgradeOp(2));
+            // upgradeOpAndFaults.add(new UpgradeOp(3));
 
             // upgradeOpAndFaults.add(0, new LinkFailure(1, 2));
             return new TestPlan(nodeNum, upgradeOpAndFaults);

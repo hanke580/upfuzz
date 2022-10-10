@@ -161,21 +161,6 @@ public class CassandraDocker extends Docker {
 
         logger.info("[HKLOG] FLUSING!");
 
-        if (Config.getConf().originalVersion.contains("2.1.0")) {
-            Process flushCass = runInContainer(new String[] {
-                    "/" + system + "/" + originalVersion + "/"
-                            + "bin/nodetool",
-                    "-h", "::FFFF:127.0.0.1",
-                    "flush" });
-            ret = flushCass.waitFor();
-        } else {
-            Process flushCass = runInContainer(new String[] {
-                    "/" + system + "/" + originalVersion + "/"
-                            + "bin/nodetool",
-                    "flush" });
-            ret = flushCass.waitFor();
-        }
-
         Process stopCass = runInContainer(new String[] {
                 "/" + system + "/" + originalVersion + "/"
                         + "bin/nodetool",

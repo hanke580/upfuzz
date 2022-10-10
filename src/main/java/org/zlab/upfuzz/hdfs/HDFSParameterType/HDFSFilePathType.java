@@ -1,0 +1,52 @@
+package org.zlab.upfuzz.hdfs.HDFSParameterType;
+
+import org.zlab.upfuzz.Command;
+import org.zlab.upfuzz.Parameter;
+import org.zlab.upfuzz.ParameterType;
+import org.zlab.upfuzz.State;
+import org.zlab.upfuzz.hdfs.HdfsState;
+
+public class HDFSFilePathType extends ParameterType.ConcreteType {
+    // Return an existing file
+
+    @Override
+    public Parameter generateRandomParameter(State s, Command c, Object init) {
+        return null;
+    }
+
+    @Override
+    public Parameter generateRandomParameter(State s, Command c) {
+        assert s instanceof HdfsState;
+        HdfsState hdfsState = (HdfsState) s;
+        String filePath = hdfsState.dfs.getRandomFilePath();
+        if (filePath == null) {
+            return null;
+        }
+        return new Parameter(this, filePath);
+    }
+
+    @Override
+    public String generateStringValue(Parameter p) {
+        return null;
+    }
+
+    @Override
+    public boolean isValid(State s, Command c, Parameter p) {
+        return false;
+    }
+
+    @Override
+    public void regenerate(State s, Command c, Parameter p) {
+
+    }
+
+    @Override
+    public boolean isEmpty(State s, Command c, Parameter p) {
+        return false;
+    }
+
+    @Override
+    public boolean mutate(State s, Command c, Parameter p) {
+        return false;
+    }
+}

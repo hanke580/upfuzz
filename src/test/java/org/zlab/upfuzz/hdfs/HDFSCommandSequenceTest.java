@@ -20,5 +20,12 @@ public class HDFSCommandSequenceTest {
             System.out.println(str);
         }
 
+        System.out.println("");
+
+        for (String str : seed.validationCommandSequnece
+                .getCommandStringList()) {
+            System.out.println(str);
+        }
+
     }
 }

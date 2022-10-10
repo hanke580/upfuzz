@@ -123,6 +123,11 @@ public class HdfsDocker extends Docker {
 
     public void upgrade() throws Exception {
         // TODO: set up for secondary index
+        /**
+         * Prepare the fsImage if it's NN
+         * We should always upgrade NN first for HDFS
+         */
+        logger.info("upgrading index " + index);
         String nodeType;
         if (index == 0) {
             nodeType = "namenode";
@@ -132,13 +137,12 @@ public class HdfsDocker extends Docker {
             nodeType = "datanode";
         }
 
-        Process stopNode = runInContainer(new String[] {
-                "/" + system + "/" + originalVersion + "/"
-                        + "sbin/hadoop-daemon.sh",
-                "stop",
-                nodeType
-        });
-        int ret = stopNode.waitFor();
+        String orihadoopDaemonPath = "/" + system + "/" + originalVersion + "/"
+                + "sbin/hadoop-daemon.sh";
+
+        String[] stopNode = new String[] { orihadoopDaemonPath, "stop",
+                nodeType };
+        int ret = runProcessInContainer(stopNode);
 
         logger.debug("original version stop: " + ret);
         type = "upgraded";
@@ -161,8 +165,9 @@ public class HdfsDocker extends Docker {
                 "PYTHON=python3" };
         setEnvironment();
         String restartCommand = "supervisorctl restart upfuzz_hdfs:";
+        // Seems the env doesn't really matter...
         Process restart = runInContainer(
-                new String[] { "/bin/bash", "-c", restartCommand }, env);
+                new String[] { "/bin/bash", "-c", restartCommand });
         ret = restart.waitFor();
         String message = Utilities.readProcess(restart);
         logger.debug("upgrade version start: " + ret + "\n" + message);

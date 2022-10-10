@@ -22,6 +22,7 @@ import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.*;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.PrepareUpgrade;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.UpgradeOp;
 import org.zlab.upfuzz.utils.Pair;
 
@@ -153,6 +154,12 @@ public abstract class Executor implements IExecutor {
                 }
             } else if (event instanceof UpgradeOp) {
                 if (!handleUpgradeOp((UpgradeOp) event)) {
+                    logger.error("UpgradeOp problem");
+                    status = false;
+                    break;
+                }
+            } else if (event instanceof PrepareUpgrade) {
+                if (!handlePrepareUpgrade((PrepareUpgrade) event)) {
                     logger.error("UpgradeOp problem");
                     status = false;
                     break;
@@ -350,6 +357,18 @@ public abstract class Executor implements IExecutor {
             dockerCluster.upgrade(upgradeOp.nodeIndex);
         } catch (Exception e) {
             logger.error("upgrade failed due to an exception " + e);
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    public boolean handlePrepareUpgrade(PrepareUpgrade prepareUpgrade) {
+        try {
+            dockerCluster.prepareUpgrade();
+        } catch (Exception e) {
+            logger.error("upgrade prepare upgrade due to an exception " + e);
+            e.printStackTrace();
             return false;
         }
         return true;

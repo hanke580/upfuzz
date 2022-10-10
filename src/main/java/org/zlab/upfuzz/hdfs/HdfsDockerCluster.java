@@ -20,7 +20,6 @@ import org.zlab.upfuzz.utils.Utilities;
 public class HdfsDockerCluster extends DockerCluster {
     static Logger logger = LogManager.getLogger(HdfsDockerCluster.class);
 
-    HdfsDocker[] dockers;
     String namenodeIP;
 
     static final String includes = "org.apache.hadoop.hdfs.*";
@@ -30,7 +29,6 @@ public class HdfsDockerCluster extends DockerCluster {
             "org.apache.hadoop.hdfs.server.namenode.NameNode",
             "org.apache.hadoop.hdfs.server.namenode.SecondaryNameNode",
             "org.apache.hadoop.hdfs.server.datanode.DataNode"
-            // Add secondary namenode
     };
 
     HdfsDockerCluster(HdfsExecutor executor, String version,
@@ -42,7 +40,7 @@ public class HdfsDockerCluster extends DockerCluster {
                                                              // first node
     }
 
-    public boolean build() throws IOException {
+    public boolean build() throws Exception {
         for (int i = 0; i < dockers.length; ++i) {
             dockers[i] = new HdfsDocker(this, i);
             dockers[i].build();
@@ -101,7 +99,7 @@ public class HdfsDockerCluster extends DockerCluster {
         for (int i = 0; i < dockers.length; ++i) {
             try {
                 dockers[i].start();
-            } catch (IOException | InterruptedException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -113,20 +111,40 @@ public class HdfsDockerCluster extends DockerCluster {
         this.subnet = "192.168." + Integer.toString(subnetID) + ".1/24";
         this.hostIP = "192.168." + Integer.toString(subnetID) + ".1";
         this.namenodeIP = DockerCluster.getKthIP(hostIP, 0);
-        this.build();
+        try {
+            this.build();
+        } catch (Exception e) {
+            logger.error("Cannot build cluster " + e);
+        }
     }
 
-    public void upgrade() throws Exception {
-        logger.info("Cluster upgrading...");
-        type = "upgraded";
-        for (int i = 0; i < dockers.length; ++i) {
-            dockers[i].upgrade();
+    @Override
+    public void prepareUpgrade() {
+        int idx = getFirstLiveNodeIdx();
+        if (idx == -1) {
+            logger.error("cannot upgrade, all nodes are down");
+            throw new RuntimeException(
+                    "all nodes are down, cannot prepare upgrade");
         }
-        logger.info("Cluster upgraded");
+        String oriHDFS = "/" + system + "/" + originalVersion + "/"
+                + "bin/hdfs";
+        String[] enterSafemode = new String[] { oriHDFS, "dfsadmin",
+                "-safemode", "enter" };
+        String[] prepareFSImage = new String[] { oriHDFS, "dfsadmin",
+                "-rollingUpgrade", "prepare" };
+        String[] leaveSafemode = new String[] { oriHDFS, "dfsadmin",
+                "-safemode", "leave" };
+        int ret;
+        ret = dockers[idx].runProcessInContainer(enterSafemode);
+        logger.debug("enter safe mode ret = " + ret);
+        ret = dockers[idx].runProcessInContainer(prepareFSImage);
+        logger.debug("prepare image ret = " + ret);
+        ret = dockers[idx].runProcessInContainer(leaveSafemode);
+        logger.debug("leave safemode ret = " + ret);
+
     }
 
     public void teardown() {
-
         // Chmod so that we can read/write them on the host machine
         try {
             for (int i = 0; i < dockers.length; ++i) {

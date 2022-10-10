@@ -1,6 +1,6 @@
 {
-  "originalVersion" : "hadoop-2.10.2",
-  "upgradedVersion" : "hadoop-2.10.2-dup",
+  "originalVersion" : "hadoop-3.3.0",
+  "upgradedVersion" : "hadoop-3.4.0-hdfs-15624",
   "system" : "hdfs",
   "serverPort" : "6399",
   "clientPort" : "6400",
@@ -9,9 +9,9 @@
   "keepDir": true,
   "nodeNum": 4,
   "useFeedBack": true,
-  "faultMaxNum": 2,
+  "faultMaxNum": 0,
   "useExampleTestPlan": false,
-  "testingMode": 0,
+  "testingMode": 1,
   "startUpOneCluster": true,
   "debug": false,
   "collUpFeedBack": true 
