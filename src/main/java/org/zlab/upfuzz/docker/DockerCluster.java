@@ -242,13 +242,37 @@ public abstract class DockerCluster implements IDockerCluster {
 
         try {
             String[] killContainerCMD = new String[] {
-                    "docker", "kill", dockers[nodeIndex].containerName
+                    "docker-compose", "stop", dockers[nodeIndex].serviceName
             };
+            logger.debug("workdir = " + workdir);
             Process killContainerProcess = Utilities.exec(killContainerCMD,
                     workdir);
             killContainerProcess.waitFor();
         } catch (IOException | InterruptedException e) {
             logger.error("Cannot delete container index "
+                    + dockers[nodeIndex].containerName, e);
+            return false;
+        }
+
+        dockerStates[nodeIndex].alive = false;
+        return true;
+    }
+
+    public boolean restartContainer(int nodeIndex) {
+        if (!checkIndex(nodeIndex))
+            return false;
+
+        try {
+            String[] restartContainerCMD = new String[] {
+                    "docker-compose", "restart", dockers[nodeIndex].serviceName
+            };
+            logger.debug("workdir = " + workdir);
+            Process restartContainerProcess = Utilities.exec(
+                    restartContainerCMD,
+                    workdir);
+            restartContainerProcess.waitFor();
+        } catch (IOException | InterruptedException e) {
+            logger.error("Cannot restart container index "
                     + dockers[nodeIndex].containerName, e);
             return false;
         }
@@ -282,7 +306,7 @@ public abstract class DockerCluster implements IDockerCluster {
             logger.info(
                     String.format("Node%d recover successfully!", nodeIndex));
         } catch (Exception e) {
-            logger.error("Cannot delete container index "
+            logger.error("Cannot recover container index "
                     + dockers[nodeIndex].containerName, e);
             return false;
         }
@@ -296,5 +320,7 @@ public abstract class DockerCluster implements IDockerCluster {
         }
         return true;
     }
+
+    public abstract void finalizeUpgrade();
 
 }

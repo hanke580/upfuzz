@@ -44,6 +44,7 @@ public class HdfsDocker extends Docker {
         executorID = dockerCluster.executorID;
         name = "hdfs-" + originalVersion + "_" + upgradedVersion + "_" +
                 executorID + "_N" + index;
+        serviceName = "DC3N" + index; // Remember update the service name
     }
 
     @Override
@@ -140,11 +141,15 @@ public class HdfsDocker extends Docker {
         String orihadoopDaemonPath = "/" + system + "/" + originalVersion + "/"
                 + "sbin/hadoop-daemon.sh";
 
-        String[] stopNode = new String[] { orihadoopDaemonPath, "stop",
-                nodeType };
-        int ret = runProcessInContainer(stopNode);
+        int ret;
+        if (!nodeType.equals("secondarynamenode")) {
+            // Secondary is stopped in a separate operation
+            String[] stopNode = new String[] { orihadoopDaemonPath, "stop",
+                    nodeType };
+            ret = runProcessInContainer(stopNode);
+            logger.debug("original version stop: " + ret);
 
-        logger.debug("original version stop: " + ret);
+        }
         type = "upgraded";
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
                 + "/org.jacoco.agent.rt.jar"

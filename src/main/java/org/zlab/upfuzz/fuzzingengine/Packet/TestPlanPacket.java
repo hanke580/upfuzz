@@ -13,6 +13,8 @@ import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.*;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.FinalizeUpgrade;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.HDFSStopSNN;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.PrepareUpgrade;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.UpgradeOp;
 
@@ -47,8 +49,11 @@ public class TestPlanPacket extends Packet {
                 .registerSubtype(PartitionFailure.class, "PartitionFailure")
                 .registerSubtype(PartitionFailureRecover.class,
                         "PartitionFailureRecover")
+                .registerSubtype(RestartFailure.class, "RestartFailure")
                 .registerSubtype(UpgradeOp.class, "UpgradeOp")
                 .registerSubtype(PrepareUpgrade.class, "PrepareUpgrade")
+                .registerSubtype(FinalizeUpgrade.class, "FinalizeUpgrade")
+                .registerSubtype(HDFSStopSNN.class, "HDFSStopSNN")
                 .registerSubtype(ShellCommand.class, "ShellCommand");
         listType = new TypeToken<List<Event>>() {
         }.getType();

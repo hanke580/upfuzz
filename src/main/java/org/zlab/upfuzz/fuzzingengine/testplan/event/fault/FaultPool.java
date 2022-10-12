@@ -8,7 +8,7 @@ import java.util.Map;
 public class FaultPool {
 
     public enum FaultType {
-        IsolateFailure, LinkFailure, NodeFailure
+        IsolateFailure, LinkFailure, NodeFailure, RestartFailure
     }
 
     public static final List<Map.Entry<Class<? extends Fault>, Integer>> faultClassList = new LinkedList<>();
@@ -22,5 +22,7 @@ public class FaultPool {
                 new AbstractMap.SimpleImmutableEntry<>(NodeFailure.class, 1));
         faultClassList.add(new AbstractMap.SimpleImmutableEntry<>(
                 PartitionFailure.class, 1));
+        faultClassList.add(new AbstractMap.SimpleImmutableEntry<>(
+                RestartFailure.class, 1));
     }
 }

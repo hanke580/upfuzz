@@ -26,6 +26,7 @@ public class FuzzingServerTest {
         Seed seed = Executor.generateSeed(commandPool, stateClass);
         Config config = new Config();
 
+        Config.getConf().system = "hdfs";
         FuzzingServer fuzzingServer = new FuzzingServer();
         TestPlan testPlan = fuzzingServer.generateTestPlan(seed);
 

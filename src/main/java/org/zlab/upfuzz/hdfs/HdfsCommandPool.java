@@ -7,14 +7,18 @@ import org.zlab.upfuzz.hdfs.dfscommands.*;
 public class HdfsCommandPool extends CommandPool {
 
     public HdfsCommandPool() {
-
         createCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(Mkdir.class, 2));
+        createCommandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(Touchz.class, 2));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
-                        SetSpaceQuotaCommand.class, 3));
+                        Touchz.class, 2));
         commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(Mkdir.class, 3));
+                new AbstractMap.SimpleImmutableEntry<>(
+                        SetSpaceQuotaCommand.class, 2));
+        commandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(Mkdir.class, 2));
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(CountCommand.class, 10));
 

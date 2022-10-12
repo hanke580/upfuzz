@@ -311,4 +311,9 @@ public class CassandraDockerCluster extends DockerCluster {
             flushCass.waitFor();
         }
     }
+
+    @Override
+    public void finalizeUpgrade() {
+        logger.debug("cassandra upgrade finalized");
+    }
 }

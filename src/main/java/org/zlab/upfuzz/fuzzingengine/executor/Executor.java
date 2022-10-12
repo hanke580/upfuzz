@@ -22,8 +22,11 @@ import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.*;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.FinalizeUpgrade;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.HDFSStopSNN;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.PrepareUpgrade;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.UpgradeOp;
+import org.zlab.upfuzz.hdfs.HdfsDockerCluster;
 import org.zlab.upfuzz.utils.Pair;
 
 public abstract class Executor implements IExecutor {
@@ -164,6 +167,18 @@ public abstract class Executor implements IExecutor {
                     status = false;
                     break;
                 }
+            } else if (event instanceof HDFSStopSNN) {
+                if (!handleHDFSStopSNN((HDFSStopSNN) event)) {
+                    logger.error("HDFS stop SNN problem");
+                    status = false;
+                    break;
+                }
+            } else if (event instanceof FinalizeUpgrade) {
+                if (!handleFinalizeUpgrade((FinalizeUpgrade) event)) {
+                    logger.error("FinalizeUpgrade problem");
+                    status = false;
+                    break;
+                }
             }
         }
         return status;
@@ -300,6 +315,12 @@ public abstract class Executor implements IExecutor {
             PartitionFailure partitionFailure = (PartitionFailure) fault;
             return dockerCluster.partition(partitionFailure.nodeSet1,
                     partitionFailure.nodeSet2);
+        } else if (fault instanceof RestartFailure) {
+            // Crash a node
+            RestartFailure nodeFailure = (RestartFailure) fault;
+            dockerCluster.dockerStates[nodeFailure.nodeIndex].alive = true;
+            return dockerCluster.restartContainer(nodeFailure.nodeIndex);
+
         }
         return false;
     }
@@ -348,7 +369,13 @@ public abstract class Executor implements IExecutor {
             // TODO: report to server as a buggy case
             return false;
         }
-        execShellCommand(command);
+        try {
+            execShellCommand(command);
+        } catch (Exception e) {
+            logger.error("shell command execution failed " + e);
+            e.printStackTrace();
+            return false;
+        }
         return true;
     }
 
@@ -368,6 +395,29 @@ public abstract class Executor implements IExecutor {
             dockerCluster.prepareUpgrade();
         } catch (Exception e) {
             logger.error("upgrade prepare upgrade due to an exception " + e);
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    public boolean handleHDFSStopSNN(HDFSStopSNN hdfsStopSNN) {
+        try {
+            assert dockerCluster instanceof HdfsDockerCluster;
+            ((HdfsDockerCluster) dockerCluster).stopSNN();
+        } catch (Exception e) {
+            logger.error("hdfs cannot stop SNN due to an exception " + e);
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    public boolean handleFinalizeUpgrade(FinalizeUpgrade finalizeUpgrade) {
+        try {
+            dockerCluster.finalizeUpgrade();
+        } catch (Exception e) {
+            logger.error("hdfs cannot stop SNN due to an exception " + e);
             e.printStackTrace();
             return false;
         }

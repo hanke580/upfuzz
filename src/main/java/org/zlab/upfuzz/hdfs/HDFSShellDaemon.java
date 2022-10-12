@@ -16,7 +16,7 @@ public class HDFSShellDaemon {
     private Socket socket;
 
     public HDFSShellDaemon(String ipAddress, int port, String executorID) {
-        int retry = 30;
+        int retry = 10;
         logger.info("[HKLOG] executor ID = " + executorID + "  "
                 + "Connect to hdfs shell daemon:" + ipAddress + "...");
         for (int i = 0; i < retry; ++i) {

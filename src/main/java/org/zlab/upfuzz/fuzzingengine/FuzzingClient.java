@@ -229,10 +229,16 @@ public class FuzzingClient {
         // Then we return the feedback packet
         boolean status = executor.execute(testPlanPacket.getTestPlan());
 
-        // try {
-        // Thread.sleep(1200 * 1000);
-        // } catch (InterruptedException e) {
-        // }
+        if (Config.getConf().startUpOneCluster) {
+            logger.info("Start up a cluster and leave it for debugging");
+            try {
+                Thread.sleep(1800 * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.exit(1);
+
+        }
 
         // For test plan, we don't distinguish the old version coverage
         // and the new verison coverage. We only collect the final coverage
@@ -241,16 +247,38 @@ public class FuzzingClient {
         for (int i = 0; i < nodeNum; i++) {
             feedBacks[i] = new FeedBack();
         }
-        ExecutionDataStore[] upCoverages = executor
-                .collectCoverageSeparate("upgraded");
-        for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
-            feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
-        }
-
-        logger.info("Finished Execution");
         TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
                 testPlanPacket.systemID, nodeNum,
                 testPlanPacket.testPacketID, feedBacks);
+
+        try {
+            ExecutionDataStore[] upCoverages = executor
+                    .collectCoverageSeparate("upgraded");
+            for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
+                testPlanFeedbackPacket.feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+            }
+        } catch (Exception e) {
+            // Cannot collect code coverage in the upgraded version
+            // Report it as the situations that "No nodes are upgraded"
+            testPlanFeedbackPacket.isEventFailed = true;
+            StringBuilder eventFailedReport = new StringBuilder();
+            logger.error("cannot collect coverage " + e);
+            eventFailedReport.append(
+                    "TestPlan execution failed, no nodes are upgraded, cannot collect upgrade coverage\n"
+                            + e);
+            if (testPlanPacketStr == null) {
+                testPlanPacketStr = recordTestPlanPacket(testPlanPacket);
+            }
+            eventFailedReport.append(testPlanPacketStr);
+            testPlanFeedbackPacket.eventFailedReport = eventFailedReport
+                    .toString();
+
+            tearDownExecutor();
+            return testPlanFeedbackPacket;
+        }
+
+        logger.info("Finished Execution");
+
         if (!status) {
             // Now we only support checking the state of events
             // The test plan has some problems
@@ -284,16 +312,6 @@ public class FuzzingClient {
         // TODO: We should also control the nodeNum in the test file
         // Start up one cluster, execute the test plan, keep this cluster
         // for debugging and exit.
-        if (Config.getConf().startUpOneCluster) {
-            logger.info("Start up a cluster and leave it for debugging");
-            try {
-                Thread.sleep(1800 * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            System.exit(1);
-
-        }
 
         tearDownExecutor();
         return testPlanFeedbackPacket;

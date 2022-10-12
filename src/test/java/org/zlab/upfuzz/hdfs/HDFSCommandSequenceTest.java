@@ -9,8 +9,6 @@ public class HDFSCommandSequenceTest {
 
     @Test
     public void test() {
-        System.out.println("hh");
-
         CommandPool hdfsCommandPool = new HdfsCommandPool();
         Class state = HdfsState.class;
 

@@ -52,7 +52,16 @@ public abstract class Fault extends Event {
             nodeIndex = rand.nextInt(nodeNum);
             fault = new NodeFailure(nodeIndex);
             break;
+        case RestartFailure:
+            nodeIndex = rand.nextInt(nodeNum);
+            fault = new RestartFailure(nodeIndex);
+            break;
         }
+
+        // Debug Purpose: always generate restart failure
+        // nodeIndex = rand.nextInt(nodeNum);
+        // fault = new RestartFailure(nodeIndex);
+
         if (fault == null)
             return null;
 

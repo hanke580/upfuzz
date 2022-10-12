@@ -1,12 +1,16 @@
 package org.zlab.upfuzz.hdfs;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.text.StringSubstitutor;
@@ -67,6 +71,7 @@ public class HdfsDockerCluster extends DockerCluster {
 
                 formatComposeYaml();
                 composeFile.createNewFile();
+                // logger.info("\n\n compose yaml \n" + composeYaml + "\n\n");
                 writer.write(composeYaml);
                 writer.close();
 
@@ -77,6 +82,9 @@ public class HdfsDockerCluster extends DockerCluster {
                     logger.info("docker-compose up " + workdir);
                     break;
                 } else {
+                    Utilities.exec(
+                            new String[] { "docker", "network", "prune" },
+                            workdir);
                     refreshNetwork();
                     String errorMessage = Utilities.readProcess(buildProcess);
                     logger.warn("docker-compose up\n" + errorMessage);
@@ -91,11 +99,41 @@ public class HdfsDockerCluster extends DockerCluster {
             logger.error("docker-compose up\n" + errorMessage);
             // System.exit(ret);
         }
+
         try {
-            Thread.sleep(30 * 1000);
-        } catch (InterruptedException e) {
+            // Get network full name here, so that later we can disconnect and
+            // reconnect
+            Process getNameProcess = Utilities.exec(
+                    new String[] { "/bin/sh", "-c",
+                            "docker network ls | grep " + networkName },
+                    workdir);
+            getNameProcess.waitFor();
+
+            BufferedReader stdInput = new BufferedReader(
+                    new InputStreamReader(getNameProcess.getInputStream()));
+
+            BufferedReader stdError = new BufferedReader(
+                    new InputStreamReader(getNameProcess.getErrorStream()));
+
+            List<String> results = new ArrayList<>();
+            String s;
+            while ((s = stdInput.readLine()) != null) {
+                results.add(s);
+            }
+            if (results.size() != 1) {
+                logger.error(
+                        "There should be one matching network, but there is "
+                                + results.size() + " matching");
+                this.networkID = null;
+            } else {
+                this.networkID = results.get(0).split(" ")[0];
+            }
+
+            System.out.println("network ID = " + this.networkID);
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
+
         for (int i = 0; i < dockers.length; ++i) {
             try {
                 dockers[i].start();
@@ -141,7 +179,27 @@ public class HdfsDockerCluster extends DockerCluster {
         logger.debug("prepare image ret = " + ret);
         ret = dockers[idx].runProcessInContainer(leaveSafemode);
         logger.debug("leave safemode ret = " + ret);
+    }
 
+    @Override
+    public void finalizeUpgrade() {
+        String upHadoopHDFSPath = "/" + system + "/" + upgradedVersion + "/"
+                + "bin/hdfs";
+        String[] finalizeUpgradeCmd = new String[] {
+                upHadoopHDFSPath, "dfsadmin", "-rollingUpgrade",
+                "finalize"
+        };
+        dockers[0].runProcessInContainer(finalizeUpgradeCmd);
+        logger.debug("hdfs upgrade finalized");
+    }
+
+    public void stopSNN() {
+        String orihadoopDaemonPath = "/" + system + "/" + originalVersion + "/"
+                + "sbin/hadoop-daemon.sh";
+        String[] stopNode = new String[] { orihadoopDaemonPath, "stop",
+                "secondarynamenode" };
+        int ret = dockers[1].runProcessInContainer(stopNode);
+        logger.debug("secondarynamenode stop: " + ret);
     }
 
     public void teardown() {

@@ -19,7 +19,14 @@ public class HadoopFileSystem implements Serializable {
 
     public HadoopFileSystem() {
         dirs.add("/");
-        dirs.add("/test");
+    }
+
+    public static List<String> fileType = new LinkedList<>();
+
+    static {
+        fileType.add(".txt");
+        fileType.add(".xml");
+        fileType.add(".yaml");
     }
 
     String[] user_id = new String[file_size];
@@ -54,7 +61,11 @@ public class HadoopFileSystem implements Serializable {
 
     public String getRandomFilePath() {
         // If there is no file in FS, we return NULL
-        return null;
+        if (files.isEmpty())
+            return null;
+        String[] fileArr = files.toArray(new String[dirs.size()]);
+        int idx = new Random().nextInt(files.size());
+        return fileArr[idx];
     }
 
     public String getRandomDirPath() {
@@ -66,7 +77,8 @@ public class HadoopFileSystem implements Serializable {
         return dirArr[idx];
     }
 
-    public boolean createFile() {
+    public boolean createFile(String path) {
+        files.add(path);
         return false;
     }
 

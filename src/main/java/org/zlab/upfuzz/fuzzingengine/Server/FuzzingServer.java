@@ -23,6 +23,8 @@ import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.*;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.FinalizeUpgrade;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.HDFSStopSNN;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.PrepareUpgrade;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.UpgradeOp;
 import org.zlab.upfuzz.hdfs.HdfsCommandPool;
@@ -246,6 +248,7 @@ public class FuzzingServer {
             for (int i = 0; i < Config.getConf().testPlanMutationEpoch; i++) {
                 TestPlan mutateTestPlan = SerializationUtils.clone(testPlan);
                 mutateTestPlan.mutate();
+                logger.info("mutate a test plan");
                 testID2TestPlan.put(testID, testPlan);
                 testPlanPackets.add(new TestPlanPacket(
                         Config.getConf().system,
@@ -299,33 +302,39 @@ public class FuzzingServer {
         if (Config.getConf().shuffleUpgradeOrder) {
             Collections.shuffle(upgradeOps);
         }
+        if (Config.getConf().system.equals("hdfs")) {
+            upgradeOps.add(0, new HDFSStopSNN());
+        }
         upgradeOps.add(0, new PrepareUpgrade());
+
         List<Event> upgradeOpAndFaults = interleaveFaultAndUpgradeOp(faultPairs,
                 upgradeOps);
 
         if (Config.getConf().useExampleTestPlan) {
             // DEBUG USE
             logger.info("use example test plan");
-            upgradeOpAndFaults = new LinkedList<>();
+
+            List<Event> exampleEvents = new LinkedList<>();
             // nodeNum should be 3
             assert nodeNum == 4;
             // for (int i = 0; i < Config.getConf().nodeNum - 1; i++) {
-            // upgradeOpAndFaults.add(new UpgradeOp(i));
+            // exampleEvents.add(new UpgradeOp(i));
             // }
 
-            upgradeOpAndFaults.add(new PrepareUpgrade());
+            exampleEvents.add(new PrepareUpgrade());
+            if (Config.getConf().system.equals("hdfs")) {
+                exampleEvents.add(new HDFSStopSNN());
+            }
+            exampleEvents.add(new UpgradeOp(0));
 
-            upgradeOpAndFaults.add(new ShellCommand("dfs -mkdir /root"));
-            upgradeOpAndFaults.add(new ShellCommand(
-                    "dfsadmin -setSpaceQuota 5 -storageType ARCHIVE /root"));
+            exampleEvents.add(new ShellCommand("dfs -touchz /tmp"));
+            exampleEvents.add(new RestartFailure(0));
 
-            upgradeOpAndFaults.add(new UpgradeOp(0));
-            // upgradeOpAndFaults.add(new UpgradeOp(1));
-            // upgradeOpAndFaults.add(new UpgradeOp(2));
-            // upgradeOpAndFaults.add(new UpgradeOp(3));
-
-            // upgradeOpAndFaults.add(0, new LinkFailure(1, 2));
-            return new TestPlan(nodeNum, upgradeOpAndFaults);
+            exampleEvents.add(new UpgradeOp(1));
+            exampleEvents.add(new UpgradeOp(2));
+            exampleEvents.add(new UpgradeOp(3));
+            // exampleEvents.add(0, new LinkFailure(1, 2));
+            return new TestPlan(nodeNum, exampleEvents);
         }
 
         // TODO: If the node is current down, we should switch to
@@ -334,6 +343,8 @@ public class FuzzingServer {
         List<Event> shellCommands = ShellCommand.seed2Events(seed);
         List<Event> events = interleaveWithOrder(upgradeOpAndFaults,
                 shellCommands);
+
+        events.add(events.size(), new FinalizeUpgrade());
         return new TestPlan(nodeNum, events);
     }
 
@@ -344,15 +355,17 @@ public class FuzzingServer {
         // Do we mutate the test plan?
 
         FeedBack fb = mergeCoverage(testPlanFeedbackPacket.feedBacks);
+
         if (Config.getConf().useFeedBack && Utilities.hasNewBits(curOriCoverage,
                 fb.upgradedCodeCoverage)) {
             // Add to test plan corpus?
-            testPlanCorpus.addTestPlan(
-                    testID2TestPlan.get(testPlanFeedbackPacket.testPacketID));
 
-            Pair<Integer, Integer> upCoverageStatus = Utilities
-                    .getCoverageStatus(
-                            fb.upgradedCodeCoverage);
+            // Do not maintain a test plan for now
+
+            // testPlanCorpus.addTestPlan(
+            // testID2TestPlan.get(testPlanFeedbackPacket.testPacketID));
+
+            curOriCoverage.merge(fb.upgradedCodeCoverage);
         }
 
         if (testPlanFeedbackPacket.isEventFailed) {
@@ -370,6 +383,21 @@ public class FuzzingServer {
             // comparing the read/state failed
         }
         testID2TestPlan.remove(testPlanFeedbackPacket.testPacketID);
+
+        // Update the coveredBranches to the newest value
+        Pair<Integer, Integer> curOriCoverageStatus = Utilities
+                .getCoverageStatus(curOriCoverage);
+        originalCoveredBranches = curOriCoverageStatus.left;
+        originalProbeNum = curOriCoverageStatus.right;
+
+        Pair<Integer, Integer> curUpCoverageStatus = Utilities
+                .getCoverageStatus(curUpCoverage);
+        upgradedCoveredBranches = curUpCoverageStatus.left;
+        upgradedProbeNum = curUpCoverageStatus.right;
+
+        finishedTestID++;
+        printInfo();
+        System.out.println();
 
     }
 
@@ -594,7 +622,7 @@ public class FuzzingServer {
         for (int i = 0; i < totalEventSize; i++) {
             // Magic Number: Prefer to execute commands first
             // Also make the commands more separate
-            if (Utilities.oneOf(rand, 5)) {
+            if (Utilities.oneOf(rand, 3)) {
                 if (upgradeOpAndFaultsIdx < events1.size())
                     events.add(events1.get(upgradeOpAndFaultsIdx++));
                 else
