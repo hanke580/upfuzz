@@ -77,3 +77,21 @@ start-dfs.sh
 stop-dfs.sh
 rm -rf data/* logs/*
 ```
+
+
+## HBase cluster
+
+
+```xml
+
+<configuration>
+  <property>
+    <name>hbase.rootdir</name>
+    <value>hdfs://master:8020/hbase</value>
+  </property>
+  <property>
+    <name>hbase.cluster.distributed</name>
+    <value>true</value>
+  </property>
+</configuration>
+```

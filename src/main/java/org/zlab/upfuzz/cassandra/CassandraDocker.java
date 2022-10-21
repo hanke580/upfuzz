@@ -260,23 +260,53 @@ public class CassandraDocker extends Docker {
         for (String stateName : targetSystemStates) {
             Path filePath = Paths.get("/var/log/cassandra/system.log");
             String targetStart = String.format(
-                    "[InconsistencyDetectorStart][%s]",
+                    "\\[InconsistencyDetectorStart\\]\\[%s\\]",
+                    stateName);
+            String targetEnd = String.format(
+                    "\\[InconsistencyDetectorEnd\\]\\[%s\\]",
                     stateName);
             String[] grepStateCmd = new String[] {
                     "/bin/sh", "-c",
-                    "grep -A 5 \"" + targetStart + "\" " + filePath
-                            + " | tail -n 5"
+                    "grep -a -B 20 \"" + targetEnd + "\" " + filePath
+                            + " | tail -n 20"
             };
+
             try {
+                System.out.println("\n\n");
                 Process grepProc = runInContainer(grepStateCmd);
                 String result = new String(
                         grepProc.getInputStream().readAllBytes());
-                int lastIdx = result.lastIndexOf(targetStart);
-                String subString = result.substring(lastIdx);
-                String stateValue = subString.substring(
-                        subString.indexOf("\n") + 1,
-                        subString.lastIndexOf("[InconsistencyDetectorEnd]")
-                                - 1);
+
+                logger.info("grep result = \n" + result);
+                String stateValue = "";
+
+                if (!result.isEmpty()) {
+                    String targetStart_ = String.format(
+                            "[InconsistencyDetectorStart][%s]",
+                            stateName);
+                    String targetEnd_ = String.format(
+                            "[InconsistencyDetectorEnd][%s]",
+                            stateName);
+
+                    int lastIdx = result.lastIndexOf(targetStart_);
+                    if (lastIdx != -1) {
+                        String subString = result.substring(lastIdx);
+                        stateValue = subString.substring(
+                                subString.indexOf("\n") + 1,
+                                subString.lastIndexOf(targetEnd_)
+                                        - 1);
+                    } else {
+                        logger.error(String.format(
+                                "Node[%d] State[%s] cannot find target start",
+                                index, stateName));
+                    }
+                } else {
+                    logger.error(
+                            String.format("Node[%d] State[%s] result is empty",
+                                    index, stateName));
+                }
+                logger.info(String.format("State [%s] =  %s", stateName,
+                        stateValue));
                 states.put(stateName, stateValue);
             } catch (IOException e) {
                 logger.error(String.format(

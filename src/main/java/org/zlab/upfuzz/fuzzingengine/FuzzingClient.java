@@ -296,12 +296,13 @@ public class FuzzingClient {
             return testPlanFeedbackPacket;
         }
 
-        // retrieve states
         Map<Integer, Map<String, String>> states = executor.readSystemState();
         logger.info("system states = " + states);
 
+        // TODO: A system state comparison with the oracle here
+
         try {
-            logger.info("Sleep Client 10 mins for debugging!");
+            logger.info("Sleep 10m state to be stable!");
             Thread.sleep(600 * 1000);
         } catch (InterruptedException e) {
             // TODO Auto-generated catch block
@@ -339,10 +340,6 @@ public class FuzzingClient {
                     "The test plan execution met a problem when executing event[%d]",
                     buggyEventIdx));
         }
-
-        // TODO: We should also control the nodeNum in the test file
-        // Start up one cluster, execute the test plan, keep this cluster
-        // for debugging and exit.
 
         tearDownExecutor();
         return testPlanFeedbackPacket;
