@@ -8,6 +8,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.Set;
 
 public abstract class DockerMeta {
     static Logger logger = LogManager.getLogger(DockerMeta.class);
@@ -44,6 +46,8 @@ public abstract class DockerMeta {
     public String executorID;
     public String containerName;
     public String serviceName;
+
+    public Set<String> targetSystemStates;
 
     public Process runInContainer(String[] cmd, String[] env)
             throws IOException, InterruptedException {

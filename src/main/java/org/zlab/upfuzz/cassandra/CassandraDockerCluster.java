@@ -35,7 +35,15 @@ public class CassandraDockerCluster extends DockerCluster {
 
     CassandraDockerCluster(CassandraExecutor executor, String version,
             int nodeNum) {
-        super(executor, version, nodeNum);
+        super(executor, version, nodeNum, null);
+
+        this.dockers = new CassandraDocker[nodeNum];
+        this.seedIP = DockerCluster.getKthIP(hostIP, 0);
+    }
+
+    CassandraDockerCluster(CassandraExecutor executor, String version,
+            int nodeNum, Set<String> targetSystemStates) {
+        super(executor, version, nodeNum, targetSystemStates);
 
         this.dockers = new CassandraDocker[nodeNum];
         this.seedIP = DockerCluster.getKthIP(hostIP, 0);

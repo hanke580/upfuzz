@@ -2,6 +2,7 @@ package org.zlab.upfuzz.docker;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.Map;
 
 public interface IDocker {
     String getNetworkIP();
@@ -13,6 +14,8 @@ public interface IDocker {
     boolean build() throws Exception;
 
     void upgrade() throws Exception;
+
+    Map<String, String> readSystemState();
 
     Path getDataPath();
 

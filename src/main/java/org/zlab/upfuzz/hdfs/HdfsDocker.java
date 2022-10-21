@@ -181,6 +181,11 @@ public class HdfsDocker extends Docker {
     }
 
     @Override
+    public Map<String, String> readSystemState() {
+        return null;
+    }
+
+    @Override
     public Path getDataPath() {
         return Paths.get(workdir.toString(),
                 "/persistent/node_" + index + "/nndata");

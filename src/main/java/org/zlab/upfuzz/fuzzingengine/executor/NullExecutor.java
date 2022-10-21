@@ -1,6 +1,7 @@
 package org.zlab.upfuzz.fuzzingengine.executor;
 
 import java.util.List;
+import java.util.Map;
 
 import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.CommandSequence;
@@ -50,4 +51,5 @@ public class NullExecutor extends Executor {
     public boolean upgrade() {
         return false;
     }
+
 }

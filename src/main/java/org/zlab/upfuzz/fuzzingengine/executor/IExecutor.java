@@ -1,6 +1,8 @@
 package org.zlab.upfuzz.fuzzingengine.executor;
 
 import java.util.List;
+import java.util.Map;
+
 import org.zlab.upfuzz.CommandSequence;
 
 public interface IExecutor {
@@ -17,4 +19,5 @@ public interface IExecutor {
      * @return
      */
     boolean upgrade();
+
 }

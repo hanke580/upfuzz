@@ -1,6 +1,8 @@
 package org.zlab.upfuzz.fuzzingengine.executor;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
 import java.rmi.UnexpectedException;
 import java.util.HashMap;
 import java.util.List;
@@ -34,12 +36,11 @@ public abstract class Executor implements IExecutor {
 
     public int agentPort;
     public Long timestamp = 0L;
-
     public int eventIdx;
-
     public String executorID;
     public String systemID = "UnknowDS";
     public int nodeNum;
+    public Set<String> targetSystemStates;
 
     public DockerCluster dockerCluster;
 
@@ -76,13 +77,17 @@ public abstract class Executor implements IExecutor {
         return systemID + "-" + executorID;
     }
 
-    abstract public void startup();
+    public abstract void startup();
 
-    abstract public void teardown();
+    public Map<Integer, Map<String, String>> readSystemState() {
+        return dockerCluster.readSystemState();
+    }
 
-    abstract public void upgradeTeardown();
+    public abstract void teardown();
 
-    abstract public List<String> executeCommands(List<String> commandList);
+    public abstract void upgradeTeardown();
+
+    public abstract List<String> executeCommands(List<String> commandList);
 
     public static Seed generateSeed(CommandPool commandPool,
             Class<? extends State> stateClass) {
@@ -422,6 +427,25 @@ public abstract class Executor implements IExecutor {
             return false;
         }
         return true;
+    }
+
+    public static String readSystemState(Path filePath, String stateName)
+            throws IOException {
+        String targetStart = String.format("[InconsistencyDetectorStart][%s]",
+                stateName);
+        String cmd = "grep -A 5 \"" + targetStart + "\" " + filePath
+                + " | tail -n 5";
+        ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash", "-c",
+                cmd);
+        Process process = processBuilder.start();
+        String result = new String(process.getInputStream().readAllBytes());
+
+        int lastIdx = result.lastIndexOf(
+                "[InconsistencyDetectorStart][applicationState] = ");
+        String sub = result.substring(lastIdx);
+        String sub1 = sub.substring(sub.indexOf("\n") + 1,
+                sub.lastIndexOf("[InconsistencyDetectorEnd]") - 1);
+        return sub1;
     }
 
 }

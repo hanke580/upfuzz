@@ -316,7 +316,7 @@ public class FuzzingServer {
 
             List<Event> exampleEvents = new LinkedList<>();
             // nodeNum should be 3
-            assert nodeNum == 4;
+            assert nodeNum == 3;
             // for (int i = 0; i < Config.getConf().nodeNum - 1; i++) {
             // exampleEvents.add(new UpgradeOp(i));
             // }
@@ -327,12 +327,12 @@ public class FuzzingServer {
             }
             exampleEvents.add(new UpgradeOp(0));
 
-            exampleEvents.add(new ShellCommand("dfs -touchz /tmp"));
-            exampleEvents.add(new RestartFailure(0));
+//            exampleEvents.add(new ShellCommand("dfs -touchz /tmp"));
+//            exampleEvents.add(new RestartFailure(0));
 
             exampleEvents.add(new UpgradeOp(1));
             exampleEvents.add(new UpgradeOp(2));
-            exampleEvents.add(new UpgradeOp(3));
+//            exampleEvents.add(new UpgradeOp(3));
             // exampleEvents.add(0, new LinkFailure(1, 2));
             return new TestPlan(nodeNum, exampleEvents);
         }

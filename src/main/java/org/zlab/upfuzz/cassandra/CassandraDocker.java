@@ -251,4 +251,39 @@ public class CassandraDocker extends Docker {
             + "            nproc: 32768\n"
             + "            nofile: 100000\n";
 
+    @Override
+    public Map<String, String> readSystemState() {
+        Map<String, String> states = new HashMap<>();
+        // Cassandra do not distinguish nodes
+        // HDFS might get state from different nodes
+        for (String stateName : targetSystemStates) {
+            Path filePath = Paths.get("/var/log/cassandra/system.log");
+            String targetStart = String.format(
+                    "[InconsistencyDetectorStart][%s]",
+                    stateName);
+            String[] grepStateCmd = new String[] {
+                    "/bin/sh", "-c",
+                    "grep -A 5 \"" + targetStart + "\" " + filePath
+                            + " | tail -n 5"
+            };
+            try {
+                Process grepProc = runInContainer(grepStateCmd);
+                String result = new String(
+                        grepProc.getInputStream().readAllBytes());
+                int lastIdx = result.lastIndexOf(targetStart);
+                String subString = result.substring(lastIdx);
+                String stateValue = subString.substring(
+                        subString.indexOf("\n") + 1,
+                        subString.lastIndexOf("[InconsistencyDetectorEnd]")
+                                - 1);
+                states.put(stateName, stateValue);
+            } catch (IOException e) {
+                logger.error(String.format(
+                        "Problem when reading state in docker[%d]", index));
+                e.printStackTrace();
+            }
+        }
+        return states;
+    }
+
 }

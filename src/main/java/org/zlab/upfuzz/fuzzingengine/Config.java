@@ -41,6 +41,8 @@ public class Config {
         public int mutationEpoch = 120;
         public int testPlanMutationEpoch = 20;
 
+        public String targetSystemStateFile = "states.json";
+
         public int testPlanEpoch = 10; // each seed can randomly generate 10
                                        // test plans
         public int STACKED_TESTS_NUM = 60;

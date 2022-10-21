@@ -4,9 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -71,6 +69,20 @@ public class CassandraExecutor extends Executor {
         this.nodeNum = nodeNum;
     }
 
+    public CassandraExecutor(int nodeNum,
+            Set<String> targetSystemStates) {
+        super("cassandra");
+
+        timestamp = System.currentTimeMillis();
+        this.nodeNum = nodeNum;
+        this.targetSystemStates = targetSystemStates;
+
+        agentStore = new HashMap<>();
+        agentHandler = new HashMap<>();
+        sessionGroup = new ConcurrentHashMap<>();
+
+    }
+
     public boolean isCassandraReady(String oldSystemPath) {
         // ProcessBuilder isReadyBuilder = new ProcessBuilder();
         Process isReady;
@@ -108,7 +120,7 @@ public class CassandraExecutor extends Executor {
 
         dockerCluster = new CassandraDockerCluster(
                 this, Config.getConf().originalVersion,
-                nodeNum);
+                nodeNum, targetSystemStates);
 
         try {
             dockerCluster.build();

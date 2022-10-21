@@ -16,6 +16,10 @@ import org.zlab.upfuzz.hdfs.HdfsCommandPool;
 import org.zlab.upfuzz.hdfs.HdfsState;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.stream.Stream;
 
 public class FuzzingServerTest {
     @Test
@@ -74,7 +78,52 @@ public class FuzzingServerTest {
     @Test
     public void test() {
         System.out.println(DockerCluster.getKthIP("123.2.2.44", 0));
-
     }
+
+    // @Test
+    // public void testGrepState() throws IOException {
+    // String stateName = "applicationState";
+    // Path filePath = Paths
+    // .get("/Users/hanke/Desktop/Project/upfuzz/system.log");
+    // String targetStart = String.format("[InconsistencyDetectorStart][%s]",
+    // stateName);
+    // String cmd = "grep -A 5 \"" + targetStart + "\" " + filePath
+    // + " | tail -n 5";
+    // System.out.println("cmd = " + cmd);
+    //
+    // ProcessBuilder processBuilder = new ProcessBuilder("/bin/sh", "-c",
+    // cmd); @Test
+    //// public void testGrepState() throws IOException {
+    //// String stateName = "applicationState";
+    //// Path filePath = Paths
+    //// .get("/Users/hanke/Desktop/Project/upfuzz/system.log");
+    //// String targetStart = String.format("[InconsistencyDetectorStart][%s]",
+    //// stateName);
+    //// String cmd = "grep -A 5 \"" + targetStart + "\" " + filePath
+    //// + " | tail -n 5";
+    //// System.out.println("cmd = " + cmd);
+    ////
+    //// ProcessBuilder processBuilder = new ProcessBuilder("/bin/sh", "-c",
+    //// cmd);
+    //// Process process = processBuilder.start();
+    //// String result = new String(process.getInputStream().readAllBytes());
+    ////
+    //// int lastIdx = result.lastIndexOf(
+    //// "[InconsistencyDetectorStart][applicationState] = ");
+    //// String sub = result.substring(lastIdx);
+    //// String sub1 = sub.substring(sub.indexOf("\n") + 1,
+    //// sub.lastIndexOf("[InconsistencyDetectorEnd]") - 1);
+    //// System.out.println("state = " + sub1);
+    //// }
+    // Process process = processBuilder.start();
+    // String result = new String(process.getInputStream().readAllBytes());
+    //
+    // int lastIdx = result.lastIndexOf(
+    // "[InconsistencyDetectorStart][applicationState] = ");
+    // String sub = result.substring(lastIdx);
+    // String sub1 = sub.substring(sub.indexOf("\n") + 1,
+    // sub.lastIndexOf("[InconsistencyDetectorEnd]") - 1);
+    // System.out.println("state = " + sub1);
+    // }
 
 }

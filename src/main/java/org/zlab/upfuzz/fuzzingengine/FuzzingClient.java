@@ -1,8 +1,11 @@
 package org.zlab.upfuzz.fuzzingengine;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionDataStore;
@@ -44,9 +47,14 @@ public class FuzzingClient {
         clientThread.join();
     }
 
-    public void initExecutor(int nodeNum) {
+    public void initExecutor(int nodeNum,
+            Set<String> targetSystemStates) {
         if (Config.getConf().system.equals("cassandra")) {
-            executor = new CassandraExecutor(nodeNum);
+            if (targetSystemStates != null) {
+                executor = new CassandraExecutor(nodeNum, targetSystemStates);
+            } else {
+                executor = new CassandraExecutor(nodeNum);
+            }
         } else if (Config.getConf().system.equals("hdfs")) {
             // TODO: modify later
             executor = new HdfsExecutor(nodeNum);
@@ -84,7 +92,7 @@ public class FuzzingClient {
         String stackedTestPacketStr = null;
         // make sure the system has is up
 
-        initExecutor(stackedTestPacket.nodeNum);
+        initExecutor(stackedTestPacket.nodeNum, null);
         startUpExecutor();
 
         Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();
@@ -142,6 +150,8 @@ public class FuzzingClient {
         // }
 
         boolean ret = executor.upgrade();
+
+        // collect system state here
 
         if (!ret) {
             // upgrade process failed
@@ -210,8 +220,6 @@ public class FuzzingClient {
         return stackedFeedbackPacket;
     }
 
-    // Test Plan: The commands are interleaving with upgrade operations and
-    // faults. So we only collect the final coverage.
     public TestPlanFeedbackPacket executeTestPlanPacket(
             TestPlanPacket testPlanPacket) {
 
@@ -221,7 +229,18 @@ public class FuzzingClient {
         String testPlanPacketStr = null;
         int nodeNum = testPlanPacket.getNodeNum();
 
-        initExecutor(testPlanPacket.getNodeNum());
+        // read states
+        Path targetSystemStatesPath = Paths.get(System.getProperty("user.dir"),
+                Config.getConf().targetSystemStateFile);
+        Set<String> targetSystemStates = null;
+        try {
+            targetSystemStates = readState(targetSystemStatesPath);
+        } catch (IOException e) {
+            logger.error("Not tracking system state");
+            e.printStackTrace();
+            System.exit(1);
+        }
+        initExecutor(testPlanPacket.getNodeNum(), targetSystemStates);
         startUpExecutor();
 
         // TestPlan only contains one test sequence
@@ -277,6 +296,18 @@ public class FuzzingClient {
             return testPlanFeedbackPacket;
         }
 
+        // retrieve states
+        Map<Integer, Map<String, String>> states = executor.readSystemState();
+        logger.info("system states = " + states);
+
+        try {
+            logger.info("Sleep Client 10 mins for debugging!");
+            Thread.sleep(600 * 1000);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
         logger.info("Finished Execution");
 
         if (!status) {
@@ -328,7 +359,7 @@ public class FuzzingClient {
         assert stackedTestPacket.nodeNum == testPlanPacket.getNodeNum();
         int nodeNum = stackedTestPacket.nodeNum;
 
-        initExecutor(nodeNum);
+        initExecutor(nodeNum, null);
         startUpExecutor();
 
         Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();
@@ -510,6 +541,20 @@ public class FuzzingClient {
             sb.append(commandStr + "\n");
         }
         return sb.toString();
+    }
+
+    public static Set<String> readState(Path filePath)
+            throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, List<String>> rawClass2States = mapper
+                .readValue(filePath.toFile(), HashMap.class);
+        Set<String> states = new HashSet<>();
+        for (String className : rawClass2States.keySet()) {
+            for (String fieldName : rawClass2States.get(className)) {
+                states.add(className + "." + fieldName);
+            }
+        }
+        return states;
     }
 
     enum FuzzingClientActions {
