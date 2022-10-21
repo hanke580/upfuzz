@@ -327,12 +327,12 @@ public class FuzzingServer {
             }
             exampleEvents.add(new UpgradeOp(0));
 
-//            exampleEvents.add(new ShellCommand("dfs -touchz /tmp"));
-//            exampleEvents.add(new RestartFailure(0));
+            // exampleEvents.add(new ShellCommand("dfs -touchz /tmp"));
+            // exampleEvents.add(new RestartFailure(0));
 
             exampleEvents.add(new UpgradeOp(1));
             exampleEvents.add(new UpgradeOp(2));
-//            exampleEvents.add(new UpgradeOp(3));
+            // exampleEvents.add(new UpgradeOp(3));
             // exampleEvents.add(0, new LinkFailure(1, 2));
             return new TestPlan(nodeNum, exampleEvents);
         }
