@@ -331,6 +331,10 @@ public class FuzzingServer {
             // exampleEvents.add(new RestartFailure(0));
 
             exampleEvents.add(new UpgradeOp(1));
+            exampleEvents.add(new LinkFailure(0, 1));
+
+            exampleEvents.add(new LinkFailureRecover(0, 1));
+
             // exampleEvents.add(new UpgradeOp(2));
             // exampleEvents.add(new UpgradeOp(3));
             // exampleEvents.add(0, new LinkFailure(1, 2));

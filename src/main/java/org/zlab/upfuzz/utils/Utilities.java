@@ -406,7 +406,7 @@ public class Utilities {
         if (k > n || n <= 0)
             return null;
         List<Integer> indexes = new LinkedList<>();
-        for (int i = 0; i <= n; i++) {
+        for (int i = 0; i < n; i++) {
             indexes.add(i);
         }
         if (k == n)

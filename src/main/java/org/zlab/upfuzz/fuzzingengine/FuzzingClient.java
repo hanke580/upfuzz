@@ -296,8 +296,9 @@ public class FuzzingClient {
             return testPlanFeedbackPacket;
         }
 
-        Map<Integer, Map<String, String>> states = executor.readSystemState();
-        logger.info("system states = " + states);
+        // Map<Integer, Map<String, String>> states =
+        // executor.readSystemState();
+        // logger.info("system states = " + states);
 
         // TODO: A system state comparison with the oracle here
 

@@ -12,7 +12,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.docker.Docker;
 import org.zlab.upfuzz.docker.DockerCluster;
-import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.utils.Utilities;
 
 public class CassandraDocker extends Docker {
