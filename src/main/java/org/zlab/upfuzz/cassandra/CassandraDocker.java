@@ -46,6 +46,7 @@ public class CassandraDocker extends Docker {
         name = "cassandra-" + originalVersion + "_" + upgradedVersion + "_" +
                 executorID + "_N" + index;
         serviceName = "DC3N" + index;
+        targetSystemStates = dockerCluster.targetSystemStates;
     }
 
     @Override
