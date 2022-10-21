@@ -25,8 +25,7 @@ public class CassandraDocker extends Docker {
 
     public CassandraCqlshDaemon cqlsh;
 
-    public CassandraDocker(CassandraDockerCluster dockerCluster, int index)
-            throws IOException {
+    public CassandraDocker(CassandraDockerCluster dockerCluster, int index) {
         this.index = index;
         type = "original";
         workdir = dockerCluster.workdir;
@@ -39,8 +38,8 @@ public class CassandraDocker extends Docker {
         networkIP = DockerCluster.getKthIP(hostIP, index);
         seedIP = dockerCluster.seedIP;
         agentPort = dockerCluster.agentPort;
-        includes = dockerCluster.includes;
-        excludes = dockerCluster.excludes;
+        includes = CassandraDockerCluster.includes;
+        excludes = CassandraDockerCluster.excludes;
         executorID = dockerCluster.executorID;
         name = "cassandra-" + originalVersion + "_" + upgradedVersion + "_" +
                 executorID + "_N" + index;
@@ -80,15 +79,6 @@ public class CassandraDocker extends Docker {
 
     @Override
     public int start() throws IOException, InterruptedException {
-        // String dir = "/" + system + "/" + originalVersion;
-        // Process cass = exec(new String[] { "-e", "CASSANDRA_HOME=" + dir,
-        // name,
-        // dir + "/bin/cqlsh_init.sh" });
-        // int res = cass.waitFor();
-        // String log = Utilities.readProcess(cass);
-        // logger.debug("start cassandra docker " + index + ": " + dir +
-        // " ret: " + res + "\n" + log);
-        //
         cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort,
                 executorID);
         return 0;
@@ -99,10 +89,10 @@ public class CassandraDocker extends Docker {
                 "./persistent/node_" + index + "/env.sh");
 
         FileWriter fw;
-        envFile.getParentFile().mkdirs();
+        boolean status = envFile.getParentFile().mkdirs();
         fw = new FileWriter(envFile, false);
-        for (int i = 0; i < env.length; ++i) {
-            fw.write("export " + env[i] + "\n");
+        for (String s : env) {
+            fw.write("export " + s + "\n");
         }
         fw.close();
     }
@@ -113,29 +103,6 @@ public class CassandraDocker extends Docker {
 
     @Override
     public boolean build() throws IOException {
-        // FIXME skip this for local test
-        // URL pyScript = CassandraDockerCompose.class.getClassLoader()
-        // .getResource("build.py");
-        // String pyScriptPath = pyScript.getPath();
-        // File scriptPath = Paths.get(pyScriptPath).getParent().toFile();
-        // try {
-        // logger.info("Build Dockerfile " + systemID + " " + originalVersion);
-        // Process buildProcess = Utilities.exec(
-        // new String[] { "python3", pyScriptPath, systemID,
-        // originalVersion },
-        // scriptPath);
-        // int exit = buildProcess.waitFor();
-        // if (exit == 0) {
-        // logger.info("Build docker succeed.");
-        // } else {
-        // String errorMessage = Utilities.readProcess(buildProcess);
-        // logger.error("Build docker failed\n" + errorMessage);
-        // }
-        // return (exit == 0);
-        // } catch (IOException | InterruptedException e) {
-        // e.printStackTrace();
-        // }
-
         String cassandraHome = "/cassandra/" + originalVersion;
         String cassandraConf = "/etc/" + originalVersion;
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
@@ -158,8 +125,6 @@ public class CassandraDocker extends Docker {
 
     public void upgrade() throws Exception {
         int ret;
-
-        logger.info("[HKLOG] FLUSING!");
 
         Process stopCass = runInContainer(new String[] {
                 "/" + system + "/" + originalVersion + "/"
@@ -206,7 +171,7 @@ public class CassandraDocker extends Docker {
         return workdir.toPath();
     }
 
-    public void chmodDir() throws IOException, InterruptedException {
+    public void chmodDir() throws IOException {
         runInContainer(
                 new String[] { "chmod", "-R", "777", "/var/log/cassandra" });
         runInContainer(
@@ -258,9 +223,6 @@ public class CassandraDocker extends Docker {
         // HDFS might get state from different nodes
         for (String stateName : targetSystemStates) {
             Path filePath = Paths.get("/var/log/cassandra/system.log");
-            String targetStart = String.format(
-                    "\\[InconsistencyDetectorStart\\]\\[%s\\]",
-                    stateName);
             String targetEnd = String.format(
                     "\\[InconsistencyDetectorEnd\\]\\[%s\\]",
                     stateName);

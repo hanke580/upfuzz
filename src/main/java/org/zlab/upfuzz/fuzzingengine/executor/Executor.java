@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.rmi.UnexpectedException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -279,7 +278,7 @@ public abstract class Executor implements IExecutor {
                 if (astore == null) {
                     logger.info("no data");
                 } else {
-                    executionDataStores[Integer.valueOf(agentId.split("-")[2])]
+                    executionDataStores[Integer.parseInt(agentId.split("-")[2])]
                             .merge(astore);
                     logger.trace("astore size: " + astore.getContents().size());
                 }
@@ -443,9 +442,8 @@ public abstract class Executor implements IExecutor {
         int lastIdx = result.lastIndexOf(
                 "[InconsistencyDetectorStart][applicationState] = ");
         String sub = result.substring(lastIdx);
-        String sub1 = sub.substring(sub.indexOf("\n") + 1,
+        return sub.substring(sub.indexOf("\n") + 1,
                 sub.lastIndexOf("[InconsistencyDetectorEnd]") - 1);
-        return sub1;
     }
 
 }

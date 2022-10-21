@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.Set;
 
 public abstract class DockerMeta {
@@ -50,14 +49,13 @@ public abstract class DockerMeta {
     public Set<String> targetSystemStates;
 
     public Process runInContainer(String[] cmd, String[] env)
-            throws IOException, InterruptedException {
-        StringBuilder sb = new StringBuilder();
+            throws IOException {
         ArrayList<String> cmds = new ArrayList<>();
         cmds.add("docker");
         cmds.add("exec");
-        for (int i = 0; i < env.length; ++i) {
+        for (String s : env) {
             cmds.add("-e");
-            cmds.add(env[i]);
+            cmds.add(s);
         }
         cmds.add(containerName);
         cmds.addAll(Arrays.asList(cmd));
@@ -67,8 +65,7 @@ public abstract class DockerMeta {
 
     public int runProcessInContainer(String[] cmd) {
         try {
-            int ret = runInContainer(cmd).waitFor();
-            return ret;
+            return runInContainer(cmd).waitFor();
         } catch (IOException | InterruptedException e) {
             logger.error("process failed in container: " + e);
             return -1;

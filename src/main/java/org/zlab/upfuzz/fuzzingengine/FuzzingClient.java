@@ -33,12 +33,10 @@ public class FuzzingClient {
         testId2Sequence = new HashMap<>();
 
         // FIX orphan process
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            public void run() {
-                executor.teardown();
-                executor.upgradeTeardown();
-            }
-        });
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            executor.teardown();
+            executor.upgradeTeardown();
+        }));
     }
 
     public void start() throws InterruptedException {
@@ -85,7 +83,6 @@ public class FuzzingClient {
      * test cases of stackedFeedbackPacket, perform an upgrade process, check
      * the (1) upgrade process failed (2) result inconsistency
      * @param stackedTestPacket the stacked test packets from server
-     * @throws Exception
      */
     public StackedFeedbackPacket executeStackedTestPacket(
             StackedTestPacket stackedTestPacket) {
@@ -137,31 +134,17 @@ public class FuzzingClient {
         stackedFeedbackPacket.stackedCommandSequenceStr = recordStackedTestPacket(
                 stackedTestPacket);
 
-        // Upgrade should only contain the upgrade process
-
-        // if (Config.getConf().debug) {
-        // try {
-        // logger.info("Sleep Client 20 mins for debugging!");
-        // Thread.sleep(1200 * 1000);
-        // } catch (InterruptedException e) {
-        // // TODO Auto-generated catch block
-        // e.printStackTrace();
-        // }
-        // }
-
         boolean ret = executor.upgrade();
 
         // collect system state here
-
         if (!ret) {
             // upgrade process failed
             logger.info("upgrade failed");
             stackedFeedbackPacket.isUpgradeProcessFailed = true;
             StringBuilder sb = new StringBuilder();
             sb.append("[upgrade failed]\n[Full Command Sequence]\n");
-            if (stackedTestPacketStr == null)
-                stackedTestPacketStr = recordStackedTestPacket(
-                        stackedTestPacket);
+            stackedTestPacketStr = recordStackedTestPacket(
+                    stackedTestPacket);
             sb.append(stackedTestPacketStr);
             stackedFeedbackPacket.upgradeFailureReport = sb.toString();
         } else {
@@ -226,7 +209,7 @@ public class FuzzingClient {
         logger.debug("test plan: \n");
         logger.debug(testPlanPacket.testPlan);
 
-        String testPlanPacketStr = null;
+        String testPlanPacketStr;
         int nodeNum = testPlanPacket.getNodeNum();
 
         // read states
@@ -283,11 +266,9 @@ public class FuzzingClient {
             StringBuilder eventFailedReport = new StringBuilder();
             logger.error("cannot collect coverage " + e);
             eventFailedReport.append(
-                    "TestPlan execution failed, no nodes are upgraded, cannot collect upgrade coverage\n"
-                            + e);
-            if (testPlanPacketStr == null) {
-                testPlanPacketStr = recordTestPlanPacket(testPlanPacket);
-            }
+                    "TestPlan execution failed, no nodes are upgraded, cannot collect upgrade coverage\n")
+                    .append(e);
+            testPlanPacketStr = recordTestPlanPacket(testPlanPacket);
             eventFailedReport.append(testPlanPacketStr);
             testPlanFeedbackPacket.eventFailedReport = eventFailedReport
                     .toString();
@@ -327,9 +308,7 @@ public class FuzzingClient {
             eventFailedReport.append(String.format(
                     "Test plan execution failed at event[%d]\n\n",
                     buggyEventIdx));
-            if (testPlanPacketStr == null) {
-                testPlanPacketStr = recordTestPlanPacket(testPlanPacket);
-            }
+            testPlanPacketStr = recordTestPlanPacket(testPlanPacket);
             eventFailedReport.append(testPlanPacketStr);
             testPlanFeedbackPacket.eventFailedReport = eventFailedReport
                     .toString();
@@ -413,8 +392,7 @@ public class FuzzingClient {
             eventFailedReport += String.format(
                     "Test plan execution failed at event[%d]\n\n",
                     buggyEventIdx);
-            if (mixedTestPacketStr == null)
-                mixedTestPacketStr = recordMixedTestPacket(mixedTestPacket);
+            mixedTestPacketStr = recordMixedTestPacket(mixedTestPacket);
             eventFailedReport += mixedTestPacketStr;
             testPlanFeedbackPacket.eventFailedReport = eventFailedReport;
 
@@ -501,11 +479,11 @@ public class FuzzingClient {
         StringBuilder sb = new StringBuilder();
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             for (String cmdStr : tp.originalCommandSequenceList) {
-                sb.append(cmdStr + "\n");
+                sb.append(cmdStr).append("\n");
             }
             sb.append("\n");
             for (String cmdStr : tp.validationCommandSequneceList) {
-                sb.append(cmdStr + "\n");
+                sb.append(cmdStr).append("\n");
             }
             sb.append("\n\n");
         }
@@ -513,30 +491,26 @@ public class FuzzingClient {
     }
 
     private String recordTestPlanPacket(TestPlanPacket testPlanPacket) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("nodeNum = %d\n", testPlanPacket.getNodeNum()));
-        sb.append(testPlanPacket.getTestPlan().toString());
-        return sb.toString();
+        return String.format("nodeNum = %d\n", testPlanPacket.getNodeNum()) +
+                testPlanPacket.getTestPlan().toString();
     }
 
     private String recordMixedTestPacket(MixedTestPacket mixedTestPacket) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(recordTestPlanPacket(mixedTestPacket.testPlanPacket));
-        sb.append("\n");
-        sb.append(recordStackedTestPacket(mixedTestPacket.stackedTestPacket));
-        return sb.toString();
+        return recordTestPlanPacket(mixedTestPacket.testPlanPacket) +
+                "\n" +
+                recordStackedTestPacket(mixedTestPacket.stackedTestPacket);
     }
 
     private String recordSingleTestPacket(TestPacket tp) {
         StringBuilder sb = new StringBuilder();
         sb.append("[Original Command Sequence]\n");
         for (String commandStr : tp.originalCommandSequenceList) {
-            sb.append(commandStr + "\n");
+            sb.append(commandStr).append("\n");
         }
         sb.append("\n\n");
         sb.append("[Read Command Sequence]\n");
         for (String commandStr : tp.validationCommandSequneceList) {
-            sb.append(commandStr + "\n");
+            sb.append(commandStr).append("\n");
         }
         return sb.toString();
     }
@@ -555,7 +529,4 @@ public class FuzzingClient {
         return states;
     }
 
-    enum FuzzingClientActions {
-        start, collect;
-    }
 }

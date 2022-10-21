@@ -43,7 +43,7 @@ public class FuzzingServer {
     private int testID = 0;
     private int finishedTestID = 0;
 
-    public CommandPool commandPool; // Command Definition
+    public CommandPool commandPool;
     public Executor executor;
     public Class<? extends State> stateClass;
 
@@ -198,7 +198,7 @@ public class FuzzingServer {
                     stackedTestPacket.addTestPacket(seed, testID++);
                 }
             }
-            if (stackedTestPacket != null && stackedTestPacket.size() != 0) {
+            if (stackedTestPacket.size() != 0) {
                 stackedTestPackets.add(stackedTestPacket);
             } else {
                 logger.error("failed to generate any test packet");
@@ -224,7 +224,7 @@ public class FuzzingServer {
                     i--;
                 }
             }
-            if (stackedTestPacket != null && stackedTestPacket.size() != 0) {
+            if (stackedTestPacket.size() != 0) {
                 stackedTestPackets.add(stackedTestPacket);
             }
         }
@@ -517,7 +517,7 @@ public class FuzzingServer {
     }
 
     public void printInfo() {
-        Long timeElapsed = TimeUnit.SECONDS.convert(
+        long timeElapsed = TimeUnit.SECONDS.convert(
                 System.nanoTime(), TimeUnit.NANOSECONDS) - startTime;
 
         logger.info(
@@ -563,19 +563,12 @@ public class FuzzingServer {
         System.out.println();
     }
 
-    enum FuzzingServerActions {
-        start
-    }
-
     public static List<Event> interleaveFaultAndUpgradeOp(
             List<Pair<Fault, FaultRecover>> faultPairs,
             List<Event> upgradeOps) {
         // Upgrade op can happen with fault
         // E.g. isolate node1 -> upgrade node1 -> recover node1
-        List<Event> upgradeOpAndFaults = new LinkedList<>();
-        for (Event upgradeOp : upgradeOps) {
-            upgradeOpAndFaults.add(upgradeOp);
-        }
+        List<Event> upgradeOpAndFaults = new LinkedList<>(upgradeOps);
         for (Pair<Fault, FaultRecover> faultPair : faultPairs) {
             int pos1 = rand.nextInt(upgradeOpAndFaults.size() + 1);
             upgradeOpAndFaults.add(pos1, faultPair.left);

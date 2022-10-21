@@ -19,6 +19,7 @@ import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.zlab.upfuzz.docker.Docker;
 import org.zlab.upfuzz.docker.DockerCluster;
 import org.zlab.upfuzz.docker.DockerMeta;
 import org.zlab.upfuzz.docker.IDocker;
@@ -151,8 +152,8 @@ public class CassandraDockerCluster extends DockerCluster {
 
     private void refreshNetwork() throws IOException {
         this.subnetID = RandomUtils.nextInt(1, 256);
-        this.subnet = "192.168." + Integer.toString(subnetID) + ".1/24";
-        this.hostIP = "192.168." + Integer.toString(subnetID) + ".1";
+        this.subnet = "192.168." + subnetID + ".1/24";
+        this.hostIP = "192.168." + subnetID + ".1";
         this.seedIP = DockerCluster.getKthIP(hostIP, 0);
         try {
             this.build();
@@ -165,8 +166,8 @@ public class CassandraDockerCluster extends DockerCluster {
 
         // Chmod so that we can read/write them on the host machine
         try {
-            for (int i = 0; i < dockers.length; ++i) {
-                dockers[i].chmodDir();
+            for (Docker docker : dockers) {
+                docker.chmodDir();
             }
         } catch (Exception e) {
             logger.error("fail to chmod dir");
@@ -175,17 +176,7 @@ public class CassandraDockerCluster extends DockerCluster {
         try {
             Process buildProcess = Utilities.exec(
                     new String[] { "docker-compose", "down" }, workdir);
-            int ret = buildProcess.waitFor();
-            // try {
-            // if (workdir.delete()) {
-            // logger.info("folder deleted successfully");
-            // } else {
-            // logger.info("cannot delete");
-            // }
-            // } catch (Exception e) {
-            // e.printStackTrace();
-            // System.exit(1);
-            // }
+            buildProcess.waitFor();
             logger.info("teardown docker-compose in " + workdir);
         } catch (IOException | InterruptedException e) {
             logger.error("failed to teardown docker", e);
@@ -232,8 +223,8 @@ public class CassandraDockerCluster extends DockerCluster {
         Map<String, String> formatMap = new HashMap<>();
 
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < dockers.length; ++i) {
-            sb.append(dockers[i].formatComposeYaml());
+        for (Docker docker : dockers) {
+            sb.append(docker.formatComposeYaml());
         }
         String dockersFormat = sb.toString();
         formatMap.put("dockers", dockersFormat);
