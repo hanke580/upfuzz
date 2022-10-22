@@ -1,4 +1,4 @@
-package org.zlab.upfuzz.fuzzingengine.Server;
+package org.zlab.upfuzz.fuzzingengine.server;
 
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 
@@ -17,5 +17,9 @@ public class TestPlanCorpus {
     public boolean addTestPlan(TestPlan testPlan) {
         queue.add(testPlan);
         return true;
+    }
+
+    public boolean isEmpty() {
+        return queue.isEmpty();
     }
 }

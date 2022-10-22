@@ -1,4 +1,4 @@
-package org.zlab.upfuzz.fuzzingengine.Server;
+package org.zlab.upfuzz.fuzzingengine.server;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -17,7 +17,7 @@ import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.FeedBack;
 import org.zlab.upfuzz.fuzzingengine.Fuzzer;
-import org.zlab.upfuzz.fuzzingengine.Packet.*;
+import org.zlab.upfuzz.fuzzingengine.packet.*;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
@@ -40,6 +40,8 @@ public class FuzzingServer {
     // Seed Corpus (tuple(Seed, Info))
     public Corpus corpus = new Corpus();
     public TestPlanCorpus testPlanCorpus = new TestPlanCorpus();
+    public FullStopCorpus fullStopCorpus = new FullStopCorpus();
+
     private int testID = 0;
     private int finishedTestID = 0;
 
@@ -131,26 +133,27 @@ public class FuzzingServer {
     }
 
     public synchronized Packet getOneTest() {
-        // TODO: getOneTest could return a stacked or single test plan
-        // We should always dispatch test plan to a specific set of clients
-        // And the stacked tests to another set of clients.
-
-        // Do we dispatch a test plan or a stacked test packet?
-        // When we do testing, we start 20 clients for single-node full stop
-        // upgrade
-        // testing. And 10-20 nodes for rolling upgrade testing.
-        // We make the full-stop upgrade to explore the test space, and utilize
-        // the
-        // seed from the corpus to generate the testPlan
-
-        // Start from simple. Start up three nodes and only execute the test
-        // plan!
         if (Config.getConf().testingMode == 0) {
             if (stackedTestPackets.isEmpty())
                 fuzzOne();
             assert !stackedTestPackets.isEmpty();
             return stackedTestPackets.poll();
         } else if (Config.getConf().testingMode == 1) {
+            /**
+             * test plan must be based on a full-stop upgrade, which
+             * is the oracle. So if there's no full-stop upgrade, we
+             * need to generate a full-stop upgrade and execute it.
+             * Once we have the first oracle, we can execute the rest
+             * part happily.
+             */
+
+            // if (testPlanPackets.isEmpty()) {
+            // if (!fuzzTestPlan()) {
+            // // We cannot generate test plan since we don't have oracle
+            // // Perform a full-stop upgrade
+            // }
+            // }
+
             if (testPlanPackets.isEmpty())
                 fuzzTestPlan();
             assert !testPlanPackets.isEmpty();
@@ -230,7 +233,7 @@ public class FuzzingServer {
         }
     }
 
-    private void fuzzTestPlan() {
+    private boolean fuzzTestPlan() {
         // We use the seed from the corpus and generate a set of test plans
         // Do we consume a seed? We shouldn't. Since we don't mutate seed.
         // Do we add seed back? Do we want this code coverage? I think so,
@@ -242,6 +245,15 @@ public class FuzzingServer {
 
         // Let's go with the simplest one. Randomly generate a seed, then a test
         // plan. And finally, execute it.
+
+        if (testPlanCorpus.isEmpty() && fullStopCorpus.isEmpty()) {
+            // Cannot generate a test plan
+            return false;
+        }
+
+        // We should first try to mutate the test plan, but there
+        // should still be possibility for generating a new test plan
+        // Mutate a testplan
         TestPlan testPlan = testPlanCorpus.getTestPlan();
 
         if (testPlan != null) {
@@ -267,6 +279,7 @@ public class FuzzingServer {
                     Config.getConf().system,
                     testID++, testPlan));
         }
+        return true;
     }
 
     public FeedBack mergeCoverage(FeedBack[] feedBacks) {

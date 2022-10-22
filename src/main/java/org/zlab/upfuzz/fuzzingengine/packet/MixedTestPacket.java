@@ -1,9 +1,8 @@
-package org.zlab.upfuzz.fuzzingengine.Packet;
+package org.zlab.upfuzz.fuzzingengine.packet;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;

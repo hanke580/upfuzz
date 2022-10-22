@@ -1,58 +1,64 @@
-package org.zlab.upfuzz.fuzzingengine.Packet;
+package org.zlab.upfuzz.fuzzingengine.packet;
 
 import com.google.gson.Gson;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.zlab.upfuzz.fuzzingengine.FeedBack;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.zlab.upfuzz.fuzzingengine.Config;
-import org.zlab.upfuzz.fuzzingengine.FeedBack;
-
-public class FeedbackPacket extends Packet {
-    static Logger logger = LogManager.getLogger(FeedbackPacket.class);
+public class TestPlanFeedbackPacket extends Packet {
+    static Logger logger = LogManager.getLogger(TestPlanFeedbackPacket.class);
 
     public String systemID;
-    public int nodeNum;
     public int testPacketID;
 
-    // public FeedBack feedBack; // It should contain each node
+    // If the upgradeOp failed, this will be marked as true
+    // We expect the system upgrade op should always succeed
+    // no matter whether the normal command is correct or not
+
+    public boolean isEventFailed; // One event failed.
+    public String eventFailedReport;
+
+    // For test plan, we only collect the new version coverage
     public FeedBack[] feedBacks;
 
+    // TODO: We might want to compare the state between
+    // (1) Rolling upgrade and (2) Full-stop upgrade
     public boolean isInconsistent; // true if inconsistent
     public String inconsistencyReport; // The inconsistency information should
-                                       // be placed here
+    // be placed here
 
-    public FeedbackPacket(String systemID, int nodeNum, int testPacketID,
+    public TestPlanFeedbackPacket(String systemID, int nodeNum,
+            int testPacketID,
             FeedBack[] feedBacks) {
-        this.type = PacketType.FeedbackPacket;
+        this.type = PacketType.TestPlanFeedbackPacket;
 
         this.systemID = systemID;
-        this.nodeNum = Config.getConf().nodeNum;
         this.testPacketID = testPacketID;
         this.feedBacks = feedBacks;
     }
 
-    public static FeedbackPacket read(DataInputStream in) {
+    public static TestPlanFeedbackPacket read(DataInputStream in) {
         try {
             int packetLength = in.readInt();
             byte[] bytes = new byte[packetLength + 1];
             int len = 0;
             len = in.read(bytes, len, packetLength - len);
-            logger.debug("packet length: " + packetLength);
+            // logger.debug("packet length: " + packetLength);
             while (len < packetLength) {
                 int size = in.read(bytes, len, packetLength - len);
                 // logger.debug("packet read extra: " + size);
                 len += size;
             }
-            logger.debug("receive stacked test packet length : " + len);
+            // logger.debug("receive stacked test packet length : " + len);
             return new Gson().fromJson(new String(bytes, 0, len),
-                    FeedbackPacket.class);
+                    TestPlanFeedbackPacket.class);
         } catch (IOException e) {
             e.printStackTrace();
         }
         return null;
     }
+
 }

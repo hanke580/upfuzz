@@ -1,26 +1,20 @@
-package org.zlab.upfuzz.fuzzingengine.Packet;
+package org.zlab.upfuzz.fuzzingengine.packet;
 
 import com.google.gson.Gson;
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.Config;
-import org.zlab.upfuzz.fuzzingengine.Server.Seed;
+import org.zlab.upfuzz.fuzzingengine.server.Seed;
 
 // This class is for execute multiple tests in one
 // system instance. Like separating 60 tests with
 // keyspace for cassandra to avoid the conflict
 // between them for acceleration
 public class StackedTestPacket extends Packet {
-    // This wraps the test packet so that we can
-    // control the number of tests we want to
-    // execute in one instance.
     static Logger logger = LogManager.getLogger(StackedTestPacket.class);
 
     public int nodeNum;

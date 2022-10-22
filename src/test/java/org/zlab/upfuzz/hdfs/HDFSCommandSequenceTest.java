@@ -2,7 +2,7 @@ package org.zlab.upfuzz.hdfs;
 
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.CommandPool;
-import org.zlab.upfuzz.fuzzingengine.Server.Seed;
+import org.zlab.upfuzz.fuzzingengine.server.Seed;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 
 public class HDFSCommandSequenceTest {

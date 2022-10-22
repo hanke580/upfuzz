@@ -28,6 +28,8 @@ public class TestPlan implements Serializable {
         this.events = events;
     }
 
+    // Oracle
+
     public List<Event> getEvents() {
         return events;
     }
@@ -37,7 +39,7 @@ public class TestPlan implements Serializable {
         StringBuilder sb = new StringBuilder();
         sb.append("test plan:\n");
         for (Event event : events) {
-            sb.append(event + "\n");
+            sb.append(event).append("\n");
         }
         sb.append("test plan end\n");
         return sb.toString();

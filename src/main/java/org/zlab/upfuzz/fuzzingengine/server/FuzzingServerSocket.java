@@ -1,4 +1,4 @@
-package org.zlab.upfuzz.fuzzingengine.Server;
+package org.zlab.upfuzz.fuzzingengine.server;
 
 import java.io.IOException;
 import java.net.InetAddress;

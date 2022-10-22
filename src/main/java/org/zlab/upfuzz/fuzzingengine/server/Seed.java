@@ -1,4 +1,4 @@
-package org.zlab.upfuzz.fuzzingengine.Server;
+package org.zlab.upfuzz.fuzzingengine.server;
 
 import java.io.Serializable;
 import java.util.Random;
@@ -7,7 +7,7 @@ import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.fuzzingengine.Packet.StackedTestPacket;
+import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacket;
 
 public class Seed implements Serializable {
     static Logger logger = LogManager.getLogger(Seed.class);

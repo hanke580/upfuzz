@@ -5,10 +5,9 @@ import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.cassandra.CassandraCommandPool;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.docker.DockerCluster;
-import org.zlab.upfuzz.fuzzingengine.Packet.StackedTestPacket;
-import org.zlab.upfuzz.fuzzingengine.Packet.TestPlanPacket;
-import org.zlab.upfuzz.fuzzingengine.Server.FuzzingServer;
-import org.zlab.upfuzz.fuzzingengine.Server.Seed;
+import org.zlab.upfuzz.fuzzingengine.packet.TestPlanPacket;
+import org.zlab.upfuzz.fuzzingengine.server.FuzzingServer;
+import org.zlab.upfuzz.fuzzingengine.server.Seed;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
@@ -16,10 +15,6 @@ import org.zlab.upfuzz.hdfs.HdfsCommandPool;
 import org.zlab.upfuzz.hdfs.HdfsState;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.stream.Stream;
 
 public class FuzzingServerTest {
     @Test

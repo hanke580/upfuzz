@@ -1,14 +1,11 @@
-package org.zlab.upfuzz.fuzzingengine.Packet;
+package org.zlab.upfuzz.fuzzingengine.packet;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
-import info.debatty.java.stringsimilarity.Levenshtein;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.junit.Test;
-import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;

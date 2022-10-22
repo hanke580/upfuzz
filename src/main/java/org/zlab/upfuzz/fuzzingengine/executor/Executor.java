@@ -18,7 +18,7 @@ import org.zlab.upfuzz.docker.DockerCluster;
 import org.zlab.upfuzz.docker.DockerMeta;
 import org.zlab.upfuzz.fuzzingengine.AgentServerHandler;
 import org.zlab.upfuzz.fuzzingengine.AgentServerSocket;
-import org.zlab.upfuzz.fuzzingengine.Server.Seed;
+import org.zlab.upfuzz.fuzzingengine.server.Seed;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;

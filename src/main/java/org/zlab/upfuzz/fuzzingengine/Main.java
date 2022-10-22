@@ -18,7 +18,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.Config.Configuration;
-import org.zlab.upfuzz.fuzzingengine.Server.FuzzingServer;
+import org.zlab.upfuzz.fuzzingengine.server.FuzzingServer;
 
 public class Main {
 

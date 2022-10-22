@@ -1,6 +1,6 @@
 package org.zlab.upfuzz.fuzzingengine.testplan.event.command;
 
-import org.zlab.upfuzz.fuzzingengine.Server.Seed;
+import org.zlab.upfuzz.fuzzingengine.server.Seed;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 
 import java.util.LinkedList;

@@ -1,4 +1,4 @@
-package org.zlab.upfuzz.fuzzingengine.Packet;
+package org.zlab.upfuzz.fuzzingengine.packet;
 
 import com.google.gson.Gson;
 
@@ -25,8 +25,9 @@ public abstract class Packet {
     public enum PacketType {
         RegisterPacket(0), StackedTestPacket(1), StackedFeedbackPacket(
                 2), FeedbackPacket(3), TestPlanPacket(
-                        4), TestPlanFeedbackPacket(
-                                5), MixedTestPacket(6), MixedFeedbackPacket(7);
+                        4), TestPlanFeedbackPacket(5), MixedTestPacket(
+                                6), MixedFeedbackPacket(7), FullStopPacket(
+                                        8), FullStopFeedbackPacket(9);
 
         public int value;
 

@@ -1,4 +1,4 @@
-package org.zlab.upfuzz.fuzzingengine.Server;
+package org.zlab.upfuzz.fuzzingengine.server;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -7,8 +7,8 @@ import java.net.Socket;
 import java.net.SocketException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.zlab.upfuzz.fuzzingengine.Packet.*;
-import org.zlab.upfuzz.fuzzingengine.Packet.Packet.PacketType;
+import org.zlab.upfuzz.fuzzingengine.packet.*;
+import org.zlab.upfuzz.fuzzingengine.packet.Packet.PacketType;
 
 public class FuzzingServerHandler implements Runnable {
     static Logger logger = LogManager.getLogger(FuzzingServerHandler.class);

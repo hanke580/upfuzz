@@ -1,4 +1,4 @@
-package org.zlab.upfuzz.fuzzingengine.Packet;
+package org.zlab.upfuzz.fuzzingengine.packet;
 
 import java.util.Comparator;
 import java.util.List;
