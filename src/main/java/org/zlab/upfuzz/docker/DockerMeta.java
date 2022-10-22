@@ -90,6 +90,4 @@ public abstract class DockerMeta {
         return Utilities.exec(dockerCMD, workdir);
     }
 
-    public abstract String formatComposeYaml();
-
 }

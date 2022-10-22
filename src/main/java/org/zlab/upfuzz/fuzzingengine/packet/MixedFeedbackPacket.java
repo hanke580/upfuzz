@@ -10,13 +10,6 @@ import java.io.IOException;
 public class MixedFeedbackPacket extends Packet {
     static Logger logger = LogManager.getLogger(TestPlanFeedbackPacket.class);
 
-    // crash when executing the stacked packet
-    public boolean stackedTestFailed;
-
-    // crash when executing the test plan
-    // record all operations before the failure
-    public boolean testPlanFailed;
-
     public StackedFeedbackPacket stackedFeedbackPacket;
     public TestPlanFeedbackPacket testPlanFeedbackPacket;
 

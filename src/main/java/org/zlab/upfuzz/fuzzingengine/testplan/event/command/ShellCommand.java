@@ -18,11 +18,22 @@ public class ShellCommand extends Event {
         this.command = command;
     }
 
-    public static List<Event> seed2Events(Seed seed) {
+    public static List<Event> seedCmd2Events(Seed seed) {
         if (seed == null)
             return null;
         List<Event> events = new LinkedList<>();
         for (String command : seed.originalCommandSequence
+                .getCommandStringList()) {
+            events.add(new ShellCommand(command));
+        }
+        return events;
+    }
+
+    public static List<Event> seedValidationCmd2Events(Seed seed) {
+        if (seed == null)
+            return null;
+        List<Event> events = new LinkedList<>();
+        for (String command : seed.validationCommandSequnece
                 .getCommandStringList()) {
             events.add(new ShellCommand(command));
         }

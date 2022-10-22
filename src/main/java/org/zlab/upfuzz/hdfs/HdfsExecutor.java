@@ -55,17 +55,6 @@ public class HdfsExecutor extends Executor {
         this.nodeNum = nodeNum;
     }
 
-    @Override
-    public boolean upgrade() {
-        // Only perform upgrade
-        try {
-            dockerCluster.upgrade();
-        } catch (Exception e) {
-            logger.error("Failed to connect to upgraded cassandra cluster", e);
-        }
-        return true;
-    }
-
     public boolean isHdfsReady(String hdfsPath) {
         ProcessBuilder isReadyBuilder = new ProcessBuilder();
         Process isReady;
@@ -86,27 +75,6 @@ public class HdfsExecutor extends Executor {
             e.printStackTrace();
         }
         return ret == 0;
-    }
-
-    public void stopDfs() {
-        try {
-            Process stopDfsProcess = Utilities.exec(
-                    new String[] { "sbin/stop-dfs.sh" },
-                    Config.getConf().oldSystemPath);
-            int ret = stopDfsProcess.waitFor();
-            System.out.println("stop dfs first: " + ret);
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void setupProcess(ProcessBuilder processBuilder, String path,
-            String option, String logFile) {
-        Map<String, String> env = processBuilder.environment();
-        env.put("JAVA_TOOL_OPTIONS", option);
-        processBuilder.directory(new File(path));
-        processBuilder.redirectErrorStream(true);
-        processBuilder.redirectOutput(Paths.get(path, "logs.txt").toFile());
     }
 
     @Override
@@ -200,120 +168,6 @@ public class HdfsExecutor extends Executor {
             return null;
         }
         return ret;
-    }
-
-    @Override
-    public void execNormalCommand(Command command) {
-
-    }
-
-    /**
-     * 1. Prepare Rolling Upgrade
-     *     1. Run "hdfs dfsadmi n -rolli ngUpgrade prepare" to create a fsimage
-     * for rollback.
-     *     2. Run "hdfs dfsadmi n -rolli ngUpgrade query" to check the status of
-     * the rollback image. Wait and re-run the command until the "Proceed with
-     * rolling upgrade" message is shown.
-     *
-     * (without Downtime)
-     * 2. Upgrade Active and Standby NNs
-     *     1. Shutdown and upgrade NN2.
-     *     2. Start NN2 as standby with the "-rollingUpgrade started" option.
-     *     3. Failover from NN1 to NN2 so that NN2 becomes active and NN1
-     * becomes standby.
-     *     4. Shutdown and upgrade NN1. 5. Start NN1 as standby with the "-rolli
-     * ngUpgrade started" option.
-     *
-     * (with Downtime)
-     * 2. Upgrade NN and SNN
-     *     1. Shutdown SNN
-     *     2. Shutdown and upgrade NN.
-     *     3. Start NN with the "-rollingUpgrade started" option.
-     *     4. Upgrade and restart SNN
-     *
-     * 3. Upgrade DNs
-     *     1. Choose a small subset of datanodes (e.g. all datanodes under a
-     * particular rack).
-     *         1. Run "hdfs dfsadmi n -shutdownDatanode <DATANODE_HOST :
-     * IPC_PORT> upgrade" to shutdown one of the chosen datanodes.
-     *         2. Run "hdfs dfsadmi n -getDatanodeInfo <DATANODE_HOST:
-     * IPC_PORT>" to check and wait for the datanode to shutdown.
-     *         3. Upgrade and restart the datanode.
-     *         4. Perform the above steps for all the chosen datanodes in the
-     * subset in parallel.
-     *     2. Repeat the above steps until all datanodes in the cluster are
-     * upgraded.
-     * 4. Finalize Rolling Upgrade
-     *     1. Run "hdfs dfsadmin -rollingUpgrade finalize" to finalize the
-     * rolling upgrade.
-     * @throws InterruptedException
-     */
-    public void upgrade_() throws IOException, InterruptedException {
-
-        // Prepare Rolling Upgrade
-
-        Process prepareProcess = Utilities.exec(
-                new String[] { "bin/hdfs", "dfsadmin", "-rollingUpgrade",
-                        "prepare" },
-                Config.getConf().oldSystemPath);
-        prepareProcess.waitFor();
-        // Re-run until Proceed with rolling upgrade
-        while (true) {
-            Process queryProcess = Utilities.exec(
-                    new String[] { "bin/hdfs", "dfsadmin",
-                            "-rollingUpgrade", "query" },
-                    Config.getConf().oldSystemPath);
-
-            int ret = queryProcess.waitFor();
-            if (ret == 0) {
-                break;
-            }
-        }
-
-        // 2 upgrade NN
-
-        Process shutdownSNN = Utilities.exec(
-                new String[] { "bin/hdfs", "--daemon", "stop",
-                        "secondarynamenode" },
-                Config.getConf().oldSystemPath);
-        shutdownSNN.waitFor();
-
-        Process shutdownNN = Utilities.exec(
-                new String[] { "bin/hdfs", "--daemon", "stop", "namenode" },
-                Config.getConf().oldSystemPath);
-        shutdownNN.waitFor();
-
-        Process upgradeNN = Utilities.exec(
-                new String[] { "bin/hdfs", "--daemon", "start", "namenode",
-                        "-rollingUpgrade", "started" },
-                Config.getConf().newSystemPath);
-        upgradeNN.waitFor();
-
-        Process upgradeSNN = Utilities.exec(
-                new String[] { "bin/hdfs", "--daemon", "start",
-                        "secondaynamenode" },
-                Config.getConf().newSystemPath);
-        upgradeSNN.waitFor();
-
-        // 3. Upgrade DNs
-        Process shutdownDN = Utilities.exec(
-                new String[] { "bin/hdfs", "--daemon", "stop", "datanode" },
-                Config.getConf().oldSystemPath);
-        shutdownDN.waitFor();
-
-        Process upgradeDN = Utilities.exec(
-                new String[] { "bin/hdfs", "--daemon", "start", "datanode",
-                        "-rollingUpgrade", "started" },
-                Config.getConf().newSystemPath);
-        upgradeDN.waitFor();
-
-        // TODO Finalize Rolling Upgrade
-    }
-
-    @Override
-    public int saveSnapshot() {
-        // TODO Auto-generated method stub
-        return 0;
     }
 
     public Pair<Boolean, String> checkResultConsistency(List<String> oriResult,

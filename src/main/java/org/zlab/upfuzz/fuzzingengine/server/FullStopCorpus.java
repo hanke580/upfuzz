@@ -10,11 +10,6 @@ public class FullStopCorpus {
 
     Queue<FullStopSeed> queue = new LinkedList();
 
-    public static class FullStopSeed {
-        public FullStopUpgrade fullStopUpgrade;
-        public Map<Integer, Map<String, String>> targetSystemStates;
-    }
-
     public FullStopSeed getSeed() {
         if (queue.isEmpty())
             return null;

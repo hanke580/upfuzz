@@ -90,8 +90,8 @@ public class HdfsDocker extends Docker {
         FileWriter fw;
         envFile.getParentFile().mkdirs();
         fw = new FileWriter(envFile, false);
-        for (int i = 0; i < env.length; ++i) {
-            fw.write("export " + env[i] + "\n");
+        for (String s : env) {
+            fw.write("export " + s + "\n");
         }
         fw.close();
     }
@@ -123,33 +123,8 @@ public class HdfsDocker extends Docker {
     }
 
     public void upgrade() throws Exception {
-        // TODO: set up for secondary index
-        /**
-         * Prepare the fsImage if it's NN
-         * We should always upgrade NN first for HDFS
-         */
         logger.info("upgrading index " + index);
-        String nodeType;
-        if (index == 0) {
-            nodeType = "namenode";
-        } else if (index == 1) {
-            nodeType = "secondarynamenode";
-        } else {
-            nodeType = "datanode";
-        }
 
-        String orihadoopDaemonPath = "/" + system + "/" + originalVersion + "/"
-                + "sbin/hadoop-daemon.sh";
-
-        int ret;
-        if (!nodeType.equals("secondarynamenode")) {
-            // Secondary is stopped in a separate operation
-            String[] stopNode = new String[] { orihadoopDaemonPath, "stop",
-                    nodeType };
-            ret = runProcessInContainer(stopNode);
-            logger.debug("original version stop: " + ret);
-
-        }
         type = "upgraded";
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
                 + "/org.jacoco.agent.rt.jar"
@@ -173,11 +148,36 @@ public class HdfsDocker extends Docker {
         // Seems the env doesn't really matter...
         Process restart = runInContainer(
                 new String[] { "/bin/bash", "-c", restartCommand });
-        ret = restart.waitFor();
+        int ret = restart.waitFor();
         String message = Utilities.readProcess(restart);
         logger.debug("upgrade version start: " + ret + "\n" + message);
         hdfsShell = new HDFSShellDaemon(getNetworkIP(), hdfsDaemonPort,
                 executorID);
+    }
+
+    @Override
+    public boolean shutdown() {
+        String nodeType;
+        if (index == 0) {
+            nodeType = "namenode";
+        } else if (index == 1) {
+            nodeType = "secondarynamenode";
+        } else {
+            nodeType = "datanode";
+        }
+
+        String orihadoopDaemonPath = "/" + system + "/" + originalVersion + "/"
+                + "sbin/hadoop-daemon.sh";
+
+        if (!nodeType.equals("secondarynamenode")) {
+            // Secondary is stopped in a specific op (HDFSStopSNN)
+            String[] stopNode = new String[] { orihadoopDaemonPath, "stop",
+                    nodeType };
+            int ret = runProcessInContainer(stopNode);
+            if (ret != 0)
+                return false;
+        }
+        return true;
     }
 
     @Override

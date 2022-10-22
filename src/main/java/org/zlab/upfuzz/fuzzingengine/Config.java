@@ -38,8 +38,13 @@ public class Config {
         public String initSeedDir = null;
         public String crashDir = null;
         public String corpusDir = null;
+
         public int mutationEpoch = 120;
         public int testPlanMutationEpoch = 20;
+
+        // Given a full-stop seed, we generate 20
+        // test plan from it.
+        public int testPlanGenerationNum = 20;
 
         public String targetSystemStateFile = "states.json";
 

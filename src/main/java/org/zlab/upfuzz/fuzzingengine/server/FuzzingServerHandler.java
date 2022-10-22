@@ -86,6 +86,11 @@ public class FuzzingServerHandler implements Runnable {
                     .updateStatus(mixedFeedbackPacket.stackedFeedbackPacket);
             fuzzingServer
                     .updateStatus(mixedFeedbackPacket.testPlanFeedbackPacket);
+        } else if (intType == PacketType.FullStopFeedbackPacket.value) {
+            logger.info("read fullstop fb packet");
+            FullStopFeedbackPacket fullStopFeedbackPacket = FullStopFeedbackPacket
+                    .read(in);
+            fuzzingServer.updateStatus(fullStopFeedbackPacket);
         }
     }
 

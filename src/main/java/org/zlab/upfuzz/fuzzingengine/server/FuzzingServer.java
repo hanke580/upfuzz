@@ -5,6 +5,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,6 +21,7 @@ import org.zlab.upfuzz.fuzzingengine.FeedBack;
 import org.zlab.upfuzz.fuzzingengine.Fuzzer;
 import org.zlab.upfuzz.fuzzingengine.packet.*;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
+import org.zlab.upfuzz.fuzzingengine.testplan.FullStopUpgrade;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
@@ -53,10 +56,11 @@ public class FuzzingServer {
     private final Map<Integer, Seed> testID2Seed;
     private final Map<Integer, TestPlan> testID2TestPlan;
 
-    // stackedTestPackets to be sent to clients
     public final Queue<StackedTestPacket> stackedTestPackets;
-    // test plan could contains (1) cmd (2) fault (3) upgrade op
+    public final Queue<FullStopPacket> fullStopPackets;
     private final Queue<TestPlanPacket> testPlanPackets;
+
+    public Set<String> targetSystemStates = null;
 
     // When merge new branches, increase this number
     public static int originalCoveredBranches = 0;
@@ -81,6 +85,7 @@ public class FuzzingServer {
         testID2Seed = new HashMap<>();
         testID2TestPlan = new HashMap<>();
         stackedTestPackets = new LinkedList<>();
+        fullStopPackets = new LinkedList<>();
         testPlanPackets = new LinkedList<>();
         curOriCoverage = new ExecutionDataStore();
         curUpCoverage = new ExecutionDataStore();
@@ -123,6 +128,16 @@ public class FuzzingServer {
                 }
             }));
         }
+
+        Path targetSystemStatesPath = Paths.get(System.getProperty("user.dir"),
+                Config.getConf().targetSystemStateFile);
+        try {
+            targetSystemStates = readState(targetSystemStatesPath);
+        } catch (IOException e) {
+            logger.error("Not tracking system state");
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 
     public void start() {
@@ -139,23 +154,12 @@ public class FuzzingServer {
             assert !stackedTestPackets.isEmpty();
             return stackedTestPackets.poll();
         } else if (Config.getConf().testingMode == 1) {
-            /**
-             * test plan must be based on a full-stop upgrade, which
-             * is the oracle. So if there's no full-stop upgrade, we
-             * need to generate a full-stop upgrade and execute it.
-             * Once we have the first oracle, we can execute the rest
-             * part happily.
-             */
 
-            // if (testPlanPackets.isEmpty()) {
-            // if (!fuzzTestPlan()) {
-            // // We cannot generate test plan since we don't have oracle
-            // // Perform a full-stop upgrade
-            // }
-            // }
+            if (testPlanPackets.isEmpty() && !fuzzTestPlan()) {
+                fuzzFullStopUpgrade();
+                return fullStopPackets.poll();
+            }
 
-            if (testPlanPackets.isEmpty())
-                fuzzTestPlan();
             assert !testPlanPackets.isEmpty();
             return testPlanPackets.poll();
         } else if (Config.getConf().testingMode == 2) {
@@ -183,11 +187,9 @@ public class FuzzingServer {
     }
 
     public void fuzzOne() {
-        // It should also generate test plan
-
         // Pick one test case from the corpus, fuzz it for mutationEpoch
         // Add the new tests into the stackedTestPackets
-        // All packets have been dispatched, now fuzz next seeds
+        // All packets have been dispatched, now fuzz next seed
         Seed seed = corpus.getSeed();
         round++;
         StackedTestPacket stackedTestPacket;
@@ -234,17 +236,6 @@ public class FuzzingServer {
     }
 
     private boolean fuzzTestPlan() {
-        // We use the seed from the corpus and generate a set of test plans
-        // Do we consume a seed? We shouldn't. Since we don't mutate seed.
-        // Do we add seed back? Do we want this code coverage? I think so,
-        // There should be some coverage that can only be reached during the
-        // rolling upgrade.
-        // Then we should also keep a corpus of test plan. And the mutation to
-        // the test plan would be changing the order between upgradeOp, faults
-        // and commands.
-
-        // Let's go with the simplest one. Randomly generate a seed, then a test
-        // plan. And finally, execute it.
 
         if (testPlanCorpus.isEmpty() && fullStopCorpus.isEmpty()) {
             // Cannot generate a test plan
@@ -267,17 +258,63 @@ public class FuzzingServer {
                         testID++, testPlan));
             }
         } else {
-            Seed seed = corpus.peekSeed();
+            assert !fullStopCorpus.isEmpty();
+            FullStopSeed fullStopSeed = fullStopCorpus.getSeed();
 
-            // Might stuck here, this is serious
-            while (seed == null) {
-                seed = Executor.generateSeed(commandPool, stateClass);
+            // Generate several test plan...
+            for (int i = 0; i < Config.getConf().testPlanGenerationNum; i++) {
+                testPlan = generateTestPlan(fullStopSeed);
+                testID2TestPlan.put(testID, testPlan);
+                testPlanPackets.add(new TestPlanPacket(
+                        Config.getConf().system,
+                        testID++, testPlan));
             }
-            testPlan = generateTestPlan(seed);
-            testID2TestPlan.put(testID, testPlan);
-            testPlanPackets.add(new TestPlanPacket(
-                    Config.getConf().system,
-                    testID++, testPlan));
+        }
+        return true;
+    }
+
+    public boolean fuzzFullStopUpgrade() {
+        FullStopSeed fullStopSeed = fullStopCorpus.getSeed();
+        round++;
+        if (fullStopSeed == null) {
+            // corpus is empty, generate some
+            Seed seed = Executor.generateSeed(commandPool, stateClass);
+
+            if (seed != null) {
+                FullStopUpgrade fullStopUpgrade = new FullStopUpgrade(
+                        Config.getConf().nodeNum,
+                        seed.originalCommandSequence.getCommandStringList(),
+                        seed.validationCommandSequnece.getCommandStringList(),
+                        targetSystemStates);
+                testID2Seed.put(testID, seed);
+                fullStopPackets.add(new FullStopPacket(Config.getConf().system,
+                        testID++, fullStopUpgrade));
+            } else {
+                logger.error("Seed is null");
+            }
+        } else {
+            // Get a full-stop seed, mutate it and create some new seeds
+            Seed seed = fullStopSeed.seed;
+
+            for (int i = 0; i < Config.getConf().mutationEpoch; i++) {
+                Seed mutateSeed = SerializationUtils.clone(seed);
+                if (mutateSeed.mutate(commandPool, stateClass)) {
+                    FullStopUpgrade fullStopUpgrade = new FullStopUpgrade(
+                            Config.getConf().nodeNum,
+                            seed.originalCommandSequence.getCommandStringList(),
+                            seed.validationCommandSequnece
+                                    .getCommandStringList(),
+                            targetSystemStates);
+                    testID2Seed.put(testID, mutateSeed);
+                    fullStopPackets
+                            .add(new FullStopPacket(Config.getConf().system,
+                                    testID++,
+                                    fullStopUpgrade));
+                } else {
+                    logger.info("Mutation failed");
+                    i--;
+                }
+            }
         }
         return true;
     }
@@ -296,13 +333,11 @@ public class FuzzingServer {
         return fb;
     }
 
-    // We never upgrade a node with fault, all fault will be
-    // recovered before upgrading the node
-    public TestPlan generateTestPlan(Seed seed) {
+    public TestPlan generateTestPlan(FullStopSeed fullStopSeed) {
         // Some systems might have special requirements for
         // upgrade, like HDFS needs to upgrade NN first
 
-        int nodeNum = Config.getConf().nodeNum;
+        int nodeNum = fullStopSeed.nodeNum;
 
         int faultNum = rand.nextInt(Config.getConf().faultMaxNum + 1);
         List<Pair<Fault, FaultRecover>> faultPairs = Fault
@@ -333,7 +368,6 @@ public class FuzzingServer {
             // for (int i = 0; i < Config.getConf().nodeNum - 1; i++) {
             // exampleEvents.add(new UpgradeOp(i));
             // }
-
             exampleEvents.add(new PrepareUpgrade());
             if (Config.getConf().system.equals("hdfs")) {
                 exampleEvents.add(new HDFSStopSNN());
@@ -357,12 +391,90 @@ public class FuzzingServer {
         // TODO: If the node is current down, we should switch to
         // another node for execution.
         // Randomly interleave the commands with the upgradeOp&faults
-        List<Event> shellCommands = ShellCommand.seed2Events(seed);
+        List<Event> shellCommands = ShellCommand
+                .seedCmd2Events(fullStopSeed.seed);
         List<Event> events = interleaveWithOrder(upgradeOpAndFaults,
                 shellCommands);
 
         events.add(events.size(), new FinalizeUpgrade());
         return new TestPlan(nodeNum, events);
+    }
+
+    public synchronized void updateStatus(
+            FullStopFeedbackPacket fullStopFeedbackPacket) {
+        // TODO: update status for test plan feed back
+        // Do we utilize the feedback?
+        // Do we mutate the test plan?
+
+        FeedBack fb = mergeCoverage(fullStopFeedbackPacket.feedBacks);
+
+        boolean addToCorpus = false;
+        if (Config.getConf().useFeedBack && Utilities.hasNewBits(curOriCoverage,
+                fb.originalCodeCoverage)) {
+            addToCorpus = true;
+            curOriCoverage.merge(fb.originalCodeCoverage);
+        }
+
+        if (Config.getConf().useFeedBack && Utilities.hasNewBits(curUpCoverage,
+                fb.upgradedCodeCoverage)) {
+            addToCorpus = true;
+            curUpCoverage.merge(fb.upgradedCodeCoverage);
+        }
+
+        logger.info("addToCorpus = " + addToCorpus);
+
+        Path crashSubDir = createCrashSubDir();
+        if (fullStopFeedbackPacket.isEventFailed) {
+            String sb = "Event Failed\n";
+            sb += fullStopFeedbackPacket.eventFailedReport;
+            Path crashReport = Paths.get(
+                    crashSubDir.toString(),
+                    "crash_" + fullStopFeedbackPacket.testPacketID + ".report");
+            Utilities.write2TXT(crashReport.toFile(), sb, false);
+            crashID++;
+        } else if (fullStopFeedbackPacket.isInconsistent) {
+            String sb = "Result Inconsistent\n";
+            sb += fullStopFeedbackPacket.inconsistencyReport;
+            Path crashReport = Paths.get(
+                    crashSubDir.toString(),
+                    "crash_" + fullStopFeedbackPacket.testPacketID + ".report");
+            Utilities.write2TXT(crashReport.toFile(), sb, false);
+            crashID++;
+        }
+        testID2Seed.remove(fullStopFeedbackPacket.testPacketID);
+
+        if (addToCorpus) {
+            fullStopCorpus.addSeed(new FullStopSeed(
+                    testID2Seed.get(fullStopFeedbackPacket.testPacketID),
+                    fullStopFeedbackPacket.nodeNum,
+                    fullStopFeedbackPacket.systemStates));
+
+            // Update the coveredBranches to the newest value
+            Pair<Integer, Integer> curOriCoverageStatus = Utilities
+                    .getCoverageStatus(curOriCoverage);
+            originalCoveredBranches = curOriCoverageStatus.left;
+            originalProbeNum = curOriCoverageStatus.right;
+
+            Pair<Integer, Integer> curUpCoverageStatus = Utilities
+                    .getCoverageStatus(curUpCoverage);
+            upgradedCoveredBranches = curUpCoverageStatus.left;
+            upgradedProbeNum = curUpCoverageStatus.right;
+        }
+
+        Long timeElapsed = TimeUnit.SECONDS.convert(
+                System.nanoTime(), TimeUnit.NANOSECONDS) - startTime;
+        if (timeElapsed - lastTimePoint > Config.getConf().timeInterval ||
+                lastTimePoint == 0) {
+            // Insert a record (time: coverage)
+            originalCoverageAlongTime.add(
+                    new Pair(timeElapsed, originalCoveredBranches));
+            upgradedCoverageAlongTime.add(
+                    new Pair(timeElapsed, upgradedCoveredBranches));
+            lastTimePoint = timeElapsed;
+        }
+        finishedTestID++;
+        printInfo();
+        System.out.println();
     }
 
     public synchronized void updateStatus(
@@ -397,7 +509,7 @@ public class FuzzingServer {
             Utilities.write2TXT(crashReport.toFile(), sb, false);
             crashID++;
         } else if (testPlanFeedbackPacket.isInconsistent) {
-            // comparing the read/state failed
+            // TODO: Log the inconsistency
         }
         testID2TestPlan.remove(testPlanFeedbackPacket.testPacketID);
 
@@ -655,5 +767,19 @@ public class FuzzingServer {
             }
         }
         return events;
+    }
+
+    public static Set<String> readState(Path filePath)
+            throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, List<String>> rawClass2States = mapper
+                .readValue(filePath.toFile(), HashMap.class);
+        Set<String> states = new HashSet<>();
+        for (String className : rawClass2States.keySet()) {
+            for (String fieldName : rawClass2States.get(className)) {
+                states.add(className + "." + fieldName);
+            }
+        }
+        return states;
     }
 }

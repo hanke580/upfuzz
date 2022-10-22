@@ -31,17 +31,8 @@ import org.zlab.upfuzz.utils.Utilities;
 public class CassandraExecutor extends Executor {
 
     CassandraCqlshDaemon cqlsh = null;
-
-    Process cassandraProcess;
-    // static final String jacocoOptions =
-    // "=append=false,includes=org.apache.cassandra.*,output=dfe,address=localhost,sessionid=";
-
-    // Over the JVM start up option limitation.
-
     static final String jacocoOptions = "=append=false";
-
     static final String classToIns = Config.getConf().instClassFilePath;
-
     static final String excludes = "org.apache.cassandra.metrics.*:org.apache.cassandra.net.*:org.apache.cassandra.io.sstable.format.SSTableReader.*:org.apache.cassandra.service.*";
 
     public CassandraExecutor() {
@@ -81,29 +72,6 @@ public class CassandraExecutor extends Executor {
         agentHandler = new HashMap<>();
         sessionGroup = new ConcurrentHashMap<>();
 
-    }
-
-    public boolean isCassandraReady(String oldSystemPath) {
-        // ProcessBuilder isReadyBuilder = new ProcessBuilder();
-        Process isReady;
-        int ret = 0;
-        try {
-            isReady = Utilities.exec(
-                    new String[] { "bin/cqlsh", "-e", "describe cluster" },
-                    oldSystemPath);
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(isReady.getInputStream()));
-            String line;
-            while ((line = in.readLine()) != null) {
-                // logger.info(line);
-            }
-            isReady.waitFor();
-            in.close();
-            ret = isReady.exitValue();
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-        return ret == 0;
     }
 
     @Override
@@ -158,42 +126,6 @@ public class CassandraExecutor extends Executor {
     public void upgradeTeardown() {
     }
 
-    public Pair<CommandSequence, CommandSequence> prepareCommandSequence() {
-        CommandSequence commandSequence = null;
-        CommandSequence validationCommandSequence = null;
-        try {
-            commandSequence = CommandSequence.generateSequence(
-                    CassandraCommands.cassandraCommandPool.commandClassList,
-                    CassandraCommands.cassandraCommandPool.createCommandClassList,
-                    CassandraState.class, null);
-            // TODO: If it's generating read with a initial state, no need to
-            // generate with createTable...
-            validationCommandSequence = CommandSequence.generateSequence(
-                    CassandraCommands.cassandraCommandPool.readCommandClassList,
-                    null,
-                    CassandraState.class, commandSequence.state);
-        } catch (NoSuchMethodException | InvocationTargetException
-                | InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
-        return new Pair<>(commandSequence, validationCommandSequence);
-    }
-
-    public static CommandSequence prepareValidationCommandSequence(
-            State state) {
-        CommandSequence validationCommandSequence = null;
-        try {
-            validationCommandSequence = CommandSequence.generateSequence(
-                    CassandraCommands.cassandraCommandPool.readCommandClassList,
-                    null,
-                    CassandraState.class, state);
-        } catch (NoSuchMethodException | InvocationTargetException
-                | InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
-        return validationCommandSequence;
-    }
-
     @Override
     public List<String> executeCommands(List<String> commandList) {
         // TODO: Use Event here, since not all commands are executed
@@ -206,25 +138,14 @@ public class CassandraExecutor extends Executor {
 
     @Override
     public String execShellCommand(ShellCommand command) {
-        // Test Plan related
         String ret;
         try {
             // We update the cqlsh each time
             // (1) Try to find a working cqlsh
-            // - We can do this by maintain a state of cluster
-            // - [live, crash]
-            // - If some node is marked as live but it's down
-            // - This could be a bug.
             // (2) When the cqlsh daemon crash, we catch this
             // exception, log it's test plan, report to the
             // server, and keep testing
             // TODO: If the cqlsh daemon crash
-
-            // Always use the latest cqlsh
-
-            // Default we should choose the first node
-            // We can make sure that the at least one node is up
-            // pick the first node that's alive
             int cqlshNodeIndex = 0;
             for (int i = 0; i < dockerCluster.nodeNum; i++) {
                 if (dockerCluster.dockerStates[i].alive) {
@@ -242,7 +163,6 @@ public class CassandraExecutor extends Executor {
 
             long timeElapsed = TimeUnit.SECONDS.convert(
                     endTime - startTime, TimeUnit.MILLISECONDS);
-
             if (Config.getConf().debug) {
                 logger.info(String.format(
                         "Command is sent to node[%d], exec time: %ds",
@@ -254,29 +174,6 @@ public class CassandraExecutor extends Executor {
             return null;
         }
         return ret;
-    }
-
-    @Override
-    public void execNormalCommand(Command command) {
-
-    }
-
-    @Override
-    public int saveSnapshot() {
-        // Do nothing when using docker-compose
-        return 0;
-    }
-
-    @Override
-    public boolean upgrade() {
-        // Only perform upgrade
-        try {
-            dockerCluster.upgrade();
-            this.cqlsh = ((CassandraDocker) dockerCluster.getDocker(0)).cqlsh;
-        } catch (Exception e) {
-            logger.error("Failed to connect to upgraded cassandra cluster", e);
-        }
-        return true;
     }
 
     public Pair<Boolean, String> checkResultConsistency(List<String> oriResult,

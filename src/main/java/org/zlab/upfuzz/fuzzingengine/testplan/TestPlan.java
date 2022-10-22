@@ -6,7 +6,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-import com.google.gson.JsonSerializer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.Config;
@@ -123,7 +122,7 @@ public class TestPlan implements Serializable {
                 ((UpgradeOp) events.get(pos2)).nodeIndex = nodeIdx;
             }
             throw new RuntimeException(
-                    String.format("mutateType[%d] is out of range"));
+                    "mutateType[%d] is out of range");
         }
     }
 

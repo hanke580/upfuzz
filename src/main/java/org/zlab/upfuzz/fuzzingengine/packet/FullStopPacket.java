@@ -13,21 +13,21 @@ import java.util.Set;
 public class FullStopPacket extends Packet {
     static Logger logger = LogManager.getLogger(StackedTestPacket.class);
 
-    public Set<String> targetSystemStates;
-
     public String systemID;
     public int testPacketID;
     public FullStopUpgrade fullStopUpgrade;
 
     public FullStopPacket(String systemID, int testPacketID,
-            FullStopUpgrade fullStopUpgrade,
-            Set<String> targetSystemStates) {
+            FullStopUpgrade fullStopUpgrade) {
         this.type = PacketType.FullStopPacket;
 
         this.systemID = systemID;
         this.testPacketID = testPacketID;
         this.fullStopUpgrade = fullStopUpgrade;
-        this.targetSystemStates = targetSystemStates;
+    }
+
+    public int getNodeNum() {
+        return fullStopUpgrade.nodeNum;
     }
 
     public static FullStopPacket read(DataInputStream in) {

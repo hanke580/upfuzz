@@ -1,5 +1,6 @@
 package org.zlab.upfuzz.fuzzingengine.packet;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -8,7 +9,8 @@ import org.zlab.upfuzz.fuzzingengine.FeedBack;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.util.Map;
+import java.nio.file.Path;
+import java.util.*;
 
 public class FullStopFeedbackPacket extends Packet {
     static Logger logger = LogManager.getLogger(FeedbackPacket.class);
@@ -20,14 +22,21 @@ public class FullStopFeedbackPacket extends Packet {
     public FeedBack[] feedBacks;
     public Map<Integer, Map<String, String>> systemStates;
 
+    // Failure Report
+    public boolean isEventFailed; // One event failed.
+    public String eventFailedReport;
+
+    public boolean isInconsistent;
+    public String inconsistencyReport;
+
     public FullStopFeedbackPacket(String systemID, int nodeNum,
             int testPacketID,
             FeedBack[] feedBacks,
             Map<Integer, Map<String, String>> systemStates) {
-        this.type = PacketType.FeedbackPacket;
+        this.type = PacketType.FullStopFeedbackPacket;
 
         this.systemID = systemID;
-        this.nodeNum = Config.getConf().nodeNum;
+        this.nodeNum = nodeNum;
         this.testPacketID = testPacketID;
         this.feedBacks = feedBacks;
         this.systemStates = systemStates;

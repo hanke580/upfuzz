@@ -102,14 +102,30 @@ public abstract class DockerCluster implements IDockerCluster {
         return idx;
     }
 
-    public void upgrade() throws Exception {
+    public boolean rollingUpgrade() throws Exception {
         logger.info("Cluster upgrading...");
         type = "upgraded";
         prepareUpgrade();
         for (int i = 0; i < dockers.length; ++i) {
+            dockers[i].shutdown();
             dockers[i].upgrade();
         }
         logger.info("Cluster upgraded");
+        return true;
+    }
+
+    public boolean fullStopUpgrade() throws Exception {
+        logger.info("Cluster full-stop upgrading...");
+        type = "upgraded";
+        prepareUpgrade();
+        for (int i = 0; i < dockers.length; ++i) {
+            dockers[i].shutdown();
+        }
+        for (int i = 0; i < dockers.length; ++i) {
+            dockers[i].upgrade();
+        }
+        logger.info("Cluster upgraded");
+        return true;
     }
 
     /**

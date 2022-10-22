@@ -28,11 +28,6 @@ public class NullExecutor extends Executor {
     }
 
     @Override
-    public int saveSnapshot() {
-        return 0;
-    }
-
-    @Override
     public List<String> executeCommands(List<String> commandList) {
         return null;
     }
@@ -40,16 +35,6 @@ public class NullExecutor extends Executor {
     @Override
     public String execShellCommand(ShellCommand command) {
         return null;
-    }
-
-    @Override
-    public void execNormalCommand(Command command) {
-
-    }
-
-    @Override
-    public boolean upgrade() {
-        return false;
     }
 
 }

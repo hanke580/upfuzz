@@ -15,6 +15,10 @@ public interface IDocker {
 
     void upgrade() throws Exception;
 
+    // Stop the process in container
+    // Don't stop the container
+    boolean shutdown();
+
     Map<String, String> readSystemState();
 
     Path getDataPath();

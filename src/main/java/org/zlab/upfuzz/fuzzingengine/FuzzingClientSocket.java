@@ -67,6 +67,15 @@ class FuzzingClientSocket implements Runnable {
                     stackedFeedbackPacket.write(out);
                     break;
                 }
+                case FullStopPacket: {
+                    FullStopPacket fullStopPacket = FullStopPacket.read(in);
+                    FullStopFeedbackPacket fullStopFeedbackPacket = fuzzingClient
+                            .executeFullStopPacket(fullStopPacket);
+                    fullStopFeedbackPacket.write(out);
+                    logger.debug(
+                            "[Client] Writing fullstop fb packet back to server");
+                    break;
+                }
                 case TestPlanPacket: {
                     TestPlanPacket testPlanPacket = TestPlanPacket.read(in);
                     TestPlanFeedbackPacket testPlanFeedbackPacket = fuzzingClient

@@ -5,7 +5,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionDataStore;
@@ -15,10 +14,10 @@ import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.hdfs.HdfsExecutor;
 import org.zlab.upfuzz.utils.Pair;
 
+import static org.zlab.upfuzz.fuzzingengine.server.FuzzingServer.readState;
+
 public class FuzzingClient {
     static Logger logger = LogManager.getLogger(FuzzingClient.class);
-
-    public static int epochStartTestId;
 
     public Executor executor;
 
@@ -26,12 +25,7 @@ public class FuzzingClient {
     // problems
     int CLUSTER_START_RETRY = 3;
 
-    public static Map<Integer, Pair<List<String>, List<String>>> testId2Sequence;
-
     FuzzingClient() {
-        epochStartTestId = 0; // FIXME: It might not be zero
-        testId2Sequence = new HashMap<>();
-
         // FIX orphan process
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             executor.teardown();
@@ -107,7 +101,7 @@ public class FuzzingClient {
             for (String cmd : tp.validationCommandSequneceList) {
                 logger.debug(cmd);
             }
-            executor.execute(tp.originalCommandSequenceList);
+            executor.executeCommands(tp.originalCommandSequenceList);
 
             FeedBack[] feedBacks = new FeedBack[stackedTestPacket.nodeNum];
             for (int i = 0; i < stackedTestPacket.nodeNum; i++) {
@@ -124,17 +118,15 @@ public class FuzzingClient {
                             tp.testPacketID, feedBacks));
 
             List<String> oriResult = executor
-                    .execute(tp.validationCommandSequneceList);
+                    .executeCommands(tp.validationCommandSequneceList);
             testID2oriResults.put(tp.testPacketID, oriResult);
         }
-
-        executor.saveSnapshot();
 
         StackedFeedbackPacket stackedFeedbackPacket = new StackedFeedbackPacket();
         stackedFeedbackPacket.stackedCommandSequenceStr = recordStackedTestPacket(
                 stackedTestPacket);
 
-        boolean ret = executor.upgrade();
+        boolean ret = executor.fullStopUpgrade();
 
         // collect system state here
         if (!ret) {
@@ -148,12 +140,12 @@ public class FuzzingClient {
             sb.append(stackedTestPacketStr);
             stackedFeedbackPacket.upgradeFailureReport = sb.toString();
         } else {
-            // upgrade process succeeds, compare results here
             logger.info("upgrade succeed");
+            stackedFeedbackPacket.isUpgradeProcessFailed = false;
 
             for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
                 List<String> upResult = executor
-                        .execute(tp.validationCommandSequneceList);
+                        .executeCommands(tp.validationCommandSequneceList);
                 testID2upResults.put(tp.testPacketID, upResult);
                 if (Config.getConf().collUpFeedBack) {
 
@@ -203,6 +195,106 @@ public class FuzzingClient {
         return stackedFeedbackPacket;
     }
 
+    public FullStopFeedbackPacket executeFullStopPacket(
+            FullStopPacket fullStopPacket) {
+        int nodeNum = fullStopPacket.getNodeNum();
+
+        logger.debug("full stop: \n");
+        logger.debug(fullStopPacket.fullStopUpgrade);
+
+        FeedBack[] feedBacks = new FeedBack[nodeNum];
+        for (int i = 0; i < nodeNum; i++) {
+            feedBacks[i] = new FeedBack();
+        }
+        FullStopFeedbackPacket fullStopFeedbackPacket = new FullStopFeedbackPacket(
+                fullStopPacket.systemID, nodeNum,
+                fullStopPacket.testPacketID, feedBacks, null);
+
+        // Start up
+        initExecutor(nodeNum,
+                fullStopPacket.fullStopUpgrade.targetSystemStates);
+        startUpExecutor();
+
+        // Execute
+        executor.executeCommands(fullStopPacket.fullStopUpgrade.commands);
+        List<String> oriResult = executor.executeCommands(
+                fullStopPacket.fullStopUpgrade.validCommands);
+
+        // Coverage collection
+        try {
+            ExecutionDataStore[] oriCoverages = executor
+                    .collectCoverageSeparate("original");
+            for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
+                fullStopFeedbackPacket.feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
+            }
+        } catch (Exception e) {
+            fullStopFeedbackPacket.isEventFailed = true;
+            StringBuilder eventFailedReport = new StringBuilder();
+            logger.error("cannot collect coverage " + e);
+            eventFailedReport.append(
+                    "TestPlan execution failed, cannot collect original coverage\n")
+                    .append(e);
+            eventFailedReport.append(recordFullStopPacket(fullStopPacket));
+            fullStopFeedbackPacket.eventFailedReport = eventFailedReport
+                    .toString();
+            tearDownExecutor();
+            return fullStopFeedbackPacket;
+        }
+
+        boolean upgradeStatus = executor.fullStopUpgrade();
+
+        if (!upgradeStatus) {
+            // Cannot upgrade
+            fullStopFeedbackPacket.isEventFailed = true;
+            fullStopFeedbackPacket.eventFailedReport = "[upgrade failed]\n" +
+                    recordFullStopPacket(fullStopPacket);
+        } else {
+            // Upgrade is done successfully, collect coverage and check results
+            fullStopFeedbackPacket.isEventFailed = false;
+
+            try {
+                ExecutionDataStore[] upCoverages = executor
+                        .collectCoverageSeparate("upgraded");
+                for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
+                    fullStopFeedbackPacket.feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+                }
+            } catch (Exception e) {
+                // Cannot collect code coverage in the upgraded version
+                // Report it as the situations that "No nodes are upgraded"
+                fullStopFeedbackPacket.isEventFailed = true;
+                StringBuilder eventFailedReport = new StringBuilder();
+                eventFailedReport.append(
+                        "TestPlan execution failed, cannot collect upgrade coverage\n")
+                        .append(e);
+                eventFailedReport.append(recordFullStopPacket(fullStopPacket));
+                fullStopFeedbackPacket.eventFailedReport = eventFailedReport
+                        .toString();
+                tearDownExecutor();
+                return fullStopFeedbackPacket;
+            }
+
+            List<String> upResult = executor.executeCommands(
+                    fullStopPacket.fullStopUpgrade.validCommands);
+
+            // Compare results
+            Pair<Boolean, String> compareRes = executor
+                    .checkResultConsistency(oriResult, upResult);
+            if (!compareRes.left) {
+                fullStopFeedbackPacket.isInconsistent = true;
+                fullStopFeedbackPacket.inconsistencyReport = "Results are inconsistent between two versions\n"
+                        +
+                        compareRes.right +
+                        recordFullStopPacket(fullStopPacket);
+            } else {
+                fullStopFeedbackPacket.isInconsistent = false;
+            }
+        }
+        logger.info(executor.systemID + " executor: " + executor.executorID
+                + " finished execution");
+        tearDownExecutor();
+        return fullStopFeedbackPacket;
+    }
+
     public TestPlanFeedbackPacket executeTestPlanPacket(
             TestPlanPacket testPlanPacket) {
 
@@ -244,7 +336,6 @@ public class FuzzingClient {
 
         // For test plan, we don't distinguish the old version coverage
         // and the new verison coverage. We only collect the final coverage
-
         FeedBack[] feedBacks = new FeedBack[nodeNum];
         for (int i = 0; i < nodeNum; i++) {
             feedBacks[i] = new FeedBack();
@@ -261,18 +352,14 @@ public class FuzzingClient {
             }
         } catch (Exception e) {
             // Cannot collect code coverage in the upgraded version
-            // Report it as the situations that "No nodes are upgraded"
             testPlanFeedbackPacket.isEventFailed = true;
             StringBuilder eventFailedReport = new StringBuilder();
-            logger.error("cannot collect coverage " + e);
             eventFailedReport.append(
-                    "TestPlan execution failed, no nodes are upgraded, cannot collect upgrade coverage\n")
+                    "TestPlan execution failed, cannot collect upgrade coverage\n")
                     .append(e);
-            testPlanPacketStr = recordTestPlanPacket(testPlanPacket);
-            eventFailedReport.append(testPlanPacketStr);
+            eventFailedReport.append(recordTestPlanPacket(testPlanPacket));
             testPlanFeedbackPacket.eventFailedReport = eventFailedReport
                     .toString();
-
             tearDownExecutor();
             return testPlanFeedbackPacket;
         }
@@ -280,7 +367,6 @@ public class FuzzingClient {
         // Map<Integer, Map<String, String>> states =
         // executor.readSystemState();
         // logger.info("system states = " + states);
-
         // TODO: A system state comparison with the oracle here
 
         try {
@@ -346,7 +432,7 @@ public class FuzzingClient {
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             logger.trace("Execute testpacket " + tp.systemID + " " +
                     tp.testPacketID);
-            executor.execute(tp.originalCommandSequenceList);
+            executor.executeCommands(tp.originalCommandSequenceList);
 
             FeedBack[] feedBacks = new FeedBack[stackedTestPacket.nodeNum];
             for (int i = 0; i < stackedTestPacket.nodeNum; i++) {
@@ -363,7 +449,7 @@ public class FuzzingClient {
                             tp.testPacketID, feedBacks));
 
             List<String> oriResult = executor
-                    .execute(tp.validationCommandSequneceList);
+                    .executeCommands(tp.validationCommandSequneceList);
             testID2oriResults.put(tp.testPacketID, oriResult);
         }
 
@@ -401,9 +487,6 @@ public class FuzzingClient {
 
             MixedFeedbackPacket mixedFeedbackPacket = new MixedFeedbackPacket(
                     stackedFeedbackPacket, testPlanFeedbackPacket);
-            mixedFeedbackPacket.testPlanFailed = true;
-            mixedFeedbackPacket.stackedTestFailed = false;
-
             return mixedFeedbackPacket;
         }
 
@@ -423,7 +506,7 @@ public class FuzzingClient {
         // Execute the validation commands
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             List<String> upResult = executor
-                    .execute(tp.validationCommandSequneceList);
+                    .executeCommands(tp.validationCommandSequneceList);
             testID2upResults.put(tp.testPacketID, upResult);
             if (Config.getConf().collUpFeedBack) {
 
@@ -490,6 +573,11 @@ public class FuzzingClient {
         return sb.toString();
     }
 
+    private String recordFullStopPacket(FullStopPacket fullStopPacket) {
+        return String.format("nodeNum = %d\n", fullStopPacket.getNodeNum()) +
+                fullStopPacket.fullStopUpgrade;
+    }
+
     private String recordTestPlanPacket(TestPlanPacket testPlanPacket) {
         return String.format("nodeNum = %d\n", testPlanPacket.getNodeNum()) +
                 testPlanPacket.getTestPlan().toString();
@@ -513,20 +601,6 @@ public class FuzzingClient {
             sb.append(commandStr).append("\n");
         }
         return sb.toString();
-    }
-
-    public static Set<String> readState(Path filePath)
-            throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        Map<String, List<String>> rawClass2States = mapper
-                .readValue(filePath.toFile(), HashMap.class);
-        Set<String> states = new HashSet<>();
-        for (String className : rawClass2States.keySet()) {
-            for (String fieldName : rawClass2States.get(className)) {
-                states.add(className + "." + fieldName);
-            }
-        }
-        return states;
     }
 
 }

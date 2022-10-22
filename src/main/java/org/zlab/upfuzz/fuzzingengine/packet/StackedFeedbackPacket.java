@@ -16,7 +16,7 @@ public class StackedFeedbackPacket extends Packet {
     static Logger logger = LogManager.getLogger(StackedFeedbackPacket.class);
 
     private final List<FeedbackPacket> fpList;
-    public boolean isUpgradeProcessFailed;
+    public boolean isUpgradeProcessFailed = false;
     public String upgradeFailureReport;
 
     public String stackedCommandSequenceStr;

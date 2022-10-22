@@ -1,11 +1,14 @@
 package org.zlab.upfuzz.fuzzingengine;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.cassandra.CassandraCommandPool;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.docker.DockerCluster;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPlanPacket;
+import org.zlab.upfuzz.fuzzingengine.server.FullStopCorpus;
+import org.zlab.upfuzz.fuzzingengine.server.FullStopSeed;
 import org.zlab.upfuzz.fuzzingengine.server.FuzzingServer;
 import org.zlab.upfuzz.fuzzingengine.server.Seed;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
@@ -17,17 +20,23 @@ import org.zlab.upfuzz.hdfs.HdfsState;
 import java.io.*;
 
 public class FuzzingServerTest {
+
+    @BeforeAll
+    public static void prepare() {
+        new Config();
+    }
+
     @Test
     public void testTestPlanGeneration() {
 
         CommandPool commandPool = new HdfsCommandPool();
         Class stateClass = HdfsState.class;
         Seed seed = Executor.generateSeed(commandPool, stateClass);
-        Config config = new Config();
-
+        FullStopSeed fullStopSeed = new FullStopSeed(
+                seed, 3, null);
         Config.getConf().system = "hdfs";
         FuzzingServer fuzzingServer = new FuzzingServer();
-        TestPlan testPlan = fuzzingServer.generateTestPlan(seed);
+        TestPlan testPlan = fuzzingServer.generateTestPlan(fullStopSeed);
 
         System.out.println(testPlan);
         testPlan.mutate();
@@ -42,9 +51,9 @@ public class FuzzingServerTest {
         CassandraCommandPool commandPool = new CassandraCommandPool();
         Class stateClass = CassandraState.class;
         Seed seed = Executor.generateSeed(commandPool, stateClass);
-        Config config = new Config();
+        FullStopSeed fullStopSeed = new FullStopSeed(seed, 3, null);
         FuzzingServer fuzzingServer = new FuzzingServer();
-        TestPlan testPlan = fuzzingServer.generateTestPlan(seed);
+        TestPlan testPlan = fuzzingServer.generateTestPlan(fullStopSeed);
         TestPlanPacket testPlanPacket;
 
         try {

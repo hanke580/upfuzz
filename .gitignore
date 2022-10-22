@@ -11,6 +11,7 @@ prebuild/
 fuzzing_storage
 upfuzz.log
 hdfs-cl-*
+cass-cl*
 
 
 ##############################

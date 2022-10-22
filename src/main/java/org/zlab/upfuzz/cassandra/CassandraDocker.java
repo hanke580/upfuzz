@@ -89,7 +89,7 @@ public class CassandraDocker extends Docker {
                 "./persistent/node_" + index + "/env.sh");
 
         FileWriter fw;
-        boolean status = envFile.getParentFile().mkdirs();
+        envFile.getParentFile().mkdirs();
         fw = new FileWriter(envFile, false);
         for (String s : env) {
             fw.write("export " + s + "\n");
@@ -124,15 +124,6 @@ public class CassandraDocker extends Docker {
     }
 
     public void upgrade() throws Exception {
-        int ret;
-
-        Process stopCass = runInContainer(new String[] {
-                "/" + system + "/" + originalVersion + "/"
-                        + "bin/nodetool",
-                "stopdaemon" });
-        ret = stopCass.waitFor();
-
-        logger.debug("original version stop: " + ret);
         type = "upgraded";
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
                 + "/org.jacoco.agent.rt.jar"
@@ -154,11 +145,21 @@ public class CassandraDocker extends Docker {
         String restartCommand = "supervisorctl restart upfuzz_cassandra:";
         Process restart = runInContainer(
                 new String[] { "/bin/bash", "-c", restartCommand }, env);
-        ret = restart.waitFor();
+        int ret = restart.waitFor();
         String message = Utilities.readProcess(restart);
         logger.debug("upgrade version start: " + ret + "\n" + message);
         cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort,
                 executorID);
+    }
+
+    @Override
+    public boolean shutdown() {
+        String[] stopNode = new String[] {
+                "/" + system + "/" + originalVersion + "/"
+                        + "bin/nodetool",
+                "stopdaemon" };
+        int ret = runProcessInContainer(stopNode);
+        return ret == 0;
     }
 
     @Override

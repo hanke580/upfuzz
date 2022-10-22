@@ -18,7 +18,7 @@ public class TestPlanFeedbackPacket extends Packet {
     // We expect the system upgrade op should always succeed
     // no matter whether the normal command is correct or not
 
-    public boolean isEventFailed; // One event failed.
+    public boolean isEventFailed = false; // One event failed.
     public String eventFailedReport;
 
     // For test plan, we only collect the new version coverage
@@ -26,7 +26,7 @@ public class TestPlanFeedbackPacket extends Packet {
 
     // TODO: We might want to compare the state between
     // (1) Rolling upgrade and (2) Full-stop upgrade
-    public boolean isInconsistent; // true if inconsistent
+    public boolean isInconsistent = false; // true if inconsistent
     public String inconsistencyReport; // The inconsistency information should
     // be placed here
 

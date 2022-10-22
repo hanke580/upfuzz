@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.rmi.UnexpectedException;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -12,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.codehaus.plexus.util.cli.shell.Shell;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.*;
 import org.zlab.upfuzz.docker.DockerCluster;
@@ -78,11 +80,26 @@ public abstract class Executor implements IExecutor {
 
     public abstract void startup();
 
-    public Map<Integer, Map<String, String>> readSystemState() {
-        return dockerCluster.readSystemState();
+    public abstract void teardown();
+
+    public boolean fullStopUpgrade() {
+        try {
+            dockerCluster.fullStopUpgrade();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
-    public abstract void teardown();
+    public boolean rollingUpgrade() {
+        try {
+            return dockerCluster.rollingUpgrade();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
     public abstract void upgradeTeardown();
 
@@ -108,8 +125,8 @@ public abstract class Executor implements IExecutor {
         }
     }
 
-    // Dead code for now
-    public static CommandSequence prepareValidationCommandSequence(
+    // Dead code
+    public static CommandSequence prepareValidCmds(
             CommandPool commandPool, State state) {
         CommandSequence validationCommandSequence = null;
         try {
@@ -121,10 +138,6 @@ public abstract class Executor implements IExecutor {
             e.printStackTrace();
         }
         return validationCommandSequence;
-    }
-
-    public List<String> execute(List<String> commands) {
-        return executeCommands(commands);
     }
 
     public boolean execute(TestPlan testPlan) {
@@ -188,14 +201,7 @@ public abstract class Executor implements IExecutor {
         return status;
     }
 
-    // Send to shell daemon to improve the performance
     abstract public String execShellCommand(ShellCommand command);
-
-    // Execute with "docker exec" on the wordDir
-    // Slower, but more general
-    abstract public void execNormalCommand(Command command);
-
-    // We should also support collecting the code coverage of a single node
 
     public ExecutionDataStore collect(String version) {
         // TODO: Separate the coverage here
@@ -286,8 +292,6 @@ public abstract class Executor implements IExecutor {
             return executionDataStores;
         }
     }
-
-    abstract public int saveSnapshot();
 
     public Pair<Boolean, String> checkResultConsistency(List<String> oriResult,
             List<String> upResult) {
@@ -428,22 +432,8 @@ public abstract class Executor implements IExecutor {
         return true;
     }
 
-    public static String readSystemState(Path filePath, String stateName)
-            throws IOException {
-        String targetStart = String.format("[InconsistencyDetectorStart][%s]",
-                stateName);
-        String cmd = "grep -A 5 \"" + targetStart + "\" " + filePath
-                + " | tail -n 5";
-        ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash", "-c",
-                cmd);
-        Process process = processBuilder.start();
-        String result = new String(process.getInputStream().readAllBytes());
-
-        int lastIdx = result.lastIndexOf(
-                "[InconsistencyDetectorStart][applicationState] = ");
-        String sub = result.substring(lastIdx);
-        return sub.substring(sub.indexOf("\n") + 1,
-                sub.lastIndexOf("[InconsistencyDetectorEnd]") - 1);
+    public Map<Integer, Map<String, String>> readSystemState() {
+        return dockerCluster.readSystemState();
     }
 
 }
