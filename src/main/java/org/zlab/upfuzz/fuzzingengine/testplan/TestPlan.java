@@ -1,10 +1,7 @@
 package org.zlab.upfuzz.fuzzingengine.testplan;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,13 +19,19 @@ public class TestPlan implements Serializable {
     public int nodeNum;
     public List<Event> events;
 
-    public TestPlan(int nodeNum, List<Event> events) {
+    public Set<String> targetSystemStates;
+    public Map<Integer, Map<String, String>> targetSystemStatesOracle;
+
+    public TestPlan(int nodeNum, List<Event> events,
+            Set<String> targetSystemStates,
+            Map<Integer, Map<String, String>> targetSystemStatesOracle) {
         this.nodeNum = nodeNum;
         this.events = events;
+        this.targetSystemStates = targetSystemStates;
+        this.targetSystemStatesOracle = targetSystemStatesOracle;
     }
 
     // Oracle
-
     public List<Event> getEvents() {
         return events;
     }

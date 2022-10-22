@@ -572,4 +572,15 @@ public class Utilities {
 
     }
 
+    public static String encodeString(String s) {
+        String encodedString = Base64.getEncoder().encodeToString(s.getBytes());
+        return encodedString;
+    }
+
+    public static String decodeString(String s) {
+        byte[] decodedBytes = Base64.getDecoder().decode(s);
+        String decodedString = new String(decodedBytes);
+        return decodedString;
+    }
+
 }

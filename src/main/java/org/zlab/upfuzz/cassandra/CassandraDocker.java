@@ -219,64 +219,40 @@ public class CassandraDocker extends Docker {
 
     @Override
     public Map<String, String> readSystemState() {
-        Map<String, String> states = new HashMap<>();
+        Map<String, String> stateValues = new HashMap<>();
         // Cassandra do not distinguish nodes
         // HDFS might get state from different nodes
         for (String stateName : targetSystemStates) {
             Path filePath = Paths.get("/var/log/cassandra/system.log");
-            String targetEnd = String.format(
-                    "\\[InconsistencyDetectorEnd\\]\\[%s\\]",
+            String target = String.format("\\[InconsistencyDetector\\]\\[%s\\]",
                     stateName);
             String[] grepStateCmd = new String[] {
                     "/bin/sh", "-c",
-                    "grep -a -B 20 \"" + targetEnd + "\" " + filePath
-                            + " | tail -n 20"
+                    "grep -a \"" + target + "\" " + filePath
+                            + " | tail -n 1"
             };
-
             try {
                 System.out.println("\n\n");
                 Process grepProc = runInContainer(grepStateCmd);
                 String result = new String(
                         grepProc.getInputStream().readAllBytes());
-
-                logger.info("grep result = \n" + result);
                 String stateValue = "";
-
                 if (!result.isEmpty()) {
-                    String targetStart_ = String.format(
-                            "[InconsistencyDetectorStart][%s]",
-                            stateName);
-                    String targetEnd_ = String.format(
-                            "[InconsistencyDetectorEnd][%s]",
-                            stateName);
-
-                    int lastIdx = result.lastIndexOf(targetStart_);
-                    if (lastIdx != -1) {
-                        String subString = result.substring(lastIdx);
-                        stateValue = subString.substring(
-                                subString.indexOf("\n") + 1,
-                                subString.lastIndexOf(targetEnd_)
-                                        - 1);
-                    } else {
-                        logger.error(String.format(
-                                "Node[%d] State[%s] cannot find target start",
-                                index, stateName));
+                    int index = result.indexOf("=");
+                    if (index != -1) {
+                        stateValue = result.substring(index + 1);
                     }
-                } else {
-                    logger.error(
-                            String.format("Node[%d] State[%s] result is empty",
-                                    index, stateName));
                 }
                 logger.info(String.format("State [%s] =  %s", stateName,
                         stateValue));
-                states.put(stateName, stateValue);
+                stateValues.put(stateName, Utilities.encodeString(stateValue));
             } catch (IOException e) {
                 logger.error(String.format(
                         "Problem when reading state in docker[%d]", index));
                 e.printStackTrace();
             }
         }
-        return states;
+        return stateValues;
     }
 
 }

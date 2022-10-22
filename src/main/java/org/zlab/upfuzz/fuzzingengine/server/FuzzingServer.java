@@ -385,7 +385,8 @@ public class FuzzingServer {
             // exampleEvents.add(new UpgradeOp(2));
             // exampleEvents.add(new UpgradeOp(3));
             // exampleEvents.add(0, new LinkFailure(1, 2));
-            return new TestPlan(nodeNum, exampleEvents);
+            return new TestPlan(nodeNum, exampleEvents, targetSystemStates,
+                    fullStopSeed.targetSystemStateResults);
         }
 
         // TODO: If the node is current down, we should switch to
@@ -397,16 +398,26 @@ public class FuzzingServer {
                 shellCommands);
 
         events.add(events.size(), new FinalizeUpgrade());
-        return new TestPlan(nodeNum, events);
+        return new TestPlan(nodeNum, events, targetSystemStates,
+                fullStopSeed.targetSystemStateResults);
     }
 
     public synchronized void updateStatus(
             FullStopFeedbackPacket fullStopFeedbackPacket) {
         // TODO: update status for test plan feed back
-        // Do we utilize the feedback?
-        // Do we mutate the test plan?
-
         FeedBack fb = mergeCoverage(fullStopFeedbackPacket.feedBacks);
+
+        // Print states
+        for (Integer nodeId : fullStopFeedbackPacket.systemStates.keySet()) {
+            logger.info("node" + nodeId + " states: ");
+            Map<String, String> states = fullStopFeedbackPacket.systemStates
+                    .get(nodeId);
+            for (String stateName : states.keySet()) {
+                logger.info(String.format("state[%s] = %s", stateName,
+                        Utilities.decodeString(states.get(stateName))));
+            }
+            logger.info("");
+        }
 
         boolean addToCorpus = false;
         if (Config.getConf().useFeedBack && Utilities.hasNewBits(curOriCoverage,
@@ -420,8 +431,6 @@ public class FuzzingServer {
             addToCorpus = true;
             curUpCoverage.merge(fb.upgradedCodeCoverage);
         }
-
-        logger.info("addToCorpus = " + addToCorpus);
 
         Path crashSubDir = createCrashSubDir();
         if (fullStopFeedbackPacket.isEventFailed) {
@@ -448,6 +457,9 @@ public class FuzzingServer {
                     testID2Seed.get(fullStopFeedbackPacket.testPacketID),
                     fullStopFeedbackPacket.nodeNum,
                     fullStopFeedbackPacket.systemStates));
+
+            logger.info("[HKLOG] system state = "
+                    + fullStopFeedbackPacket.systemStates);
 
             // Update the coveredBranches to the newest value
             Pair<Integer, Integer> curOriCoverageStatus = Utilities

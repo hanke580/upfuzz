@@ -1,5 +1,10 @@
 package org.zlab.upfuzz.fuzzingengine;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.plugins.convert.HexConverter;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.CommandPool;
@@ -7,7 +12,6 @@ import org.zlab.upfuzz.cassandra.CassandraCommandPool;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.docker.DockerCluster;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPlanPacket;
-import org.zlab.upfuzz.fuzzingengine.server.FullStopCorpus;
 import org.zlab.upfuzz.fuzzingengine.server.FullStopSeed;
 import org.zlab.upfuzz.fuzzingengine.server.FuzzingServer;
 import org.zlab.upfuzz.fuzzingengine.server.Seed;
@@ -18,8 +22,16 @@ import org.zlab.upfuzz.hdfs.HdfsCommandPool;
 import org.zlab.upfuzz.hdfs.HdfsState;
 
 import java.io.*;
+import java.lang.reflect.Type;
+import java.math.BigInteger;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class FuzzingServerTest {
+    static Logger logger = LogManager.getLogger(FuzzingServerTest.class);
 
     @BeforeAll
     public static void prepare() {
@@ -84,50 +96,44 @@ public class FuzzingServerTest {
         System.out.println(DockerCluster.getKthIP("123.2.2.44", 0));
     }
 
-    // @Test
-    // public void testGrepState() throws IOException {
-    // String stateName = "applicationState";
-    // Path filePath = Paths
-    // .get("/Users/hanke/Desktop/Project/upfuzz/system.log");
-    // String targetStart = String.format("[InconsistencyDetectorStart][%s]",
-    // stateName);
-    // String cmd = "grep -A 5 \"" + targetStart + "\" " + filePath
-    // + " | tail -n 5";
-    // System.out.println("cmd = " + cmd);
-    //
-    // ProcessBuilder processBuilder = new ProcessBuilder("/bin/sh", "-c",
-    // cmd); @Test
-    //// public void testGrepState() throws IOException {
-    //// String stateName = "applicationState";
-    //// Path filePath = Paths
-    //// .get("/Users/hanke/Desktop/Project/upfuzz/system.log");
-    //// String targetStart = String.format("[InconsistencyDetectorStart][%s]",
-    //// stateName);
-    //// String cmd = "grep -A 5 \"" + targetStart + "\" " + filePath
-    //// + " | tail -n 5";
-    //// System.out.println("cmd = " + cmd);
-    ////
-    //// ProcessBuilder processBuilder = new ProcessBuilder("/bin/sh", "-c",
-    //// cmd);
-    //// Process process = processBuilder.start();
-    //// String result = new String(process.getInputStream().readAllBytes());
-    ////
-    //// int lastIdx = result.lastIndexOf(
-    //// "[InconsistencyDetectorStart][applicationState] = ");
-    //// String sub = result.substring(lastIdx);
-    //// String sub1 = sub.substring(sub.indexOf("\n") + 1,
-    //// sub.lastIndexOf("[InconsistencyDetectorEnd]") - 1);
-    //// System.out.println("state = " + sub1);
-    //// }
-    // Process process = processBuilder.start();
-    // String result = new String(process.getInputStream().readAllBytes());
-    //
-    // int lastIdx = result.lastIndexOf(
-    // "[InconsistencyDetectorStart][applicationState] = ");
-    // String sub = result.substring(lastIdx);
-    // String sub1 = sub.substring(sub.indexOf("\n") + 1,
-    // sub.lastIndexOf("[InconsistencyDetectorEnd]") - 1);
-    // System.out.println("state = " + sub1);
-    // }
+    @Test
+    public void testSer() {
+        Map<Integer, Map<String, String>> targetSystemStates = new HashMap<>();
+        targetSystemStates.put(0, new HashMap<>());
+        targetSystemStates.get(0).put("hh", "dd");
+
+        String str = new Gson().toJson(targetSystemStates);
+        byte[] strByte = str.getBytes();
+        Type t = new TypeToken<Map<Integer, Map<String, String>>>() {
+        }.getType();
+
+        Map<Integer, Map<String, String>> deStr = new Gson().fromJson(
+                new String(strByte, 0, strByte.length),
+                t);
+
+        logger.info(str);
+        logger.info(deStr);
+    }
+
+//    @Test
+//    public void encodeResult() throws IOException {
+//        // grep -a "HKLOG"
+//        String target = "\\[InconsistencyDetector\\]\\[org.apache.cassandra.gms.EndpointState.applicationState\\]";
+//        String[] cmd = new String[] {
+//                "/bin/bash", "-c", "grep -an " + target + " /Users/hanke/Desktop/Project/upfuzz/system.log | tail -n 1"
+//        };
+//        ProcessBuilder pb = new ProcessBuilder(cmd);
+//        Process p = pb.start();
+//        String res = new String(
+//                p.getInputStream().readAllBytes()
+//        );
+//
+//        String value = res.substring(res.indexOf("=") + 1);
+//        logger.info("value1 = " + value);
+//        String hexV = encode(value);
+//        logger.info("hexV = " + hexV);
+//        String value_back = decode(hexV);
+//        logger.info("value2 = " + value_back);
+//    }
 
 }

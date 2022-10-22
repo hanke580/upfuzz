@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class TestPlanPacket extends Packet {
     static Logger logger = LogManager.getLogger(TestPlanPacket.class);
@@ -79,15 +81,28 @@ public class TestPlanPacket extends Packet {
 
     public static TestPlanPacket read(DataInputStream in) {
         try {
-            int systemIDLen = in.readInt();
-            byte[] systemIDBytes = new byte[systemIDLen];
-            in.read(systemIDBytes, 0, systemIDLen);
-            String systemID = new String(systemIDBytes, StandardCharsets.UTF_8);
+//            int systemIDLen = in.readInt();
+//            byte[] systemIDBytes = new byte[systemIDLen];
+//            in.read(systemIDBytes, 0, systemIDLen);
+//            String systemID = new String(systemIDBytes, StandardCharsets.UTF_8);
+            String systemID = readString(in);
 
             int testPacketId = in.readInt();
-
             int nodeNum = in.readInt();
+            // targetStates
+            String targetSystemStatesStr = readString(in);
+            Type t1 = new TypeToken<Set<String>>() {
+            }.getType();
+            Set<String> targetSystemStates = gson
+                    .fromJson(targetSystemStatesStr, t1);
+            // targetStatesOracle
+            String targetSystemStatesOracleStr = readString(in);
+            Type t2 = new TypeToken<Map<Integer, Map<String, String>>>() {
+            }.getType();
+            Map<Integer, Map<String, String>> targetSystemStatesOracle = gson
+                    .fromJson(targetSystemStatesOracleStr, t2);
 
+            // events
             int eventsStrLen = in.readInt();
             byte[] eventsStrBytes = new byte[eventsStrLen];
             int len = 0;
@@ -102,7 +117,8 @@ public class TestPlanPacket extends Packet {
                     StandardCharsets.UTF_8);
 
             List<Event> events = gson.fromJson(eventsStr, listType);
-            TestPlan testPlan = new TestPlan(nodeNum, events);
+            TestPlan testPlan = new TestPlan(nodeNum, events,
+                    targetSystemStates, targetSystemStatesOracle);
             return new TestPlanPacket(systemID, testPacketId,
                     testPlan);
         } catch (IOException e) {
@@ -121,14 +137,31 @@ public class TestPlanPacket extends Packet {
         out.write(systemID.getBytes(StandardCharsets.UTF_8));
 
         out.writeInt(testPacketID);
-
         out.writeInt(testPlan.nodeNum);
+
+        String stateStr = new Gson().toJson(testPlan.targetSystemStates);
+        int stateStrLen = stateStr.length();
+        out.writeInt(stateStrLen);
+        out.write(stateStr.getBytes(StandardCharsets.UTF_8));
+
+        String stateOracleStr = new Gson()
+                .toJson(testPlan.targetSystemStatesOracle);
+        int stateOracleStrLen = stateOracleStr.length();
+        out.writeInt(stateOracleStrLen);
+        out.write(stateOracleStr.getBytes(StandardCharsets.UTF_8));
 
         String eventsStr = gson.toJson(testPlan.getEvents());
         byte[] eventsByte = eventsStr.getBytes(StandardCharsets.UTF_8);
         out.writeInt(eventsByte.length);
         out.write(eventsByte);
 
+    }
+
+    public static String readString(DataInputStream in) throws IOException {
+        int len = in.readInt();
+        byte[] bytes = new byte[len];
+        in.read(bytes, 0, len);
+        return new String(bytes, StandardCharsets.UTF_8);
     }
 
 }

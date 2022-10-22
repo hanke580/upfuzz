@@ -13,6 +13,7 @@ import org.zlab.upfuzz.fuzzingengine.packet.*;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.hdfs.HdfsExecutor;
 import org.zlab.upfuzz.utils.Pair;
+import org.zlab.upfuzz.utils.Utilities;
 
 import static org.zlab.upfuzz.fuzzingengine.server.FuzzingServer.readState;
 
@@ -21,8 +22,7 @@ public class FuzzingClient {
 
     public Executor executor;
 
-    // If the cluster cannot start up for 3 times, it means some serious
-    // problems
+    // If the cluster cannot start up for 3 times, it's serious
     int CLUSTER_START_RETRY = 3;
 
     FuzzingClient() {
@@ -215,6 +215,17 @@ public class FuzzingClient {
                 fullStopPacket.fullStopUpgrade.targetSystemStates);
         startUpExecutor();
 
+        if (Config.getConf().startUpOneCluster) {
+            logger.info("Start up a cluster and leave it for debugging");
+            try {
+                Thread.sleep(1800 * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.exit(1);
+
+        }
+
         // Execute
         executor.executeCommands(fullStopPacket.fullStopUpgrade.commands);
         List<String> oriResult = executor.executeCommands(
@@ -252,6 +263,7 @@ public class FuzzingClient {
             // Upgrade is done successfully, collect coverage and check results
             fullStopFeedbackPacket.isEventFailed = false;
 
+            // Collect new version coverage
             try {
                 ExecutionDataStore[] upCoverages = executor
                         .collectCoverageSeparate("upgraded");
@@ -272,6 +284,11 @@ public class FuzzingClient {
                 tearDownExecutor();
                 return fullStopFeedbackPacket;
             }
+
+            Map<Integer, Map<String, String>> states = executor
+                    .readSystemState();
+            fullStopFeedbackPacket.systemStates = states;
+            logger.info("collected system states = " + states);
 
             List<String> upResult = executor.executeCommands(
                     fullStopPacket.fullStopUpgrade.validCommands);
@@ -323,17 +340,6 @@ public class FuzzingClient {
         // Then we return the feedback packet
         boolean status = executor.execute(testPlanPacket.getTestPlan());
 
-        if (Config.getConf().startUpOneCluster) {
-            logger.info("Start up a cluster and leave it for debugging");
-            try {
-                Thread.sleep(1800 * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            System.exit(1);
-
-        }
-
         // For test plan, we don't distinguish the old version coverage
         // and the new verison coverage. We only collect the final coverage
         FeedBack[] feedBacks = new FeedBack[nodeNum];
@@ -364,19 +370,15 @@ public class FuzzingClient {
             return testPlanFeedbackPacket;
         }
 
-        // Map<Integer, Map<String, String>> states =
-        // executor.readSystemState();
-        // logger.info("system states = " + states);
-        // TODO: A system state comparison with the oracle here
-
-        try {
-            logger.info("Sleep 10m state to be stable!");
-            Thread.sleep(600 * 1000);
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
+        Map<Integer, Map<String, String>> states = executor.readSystemState();
+        logger.info("rolling upgrade system states = " + states);
+        logger.info("full stop upgrade system state"
+                + testPlanPacket.testPlan.targetSystemStatesOracle);
+        // TODO: A system state comparison
+        Map<Integer, Map<String, Pair<String, String>>> inconsistentStates = stateCompare(
+                testPlanPacket.testPlan.targetSystemStatesOracle,
+                states);
+        logger.info("inconsistent states = " + inconsistentStates);
         logger.info("Finished Execution");
 
         if (!status) {
@@ -603,4 +605,34 @@ public class FuzzingClient {
         return sb.toString();
     }
 
+    private Map<Integer, Map<String, Pair<String, String>>> stateCompare(
+            Map<Integer, Map<String, String>> fullStopStates,
+            Map<Integer, Map<String, String>> rollingStates) {
+        // state value is encoded via Base64, decode is needed
+        // how to compare?
+        // - simple string comparison
+        Map<Integer, Map<String, Pair<String, String>>> inconsistentStates = new HashMap<>();
+        if (fullStopStates.keySet().size() != rollingStates.keySet().size()) {
+            throw new RuntimeException(
+                    "node num is different between full-stop upgrade" +
+                            "and rolling upgrade");
+        }
+        for (int nodeId : fullStopStates.keySet()) {
+            Map<String, String> fStates = fullStopStates.get(nodeId);
+            Map<String, String> rStates = rollingStates.get(nodeId);
+            for (String stateName : fStates.keySet()) {
+                String fstateValue = Utilities
+                        .decodeString(fStates.get(stateName));
+                String rstateValue = Utilities
+                        .decodeString(rStates.get(stateName));
+                if (!fstateValue.equals(rstateValue)) {
+                    if (!inconsistentStates.containsKey(nodeId))
+                        inconsistentStates.put(nodeId, new HashMap<>());
+                    inconsistentStates.get(nodeId).put(stateName,
+                            new Pair<>(fstateValue, rstateValue));
+                }
+            }
+        }
+        return inconsistentStates;
+    }
 }
