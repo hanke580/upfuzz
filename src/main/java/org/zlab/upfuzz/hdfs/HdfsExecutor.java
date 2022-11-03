@@ -4,12 +4,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.LinkedList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.codehaus.plexus.util.FileUtils;
@@ -43,10 +41,14 @@ public class HdfsExecutor extends Executor {
         this.nodeNum = Config.getConf().nodeNum;
     }
 
-    public HdfsExecutor(int nodeNum) {
+    public HdfsExecutor(int nodeNum,
+            Set<String> targetSystemStates, Path configPath) {
         super("hdfs");
 
         timestamp = System.currentTimeMillis();
+
+        this.targetSystemStates = targetSystemStates;
+        this.configPath = configPath;
 
         agentStore = new HashMap<>();
         agentHandler = new HashMap<>();
@@ -91,7 +93,7 @@ public class HdfsExecutor extends Executor {
 
         dockerCluster = new HdfsDockerCluster(this,
                 Config.getConf().originalVersion,
-                nodeNum);
+                nodeNum, null, configPath);
 
         try {
             dockerCluster.build();

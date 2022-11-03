@@ -1,7 +1,5 @@
 package org.zlab.upfuzz.cassandra;
 
-import java.net.URL;
-import java.net.URLClassLoader;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.fuzzingengine.Config;

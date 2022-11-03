@@ -2,7 +2,6 @@ clean.sh
 initSeed/
 Coutput
 zlab-jacoco/
-config.json
 corpus/
 *.exec
 bu.sh
@@ -12,6 +11,7 @@ fuzzing_storage
 upfuzz.log
 hdfs-cl-*
 cass-cl*
+configtests
 
 
 ##############################

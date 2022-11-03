@@ -6,6 +6,10 @@ import org.zlab.upfuzz.utils.Utilities;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Set;
@@ -45,6 +49,7 @@ public abstract class DockerMeta {
     public String executorID;
     public String containerName;
     public String serviceName;
+    public Path configPath;
 
     public Set<String> targetSystemStates;
 
@@ -88,6 +93,35 @@ public abstract class DockerMeta {
                 cmd);
         // logger.debug(String.join(" ", dockerCMD));
         return Utilities.exec(dockerCMD, workdir);
+    }
+
+    public boolean copyConfig(Path configPath) throws IOException {
+        logger.info("[HKLOG] copying config");
+        Path oriConfigPath = configPath.resolve("oriconfig");
+        Path upConfigPath = configPath.resolve("upconfig");
+
+        assert oriConfigPath.toFile().isDirectory();
+        assert upConfigPath.toFile().isDirectory();
+
+        Path oriConfigPathDocker = Paths.get(workdir.getPath(),
+                "/persistent/config/oriconfig");
+        Path upConfigPathDocker = Paths.get(workdir.getPath(),
+                "/persistent/config/upconfig");
+
+        oriConfigPathDocker.toFile().mkdirs();
+        upConfigPathDocker.toFile().mkdirs();
+
+        for (File file : oriConfigPath.toFile().listFiles()) {
+            Files.copy(file.toPath(),
+                    oriConfigPathDocker.resolve(file.getName()),
+                    StandardCopyOption.REPLACE_EXISTING);
+        }
+        for (File file : upConfigPath.toFile().listFiles()) {
+            Files.copy(file.toPath(),
+                    upConfigPathDocker.resolve(file.getName()),
+                    StandardCopyOption.REPLACE_EXISTING);
+        }
+        return true;
     }
 
 }

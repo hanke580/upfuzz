@@ -1,0 +1,20 @@
+{
+  "originalVersion" : "hadoop-3.3.0",
+  "upgradedVersion" : "hadoop-3.4.0-hdfs-15624",
+  "system" : "hdfs",
+  "serverPort" : "6399",
+  "clientPort" : "6400",
+  "initSeedDir" : "/project/upfuzz/initSeedDir",
+  "STACKED_TESTS_NUM" : "1",
+  "keepDir": true,
+  "nodeNum": 4,
+  "useFeedBack": true,
+  "faultMaxNum": 2,
+  "useExampleTestPlan": false,
+  "testingMode": 2,
+  "startUpOneCluster": true,
+  "debug": true,
+  "collUpFeedBack": true 
+
+  
+}

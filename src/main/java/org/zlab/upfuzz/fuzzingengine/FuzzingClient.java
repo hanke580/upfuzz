@@ -39,17 +39,14 @@ public class FuzzingClient {
         clientThread.join();
     }
 
-    public void initExecutor(int nodeNum,
-            Set<String> targetSystemStates) {
+    public void initExecutor(int nodeNum, Set<String> targetSystemStates,
+            Path configPath) {
         if (Config.getConf().system.equals("cassandra")) {
-            if (targetSystemStates != null) {
-                executor = new CassandraExecutor(nodeNum, targetSystemStates);
-            } else {
-                executor = new CassandraExecutor(nodeNum);
-            }
+            executor = new CassandraExecutor(nodeNum, targetSystemStates,
+                    configPath);
         } else if (Config.getConf().system.equals("hdfs")) {
-            // TODO: modify later
-            executor = new HdfsExecutor(nodeNum);
+            executor = new HdfsExecutor(nodeNum, targetSystemStates,
+                    configPath);
         }
     }
 
@@ -81,9 +78,15 @@ public class FuzzingClient {
     public StackedFeedbackPacket executeStackedTestPacket(
             StackedTestPacket stackedTestPacket) {
         String stackedTestPacketStr = null;
-        // make sure the system has is up
 
-        initExecutor(stackedTestPacket.nodeNum, null);
+        Path configDirPath = Paths.get(System.getProperty("user.dir"),
+                Config.getConf().configDir, Config.getConf().originalVersion
+                        + "_" + Config.getConf().upgradedVersion);
+        Path configPath = Paths.get(configDirPath.toString(),
+                stackedTestPacket.configIdx);
+        logger.info("[HKLOG] configPath = " + configPath);
+
+        initExecutor(stackedTestPacket.nodeNum, null, configPath);
         startUpExecutor();
 
         Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();
@@ -91,16 +94,16 @@ public class FuzzingClient {
         Map<Integer, List<String>> testID2upResults = new HashMap<>();
 
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
-            logger.trace("Execute testpacket " + tp.systemID + " " +
-                    tp.testPacketID);
-            logger.debug("\nWRITE CMD SEQUENCE");
-            for (String cmd : tp.originalCommandSequenceList) {
-                logger.debug(cmd);
-            }
-            logger.debug("\nREAD CMD SEQUENCE");
-            for (String cmd : tp.validationCommandSequneceList) {
-                logger.debug(cmd);
-            }
+            // logger.trace("Execute testpacket " + tp.systemID + " " +
+            // tp.testPacketID);
+            // logger.debug("\nWRITE CMD SEQUENCE");
+            // for (String cmd : tp.originalCommandSequenceList) {
+            // logger.debug(cmd);
+            // }
+            // logger.debug("\nREAD CMD SEQUENCE");
+            // for (String cmd : tp.validationCommandSequneceList) {
+            // logger.debug(cmd);
+            // }
             executor.executeCommands(tp.originalCommandSequenceList);
 
             FeedBack[] feedBacks = new FeedBack[stackedTestPacket.nodeNum];
@@ -212,7 +215,7 @@ public class FuzzingClient {
 
         // Start up
         initExecutor(nodeNum,
-                fullStopPacket.fullStopUpgrade.targetSystemStates);
+                fullStopPacket.fullStopUpgrade.targetSystemStates, null);
         startUpExecutor();
 
         // Execute
@@ -332,7 +335,7 @@ public class FuzzingClient {
             e.printStackTrace();
             System.exit(1);
         }
-        initExecutor(testPlanPacket.getNodeNum(), targetSystemStates);
+        initExecutor(testPlanPacket.getNodeNum(), targetSystemStates, null);
         startUpExecutor();
 
         // TestPlan only contains one test sequence
@@ -435,7 +438,7 @@ public class FuzzingClient {
         assert stackedTestPacket.nodeNum == testPlanPacket.getNodeNum();
         int nodeNum = stackedTestPacket.nodeNum;
 
-        initExecutor(nodeNum, null);
+        initExecutor(nodeNum, null, null);
         startUpExecutor();
 
         Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();

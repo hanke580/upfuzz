@@ -45,6 +45,7 @@ public class CassandraDocker extends Docker {
                 executorID + "_N" + index;
         serviceName = "DC3N" + index;
         targetSystemStates = dockerCluster.targetSystemStates;
+        configPath = dockerCluster.configpath;
     }
 
     @Override
@@ -120,7 +121,12 @@ public class CassandraDocker extends Docker {
                 "CQLSH_DAEMON_PORT=\"" + cqlshDaemonPort + "\"",
                 "PYTHON=python2" };
         setEnvironment();
-        return false;
+
+        // Copy the cassandra-ori.yaml and cassandra-up.yaml
+        if (configPath != null) {
+            copyConfig(configPath);
+        }
+        return true;
     }
 
     public void upgrade() throws Exception {
@@ -183,6 +189,8 @@ public class CassandraDocker extends Docker {
                 new String[] { "chmod", "-R", "777", "/usr/bin/set_env" });
     }
 
+    // add the configuration test files
+
     static String template = ""
             + "    ${serviceName}:\n"
             + "        container_name: cassandra-${originalVersion}_${upgradedVersion}_${executorID}_N${index}\n"
@@ -196,6 +204,7 @@ public class CassandraDocker extends Docker {
             + "            - ./persistent/node_${index}/log:/var/log/cassandra\n"
             + "            - ./persistent/node_${index}/env.sh:/usr/bin/set_env\n"
             + "            - ./persistent/node_${index}/consolelog:/var/log/supervisor\n"
+            + "            - ./persistent/config:/test_config\n"
             + "            - ${projectRoot}/prebuild/${system}/${originalVersion}:/${system}/${originalVersion}\n"
             + "            - ${projectRoot}/prebuild/${system}/${upgradedVersion}:/${system}/${upgradedVersion}\n"
             + "        environment:\n"

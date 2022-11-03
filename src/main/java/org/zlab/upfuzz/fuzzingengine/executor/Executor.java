@@ -42,6 +42,7 @@ public abstract class Executor implements IExecutor {
     public String systemID = "UnknowDS";
     public int nodeNum;
     public Set<String> targetSystemStates;
+    public Path configPath;
 
     public DockerCluster dockerCluster;
 

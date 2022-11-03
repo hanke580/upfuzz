@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -61,17 +62,16 @@ public class CassandraExecutor extends Executor {
     }
 
     public CassandraExecutor(int nodeNum,
-            Set<String> targetSystemStates) {
+            Set<String> targetSystemStates, Path configPath) {
         super("cassandra");
 
         timestamp = System.currentTimeMillis();
         this.nodeNum = nodeNum;
         this.targetSystemStates = targetSystemStates;
-
+        this.configPath = configPath;
         agentStore = new HashMap<>();
         agentHandler = new HashMap<>();
         sessionGroup = new ConcurrentHashMap<>();
-
     }
 
     @Override
@@ -88,7 +88,7 @@ public class CassandraExecutor extends Executor {
 
         dockerCluster = new CassandraDockerCluster(
                 this, Config.getConf().originalVersion,
-                nodeNum, targetSystemStates);
+                nodeNum, targetSystemStates, configPath);
 
         try {
             dockerCluster.build();

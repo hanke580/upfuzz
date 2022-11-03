@@ -8,10 +8,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
+import java.util.*;
+
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.logging.log4j.LogManager;
@@ -36,12 +34,12 @@ public class HdfsDockerCluster extends DockerCluster {
     };
 
     HdfsDockerCluster(HdfsExecutor executor, String version,
-            int nodeNum) {
-        super(executor, version, nodeNum, null);
+            int nodeNum, Set<String> targetSystemStates, Path configPath) {
+        super(executor, version, nodeNum, targetSystemStates);
 
         this.dockers = new HdfsDocker[nodeNum];
         this.namenodeIP = DockerCluster.getKthIP(hostIP, 0); // 2 means the
-                                                             // first node
+        this.configpath = configPath;
     }
 
     public boolean build() throws Exception {

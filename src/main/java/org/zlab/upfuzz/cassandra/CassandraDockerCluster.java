@@ -43,11 +43,12 @@ public class CassandraDockerCluster extends DockerCluster {
     }
 
     CassandraDockerCluster(CassandraExecutor executor, String version,
-            int nodeNum, Set<String> targetSystemStates) {
+            int nodeNum, Set<String> targetSystemStates, Path configPath) {
         super(executor, version, nodeNum, targetSystemStates);
 
         this.dockers = new CassandraDocker[nodeNum];
         this.seedIP = DockerCluster.getKthIP(hostIP, 0);
+        this.configpath = configPath;
     }
 
     public boolean build() throws Exception {

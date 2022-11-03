@@ -56,6 +56,7 @@ public class Config {
                                        // test
         public int nodeNum = 3;
 
+        // ------------Fault Injection-------------
         public boolean shuffleUpgradeOrder = false; // Whether shuffle the
                                                     // upgrade order
         public int faultMaxNum = 2; // disable faults for now
@@ -65,6 +66,9 @@ public class Config {
         public boolean useFeedBack = true;
         public boolean collUpFeedBack = true;
 
+        // ------------Configuration-------------
+        public String configDir = "configtests";
+
         // 0: only full-stop test using StackedTestPacket
         // 1: only test plan test using TestPlanPacket
         // 2: mixed test using MixedTestPlan
@@ -73,7 +77,6 @@ public class Config {
         // Debug option
         public boolean startUpOneCluster = false;
         public boolean useExampleTestPlan = false;
-
         public boolean debug = false;
 
         @Override

@@ -1,5 +1,6 @@
 package org.zlab.upfuzz.fuzzingengine.server;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -42,6 +43,7 @@ public class FuzzingServer {
 
     // Seed Corpus (tuple(Seed, Info))
     public Corpus corpus = new Corpus();
+    public List<String> configFileNames = new LinkedList<>();
     public TestPlanCorpus testPlanCorpus = new TestPlanCorpus();
     public FullStopCorpus fullStopCorpus = new FullStopCorpus();
 
@@ -99,6 +101,19 @@ public class FuzzingServer {
             corpus.initCorpus(Paths.get(Config.getConf().initSeedDir));
         }
 
+        // maintain the num of configuration files
+        // read all configurations file name in a list
+        Path configDirPath = Paths.get(System.getProperty("user.dir"),
+                Config.getConf().configDir, Config.getConf().originalVersion
+                        + "_" + Config.getConf().upgradedVersion);
+        File[] configFiles = configDirPath.toFile().listFiles();
+        for (File file : configFiles) {
+            if (file.isDirectory()) {
+                configFileNames.add(file.getName());
+            }
+        }
+        logger.info("config test num: " + configFileNames.size());
+
         if (Config.getConf().system.equals("cassandra")) {
             executor = new CassandraExecutor();
             commandPool = new CassandraCommandPool();
@@ -143,7 +158,6 @@ public class FuzzingServer {
     public void start() {
         init();
         new Thread(new FuzzingServerSocket(this)).start();
-
         // new Thread(new FuzzingServerDispatcher(this)).start();
     }
 
@@ -199,9 +213,19 @@ public class FuzzingServer {
         Seed seed = corpus.getSeed();
         round++;
         StackedTestPacket stackedTestPacket;
+
+        String configFileName = null;
+        if (!configFileNames.isEmpty()) {
+            configFileName = configFileNames
+                    .get(rand.nextInt(configFileNames.size()));
+        }
+
+        logger.info("configFileName = " + configFileName);
+
         if (seed == null) {
             // corpus is empty, random generate one test packet and wait
-            stackedTestPacket = new StackedTestPacket();
+            stackedTestPacket = new StackedTestPacket(Config.getConf().nodeNum,
+                    configFileName);
             for (int i = 0; i < Config.getConf().STACKED_TESTS_NUM; i++) {
                 seed = Executor.generateSeed(commandPool, stateClass);
                 if (seed != null) {
@@ -216,12 +240,14 @@ public class FuzzingServer {
             }
         } else {
             // get a seed from corpus, now fuzz it for an epoch
-            stackedTestPacket = new StackedTestPacket();
+            stackedTestPacket = new StackedTestPacket(Config.getConf().nodeNum,
+                    configFileName);
             for (int i = 0; i < Config.getConf().mutationEpoch; i++) {
                 // logger.info("Generating " + i + " packet");
                 if (i != 0 && i % Config.getConf().STACKED_TESTS_NUM == 0) {
                     stackedTestPackets.add(stackedTestPacket);
-                    stackedTestPacket = new StackedTestPacket();
+                    stackedTestPacket = new StackedTestPacket(
+                            Config.getConf().nodeNum, configFileName);
                 }
                 // Mutation
                 // If mutation fails, drop this mutation, so the

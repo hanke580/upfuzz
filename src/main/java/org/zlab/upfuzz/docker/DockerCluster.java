@@ -2,6 +2,7 @@ package org.zlab.upfuzz.docker;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
@@ -40,6 +41,7 @@ public abstract class DockerCluster implements IDockerCluster {
     public String composeYaml;
     public String hostIP;
     public File workdir;
+    public Path configpath;
 
     public Set<String> targetSystemStates;
 

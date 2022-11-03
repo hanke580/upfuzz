@@ -25,8 +25,7 @@ public class HdfsDocker extends Docker {
 
     public HDFSShellDaemon hdfsShell;
 
-    public HdfsDocker(HdfsDockerCluster dockerCluster, int index)
-            throws IOException {
+    public HdfsDocker(HdfsDockerCluster dockerCluster, int index) {
         this.index = index;
         type = "original";
         workdir = dockerCluster.workdir;
@@ -45,6 +44,7 @@ public class HdfsDocker extends Docker {
         name = "hdfs-" + originalVersion + "_" + upgradedVersion + "_" +
                 executorID + "_N" + index;
         serviceName = "DC3N" + index; // Remember update the service name
+        configPath = dockerCluster.configpath;
     }
 
     @Override
@@ -103,7 +103,7 @@ public class HdfsDocker extends Docker {
     @Override
     public boolean build() throws IOException {
         String hdfsHome = "/hdfs/" + originalVersion;
-        String hdfsConf = "/etc/" + originalVersion;
+        String hdfsConf = "/etc/" + originalVersion + "/etc/hadoop";
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
                 + "/org.jacoco.agent.rt.jar"
                 + "=append=false"
@@ -115,10 +115,15 @@ public class HdfsDocker extends Docker {
 
         env = new String[] {
                 "HADOOP_HOME=\"" + hdfsHome + "\"",
-                "HDFS_CONF=\"" + hdfsConf + "\"", javaToolOpts,
+                "HADOOP_CONF_DIR=\"" + hdfsConf + "\"", javaToolOpts,
                 "HDFS_SHELL_DAEMON_PORT=\"" + hdfsDaemonPort + "\"",
                 "PYTHON=python3" };
         setEnvironment();
+
+        // Copy the cassandra-ori.yaml and cassandra-up.yaml
+        if (configPath != null) {
+            copyConfig(configPath);
+        }
         return false;
     }
 
@@ -137,10 +142,10 @@ public class HdfsDocker extends Docker {
 
         hdfsDaemonPort ^= 1;
         String hdfsHome = "/hdfs/" + upgradedVersion;
-        String hdfsConf = "/etc/" + upgradedVersion;
+        String hdfsConf = "/etc/" + upgradedVersion + "/etc/hadoop";
         env = new String[] {
                 "HADOOP_HOME=\"" + hdfsHome + "\"",
-                "HDFS_CONF=\"" + hdfsConf + "\"", javaToolOpts,
+                "HADOOP_CONF_DIR=\"" + hdfsConf + "\"", javaToolOpts,
                 "HDFS_SHELL_DAEMON_PORT=\"" + hdfsDaemonPort + "\"",
                 "PYTHON=python3" };
         setEnvironment();
@@ -209,6 +214,7 @@ public class HdfsDocker extends Docker {
             + "            - ./persistent/node_${index}/log:/var/log/hdfs\n"
             + "            - ./persistent/node_${index}/env.sh:/usr/bin/set_env\n"
             + "            - ./persistent/node_${index}/consolelog:/var/log/supervisor\n"
+            + "            - ./persistent/config:/test_config\n"
             + "            - ${projectRoot}/prebuild/${system}/${originalVersion}:/${system}/${originalVersion}\n"
             + "            - ${projectRoot}/prebuild/${system}/${upgradedVersion}:/${system}/${upgradedVersion}\n"
             + "        environment:\n"

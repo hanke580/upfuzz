@@ -18,23 +18,17 @@ mkdir -p /var/lib/hdfs
 if [[ ! -f "/var/log/.setup_conf" ]]; then
     echo "copy hadoop dir and format configurations"
     for VERSION in ${ORG_VERSION} ${UPG_VERSION}; do
-#        # Modify the binary where all container use one copy
-#        # Inside it should be general setting: JAVA version
-#        # and points to another configuration file
-#        if [[ -z $(grep -F "java-8-openjdk-amd64" "/hadoop/hadoop-2.10.2/etc/had/hadoop-env.sh") ]];
-#        then
-#                sed -i 's/export JAVA_HOME=${JAVA_HOME}/export JAVA_HOME=\/usr\/lib\/jvm\/java-8-openjdk-amd64\//' ${CONFIG}/hadoop-env.sh
-#                sed -i
-#                echo "export HADOOP_LOG_DIR=/var/hadoop/logs" >> ${CONFIG}\hadoop-env.sh
-#        fi
-#
-#        cp -r "/hdfs/${VERSION}/etc/hadoop/*" "/var/hadoop_conf"
+        mkdir /etc/${VERSION}
+        cp -r /hdfs/${VERSION}/etc /etc/${VERSION}/
+        cp /hadoop-config/* /etc/${VERSION}/etc/hadoop/
 
-        cp /hadoop-config/* /hdfs/${VERSION}/etc/hadoop/
-        CONFIG="/hdfs/${VERSION}/etc/hadoop/"
-
-        # config on-disk data locations
-        # sed -i 's/export JAVA_HOME=${JAVA_HOME}/export JAVA_HOME=\/usr\/lib\/jvm\/java-8-openjdk-amd64\//' ${CONFIG}/hadoop-env.sh
+        CONFIG="/etc/${VERSION}/etc/hadoop/"
+        if [[ $VERSION == "${ORG_VERSION}" ]]; then
+            cp /test_config/oriconfig/* ${CONFIG}/
+        fi
+        if [[ $VERSION == "${UPG_VERSION}" ]]; then
+            cp /test_config/upconfig/* ${CONFIG}/
+        fi
 
         echo "export JAVA_HOME=\/usr\/lib\/jvm\/java-8-openjdk-amd64\/" >> ${CONFIG}/hadoop-env.sh
         echo "export HDFS_NAMENODE_USER=\"root\"" >> ${CONFIG}/hadoop-env.sh
@@ -79,17 +73,24 @@ echo "Starting HDFS on $IP..."
 
 if [[ "$IP" == "$HDFS_NAMENODE" ]];
 then
+        if [[ ! -f /var/log/hdfs/.formatted ]];
+        then
+                echo "formatting namenode"
+                $HADOOP_HOME/bin/hdfs namenode -format
+                touch /var/log/hdfs/.formatted
+        fi
+
         splitArr=(${HADOOP_HOME//\// })
         CUR_VERSION=${splitArr[1]}
-	echo "cur version = $CUR_VERSION"
-	echo "org version = $ORG_VERSION"
-	echo "up  version = $UPG_VERSION"
+        echo "cur version = $CUR_VERSION"
+        echo "org version = $ORG_VERSION"
+        echo "up  version = $UPG_VERSION"
         if [[ $CUR_VERSION == $ORG_VERSION ]];
         then
-		echo "start up old version $HADOOP_HOME"
+		            echo "start up old version $HADOOP_HOME"
                 $HADOOP_HOME/sbin/hadoop-daemon.sh start namenode
         else
-		echo "start up new version $HADOOP_HOME"
+		            echo "start up new version $HADOOP_HOME"
                 $HADOOP_HOME/sbin/hadoop-daemon.sh start namenode -rollingUpgrade started
         fi
 elif [[ "$IP" == "$HDFS_SECONDARY_NAMENODE" ]];

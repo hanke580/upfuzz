@@ -2,7 +2,6 @@ package org.zlab.upfuzz.fuzzingengine.testplan;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 
 import java.io.Serializable;
 import java.util.List;

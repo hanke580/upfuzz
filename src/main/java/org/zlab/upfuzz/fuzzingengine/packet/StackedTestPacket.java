@@ -18,16 +18,12 @@ public class StackedTestPacket extends Packet {
     static Logger logger = LogManager.getLogger(StackedTestPacket.class);
 
     public int nodeNum;
+    public String configIdx;
     private List<TestPacket> tpList;
 
-    public StackedTestPacket() {
-        this.nodeNum = Config.getConf().nodeNum;
-        this.type = PacketType.StackedTestPacket;
-        tpList = new LinkedList<>();
-    }
-
-    public StackedTestPacket(int nodeNum) {
+    public StackedTestPacket(int nodeNum, String configIdx) {
         this.nodeNum = nodeNum;
+        this.configIdx = configIdx;
         this.type = PacketType.StackedTestPacket;
         tpList = new LinkedList<>();
     }
