@@ -8,8 +8,8 @@ if [ $# == 1 ]; then
 else SEEDS="$IP"; fi
 
 # Change it to the target systems
-ORG_VERSION=apache-cassandra-3.11.13
-UPG_VERSION=apache-cassandra-4.0.0-16525-state
+ORG_VERSION=apache-cassandra-3.11.11
+UPG_VERSION=apache-cassandra-4.0.0-16525-state-fix
 
 # create necessary dirs (some version of cassandra cannot create these)
 mkdir -p /var/log/cassandra

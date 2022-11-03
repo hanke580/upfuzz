@@ -164,6 +164,12 @@ public class FuzzingServer {
             return testPlanPackets.poll();
         } else if (Config.getConf().testingMode == 2) {
             return generateMixedTestPacket();
+        } else if (Config.getConf().testingMode == 3) {
+            // execute example testplan
+            logger.info("execute example test plan");
+            if (testPlanPackets.isEmpty())
+                generateExampleTestplanPacket();
+            return testPlanPackets.poll();
         }
         throw new RuntimeException(
                 String.format("testing Mode [%d] is not in correct scope",
@@ -364,7 +370,7 @@ public class FuzzingServer {
 
             List<Event> exampleEvents = new LinkedList<>();
             // nodeNum should be 3
-            assert nodeNum == 2;
+            assert nodeNum == 3;
             // for (int i = 0; i < Config.getConf().nodeNum - 1; i++) {
             // exampleEvents.add(new UpgradeOp(i));
             // }
@@ -378,9 +384,10 @@ public class FuzzingServer {
             // exampleEvents.add(new RestartFailure(0));
 
             exampleEvents.add(new UpgradeOp(1));
-            exampleEvents.add(new LinkFailure(0, 1));
+            exampleEvents.add(new UpgradeOp(2));
+            // exampleEvents.add(new LinkFailure(0, 1));
 
-            exampleEvents.add(new LinkFailureRecover(0, 1));
+            // exampleEvents.add(new LinkFailureRecover(0, 1));
 
             // exampleEvents.add(new UpgradeOp(2));
             // exampleEvents.add(new UpgradeOp(3));
@@ -400,6 +407,30 @@ public class FuzzingServer {
         events.add(events.size(), new FinalizeUpgrade());
         return new TestPlan(nodeNum, events, targetSystemStates,
                 fullStopSeed.targetSystemStateResults);
+    }
+
+    public void generateExampleTestplanPacket() {
+        testPlanPackets.add(new TestPlanPacket(
+                Config.getConf().system,
+                testID++, generateExampleTestPlan()));
+    }
+
+    public TestPlan generateExampleTestPlan() {
+        List<Event> exampleEvents = new LinkedList<>();
+        int nodeNum = 3;
+        exampleEvents.add(new PrepareUpgrade());
+        if (Config.getConf().system.equals("hdfs")) {
+            exampleEvents.add(new HDFSStopSNN());
+        }
+        exampleEvents.add(new UpgradeOp(0));
+        exampleEvents.add(new UpgradeOp(1));
+        exampleEvents.add(new UpgradeOp(2));
+
+        Set<String> targetSystemStates = new HashSet<>();
+        Map<Integer, Map<String, String>> oracle = new HashMap<>();
+
+        return new TestPlan(nodeNum, exampleEvents, targetSystemStates,
+                oracle);
     }
 
     public synchronized void updateStatus(

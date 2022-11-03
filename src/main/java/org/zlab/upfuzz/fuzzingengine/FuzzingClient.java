@@ -215,17 +215,6 @@ public class FuzzingClient {
                 fullStopPacket.fullStopUpgrade.targetSystemStates);
         startUpExecutor();
 
-        if (Config.getConf().startUpOneCluster) {
-            logger.info("Start up a cluster and leave it for debugging");
-            try {
-                Thread.sleep(1800 * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            System.exit(1);
-
-        }
-
         // Execute
         executor.executeCommands(fullStopPacket.fullStopUpgrade.commands);
         List<String> oriResult = executor.executeCommands(
@@ -253,6 +242,17 @@ public class FuzzingClient {
         }
 
         boolean upgradeStatus = executor.fullStopUpgrade();
+
+        if (Config.getConf().startUpOneCluster) {
+            logger.info("Start up a cluster and leave it for debugging");
+            try {
+                Thread.sleep(1800 * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.exit(1);
+
+        }
 
         if (!upgradeStatus) {
             // Cannot upgrade
@@ -339,6 +339,17 @@ public class FuzzingClient {
         // We need to compare the results between two versions for once
         // Then we return the feedback packet
         boolean status = executor.execute(testPlanPacket.getTestPlan());
+
+        if (Config.getConf().startUpOneCluster) {
+            logger.info("Start up a cluster and leave it for debugging");
+            try {
+                Thread.sleep(1800 * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.exit(1);
+
+        }
 
         // For test plan, we don't distinguish the old version coverage
         // and the new verison coverage. We only collect the final coverage
