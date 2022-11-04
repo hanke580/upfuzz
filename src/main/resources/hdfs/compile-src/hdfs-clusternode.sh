@@ -99,8 +99,3 @@ then
 else
         $HADOOP_HOME/sbin/hadoop-daemon.sh start datanode
 fi
-
-#echo "ENV: HOME:${CASSANDRA_HOME}\nCONF:${CASSANDRA_CONF}"
-#exec cassandra -f
-#exec $CASSANDRA_HOME/bin/cassandra -fR
-# use R so that Cassandra can be run as root

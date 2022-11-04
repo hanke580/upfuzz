@@ -104,11 +104,10 @@ public class AgentServerHandler
             return;
         }
 
-        if (executor.agentHandler.containsKey(sessionId)
-                || sessionSplit[3].equals("null")) {
+        if (sessionSplit[3].equals("null")) {
             logger.info("Skip register: "
                     + socket.getRemoteSocketAddress().toString() + " " +
-                    sessionId + " registered");
+                    sessionId + ", main function is null");
             return;
         }
         logger.info("Agent" + socket.getRemoteSocketAddress().toString() + " " +

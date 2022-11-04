@@ -31,14 +31,9 @@ COPY hadoop_config/* /hadoop-config/
 COPY hdfs_shell_init.sh /
 RUN chmod +x /hdfs_shell_init.sh
 
-#RUN mkdir /var/hadoop_conf
-#COPY hadoop_config/* /hadoop_conf/
-
 COPY config /root/.ssh/
 RUN chmod 644 /root/.ssh/config
 
-ADD hdfs_nn_format.sh /usr/local/bin/hdfs_nn_format
-RUN chmod +x /usr/local/bin/hdfs_nn_format
 ADD hdfs-clusternode.sh /usr/local/bin/hdfs-clusternode
 RUN chmod +x /usr/local/bin/hdfs-clusternode
 
