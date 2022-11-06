@@ -15,11 +15,14 @@ UPG_VERSION=apache-cassandra-4.0.6
 mkdir -p /var/log/cassandra
 mkdir -p /var/lib/cassandra
 
+mkdir /etc/${ORG_VERSION}
+mkdir /etc/${UPG_VERSION}
+
 if [[ ! -f "/tmp/.setup_conf" ]]; then
     echo "copy and format configurations"
     for VERSION in ${ORG_VERSION} ${UPG_VERSION}; do
-        echo "cp -r \"/cassandra/${VERSION}/conf\" \"/etc/${VERSION}\""
-        cp -r "/cassandra/${VERSION}/conf" "/etc/${VERSION}"
+        echo "cp -r \"/cassandra/${VERSION}/conf/*\" \"/etc/${VERSION}\""
+        cp -r /cassandra/${VERSION}/conf/* /etc/${VERSION}
         CONFIG="/etc/${VERSION}"
 
         # If using the default configurations, just stop the replacing
@@ -92,8 +95,8 @@ if [[ ! -f "/tmp/.setup_conf" ]]; then
         # With virtual nodes disabled, we need to manually specify the token
         # Not needed for Cassandra 0.8
         #if [ -z "$CASSANDRA_TOKEN" ]; then
-        #	echo "Missing initial token for Cassandra"
-        #	exit -1
+        #       echo "Missing initial token for Cassandra"
+        #       exit -1
         #fi
         #echo "JVM_OPTS=\"\$JVM_OPTS -Dcassandra.initial_token=$CASSANDRA_TOKEN\"" >> $CASSANDRA_HOME/conf/cassandra-env.sh
 
