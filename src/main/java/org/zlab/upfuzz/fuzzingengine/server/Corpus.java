@@ -55,4 +55,8 @@ public class Corpus {
         queue.add(seed);
         return true;
     }
+
+    public boolean isEmpty() {
+        return queue.isEmpty();
+    }
 }

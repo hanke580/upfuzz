@@ -164,10 +164,11 @@ public class CassandraExecutor extends Executor {
             long timeElapsed = TimeUnit.SECONDS.convert(
                     endTime - startTime, TimeUnit.MILLISECONDS);
             if (Config.getConf().debug) {
-                logger.info(String.format(
+                logger.debug(String.format(
                         "Command is sent to node[%d], exec time: %ds",
                         cqlshNodeIndex, timeElapsed));
             }
+
             ret = cp.message;
         } catch (IOException e) {
             e.printStackTrace();

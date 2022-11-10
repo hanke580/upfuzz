@@ -21,12 +21,17 @@ public class FuzzingClient {
     static Logger logger = LogManager.getLogger(FuzzingClient.class);
 
     public Executor executor;
+    public Path configDirPath;
 
     // If the cluster cannot start up for 3 times, it's serious
     int CLUSTER_START_RETRY = 3;
 
     FuzzingClient() {
         // FIX orphan process
+        configDirPath = Paths.get(System.getProperty("user.dir"),
+                Config.getConf().configDir, Config.getConf().originalVersion
+                        + "_" + Config.getConf().upgradedVersion);
+
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             executor.teardown();
             executor.upgradeTeardown();
@@ -79,15 +84,23 @@ public class FuzzingClient {
             StackedTestPacket stackedTestPacket) {
         String stackedTestPacketStr = null;
 
-        Path configDirPath = Paths.get(System.getProperty("user.dir"),
-                Config.getConf().configDir, Config.getConf().originalVersion
-                        + "_" + Config.getConf().upgradedVersion);
         Path configPath = Paths.get(configDirPath.toString(),
                 stackedTestPacket.configIdx);
         logger.info("[HKLOG] configPath = " + configPath);
 
         initExecutor(stackedTestPacket.nodeNum, null, configPath);
         startUpExecutor();
+
+        if (Config.getConf().startUpOneCluster) {
+            logger.info("Start up a cluster and leave it for debugging");
+            try {
+                Thread.sleep(1800 * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.exit(1);
+
+        }
 
         Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();
         Map<Integer, List<String>> testID2oriResults = new HashMap<>();
@@ -245,17 +258,6 @@ public class FuzzingClient {
         }
 
         boolean upgradeStatus = executor.fullStopUpgrade();
-
-        if (Config.getConf().startUpOneCluster) {
-            logger.info("Start up a cluster and leave it for debugging");
-            try {
-                Thread.sleep(1800 * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            System.exit(1);
-
-        }
 
         if (!upgradeStatus) {
             // Cannot upgrade
@@ -438,7 +440,11 @@ public class FuzzingClient {
         assert stackedTestPacket.nodeNum == testPlanPacket.getNodeNum();
         int nodeNum = stackedTestPacket.nodeNum;
 
-        initExecutor(nodeNum, null, null);
+        Path configPath = Paths.get(configDirPath.toString(),
+                stackedTestPacket.configIdx);
+        logger.info("[HKLOG] configPath = " + configPath);
+
+        initExecutor(nodeNum, null, configPath);
         startUpExecutor();
 
         Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();

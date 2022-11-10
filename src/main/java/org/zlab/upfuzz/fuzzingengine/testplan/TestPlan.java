@@ -67,6 +67,9 @@ public class TestPlan implements Serializable {
         List<Integer> upgradeOpIdxes = getIdxes(events, UpgradeOp.class);
 
         int mutateType;
+
+        // TODO: reinterleave the commands and faults
+
         while (true) {
             if (Config.getConf().shuffleUpgradeOrder && nodeNum > 1) {
                 mutateType = rand.nextInt(4);

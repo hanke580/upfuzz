@@ -49,6 +49,11 @@ public class MixedTestPacket extends Packet {
         out.writeInt(type.value);
 
         stackedTestPacket.write(out);
+
+        if (testPlanPacket == null) {
+            logger.error("null testPlanPacket");
+        }
+
         testPlanPacket.write(out);
 
     }

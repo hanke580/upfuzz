@@ -72,6 +72,8 @@ public class Config {
         // 0: only full-stop test using StackedTestPacket
         // 1: only test plan test using TestPlanPacket
         // 2: mixed test using MixedTestPlan
+        // 3: debugging purpose: execute an example test plan
+        // 4: full-stop upgrade + mixed Test Plan iteratively (Final Version)
         public int testingMode = 0;
 
         // Debug option

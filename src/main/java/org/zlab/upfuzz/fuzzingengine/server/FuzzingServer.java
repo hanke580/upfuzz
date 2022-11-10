@@ -83,6 +83,8 @@ public class FuzzingServer {
     public static int epoch = 0;
     public static int crashID = 0;
 
+    boolean isFullStopUpgrade = true;
+
     public FuzzingServer() {
         testID2Seed = new HashMap<>();
         testID2TestPlan = new HashMap<>();
@@ -184,6 +186,16 @@ public class FuzzingServer {
             if (testPlanPackets.isEmpty())
                 generateExampleTestplanPacket();
             return testPlanPackets.poll();
+        } else if (Config.getConf().testingMode == 4) {
+            // test full-stop and rolling upgrade iteratively
+            if (isFullStopUpgrade) {
+                if (stackedTestPackets.isEmpty())
+                    fuzzOne();
+                assert !stackedTestPackets.isEmpty();
+                return stackedTestPackets.poll();
+            } else {
+                return generateMixedTestPacket();
+            }
         }
         throw new RuntimeException(
                 String.format("testing Mode [%d] is not in correct scope",
@@ -201,6 +213,10 @@ public class FuzzingServer {
         if (testPlanPackets.isEmpty())
             fuzzTestPlan();
         testPlanPacket = testPlanPackets.poll();
+
+        if (testPlanPacket == null) {
+            logger.error("hklog null testPlanPacket");
+        }
 
         return new MixedTestPacket(stackedTestPacket, testPlanPacket);
 
@@ -269,11 +285,6 @@ public class FuzzingServer {
 
     private boolean fuzzTestPlan() {
 
-        if (testPlanCorpus.isEmpty() && fullStopCorpus.isEmpty()) {
-            // Cannot generate a test plan
-            return false;
-        }
-
         // We should first try to mutate the test plan, but there
         // should still be possibility for generating a new test plan
         // Mutate a testplan
@@ -290,8 +301,19 @@ public class FuzzingServer {
                         testID++, testPlan));
             }
         } else {
-            assert !fullStopCorpus.isEmpty();
-            FullStopSeed fullStopSeed = fullStopCorpus.getSeed();
+
+            // Not disable system state comparison
+
+            FullStopSeed fullStopSeed;
+            Seed seed;
+            if (corpus.isEmpty()) {
+                // random generate a fullStopSeed
+                seed = Executor.generateSeed(commandPool, stateClass);
+            } else {
+                seed = corpus.peekSeed();
+            }
+            fullStopSeed = new FullStopSeed(seed, Config.getConf().nodeNum,
+                    null);
 
             // Generate several test plan...
             for (int i = 0; i < Config.getConf().testPlanGenerationNum; i++) {
@@ -425,8 +447,12 @@ public class FuzzingServer {
         // TODO: If the node is current down, we should switch to
         // another node for execution.
         // Randomly interleave the commands with the upgradeOp&faults
-        List<Event> shellCommands = ShellCommand
-                .seedCmd2Events(fullStopSeed.seed);
+        List<Event> shellCommands = new LinkedList<>();
+        if (fullStopSeed.seed != null)
+            shellCommands = ShellCommand.seedCmd2Events(fullStopSeed.seed);
+        else
+            logger.error("empty full stop seed");
+
         List<Event> events = interleaveWithOrder(upgradeOpAndFaults,
                 shellCommands);
 
@@ -647,6 +673,7 @@ public class FuzzingServer {
                     Fuzzer.saveSeed(seed.originalCommandSequence,
                             seed.validationCommandSequnece);
                     corpus.addSeed(seed);
+
                 }
             }
 

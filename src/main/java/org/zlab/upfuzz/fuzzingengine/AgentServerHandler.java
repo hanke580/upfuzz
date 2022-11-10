@@ -105,9 +105,12 @@ public class AgentServerHandler
         }
 
         if (sessionSplit[3].equals("null")) {
-            logger.info("Skip register: "
-                    + socket.getRemoteSocketAddress().toString() + " " +
-                    sessionId + ", main function is null");
+            if (Config.getConf().debug) {
+                logger.info("Skip register: "
+                        + socket.getRemoteSocketAddress().toString() + " " +
+                        sessionId + ", main function is null");
+            }
+
             return;
         }
         logger.info("Agent" + socket.getRemoteSocketAddress().toString() + " " +

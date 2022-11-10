@@ -48,6 +48,9 @@ public class FuzzingServerHandler implements Runnable {
             while (true) {
                 Packet testPacket = fuzzingServer
                         .getOneTest();
+                if (testPacket == null) {
+                    logger.error("empty test packet!");
+                }
 
                 testPacket.write(out);
                 readFeedbackPacket();

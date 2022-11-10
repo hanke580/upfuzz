@@ -8,19 +8,17 @@ if [ $# == 1 ]; then
 else SEEDS="$IP"; fi
 
 # Change it to the target systems
-ORG_VERSION=apache-cassandra-3.11.13
-UPG_VERSION=apache-cassandra-4.0.6
+ORG_VERSION=apache-cassandra-2.1.0
+UPG_VERSION=apache-cassandra-3.0.17
 
 # create necessary dirs (some version of cassandra cannot create these)
 mkdir -p /var/log/cassandra
 mkdir -p /var/lib/cassandra
 
-mkdir /etc/${ORG_VERSION}
-mkdir /etc/${UPG_VERSION}
-
 if [[ ! -f "/tmp/.setup_conf" ]]; then
     echo "copy and format configurations"
     for VERSION in ${ORG_VERSION} ${UPG_VERSION}; do
+        mkdir /etc/${VERSION}
         echo "cp -r \"/cassandra/${VERSION}/conf/*\" \"/etc/${VERSION}\""
         cp -r /cassandra/${VERSION}/conf/* /etc/${VERSION}
         CONFIG="/etc/${VERSION}"
@@ -39,6 +37,15 @@ if [[ ! -f "/tmp/.setup_conf" ]]; then
         # Note that runtime setup such as SEED is set in
         #sed -i 's/Xss128k/Xss256k/' /cassandra/conf/cassandra-env.sh
 
+        arrIN=(${VERSION//-/ })
+        echo "split1 = " ${arrIN[2]}
+        arrIN1=(${arrIN[2]//./ })
+        MAIN_VERSION=${arrIN1[0]}
+        if [[ ${MAIN_VERSION} -gt "2" ]]; then
+                echo "hints_directory: /var/lib/cassandra/hints" >> ${CONFIG}/cassandra.yaml
+                # echo "cdc_raw_directory: /var/lib/cassandra/cdc_raw" >> ${CONFIG}/cassandra.yaml
+        fi
+
         sed -i 's/#MAX_HEAP_SIZE="4G"/MAX_HEAP_SIZE="512M"/' ${CONFIG}/cassandra-env.sh
         sed -i 's/#HEAP_NEWSIZE="800M"/HEAP_NEWSIZE="200M"/' ${CONFIG}/cassandra-env.sh
 
@@ -46,17 +53,8 @@ if [[ ! -f "/tmp/.setup_conf" ]]; then
         # config on-disk data locations
         echo "data_file_directories:" >> ${CONFIG}/cassandra.yaml
         echo "  - /var/lib/cassandra/data" >> ${CONFIG}/cassandra.yaml
-        echo "hints_directory: /var/lib/cassandra/hints" >> ${CONFIG}/cassandra.yaml
         echo "commitlog_directory: /var/lib/cassandra/commitlog" >> ${CONFIG}/cassandra.yaml
-        echo "cdc_raw_directory: /var/lib/cassandra/cdc_raw" >> ${CONFIG}/cassandra.yaml
         echo "saved_caches_directory: /var/lib/cassandra/saved_caches" >> ${CONFIG}/cassandra.yaml
-
-#        sed -i 's/^# data_file_directories/data_file_directories/' ${CONFIG}/cassandra.yaml
-#        sed -i 's/^#     - \/var\/lib\/cassandra\/data/    - \/var\/lib\/cassandra\/data/' ${CONFIG}/cassandra.yaml
-#        sed -i 's/^# hints_directory/hints_directory/' ${CONFIG}/cassandra.yaml
-#        sed -i 's/^# commitlog_directory/commitlog_directory/' ${CONFIG}/cassandra.yaml
-#        sed -i 's/^# cdc_raw_directory/cdc_raw_directory/' ${CONFIG}/cassandra.yaml
-#        sed -i 's/^# saved_caches_directory/saved_caches_directory/' ${CONFIG}/cassandra.yaml
 
         # Setup cluster name
         if [ -z "$CASSANDRA_CLUSTER_NAME" ]; then
