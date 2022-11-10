@@ -483,14 +483,15 @@ public class FuzzingClient {
         // TODO: We want to collect the feedback before a node is upgraded
         boolean status = executor.execute(testPlanPacket.getTestPlan());
 
-        FeedBack[] feedBacks = new FeedBack[nodeNum];
+        // test plan coverage
+        FeedBack[] testPlanFeedBacks = new FeedBack[nodeNum];
         for (int i = 0; i < nodeNum; i++) {
-            feedBacks[i] = new FeedBack();
+            testPlanFeedBacks[i] = new FeedBack();
         }
 
         for (int i = 0; i < nodeNum; i++) {
             if (executor.oriCoverage[i] != null)
-                feedBacks[i].originalCodeCoverage = executor.oriCoverage[i];
+                testPlanFeedBacks[i].originalCodeCoverage = executor.oriCoverage[i];
         }
 
         if (!status) {
@@ -523,16 +524,17 @@ public class FuzzingClient {
             return mixedFeedbackPacket;
         }
 
+        // ----test plan upgrade coverage----
         ExecutionDataStore[] upCoverages = executor
                 .collectCoverageSeparate("upgraded");
         for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
-            feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+            testPlanFeedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
         }
         TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
                 testPlanPacket.systemID, nodeNum,
-                testPlanPacket.testPacketID, feedBacks);
+                testPlanPacket.testPacketID, testPlanFeedBacks);
 
-        // Execute the validation commands
+        // ----stacked read upgrade coverage----
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             List<String> upResult = executor
                     .executeCommands(tp.validationCommandSequneceList);
@@ -542,8 +544,9 @@ public class FuzzingClient {
                 upCoverages = executor
                         .collectCoverageSeparate("upgraded");
                 for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
-                    testID2FeedbackPacket.get(
-                            tp.testPacketID).feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+                    // Debugging here: disable stacked upgrade coverage
+//                    testID2FeedbackPacket.get(
+//                            tp.testPacketID).feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
                 }
             }
         }
