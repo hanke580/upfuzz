@@ -13,6 +13,7 @@ hdfs-cl-*
 cass-cl*
 configtests
 results/
+config/
 
 
 ##############################

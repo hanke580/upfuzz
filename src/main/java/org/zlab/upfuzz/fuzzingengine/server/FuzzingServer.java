@@ -188,14 +188,17 @@ public class FuzzingServer {
             return testPlanPackets.poll();
         } else if (Config.getConf().testingMode == 4) {
             // test full-stop and rolling upgrade iteratively
+            Packet packet;
             if (isFullStopUpgrade) {
                 if (stackedTestPackets.isEmpty())
                     fuzzOne();
                 assert !stackedTestPackets.isEmpty();
-                return stackedTestPackets.poll();
+                packet = stackedTestPackets.poll();
             } else {
-                return generateMixedTestPacket();
+                packet = generateMixedTestPacket();
             }
+            isFullStopUpgrade = !isFullStopUpgrade;
+            return packet;
         }
         throw new RuntimeException(
                 String.format("testing Mode [%d] is not in correct scope",
@@ -639,12 +642,11 @@ public class FuzzingServer {
             // Write Bug report (Upgrade Process Failure)
             Path crashSubDir = createCrashSubDir();
 
-            String sb = "";
-            sb += "Upgrade Process Failed\n";
-            sb += stackedFeedbackPacket.stackedCommandSequenceStr;
+            String upgradeFailureReport = stackedFeedbackPacket.upgradeFailureReport;
             Path crashReport = Paths.get(crashSubDir.toString(),
                     "crash.report");
-            Utilities.write2TXT(crashReport.toFile(), sb, false);
+            Utilities.write2TXT(crashReport.toFile(), upgradeFailureReport,
+                    false);
             crashID++;
         }
 

@@ -150,7 +150,10 @@ public class FuzzingClient {
             logger.info("upgrade failed");
             stackedFeedbackPacket.isUpgradeProcessFailed = true;
             StringBuilder sb = new StringBuilder();
-            sb.append("[upgrade failed]\n[Full Command Sequence]\n");
+            sb.append("[upgrade failed]\n");
+            sb.append("ConfigIdx = " + stackedTestPacket.configIdx + "\n\n");
+
+            sb.append("[Full Command Sequence]\n");
             stackedTestPacketStr = recordStackedTestPacket(
                     stackedTestPacket);
             sb.append(stackedTestPacketStr);
@@ -188,6 +191,10 @@ public class FuzzingClient {
                     StringBuilder failureReport = new StringBuilder();
                     failureReport.append(
                             "Results are inconsistent between two versions\n");
+
+                    failureReport.append("ConfigIdx = "
+                            + stackedTestPacket.configIdx + "\n\n");
+
                     failureReport.append(compareRes.right);
                     failureReport.append(recordSingleTestPacket(tp));
                     failureReport.append("\n[Full Command Sequence]\n");
@@ -512,6 +519,9 @@ public class FuzzingClient {
             eventFailedReport += String.format(
                     "Test plan execution failed at event[%d]\n\n",
                     buggyEventIdx);
+
+            eventFailedReport += String.format(
+                    "ConfigIdx = " + stackedTestPacket.configIdx + "\n\n");
             mixedTestPacketStr = recordMixedTestPacket(mixedTestPacket);
             eventFailedReport += mixedTestPacketStr;
             testPlanFeedbackPacket.eventFailedReport = eventFailedReport;
@@ -544,9 +554,8 @@ public class FuzzingClient {
                 upCoverages = executor
                         .collectCoverageSeparate("upgraded");
                 for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
-                    // Debugging here: disable stacked upgrade coverage
-//                    testID2FeedbackPacket.get(
-//                            tp.testPacketID).feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+                    testID2FeedbackPacket.get(
+                            tp.testPacketID).feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
                 }
             }
         }
@@ -567,6 +576,9 @@ public class FuzzingClient {
                 StringBuilder failureReport = new StringBuilder();
                 failureReport.append(
                         "Results are inconsistent between two versions\n");
+
+                failureReport.append(
+                        "ConfigIdx = " + stackedTestPacket.configIdx + "\n\n");
                 failureReport.append(compareRes.right);
                 failureReport.append(recordSingleTestPacket(tp));
                 failureReport.append("\n[Full Command Sequence]\n");
