@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.State;
@@ -37,7 +38,7 @@ public class CassandraExecutor extends Executor {
     static final String excludes = "org.apache.cassandra.metrics.*:org.apache.cassandra.net.*:org.apache.cassandra.io.sstable.format.SSTableReader.*:org.apache.cassandra.service.*";
 
     public CassandraExecutor() {
-        super("cassandra");
+        super("cassandra", Config.getConf().nodeNum);
 
         timestamp = System.currentTimeMillis();
 
@@ -45,28 +46,23 @@ public class CassandraExecutor extends Executor {
         agentHandler = new HashMap<>();
         sessionGroup = new ConcurrentHashMap<>();
 
-        this.nodeNum = Config.getConf().nodeNum; // Using default value in the
-                                                 // configuration
     }
 
     public CassandraExecutor(int nodeNum) {
-        super("cassandra");
+        super("cassandra", nodeNum);
 
         timestamp = System.currentTimeMillis();
-
         agentStore = new HashMap<>();
         agentHandler = new HashMap<>();
         sessionGroup = new ConcurrentHashMap<>();
 
-        this.nodeNum = nodeNum;
     }
 
     public CassandraExecutor(int nodeNum,
             Set<String> targetSystemStates, Path configPath) {
-        super("cassandra");
+        super("cassandra", nodeNum);
 
         timestamp = System.currentTimeMillis();
-        this.nodeNum = nodeNum;
         this.targetSystemStates = targetSystemStates;
         this.configPath = configPath;
         agentStore = new HashMap<>();

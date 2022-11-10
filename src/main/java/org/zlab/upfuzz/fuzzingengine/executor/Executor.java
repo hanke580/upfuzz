@@ -44,6 +44,8 @@ public abstract class Executor implements IExecutor {
     public Set<String> targetSystemStates;
     public Path configPath;
 
+    public ExecutionDataStore[] oriCoverage;
+
     public DockerCluster dockerCluster;
 
     /**
@@ -66,9 +68,11 @@ public abstract class Executor implements IExecutor {
         executorID = RandomStringUtils.randomAlphanumeric(8);
     }
 
-    protected Executor(String systemID) {
+    protected Executor(String systemID, int nodeNum) {
         this();
         this.systemID = systemID;
+        this.nodeNum = nodeNum;
+        this.oriCoverage = new ExecutionDataStore[nodeNum];
     }
 
     public void clearState() {
@@ -174,6 +178,12 @@ public abstract class Executor implements IExecutor {
                     break;
                 }
             } else if (event instanceof UpgradeOp) {
+
+                UpgradeOp upgradeOp = (UpgradeOp) event;
+                int nodeIdx = upgradeOp.nodeIndex;
+                oriCoverage[nodeIdx] = collectSingleNodeCoverage(nodeIdx,
+                        "original");
+
                 if (!handleUpgradeOp((UpgradeOp) event)) {
                     logger.error("UpgradeOp problem");
                     status = false;
@@ -247,6 +257,37 @@ public abstract class Executor implements IExecutor {
 
             return execStore;
         }
+    }
+
+    public ExecutionDataStore collectSingleNodeCoverage(int nodeIdx,
+            String version) {
+        Set<String> agentIdList = sessionGroup.get(executorID + "_" + version);
+        ExecutionDataStore executionDataStore = null;
+        if (agentIdList == null) {
+            new UnexpectedException("No agent connection with executor " +
+                    executorID)
+                            .printStackTrace();
+        } else {
+
+            for (String agentId : agentIdList) {
+                if (agentId.split("-")[3].equals("null"))
+                    continue;
+
+                int idx = Integer.parseInt(agentId.split("-")[2]);
+                if (nodeIdx == idx) {
+                    logger.info("collect conn " + agentId);
+                    AgentServerHandler conn = agentHandler.get(agentId);
+                    if (conn != null) {
+                        agentStore.remove(agentId);
+                        conn.collect();
+                    }
+                    executionDataStore = agentStore.get(agentId);
+                    break;
+                }
+            }
+        }
+        return executionDataStore;
+
     }
 
     public ExecutionDataStore[] collectCoverageSeparate(String version) {

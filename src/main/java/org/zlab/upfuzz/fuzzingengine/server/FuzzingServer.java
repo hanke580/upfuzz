@@ -580,16 +580,24 @@ public class FuzzingServer {
 
         FeedBack fb = mergeCoverage(testPlanFeedbackPacket.feedBacks);
 
-        if (Config.getConf().useFeedBack && Utilities.hasNewBits(curOriCoverage,
-                fb.upgradedCodeCoverage)) {
-            // Add to test plan corpus?
+        boolean addToCorpus = false;
+        if (Config.getConf().useFeedBack) {
+            if (Utilities.hasNewBits(curOriCoverage,
+                    fb.originalCodeCoverage)) {
+                addToCorpus = true;
+                curOriCoverage.merge(fb.originalCodeCoverage);
+            }
+            if (Utilities.hasNewBits(curUpCoverage,
+                    fb.upgradedCodeCoverage)) {
+                addToCorpus = true;
+                curOriCoverage.merge(fb.upgradedCodeCoverage);
+            }
+            if (addToCorpus) {
+                testPlanCorpus.addTestPlan(
+                        testID2TestPlan
+                                .get(testPlanFeedbackPacket.testPacketID));
+            }
 
-            // Do not maintain a test plan for now
-
-            // testPlanCorpus.addTestPlan(
-            // testID2TestPlan.get(testPlanFeedbackPacket.testPacketID));
-
-            curOriCoverage.merge(fb.upgradedCodeCoverage);
         }
 
         if (testPlanFeedbackPacket.isEventFailed) {
@@ -620,9 +628,9 @@ public class FuzzingServer {
         upgradedProbeNum = curUpCoverageStatus.right;
 
         finishedTestID++;
+
         printInfo();
         System.out.println();
-
     }
 
     public synchronized void updateStatus(

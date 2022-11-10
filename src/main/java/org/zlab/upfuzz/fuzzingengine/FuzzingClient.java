@@ -480,7 +480,18 @@ public class FuzzingClient {
                 stackedTestPacket);
 
         // Execute the test plan
+        // TODO: We want to collect the feedback before a node is upgraded
         boolean status = executor.execute(testPlanPacket.getTestPlan());
+
+        FeedBack[] feedBacks = new FeedBack[nodeNum];
+        for (int i = 0; i < nodeNum; i++) {
+            feedBacks[i] = new FeedBack();
+        }
+
+        for (int i = 0; i < nodeNum; i++) {
+            if (executor.oriCoverage[i] != null)
+                feedBacks[i].originalCodeCoverage = executor.oriCoverage[i];
+        }
 
         if (!status) {
             // TODO
@@ -512,10 +523,6 @@ public class FuzzingClient {
             return mixedFeedbackPacket;
         }
 
-        FeedBack[] feedBacks = new FeedBack[nodeNum];
-        for (int i = 0; i < nodeNum; i++) {
-            feedBacks[i] = new FeedBack();
-        }
         ExecutionDataStore[] upCoverages = executor
                 .collectCoverageSeparate("upgraded");
         for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {

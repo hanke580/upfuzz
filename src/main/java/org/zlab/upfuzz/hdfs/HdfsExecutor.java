@@ -30,20 +30,18 @@ public class HdfsExecutor extends Executor {
     HDFSShellDaemon hdfsShell = null;
 
     public HdfsExecutor() {
-        super("hdfs");
+        super("hdfs", Config.getConf().nodeNum);
 
         timestamp = System.currentTimeMillis();
 
         agentStore = new HashMap<>();
         agentHandler = new HashMap<>();
         sessionGroup = new ConcurrentHashMap<>();
-
-        this.nodeNum = Config.getConf().nodeNum;
     }
 
     public HdfsExecutor(int nodeNum,
             Set<String> targetSystemStates, Path configPath) {
-        super("hdfs");
+        super("hdfs", nodeNum);
 
         timestamp = System.currentTimeMillis();
 
@@ -53,8 +51,6 @@ public class HdfsExecutor extends Executor {
         agentStore = new HashMap<>();
         agentHandler = new HashMap<>();
         sessionGroup = new ConcurrentHashMap<>();
-
-        this.nodeNum = nodeNum;
     }
 
     public boolean isHdfsReady(String hdfsPath) {
