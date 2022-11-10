@@ -590,7 +590,7 @@ public class FuzzingServer {
             if (Utilities.hasNewBits(curUpCoverage,
                     fb.upgradedCodeCoverage)) {
                 addToCorpus = true;
-                curOriCoverage.merge(fb.upgradedCodeCoverage);
+                curUpCoverage.merge(fb.upgradedCodeCoverage);
             }
             if (addToCorpus) {
                 testPlanCorpus.addTestPlan(
