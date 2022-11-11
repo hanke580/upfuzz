@@ -305,7 +305,10 @@ public abstract class DockerCluster implements IDockerCluster {
                     restartContainerCMD,
                     workdir);
             restartContainerProcess.waitFor();
-        } catch (IOException | InterruptedException e) {
+
+            // recreate the shell connection
+            dockers[nodeIndex].start();
+        } catch (Exception e) {
             logger.error("Cannot restart container index "
                     + dockers[nodeIndex].containerName, e);
             return false;
