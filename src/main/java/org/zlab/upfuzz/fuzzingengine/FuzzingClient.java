@@ -152,6 +152,7 @@ public class FuzzingClient {
             StringBuilder sb = new StringBuilder();
             sb.append("[upgrade failed]\n");
             sb.append("ConfigIdx = " + stackedTestPacket.configIdx + "\n\n");
+            sb.append("executionId = " + executor.executorID + "\n");
 
             sb.append("[Full Command Sequence]\n");
             stackedTestPacketStr = recordStackedTestPacket(
@@ -194,6 +195,8 @@ public class FuzzingClient {
 
                     failureReport.append("ConfigIdx = "
                             + stackedTestPacket.configIdx + "\n\n");
+                    failureReport.append(
+                            "executionId = " + executor.executorID + "\n");
 
                     failureReport.append(compareRes.right);
                     failureReport.append(recordSingleTestPacket(tp));
@@ -526,6 +529,8 @@ public class FuzzingClient {
                     "Test plan execution failed at event[%d]\n\n",
                     buggyEventIdx);
 
+            eventFailedReport += new String(
+                    "executionId = " + executor.executorID + "\n");
             eventFailedReport += String.format(
                     "ConfigIdx = " + stackedTestPacket.configIdx + "\n\n");
             mixedTestPacketStr = recordMixedTestPacket(mixedTestPacket);
@@ -585,6 +590,9 @@ public class FuzzingClient {
 
                 failureReport.append(
                         "ConfigIdx = " + stackedTestPacket.configIdx + "\n\n");
+                failureReport
+                        .append("executionId = " + executor.executorID + "\n");
+
                 failureReport.append(compareRes.right);
                 failureReport.append(recordSingleTestPacket(tp));
                 failureReport.append("\n[Full Command Sequence]\n");
