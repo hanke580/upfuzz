@@ -348,7 +348,7 @@ public class FuzzingClient {
             System.exit(1);
         }
 
-        Path configPath = Paths.get(configDirPath.toString(), "test0");
+        Path configPath = Paths.get(configDirPath.toString(), "test21");
         logger.info("[HKLOG] configPath = " + configPath);
 
         initExecutor(testPlanPacket.getNodeNum(), targetSystemStates,
@@ -371,8 +371,6 @@ public class FuzzingClient {
 
         }
 
-        // For test plan, we don't distinguish the old version coverage
-        // and the new verison coverage. We only collect the final coverage
         FeedBack[] feedBacks = new FeedBack[nodeNum];
         for (int i = 0; i < nodeNum; i++) {
             feedBacks[i] = new FeedBack();
@@ -381,32 +379,19 @@ public class FuzzingClient {
                 testPlanPacket.systemID, nodeNum,
                 testPlanPacket.testPacketID, feedBacks);
 
-        try {
-            ExecutionDataStore[] upCoverages = executor
-                    .collectCoverageSeparate("upgraded");
-            for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
-                testPlanFeedbackPacket.feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
-            }
-        } catch (Exception e) {
-            // Cannot collect code coverage in the upgraded version
-            testPlanFeedbackPacket.isEventFailed = true;
-            StringBuilder eventFailedReport = new StringBuilder();
-            eventFailedReport.append(
-                    "TestPlan execution failed, cannot collect upgrade coverage\n")
-                    .append(e);
-            eventFailedReport.append(recordTestPlanPacket(testPlanPacket));
-            testPlanFeedbackPacket.eventFailedReport = eventFailedReport
-                    .toString();
-            tearDownExecutor();
-            return testPlanFeedbackPacket;
+        // collect old version coverage
+        for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
+            if (executor.oriCoverage[nodeIdx] != null)
+                testPlanFeedbackPacket.feedBacks[nodeIdx].originalCodeCoverage = executor.oriCoverage[nodeIdx];
         }
 
-        Map<Integer, Map<String, String>> states = executor.readSystemState();
-        logger.info("rolling upgrade system states = " + states);
-        logger.info("full stop upgrade system state"
-                + testPlanPacket.testPlan.targetSystemStatesOracle);
-        // TODO: A system state comparison
+        // System state comparison
         if (Config.getConf().enableStateComp) {
+            Map<Integer, Map<String, String>> states = executor
+                    .readSystemState();
+            logger.info("rolling upgrade system states = " + states);
+            logger.info("full stop upgrade system state"
+                    + testPlanPacket.testPlan.targetSystemStatesOracle);
             Map<Integer, Map<String, Pair<String, String>>> inconsistentStates = stateCompare(
                     testPlanPacket.testPlan.targetSystemStatesOracle,
                     states);
@@ -439,6 +424,28 @@ public class FuzzingClient {
             logger.error(String.format(
                     "The test plan execution met a problem when executing event[%d]",
                     buggyEventIdx));
+        } else {
+
+            try {
+                ExecutionDataStore[] upCoverages = executor
+                        .collectCoverageSeparate("upgraded");
+                for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
+                    testPlanFeedbackPacket.feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+                }
+
+            } catch (Exception e) {
+                // Cannot collect code coverage in the upgraded version
+                testPlanFeedbackPacket.isEventFailed = true;
+                StringBuilder eventFailedReport = new StringBuilder();
+                eventFailedReport.append(
+                        "TestPlan execution failed, cannot collect upgrade coverage\n")
+                        .append(e);
+                eventFailedReport.append(recordTestPlanPacket(testPlanPacket));
+                testPlanFeedbackPacket.eventFailedReport = eventFailedReport
+                        .toString();
+                tearDownExecutor();
+                return testPlanFeedbackPacket;
+            }
         }
 
         tearDownExecutor();
