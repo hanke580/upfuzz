@@ -218,9 +218,8 @@ public abstract class Executor implements IExecutor {
         logger.info("agentIdList: " + agentIdList);
         logger.info("executorID = " + executorID);
         if (agentIdList == null) {
-            new UnexpectedException("No agent connection with executor " +
-                    executorID)
-                            .printStackTrace();
+            logger.error("No agent connection with executor " +
+                    executorID);
             return null;
         } else {
             // Clear the code coverage
@@ -262,11 +261,9 @@ public abstract class Executor implements IExecutor {
         Set<String> agentIdList = sessionGroup.get(executorID + "_" + version);
         ExecutionDataStore executionDataStore = null;
         if (agentIdList == null) {
-            new UnexpectedException("No agent connection with executor " +
-                    executorID)
-                            .printStackTrace();
+            logger.error("No agent connection with executor " +
+                    executorID);
         } else {
-
             for (String agentId : agentIdList) {
                 if (agentId.split("-")[3].equals("null"))
                     continue;
@@ -294,9 +291,8 @@ public abstract class Executor implements IExecutor {
         // logger.info("agentIdList: " + agentIdList);
         // logger.info("executorID = " + executorID);
         if (agentIdList == null) {
-            new UnexpectedException("No agent connection with executor " +
-                    executorID)
-                            .printStackTrace();
+            logger.error("No agent connection with executor " +
+                    executorID);
             return null;
         } else {
             // Add to the original coverage

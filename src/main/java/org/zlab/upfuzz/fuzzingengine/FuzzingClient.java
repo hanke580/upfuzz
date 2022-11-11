@@ -125,8 +125,10 @@ public class FuzzingClient {
             }
             ExecutionDataStore[] oriCoverages = executor
                     .collectCoverageSeparate("original");
-            for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
-                feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
+            if (oriCoverages != null) {
+                for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
+                    feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
+                }
             }
             testID2FeedbackPacket.put(
                     tp.testPacketID,
@@ -168,12 +170,13 @@ public class FuzzingClient {
                         .executeCommands(tp.validationCommandSequneceList);
                 testID2upResults.put(tp.testPacketID, upResult);
                 if (Config.getConf().collUpFeedBack) {
-
                     ExecutionDataStore[] upCoverages = executor
                             .collectCoverageSeparate("upgraded");
-                    for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
-                        testID2FeedbackPacket.get(
-                                tp.testPacketID).feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+                    if (upCoverages != null) {
+                        for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
+                            testID2FeedbackPacket.get(
+                                    tp.testPacketID).feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+                        }
                     }
                 }
             }
@@ -250,8 +253,10 @@ public class FuzzingClient {
         try {
             ExecutionDataStore[] oriCoverages = executor
                     .collectCoverageSeparate("original");
-            for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
-                fullStopFeedbackPacket.feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
+            if (oriCoverages != null) {
+                for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
+                    fullStopFeedbackPacket.feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
+                }
             }
         } catch (Exception e) {
             fullStopFeedbackPacket.isEventFailed = true;
@@ -282,8 +287,10 @@ public class FuzzingClient {
             try {
                 ExecutionDataStore[] upCoverages = executor
                         .collectCoverageSeparate("upgraded");
-                for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
-                    fullStopFeedbackPacket.feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+                if (upCoverages != null) {
+                    for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
+                        fullStopFeedbackPacket.feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+                    }
                 }
             } catch (Exception e) {
                 // Cannot collect code coverage in the upgraded version
@@ -429,8 +436,10 @@ public class FuzzingClient {
             try {
                 ExecutionDataStore[] upCoverages = executor
                         .collectCoverageSeparate("upgraded");
-                for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
-                    testPlanFeedbackPacket.feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+                if (upCoverages != null) {
+                    for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
+                        testPlanFeedbackPacket.feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+                    }
                 }
 
             } catch (Exception e) {
@@ -485,8 +494,10 @@ public class FuzzingClient {
             }
             ExecutionDataStore[] oriCoverages = executor
                     .collectCoverageSeparate("original");
-            for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
-                feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
+            if (oriCoverages != null) {
+                for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
+                    feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
+                }
             }
             testID2FeedbackPacket.put(
                     tp.testPacketID,
@@ -555,8 +566,10 @@ public class FuzzingClient {
         // ----test plan upgrade coverage----
         ExecutionDataStore[] upCoverages = executor
                 .collectCoverageSeparate("upgraded");
-        for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
-            testPlanFeedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+        if (upCoverages != null) {
+            for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
+                testPlanFeedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+            }
         }
         TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
                 testPlanPacket.systemID, nodeNum,
@@ -568,12 +581,13 @@ public class FuzzingClient {
                     .executeCommands(tp.validationCommandSequneceList);
             testID2upResults.put(tp.testPacketID, upResult);
             if (Config.getConf().collUpFeedBack) {
-
                 upCoverages = executor
                         .collectCoverageSeparate("upgraded");
-                for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
-                    testID2FeedbackPacket.get(
-                            tp.testPacketID).feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+                if (upCoverages != null) {
+                    for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
+                        testID2FeedbackPacket.get(
+                                tp.testPacketID).feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+                    }
                 }
             }
         }
