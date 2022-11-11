@@ -473,7 +473,13 @@ public class FuzzingServer {
     public TestPlan generateExampleTestPlan() {
         List<Event> exampleEvents = new LinkedList<>();
         int nodeNum = 4;
+        exampleEvents.add(new ShellCommand("dfs -mkdir /cvBMNAEnzAVj"));
+        exampleEvents.add(new ShellCommand("dfs -touchz /kSAXkQAXGPToQX.yaml"));
+
         exampleEvents.add(new PrepareUpgrade());
+
+        exampleEvents.add(new ShellCommand(
+                "dfs -touchz /cvBMNAEnzAVj/kSAXkQAXGPToQX.xml"));
 
         if (Config.getConf().system.equals("hdfs")) {
             exampleEvents.add(new HDFSStopSNN());
@@ -481,13 +487,21 @@ public class FuzzingServer {
 
         exampleEvents.add(new UpgradeOp(0));
 
-        exampleEvents.add(new ShellCommand("dfs -touchz /hdfs_shell_init.sh"));
+        exampleEvents.add(new ShellCommand(
+                "dfs -touchz /ddddd.xml"));
+
+        exampleEvents.add(new ShellCommand(
+                "dfs -touchz /tmp.xml"));
+        exampleEvents.add(new ShellCommand(
+                "dfs -rm /kSAXkQAXGPToQX.yaml"));
 
         exampleEvents.add(new RestartFailure(0));
 
-        exampleEvents.add(new UpgradeOp(1));
-        exampleEvents.add(new UpgradeOp(2));
-        exampleEvents.add(new UpgradeOp(3));
+        exampleEvents.add(new ShellCommand(
+                "dfs -touchz /tmp1.xml"));
+        // exampleEvents.add(new UpgradeOp(1));
+        // exampleEvents.add(new UpgradeOp(2));
+        // exampleEvents.add(new UpgradeOp(3));
 
         Set<String> targetSystemStates = new HashSet<>();
         Map<Integer, Map<String, String>> oracle = new HashMap<>();

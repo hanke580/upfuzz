@@ -160,7 +160,8 @@ public abstract class Executor implements IExecutor {
                     // If fault injection fails, keep executing
                     logger.error(
                             String.format("Cannot Inject {%s} here", event));
-
+                    status = false;
+                    break;
                 }
             } else if (event instanceof FaultRecover) {
                 if (!handleFaultRecover((FaultRecover) event)) {
