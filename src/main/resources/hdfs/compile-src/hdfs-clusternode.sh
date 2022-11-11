@@ -35,7 +35,7 @@ if [[ ! -f "/var/log/.setup_conf" ]]; then
         echo "export HDFS_DATANODE_USER=\"root\"" >> ${CONFIG}/hadoop-env.sh
         echo "export HDFS_SECONDARYNAMENODE_USER=\"root\"" >> ${CONFIG}/hadoop-env.sh
 
-        echo "export HADOOP_LOG_DIR=/var/hadoop/logs" >> ${CONFIG}\hadoop-env.sh
+        echo "export HADOOP_LOG_DIR=/var/log/hdfs" >> ${CONFIG}\hadoop-env.sh
 
         echo datanode1 > ${CONFIG}/slaves
         echo datanode2 >> ${CONFIG}/slaves

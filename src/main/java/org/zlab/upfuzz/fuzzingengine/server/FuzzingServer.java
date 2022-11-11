@@ -472,14 +472,22 @@ public class FuzzingServer {
 
     public TestPlan generateExampleTestPlan() {
         List<Event> exampleEvents = new LinkedList<>();
-        int nodeNum = 3;
+        int nodeNum = 4;
         exampleEvents.add(new PrepareUpgrade());
+
         if (Config.getConf().system.equals("hdfs")) {
             exampleEvents.add(new HDFSStopSNN());
         }
+
         exampleEvents.add(new UpgradeOp(0));
+
+        exampleEvents.add(new ShellCommand("dfs -touchz /hdfs_shell_init.sh"));
+
+        exampleEvents.add(new RestartFailure(0));
+
         exampleEvents.add(new UpgradeOp(1));
         exampleEvents.add(new UpgradeOp(2));
+        exampleEvents.add(new UpgradeOp(3));
 
         Set<String> targetSystemStates = new HashSet<>();
         Map<Integer, Map<String, String>> oracle = new HashMap<>();

@@ -128,8 +128,6 @@ public class HdfsDocker extends Docker {
     }
 
     public void upgrade() throws Exception {
-        logger.info("upgrading index " + index);
-
         type = "upgraded";
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
                 + "/org.jacoco.agent.rt.jar"
@@ -182,6 +180,7 @@ public class HdfsDocker extends Docker {
             if (ret != 0)
                 return false;
         }
+        logger.debug("shutdown " + nodeType);
         return true;
     }
 

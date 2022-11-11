@@ -76,6 +76,9 @@ public class Config {
         // 4: full-stop upgrade + mixed Test Plan iteratively (Final Version)
         public int testingMode = 0;
 
+        // ------------State Comparison-------------
+        public boolean enableStateComp = false;
+
         // Debug option
         public boolean startUpOneCluster = false;
         public boolean useExampleTestPlan = false;

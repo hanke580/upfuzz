@@ -344,7 +344,12 @@ public class FuzzingClient {
             e.printStackTrace();
             System.exit(1);
         }
-        initExecutor(testPlanPacket.getNodeNum(), targetSystemStates, null);
+
+        Path configPath = Paths.get(configDirPath.toString(), "test0");
+        logger.info("[HKLOG] configPath = " + configPath);
+
+        initExecutor(testPlanPacket.getNodeNum(), targetSystemStates,
+                configPath);
         startUpExecutor();
 
         // TestPlan only contains one test sequence
@@ -398,11 +403,12 @@ public class FuzzingClient {
         logger.info("full stop upgrade system state"
                 + testPlanPacket.testPlan.targetSystemStatesOracle);
         // TODO: A system state comparison
-        Map<Integer, Map<String, Pair<String, String>>> inconsistentStates = stateCompare(
-                testPlanPacket.testPlan.targetSystemStatesOracle,
-                states);
-        logger.info("inconsistent states = " + inconsistentStates);
-        logger.info("Finished Execution");
+        if (Config.getConf().enableStateComp) {
+            Map<Integer, Map<String, Pair<String, String>>> inconsistentStates = stateCompare(
+                    testPlanPacket.testPlan.targetSystemStatesOracle,
+                    states);
+            logger.info("inconsistent states = " + inconsistentStates);
+        }
 
         if (!status) {
             // Now we only support checking the state of events
