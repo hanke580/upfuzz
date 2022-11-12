@@ -76,7 +76,7 @@ public class HdfsDocker extends Docker {
     }
 
     @Override
-    public int start() throws IOException, InterruptedException {
+    public int start() throws Exception {
         // Connect to the HDFS daemon
         hdfsShell = new HDFSShellDaemon(getNetworkIP(), hdfsDaemonPort,
                 executorID);
