@@ -68,6 +68,10 @@ public class Config {
 
         // ------------Configuration-------------
         public String configDir = "configtests";
+        public Boolean testAddedConfig = true;
+        public Boolean testCommonConfig = true;
+        public double testConfigRatio = 0.6; // We mutate 60% configuration each
+                                             // test
 
         // 0: only full-stop test using StackedTestPacket
         // 1: only test plan test using TestPlanPacket
