@@ -63,24 +63,101 @@ for the upgrade process.
 
 ## Usage
 
+
+### Prerequisite
+
+We implemented a static analysis tool [diffchecker](https://github.com/hanke580/diffchecker) to capture interesting configurations.
+
+We need to use diffchecker to find all the interesting configurations and then feed them to upfuzz so that upfuzz can generate them at runtime.
+
+#### Get configurations
+
+In diffchecker repo
+
+1. Clone and build diffchecker
+```bash
+mvn -T 2C -e clean package
+```
+
+2. Create a folder called `symbolic_link`
+```bash
+mkdir src/main/resources/symbolic_link
+```
+
+3. Clone the source code of the target system by git, create a symbolic link in the folder we just created.
+
+Example
+```bash
+cd ~
+git clone --recursive https://github.com/apache/cassandra.git ~/cassandra1
+git clone --recursive https://github.com/apache/cassandra.git ~/cassandra2
+
+cd ${DIFFCHECKER}/src/main/resources/symbolic_link
+ln -s ~/cassandra1
+ln -s ~/cassandra2
+```
+
+4. Run the diffcheck to get the target configurations
+Example (Cassandra)
+```bash
+# collect newly added configurations
+java -jar target/diffchecker-1.0-SNAPSHOT-shaded.jar -p cassandra1 -np cassandra2 --type config --action modified
+# collect common configurations (deprecated or contain size)
+java -jar target/diffchecker-1.0-SNAPSHOT-shaded.jar -p cassandra1 -np cassandra2 --type config --action common --configpath conf
+```
+
+This will generate configurations and their type in json. **Later we will move these files to the upfuzz repo**
+
+```bash
+➜  diffchecker git:(main) ✗ ls configInfo
+addedClassConfig2Init.json  addedClassConfig.json         addedSysConfig.json     commonConfig2Type.json  commonEnum2Constant.json
+addedClassConfig2Type.json  addedClassEnum2Constant.json  commonConfig2Init.json  commonConfig.json
+```
+
+
+> We support test cassandra and hdfs.
+
 ### Deploy Cassandra
-Current we only support the testing for Cassandra.
 
-1. Clone this repo.
+1. Clone upfuzz repo.
 
-2. Make sure `docker` and `docker-compose` is correctly installed.
+Make sure `docker` and `docker-compose` is correctly installed.
 
 2. Create a `config.json` file, a sample config file is provided in
-   config.json.example. You need to modify the value for the target system.
+   config.json. You need to modify the value for the target system.
+
+   Refer to Config.java for more comments about the configurations.
 
 ```json
 {
   "originalVersion" : "apache-cassandra-3.11.13",
   "upgradedVersion" : "apache-cassandra-4.0.0",
   "system" : "cassandra"
+  "serverPort" : "6399",
+  "clientPort" : "6400",
+  "initSeedDir" : "/project/upfuzz/initSeedDir",
+  "STACKED_TESTS_NUM" : "20",
+  "nodeNum": 4,
+  "useFeedBack": true,
+  "faultMaxNum": 2,
+  "useExampleTestPlan": false,
+  "testingMode": 4,
+  "startUpOneCluster": true,
+  "debug": false,
+  "collUpFeedBack": true
 }
 
 ```
+
+3. Create a configInfo directory,
+```bash
+mkdir configInfo
+mkdir configInfo/${originalVersion}_${upgradedVersion}
+# In the example it would be
+mkdir configInfo/apache-cassandra-3.11.13_apache-cassandra-4.0.0
+mv ${diffchecker}/configInfo/* configInfo/apache-cassandra-3.11.13_apache-cassandra-4.0.0/
+```
+
 
 3. Create a `prebuild` folder. Then inside `prebuild` folder, create a directory
    called the target system. In this case, the $SYSTEM is cassandra as the value
@@ -124,11 +201,11 @@ prebuild
         └── tools
 ```
 
-4. [Cassandra Only] For Cassandra, you also need to copy the
+4. Copy the shell daemon file. For Cassandra, copy
    `src/main/resources/cqlsh_daemon2.py` or `src/main/resources/cqlsh_daemon3.py`
    to the `bin/` folder of the cassandra binary systems. 2 and 3 means the python
    version that the Cassandra supports. Cassandra-3.x still uses python2. You need
-   to change the name to `cqlsh_daemon.py`.
+   to **change the name** to `cqlsh_daemon.py`.
 
 E.g. If you are testing Cassandra 3.11
 ```bash
@@ -136,23 +213,19 @@ cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-3.11.
 cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-4.0.0/bin/cqlsh_daemon.py
 ```
 
-Notification: If you are upgrading from 3.x to 4.0.0, you also need to modify the
-`conf/cassandra.yaml` to make sure the `num_tokens` matches.
-```
-vim prebuild/cassandra/apache-cassandra-4.0.0/conf/cassandra.yaml
-```
-Modify `num_tokens: 16` to `num_tokens: 256`. 256 is the same token number as the 3.x version systems.
+> Cassandra document notification: If you are upgrading from 3.x to 4.0.0, you also need to modify the `conf/cassandra.yaml` to make sure the `num_tokens` matches. Since the default `num_tokens` for the 3.x is 256, while for 4.0 it's 16.
 
-5. Modify the `src/main/resources/cassandra/cassandra-3.11.13/compile-src/cassandra-clusternode.sh`
-   file. You should change the `ORG_VERSION` and `UPG_VERSION` to the name of the target system.
-   In this example, it would be
+
+6. Build the docker image.
+
+First, modify the first few lines in `src/main/resources/cassandra/cassandra-3.11.13/compile-src/cassandra-clusternode.sh` file. You should change the `ORG_VERSION` and `UPG_VERSION` to the name of the target system. In this example,
 ```bash
 vim src/main/resources/cassandra/cassandra-3.11.13/compile-src/cassandra-clusternode.sh
 ORG_VERSION=apache-cassandra-3.11.13
 UPG_VERSION=apache-cassandra-4.0.0
 ```
 
-6. Build the docker image.
+Then build the docker image
 ```bash
 cd src/main/resources/cassandra/cassandra-3.11.13/compile-src/
 docker build . -t upfuzz_cassandra:apache-cassandra-3.11.13_apache-cassandra-4.0.0
@@ -179,33 +252,36 @@ may run the spotless Apply to format the code
 
 8. Start testing.
 
-open one terminal, run
+There are two scripts `start_server.sh` and `start_client.sh`. You can start up clients with this script.
+
+start up a server
 ```bash
-java -cp "build/classes/java/main/:dependencies/*:dependencies/:build/resources/main" org/zlab/upfuzz/fuzzingengine/Main -class server -config ./config.json
+./start_server.sh config.json
 ```
-open another terminal, run
+
+start up N clients (replace N with a number)
 ```bash
-java -cp "build/classes/java/main/:dependencies/*:dependencies/:build/resources/main" org/zlab/upfuzz/fuzzingengine/Main -class client -config ./config.json
+./start_clients.sh N config.json
 ```
 
 ### Deploy HDFS
-The first 2 steps are the same. We can start from the third step.
+The first 3 steps are the same. We can start from the fourth step.
 
-Upgrade from hadoop-2.10.2 to hadoop-2.10.2-dup. You should replace them with the version you want to test.
+Upgrade from hadoop-2.10.2 to hadoop-3.3.0. You should replace them with the version you want to test.
 
 3. create the `config.json` file
 ```json
 {
   "originalVersion" : "hadoop-2.10.2",
-  "upgradedVersion" : "hadoop-2.10.2-dup",
+  "upgradedVersion" : "hadoop-3.3.0",
   "system" : "hdfs",
 }
 ```
 
-4. [HDFS] copy the hdfs daemon file to the binary folder
+4. Copy the hdfs daemon file to the `bin` folder in hadoop
 ```shell
 cp src/main/resources/hdfs_daemon3.py prebuild/hdfs/hadoop-2.10.2/bin/hdfs_daemon.py
-cp src/main/resources/hdfs_daemon3.py prebuild/hdfs/hadoop-2.10.2-dup/bin/hdfs_daemon.py
+cp src/main/resources/hdfs_daemon3.py prebuild/hdfs/hadoop-3.3.0/bin/hdfs_daemon.py
 ```
 
 5. Modify `bin/main/hdfs/compile-src/hdfs-clusternode.sh` file. Change the version.
@@ -213,13 +289,13 @@ cp src/main/resources/hdfs_daemon3.py prebuild/hdfs/hadoop-2.10.2-dup/bin/hdfs_d
 vim bin/main/hdfs/compile-src/hdfs-clusternode.sh
 # Change it to the target systems
 ORG_VERSION=hadoop-2.10.2
-UPG_VERSION=hadoop-2.10.2-dup
+UPG_VERSION=hadoop-3.3.0
 ```
 
 6. Build the docker image.
 ```shell
 cd src/main/resources/hdfs/compile-src/
-docker build . -t upfuzz_hdfs:hadoop-2.10.2_hadoop-2.10.2-dup
+docker build . -t upfuzz_hdfs:hadoop-2.10.2_hadoop-3.3.0
 ```
 
 7. Compile the project
