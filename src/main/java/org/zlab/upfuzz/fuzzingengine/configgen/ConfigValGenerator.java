@@ -240,7 +240,7 @@ public class ConfigValGenerator {
         }
 
         if (vals.isEmpty()) {
-            logger.error("cannot gen type = " + configType);
+            // logger.error("cannot gen type = " + configType);
             return null;
         }
 

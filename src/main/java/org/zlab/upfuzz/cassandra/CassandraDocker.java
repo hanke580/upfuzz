@@ -115,11 +115,24 @@ public class CassandraDocker extends Docker {
                 + type + "-" + index +
                 "\"";
 
+        String pythonVersion = "python2";
+
+        String[] spStrings = originalVersion.split("-");
+        try {
+            int main_version = Integer
+                    .parseInt(spStrings[spStrings.length - 1].substring(0, 1));
+            if (main_version > 3)
+                pythonVersion = "python3";
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         env = new String[] {
                 "CASSANDRA_HOME=\"" + cassandraHome + "\"",
                 "CASSANDRA_CONF=\"" + cassandraConf + "\"", javaToolOpts,
                 "CQLSH_DAEMON_PORT=\"" + cqlshDaemonPort + "\"",
-                "PYTHON=python2" };
+                "PYTHON=" + pythonVersion };
+
         setEnvironment();
 
         // Copy the cassandra-ori.yaml and cassandra-up.yaml
@@ -131,6 +144,8 @@ public class CassandraDocker extends Docker {
 
     public void upgrade() throws Exception {
         type = "upgraded";
+        String cassandraHome = "/cassandra/" + upgradedVersion;
+        String cassandraConf = "/etc/" + upgradedVersion;
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
                 + "/org.jacoco.agent.rt.jar"
                 + "=append=false"
@@ -140,13 +155,22 @@ public class CassandraDocker extends Docker {
                 "-" + index +
                 "\"";
         cqlshDaemonPort ^= 1;
-        String cassandraHome = "/cassandra/" + upgradedVersion;
-        String cassandraConf = "/etc/" + upgradedVersion;
+
+        String pythonVersion = "python2";
+        String[] spStrings = originalVersion.split("-");
+        try {
+            int main_version = Integer
+                    .parseInt(spStrings[spStrings.length - 1].substring(0, 1));
+            if (main_version > 3)
+                pythonVersion = "python3";
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         env = new String[] {
                 "CASSANDRA_HOME=\"" + cassandraHome + "\"",
                 "CASSANDRA_CONF=\"" + cassandraConf + "\"", javaToolOpts,
                 "CQLSH_DAEMON_PORT=\"" + cqlshDaemonPort + "\"",
-                "PYTHON=python2" };
+                "PYTHON=" + pythonVersion };
         setEnvironment();
         String restartCommand = "supervisorctl restart upfuzz_cassandra:";
         Process restart = runInContainer(

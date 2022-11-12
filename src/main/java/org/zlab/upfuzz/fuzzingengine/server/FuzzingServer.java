@@ -257,6 +257,11 @@ public class FuzzingServer {
                 // logger.info("Generating " + i + " packet");
                 if (i != 0 && i % Config.getConf().STACKED_TESTS_NUM == 0) {
                     stackedTestPackets.add(stackedTestPacket);
+
+                    // Each upgrade should execute with different config
+                    configIdx = configGen.generateConfig();
+                    configFileName = "test" + configIdx;
+
                     stackedTestPacket = new StackedTestPacket(
                             Config.getConf().nodeNum, configFileName);
                 }
