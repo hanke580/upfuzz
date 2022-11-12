@@ -47,17 +47,12 @@ public class ConfigTest extends TestCase {
     }
 
     @Test
-    public void testConfigGen() throws IOException {
-
-        if (false) return;
-
+    public void testConfigGen() {
+        if (true)
+            return;
         logger.info(Config.getConf().upgradedVersion);
         ConfigGen configGen = new ConfigGen();
-        try {
-            configGen.generateConfig();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        configGen.generateConfig();
     }
 
 }

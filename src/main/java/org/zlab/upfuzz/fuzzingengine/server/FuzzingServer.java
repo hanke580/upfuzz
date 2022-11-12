@@ -20,6 +20,7 @@ import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.FeedBack;
 import org.zlab.upfuzz.fuzzingengine.Fuzzer;
+import org.zlab.upfuzz.fuzzingengine.configgen.ConfigGen;
 import org.zlab.upfuzz.fuzzingengine.packet.*;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.testplan.FullStopUpgrade;
@@ -43,7 +44,6 @@ public class FuzzingServer {
 
     // Seed Corpus (tuple(Seed, Info))
     public Corpus corpus = new Corpus();
-    public List<String> configFileNames = new LinkedList<>();
     public TestPlanCorpus testPlanCorpus = new TestPlanCorpus();
     public FullStopCorpus fullStopCorpus = new FullStopCorpus();
 
@@ -84,6 +84,7 @@ public class FuzzingServer {
     public static int crashID = 0;
 
     boolean isFullStopUpgrade = true;
+    ConfigGen configGen;
 
     public FuzzingServer() {
         testID2Seed = new HashMap<>();
@@ -108,13 +109,8 @@ public class FuzzingServer {
         Path configDirPath = Paths.get(System.getProperty("user.dir"),
                 Config.getConf().configDir, Config.getConf().originalVersion
                         + "_" + Config.getConf().upgradedVersion);
-        File[] configFiles = configDirPath.toFile().listFiles();
-        for (File file : configFiles) {
-            if (file.isDirectory()) {
-                configFileNames.add(file.getName());
-            }
-        }
-        logger.info("config test num: " + configFileNames.size());
+
+        configGen = new ConfigGen();
 
         if (Config.getConf().system.equals("cassandra")) {
             executor = new CassandraExecutor();
@@ -233,12 +229,8 @@ public class FuzzingServer {
         round++;
         StackedTestPacket stackedTestPacket;
 
-        String configFileName = null;
-        if (!configFileNames.isEmpty()) {
-            configFileName = configFileNames
-                    .get(rand.nextInt(configFileNames.size()));
-        }
-
+        int configIdx = configGen.generateConfig();
+        String configFileName = "test" + configIdx;
         logger.info("configFileName = " + configFileName);
 
         if (seed == null) {

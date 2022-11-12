@@ -26,7 +26,7 @@ public class ConfigGen {
 
     ObjectMapper mapper = new ObjectMapper();
 
-    public ConfigGen() throws IOException {
+    public ConfigGen() {
         Path oldVersionPath = Paths.get(System.getProperty("user.dir"),
                 "prebuild", Config.getConf().system,
                 Config.getConf().originalVersion);
@@ -58,22 +58,30 @@ public class ConfigGen {
         Path commonEnum2constantPath = configInfoPath
                 .resolve("commonEnum2Constant.json");
 
-        commonConfig = mapper.readValue(commonConfigPath.toFile(),
-                HashSet.class);
-        commonConfigName2Type = mapper.readValue(commonConfig2typePath.toFile(),
-                HashMap.class);
-        commonConfig2Init = mapper.readValue(commonConfig2initPath.toFile(),
-                HashMap.class);
-        commonEnumName2ConstantMap = mapper
-                .readValue(commonEnum2constantPath.toFile(), HashMap.class);
+        try {
+            commonConfig = mapper.readValue(commonConfigPath.toFile(),
+                    HashSet.class);
+            commonConfigName2Type = mapper.readValue(
+                    commonConfig2typePath.toFile(),
+                    HashMap.class);
+            commonConfig2Init = mapper.readValue(commonConfig2initPath.toFile(),
+                    HashMap.class);
+            commonEnumName2ConstantMap = mapper
+                    .readValue(commonEnum2constantPath.toFile(), HashMap.class);
 
-        addedConfig = mapper.readValue(addedConfigPath.toFile(), HashSet.class);
-        addedConfigName2Type = mapper.readValue(addedConfig2typePath.toFile(),
-                HashMap.class);
-        addedConfig2Init = mapper.readValue(addedConfig2initPath.toFile(),
-                HashMap.class);
-        addedEnumName2ConstantMap = mapper
-                .readValue(addedEnum2constantPath.toFile(), HashMap.class);
+            addedConfig = mapper.readValue(addedConfigPath.toFile(),
+                    HashSet.class);
+            addedConfigName2Type = mapper.readValue(
+                    addedConfig2typePath.toFile(),
+                    HashMap.class);
+            addedConfig2Init = mapper.readValue(addedConfig2initPath.toFile(),
+                    HashMap.class);
+            addedEnumName2ConstantMap = mapper
+                    .readValue(addedEnum2constantPath.toFile(), HashMap.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("missing configuration test files!");
+        }
 
         switch (Config.getConf().system) {
         case "cassandra": {
@@ -102,7 +110,7 @@ public class ConfigGen {
         }
     }
 
-    public int generateConfig() throws IOException {
+    public int generateConfig() {
         Map<String, String> oriConfigtest = new HashMap<>();
         Map<String, String> upConfigtest = new HashMap<>();
         Map<String, String> oriConfig2Type = new HashMap<>();
