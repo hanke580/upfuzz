@@ -4,7 +4,7 @@ import java.util.List;
 
 public interface IExecutor {
 
-    void startup();
+    boolean startup();
 
     void teardown();
 

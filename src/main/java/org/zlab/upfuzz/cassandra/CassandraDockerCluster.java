@@ -104,7 +104,7 @@ public class CassandraDockerCluster extends DockerCluster {
         if (ret != 0) {
             String errorMessage = Utilities.readProcess(buildProcess);
             logger.error("docker-compose up\n" + errorMessage);
-            // System.exit(ret);
+            return ret;
         }
 
         try {
@@ -145,7 +145,10 @@ public class CassandraDockerCluster extends DockerCluster {
             try {
                 dockers[i].start();
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error(String.format(
+                        "docker[%d] cannot start up with exception %s", i, e));
+                ret = -1;
+                break;
             }
         }
         return ret;

@@ -55,17 +55,19 @@ public class FuzzingClient {
         }
     }
 
-    public void startUpExecutor() {
+    public boolean startUpExecutor() {
         for (int i = 0; i < CLUSTER_START_RETRY; i++) {
             try {
-                executor.startup();
-                return;
+                boolean status = executor.startup();
+                if (status)
+                    return true;
             } catch (Exception e) {
                 e.printStackTrace();
                 executor.teardown();
             }
         }
-        throw new RuntimeException("cluster cannot start up");
+        logger.error("cluster cannot start up");
+        return false;
     }
 
     public void tearDownExecutor() {
@@ -89,7 +91,11 @@ public class FuzzingClient {
         logger.info("[HKLOG] configPath = " + configPath);
 
         initExecutor(stackedTestPacket.nodeNum, null, configPath);
-        startUpExecutor();
+
+        boolean startUpStatus = startUpExecutor();
+        if (!startUpStatus) {
+            return new StackedFeedbackPacket();
+        }
 
         if (Config.getConf().startUpClusterForDebugging) {
             logger.info(

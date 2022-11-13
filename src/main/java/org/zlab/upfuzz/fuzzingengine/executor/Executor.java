@@ -80,10 +80,6 @@ public abstract class Executor implements IExecutor {
         return systemID + "-" + executorID;
     }
 
-    public abstract void startup();
-
-    public abstract void teardown();
-
     public boolean fullStopUpgrade() {
         try {
             dockerCluster.fullStopUpgrade();

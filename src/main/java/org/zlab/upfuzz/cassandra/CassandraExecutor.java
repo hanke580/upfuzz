@@ -71,7 +71,7 @@ public class CassandraExecutor extends Executor {
     }
 
     @Override
-    public void startup() {
+    public boolean startup() {
         try {
             agentSocket = new AgentServerSocket(this);
             agentSocket.setDaemon(true);
@@ -79,7 +79,7 @@ public class CassandraExecutor extends Executor {
             agentPort = agentSocket.getPort();
         } catch (Exception e) {
             logger.error(e);
-            System.exit(1);
+            return false;
         }
 
         dockerCluster = new CassandraDockerCluster(
@@ -90,7 +90,7 @@ public class CassandraExecutor extends Executor {
             dockerCluster.build();
         } catch (Exception e) {
             logger.error("docker cluster cannot build with exception: ", e);
-            System.exit(1);
+            return false;
         }
 
         // May change classToIns according to the system...
@@ -101,16 +101,16 @@ public class CassandraExecutor extends Executor {
             int ret = dockerCluster.start();
             if (ret != 0) {
                 logger.error("cassandra " + executorID + " failed to started");
-                System.exit(1);
+                return false;
             }
         } catch (Exception e) {
-            // TODO: try to clear the state and restart
             logger.error("docker cluster start up failed", e);
+            return false;
         }
-
         logger.info("cassandra " + executorID + " started");
         cqlsh = ((CassandraDocker) dockerCluster.getDocker(0)).cqlsh;
         logger.info("cqlsh daemon connected");
+        return true;
     }
 
     @Override

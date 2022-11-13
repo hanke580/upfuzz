@@ -16,7 +16,8 @@ public class NullExecutor extends Executor {
     }
 
     @Override
-    public void startup() {
+    public boolean startup() {
+        return false;
     }
 
     @Override

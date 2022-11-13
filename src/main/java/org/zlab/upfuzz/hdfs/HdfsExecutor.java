@@ -76,7 +76,7 @@ public class HdfsExecutor extends Executor {
     }
 
     @Override
-    public void startup() {
+    public boolean startup() {
         try {
             agentSocket = new AgentServerSocket(this);
             agentSocket.setDaemon(true);
@@ -84,7 +84,7 @@ public class HdfsExecutor extends Executor {
             agentPort = agentSocket.getPort();
         } catch (Exception e) {
             logger.error(e);
-            System.exit(1);
+            return false;
         }
 
         dockerCluster = new HdfsDockerCluster(this,
@@ -95,7 +95,7 @@ public class HdfsExecutor extends Executor {
             dockerCluster.build();
         } catch (Exception e) {
             logger.error("docker cluster cannot build with exception: ", e);
-            System.exit(1);
+            return false;
         }
 
         logger.info("[Old Version] HDFS Start...");
@@ -103,15 +103,15 @@ public class HdfsExecutor extends Executor {
         try {
             int ret = dockerCluster.start();
             if (ret != 0) {
-                logger.error("cassandra " + executorID + " failed to started");
-                System.exit(1);
+                logger.error("hdfs " + executorID + " failed to started");
+                return false;
             }
         } catch (Exception e) {
-            // TODO: try to clear the state and restart
             logger.error("docker cluster start up failed", e);
         }
 
         logger.info("hdfs " + executorID + " started");
+        return true;
     }
 
     @Override

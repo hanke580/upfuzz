@@ -79,7 +79,7 @@ public class CassandraDocker extends Docker {
     }
 
     @Override
-    public int start() throws IOException, InterruptedException {
+    public int start() throws Exception {
         cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort,
                 executorID);
         return 0;
