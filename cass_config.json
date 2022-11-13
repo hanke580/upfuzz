@@ -5,14 +5,14 @@
   "serverPort" : "6399",
   "clientPort" : "6400",
   "initSeedDir" : "/project/upfuzz/initSeedDir",
-  "STACKED_TESTS_NUM" : "1",
+  "STACKED_TESTS_NUM" : "20",
   "keepDir": true,
   "nodeNum": 3,
   "useFeedBack": true,
-  "faultMaxNum": 0,
+  "faultMaxNum": 2,
   "useExampleTestPlan": false,
-  "testingMode": 0,
-  "startUpOneCluster": true,
+  "testingMode": 4,
+  "startUpClusterForDebugging": false,
   "debug": false,
   "collUpFeedBack": true 
   

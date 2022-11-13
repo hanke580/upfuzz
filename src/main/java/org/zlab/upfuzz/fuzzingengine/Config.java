@@ -84,7 +84,7 @@ public class Config {
         public boolean enableStateComp = false;
 
         // Debug option
-        public boolean startUpOneCluster = false;
+        public boolean startUpClusterForDebugging = false;
         public boolean useExampleTestPlan = false;
         public boolean debug = false;
 

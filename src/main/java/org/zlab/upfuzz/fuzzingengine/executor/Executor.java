@@ -299,7 +299,7 @@ public abstract class Executor implements IExecutor {
             for (String agentId : agentIdList) {
                 if (agentId.split("-")[3].equals("null"))
                     continue;
-                logger.info("collect conn " + agentId);
+                // logger.info("collect conn " + agentId);
                 AgentServerHandler conn = agentHandler.get(agentId);
                 if (conn != null) {
                     agentStore.remove(agentId);
@@ -315,14 +315,15 @@ public abstract class Executor implements IExecutor {
             for (String agentId : agentIdList) {
                 if (agentId.split("-")[3].equals("null"))
                     continue;
-                logger.info("get coverage from " + agentId);
+                // logger.info("get coverage from " + agentId);
                 ExecutionDataStore astore = agentStore.get(agentId);
                 if (astore == null) {
-                    logger.info("no data");
+                    // logger.info("no data");
                 } else {
                     executionDataStores[Integer.parseInt(agentId.split("-")[2])]
                             .merge(astore);
-                    logger.trace("astore size: " + astore.getContents().size());
+                    // logger.trace("astore size: " +
+                    // astore.getContents().size());
                 }
             }
             return executionDataStores;

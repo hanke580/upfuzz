@@ -81,7 +81,7 @@ public abstract class DockerMeta {
             throws IOException {
         String[] dockerCMD = Utilities.concatArray(
                 new String[] { "docker", "exec", containerName }, cmd);
-        logger.debug(String.join(" ", dockerCMD));
+        // logger.debug(String.join(" ", dockerCMD));
         return Utilities.exec(dockerCMD, workdir);
     }
 
@@ -96,7 +96,7 @@ public abstract class DockerMeta {
     }
 
     public boolean copyConfig(Path configPath) throws IOException {
-        logger.info("[HKLOG] copying config");
+
         Path oriConfigPath = configPath.resolve("oriconfig");
         Path upConfigPath = configPath.resolve("upconfig");
 

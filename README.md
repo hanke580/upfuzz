@@ -142,7 +142,7 @@ Make sure `docker` and `docker-compose` is correctly installed.
   "faultMaxNum": 2,
   "useExampleTestPlan": false,
   "testingMode": 4,
-  "startUpOneCluster": true,
+  "startUpClusterForDebugging": false,
   "debug": false,
   "collUpFeedBack": true
 }

@@ -137,8 +137,8 @@ public class AgentServerHandler
         if (!registered) {
             register(info);
         } else {
-            logger.debug("Retrieving execution Data for session: " +
-                    info.getId());
+            // logger.debug("Retrieving execution Data for session: " +
+            // info.getId());
         }
         // synchronized (fileWriter) {
         // fileWriter.visitSessionInfo(info);

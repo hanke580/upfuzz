@@ -191,7 +191,7 @@ public class YamlGenerator extends ConfigFileGenerator {
             return Long.parseLong(val);
         }
         default: {
-            logger.info("special type " + type);
+            // logger.info("special type " + type);
             return val;
         }
         }

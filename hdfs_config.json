@@ -12,7 +12,7 @@
   "faultMaxNum": 3,
   "useExampleTestPlan": false,
   "testingMode": 4,
-  "startUpOneCluster": false,
+  "startUpClusterForDebugging": false,
   "debug": false,
   "collUpFeedBack": true 
 }

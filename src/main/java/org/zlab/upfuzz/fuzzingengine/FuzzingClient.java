@@ -91,8 +91,9 @@ public class FuzzingClient {
         initExecutor(stackedTestPacket.nodeNum, null, configPath);
         startUpExecutor();
 
-        if (Config.getConf().startUpOneCluster) {
-            logger.info("Start up a cluster and leave it for debugging");
+        if (Config.getConf().startUpClusterForDebugging) {
+            logger.info(
+                    "Start up a cluster and leave it for debugging: This is not testing mode! Please set this startUpClusterForDebugging to false for real testing mode");
             try {
                 Thread.sleep(1800 * 1000);
             } catch (InterruptedException e) {
@@ -367,8 +368,9 @@ public class FuzzingClient {
         // Then we return the feedback packet
         boolean status = executor.execute(testPlanPacket.getTestPlan());
 
-        if (Config.getConf().startUpOneCluster) {
-            logger.info("Start up a cluster and leave it for debugging");
+        if (Config.getConf().startUpClusterForDebugging) {
+            logger.info(
+                    "Start up a cluster and leave it for debugging: This is not testing mode! Please set this startUpClusterForDebugging to false for real testing mode");
             try {
                 Thread.sleep(1800 * 1000);
             } catch (InterruptedException e) {
