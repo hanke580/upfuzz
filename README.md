@@ -66,9 +66,9 @@ for the upgrade process.
 
 ### Prerequisite
 
-We implemented a static analysis tool [diffchecker](https://github.com/hanke580/diffchecker) to capture interesting configurations.
+We implemented a static analysis tool [diffchecker](https://github.com/hanke580/diffchecker) to detect configurations that are likely to induce upgrade failures.
 
-We need to use diffchecker to find all the interesting configurations and then feed them to upfuzz so that upfuzz can generate them at runtime.
+We need to use diffchecker to find all such configurations and then feed them to upfuzz so that upfuzz can generate them at runtime.
 
 #### Get configurations
 
@@ -89,12 +89,12 @@ mkdir src/main/resources/symbolic_link
 Example
 ```bash
 cd ~
-git clone --recursive https://github.com/apache/cassandra.git ~/cassandra1
-git clone --recursive https://github.com/apache/cassandra.git ~/cassandra2
+git clone --recursive https://github.com/apache/cassandra.git ~/cassandra_old
+git clone --recursive https://github.com/apache/cassandra.git ~/cassandra_new
 
 cd ${DIFFCHECKER}/src/main/resources/symbolic_link
-ln -s ~/cassandra1
-ln -s ~/cassandra2
+ln -s ~/cassandra_old
+ln -s ~/cassandra_new
 ```
 
 4. Run the diffcheck to get the target configurations
@@ -106,7 +106,7 @@ java -jar target/diffchecker-1.0-SNAPSHOT-shaded.jar -p cassandra1 -np cassandra
 java -jar target/diffchecker-1.0-SNAPSHOT-shaded.jar -p cassandra1 -np cassandra2 --type config --action common --configpath conf
 ```
 
-This will generate configurations and their type in json. **Later we will move these files to the upfuzz repo**
+This will generate configurations and their type in json (the above two commands generate different json files and do not overwrite each other's result). **Later we will move these files to the upfuzz repo**
 
 ```bash
 ➜  diffchecker git:(main) ✗ ls configInfo
@@ -132,10 +132,10 @@ Make sure `docker` and `docker-compose` is correctly installed.
 {
   "originalVersion" : "apache-cassandra-3.11.13",
   "upgradedVersion" : "apache-cassandra-4.0.0",
-  "system" : "cassandra"
+  "system" : "cassandra",
   "serverPort" : "6399",
   "clientPort" : "6400",
-  "initSeedDir" : "/project/upfuzz/initSeedDir",
+  "initSeedDir" : "/path/to/upfuzz/initSeedDir", 
   "STACKED_TESTS_NUM" : "20",
   "nodeNum": 4,
   "useFeedBack": true,
@@ -148,6 +148,8 @@ Make sure `docker` and `docker-compose` is correctly installed.
 }
 
 ```
+
+Note that you need to create the initSeedDir directory under upfuzz/ and the initSeedDir needs to be an absolute path. 
 
 3. Create a configInfo directory,
 ```bash
@@ -207,7 +209,7 @@ prebuild
    version that the Cassandra supports. Cassandra-3.x still uses python2. You need
    to **change the name** to `cqlsh_daemon.py`.
 
-E.g. If you are testing Cassandra 3.11
+E.g. If you are testing Cassandra 3.11 (pwd=/path/to/upfuzz/)
 ```bash
 cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-3.11.13/bin/cqlsh_daemon.py
 cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-4.0.0/bin/cqlsh_daemon.py
@@ -225,13 +227,13 @@ ORG_VERSION=apache-cassandra-3.11.13
 UPG_VERSION=apache-cassandra-4.0.0
 ```
 
-Then build the docker image
+Then build the docker image (pwd=/path/to/upfuzz/)
 ```bash
 cd src/main/resources/cassandra/cassandra-3.11.13/compile-src/
 docker build . -t upfuzz_cassandra:apache-cassandra-3.11.13_apache-cassandra-4.0.0
 ```
 
-7. Compile the project.
+7. Compile the project. (pwd=/path/to/upfuzz/)
 ```bash
 ./gradlew copyDependencies
 ./gradlew build
@@ -250,7 +252,7 @@ may run the spotless Apply to format the code
 ./gradlew :spotlessApply
 ```
 
-8. Start testing.
+8. Start testing. (pwd=/path/to/upfuzz/)
 
 There are two scripts `start_server.sh` and `start_client.sh`. You can start up clients with this script.
 
