@@ -43,13 +43,14 @@ public class ConfigValGenerator {
         this.enumName2ConstantMap = enumName2ConstantMap;
     }
 
-    public Map<String, String> generateSizeValues() {
+    /**
+     * If config name contains size, we shrink it, othersize,
+     * we generate them as usual
+     */
+    public Map<String, String> generateValuesShrinkSize() {
         Map<String, String> config2Value = new HashMap<>();
 
         for (String config : configs) {
-            if (!config.toLowerCase().contains("size"))
-                continue;
-
             if (configName2Type.containsKey(config)) {
                 String val;
                 String type = configName2Type.get(config);
@@ -59,7 +60,10 @@ public class ConfigValGenerator {
                     val = generateValue(type, initValue,
                             enumName2ConstantMap.get(type));
                 } else {
-                    val = generateSizeValue(type, initValue);
+                    if (config.toLowerCase().contains("size"))
+                        val = generateSizeValue(type, initValue);
+                    else
+                        val = generateValue(type, initValue);
                 }
                 if (val != null) {
                     config2Value.put(config, val);
@@ -75,9 +79,7 @@ public class ConfigValGenerator {
             if (configName2Type.containsKey(config)) {
                 String val;
                 String type = configName2Type.get(config);
-
                 String initValue = config2Init.get(config);
-
                 if (enumName2ConstantMap != null
                         && enumName2ConstantMap.containsKey(type)) {
                     val = generateValue(type, initValue,

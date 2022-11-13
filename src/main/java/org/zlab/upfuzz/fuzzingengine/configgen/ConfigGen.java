@@ -24,6 +24,9 @@ public class ConfigGen {
     Map<String, String> addedConfig2Init;
     Map<String, List<String>> addedEnumName2ConstantMap;
 
+    ConfigValGenerator commonConfigValGenerator;
+    ConfigValGenerator addedConfigValGenerator;
+
     ObjectMapper mapper = new ObjectMapper();
 
     public ConfigGen() {
@@ -83,6 +86,14 @@ public class ConfigGen {
             throw new RuntimeException("missing configuration test files!");
         }
 
+        commonConfigValGenerator = new ConfigValGenerator(commonConfig,
+                commonConfigName2Type, commonConfig2Init,
+                commonEnumName2ConstantMap);
+
+        addedConfigValGenerator = new ConfigValGenerator(addedConfig,
+                addedConfigName2Type, addedConfig2Init,
+                addedEnumName2ConstantMap);
+
         switch (Config.getConf().system) {
         case "cassandra": {
             Path defaultConfigPath = Paths.get(oldVersionPath.toString(),
@@ -118,9 +129,8 @@ public class ConfigGen {
 
         if (Config.getConf().testCommonConfig) {
 
-            Map<String, String> commonConfigTest = generateTest(commonConfig,
-                    commonConfigName2Type, commonConfig2Init,
-                    commonEnumName2ConstantMap);
+            Map<String, String> commonConfigTest = commonConfigValGenerator
+                    .generateValuesShrinkSize();
 
             Map<String, String> filteredCommonConfigTest = new HashMap<>();
             for (String key : commonConfigTest.keySet()) {
@@ -138,9 +148,8 @@ public class ConfigGen {
 
         if (Config.getConf().testAddedConfig) {
 
-            Map<String, String> addedConfigTest = generateTest(addedConfig,
-                    addedConfigName2Type, addedConfig2Init,
-                    addedEnumName2ConstantMap);
+            Map<String, String> addedConfigTest = addedConfigValGenerator
+                    .generateValues();
 
             Map<String, String> filteredCommonConfigTest = new HashMap<>();
             for (String key : addedConfigTest.keySet()) {
@@ -157,12 +166,4 @@ public class ConfigGen {
                 upConfigtest, upConfig2Type);
     }
 
-    public Map<String, String> generateTest(Set<String> config,
-            Map<String, String> configName2Type,
-            Map<String, String> config2Init,
-            Map<String, List<String>> enumName2ConstantMap) {
-        ConfigValGenerator configValGenerator = new ConfigValGenerator(config,
-                configName2Type, config2Init, enumName2ConstantMap);
-        return configValGenerator.generateValues();
-    }
 }

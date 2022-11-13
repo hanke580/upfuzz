@@ -46,7 +46,7 @@ public class YamlGenerator extends ConfigFileGenerator {
             for (String key : key2vals.keySet()) {
                 if (!key2type.containsKey(key)) {
                     throw new RuntimeException(
-                            String.format("key %s do not have a type"));
+                            String.format("key %s do not have a type", key));
                 }
             }
 
@@ -65,7 +65,7 @@ public class YamlGenerator extends ConfigFileGenerator {
             for (String key : newkey2vals.keySet()) {
                 if (!newkey2type.containsKey(key)) {
                     throw new RuntimeException(
-                            String.format("key %s do not have a type"));
+                            String.format("key %s do not have a type", key));
                 }
             }
 
@@ -109,16 +109,16 @@ public class YamlGenerator extends ConfigFileGenerator {
 
         if (maps != null) {
 
-            for (Map.Entry<String, Object> entry : key2valObj.entrySet()) {
-                for (Object o : maps) {
-                    LinkedHashMap<Object, Object> propertyList = (LinkedHashMap<Object, Object>) o;
+            for (Object o : maps) {
+                LinkedHashMap<Object, Object> propertyList = (LinkedHashMap<Object, Object>) o;
+                for (Map.Entry<String, Object> entry : key2valObj.entrySet()) {
                     boolean status = iterateYAML(propertyList, entry.getKey(),
                             entry.getValue());
                     if (!status) {
                         propertyList.put(entry.getKey(), entry.getValue());
                     }
-                    data.add(o);
                 }
+                data.add(propertyList);
             }
         }
         FileWriter writer;
