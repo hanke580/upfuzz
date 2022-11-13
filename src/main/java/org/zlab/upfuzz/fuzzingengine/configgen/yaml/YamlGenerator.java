@@ -97,7 +97,7 @@ public class YamlGenerator extends ConfigFileGenerator {
 
     public void writeYAMLFile(
             Path srcPath, Path savePath, Map<String, Object> key2valObj) {
-        logger.info("parsing yaml file: " + srcPath);
+        // logger.info("parsing yaml file: " + srcPath);
 
         List<Object> data = new LinkedList<>();
         Iterable<Object> maps = null;
