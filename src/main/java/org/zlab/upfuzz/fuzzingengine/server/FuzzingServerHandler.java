@@ -94,6 +94,13 @@ public class FuzzingServerHandler implements Runnable {
             FullStopFeedbackPacket fullStopFeedbackPacket = FullStopFeedbackPacket
                     .read(in);
             fuzzingServer.updateStatus(fullStopFeedbackPacket);
+        } else if (intType == -1) {
+            // do nothing, null packet
+            logger.error(
+                    "cluster start up problem, empty packet. The generated test configurations might be wrong");
+        } else {
+            logger.error(
+                    "Cannot recognize type " + intType);
         }
     }
 

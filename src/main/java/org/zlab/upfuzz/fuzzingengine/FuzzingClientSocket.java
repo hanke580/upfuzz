@@ -48,6 +48,8 @@ class FuzzingClientSocket implements Runnable {
                 intType = in.readInt();
                 System.out.println("intType = " + intType);
                 Packet.PacketType type = Packet.PacketType.values()[intType];
+                Packet feedBackPacket = null;
+
                 switch (type) {
                 // Now there's only StackedFeedbackPacket, there'll be
                 // rolling upgrade instructions when testing rolling
@@ -56,44 +58,38 @@ class FuzzingClientSocket implements Runnable {
                     // Run executor
                     StackedTestPacket stackedTestPacket = StackedTestPacket
                             .read(in);
-                    StackedFeedbackPacket stackedFeedbackPacket = fuzzingClient
-                            .executeStackedTestPacket(
-                                    stackedTestPacket);
-                    logger.debug(
-                            "[Client] Writing stacked feedback packet back to server");
-
-                    logger.debug("[Client] fp size = "
-                            + stackedFeedbackPacket.size());
-                    stackedFeedbackPacket.write(out);
+                    feedBackPacket = fuzzingClient
+                            .executeStackedTestPacket(stackedTestPacket);
                     break;
                 }
                 case FullStopPacket: {
                     FullStopPacket fullStopPacket = FullStopPacket.read(in);
-                    FullStopFeedbackPacket fullStopFeedbackPacket = fuzzingClient
+                    feedBackPacket = fuzzingClient
                             .executeFullStopPacket(fullStopPacket);
-                    fullStopFeedbackPacket.write(out);
-                    logger.debug(
-                            "[Client] Writing fullstop fb packet back to server");
                     break;
                 }
                 case TestPlanPacket: {
                     TestPlanPacket testPlanPacket = TestPlanPacket.read(in);
-                    TestPlanFeedbackPacket testPlanFeedbackPacket = fuzzingClient
+                    feedBackPacket = fuzzingClient
                             .executeTestPlanPacket(testPlanPacket);
-                    testPlanFeedbackPacket.write(out);
-                    logger.info(
-                            "[Client] Writing testplan feedback packet to server");
                     break;
                 }
                 case MixedTestPacket: {
                     MixedTestPacket mixedTestPacket = MixedTestPacket.read(in);
-                    MixedFeedbackPacket mixedFeedbackPacket = fuzzingClient
+                    feedBackPacket = fuzzingClient
                             .executeMixedTestPacket(mixedTestPacket);
-                    mixedFeedbackPacket.write(out);
-                    logger.info(
-                            "[Client] Writing mixed test feedback packet to server");
                     break;
                 }
+                }
+
+                if (feedBackPacket == null) {
+                    logger.debug(
+                            "[Client] Old version cluster startup problem");
+                    out.writeInt(-1);
+                } else {
+                    feedBackPacket.write(out);
+                    logger.debug(
+                            "[Client] Writing feedback packet back to server");
                 }
                 readHeader();
             } catch (Exception e) {

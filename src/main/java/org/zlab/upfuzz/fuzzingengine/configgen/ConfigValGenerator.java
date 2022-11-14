@@ -2,6 +2,7 @@ package org.zlab.upfuzz.fuzzingengine.configgen;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.zlab.upfuzz.utils.Utilities;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -13,6 +14,9 @@ public class ConfigValGenerator {
             .getLogger(ConfigValGenerator.class);
 
     public static final Random rand = new Random();
+
+    public static final double SHRINKRATIO = 0.3; // shrink size by 0.3 *
+                                                  // size_default
 
     // Input: configName, configName2Type, configName2Init,
     // Enum: enumName2Constants
@@ -111,7 +115,7 @@ public class ConfigValGenerator {
         case "long":
         case "Long": {
             // generate some int values
-            vals.add("0");
+            // vals.add("0");
             vals.add("1");
             if (init != null) {
                 Integer initVal;
@@ -120,16 +124,18 @@ public class ConfigValGenerator {
                     // can generate values using default
                     for (int i = 0; i < SIZE_TEST_NUM; i++) {
                         vals.add(String
-                                .valueOf(rand.nextInt((int) (0.1 * initVal))));
+                                .valueOf(rand.nextInt(
+                                        (int) (SHRINKRATIO * initVal))));
                     }
                 } catch (Exception e) {
                     // cannot use default value
                 }
             }
+            vals.removeAll(Collections.singleton("0"));
             break;
         }
         case "double": {
-            vals.add("0");
+            // vals.add("0");
             vals.add("1");
             double val = rand.nextDouble();
             Double truncVal = BigDecimal.valueOf(val)
@@ -141,7 +147,8 @@ public class ConfigValGenerator {
                     initVal = Double.parseDouble(init);
                     // can generate values using default
                     for (int i = 0; i < SIZE_TEST_NUM; i++) {
-                        val = 0.1 * initVal * rand.nextDouble();
+                        val = Utilities.randDouble(rand, 0.,
+                                SHRINKRATIO * initVal);
                         truncVal = BigDecimal.valueOf(val)
                                 .setScale(2, RoundingMode.HALF_UP)
                                 .doubleValue();
@@ -151,12 +158,13 @@ public class ConfigValGenerator {
                     // cannot use default value
                 }
             }
+            vals.removeAll(Collections.singleton("0.0"));
             break;
         }
         }
 
         if (vals.isEmpty()) {
-            logger.error("cannot generate value");
+            // logger.error("cannot generate value");
             return null;
         }
 
@@ -186,7 +194,7 @@ public class ConfigValGenerator {
         case "long":
         case "Long": {
             // generate some int values
-            vals.add("0");
+            // vals.add("0");
             vals.add("1");
             if (init != null) {
                 Integer initVal;
@@ -203,10 +211,11 @@ public class ConfigValGenerator {
             for (int i = 0; i < TEST_NUM; i++) {
                 vals.add(String.valueOf(rand.nextInt(MAX_INT)));
             }
+            vals.removeAll(Collections.singleton("0"));
             break;
         }
         case "double": {
-            vals.add("0");
+            // vals.add("0");
             vals.add("1");
             if (init != null) {
                 Double initVal = null;
@@ -214,7 +223,8 @@ public class ConfigValGenerator {
                     initVal = Double.parseDouble(init);
                     // can generate values using default
                     for (int i = 0; i < TEST_NUM; i++) {
-                        Double val = 2 * initVal * rand.nextDouble();
+                        Double val = Utilities.randDouble(rand, 0.,
+                                2 * initVal);
                         Double truncVal = BigDecimal.valueOf(val)
                                 .setScale(2, RoundingMode.HALF_UP)
                                 .doubleValue();
@@ -231,6 +241,7 @@ public class ConfigValGenerator {
                         .setScale(2, RoundingMode.HALF_UP).doubleValue();
                 vals.add(String.valueOf(truncVal));
             }
+            vals.removeAll(Collections.singleton("0.0"));
             break;
         }
         case "String": {

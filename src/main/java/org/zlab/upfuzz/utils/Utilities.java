@@ -583,4 +583,11 @@ public class Utilities {
         return decodedString;
     }
 
+    public static Double randDouble(Random rand, Double rangeMin,
+            Double rangeMax) {
+        double randomValue = rangeMin
+                + (rangeMax - rangeMin) * rand.nextDouble();
+        return randomValue;
+    }
+
 }

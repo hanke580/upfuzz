@@ -23,6 +23,7 @@ public abstract class Packet {
     }
 
     public enum PacketType {
+        // -1 is reserved as a null packet
         RegisterPacket(0), StackedTestPacket(1), StackedFeedbackPacket(
                 2), FeedbackPacket(3), TestPlanPacket(
                         4), TestPlanFeedbackPacket(5), MixedTestPacket(

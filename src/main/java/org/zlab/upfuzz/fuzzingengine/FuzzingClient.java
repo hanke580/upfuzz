@@ -24,7 +24,7 @@ public class FuzzingClient {
     public Path configDirPath;
 
     // If the cluster cannot start up for 3 times, it's serious
-    int CLUSTER_START_RETRY = 3;
+    int CLUSTER_START_RETRY = 1; // stop retry for now
 
     FuzzingClient() {
         // FIX orphan process
@@ -94,7 +94,7 @@ public class FuzzingClient {
 
         boolean startUpStatus = startUpExecutor();
         if (!startUpStatus) {
-            return new StackedFeedbackPacket();
+            return null;
         }
 
         if (Config.getConf().startUpClusterForDebugging) {
@@ -249,7 +249,10 @@ public class FuzzingClient {
         // Start up
         initExecutor(nodeNum,
                 fullStopPacket.fullStopUpgrade.targetSystemStates, null);
-        startUpExecutor();
+        boolean startUpStatus = startUpExecutor();
+        if (!startUpStatus) {
+            return null;
+        }
 
         // Execute
         executor.executeCommands(fullStopPacket.fullStopUpgrade.commands);
@@ -367,7 +370,10 @@ public class FuzzingClient {
 
         initExecutor(testPlanPacket.getNodeNum(), targetSystemStates,
                 configPath);
-        startUpExecutor();
+        boolean startUpStatus = startUpExecutor();
+        if (!startUpStatus) {
+            return null;
+        }
 
         // TestPlan only contains one test sequence
         // We need to compare the results between two versions for once
@@ -485,7 +491,11 @@ public class FuzzingClient {
         logger.info("[HKLOG] configPath = " + configPath);
 
         initExecutor(nodeNum, null, configPath);
-        startUpExecutor();
+
+        boolean startUpStatus = startUpExecutor();
+        if (!startUpStatus) {
+            return null;
+        }
 
         Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();
         Map<Integer, List<String>> testID2oriResults = new HashMap<>();
