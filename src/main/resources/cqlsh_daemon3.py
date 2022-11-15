@@ -11,6 +11,8 @@ import csv
 import codecs
 import socket
 
+import base64
+
 from six import StringIO
 
 from cqlsh import (
@@ -200,11 +202,17 @@ class TCPHandler(socketserver.BaseRequestHandler):
                 start_time = time.time()
                 ret = self.shell.onecmd(cmd)
                 end_time = time.time()
+                
+                terminal_output = self.stdout_buffer.getvalue().replace('\0', '')
+                message_bytes = terminal_output.encode('ascii')
+                base64_bytes = base64.b64encode(message_bytes)
+                base64_message = base64_bytes.decode('ascii')
+                
                 resp = {
                     "cmd": cmd,
                     "exitValue": 0 if ret == True else 1,
                     "timeUsage": end_time - start_time,
-                    "message": self.stdout_buffer.getvalue(),
+                    "message": base64_message,
                     "error": self.stderr_buffer.getvalue(),
                 }
                 self.stdout_buffer.truncate(0)

@@ -14,8 +14,6 @@ from six import StringIO
 
 import base64
 
-
-
 CASSANDRA_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
 
 print("CASSANDRA PATH = " + CASSANDRA_PATH)
@@ -213,20 +211,16 @@ class TCPHandler(socketserver.BaseRequestHandler):
                 if not self.data:
                     exit(0)
 
-
                 cmd = self.data.decode("ascii")
 
                 start_time = time.time()
                 ret = self.shell.onecmd(cmd)
                 end_time = time.time()
                 
-                terminal_output = self.stdout_buffer.getvalue();
-                terminal_output = terminal_output.replace('\0', '')
-
+                terminal_output = self.stdout_buffer.getvalue().replace('\0', '')
                 message_bytes = terminal_output.encode('ascii')
                 base64_bytes = base64.b64encode(message_bytes)
                 base64_message = base64_bytes.decode('ascii')
-                
 
                 resp = {
                     "cmd": cmd,
