@@ -121,6 +121,7 @@ public class CassandraDocker extends Docker {
         try {
             int main_version = Integer
                     .parseInt(spStrings[spStrings.length - 1].substring(0, 1));
+            logger.debug("[HKLOG] upgrade main version = " + main_version);
             if (main_version > 3)
                 pythonVersion = "python3";
         } catch (Exception e) {
@@ -157,7 +158,7 @@ public class CassandraDocker extends Docker {
         cqlshDaemonPort ^= 1;
 
         String pythonVersion = "python2";
-        String[] spStrings = originalVersion.split("-");
+        String[] spStrings = upgradedVersion.split("-");
         try {
             int main_version = Integer
                     .parseInt(spStrings[spStrings.length - 1].substring(0, 1));

@@ -257,6 +257,13 @@ public class CassandraCqlshDaemon {
                     + cqlshMessage);
         }
 
+        // logger.info("before decode: " + cqlshPacket.message);
+        cqlshPacket.message = Utilities.decodeString(cqlshPacket.message)
+                .replace("\0", "");
+        // logger.info("after decode: " + cqlshPacket.message);
+
+        // logger.info("value size = " + cqlshPacket.message.length());
+
         // logger.info(
         // "CqlshMessage:\n" +
         // new GsonBuilder().setPrettyPrinting().create()

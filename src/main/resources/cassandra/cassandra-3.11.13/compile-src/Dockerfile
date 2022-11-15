@@ -37,6 +37,8 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 # RUN ant
 # COPY cqlsh_daemon.py /cassandra/bin/cqlsh_daemon.py
 COPY cqlsh_init.sh /cassandra/cqlsh_init.sh
+
+RUN pip3 install cassandra-driver
 # This file contains relatively permanent configurations.
 # ADD cass-setup.sh /usr/local/bin/cass-setup.sh
 # RUN sh /usr/local/bin/cass-setup.sh
