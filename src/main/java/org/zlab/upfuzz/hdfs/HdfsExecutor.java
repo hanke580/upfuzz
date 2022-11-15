@@ -135,7 +135,7 @@ public class HdfsExecutor extends Executor {
     @Override
     public String execShellCommand(ShellCommand command) {
         // execute with HDFS
-        String ret;
+        String ret = "null cp message";
         try {
             // Cannot perform test plan
             // We shouldn't crash nn
@@ -160,10 +160,12 @@ public class HdfsExecutor extends Executor {
                         "Command is sent to node[%d], exec time: %ds",
                         nodeIndex, timeElapsed));
             }
-            ret = cp.message;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+            if (cp != null) {
+                ret = cp.message;
+            }
+        } catch (Exception e) {
+            logger.error(e);
+            ret = "shell daemon execution problem " + e;
         }
         return ret;
     }

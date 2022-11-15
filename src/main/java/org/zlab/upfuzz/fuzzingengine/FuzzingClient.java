@@ -58,15 +58,14 @@ public class FuzzingClient {
     public boolean startUpExecutor() {
         for (int i = 0; i < CLUSTER_START_RETRY; i++) {
             try {
-                boolean status = executor.startup();
-                if (status)
+                if (executor.startup())
                     return true;
             } catch (Exception e) {
                 e.printStackTrace();
-                executor.teardown();
             }
+            executor.teardown();
         }
-        logger.error("cluster cannot start up");
+        logger.error("original version cluster cannot start up");
         return false;
     }
 

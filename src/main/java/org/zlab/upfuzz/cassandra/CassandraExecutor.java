@@ -134,7 +134,7 @@ public class CassandraExecutor extends Executor {
 
     @Override
     public String execShellCommand(ShellCommand command) {
-        String ret;
+        String ret = "null cp message";
         try {
             // We update the cqlsh each time
             // (1) Try to find a working cqlsh
@@ -165,10 +165,12 @@ public class CassandraExecutor extends Executor {
                         cqlshNodeIndex, timeElapsed));
             }
 
-            ret = cp.message;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+            if (cp != null) {
+                ret = cp.message;
+            }
+        } catch (Exception e) {
+            logger.error(e);
+            ret = "shell daemon execution problem " + e;
         }
         return ret;
     }
@@ -192,6 +194,7 @@ public class CassandraExecutor extends Executor {
         } else {
             boolean ret = true;
             for (int i = 0; i < oriResult.size(); i++) {
+                // What should we do if
                 if (oriResult.get(i).compareTo(upResult.get(i)) != 0) {
 
                     // SyntaxException

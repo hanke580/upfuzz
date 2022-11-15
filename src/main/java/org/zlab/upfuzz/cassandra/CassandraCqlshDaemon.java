@@ -214,7 +214,7 @@ public class CassandraCqlshDaemon {
         }
     }
 
-    public CqlshPacket execute(String cmd) throws IOException {
+    public CqlshPacket execute(String cmd) throws Exception {
         BufferedWriter bw = new BufferedWriter(
                 new OutputStreamWriter(socket.getOutputStream()));
 
@@ -248,14 +248,8 @@ public class CassandraCqlshDaemon {
 
         // logger.info("cqlshMessage: " + cqlshMessage);
         CqlshPacket cqlshPacket = null;
-        try {
-            cqlshPacket = gson.fromJson(cqlshMessage,
-                    CqlshPacket.class);
-        } catch (Exception e) {
-            e.printStackTrace();
-            logger.error("ERROR: Cannot read from json\n WRONG_CQLSH MESSAGE: "
-                    + cqlshMessage);
-        }
+        cqlshPacket = gson.fromJson(cqlshMessage,
+                CqlshPacket.class);
 
         // logger.info("before decode: " + cqlshPacket.message);
         cqlshPacket.message = Utilities.decodeString(cqlshPacket.message)
