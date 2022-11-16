@@ -154,7 +154,7 @@ class TCPHandler(object):
             while True:
                 self.data = self.request.recv(51200).strip()
                 if not self.data:
-                    exit(0)
+                    return
 
                 cmd = self.data.decode("ascii")
 

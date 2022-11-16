@@ -195,7 +195,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
             while True:
                 self.data = self.request.recv(51200).strip()
                 if not self.data:
-                    exit(0)
+                    return
 
                 cmd = self.data.decode("ascii")
 
@@ -252,6 +252,7 @@ class Tee(object):
         return self.buffer.getvalue()
 
     def truncate(self, index):
+        self.buffer.seek(index)
         return self.buffer.truncate(index)
 
     def isatty(self):
@@ -276,5 +277,6 @@ if __name__ == "__main__":
         except socket.error as e:
             time.sleep(5)
             print(e)
-        except:
+        except Exception as e:
+            print(e)
             exit()

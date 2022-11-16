@@ -209,7 +209,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
             while True:
                 self.data = self.request.recv(51200).strip()
                 if not self.data:
-                    exit(0)
+                    return
 
                 cmd = self.data.decode("ascii")
 
@@ -217,7 +217,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
                 ret = self.shell.onecmd(cmd)
                 end_time = time.time()
                 
-                terminal_output = self.stdout_buffer.getvalue().replace('\0', '')
+                terminal_output = self.stdout_buffer.getvalue()
                 message_bytes = terminal_output.encode('ascii')
                 base64_bytes = base64.b64encode(message_bytes)
                 base64_message = base64_bytes.decode('ascii')
@@ -266,6 +266,7 @@ class Tee(object):
         return self.buffer.getvalue()
 
     def truncate(self, index):
+        self.buffer.seek(index)
         return self.buffer.truncate(index)
 
     def isatty(self):
@@ -290,5 +291,6 @@ if __name__ == "__main__":
         except socket.error as e:
             time.sleep(5)
             print(e)
-        except:
+        except Exception as e:
+            print(e)
             exit()
