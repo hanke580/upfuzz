@@ -225,7 +225,7 @@ public class CassandraDocker extends Docker {
             + "            ${networkName}:\n"
             + "                ipv4_address: ${networkIP}\n"
             + "        volumes:\n"
-            + "            - ./persistent/node_${index}/data:/var/lib/cassandra\n"
+            // + " - ./persistent/node_${index}/data:/var/lib/cassandra\n"
             + "            - ./persistent/node_${index}/log:/var/log/cassandra\n"
             + "            - ./persistent/node_${index}/env.sh:/usr/bin/set_env\n"
             + "            - ./persistent/node_${index}/consolelog:/var/log/supervisor\n"

@@ -13,14 +13,18 @@ public class FullStopPacket extends Packet {
 
     public String systemID;
     public int testPacketID;
+
+    public String configFileName;
     public FullStopUpgrade fullStopUpgrade;
 
     public FullStopPacket(String systemID, int testPacketID,
+            String configFileName,
             FullStopUpgrade fullStopUpgrade) {
         this.type = PacketType.FullStopPacket;
 
         this.systemID = systemID;
         this.testPacketID = testPacketID;
+        this.configFileName = configFileName;
         this.fullStopUpgrade = fullStopUpgrade;
     }
 

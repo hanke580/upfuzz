@@ -293,7 +293,10 @@ public class CassandraDockerCluster extends DockerCluster {
     public void prepareUpgrade() throws Exception {
         // Flush to disk
         // Find a live node, issue the command to it
+
+        // TODO: All nodes might need a flush...
         int idx = getFirstLiveNodeIdx();
+        logger.info("flush node[%s] to disk", idx);
         if (idx == -1) {
             logger.error("cannot upgrade, all nodes are down");
             throw new RuntimeException(

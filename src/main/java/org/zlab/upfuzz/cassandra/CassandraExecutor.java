@@ -163,6 +163,9 @@ public class CassandraExecutor extends Executor {
                 logger.debug(String.format(
                         "Command is sent to node[%d], exec time: %ds",
                         cqlshNodeIndex, timeElapsed));
+                if (cp != null)
+                    logger.debug(String.format("command = %s, result = %s",
+                            command.getCommand(), cp.message));
             }
 
             if (cp != null) {

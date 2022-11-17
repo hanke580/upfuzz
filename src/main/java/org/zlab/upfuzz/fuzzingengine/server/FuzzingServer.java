@@ -1,6 +1,8 @@
 package org.zlab.upfuzz.fuzzingengine.server;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -166,14 +168,10 @@ public class FuzzingServer {
             assert !stackedTestPackets.isEmpty();
             return stackedTestPackets.poll();
         } else if (Config.getConf().testingMode == 1) {
+            // always execute one test case (to verify whether a bug really
+            // exists)
+            return generateExampleFullStopPacket();
 
-            if (testPlanPackets.isEmpty() && !fuzzTestPlan()) {
-                fuzzFullStopUpgrade();
-                return fullStopPackets.poll();
-            }
-
-            assert !testPlanPackets.isEmpty();
-            return testPlanPackets.poll();
         } else if (Config.getConf().testingMode == 2) {
             return generateMixedTestPacket();
         } else if (Config.getConf().testingMode == 3) {
@@ -335,6 +333,9 @@ public class FuzzingServer {
             Seed seed = Executor.generateSeed(commandPool, stateClass);
 
             if (seed != null) {
+                int configIdx = configGen.generateConfig();
+                String configFileName = "test" + configIdx;
+
                 FullStopUpgrade fullStopUpgrade = new FullStopUpgrade(
                         Config.getConf().nodeNum,
                         seed.originalCommandSequence.getCommandStringList(),
@@ -342,7 +343,7 @@ public class FuzzingServer {
                         targetSystemStates);
                 testID2Seed.put(testID, seed);
                 fullStopPackets.add(new FullStopPacket(Config.getConf().system,
-                        testID++, fullStopUpgrade));
+                        testID++, configFileName, fullStopUpgrade));
             } else {
                 logger.error("Seed is null");
             }
@@ -360,9 +361,11 @@ public class FuzzingServer {
                                     .getCommandStringList(),
                             targetSystemStates);
                     testID2Seed.put(testID, mutateSeed);
+                    int configIdx = configGen.generateConfig();
+                    String configFileName = "test" + configIdx;
                     fullStopPackets
                             .add(new FullStopPacket(Config.getConf().system,
-                                    testID++,
+                                    testID++, configFileName,
                                     fullStopUpgrade));
                 } else {
                     logger.info("Mutation failed");
@@ -465,6 +468,48 @@ public class FuzzingServer {
         testPlanPackets.add(new TestPlanPacket(
                 Config.getConf().system,
                 testID++, generateExampleTestPlan()));
+    }
+
+    public Packet generateExampleFullStopPacket() {
+        Path commandPath = Paths.get(System.getProperty("user.dir"),
+                "examplecase");
+        List<String> commands = readcommands(
+                commandPath.resolve("commands.txt"));
+        List<String> validcommands = readcommands(
+                commandPath.resolve("validcommands.txt"));
+        Set<String> targetSystemStates = new HashSet<>();
+
+        logger.info("commands = " + commands);
+        logger.info("validcommands = " + validcommands);
+
+        FullStopUpgrade fullStopUpgrade = new FullStopUpgrade(
+                Config.getConf().nodeNum,
+                commands,
+                validcommands,
+                targetSystemStates);
+        int configIdx = configGen.generateConfig();
+        String configFileName = "test" + configIdx;
+        FullStopPacket fullStopPacket = new FullStopPacket(
+                Config.getConf().system,
+                testID++, configFileName, fullStopUpgrade);
+        logger.info("config path = " + configFileName);
+        return fullStopPacket;
+    }
+
+    public List<String> readcommands(Path path) {
+        List<String> strings = new LinkedList<>();
+        try {
+            BufferedReader br = new BufferedReader(
+                    new FileReader(path.toFile()));
+            String line;
+            while ((line = br.readLine()) != null) {
+                strings.add(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+        return strings;
     }
 
     public TestPlan generateExampleTestPlan() {
@@ -600,6 +645,8 @@ public class FuzzingServer {
         // Do we utilize the feedback?
         // Do we mutate the test plan?
 
+        logger.info("testplan updating status");
+
         FeedBack fb = mergeCoverage(testPlanFeedbackPacket.feedBacks);
 
         boolean addToCorpus = false;
@@ -649,6 +696,8 @@ public class FuzzingServer {
         upgradedCoveredBranches = curUpCoverageStatus.left;
         upgradedProbeNum = curUpCoverageStatus.right;
 
+        logger.info("testplan updating status increasing finish test id");
+
         finishedTestID++;
 
         printInfo();
@@ -657,6 +706,7 @@ public class FuzzingServer {
 
     public synchronized void updateStatus(
             StackedFeedbackPacket stackedFeedbackPacket) {
+        logger.info("stackedFeedbackPacket updating status");
         if (stackedFeedbackPacket.isUpgradeProcessFailed) {
             // Write Bug report (Upgrade Process Failure)
             Path crashSubDir = createCrashSubDir();
@@ -666,66 +716,73 @@ public class FuzzingServer {
                     "crash.report");
             Utilities.write2TXT(crashReport.toFile(), upgradeFailureReport,
                     false);
-            crashID++;
-        }
-
-        logger.info("update Status");
-
-        FuzzingServerHandler.printClientNum();
-
-        logger.info("fp size = " + stackedFeedbackPacket.getFpList().size());
-
-        Path crashSubDir = null;
-        for (FeedbackPacket feedbackPacket : stackedFeedbackPacket
-                .getFpList()) {
             finishedTestID++;
-            if (Config.getConf().useFeedBack) {
-                boolean addToCorpus = false;
-                // Merge all the feedbacks
-                FeedBack fb = mergeCoverage(feedbackPacket.feedBacks);
-                if (Utilities.hasNewBits(
-                        curOriCoverage,
-                        fb.originalCodeCoverage)) {
-                    // Write Seed to Disk + Add to Corpus
-                    curOriCoverage.merge(
-                            fb.originalCodeCoverage);
-                    addToCorpus = true;
-                }
-                if (Utilities.hasNewBits(curUpCoverage,
-                        fb.upgradedCodeCoverage)) {
-                    curUpCoverage.merge(
-                            fb.upgradedCodeCoverage);
-                    addToCorpus = true;
-                }
-                if (addToCorpus) {
-                    Seed seed = testID2Seed.get(feedbackPacket.testPacketID);
-                    Fuzzer.saveSeed(seed.originalCommandSequence,
-                            seed.validationCommandSequnece);
-                    corpus.addSeed(seed);
+            crashID++;
+        } else {
+            logger.info("update Status");
 
+            FuzzingServerHandler.printClientNum();
+
+            logger.info(
+                    "fp size = " + stackedFeedbackPacket.getFpList().size());
+
+            Path crashSubDir = null;
+            for (FeedbackPacket feedbackPacket : stackedFeedbackPacket
+                    .getFpList()) {
+                logger.info(
+                        "stackedFeedbackPacket updating status: increase finishID");
+
+                finishedTestID++;
+                if (Config.getConf().useFeedBack) {
+                    boolean addToCorpus = false;
+                    // Merge all the feedbacks
+                    FeedBack fb = mergeCoverage(feedbackPacket.feedBacks);
+                    if (Utilities.hasNewBits(
+                            curOriCoverage,
+                            fb.originalCodeCoverage)) {
+                        // Write Seed to Disk + Add to Corpus
+                        curOriCoverage.merge(
+                                fb.originalCodeCoverage);
+                        addToCorpus = true;
+                    }
+                    if (Utilities.hasNewBits(curUpCoverage,
+                            fb.upgradedCodeCoverage)) {
+                        curUpCoverage.merge(
+                                fb.upgradedCodeCoverage);
+                        addToCorpus = true;
+                    }
+                    if (addToCorpus) {
+                        Seed seed = testID2Seed
+                                .get(feedbackPacket.testPacketID);
+                        Fuzzer.saveSeed(seed.originalCommandSequence,
+                                seed.validationCommandSequnece);
+                        corpus.addSeed(seed);
+
+                    }
                 }
+
+                if (!stackedFeedbackPacket.isUpgradeProcessFailed &&
+                        feedbackPacket.isInconsistent) {
+                    // Write Bug report (Inconsistency)
+                    if (crashSubDir == null) {
+                        crashSubDir = createCrashSubDir();
+                    }
+
+                    String sb = "";
+                    sb += "Result Inconsistency between two versions\n";
+                    sb += feedbackPacket.inconsistencyReport;
+                    Path crashReport = Paths.get(
+                            crashSubDir.toString(),
+                            "crash_" + feedbackPacket.testPacketID + ".report");
+
+                    // FIXME: Uncomment this when the results lost problem is
+                    // fixed
+                    Utilities.write2TXT(crashReport.toFile(), sb, false);
+                    crashID++;
+                }
+                // Remove the seed from the waiting list
+                testID2Seed.remove(feedbackPacket.testPacketID);
             }
-
-            if (!stackedFeedbackPacket.isUpgradeProcessFailed &&
-                    feedbackPacket.isInconsistent) {
-                // Write Bug report (Inconsistency)
-                if (crashSubDir == null) {
-                    crashSubDir = createCrashSubDir();
-                }
-
-                String sb = "";
-                sb += "Result Inconsistency between two versions\n";
-                sb += feedbackPacket.inconsistencyReport;
-                Path crashReport = Paths.get(
-                        crashSubDir.toString(),
-                        "crash_" + feedbackPacket.testPacketID + ".report");
-
-                // FIXME: Uncomment this when the results lost problem is fixed
-                Utilities.write2TXT(crashReport.toFile(), sb, false);
-                crashID++;
-            }
-            // Remove the seed from the waiting list
-            testID2Seed.remove(feedbackPacket.testPacketID);
         }
 
         // Update the coveredBranches to the newest value

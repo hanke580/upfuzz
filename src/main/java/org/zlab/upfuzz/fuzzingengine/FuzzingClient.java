@@ -245,9 +245,12 @@ public class FuzzingClient {
                 fullStopPacket.systemID, nodeNum,
                 fullStopPacket.testPacketID, feedBacks, null);
 
+        logger.info("[HKLOG] configPath = " + fullStopPacket.configFileName);
+        Path configPath = Paths.get(configDirPath.toString(),
+                fullStopPacket.configFileName);
         // Start up
         initExecutor(nodeNum,
-                fullStopPacket.fullStopUpgrade.targetSystemStates, null);
+                fullStopPacket.fullStopUpgrade.targetSystemStates, configPath);
         boolean startUpStatus = startUpExecutor();
         if (!startUpStatus) {
             return null;
@@ -323,6 +326,20 @@ public class FuzzingClient {
 
             List<String> upResult = executor.executeCommands(
                     fullStopPacket.fullStopUpgrade.validCommands);
+
+            logger.info("upResult = " + upResult);
+
+            if (Config.getConf().startUpClusterForDebugging) {
+                logger.info(
+                        "Start up a cluster and leave it for debugging: This is not testing mode! Please set this startUpClusterForDebugging to false for real testing mode");
+                try {
+                    Thread.sleep(1800 * 1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                System.exit(1);
+
+            }
 
             // Compare results
             Pair<Boolean, String> compareRes = executor
