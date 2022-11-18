@@ -217,6 +217,11 @@ public class CassandraExecutor extends Executor {
                         continue;
                     }
 
+                    // if (oriResult.get(i).isEmpty() ||
+                    // upResult.get(i).isEmpty()) {
+                    // continue;
+                    // }
+
                     String errorMsg = "Result not the same at read sequence id = "
                             + i + "\n"
                             + "Old Version Result: " + oriResult.get(i) + "  "

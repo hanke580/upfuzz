@@ -290,6 +290,7 @@ public class FuzzingClient {
             // Cannot upgrade
             fullStopFeedbackPacket.isEventFailed = true;
             fullStopFeedbackPacket.eventFailedReport = "[upgrade failed]\n" +
+                    "executionId = " + executor.executorID + "\n" +
                     recordFullStopPacket(fullStopPacket);
         } else {
             // Upgrade is done successfully, collect coverage and check results
@@ -347,7 +348,7 @@ public class FuzzingClient {
             if (!compareRes.left) {
                 fullStopFeedbackPacket.isInconsistent = true;
                 fullStopFeedbackPacket.inconsistencyReport = "Results are inconsistent between two versions\n"
-                        +
+                        + "executionId = " + executor.executorID + "\n" +
                         compareRes.right +
                         recordFullStopPacket(fullStopPacket);
             } else {
