@@ -18,6 +18,8 @@ public class Corpus {
     Queue<Seed> queue = new LinkedList();
 
     public boolean initCorpus(Path initSeedDirPath) {
+        if (!initSeedDirPath.toFile().exists())
+            return true;
         File initSeedDir = initSeedDirPath.toFile();
         assert initSeedDir.isDirectory();
         for (File seedFile : initSeedDir.listFiles()) {
