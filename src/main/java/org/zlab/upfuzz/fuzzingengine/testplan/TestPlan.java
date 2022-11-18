@@ -19,16 +19,25 @@ public class TestPlan implements Serializable {
     public int nodeNum;
     public List<Event> events;
 
+    // ----system state comparison----
     public Set<String> targetSystemStates;
     public Map<Integer, Map<String, String>> targetSystemStatesOracle;
 
+    // ----read results comparison----
+    public List<String> validationCommands;
+    public List<String> validationReadResultsOracle;
+
     public TestPlan(int nodeNum, List<Event> events,
             Set<String> targetSystemStates,
-            Map<Integer, Map<String, String>> targetSystemStatesOracle) {
+            Map<Integer, Map<String, String>> targetSystemStatesOracle,
+            List<String> validationCommands,
+            List<String> validationReadResultsOracle) {
         this.nodeNum = nodeNum;
         this.events = events;
         this.targetSystemStates = targetSystemStates;
         this.targetSystemStatesOracle = targetSystemStatesOracle;
+        this.validationCommands = validationCommands;
+        this.validationReadResultsOracle = validationReadResultsOracle;
     }
 
     // Oracle
@@ -44,6 +53,12 @@ public class TestPlan implements Serializable {
             sb.append(event).append("\n");
         }
         sb.append("test plan end\n");
+
+        sb.append("validation commands: \n");
+        for (String cmd : validationCommands) {
+            sb.append(cmd);
+        }
+        sb.append("\n");
         return sb.toString();
     }
 

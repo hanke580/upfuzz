@@ -300,18 +300,20 @@ public class FuzzingServer {
             }
         } else {
 
-            // Not disable system state comparison
-
-            FullStopSeed fullStopSeed;
-            Seed seed;
-            if (corpus.isEmpty()) {
-                // random generate a fullStopSeed
-                seed = Executor.generateSeed(commandPool, stateClass);
-            } else {
-                seed = corpus.peekSeed();
+            // disable system state comparison
+            FullStopSeed fullStopSeed = fullStopCorpus.getSeed();
+            if (fullStopSeed == null) {
+                // genenrate a full-stop upgrade, do not compare read results
+                Seed seed;
+                if (corpus.isEmpty()) {
+                    // random generate a fullStopSeed
+                    seed = Executor.generateSeed(commandPool, stateClass);
+                } else {
+                    seed = corpus.peekSeed();
+                }
+                fullStopSeed = new FullStopSeed(seed, Config.getConf().nodeNum,
+                        new HashMap<>(), new LinkedList<>());
             }
-            fullStopSeed = new FullStopSeed(seed, Config.getConf().nodeNum,
-                    null);
 
             // Generate several test plan...
             for (int i = 0; i < Config.getConf().testPlanGenerationNum; i++) {
@@ -444,7 +446,8 @@ public class FuzzingServer {
             // exampleEvents.add(new UpgradeOp(3));
             // exampleEvents.add(0, new LinkFailure(1, 2));
             return new TestPlan(nodeNum, exampleEvents, targetSystemStates,
-                    fullStopSeed.targetSystemStateResults);
+                    fullStopSeed.targetSystemStateResults, new LinkedList<>(),
+                    new LinkedList<>());
         }
 
         // TODO: If the node is current down, we should switch to
@@ -452,7 +455,7 @@ public class FuzzingServer {
         // Randomly interleave the commands with the upgradeOp&faults
         List<Event> shellCommands = new LinkedList<>();
         if (fullStopSeed.seed != null)
-            shellCommands = ShellCommand.seedCmd2Events(fullStopSeed.seed);
+            shellCommands = ShellCommand.seedWriteCmd2Events(fullStopSeed.seed);
         else
             logger.error("empty full stop seed");
 
@@ -461,7 +464,10 @@ public class FuzzingServer {
 
         events.add(events.size(), new FinalizeUpgrade());
         return new TestPlan(nodeNum, events, targetSystemStates,
-                fullStopSeed.targetSystemStateResults);
+                fullStopSeed.targetSystemStateResults,
+                fullStopSeed.seed.validationCommandSequnece
+                        .getCommandStringList(),
+                fullStopSeed.validationReadResults);
     }
 
     public void generateExampleTestplanPacket() {
@@ -547,9 +553,11 @@ public class FuzzingServer {
 
         Set<String> targetSystemStates = new HashSet<>();
         Map<Integer, Map<String, String>> oracle = new HashMap<>();
+        List<String> validationCommands = new LinkedList<>();
+        List<String> validationReadResultsOracle = new LinkedList<>();
 
         return new TestPlan(nodeNum, exampleEvents, targetSystemStates,
-                oracle);
+                oracle, validationCommands, validationReadResultsOracle);
     }
 
     public synchronized void updateStatus(
@@ -608,7 +616,7 @@ public class FuzzingServer {
             fullStopCorpus.addSeed(new FullStopSeed(
                     testID2Seed.get(fullStopFeedbackPacket.testPacketID),
                     fullStopFeedbackPacket.nodeNum,
-                    fullStopFeedbackPacket.systemStates));
+                    fullStopFeedbackPacket.systemStates, null));
 
             logger.info("[HKLOG] system state = "
                     + fullStopFeedbackPacket.systemStates);
@@ -731,9 +739,6 @@ public class FuzzingServer {
             Path crashSubDir = null;
             for (FeedbackPacket feedbackPacket : stackedFeedbackPacket
                     .getFpList()) {
-                logger.info(
-                        "stackedFeedbackPacket updating status: increase finishID");
-
                 finishedTestID++;
                 if (Config.getConf().useFeedBack) {
                     boolean addToCorpus = false;
@@ -754,12 +759,13 @@ public class FuzzingServer {
                         addToCorpus = true;
                     }
                     if (addToCorpus) {
-                        Seed seed = testID2Seed
-                                .get(feedbackPacket.testPacketID);
+                        Seed seed = testID2Seed.get(feedbackPacket.testPacketID);
                         Fuzzer.saveSeed(seed.originalCommandSequence,
                                 seed.validationCommandSequnece);
+                        fullStopCorpus.addSeed(
+                                new FullStopSeed(seed, feedbackPacket.nodeNum, null,
+                                        feedbackPacket.validationReadResults));
                         corpus.addSeed(seed);
-
                     }
                 }
 

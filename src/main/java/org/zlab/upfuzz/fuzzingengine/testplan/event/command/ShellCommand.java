@@ -18,7 +18,7 @@ public class ShellCommand extends Event {
         this.command = command;
     }
 
-    public static List<Event> seedCmd2Events(Seed seed) {
+    public static List<Event> seedWriteCmd2Events(Seed seed) {
         if (seed == null)
             return null;
         List<Event> events = new LinkedList<>();

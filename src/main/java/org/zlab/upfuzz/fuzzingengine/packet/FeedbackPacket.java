@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
@@ -24,14 +25,18 @@ public class FeedbackPacket extends Packet {
     public boolean isInconsistent = false; // true if inconsistent
     public String inconsistencyReport;
 
+    public List<String> validationReadResults;
+
     public FeedbackPacket(String systemID, int nodeNum, int testPacketID,
-            FeedBack[] feedBacks) {
+            FeedBack[] feedBacks, List<String> validationReadResults) {
         this.type = PacketType.FeedbackPacket;
 
         this.systemID = systemID;
         this.nodeNum = Config.getConf().nodeNum;
         this.testPacketID = testPacketID;
         this.feedBacks = feedBacks;
+
+        this.validationReadResults = validationReadResults;
     }
 
     public static FeedbackPacket read(DataInputStream in) {

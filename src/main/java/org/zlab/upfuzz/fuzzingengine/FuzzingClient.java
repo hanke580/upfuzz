@@ -113,16 +113,6 @@ public class FuzzingClient {
         Map<Integer, List<String>> testID2upResults = new HashMap<>();
 
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
-            // logger.trace("Execute testpacket " + tp.systemID + " " +
-            // tp.testPacketID);
-            // logger.debug("\nWRITE CMD SEQUENCE");
-            // for (String cmd : tp.originalCommandSequenceList) {
-            // logger.debug(cmd);
-            // }
-            // logger.debug("\nREAD CMD SEQUENCE");
-            // for (String cmd : tp.validationCommandSequneceList) {
-            // logger.debug(cmd);
-            // }
             executor.executeCommands(tp.originalCommandSequenceList);
 
             FeedBack[] feedBacks = new FeedBack[stackedTestPacket.nodeNum];
@@ -136,13 +126,15 @@ public class FuzzingClient {
                     feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
                 }
             }
+
             testID2FeedbackPacket.put(
                     tp.testPacketID,
                     new FeedbackPacket(tp.systemID, stackedTestPacket.nodeNum,
-                            tp.testPacketID, feedBacks));
+                            tp.testPacketID, feedBacks, null));
 
             List<String> oriResult = executor
                     .executeCommands(tp.validationCommandSequneceList);
+
             testID2oriResults.put(tp.testPacketID, oriResult);
         }
 
@@ -221,6 +213,8 @@ public class FuzzingClient {
                 } else {
                     feedbackPacket.isInconsistent = false;
                 }
+                feedbackPacket.validationReadResults = testID2upResults
+                        .get(tp.testPacketID);
                 stackedFeedbackPacket.addFeedbackPacket(feedbackPacket);
             }
         }
@@ -539,7 +533,7 @@ public class FuzzingClient {
             testID2FeedbackPacket.put(
                     tp.testPacketID,
                     new FeedbackPacket(tp.systemID, stackedTestPacket.nodeNum,
-                            tp.testPacketID, feedBacks));
+                            tp.testPacketID, feedBacks, null));
 
             List<String> oriResult = executor
                     .executeCommands(tp.validationCommandSequneceList);
@@ -550,7 +544,7 @@ public class FuzzingClient {
         stackedFeedbackPacket.stackedCommandSequenceStr = recordStackedTestPacket(
                 stackedTestPacket);
 
-        // Execute the test plan
+        // execute test plan
         // TODO: We want to collect the feedback before a node is upgraded
         boolean status = executor.execute(testPlanPacket.getTestPlan());
 
@@ -600,17 +594,48 @@ public class FuzzingClient {
             return mixedFeedbackPacket;
         }
 
+        TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
+                testPlanPacket.systemID, nodeNum,
+                testPlanPacket.testPacketID, testPlanFeedBacks);
+
+        // collect read results of a test plan
+        List<String> testPlanReadResults = executor
+                .executeCommands(testPlanPacket.testPlan.validationCommands);
+
+        Pair<Boolean, String> compareRes = executor
+                .checkResultConsistency(
+                        testID2oriResults.get(testPlanReadResults),
+                        testPlanPacket.testPlan.validationReadResultsOracle);
+
+        if (!compareRes.left) {
+            StringBuilder failureReport = new StringBuilder();
+            failureReport.append(
+                    "Results are inconsistent between two versions\n");
+            failureReport.append(
+                    "ConfigIdx = " + stackedTestPacket.configIdx + "\n\n");
+            failureReport
+                    .append("executionId = " + executor.executorID + "\n");
+            failureReport.append(compareRes.right);
+            failureReport.append(recordTestPlanPacket(testPlanPacket));
+            failureReport.append("\n[Full Command Sequence]\n");
+            mixedTestPacketStr = recordMixedTestPacket(mixedTestPacket);
+            failureReport.append(mixedTestPacketStr);
+
+            testPlanFeedbackPacket.isInconsistent = true;
+            testPlanFeedbackPacket.inconsistencyReport = failureReport
+                    .toString();
+        } else {
+            testPlanFeedbackPacket.isInconsistent = false;
+        }
+
         // ----test plan upgrade coverage----
         ExecutionDataStore[] upCoverages = executor
                 .collectCoverageSeparate("upgraded");
         if (upCoverages != null) {
             for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
-                testPlanFeedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+                testPlanFeedbackPacket.feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
             }
         }
-        TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
-                testPlanPacket.systemID, nodeNum,
-                testPlanPacket.testPacketID, testPlanFeedBacks);
 
         // ----stacked read upgrade coverage----
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
@@ -630,7 +655,7 @@ public class FuzzingClient {
         }
         // Check read results consistency
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
-            Pair<Boolean, String> compareRes = executor
+            compareRes = executor
                     .checkResultConsistency(
                             testID2oriResults.get(tp.testPacketID),
                             testID2upResults.get(tp.testPacketID));
@@ -665,6 +690,8 @@ public class FuzzingClient {
             } else {
                 feedbackPacket.isInconsistent = false;
             }
+            feedbackPacket.validationReadResults = testID2upResults
+                    .get(tp.testPacketID);
             stackedFeedbackPacket.addFeedbackPacket(feedbackPacket);
         }
 

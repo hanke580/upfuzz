@@ -81,10 +81,6 @@ public class TestPlanPacket extends Packet {
 
     public static TestPlanPacket read(DataInputStream in) {
         try {
-//            int systemIDLen = in.readInt();
-//            byte[] systemIDBytes = new byte[systemIDLen];
-//            in.read(systemIDBytes, 0, systemIDLen);
-//            String systemID = new String(systemIDBytes, StandardCharsets.UTF_8);
             String systemID = readString(in);
 
             int testPacketId = in.readInt();
@@ -102,6 +98,20 @@ public class TestPlanPacket extends Packet {
             Map<Integer, Map<String, String>> targetSystemStatesOracle = gson
                     .fromJson(targetSystemStatesOracleStr, t2);
 
+            // validationCommands
+            String validationCommandsStr = readString(in);
+            Type t3 = new TypeToken<List<String>>() {
+            }.getType();
+            List<String> validationCommands = gson
+                    .fromJson(validationCommandsStr, t3);
+
+            // validationReadResultsOracle
+            String validationReadResultsOracleStr = readString(in);
+            Type t4 = new TypeToken<List<String>>() {
+            }.getType();
+            List<String> validationReadResultsOracle = gson
+                    .fromJson(validationReadResultsOracleStr, t4);
+
             // events
             int eventsStrLen = in.readInt();
             byte[] eventsStrBytes = new byte[eventsStrLen];
@@ -118,7 +128,8 @@ public class TestPlanPacket extends Packet {
 
             List<Event> events = gson.fromJson(eventsStr, listType);
             TestPlan testPlan = new TestPlan(nodeNum, events,
-                    targetSystemStates, targetSystemStatesOracle);
+                    targetSystemStates, targetSystemStatesOracle,
+                    validationCommands, validationReadResultsOracle);
             return new TestPlanPacket(systemID, testPacketId,
                     testPlan);
         } catch (IOException e) {
@@ -149,6 +160,20 @@ public class TestPlanPacket extends Packet {
         int stateOracleStrLen = stateOracleStr.length();
         out.writeInt(stateOracleStrLen);
         out.write(stateOracleStr.getBytes(StandardCharsets.UTF_8));
+
+        String validationCommandsStr = new Gson()
+                .toJson(testPlan.validationCommands);
+        int validationCommandsStrLen = validationCommandsStr.length();
+        out.writeInt(validationCommandsStrLen);
+        out.write(validationCommandsStr.getBytes(StandardCharsets.UTF_8));
+
+        String validationReadResultsOracleStr = new Gson()
+                .toJson(testPlan.validationReadResultsOracle);
+        int validationReadResultsOracleStrLen = validationReadResultsOracleStr
+                .length();
+        out.writeInt(validationReadResultsOracleStrLen);
+        out.write(validationReadResultsOracleStr
+                .getBytes(StandardCharsets.UTF_8));
 
         String eventsStr = gson.toJson(testPlan.getEvents());
         byte[] eventsByte = eventsStr.getBytes(StandardCharsets.UTF_8);

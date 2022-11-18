@@ -1,5 +1,6 @@
 package org.zlab.upfuzz.fuzzingengine.server;
 
+import java.util.List;
 import java.util.Map;
 
 public class FullStopSeed {
@@ -7,10 +8,15 @@ public class FullStopSeed {
     public int nodeNum;
     public Map<Integer, Map<String, String>> targetSystemStateResults;
 
+    public List<String> validationReadResults; // only save old version read
+                                               // results
+
     public FullStopSeed(Seed seed, int nodeNum,
-            Map<Integer, Map<String, String>> targetSystemStateResults) {
+            Map<Integer, Map<String, String>> targetSystemStateResults,
+            List<String> validationReadResults) {
         this.seed = seed;
         this.nodeNum = nodeNum;
         this.targetSystemStateResults = targetSystemStateResults;
+        this.validationReadResults = validationReadResults;
     }
 }
