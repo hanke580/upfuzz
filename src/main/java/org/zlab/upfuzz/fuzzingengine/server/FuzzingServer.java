@@ -716,7 +716,6 @@ public class FuzzingServer {
 
     public synchronized void updateStatus(
             StackedFeedbackPacket stackedFeedbackPacket) {
-        logger.info("stackedFeedbackPacket updating status");
         if (stackedFeedbackPacket.isUpgradeProcessFailed) {
             // Write Bug report (Upgrade Process Failure)
             Path crashSubDir = createCrashSubDir();
@@ -759,11 +758,13 @@ public class FuzzingServer {
                         addToCorpus = true;
                     }
                     if (addToCorpus) {
-                        Seed seed = testID2Seed.get(feedbackPacket.testPacketID);
+                        Seed seed = testID2Seed
+                                .get(feedbackPacket.testPacketID);
                         Fuzzer.saveSeed(seed.originalCommandSequence,
                                 seed.validationCommandSequnece);
                         fullStopCorpus.addSeed(
-                                new FullStopSeed(seed, feedbackPacket.nodeNum, null,
+                                new FullStopSeed(seed, feedbackPacket.nodeNum,
+                                        null,
                                         feedbackPacket.validationReadResults));
                         corpus.addSeed(seed);
                     }

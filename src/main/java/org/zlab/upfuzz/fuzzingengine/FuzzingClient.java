@@ -144,79 +144,61 @@ public class FuzzingClient {
 
         boolean ret = executor.fullStopUpgrade();
 
-        // collect system state here
         if (!ret) {
-            // upgrade process failed
-            logger.info("upgrade failed");
+            // upgrade failed
+            stackedTestPacketStr = recordStackedTestPacket(stackedTestPacket);
+            String upgradeFailureReport = genUpgradeFailureReport(
+                    executor.executorID, stackedTestPacket.configIdx,
+                    stackedTestPacketStr);
             stackedFeedbackPacket.isUpgradeProcessFailed = true;
-            StringBuilder sb = new StringBuilder();
-            sb.append("[upgrade failed]\n");
-            sb.append("ConfigIdx = " + stackedTestPacket.configIdx + "\n\n");
-            sb.append("executionId = " + executor.executorID + "\n");
+            stackedFeedbackPacket.upgradeFailureReport = upgradeFailureReport;
+            tearDownExecutor();
+            return stackedFeedbackPacket;
+        }
 
-            sb.append("[Full Command Sequence]\n");
-            stackedTestPacketStr = recordStackedTestPacket(
-                    stackedTestPacket);
-            sb.append(stackedTestPacketStr);
-            stackedFeedbackPacket.upgradeFailureReport = sb.toString();
-        } else {
-            logger.info("upgrade succeed");
-            stackedFeedbackPacket.isUpgradeProcessFailed = false;
+        logger.info("upgrade succeed");
+        stackedFeedbackPacket.isUpgradeProcessFailed = false;
 
-            for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
-                List<String> upResult = executor
-                        .executeCommands(tp.validationCommandSequneceList);
-                testID2upResults.put(tp.testPacketID, upResult);
-                if (Config.getConf().collUpFeedBack) {
-                    ExecutionDataStore[] upCoverages = executor
-                            .collectCoverageSeparate("upgraded");
-                    if (upCoverages != null) {
-                        for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
-                            testID2FeedbackPacket.get(
-                                    tp.testPacketID).feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
-                        }
+        for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
+            List<String> upResult = executor
+                    .executeCommands(tp.validationCommandSequneceList);
+            testID2upResults.put(tp.testPacketID, upResult);
+            if (Config.getConf().collUpFeedBack) {
+                ExecutionDataStore[] upCoverages = executor
+                        .collectCoverageSeparate("upgraded");
+                if (upCoverages != null) {
+                    for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
+                        testID2FeedbackPacket.get(
+                                tp.testPacketID).feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
                     }
                 }
             }
+        }
 
-            // Check read results consistency
-            for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
-                Pair<Boolean, String> compareRes = executor
-                        .checkResultConsistency(
-                                testID2oriResults.get(tp.testPacketID),
-                                testID2upResults.get(tp.testPacketID));
+        // Check read results consistency
+        for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
+            Pair<Boolean, String> compareRes = executor
+                    .checkResultConsistency(
+                            testID2oriResults.get(tp.testPacketID),
+                            testID2upResults.get(tp.testPacketID));
 
-                FeedbackPacket feedbackPacket = testID2FeedbackPacket
-                        .get(tp.testPacketID);
+            FeedbackPacket feedbackPacket = testID2FeedbackPacket
+                    .get(tp.testPacketID);
 
-                if (!compareRes.left) {
-                    StringBuilder failureReport = new StringBuilder();
-                    failureReport.append(
-                            "Results are inconsistent between two versions\n");
-
-                    failureReport.append("ConfigIdx = "
-                            + stackedTestPacket.configIdx + "\n\n");
-                    failureReport.append(
-                            "executionId = " + executor.executorID + "\n");
-
-                    failureReport.append(compareRes.right);
-                    failureReport.append(recordSingleTestPacket(tp));
-                    failureReport.append("\n[Full Command Sequence]\n");
-                    if (stackedTestPacketStr == null)
-                        stackedTestPacketStr = recordStackedTestPacket(
-                                stackedTestPacket);
-                    failureReport.append(stackedTestPacketStr);
-                    // Create the feedback packet
-                    feedbackPacket.isInconsistent = true;
-                    feedbackPacket.inconsistencyReport = failureReport
-                            .toString();
-                } else {
-                    feedbackPacket.isInconsistent = false;
-                }
-                feedbackPacket.validationReadResults = testID2upResults
-                        .get(tp.testPacketID);
-                stackedFeedbackPacket.addFeedbackPacket(feedbackPacket);
+            if (!compareRes.left) {
+                if (stackedTestPacketStr == null)
+                    stackedTestPacketStr = recordStackedTestPacket(
+                            stackedTestPacket);
+                String failureReport = genInconsistencyReport(
+                        executor.executorID, stackedTestPacket.configIdx,
+                        compareRes.right, recordSingleTestPacket(tp),
+                        stackedTestPacketStr);
+                feedbackPacket.isInconsistent = true;
+                feedbackPacket.inconsistencyReport = failureReport;
             }
+            feedbackPacket.validationReadResults = testID2upResults
+                    .get(tp.testPacketID);
+            stackedFeedbackPacket.addFeedbackPacket(feedbackPacket);
         }
         logger.info(executor.systemID + " executor: " + executor.executorID
                 + " finished execution");
@@ -266,14 +248,10 @@ public class FuzzingClient {
             }
         } catch (Exception e) {
             fullStopFeedbackPacket.isEventFailed = true;
-            StringBuilder eventFailedReport = new StringBuilder();
-            logger.error("cannot collect coverage " + e);
-            eventFailedReport.append(
-                    "TestPlan execution failed, cannot collect original coverage\n")
-                    .append(e);
-            eventFailedReport.append(recordFullStopPacket(fullStopPacket));
-            fullStopFeedbackPacket.eventFailedReport = eventFailedReport
-                    .toString();
+            fullStopFeedbackPacket.eventFailedReport = genOriCoverageCollFailureReport(
+                    executor.executorID, fullStopPacket.configFileName,
+                    recordFullStopPacket(fullStopPacket),
+                    "") + "Exception:" + e;
             tearDownExecutor();
             return fullStopFeedbackPacket;
         }
@@ -281,15 +259,14 @@ public class FuzzingClient {
         boolean upgradeStatus = executor.fullStopUpgrade();
 
         if (!upgradeStatus) {
-            // Cannot upgrade
             fullStopFeedbackPacket.isEventFailed = true;
-            fullStopFeedbackPacket.eventFailedReport = "[upgrade failed]\n" +
-                    "executionId = " + executor.executorID + "\n" +
-                    recordFullStopPacket(fullStopPacket);
+
+            fullStopFeedbackPacket.eventFailedReport = genUpgradeFailureReport(
+                    executor.executorID, fullStopPacket.configFileName,
+                    recordFullStopPacket(fullStopPacket));
         } else {
             // Upgrade is done successfully, collect coverage and check results
             fullStopFeedbackPacket.isEventFailed = false;
-
             // Collect new version coverage
             try {
                 ExecutionDataStore[] upCoverages = executor
@@ -303,13 +280,10 @@ public class FuzzingClient {
                 // Cannot collect code coverage in the upgraded version
                 // Report it as the situations that "No nodes are upgraded"
                 fullStopFeedbackPacket.isEventFailed = true;
-                StringBuilder eventFailedReport = new StringBuilder();
-                eventFailedReport.append(
-                        "TestPlan execution failed, cannot collect upgrade coverage\n")
-                        .append(e);
-                eventFailedReport.append(recordFullStopPacket(fullStopPacket));
-                fullStopFeedbackPacket.eventFailedReport = eventFailedReport
-                        .toString();
+                fullStopFeedbackPacket.eventFailedReport = genUpCoverageCollFailureReport(
+                        executor.executorID, fullStopPacket.configFileName,
+                        recordFullStopPacket(fullStopPacket),
+                        "") + "Exception:" + e;
                 tearDownExecutor();
                 return fullStopFeedbackPacket;
             }
@@ -329,16 +303,17 @@ public class FuzzingClient {
                     .checkResultConsistency(oriResult, upResult);
             if (!compareRes.left) {
                 fullStopFeedbackPacket.isInconsistent = true;
-                fullStopFeedbackPacket.inconsistencyReport = "Results are inconsistent between two versions\n"
-                        + "executionId = " + executor.executorID + "\n" +
-                        compareRes.right +
-                        recordFullStopPacket(fullStopPacket);
+                fullStopFeedbackPacket.inconsistencyReport = genInconsistencyReport(
+                        executor.executorID, fullStopPacket.configFileName,
+                        compareRes.right, recordFullStopPacket(fullStopPacket),
+                        "");
 
                 logger.info("Execution ID = " + executor.executorID
                         + "\ninconsistency: " + compareRes.right);
                 if (Config.getConf().startUpClusterForDebugging) {
-                    logger.info(
-                            "Start up a cluster and leave it for debugging: This is not testing mode! Please set this startUpClusterForDebugging to false for real testing mode");
+                    logger.info(String.format(
+                            "Start up a cluster %d and leave it for debugging: This is not testing mode! Please set this startUpClusterForDebugging to false for real testing mode",
+                            executor.executorID));
                     try {
                         Thread.sleep(3600 * 1000);
                     } catch (InterruptedException e) {
@@ -351,8 +326,6 @@ public class FuzzingClient {
                 fullStopFeedbackPacket.isInconsistent = false;
             }
         }
-        logger.info(executor.systemID + " executor: " + executor.executorID
-                + " finished execution");
         tearDownExecutor();
         return fullStopFeedbackPacket;
     }
@@ -363,7 +336,8 @@ public class FuzzingClient {
         logger.debug("test plan: \n");
         logger.debug(testPlanPacket.testPlan);
 
-        String testPlanPacketStr;
+        String testPlanPacketStr = recordTestPlanPacket(testPlanPacket);
+
         int nodeNum = testPlanPacket.getNodeNum();
 
         // read states
@@ -378,7 +352,9 @@ public class FuzzingClient {
             System.exit(1);
         }
 
-        Path configPath = Paths.get(configDirPath.toString(), "test21");
+        String configIdx = "test21";
+
+        Path configPath = Paths.get(configDirPath.toString(), configIdx);
         logger.info("[HKLOG] configPath = " + configPath);
 
         initExecutor(testPlanPacket.getNodeNum(), targetSystemStates,
@@ -433,32 +409,33 @@ public class FuzzingClient {
         }
 
         if (!status) {
-            // Now we only support checking the state of events
-            // The test plan has some problems
-            // - (1) Some event cannot execute correctly
-            // - (2) There is an inconsistency between rolling upgrade and
-            // full-stop upgrade
-            // - (3) Node crashed unexpectedly.
-            // We should report it.
-            int buggyEventIdx = executor.eventIdx;
+            testPlanFeedbackPacket.eventFailedReport = genTestPlanFailureReport(
+                    executor.eventIdx, executor.executorID, configIdx,
+                    testPlanPacketStr, "");
             testPlanFeedbackPacket.isEventFailed = true;
-
-            StringBuilder eventFailedReport = new StringBuilder();
-            eventFailedReport.append(String.format(
-                    "Test plan execution failed at event[%d]\n\n",
-                    buggyEventIdx));
-            testPlanPacketStr = recordTestPlanPacket(testPlanPacket);
-            eventFailedReport.append(testPlanPacketStr);
-            testPlanFeedbackPacket.eventFailedReport = eventFailedReport
-                    .toString();
-
             testPlanFeedbackPacket.isInconsistent = false;
             testPlanFeedbackPacket.inconsistencyReport = "";
 
-            logger.error(String.format(
-                    "The test plan execution met a problem when executing event[%d]",
-                    buggyEventIdx));
         } else {
+            Pair<Boolean, String> compareRes;
+            // collect read results of a test plan
+            if (!testPlanPacket.testPlan.validationReadResultsOracle
+                    .isEmpty()) {
+                List<String> testPlanReadResults = executor
+                        .executeCommands(
+                                testPlanPacket.testPlan.validationCommands);
+                compareRes = executor
+                        .checkResultConsistency(
+                                testPlanReadResults,
+                                testPlanPacket.testPlan.validationReadResultsOracle);
+                if (!compareRes.left) {
+                    testPlanFeedbackPacket.isInconsistent = true;
+                    testPlanFeedbackPacket.inconsistencyReport = genTestPlanInconsistencyReport(
+                            executor.executorID, configIdx,
+                            compareRes.right, testPlanPacketStr,
+                            "");
+                }
+            }
 
             try {
                 ExecutionDataStore[] upCoverages = executor
@@ -472,13 +449,10 @@ public class FuzzingClient {
             } catch (Exception e) {
                 // Cannot collect code coverage in the upgraded version
                 testPlanFeedbackPacket.isEventFailed = true;
-                StringBuilder eventFailedReport = new StringBuilder();
-                eventFailedReport.append(
-                        "TestPlan execution failed, cannot collect upgrade coverage\n")
-                        .append(e);
-                eventFailedReport.append(recordTestPlanPacket(testPlanPacket));
-                testPlanFeedbackPacket.eventFailedReport = eventFailedReport
-                        .toString();
+                testPlanFeedbackPacket.eventFailedReport = genUpCoverageCollFailureReport(
+                        executor.executorID, configIdx,
+                        recordTestPlanPacket(testPlanPacket),
+                        "") + "Exception:" + e;
                 tearDownExecutor();
                 return testPlanFeedbackPacket;
             }
@@ -491,10 +465,11 @@ public class FuzzingClient {
     public MixedFeedbackPacket executeMixedTestPacket(
             MixedTestPacket mixedTestPacket) {
 
-        String mixedTestPacketStr = null;
-
         StackedTestPacket stackedTestPacket = mixedTestPacket.stackedTestPacket;
         TestPlanPacket testPlanPacket = mixedTestPacket.testPlanPacket;
+
+        String testPlanPacketStr = recordTestPlanPacket(testPlanPacket);
+        String mixedTestPacketStr = recordMixedTestPacket(mixedTestPacket);
 
         assert stackedTestPacket.nodeNum == testPlanPacket.getNodeNum();
         int nodeNum = stackedTestPacket.nodeNum;
@@ -503,6 +478,7 @@ public class FuzzingClient {
                 stackedTestPacket.configIdx);
         logger.info("[HKLOG] configPath = " + configPath);
 
+        // start up cluster
         initExecutor(nodeNum, null, configPath);
 
         boolean startUpStatus = startUpExecutor();
@@ -510,6 +486,7 @@ public class FuzzingClient {
             return null;
         }
 
+        // execute stacked packets
         Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();
         Map<Integer, List<String>> testID2oriResults = new HashMap<>();
         Map<Integer, List<String>> testID2upResults = new HashMap<>();
@@ -545,87 +522,54 @@ public class FuzzingClient {
                 stackedTestPacket);
 
         // execute test plan
-        // TODO: We want to collect the feedback before a node is upgraded
         boolean status = executor.execute(testPlanPacket.getTestPlan());
 
-        // test plan coverage
+        // collect test plan coverage
         FeedBack[] testPlanFeedBacks = new FeedBack[nodeNum];
         for (int i = 0; i < nodeNum; i++) {
             testPlanFeedBacks[i] = new FeedBack();
-        }
-
-        for (int i = 0; i < nodeNum; i++) {
             if (executor.oriCoverage[i] != null)
                 testPlanFeedBacks[i].originalCodeCoverage = executor.oriCoverage[i];
-        }
-
-        if (!status) {
-            // TODO
-            // We already met some problems with test plan, we'll stop here
-            // This case is considered as a failed case
-            // We need to record all the test cases and the plan as a crash
-            // report
-
-            // This can only be the upgrade failure
-            TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
-                    testPlanPacket.systemID, nodeNum,
-                    testPlanPacket.testPacketID, null);
-            int buggyEventIdx = executor.eventIdx;
-            testPlanFeedbackPacket.isEventFailed = true;
-
-            String eventFailedReport = "";
-            eventFailedReport += String.format(
-                    "Test plan execution failed at event[%d]\n\n",
-                    buggyEventIdx);
-
-            eventFailedReport += new String(
-                    "executionId = " + executor.executorID + "\n");
-            eventFailedReport += String.format(
-                    "ConfigIdx = " + stackedTestPacket.configIdx + "\n\n");
-            mixedTestPacketStr = recordMixedTestPacket(mixedTestPacket);
-            eventFailedReport += mixedTestPacketStr;
-            testPlanFeedbackPacket.eventFailedReport = eventFailedReport;
-
-            testPlanFeedbackPacket.isInconsistent = false;
-            testPlanFeedbackPacket.inconsistencyReport = "";
-
-            MixedFeedbackPacket mixedFeedbackPacket = new MixedFeedbackPacket(
-                    stackedFeedbackPacket, testPlanFeedbackPacket);
-            return mixedFeedbackPacket;
         }
 
         TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
                 testPlanPacket.systemID, nodeNum,
                 testPlanPacket.testPacketID, testPlanFeedBacks);
 
-        // collect read results of a test plan
-        List<String> testPlanReadResults = executor
-                .executeCommands(testPlanPacket.testPlan.validationCommands);
+        if (!status) {
+            // one event in the test plan failed
+            testPlanFeedbackPacket.isEventFailed = true;
 
-        Pair<Boolean, String> compareRes = executor
-                .checkResultConsistency(
-                        testID2oriResults.get(testPlanReadResults),
-                        testPlanPacket.testPlan.validationReadResultsOracle);
-
-        if (!compareRes.left) {
-            StringBuilder failureReport = new StringBuilder();
-            failureReport.append(
-                    "Results are inconsistent between two versions\n");
-            failureReport.append(
-                    "ConfigIdx = " + stackedTestPacket.configIdx + "\n\n");
-            failureReport
-                    .append("executionId = " + executor.executorID + "\n");
-            failureReport.append(compareRes.right);
-            failureReport.append(recordTestPlanPacket(testPlanPacket));
-            failureReport.append("\n[Full Command Sequence]\n");
-            mixedTestPacketStr = recordMixedTestPacket(mixedTestPacket);
-            failureReport.append(mixedTestPacketStr);
-
-            testPlanFeedbackPacket.isInconsistent = true;
-            testPlanFeedbackPacket.inconsistencyReport = failureReport
-                    .toString();
-        } else {
+            testPlanFeedbackPacket.eventFailedReport = genTestPlanFailureReport(
+                    executor.eventIdx, executor.executorID,
+                    stackedTestPacket.configIdx, testPlanPacketStr,
+                    mixedTestPacketStr);
             testPlanFeedbackPacket.isInconsistent = false;
+            testPlanFeedbackPacket.inconsistencyReport = "";
+            MixedFeedbackPacket mixedFeedbackPacket = new MixedFeedbackPacket(
+                    stackedFeedbackPacket, testPlanFeedbackPacket);
+            return mixedFeedbackPacket;
+        }
+
+        Pair<Boolean, String> compareRes;
+        // collect read results of a test plan
+        if (!testPlanPacket.testPlan.validationReadResultsOracle.isEmpty()) {
+            List<String> testPlanReadResults = executor
+                    .executeCommands(
+                            testPlanPacket.testPlan.validationCommands);
+
+            compareRes = executor
+                    .checkResultConsistency(
+                            testPlanReadResults,
+                            testPlanPacket.testPlan.validationReadResultsOracle);
+
+            if (!compareRes.left) {
+                testPlanFeedbackPacket.isInconsistent = true;
+                testPlanFeedbackPacket.inconsistencyReport = genTestPlanInconsistencyReport(
+                        executor.executorID, stackedTestPacket.configIdx,
+                        compareRes.right, testPlanPacketStr,
+                        mixedTestPacketStr);
+            }
         }
 
         // ----test plan upgrade coverage----
@@ -664,29 +608,14 @@ public class FuzzingClient {
                     .get(tp.testPacketID);
 
             if (!compareRes.left) {
-                // Log the failure info into feedback packet
-
-                // Creating the failure report
-                StringBuilder failureReport = new StringBuilder();
-                failureReport.append(
-                        "Results are inconsistent between two versions\n");
-
-                failureReport.append(
-                        "ConfigIdx = " + stackedTestPacket.configIdx + "\n\n");
-                failureReport
-                        .append("executionId = " + executor.executorID + "\n");
-
-                failureReport.append(compareRes.right);
-                failureReport.append(recordSingleTestPacket(tp));
-                failureReport.append("\n[Full Command Sequence]\n");
-                if (mixedTestPacketStr == null)
-                    mixedTestPacketStr = recordMixedTestPacket(mixedTestPacket);
-                failureReport.append(mixedTestPacketStr);
+                String failureReport = genInconsistencyReport(
+                        executor.executorID, stackedTestPacket.configIdx,
+                        compareRes.right, recordSingleTestPacket(tp),
+                        mixedTestPacketStr);
 
                 // Create the feedback packet
                 feedbackPacket.isInconsistent = true;
-                feedbackPacket.inconsistencyReport = failureReport
-                        .toString();
+                feedbackPacket.inconsistencyReport = failureReport;
             } else {
                 feedbackPacket.isInconsistent = false;
             }
@@ -698,6 +627,70 @@ public class FuzzingClient {
         tearDownExecutor();
         return new MixedFeedbackPacket(stackedFeedbackPacket,
                 testPlanFeedbackPacket);
+    }
+
+    private String genTestPlanFailureReport(int failEventIdx, String executorID,
+            String configIdx, String testPlanPacket, String fullTestPacket) {
+        return "Test plan execution failed at event" + failEventIdx + "\n" +
+                "executionId = " + executorID + "\n" +
+                "ConfigIdx = " + configIdx + "\n" +
+                testPlanPacket + "\n" +
+                "[Full Sequence]\n" +
+                fullTestPacket + "\n";
+    }
+
+    private String genInconsistencyReport(String executorID,
+            String configIdx, String inconsistencyRecord,
+            String singleTestPacket, String fullTestPacket) {
+        return "Results are inconsistent between two versions\n" +
+                "executionId = " + executorID + "\n" +
+                "ConfigIdx = " + configIdx + "\n" +
+                inconsistencyRecord + "\n" +
+                singleTestPacket + "\n" +
+                "[Full Sequence]" + "\n" +
+                fullTestPacket + "\n";
+    }
+
+    private String genTestPlanInconsistencyReport(String executorID,
+            String configIdx, String inconsistencyRecord,
+            String singleTestPacket, String fullTestPacket) {
+        return "Results are inconsistent between full-stop and rolling upgrade\n"
+                +
+                "executionId = " + executorID + "\n" +
+                "ConfigIdx = " + configIdx + "\n" +
+                inconsistencyRecord + "\n" +
+                singleTestPacket + "\n" +
+                "[Full Sequence]" + "\n" +
+                fullTestPacket + "\n";
+    }
+
+    private String genUpgradeFailureReport(String executorID,
+            String configIdx, String fullTestPacket) {
+        return "[Upgrade Failed]\n" +
+                "executionId = " + executorID + "\n" +
+                "ConfigIdx = " + configIdx + "\n" +
+                "[Full Sequence]" + "\n" +
+                fullTestPacket + "\n";
+    }
+
+    private String genOriCoverageCollFailureReport(String executorID,
+            String configIdx, String singleTestPacket, String fullTestPacket) {
+        return "[Original Coverage Collect Failed]\n" +
+                "executionId = " + executorID + "\n" +
+                "ConfigIdx = " + configIdx + "\n" +
+                singleTestPacket + "\n" +
+                "[Full Sequence]" + "\n" +
+                fullTestPacket + "\n";
+    }
+
+    private String genUpCoverageCollFailureReport(String executorID,
+            String configIdx, String singleTestPacket, String fullTestPacket) {
+        return "[Upgrade Coverage Collect Failed]\n" +
+                "executionId = " + executorID + "\n" +
+                "ConfigIdx = " + configIdx + "\n" +
+                singleTestPacket + "\n" +
+                "[Full Sequence]" + "\n" +
+                fullTestPacket + "\n";
     }
 
     private String recordStackedTestPacket(
