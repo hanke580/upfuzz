@@ -243,7 +243,7 @@ public class FuzzingClient {
         }
         FullStopFeedbackPacket fullStopFeedbackPacket = new FullStopFeedbackPacket(
                 fullStopPacket.systemID, nodeNum,
-                fullStopPacket.testPacketID, feedBacks, null);
+                fullStopPacket.testPacketID, feedBacks, new HashMap<>());
 
         logger.info("[HKLOG] configPath = " + fullStopPacket.configFileName);
         Path configPath = Paths.get(configDirPath.toString(),
@@ -330,18 +330,6 @@ public class FuzzingClient {
 
             logger.info("upResult = " + upResult);
 
-            if (Config.getConf().startUpClusterForDebugging) {
-                logger.info(
-                        "Start up a cluster and leave it for debugging: This is not testing mode! Please set this startUpClusterForDebugging to false for real testing mode");
-                try {
-                    Thread.sleep(1800 * 1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                System.exit(1);
-
-            }
-
             // Compare results
             Pair<Boolean, String> compareRes = executor
                     .checkResultConsistency(oriResult, upResult);
@@ -351,6 +339,20 @@ public class FuzzingClient {
                         + "executionId = " + executor.executorID + "\n" +
                         compareRes.right +
                         recordFullStopPacket(fullStopPacket);
+
+                logger.info("Execution ID = " + executor.executorID
+                        + "\ninconsistency: " + compareRes.right);
+                if (Config.getConf().startUpClusterForDebugging) {
+                    logger.info(
+                            "Start up a cluster and leave it for debugging: This is not testing mode! Please set this startUpClusterForDebugging to false for real testing mode");
+                    try {
+                        Thread.sleep(3600 * 1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    System.exit(1);
+
+                }
             } else {
                 fullStopFeedbackPacket.isInconsistent = false;
             }

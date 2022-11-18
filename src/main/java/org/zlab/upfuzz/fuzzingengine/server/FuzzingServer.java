@@ -582,8 +582,9 @@ public class FuzzingServer {
             curUpCoverage.merge(fb.upgradedCodeCoverage);
         }
 
-        Path crashSubDir = createCrashSubDir();
+        Path crashSubDir;
         if (fullStopFeedbackPacket.isEventFailed) {
+            crashSubDir = createCrashSubDir();
             String sb = "Event Failed\n";
             sb += fullStopFeedbackPacket.eventFailedReport;
             Path crashReport = Paths.get(
@@ -592,6 +593,7 @@ public class FuzzingServer {
             Utilities.write2TXT(crashReport.toFile(), sb, false);
             crashID++;
         } else if (fullStopFeedbackPacket.isInconsistent) {
+            crashSubDir = createCrashSubDir();
             String sb = "Result Inconsistent\n";
             sb += fullStopFeedbackPacket.inconsistencyReport;
             Path crashReport = Paths.get(
