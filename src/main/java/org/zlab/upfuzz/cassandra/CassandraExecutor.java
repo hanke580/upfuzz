@@ -169,7 +169,10 @@ public class CassandraExecutor extends Executor {
             }
 
             if (cp != null) {
-                ret = cp.message;
+                if (cp.message.isEmpty())
+                    ret = cp.error;
+                else
+                    ret = cp.message;
             }
         } catch (Exception e) {
             logger.error(e);

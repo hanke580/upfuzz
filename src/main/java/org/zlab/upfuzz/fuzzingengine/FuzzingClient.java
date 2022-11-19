@@ -552,7 +552,7 @@ public class FuzzingClient {
         }
 
         Pair<Boolean, String> compareRes;
-        // collect read results of a test plan
+        // read results comparison between full-stop upgrade and rolling upgrade
         if (!testPlanPacket.testPlan.validationReadResultsOracle.isEmpty()) {
             List<String> testPlanReadResults = executor
                     .executeCommands(
