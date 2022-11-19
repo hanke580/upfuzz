@@ -29,6 +29,17 @@ public class ConfigGen {
 
     ObjectMapper mapper = new ObjectMapper();
 
+    static Set<String> cassandraConfigBlackList = new HashSet<>();
+
+    static {
+        cassandraConfigBlackList
+                .add("minimum_replication_factor_warn_threshold");
+        cassandraConfigBlackList
+                .add("minimum_replication_factor_fail_threshold");
+        cassandraConfigBlackList
+                .add("user_defined_functions_threads_enabled");
+    }
+
     public ConfigGen() {
         Path oldVersionPath = Paths.get(System.getProperty("user.dir"),
                 "prebuild", Config.getConf().system,
@@ -86,14 +97,6 @@ public class ConfigGen {
             throw new RuntimeException("missing configuration test files!");
         }
 
-        commonConfigValGenerator = new ConfigValGenerator(commonConfig,
-                commonConfigName2Type, commonConfig2Init,
-                commonEnumName2ConstantMap);
-
-        addedConfigValGenerator = new ConfigValGenerator(addedConfig,
-                addedConfigName2Type, addedConfig2Init,
-                addedEnumName2ConstantMap);
-
         switch (Config.getConf().system) {
         case "cassandra": {
             Path defaultConfigPath = Paths.get(oldVersionPath.toString(),
@@ -102,6 +105,19 @@ public class ConfigGen {
                     "conf/cassandra.yaml");
             configFileGenerator = new YamlGenerator(defaultConfigPath,
                     defaultNewConfigPath, generateFolderPath);
+
+            commonConfig = removeBlacklistConfig(commonConfig,
+                    cassandraConfigBlackList);
+            commonConfigValGenerator = new ConfigValGenerator(commonConfig,
+                    commonConfigName2Type, commonConfig2Init,
+                    commonEnumName2ConstantMap);
+
+            addedConfig = removeBlacklistConfig(addedConfig,
+                    cassandraConfigBlackList);
+            addedConfigValGenerator = new ConfigValGenerator(addedConfig,
+                    addedConfigName2Type, addedConfig2Init,
+                    addedEnumName2ConstantMap);
+
             addedConfigValGenerator.constructPairConfig();
             commonConfigValGenerator.constructPairConfig();
             break;
@@ -113,6 +129,14 @@ public class ConfigGen {
                     "etc/hadoop/hdfs-site.xml");
             configFileGenerator = new XmlGenerator(defaultConfigPath,
                     defaultNewConfigPath, generateFolderPath);
+
+            commonConfigValGenerator = new ConfigValGenerator(commonConfig,
+                    commonConfigName2Type, commonConfig2Init,
+                    commonEnumName2ConstantMap);
+
+            addedConfigValGenerator = new ConfigValGenerator(addedConfig,
+                    addedConfigName2Type, addedConfig2Init,
+                    addedEnumName2ConstantMap);
             break;
         }
         default: {
@@ -194,6 +218,17 @@ public class ConfigGen {
 
         return configFileGenerator.generate(oriConfigtest, oriConfig2Type,
                 upConfigtest, upConfig2Type);
+    }
+
+    static Set<String> removeBlacklistConfig(Set<String> configs,
+            Set<String> configBlackList) {
+        Set<String> ret = new HashSet<>();
+        for (String config : configs) {
+            if (!configBlackList.contains(config)) {
+                ret.add(config);
+            }
+        }
+        return ret;
     }
 
 }

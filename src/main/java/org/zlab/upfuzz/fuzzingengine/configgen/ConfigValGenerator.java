@@ -289,8 +289,13 @@ public class ConfigValGenerator {
             }
             if (!useDefault) {
                 // cannot use default value
+                int maxInt = MAX_INT;
+                if (config.contains("percentage")) {
+                    // only generate 0-100
+                    maxInt = 100;
+                }
                 for (int i = 0; i < TEST_NUM; i++) {
-                    vals.add(rand.nextInt(MAX_INT));
+                    vals.add(rand.nextInt(maxInt));
                 }
             }
 
