@@ -45,7 +45,7 @@ public class CassandraCqlshDaemon {
     }
 
     public CassandraCqlshDaemon(String ipAddress, int port, String executorID) {
-        int retry = 12;
+        int retry = 20;
         logger.info("[HKLOG] executor ID = " + executorID + "  "
                 + "Connect to cqlsh:" + ipAddress + "...");
         for (int i = 0; i < retry; ++i) {

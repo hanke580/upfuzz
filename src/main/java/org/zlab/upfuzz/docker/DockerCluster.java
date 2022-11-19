@@ -330,7 +330,7 @@ public abstract class DockerCluster implements IDockerCluster {
             return false;
         }
 
-        dockerStates[nodeIndex].alive = false;
+        dockerStates[nodeIndex].alive = true;
         return true;
     }
 

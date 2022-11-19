@@ -67,6 +67,7 @@ public class Config {
         public boolean collUpFeedBack = true;
 
         // ------------Configuration-------------
+        public Boolean verifyConfig = false;
         public String configDir = "configtests";
         public Boolean testAddedConfig = true;
         public Boolean testCommonConfig = true;

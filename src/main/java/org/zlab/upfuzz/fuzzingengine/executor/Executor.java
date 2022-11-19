@@ -353,9 +353,7 @@ public abstract class Executor implements IExecutor {
         } else if (fault instanceof NodeFailure) {
             // Crash a node
             NodeFailure nodeFailure = (NodeFailure) fault;
-            dockerCluster.dockerStates[nodeFailure.nodeIndex].alive = false;
             return dockerCluster.killContainer(nodeFailure.nodeIndex);
-
         } else if (fault instanceof IsolateFailure) {
             // Isolate a single node from the rest nodes
             IsolateFailure isolateFailure = (IsolateFailure) fault;
@@ -368,7 +366,6 @@ public abstract class Executor implements IExecutor {
         } else if (fault instanceof RestartFailure) {
             // Crash a node
             RestartFailure nodeFailure = (RestartFailure) fault;
-            dockerCluster.dockerStates[nodeFailure.nodeIndex].alive = true;
             return dockerCluster.restartContainer(nodeFailure.nodeIndex);
 
         }
@@ -383,9 +380,8 @@ public abstract class Executor implements IExecutor {
                     linkFailureRecover.nodeIndex1,
                     linkFailureRecover.nodeIndex2);
         } else if (faultRecover instanceof NodeFailureRecover) {
-            // Crash a node
+            // recover from node crash
             NodeFailureRecover nodeFailureRecover = (NodeFailureRecover) faultRecover;
-            dockerCluster.dockerStates[nodeFailureRecover.nodeIndex].alive = false;
             return dockerCluster
                     .killContainerRecover(nodeFailureRecover.nodeIndex);
         } else if (faultRecover instanceof IsolateFailureRecover) {

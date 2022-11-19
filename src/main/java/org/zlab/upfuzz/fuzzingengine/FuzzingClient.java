@@ -93,10 +93,13 @@ public class FuzzingClient {
         logger.info("[HKLOG] configPath = " + configPath);
 
         // config verification
-        boolean validConfig = verifyConfig(configPath);
-        if (!validConfig) {
-            logger.error("problem with configuration! system cannot start up");
-            return null;
+        if (Config.getConf().verifyConfig) {
+            boolean validConfig = verifyConfig(configPath);
+            if (!validConfig) {
+                logger.error(
+                        "problem with configuration! system cannot start up");
+                return null;
+            }
         }
 
         executor = initExecutor(stackedTestPacket.nodeNum, null, configPath);
@@ -505,10 +508,13 @@ public class FuzzingClient {
         logger.info("[HKLOG] configPath = " + configPath);
 
         // config verification
-        boolean validConfig = verifyConfig(configPath);
-        if (!validConfig) {
-            logger.error("problem with configuration! system cannot start up");
-            return null;
+        if (Config.getConf().verifyConfig) {
+            boolean validConfig = verifyConfig(configPath);
+            if (!validConfig) {
+                logger.error(
+                        "problem with configuration! system cannot start up");
+                return null;
+            }
         }
 
         // start up cluster
@@ -665,6 +671,7 @@ public class FuzzingClient {
     private boolean verifyConfig(Path configPath) {
         // start up one node in old version, verify old version config file
         // start up one node in new version, verify new version config file
+        logger.info("verifying configuration");
         Executor executor = initExecutor(1, null, configPath);
         boolean startUpStatus = executor.startup();
         if (!startUpStatus) {
