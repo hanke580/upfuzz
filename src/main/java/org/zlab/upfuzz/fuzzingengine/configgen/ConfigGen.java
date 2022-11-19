@@ -102,6 +102,8 @@ public class ConfigGen {
                     "conf/cassandra.yaml");
             configFileGenerator = new YamlGenerator(defaultConfigPath,
                     defaultNewConfigPath, generateFolderPath);
+            addedConfigValGenerator.constructPairConfig();
+            commonConfigValGenerator.constructPairConfig();
             break;
         }
         case "hdfs": {
@@ -130,13 +132,27 @@ public class ConfigGen {
         if (Config.getConf().testCommonConfig) {
 
             Map<String, String> commonConfigTest = commonConfigValGenerator
-                    .generateValuesShrinkSize();
+                    .generateValues(true);
+            Map<String, String> commonPairConfigTest = commonConfigValGenerator
+                    .generatePairValues(true);
 
             Map<String, String> filteredCommonConfigTest = new HashMap<>();
             for (String key : commonConfigTest.keySet()) {
                 if (rand.nextDouble() < Config.getConf().testConfigRatio) {
                     filteredCommonConfigTest.put(key,
                             commonConfigTest.get(key));
+                }
+            }
+            for (String key : commonConfigValGenerator.pairConfigs.keySet()) {
+                if (commonPairConfigTest.containsKey(key)) {
+                    if (rand.nextDouble() < Config.getConf().testConfigRatio) {
+                        filteredCommonConfigTest.put(key,
+                                commonPairConfigTest.get(key));
+                        String pConfig = commonConfigValGenerator.pairConfigs
+                                .get(key);
+                        filteredCommonConfigTest.put(pConfig,
+                                commonPairConfigTest.get(pConfig));
+                    }
                 }
             }
 
@@ -149,15 +165,29 @@ public class ConfigGen {
         if (Config.getConf().testAddedConfig) {
 
             Map<String, String> addedConfigTest = addedConfigValGenerator
-                    .generateValues();
+                    .generateValues(false);
+            Map<String, String> addedConfigPairTest = addedConfigValGenerator
+                    .generatePairValues(false);
 
             Map<String, String> filteredCommonConfigTest = new HashMap<>();
+
             for (String key : addedConfigTest.keySet()) {
                 if (rand.nextDouble() < Config.getConf().testConfigRatio) {
                     filteredCommonConfigTest.put(key, addedConfigTest.get(key));
                 }
             }
-
+            for (String key : addedConfigValGenerator.pairConfigs.keySet()) {
+                if (addedConfigPairTest.containsKey(key)) {
+                    if (rand.nextDouble() < Config.getConf().testConfigRatio) {
+                        filteredCommonConfigTest.put(key,
+                                addedConfigPairTest.get(key));
+                        String pConfig = addedConfigValGenerator.pairConfigs
+                                .get(key);
+                        filteredCommonConfigTest.put(pConfig,
+                                addedConfigPairTest.get(pConfig));
+                    }
+                }
+            }
             upConfigtest.putAll(filteredCommonConfigTest);
             upConfig2Type.putAll(addedConfigName2Type);
         }

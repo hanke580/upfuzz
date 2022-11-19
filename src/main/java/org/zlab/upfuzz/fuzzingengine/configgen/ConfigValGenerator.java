@@ -2,6 +2,7 @@ package org.zlab.upfuzz.fuzzingengine.configgen;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
 import java.math.BigDecimal;
@@ -30,8 +31,15 @@ public class ConfigValGenerator {
     public Map<String, String> config2Init;
     public Map<String, List<String>> enumName2ConstantMap;
 
+    // (config1, config2) pair configurations
+    // implement some relation, smaller?
+    // for boolean, it should be conflict/same
+    // start from simple, int & smaller relationship
+
+    public Map<String, String> pairConfigs = new HashMap<>();
+
     public static final int MAX_INT = 10000;
-    public static final double MAX_DOUBLE = 10000.;
+    public static final double MAX_DOUBLE = 1000.;
     public static final double TEST_NUM = 5;
     public static final double SIZE_TEST_NUM = 5;
 
@@ -47,11 +55,31 @@ public class ConfigValGenerator {
         this.enumName2ConstantMap = enumName2ConstantMap;
     }
 
+    public void constructPairConfig() {
+        // support int type configuration with smaller relation
+        // only for cassandra
+        Set<String> configs = new HashSet<>();
+        for (String config : this.configs) {
+            if (config.contains("warn_threshold")) {
+                String pConfig = config.replace("warn_threshold",
+                        "fail_threshold");
+                if (this.configs.contains(pConfig)) {
+                    pairConfigs.put(config, pConfig);
+                } else {
+                    configs.add(config);
+                }
+            } else {
+                configs.add(config);
+            }
+        }
+        this.configs = configs;
+    }
+
     /**
      * If config name contains size, we shrink it, othersize,
      * we generate them as usual
      */
-    public Map<String, String> generateValuesShrinkSize() {
+    public Map<String, String> generateValues(boolean shrinkSize) {
         Map<String, String> config2Value = new HashMap<>();
 
         for (String config : configs) {
@@ -61,13 +89,14 @@ public class ConfigValGenerator {
                 String initValue = config2Init.get(config);
                 if (enumName2ConstantMap != null
                         && enumName2ConstantMap.containsKey(type)) {
-                    val = generateValue(type, initValue,
-                            enumName2ConstantMap.get(type));
+                    val = generateValue(enumName2ConstantMap.get(type));
                 } else {
                     if (config.toLowerCase().contains("size"))
-                        val = generateSizeValue(type, initValue);
+                        val = generateValue(config, type, initValue,
+                                shrinkSize);
                     else
-                        val = generateValue(type, initValue);
+                        val = generateValue(config, type, initValue,
+                                shrinkSize);
                 }
                 if (val != null) {
                     config2Value.put(config, val);
@@ -77,109 +106,54 @@ public class ConfigValGenerator {
         return config2Value;
     }
 
-    public Map<String, String> generateValues() {
+    public Map<String, String> generatePairValues(boolean shrinkSize) {
         Map<String, String> config2Value = new HashMap<>();
-        for (String config : configs) {
+        for (String config : pairConfigs.keySet()) {
             if (configName2Type.containsKey(config)) {
-                String val;
+                // generate 2 values, assign them
+                String val1;
+                String val2;
+
                 String type = configName2Type.get(config);
                 String initValue = config2Init.get(config);
                 if (enumName2ConstantMap != null
                         && enumName2ConstantMap.containsKey(type)) {
-                    val = generateValue(type, initValue,
-                            enumName2ConstantMap.get(type));
+                    val1 = generateValue(enumName2ConstantMap.get(type));
+                    val2 = generateValue(enumName2ConstantMap.get(type));
                 } else {
-                    val = generateValue(type, initValue);
+                    Pair<String, String> pairVal;
+                    if (shrinkSize)
+                        pairVal = generatePairValue(config, type, initValue,
+                                true);
+                    else
+                        pairVal = generatePairValue(config, type, initValue,
+                                false);
+                    if (pairVal != null) {
+                        val1 = pairVal.left;
+                        val2 = pairVal.right;
+                    } else {
+                        continue;
+                    }
                 }
-                if (val != null) {
-                    config2Value.put(config, val);
-                }
+                config2Value.put(config, val1);
+                config2Value.put(pairConfigs.get(config), val2);
             }
         }
         return config2Value;
     }
 
-    public String generateSizeValue(String configType, String init) {
+    public String generateValue(String config, String configType, String init,
+            boolean shrinkSize) {
         if (configType == null) {
             return null;
         }
-
         if (configType.contains(".")) {
             configType = configType.substring(configType.lastIndexOf(".") + 1);
         }
 
-        List<String> vals = new LinkedList<>();
-        switch (configType) {
-        case "int":
-        case "Integer":
-        case "long":
-        case "Long": {
-            // generate some int values
-            // vals.add("0");
-            vals.add("1");
-            if (init != null) {
-                Integer initVal;
-                try {
-                    initVal = Integer.parseInt(init);
-                    // can generate values using default
-                    for (int i = 0; i < SIZE_TEST_NUM; i++) {
-                        vals.add(String
-                                .valueOf(rand.nextInt(
-                                        (int) (SHRINKRATIO * initVal))));
-                    }
-                } catch (Exception e) {
-                    // cannot use default value
-                }
-            }
-            vals.removeAll(Collections.singleton("0"));
-            break;
-        }
-        case "double": {
-            // vals.add("0");
-            vals.add("1");
-            double val = rand.nextDouble();
-            Double truncVal = BigDecimal.valueOf(val)
-                    .setScale(2, RoundingMode.HALF_UP).doubleValue();
-            vals.add(String.valueOf(truncVal));
-            if (init != null) {
-                Double initVal;
-                try {
-                    initVal = Double.parseDouble(init);
-                    // can generate values using default
-                    for (int i = 0; i < SIZE_TEST_NUM; i++) {
-                        val = Utilities.randDouble(rand, 0.,
-                                SHRINKRATIO * initVal);
-                        truncVal = BigDecimal.valueOf(val)
-                                .setScale(2, RoundingMode.HALF_UP)
-                                .doubleValue();
-                        vals.add(String.valueOf(truncVal));
-                    }
-                } catch (Exception e) {
-                    // cannot use default value
-                }
-            }
-            vals.removeAll(Collections.singleton("0.0"));
-            break;
-        }
-        }
-
-        if (vals.isEmpty()) {
-            // logger.error("cannot generate value");
-            return null;
-        }
-
-        int idx = rand.nextInt(vals.size());
-        return vals.get(idx);
-    }
-
-    private String generateValue(String configType, String init) {
-        if (configType == null) {
-            return null;
-        }
-
-        if (configType.contains(".")) {
-            configType = configType.substring(configType.lastIndexOf(".") + 1);
-        }
+        double factor = 2;
+        if (shrinkSize)
+            factor = SHRINKRATIO;
 
         List<String> vals = new LinkedList<>();
         switch (configType) {
@@ -196,64 +170,76 @@ public class ConfigValGenerator {
             // generate some int values
             // vals.add("0");
             vals.add("1");
+            boolean useDefault = false;
             if (init != null) {
-                Integer initVal;
+                int initVal;
                 try {
                     initVal = Integer.parseInt(init);
-                    // can generate values using default
-                    for (int i = 0; i < TEST_NUM; i++) {
-                        vals.add(String.valueOf(rand.nextInt(2 * initVal)));
+                    if (initVal > 0) {
+                        useDefault = true;
+                        // can generate values using default
+                        for (int i = 0; i < SIZE_TEST_NUM; i++) {
+                            vals.add(String
+                                    .valueOf(rand.nextInt(
+                                            (int) (factor * initVal))));
+                        }
                     }
                 } catch (Exception e) {
                     // cannot use default value
                 }
             }
-            for (int i = 0; i < TEST_NUM; i++) {
-                vals.add(String.valueOf(rand.nextInt(MAX_INT)));
+            if (!useDefault) {
+                // cannot use default value
+                int maxInt = MAX_INT;
+                if (config.contains("percentage")) {
+                    // only generate 0-100
+                    maxInt = 100;
+                }
+                for (int i = 0; i < TEST_NUM; i++) {
+                    vals.add(String.valueOf(rand.nextInt(maxInt)));
+                }
             }
             vals.removeAll(Collections.singleton("0"));
             break;
         }
         case "double": {
-            // vals.add("0");
+            boolean useDefault = false;
             vals.add("1");
+            double val = rand.nextDouble();
+            Double truncVal = BigDecimal.valueOf(val)
+                    .setScale(2, RoundingMode.HALF_UP).doubleValue();
+            vals.add(String.valueOf(truncVal));
             if (init != null) {
-                Double initVal = null;
+                double initVal;
                 try {
                     initVal = Double.parseDouble(init);
-                    // can generate values using default
-                    for (int i = 0; i < TEST_NUM; i++) {
-                        Double val = Utilities.randDouble(rand, 0.,
-                                2 * initVal);
-                        Double truncVal = BigDecimal.valueOf(val)
+                    for (int i = 0; i < SIZE_TEST_NUM; i++) {
+                        val = Utilities.randDouble(rand, 0.,
+                                factor * initVal);
+                        truncVal = BigDecimal.valueOf(val)
                                 .setScale(2, RoundingMode.HALF_UP)
                                 .doubleValue();
+                        useDefault = true;
                         vals.add(String.valueOf(truncVal));
                     }
                 } catch (Exception e) {
                     // cannot use default value
                 }
             }
-
-            for (int i = 0; i < TEST_NUM; i++) {
-                Double val = MAX_DOUBLE * rand.nextDouble();
-                Double truncVal = BigDecimal.valueOf(val)
-                        .setScale(2, RoundingMode.HALF_UP).doubleValue();
-                vals.add(String.valueOf(truncVal));
+            if (!useDefault) {
+                for (int i = 0; i < TEST_NUM; i++) {
+                    val = MAX_DOUBLE * rand.nextDouble();
+                    truncVal = BigDecimal.valueOf(val)
+                            .setScale(2, RoundingMode.HALF_UP).doubleValue();
+                    vals.add(String.valueOf(truncVal));
+                }
             }
             vals.removeAll(Collections.singleton("0.0"));
-            break;
-        }
-        case "String": {
-            // We might not want to mutate this part?
-            // Omit. Randomly generate values for this
-            // will likely be invalid.
             break;
         }
         }
 
         if (vals.isEmpty()) {
-            // logger.error("cannot gen type = " + configType);
             return null;
         }
 
@@ -261,12 +247,111 @@ public class ConfigValGenerator {
         return vals.get(idx);
     }
 
+    // generate (val1, val2) where val1 < val2
+    private Pair<String, String> generatePairValue(String config,
+            String configType,
+            String init, boolean shrinkSize) {
+        if (configType == null) {
+            return null;
+        }
+        double factor = 2;
+        if (shrinkSize)
+            factor = SHRINKRATIO;
+        if (configType.contains(".")) {
+            configType = configType.substring(configType.lastIndexOf(".") + 1);
+        }
+
+        String val1;
+        String val2;
+
+        switch (configType) {
+        case "int":
+        case "Integer":
+        case "long":
+        case "Long": {
+            List<Integer> vals = new LinkedList<>();
+            vals.add(1);
+            boolean useDefault = false;
+            if (init != null) {
+                int initVal;
+                try {
+                    initVal = Integer.parseInt(init);
+                    if (initVal > 0) {
+                        useDefault = true;
+                        // can generate values using default
+                        for (int i = 0; i < TEST_NUM; i++) {
+                            vals.add(rand.nextInt((int) factor * initVal));
+                        }
+                    }
+                } catch (Exception e) {
+                    // cannot use default value
+                }
+            }
+            if (!useDefault) {
+                // cannot use default value
+                for (int i = 0; i < TEST_NUM; i++) {
+                    vals.add(rand.nextInt(MAX_INT));
+                }
+            }
+
+            int val1_ = vals.get(rand.nextInt(vals.size()));
+            int val2_ = vals.get(rand.nextInt(vals.size()));
+            val1 = val1_ <= val2_ ? String.valueOf(val1_)
+                    : String.valueOf(val2_);
+            val2 = val1_ <= val2_ ? String.valueOf(val2_)
+                    : String.valueOf(val1_);
+            break;
+        }
+        case "double": {
+            List<Double> vals = new LinkedList<>();
+            boolean useDefault = false;
+            vals.add(1.);
+            if (init != null) {
+                double initVal;
+                try {
+                    initVal = Double.parseDouble(init);
+                    // can generate values using default
+                    for (int i = 0; i < TEST_NUM; i++) {
+                        Double val = Utilities.randDouble(rand, 0.,
+                                factor * initVal);
+                        Double truncVal = BigDecimal.valueOf(val)
+                                .setScale(2, RoundingMode.HALF_UP)
+                                .doubleValue();
+                        useDefault = true;
+                        vals.add(truncVal);
+                    }
+                } catch (Exception e) {
+                    // cannot use default value
+                }
+            }
+            if (!useDefault) {
+                for (int i = 0; i < TEST_NUM; i++) {
+                    double val = MAX_DOUBLE * rand.nextDouble();
+                    Double truncVal = BigDecimal.valueOf(val)
+                            .setScale(2, RoundingMode.HALF_UP).doubleValue();
+                    vals.add(truncVal);
+                }
+            }
+            double val1_ = vals.get(rand.nextInt(vals.size()));
+            double val2_ = vals.get(rand.nextInt(vals.size()));
+            val1 = val1_ <= val2_ ? String.valueOf(val1_)
+                    : String.valueOf(val2_);
+            val2 = val1_ <= val2_ ? String.valueOf(val2_)
+                    : String.valueOf(val1_);
+            break;
+        }
+        default:
+            return null;
+        }
+        return new Pair<>(val1, val2);
+    }
+
     // for enum
-    private String generateValue(
-            String configType, String Init, List<String> constantMap) {
+    private String generateValue(List<String> constantMap) {
         assert !constantMap.isEmpty();
 
         int idx = rand.nextInt(constantMap.size());
         return constantMap.get(idx);
     }
+
 }
