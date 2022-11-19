@@ -59,6 +59,7 @@ public class CassandraDockerCluster extends DockerCluster {
         return true;
     }
 
+    @Override
     public int start() {
         // String dockerTimestamp =
         // formatter.format(System.currentTimeMillis());

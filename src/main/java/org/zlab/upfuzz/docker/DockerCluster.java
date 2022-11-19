@@ -104,12 +104,16 @@ public abstract class DockerCluster implements IDockerCluster {
         return idx;
     }
 
-    public boolean rollingUpgrade() throws Exception {
-        logger.info("Cluster upgrading...");
-        type = "upgraded";
-        prepareUpgrade();
-        for (int i = 0; i < dockers.length; ++i) {
+    public boolean freshStartNewVersion() throws Exception {
+        logger.info("Fresh start new version ...");
+        for (int i = 0; i < dockers.length; i++) {
             dockers[i].shutdown();
+        }
+        for (int i = 0; i < dockers.length; i++) {
+            dockers[i].clear();
+        }
+        // new version will start up from a clear state
+        for (int i = 0; i < dockers.length; i++) {
             dockers[i].upgrade();
         }
         logger.info("Cluster upgraded");
@@ -120,10 +124,22 @@ public abstract class DockerCluster implements IDockerCluster {
         logger.info("Cluster full-stop upgrading...");
         type = "upgraded";
         prepareUpgrade();
-        for (int i = 0; i < dockers.length; ++i) {
+        for (int i = 0; i < dockers.length; i++) {
             dockers[i].shutdown();
         }
+        for (int i = 0; i < dockers.length; i++) {
+            dockers[i].upgrade();
+        }
+        logger.info("Cluster upgraded");
+        return true;
+    }
+
+    public boolean rollingUpgrade() throws Exception {
+        logger.info("Cluster upgrading...");
+        type = "upgraded";
+        prepareUpgrade();
         for (int i = 0; i < dockers.length; ++i) {
+            dockers[i].shutdown();
             dockers[i].upgrade();
         }
         logger.info("Cluster upgraded");

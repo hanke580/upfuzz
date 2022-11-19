@@ -44,15 +44,18 @@ public class FuzzingClient {
         clientThread.join();
     }
 
-    public void initExecutor(int nodeNum, Set<String> targetSystemStates,
+    public Executor initExecutor(int nodeNum, Set<String> targetSystemStates,
             Path configPath) {
         if (Config.getConf().system.equals("cassandra")) {
-            executor = new CassandraExecutor(nodeNum, targetSystemStates,
+            return new CassandraExecutor(nodeNum, targetSystemStates,
                     configPath);
         } else if (Config.getConf().system.equals("hdfs")) {
-            executor = new HdfsExecutor(nodeNum, targetSystemStates,
+            return new HdfsExecutor(nodeNum, targetSystemStates,
                     configPath);
         }
+        throw new RuntimeException(String.format(
+                "System %s is not supported yet, supported system: cassandra, hdfs",
+                Config.getConf().system));
     }
 
     public boolean startUpExecutor() {
@@ -89,10 +92,17 @@ public class FuzzingClient {
                 stackedTestPacket.configIdx);
         logger.info("[HKLOG] configPath = " + configPath);
 
-        initExecutor(stackedTestPacket.nodeNum, null, configPath);
+        // config verification
+        boolean validConfig = verifyConfig(configPath);
+        if (!validConfig) {
+            logger.error("problem with configuration! system cannot start up");
+            return null;
+        }
 
+        executor = initExecutor(stackedTestPacket.nodeNum, null, configPath);
         boolean startUpStatus = startUpExecutor();
         if (!startUpStatus) {
+            // old version **cluster** start up problem
             return null;
         }
 
@@ -224,8 +234,16 @@ public class FuzzingClient {
         logger.info("[HKLOG] configPath = " + fullStopPacket.configFileName);
         Path configPath = Paths.get(configDirPath.toString(),
                 fullStopPacket.configFileName);
-        // Start up
-        initExecutor(nodeNum,
+
+        // config verification
+        boolean validConfig = verifyConfig(configPath);
+        if (!validConfig) {
+            logger.error("problem with configuration! system cannot start up");
+            return null;
+        }
+
+        // start up
+        executor = initExecutor(nodeNum,
                 fullStopPacket.fullStopUpgrade.targetSystemStates, configPath);
         boolean startUpStatus = startUpExecutor();
         if (!startUpStatus) {
@@ -357,7 +375,15 @@ public class FuzzingClient {
         Path configPath = Paths.get(configDirPath.toString(), configIdx);
         logger.info("[HKLOG] configPath = " + configPath);
 
-        initExecutor(testPlanPacket.getNodeNum(), targetSystemStates,
+        // config verification
+        boolean validConfig = verifyConfig(configPath);
+        if (!validConfig) {
+            logger.error("problem with configuration! system cannot start up");
+            return null;
+        }
+
+        // start up
+        executor = initExecutor(testPlanPacket.getNodeNum(), targetSystemStates,
                 configPath);
         boolean startUpStatus = startUpExecutor();
         if (!startUpStatus) {
@@ -478,8 +504,15 @@ public class FuzzingClient {
                 stackedTestPacket.configIdx);
         logger.info("[HKLOG] configPath = " + configPath);
 
+        // config verification
+        boolean validConfig = verifyConfig(configPath);
+        if (!validConfig) {
+            logger.error("problem with configuration! system cannot start up");
+            return null;
+        }
+
         // start up cluster
-        initExecutor(nodeNum, null, configPath);
+        executor = initExecutor(nodeNum, null, configPath);
 
         boolean startUpStatus = startUpExecutor();
         if (!startUpStatus) {
@@ -627,6 +660,23 @@ public class FuzzingClient {
         tearDownExecutor();
         return new MixedFeedbackPacket(stackedFeedbackPacket,
                 testPlanFeedbackPacket);
+    }
+
+    private boolean verifyConfig(Path configPath) {
+        // start up one node in old version, verify old version config file
+        // start up one node in new version, verify new version config file
+        Executor executor = initExecutor(1, null, configPath);
+        boolean startUpStatus = executor.startup();
+        if (!startUpStatus) {
+            logger.error("config cannot start up old version");
+            return false;
+        }
+        startUpStatus = executor.freshStartNewVersion();
+        executor.teardown();
+        if (!startUpStatus) {
+            logger.error("config cannot start up new version");
+        }
+        return startUpStatus;
     }
 
     private String genTestPlanFailureReport(int failEventIdx, String executorID,

@@ -279,8 +279,7 @@ public class Utilities {
     public static Process exec(String[] cmds, File path) throws IOException {
         ProcessBuilder pb = new ProcessBuilder(cmds).redirectErrorStream(true);
         pb.directory(path);
-        Process p = pb.start();
-        return p;
+        return pb.start();
     }
 
     public static Process exec(String[] cmds, String path) throws IOException {

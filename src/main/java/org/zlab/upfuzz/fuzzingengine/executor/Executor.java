@@ -2,7 +2,6 @@ package org.zlab.upfuzz.fuzzingengine.executor;
 
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
-import java.rmi.UnexpectedException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -78,6 +77,16 @@ public abstract class Executor implements IExecutor {
 
     public String getSysExecID() {
         return systemID + "-" + executorID;
+    }
+
+    public boolean freshStartNewVersion() {
+        try {
+            dockerCluster.freshStartNewVersion();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public boolean fullStopUpgrade() {

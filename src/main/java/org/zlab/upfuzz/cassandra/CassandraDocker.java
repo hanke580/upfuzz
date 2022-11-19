@@ -194,6 +194,20 @@ public class CassandraDocker extends Docker {
     }
 
     @Override
+    public boolean clear() {
+        try {
+            runInContainer(new String[] {
+                    "rm", "-rf", "/var/lib/cassandra/*"
+            });
+        } catch (IOException e) {
+            logger.error(e);
+            // FIXME: remove this line after debugging
+            System.exit(1);
+        }
+        return true;
+    }
+
+    @Override
     public Path getDataPath() {
         return Paths.get(workdir.toString(),
                 "/persistent/node_" + index + "/data");

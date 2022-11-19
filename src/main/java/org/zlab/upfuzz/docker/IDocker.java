@@ -1,6 +1,5 @@
 package org.zlab.upfuzz.docker;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.Map;
 
@@ -18,6 +17,9 @@ public interface IDocker {
     // Stop the process in container
     // Don't stop the container
     boolean shutdown();
+
+    // remove all system data (data/ in cassandra)
+    boolean clear();
 
     Map<String, String> readSystemState();
 

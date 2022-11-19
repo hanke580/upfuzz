@@ -185,6 +185,20 @@ public class HdfsDocker extends Docker {
     }
 
     @Override
+    public boolean clear() {
+        try {
+            runInContainer(new String[] {
+                    "rm", "-rf", "/var/hadoop/data/*"
+            });
+        } catch (IOException e) {
+            logger.error(e);
+            // FIXME: remove this line after debugging
+            System.exit(1);
+        }
+        return true;
+    }
+
+    @Override
     public Map<String, String> readSystemState() {
         return null;
     }
