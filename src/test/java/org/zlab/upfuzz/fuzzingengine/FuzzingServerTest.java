@@ -1,6 +1,8 @@
 package org.zlab.upfuzz.fuzzingengine;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -40,7 +42,6 @@ public class FuzzingServerTest {
 
     @Test
     public void testTestPlanGeneration() {
-
         CommandPool commandPool = new HdfsCommandPool();
         Class stateClass = HdfsState.class;
         Seed seed = Executor.generateSeed(commandPool, stateClass);
@@ -53,9 +54,7 @@ public class FuzzingServerTest {
         System.out.println(testPlan);
         testPlan.mutate();
         System.out.println("\nMutate Test Plan\n");
-
         System.out.println(testPlan);
-
     }
 
     // @Test

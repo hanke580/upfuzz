@@ -1,7 +1,6 @@
 package org.zlab.upfuzz.fuzzingengine.server;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -29,6 +28,7 @@ import org.zlab.upfuzz.fuzzingengine.testplan.FullStopUpgrade;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.downgradeop.DowngradeOp;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.*;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.FinalizeUpgrade;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.HDFSStopSNN;
@@ -394,14 +394,14 @@ public class FuzzingServer {
 
     public TestPlan generateTestPlan(FullStopSeed fullStopSeed) {
         // Some systems might have special requirements for
-        // upgrade, like HDFS needs to upgrade NN first
+        // upgrade, like HDFS needs to upgrade NN.
 
         int nodeNum = fullStopSeed.nodeNum;
-
         int faultNum = rand.nextInt(Config.getConf().faultMaxNum + 1);
         List<Pair<Fault, FaultRecover>> faultPairs = Fault
                 .randomGenerateFaults(nodeNum, faultNum);
 
+        // construct upgrade operations
         List<Event> upgradeOps = new LinkedList<>();
         for (int i = 0; i < nodeNum; i++) {
             upgradeOps.add(new UpgradeOp(i));
@@ -409,6 +409,11 @@ public class FuzzingServer {
         if (Config.getConf().shuffleUpgradeOrder) {
             Collections.shuffle(upgradeOps);
         }
+        // downgrade operations
+        if (Config.getConf().testDowngrade) {
+            addDowngradeOp(upgradeOps, nodeNum);
+        }
+
         if (Config.getConf().system.equals("hdfs")) {
             upgradeOps.add(0, new HDFSStopSNN());
         }
@@ -921,7 +926,7 @@ public class FuzzingServer {
         return upgradeOpAndFaults;
     }
 
-    public static List<Event> interleaveWithOrder(List<Event> events1,
+    public List<Event> interleaveWithOrder(List<Event> events1,
             List<Event> events2) {
         // Merge two lists but still maintain the inner order
         // Prefer to execute events2 first. Not uniform distribution
@@ -958,6 +963,32 @@ public class FuzzingServer {
             }
         }
         return events;
+    }
+
+    public void addDowngradeOp(List<Event> events, int nodeNum) {
+        // inject downgrade after the upgrade op
+        List<Event> upgradeOpWithDownGrade = new LinkedList<>();
+        int downgradeNodeNum = rand.nextInt(nodeNum + 1);
+        List<Integer> nodeIdxes = new LinkedList<>();
+        for (int i = 0; i < nodeNum; i++) {
+            nodeIdxes.add(i);
+        }
+        Collections.shuffle(nodeIdxes);
+        for (int i = 0; i < downgradeNodeNum; i++) {
+            int downgradeNodeIdx = nodeIdxes.get(i);
+            for (int j = 0; j < events.size(); j++) {
+                if (events.get(j) instanceof UpgradeOp &&
+                        ((UpgradeOp) events
+                                .get(j)).nodeIndex == downgradeNodeIdx) {
+                    // add the downgrade op to somewhere after it
+                    // [j+1, size+1)
+                    int pos = Utilities.randWithRange(rand, j + 1,
+                            events.size() + 1);
+                    events.add(pos, new DowngradeOp(downgradeNodeIdx));
+                    break;
+                }
+            }
+        }
     }
 
     public static Set<String> readState(Path filePath)

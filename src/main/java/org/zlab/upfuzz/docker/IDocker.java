@@ -14,6 +14,8 @@ public interface IDocker {
 
     void upgrade() throws Exception;
 
+    void downgrade() throws Exception;
+
     // Stop the process in container
     // Don't stop the container
     boolean shutdown();

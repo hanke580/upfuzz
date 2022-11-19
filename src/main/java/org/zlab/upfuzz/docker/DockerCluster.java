@@ -33,7 +33,6 @@ public abstract class DockerCluster implements IDockerCluster {
     public Executor executor;
     public String executorID;
     public String system;
-    public String type;
     public String subnet;
     public int agentPort;
     public int subnetID;
@@ -72,7 +71,6 @@ public abstract class DockerCluster implements IDockerCluster {
         this.executor = executor;
         this.executorID = executor.executorID;
         this.version = version;
-        this.type = "original";
         this.originalVersion = Config.getConf().originalVersion;
         this.upgradedVersion = Config.getConf().upgradedVersion;
         this.system = executor.systemID;
@@ -104,6 +102,33 @@ public abstract class DockerCluster implements IDockerCluster {
         return idx;
     }
 
+    @Override
+    public boolean fullStopUpgrade() throws Exception {
+        logger.info("Cluster full-stop upgrading...");
+        prepareUpgrade();
+        for (int i = 0; i < dockers.length; i++) {
+            dockers[i].shutdown();
+        }
+        for (int i = 0; i < dockers.length; i++) {
+            dockers[i].upgrade();
+        }
+        logger.info("Cluster upgraded");
+        return true;
+    }
+
+    @Override
+    public boolean rollingUpgrade() throws Exception {
+        logger.info("Cluster upgrading...");
+        prepareUpgrade();
+        for (int i = 0; i < dockers.length; ++i) {
+            dockers[i].shutdown();
+            dockers[i].upgrade();
+        }
+        logger.info("Cluster upgraded");
+        return true;
+    }
+
+    @Override
     public boolean freshStartNewVersion() throws Exception {
         logger.info("Fresh start new version ...");
         for (int i = 0; i < dockers.length; i++) {
@@ -114,32 +139,6 @@ public abstract class DockerCluster implements IDockerCluster {
         }
         // new version will start up from a clear state
         for (int i = 0; i < dockers.length; i++) {
-            dockers[i].upgrade();
-        }
-        logger.info("Cluster upgraded");
-        return true;
-    }
-
-    public boolean fullStopUpgrade() throws Exception {
-        logger.info("Cluster full-stop upgrading...");
-        type = "upgraded";
-        prepareUpgrade();
-        for (int i = 0; i < dockers.length; i++) {
-            dockers[i].shutdown();
-        }
-        for (int i = 0; i < dockers.length; i++) {
-            dockers[i].upgrade();
-        }
-        logger.info("Cluster upgraded");
-        return true;
-    }
-
-    public boolean rollingUpgrade() throws Exception {
-        logger.info("Cluster upgrading...");
-        type = "upgraded";
-        prepareUpgrade();
-        for (int i = 0; i < dockers.length; ++i) {
-            dockers[i].shutdown();
             dockers[i].upgrade();
         }
         logger.info("Cluster upgraded");
@@ -163,27 +162,24 @@ public abstract class DockerCluster implements IDockerCluster {
     // - flush memTable in Cassandra
     public abstract void prepareUpgrade() throws Exception;
 
-    // Can be override if the system follows some special
-    // upgrade order
+    @Override
     public void upgrade(int nodeIndex) throws Exception {
         // upgrade a specific node
         logger.info(String.format("Upgrade Node[%d]", nodeIndex));
         dockers[nodeIndex].shutdown();
         dockers[nodeIndex].upgrade();
         dockerStates[nodeIndex].dockerVersion = DockerMeta.DockerVersion.upgraded;
-        updateClusterState();
         logger.info(String.format("Node[%d] is upgraded", nodeIndex));
     }
 
-    public void updateClusterState() {
-        int upgradeNodeNum = 0;
-        for (int i = 0; i < Config.getConf().nodeNum; i++) {
-            if (dockerStates[i].dockerVersion == DockerMeta.DockerVersion.upgraded) {
-                upgradeNodeNum++;
-            }
-        }
-        if (upgradeNodeNum == nodeNum)
-            type = "upgraded";
+    @Override
+    public void downgrade(int nodeIndex) throws Exception {
+        // upgrade a specific node
+        logger.info(String.format("Downgrade Node[%d]", nodeIndex));
+        dockers[nodeIndex].shutdown();
+        dockers[nodeIndex].downgrade();
+        dockerStates[nodeIndex].dockerVersion = DockerMeta.DockerVersion.original;
+        logger.info(String.format("Node[%d] is downgraded", nodeIndex));
     }
 
     // Link failure on two nodes

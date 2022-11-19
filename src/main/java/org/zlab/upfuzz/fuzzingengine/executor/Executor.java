@@ -20,6 +20,7 @@ import org.zlab.upfuzz.fuzzingengine.server.Seed;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.downgradeop.DowngradeOp;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.*;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.FinalizeUpgrade;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.HDFSStopSNN;
@@ -81,8 +82,7 @@ public abstract class Executor implements IExecutor {
 
     public boolean freshStartNewVersion() {
         try {
-            dockerCluster.freshStartNewVersion();
-            return true;
+            return dockerCluster.freshStartNewVersion();
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -91,8 +91,7 @@ public abstract class Executor implements IExecutor {
 
     public boolean fullStopUpgrade() {
         try {
-            dockerCluster.fullStopUpgrade();
-            return true;
+            return dockerCluster.fullStopUpgrade();
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -132,28 +131,8 @@ public abstract class Executor implements IExecutor {
         }
     }
 
-    // Dead code
-    public static CommandSequence prepareValidCmds(
-            CommandPool commandPool, State state) {
-        CommandSequence validationCommandSequence = null;
-        try {
-            validationCommandSequence = CommandSequence.generateSequence(
-                    commandPool.readCommandClassList, null, state.getClass(),
-                    state);
-        } catch (NoSuchMethodException | InvocationTargetException
-                | InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
-        return validationCommandSequence;
-    }
-
     public boolean execute(TestPlan testPlan) {
-        // Base
-        // - If there is any exception happen during this process, we should
-        // report it.
-        // - How about we monitor the output of each command
-        // - We compare the results of commands between full-stop upgrade and
-        // rolling upgrade
+        // Any exception happen during this process, we will report it.
         eventIdx = 0;
 
         boolean status = true;
@@ -181,7 +160,6 @@ public abstract class Executor implements IExecutor {
                     break;
                 }
             } else if (event instanceof UpgradeOp) {
-
                 UpgradeOp upgradeOp = (UpgradeOp) event;
                 int nodeIdx = upgradeOp.nodeIndex;
                 oriCoverage[nodeIdx] = collectSingleNodeCoverage(nodeIdx,
@@ -189,6 +167,12 @@ public abstract class Executor implements IExecutor {
 
                 if (!handleUpgradeOp((UpgradeOp) event)) {
                     logger.error("UpgradeOp problem");
+                    status = false;
+                    break;
+                }
+            } else if (event instanceof DowngradeOp) {
+                if (!handleDowngradeOp((DowngradeOp) event)) {
+                    logger.error("DowngradeOp problem");
                     status = false;
                     break;
                 }
@@ -430,6 +414,17 @@ public abstract class Executor implements IExecutor {
             dockerCluster.upgrade(upgradeOp.nodeIndex);
         } catch (Exception e) {
             logger.error("upgrade failed due to an exception " + e);
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    public boolean handleDowngradeOp(DowngradeOp downgradeOp) {
+        try {
+            dockerCluster.downgrade(downgradeOp.nodeIndex);
+        } catch (Exception e) {
+            logger.error("downgrade failed due to an exception " + e);
             e.printStackTrace();
             return false;
         }
