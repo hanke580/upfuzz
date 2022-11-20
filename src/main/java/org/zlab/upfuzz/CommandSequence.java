@@ -11,7 +11,7 @@ import java.util.Random;
 import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.zlab.upfuzz.cassandra.CassandraCommands;
+import org.zlab.upfuzz.cassandra.CassandraCommand;
 import org.zlab.upfuzz.utils.INTType;
 import org.zlab.upfuzz.utils.STRINGType;
 
@@ -47,7 +47,7 @@ public class CommandSequence implements Serializable {
 
         for (Command command : commands) {
             command.changeKeyspaceName(); // For separation
-            command.updateState(state);
+//            command.updateState(state);
         }
         Constructor<?> constructor = stateClass.getConstructor();
         State state = (State) constructor.newInstance(); // Recreate a state
@@ -88,7 +88,7 @@ public class CommandSequence implements Serializable {
         separateFromFormerTest();
         initializeTypePool();
 
-        if (CassandraCommands.DEBUG) {
+        if (CassandraCommand.DEBUG) {
             System.out.println("String Pool:" + STRINGType.stringPool);
             System.out.println("Int Pool: " + INTType.intPool);
         }
@@ -105,7 +105,7 @@ public class CommandSequence implements Serializable {
             Constructor<?> constructor = stateClass.getConstructor();
             State state = (State) constructor.newInstance(); // Recreate a state
 
-            if (CassandraCommands.DEBUG) {
+            if (CassandraCommand.DEBUG) {
                 choice = 2;
             }
 
@@ -291,7 +291,7 @@ public class CommandSequence implements Serializable {
 
         // List<Class<? extends Command>> tmpCommandClassList = new
         // LinkedList<>(); // Debug
-        // tmpCommandClassList.add(CassandraCommands.ALTER_TABLE_DROP.class); //
+        // tmpCommandClassList.add(CassandraCommand.ALTER_TABLE_DROP.class); //
         // Debug
         for (int i = 0; i < len; i++) {
 

@@ -8,8 +8,7 @@ import java.util.Random;
 import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.zlab.upfuzz.cassandra.CassandraCommands;
-import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
+import org.zlab.upfuzz.cassandra.CassandraCommand;
 
 /**
  * User need to implement two methods constructCommandString() and
@@ -48,7 +47,7 @@ public abstract class Command implements Serializable {
 
         for (int i = 0; i < RETRY_TIMES; i++) {
             int mutateParamIdx = rand.nextInt(params.size());
-            if (CassandraCommands.DEBUG) {
+            if (CassandraCommand.DEBUG) {
                 mutateParamIdx = 2;
             }
             // logger.debug("Mutate Parameter Pos = " + mutateParamIdx);

@@ -4,7 +4,7 @@ import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.cassandra.CassandraCommands;
+import org.zlab.upfuzz.cassandra.CassandraCommand;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.cassandra.CassandraTable;
 import org.zlab.upfuzz.utils.Pair;
@@ -22,20 +22,16 @@ import java.util.*;
  *    VALUES (c4b65263-fe58-4846-83e8-f0e1c13d518f, 'RATTO', 'Rissella')
  * IF NOT EXISTS;
  */
-public class INSERT extends CassandraCommands {
+public class INSERT extends CassandraCommand {
 
-    public INSERT(State state, Object init0, Object init1, Object init2,
+    public INSERT(CassandraState state, Object init0, Object init1,
+            Object init2,
             Object init3) {
-        super();
-
-        assert state instanceof CassandraState;
-        CassandraState cassandraState = (CassandraState) state;
-
-        Parameter keyspaceName = chooseKeyspace(cassandraState, this,
+        Parameter keyspaceName = chooseKeyspace(state, this,
                 init0);
         this.params.add(keyspaceName); // [0]
 
-        Parameter TableName = chooseTable(cassandraState, this, init1);
+        Parameter TableName = chooseTable(state, this, init1);
         this.params.add(TableName); // [1]
 
         ParameterType.ConcreteType columnsType = new ParameterType.SuperSetType(
@@ -49,29 +45,24 @@ public class INSERT extends CassandraCommands {
                         c.params.get(1).toString()).primaryColName2Type,
                 null);
         Parameter columns = columnsType
-                .generateRandomParameter(cassandraState, this, init2);
+                .generateRandomParameter(state, this, init2);
         this.params.add(columns); // [2]
 
         ParameterType.ConcreteType insertValuesType = new ParameterType.Type2ValueType(
                 null, (s, c) -> (Collection) c.params.get(2).getValue(), // columns
                 p -> ((Pair) ((Parameter) p).value).right);
         Parameter insertValues = insertValuesType
-                .generateRandomParameter(cassandraState, this, init3);
+                .generateRandomParameter(state, this, init3);
         this.params.add(insertValues); // [3]
 
         updateExecutableCommandString();
     }
 
-    public INSERT(State state) {
-        super();
-
-        assert state instanceof CassandraState;
-        CassandraState cassandraState = (CassandraState) state;
-
-        Parameter keyspaceName = chooseKeyspace(cassandraState, this, null);
+    public INSERT(CassandraState state) {
+        Parameter keyspaceName = chooseKeyspace(state, this, null);
         this.params.add(keyspaceName);
 
-        Parameter TableName = chooseTable(cassandraState, this, null);
+        Parameter TableName = chooseTable(state, this, null);
         this.params.add(TableName);
 
         ParameterType.ConcreteType columnsType = new ParameterType.SuperSetType(
@@ -85,14 +76,14 @@ public class INSERT extends CassandraCommands {
                         c.params.get(1).toString()).primaryColName2Type,
                 null);
         Parameter columns = columnsType
-                .generateRandomParameter(cassandraState, this);
+                .generateRandomParameter(state, this);
         this.params.add(columns);
 
         ParameterType.ConcreteType insertValuesType = new ParameterType.Type2ValueType(
                 null, (s, c) -> (Collection) c.params.get(2).getValue(), // columns
                 p -> ((Pair) ((Parameter) p).value).right);
         Parameter insertValues = insertValuesType
-                .generateRandomParameter(cassandraState, this);
+                .generateRandomParameter(state, this);
         this.params.add(insertValues);
 
         updateExecutableCommandString();
@@ -100,7 +91,6 @@ public class INSERT extends CassandraCommands {
 
     @Override
     public String constructCommandString() {
-
         Parameter keyspaceName = params.get(0);
         Parameter tableName = params.get(1);
         ParameterType.ConcreteType columnNameType = new ParameterType.StreamMapType(
@@ -110,11 +100,9 @@ public class INSERT extends CassandraCommands {
                 this);
         Parameter insertValues = params.get(3);
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("INSERT INTO " + keyspaceName.toString() + "."
+        return "INSERT INTO " + keyspaceName.toString() + "."
                 + tableName.toString() + " (" + columnName.toString()
-                + ") VALUES (" + insertValues.toString() + ");");
-        return sb.toString();
+                + ") VALUES (" + insertValues.toString() + ");";
     }
 
     @Override

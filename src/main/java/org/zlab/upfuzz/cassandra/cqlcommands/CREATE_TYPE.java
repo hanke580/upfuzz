@@ -1,10 +1,9 @@
 package org.zlab.upfuzz.cassandra.cqlcommands;
 
-import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.cassandra.CassandraCommands;
+import org.zlab.upfuzz.cassandra.CassandraCommand;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.cassandra.CassandraTypes;
 import org.zlab.upfuzz.utils.PAIRType;
@@ -22,7 +21,7 @@ import org.zlab.upfuzz.utils.Utilities;
  *    VALUES (c4b65263-fe58-4846-83e8-f0e1c13d518f, 'RATTO', 'Rissella')
  * IF NOT EXISTS;
  */
-public class CREATE_TYPE extends CassandraCommands {
+public class CREATE_TYPE extends CassandraCommand {
 
     public CREATE_TYPE(State state) {
         super();

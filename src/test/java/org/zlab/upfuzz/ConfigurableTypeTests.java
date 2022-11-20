@@ -1,11 +1,7 @@
 package org.zlab.upfuzz;
 
 import org.junit.jupiter.api.Test;
-import org.zlab.upfuzz.Parameter;
-import org.zlab.upfuzz.cassandra.CassandraCommands;
 import org.zlab.upfuzz.cassandra.CassandraState;
-import org.zlab.upfuzz.cassandra.CassandraTable;
-import org.zlab.upfuzz.utils.STRINGType;
 
 public class ConfigurableTypeTests {
     @Test
@@ -26,8 +22,8 @@ public class ConfigurableTypeTests {
         // s.addTable(new CassandraTable(new Parameter(STRINGType.instance,
         // "T3"), null, null));
         //
-        // CassandraCommands.CREATETABLE cmd = new
-        // CassandraCommands.CREATETABLE(s);
+        // CassandraCommand.CREATETABLE cmd = new
+        // CassandraCommand.CREATETABLE(s);
         // System.out.println(cmd.constructCommandString());
     }
 }

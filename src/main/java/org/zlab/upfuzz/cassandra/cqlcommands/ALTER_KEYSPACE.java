@@ -1,10 +1,9 @@
 package org.zlab.upfuzz.cassandra.cqlcommands;
 
-import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.cassandra.CassandraCommands;
+import org.zlab.upfuzz.cassandra.CassandraCommand;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.utils.INTType;
 
@@ -16,7 +15,7 @@ import org.zlab.upfuzz.utils.INTType;
  *    }
  *    [AND DURABLE_WRITES =  true|false] ;
  */
-public class ALTER_KEYSPACE extends CassandraCommands {
+public class ALTER_KEYSPACE extends CassandraCommand {
     /**
      * a parameter should correspond to one variable in the text format of this command.
      * mutating a parameter could depend on and the state updated by all nested internal commands and other parameters.

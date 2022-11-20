@@ -1,10 +1,9 @@
 package org.zlab.upfuzz.cassandra.cqlcommands;
 
-import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.cassandra.CassandraCommands;
+import org.zlab.upfuzz.cassandra.CassandraCommand;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.utils.Pair;
 
@@ -17,7 +16,7 @@ import java.util.List;
  *   USING TIMESTAMP 1318452291034
  *   WHERE lastname = 'VOS';
  */
-public class DELETE extends CassandraCommands {
+public class DELETE extends CassandraCommand {
 
     public DELETE(State state) {
         /**

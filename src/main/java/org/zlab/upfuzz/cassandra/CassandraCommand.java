@@ -21,7 +21,7 @@ import org.zlab.upfuzz.utils.*;
  *   - Then for the rest command, it should run check() method to do the minor
  * modification or not.
  */
-public abstract class CassandraCommands extends Command {
+public abstract class CassandraCommand extends Command {
     /**
      * CREATE (TABLE | COLUMNFAMILY) <tablename>
      * ('<column-definition>' , '<column-definition>')
@@ -94,13 +94,13 @@ public abstract class CassandraCommands extends Command {
     public static Parameter chooseTable(State state, Command command,
             Object init) {
 
-        ParameterType.ConcreteType TableNameType = new ParameterType.InCollectionType(
+        ParameterType.ConcreteType tableNameType = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
                 (s, c) -> Utilities
                         .strings2Parameters(((CassandraState) s).keyspace2tables
                                 .get(c.params.get(0).toString())
                                 .keySet()),
                 null);
-        return TableNameType.generateRandomParameter(state, command, init);
+        return tableNameType.generateRandomParameter(state, command, init);
     }
 }

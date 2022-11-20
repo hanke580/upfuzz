@@ -1,7 +1,7 @@
 package org.zlab.upfuzz.cassandra.cqlcommands;
 
 import org.zlab.upfuzz.*;
-import org.zlab.upfuzz.cassandra.CassandraCommands;
+import org.zlab.upfuzz.cassandra.CassandraCommand;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.cassandra.CassandraTable;
 import org.zlab.upfuzz.utils.Pair;
@@ -10,7 +10,7 @@ import org.zlab.upfuzz.utils.Pair;
  * ALTER TABLE [keyspace_name.] table_name
  * [DROP column_list];
  */
-public class ALTER_TABLE_DROP extends CassandraCommands {
+public class ALTER_TABLE_DROP extends CassandraCommand {
     public ALTER_TABLE_DROP(State state, Object init0, Object init1,
             Object init2) {
         super();

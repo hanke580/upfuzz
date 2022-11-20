@@ -1,10 +1,9 @@
 package org.zlab.upfuzz.cassandra.cqlcommands;
 
-import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.cassandra.CassandraCommands;
+import org.zlab.upfuzz.cassandra.CassandraCommand;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.utils.BOOLType;
 import org.zlab.upfuzz.utils.Pair;
@@ -22,7 +21,7 @@ import java.util.List;
  * [LIMIT N]
  * [ALLOW FILTERING]
  */
-public class SELECT extends CassandraCommands {
+public class SELECT extends CassandraCommand {
 
     public SELECT(State state, Object init0, Object init1, Object init2,
             Object init3, Object init4) {

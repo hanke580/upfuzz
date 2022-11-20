@@ -2,12 +2,11 @@ package org.zlab.upfuzz;
 
 import java.io.Serializable;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.zlab.upfuzz.cassandra.CassandraCommands;
+import org.zlab.upfuzz.cassandra.CassandraCommand;
 import org.zlab.upfuzz.utils.INTType;
 import org.zlab.upfuzz.utils.STRINGType;
 
@@ -753,7 +752,7 @@ public abstract class ParameterType implements Serializable {
 
         @Override
         protected Object clone() {
-            InCollectionType clone = null;
+            InCollectionType clone;
             clone = (InCollectionType) super.clone();
             return clone;
         }
@@ -801,14 +800,12 @@ public abstract class ParameterType implements Serializable {
             // Pick one parameter from the collection
             Object targetCollection = configuration.operate(s, c);
 
-            if (((Collection) targetCollection).isEmpty() == true) {
+            if (((Collection) targetCollection).isEmpty()) {
                 throw new CustomExceptions.EmptyCollectionException(
                         "InCollection Type got empty Collection", null);
             }
-            Random rand = new Random();
 
             List l;
-
             if (mapFunc == null) {
                 l = (List) (((Collection) targetCollection)
                         .stream()
@@ -1188,7 +1185,7 @@ public abstract class ParameterType implements Serializable {
                     return false;
                 } else {
                     int mutateIdx = rand.nextInt(values.size());
-                    if (CassandraCommands.DEBUG) {
+                    if (CassandraCommand.DEBUG) {
                         mutateIdx = 3;
                         System.out.println("\t[Type2Value] Mutate Idx = " +
                                 mutateIdx);
