@@ -175,11 +175,8 @@ public class FuzzingServer {
         } else if (Config.getConf().testingMode == 2) {
             return generateMixedTestPacket();
         } else if (Config.getConf().testingMode == 3) {
-            // execute example testplan
             logger.info("execute example test plan");
-            if (testPlanPackets.isEmpty())
-                generateExampleTestplanPacket();
-            return testPlanPackets.poll();
+            return generateExampleTestplanPacket();
         } else if (Config.getConf().testingMode == 4) {
             // test full-stop and rolling upgrade iteratively
             Packet packet;
@@ -281,7 +278,7 @@ public class FuzzingServer {
         }
     }
 
-    private boolean fuzzTestPlan() {
+    private void fuzzTestPlan() {
 
         // We should first try to mutate the test plan, but there
         // should still be possibility for generating a new test plan
@@ -324,7 +321,6 @@ public class FuzzingServer {
                         testID++, testPlan));
             }
         }
-        return true;
     }
 
     public boolean fuzzFullStopUpgrade() {
@@ -390,6 +386,80 @@ public class FuzzingServer {
                 fb.upgradedCodeCoverage.merge(feedBack.upgradedCodeCoverage);
         }
         return fb;
+    }
+
+    public Packet generateExampleTestplanPacket() {
+        return new TestPlanPacket(
+                Config.getConf().system,
+                testID++, generateExampleTestPlan());
+    }
+
+    public Packet generateExampleFullStopPacket() {
+        Path commandPath = Paths.get(System.getProperty("user.dir"),
+                "examplecase");
+        List<String> commands = readcommands(
+                commandPath.resolve("commands.txt"));
+        List<String> validcommands = readcommands(
+                commandPath.resolve("validcommands.txt"));
+        Set<String> targetSystemStates = new HashSet<>();
+
+        logger.info("commands = " + commands);
+        logger.info("validcommands = " + validcommands);
+
+        FullStopUpgrade fullStopUpgrade = new FullStopUpgrade(
+                Config.getConf().nodeNum,
+                commands,
+                validcommands,
+                targetSystemStates);
+        int configIdx = configGen.generateConfig();
+        String configFileName = "test" + configIdx;
+        FullStopPacket fullStopPacket = new FullStopPacket(
+                Config.getConf().system,
+                testID++, configFileName, fullStopUpgrade);
+        logger.info("config path = " + configFileName);
+        return fullStopPacket;
+    }
+
+    public TestPlan generateExampleTestPlan() {
+        List<Event> exampleEvents = new LinkedList<>();
+        int nodeNum = 4;
+        exampleEvents.add(new ShellCommand("dfs -mkdir /cvBMNAEnzAVj"));
+        exampleEvents.add(new ShellCommand("dfs -touchz /kSAXkQAXGPToQX.yaml"));
+
+        exampleEvents.add(new PrepareUpgrade());
+
+        exampleEvents.add(new ShellCommand(
+                "dfs -touchz /cvBMNAEnzAVj/kSAXkQAXGPToQX.xml"));
+
+        if (Config.getConf().system.equals("hdfs")) {
+            exampleEvents.add(new HDFSStopSNN());
+        }
+
+        exampleEvents.add(new UpgradeOp(0));
+
+        exampleEvents.add(new ShellCommand(
+                "dfs -touchz /ddddd.xml"));
+
+        exampleEvents.add(new ShellCommand(
+                "dfs -touchz /tmp.xml"));
+        exampleEvents.add(new ShellCommand(
+                "dfs -rm /kSAXkQAXGPToQX.yaml"));
+
+        exampleEvents.add(new RestartFailure(0));
+
+        exampleEvents.add(new ShellCommand(
+                "dfs -touchz /tmp1.xml"));
+        // exampleEvents.add(new UpgradeOp(1));
+        // exampleEvents.add(new UpgradeOp(2));
+        // exampleEvents.add(new UpgradeOp(3));
+
+        Set<String> targetSystemStates = new HashSet<>();
+        Map<Integer, Map<String, String>> oracle = new HashMap<>();
+        List<String> validationCommands = new LinkedList<>();
+        List<String> validationReadResultsOracle = new LinkedList<>();
+
+        return new TestPlan(nodeNum, exampleEvents, targetSystemStates,
+                oracle, validationCommands, validationReadResultsOracle);
     }
 
     public TestPlan generateTestPlan(FullStopSeed fullStopSeed) {
@@ -475,38 +545,6 @@ public class FuzzingServer {
                 fullStopSeed.validationReadResults);
     }
 
-    public void generateExampleTestplanPacket() {
-        testPlanPackets.add(new TestPlanPacket(
-                Config.getConf().system,
-                testID++, generateExampleTestPlan()));
-    }
-
-    public Packet generateExampleFullStopPacket() {
-        Path commandPath = Paths.get(System.getProperty("user.dir"),
-                "examplecase");
-        List<String> commands = readcommands(
-                commandPath.resolve("commands.txt"));
-        List<String> validcommands = readcommands(
-                commandPath.resolve("validcommands.txt"));
-        Set<String> targetSystemStates = new HashSet<>();
-
-        logger.info("commands = " + commands);
-        logger.info("validcommands = " + validcommands);
-
-        FullStopUpgrade fullStopUpgrade = new FullStopUpgrade(
-                Config.getConf().nodeNum,
-                commands,
-                validcommands,
-                targetSystemStates);
-        int configIdx = configGen.generateConfig();
-        String configFileName = "test" + configIdx;
-        FullStopPacket fullStopPacket = new FullStopPacket(
-                Config.getConf().system,
-                testID++, configFileName, fullStopUpgrade);
-        logger.info("config path = " + configFileName);
-        return fullStopPacket;
-    }
-
     public List<String> readcommands(Path path) {
         List<String> strings = new LinkedList<>();
         try {
@@ -521,48 +559,6 @@ public class FuzzingServer {
             System.exit(1);
         }
         return strings;
-    }
-
-    public TestPlan generateExampleTestPlan() {
-        List<Event> exampleEvents = new LinkedList<>();
-        int nodeNum = 4;
-        exampleEvents.add(new ShellCommand("dfs -mkdir /cvBMNAEnzAVj"));
-        exampleEvents.add(new ShellCommand("dfs -touchz /kSAXkQAXGPToQX.yaml"));
-
-        exampleEvents.add(new PrepareUpgrade());
-
-        exampleEvents.add(new ShellCommand(
-                "dfs -touchz /cvBMNAEnzAVj/kSAXkQAXGPToQX.xml"));
-
-        if (Config.getConf().system.equals("hdfs")) {
-            exampleEvents.add(new HDFSStopSNN());
-        }
-
-        exampleEvents.add(new UpgradeOp(0));
-
-        exampleEvents.add(new ShellCommand(
-                "dfs -touchz /ddddd.xml"));
-
-        exampleEvents.add(new ShellCommand(
-                "dfs -touchz /tmp.xml"));
-        exampleEvents.add(new ShellCommand(
-                "dfs -rm /kSAXkQAXGPToQX.yaml"));
-
-        exampleEvents.add(new RestartFailure(0));
-
-        exampleEvents.add(new ShellCommand(
-                "dfs -touchz /tmp1.xml"));
-        // exampleEvents.add(new UpgradeOp(1));
-        // exampleEvents.add(new UpgradeOp(2));
-        // exampleEvents.add(new UpgradeOp(3));
-
-        Set<String> targetSystemStates = new HashSet<>();
-        Map<Integer, Map<String, String>> oracle = new HashMap<>();
-        List<String> validationCommands = new LinkedList<>();
-        List<String> validationReadResultsOracle = new LinkedList<>();
-
-        return new TestPlan(nodeNum, exampleEvents, targetSystemStates,
-                oracle, validationCommands, validationReadResultsOracle);
     }
 
     public synchronized void updateStatus(
