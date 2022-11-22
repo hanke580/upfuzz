@@ -19,6 +19,9 @@ public class CassandraCommandPool extends CommandPool {
                 new AbstractMap.SimpleImmutableEntry<>(ALTER_ROLE.class,
                         5));
         commandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(ALTER_TABLE.class,
+                        2));
+        commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(ALTER_TABLE_ADD.class,
                         5));
         commandClassList.add(
@@ -46,23 +49,22 @@ public class CassandraCommandPool extends CommandPool {
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(DROP_INDEX.class, 6));
         commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(DROP_KEYSPACE.class, 6));
+                new AbstractMap.SimpleImmutableEntry<>(DROP_KEYSPACE.class, 2));
         commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(DROP_TABLE.class, 6));
+                new AbstractMap.SimpleImmutableEntry<>(DROP_TABLE.class, 2));
         commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(DROP_TYPE.class, 6));
+                new AbstractMap.SimpleImmutableEntry<>(DROP_TYPE.class, 2));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(INSERT.class, 8));
         commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(USE.class, 8));
-
-        // commandClassList.add(
-        // new AbstractMap.SimpleImmutableEntry<>(SELECT.class, 8));
+                new AbstractMap.SimpleImmutableEntry<>(USE.class, 5));
 
         createCommandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
                 CREATE_KEYSPACE.class, 2));
         createCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(CREATE_TABLE.class, 3));
+        createCommandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(CREATE_TYPE.class, 1));
 
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(SELECT.class, 10));

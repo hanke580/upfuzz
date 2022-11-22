@@ -39,7 +39,7 @@ public class SetSpaceQuotaCommand extends DfsadminCommand {
         Parameter storage = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
                 (s, c) -> Utilities.strings2Parameters(
-                        (((SetSpaceQuotaCommand) c).storageTypeOptions)),
+                        storageTypeOptions),
                 null).generateRandomParameter(null, null);
 
         Parameter dir = new HDFSDirPathType()

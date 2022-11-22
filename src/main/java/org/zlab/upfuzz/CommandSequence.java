@@ -279,7 +279,6 @@ public class CommandSequence implements Serializable {
         assert commandClassList != null;
 
         Random rand = new Random();
-        assert MAX_CMD_SEQ_LEN > 0;
         int len = rand.nextInt(MAX_CMD_SEQ_LEN - MIN_CMD_SEQ_LEN)
                 + MIN_CMD_SEQ_LEN;
 
@@ -295,7 +294,7 @@ public class CommandSequence implements Serializable {
         // Debug
         for (int i = 0; i < len; i++) {
 
-            Command command = null;
+            Command command;
             if (createCommandClassList != null) {
                 /**
                  * Make sure the first three columns are write related command,

@@ -8,16 +8,11 @@ import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 
 public class DROP_TABLE extends CassandraCommand {
-    public DROP_TABLE(State state) {
-        super();
-
-        assert state instanceof CassandraState;
-        CassandraState cassandraState = (CassandraState) state;
-
-        Parameter keyspaceName = chooseKeyspace(cassandraState, this, null);
+    public DROP_TABLE(CassandraState state) {
+        Parameter keyspaceName = chooseKeyspace(state, this, null);
         this.params.add(keyspaceName); // 0
 
-        Parameter TableName = chooseTable(cassandraState, this, null);
+        Parameter TableName = chooseTable(state, this, null);
         this.params.add(TableName); // 1
 
         ParameterType.ConcreteType IF_EXISTType = new ParameterType.OptionalType(
@@ -26,7 +21,7 @@ public class DROP_TABLE extends CassandraCommand {
         // CONSTANTType
         );
         Parameter IF_EXIST = IF_EXISTType
-                .generateRandomParameter(cassandraState, this);
+                .generateRandomParameter(state, this);
         params.add(IF_EXIST); // 2
 
         updateExecutableCommandString();
@@ -34,11 +29,9 @@ public class DROP_TABLE extends CassandraCommand {
 
     @Override
     public String constructCommandString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("DROP TABLE " + params.get(2));
-        sb.append(" " + this.params.get(0) + "."
-                + this.params.get(1).toString() + ";");
-        return sb.toString();
+        return "DROP TABLE " + params.get(2) +
+                " " + this.params.get(0) + "."
+                + this.params.get(1).toString() + ";";
     }
 
     @Override

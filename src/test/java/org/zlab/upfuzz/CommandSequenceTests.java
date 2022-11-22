@@ -3,12 +3,16 @@ package org.zlab.upfuzz;
 import info.debatty.java.stringsimilarity.QGram;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
-import org.zlab.upfuzz.cassandra.CassandraCommand;
-import org.zlab.upfuzz.cassandra.CassandraState;
-import org.zlab.upfuzz.cassandra.CommandTests;
+import org.zlab.upfuzz.cassandra.*;
+import org.zlab.upfuzz.fuzzingengine.executor.Executor;
+import org.zlab.upfuzz.fuzzingengine.server.Seed;
 
 public class CommandSequenceTests {
+    protected final Logger logger = LogManager.getLogger(getClass());
 
     @Test
     public void testSequenceGeneration()
@@ -160,5 +164,28 @@ public class CommandSequenceTests {
         QGram l = new QGram();
         System.out.println(l.distance(str0, str1));
         System.out.println(l.distance(str0, str1));
+    }
+
+    @Test
+    public void testSeedGeneration() {
+        CassandraCommandPool pool = new CassandraCommandPool();
+        Seed seed = Executor.generateSeed(pool, CassandraState.class);
+
+        if (seed != null) {
+            for (String str : seed.originalCommandSequence
+                    .getCommandStringList()) {
+                logger.info(str);
+            }
+            logger.info("\n\n");
+
+            for (String str : seed.validationCommandSequnece
+                    .getCommandStringList()) {
+                logger.info(str);
+            }
+            logger.info("size = " + seed.validationCommandSequnece
+                    .getCommandStringList().size());
+
+        }
+
     }
 }

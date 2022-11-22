@@ -7,6 +7,7 @@ import org.zlab.upfuzz.cassandra.CassandraCommand;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.cassandra.CassandraTable;
 import org.zlab.upfuzz.cassandra.CassandraTypes;
+import org.zlab.upfuzz.hdfs.dfscommands.SetSpaceQuotaCommand;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.PAIRType;
 import org.zlab.upfuzz.utils.Pair;
@@ -14,6 +15,8 @@ import org.zlab.upfuzz.utils.STRINGType;
 import org.zlab.upfuzz.utils.Utilities;
 
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 public class CREATE_TABLE extends CassandraCommand {
     /**
@@ -24,13 +27,21 @@ public class CREATE_TABLE extends CassandraCommand {
 
     // final Command ...; // Nested commands need to be constructed first.
 
-    public CREATE_TABLE(State state, Object init0, Object init1,
+    public static List<String> speculative_retryOptions = new LinkedList<>();
+
+    static {
+        speculative_retryOptions.add("50ms");
+        speculative_retryOptions.add("90MS");
+        speculative_retryOptions.add("99PERCENTILE");
+        speculative_retryOptions.add("40percentile");
+        speculative_retryOptions.add("ALWAYS");
+        speculative_retryOptions.add("always");
+        speculative_retryOptions.add("NONE");
+        speculative_retryOptions.add("none");
+    }
+
+    public CREATE_TABLE(CassandraState state, Object init0, Object init1,
             Object init2, Object init3, Object init4) {
-        super();
-
-        assert state instanceof CassandraState;
-        CassandraState cassandraState = (CassandraState) state;
-
         Parameter keyspaceName = chooseKeyspace(state, this, init0);
         params.add(keyspaceName); // [0]
 
@@ -42,7 +53,7 @@ public class CREATE_TABLE extends CassandraCommand {
                 null);
 
         Parameter tableName = tableNameType
-                .generateRandomParameter(cassandraState, this, init1);
+                .generateRandomParameter(state, this, init1);
         params.add(tableName); // [1]
 
         ParameterType.ConcreteType columnsType = // LIST<PAIR<String,TYPEType>>
@@ -57,7 +68,7 @@ public class CREATE_TABLE extends CassandraCommand {
                                                 CassandraTypes.TYPEType.instance)));
 
         Parameter columns = columnsType
-                .generateRandomParameter(cassandraState, this, init2);
+                .generateRandomParameter(state, this, init2);
         params.add(columns); // [2]
 
         ParameterType.ConcreteType primaryColumnsType = new ParameterType.NotEmpty(
@@ -67,7 +78,7 @@ public class CREATE_TABLE extends CassandraCommand {
                         null));
 
         Parameter primaryColumns = primaryColumnsType
-                .generateRandomParameter(cassandraState, this, init3);
+                .generateRandomParameter(state, this, init3);
         params.add(primaryColumns); // [3]
 
         ParameterType.ConcreteType IF_NOT_EXISTType = new ParameterType.OptionalType(
@@ -76,18 +87,21 @@ public class CREATE_TABLE extends CassandraCommand {
         // CONSTANTType
         );
         Parameter IF_NOT_EXIST = IF_NOT_EXISTType
-                .generateRandomParameter(cassandraState, this, init4);
+                .generateRandomParameter(state, this, init4);
         params.add(IF_NOT_EXIST); // [4]
+
+        Parameter speculative_retry = new ParameterType.InCollectionType(
+                CONSTANTSTRINGType.instance,
+                (s, c) -> Utilities.strings2Parameters(
+                        speculative_retryOptions),
+                null).generateRandomParameter(null, null);
+
+        params.add(speculative_retry); // [5]
 
         updateExecutableCommandString();
     }
 
-    public CREATE_TABLE(State state) {
-        super();
-
-        assert state instanceof CassandraState;
-        CassandraState cassandraState = (CassandraState) state;
-
+    public CREATE_TABLE(CassandraState state) {
         Parameter keyspaceName = chooseKeyspace(state, this, null);
         params.add(keyspaceName); // [0]
 
@@ -99,7 +113,7 @@ public class CREATE_TABLE extends CassandraCommand {
                 null);
 
         Parameter tableName = tableNameType
-                .generateRandomParameter(cassandraState, this);
+                .generateRandomParameter(state, this);
         params.add(tableName); // [1]
 
         ParameterType.ConcreteType columnsType = // LIST<PAIR<String,TYPEType>>
@@ -114,7 +128,7 @@ public class CREATE_TABLE extends CassandraCommand {
                                                 CassandraTypes.TYPEType.instance)));
 
         Parameter columns = columnsType
-                .generateRandomParameter(cassandraState, this);
+                .generateRandomParameter(state, this);
         params.add(columns); // [2]
 
         /**
@@ -138,7 +152,7 @@ public class CREATE_TABLE extends CassandraCommand {
                         null));
 
         Parameter primaryColumns = primaryColumnsType
-                .generateRandomParameter(cassandraState, this);
+                .generateRandomParameter(state, this);
         params.add(primaryColumns); // [3]
 
         ParameterType.ConcreteType IF_NOT_EXISTType = new ParameterType.OptionalType(
@@ -147,8 +161,16 @@ public class CREATE_TABLE extends CassandraCommand {
         // CONSTANTType
         );
         Parameter IF_NOT_EXIST = IF_NOT_EXISTType
-                .generateRandomParameter(cassandraState, this);
+                .generateRandomParameter(state, this);
         params.add(IF_NOT_EXIST); // [4]
+
+        Parameter speculative_retry = new ParameterType.InCollectionType(
+                CONSTANTSTRINGType.instance,
+                (s, c) -> Utilities.strings2Parameters(
+                        speculative_retryOptions),
+                null).generateRandomParameter(null, null);
+
+        params.add(speculative_retry); // [5]
 
         updateExecutableCommandString();
     }
@@ -161,6 +183,7 @@ public class CREATE_TABLE extends CassandraCommand {
         Parameter columns = params.get(2); // LIST<PAIR<TEXTType,TYPE>>
         Parameter primaryColumns = params.get(3);
         Parameter IF_NOT_EXIST = params.get(4);
+        Parameter speculative_retry = params.get(5);
 
         ParameterType.ConcreteType primaryColumnsNameType = new ParameterType.StreamMapType(
                 null, (s, c) -> (Collection) c.params.get(3).getValue(),
@@ -168,12 +191,12 @@ public class CREATE_TABLE extends CassandraCommand {
         Parameter primaryColumnsName = primaryColumnsNameType
                 .generateRandomParameter(null, this);
 
-        String ret = "CREATE TABLE " + IF_NOT_EXIST.toString() + " "
+        return "CREATE TABLE " + IF_NOT_EXIST.toString() + " "
                 + keyspaceName.toString() + "." + tableName.toString()
                 + " (" + columns.toString() + ", PRIMARY KEY ("
-                + primaryColumnsName.toString() + " )" + ");";
-
-        return ret;
+                + primaryColumnsName.toString() + " )" + ")" +
+                " WITH speculative_retry = '" + speculative_retry.toString()
+                + "';";
     }
 
     @Override

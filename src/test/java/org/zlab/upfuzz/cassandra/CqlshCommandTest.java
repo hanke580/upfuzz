@@ -74,7 +74,7 @@ public class CqlshCommandTest {
         CREATE_TYPE cmd3 = new CREATE_TYPE(s);
         cmd3.updateState(s);
 
-        UPDATE cmd4 = new UPDATE(s);
+        ALTER_TABLE cmd4 = new ALTER_TABLE(s);
         cmd4.updateState(s);
 
         System.out.println(cmd4.constructCommandString());

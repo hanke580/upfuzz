@@ -104,6 +104,7 @@ public class CassandraDocker extends Docker {
 
     @Override
     public boolean build() throws IOException {
+        type = "original";
         String cassandraHome = "/cassandra/" + originalVersion;
         String cassandraConf = "/etc/" + originalVersion;
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"

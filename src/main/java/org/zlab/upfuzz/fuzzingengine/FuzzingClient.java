@@ -587,6 +587,7 @@ public class FuzzingClient {
             testPlanFeedbackPacket.inconsistencyReport = "";
             MixedFeedbackPacket mixedFeedbackPacket = new MixedFeedbackPacket(
                     stackedFeedbackPacket, testPlanFeedbackPacket);
+            tearDownExecutor();
             return mixedFeedbackPacket;
         }
 
