@@ -467,11 +467,6 @@ public class FuzzingServer {
         // upgrade, like HDFS needs to upgrade NN.
 
         int nodeNum = fullStopSeed.nodeNum;
-        int faultNum = rand.nextInt(Config.getConf().faultMaxNum + 1);
-        List<Pair<Fault, FaultRecover>> faultPairs = Fault
-                .randomGenerateFaults(nodeNum, faultNum);
-
-        // construct upgrade operations
         List<Event> upgradeOps = new LinkedList<>();
         for (int i = 0; i < nodeNum; i++) {
             upgradeOps.add(new UpgradeOp(i));
@@ -479,16 +474,21 @@ public class FuzzingServer {
         if (Config.getConf().shuffleUpgradeOrder) {
             Collections.shuffle(upgradeOps);
         }
-        // downgrade operations
+        // -----------downgrade----------
         if (Config.getConf().testDowngrade) {
-            addDowngradeOp(upgradeOps, nodeNum);
+            upgradeOps = addDowngrade(upgradeOps, nodeNum);
         }
 
+        // -----------prepare----------
         if (Config.getConf().system.equals("hdfs")) {
             upgradeOps.add(0, new HDFSStopSNN());
         }
         upgradeOps.add(0, new PrepareUpgrade());
 
+        // -----------fault----------
+        int faultNum = rand.nextInt(Config.getConf().faultMaxNum + 1);
+        List<Pair<Fault, FaultRecover>> faultPairs = Fault
+                .randomGenerateFaults(nodeNum, faultNum);
         List<Event> upgradeOpAndFaults = interleaveFaultAndUpgradeOp(faultPairs,
                 upgradeOps);
 
@@ -961,30 +961,47 @@ public class FuzzingServer {
         return events;
     }
 
-    public void addDowngradeOp(List<Event> events, int nodeNum) {
-        // inject downgrade after the upgrade op
-        List<Event> upgradeOpWithDownGrade = new LinkedList<>();
-        int downgradeNodeNum = rand.nextInt(nodeNum + 1);
-        List<Integer> nodeIdxes = new LinkedList<>();
-        for (int i = 0; i < nodeNum; i++) {
-            nodeIdxes.add(i);
-        }
-        Collections.shuffle(nodeIdxes);
-        for (int i = 0; i < downgradeNodeNum; i++) {
-            int downgradeNodeIdx = nodeIdxes.get(i);
-            for (int j = 0; j < events.size(); j++) {
-                if (events.get(j) instanceof UpgradeOp &&
-                        ((UpgradeOp) events
-                                .get(j)).nodeIndex == downgradeNodeIdx) {
-                    // add the downgrade op to somewhere after it
-                    // [j+1, size+1)
-                    int pos = Utilities.randWithRange(rand, j + 1,
-                            events.size() + 1);
-                    events.add(pos, new DowngradeOp(downgradeNodeIdx));
-                    break;
-                }
+    public List<Event> addDowngrade(List<Event> events, int nodeNum) {
+        // Add downgrade during the upgrade/when all nodes have been upgraded.
+        /**
+         * 1. find a position after the first upgrade operation
+         * 2. collect all upgrade op node idx between [first_upgrade, pos]
+         * 3. remove all the upgrade op after it
+         * 4. downgrade all nodeidx collected
+         */
+        List<Event> newEvents = new LinkedList<>();
+        // find first upgrade op
+        int pos1 = 0;
+        for (; pos1 < events.size(); pos1++) {
+            if (events.get(pos1) instanceof UpgradeOp) {
+                break;
             }
         }
+        if (pos1 == events.size()) {
+            throw new RuntimeException(
+                    "no nodes are upgraded, cannot downgrade");
+        }
+        int pos2 = Utilities.randWithRange(rand, pos1 + 1, events.size() + 1);
+
+        logger.info("downgrade inject position = " + pos2);
+
+        newEvents = events.subList(0, pos2);
+        assert newEvents.size() == pos2;
+
+        List<Integer> upgradeNodeIdxes = new LinkedList<>();
+        for (int i = pos1; i < pos2; i++) {
+            if (newEvents.get(i) instanceof UpgradeOp)
+                upgradeNodeIdxes.add(((UpgradeOp) newEvents.get(i)).nodeIndex);
+        }
+
+        // downgrade op
+        // downgrade in a reverse way
+        upgradeNodeIdxes.sort(Collections.reverseOrder());
+        logger.info("upgrade = " + upgradeNodeIdxes);
+        for (int nodeIdx : upgradeNodeIdxes) {
+            newEvents.add(new DowngradeOp(nodeIdx));
+        }
+        return newEvents;
     }
 
     public static Set<String> readState(Path filePath)

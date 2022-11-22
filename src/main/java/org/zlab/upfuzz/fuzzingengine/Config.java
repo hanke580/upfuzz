@@ -73,7 +73,7 @@ public class Config {
                                              // test
 
         // ------------Test Plan-------------
-        public boolean testDowngrade = false;
+        public boolean testDowngrade = true;
 
         // 0: only full-stop test using StackedTestPacket
         // 1: only test plan test using TestPlanPacket
