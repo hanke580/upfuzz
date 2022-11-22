@@ -14,9 +14,17 @@ public interface IDockerCluster {
 
     Path getDataPath();
 
-    boolean rollingUpgrade() throws Exception;
+    void prepareUpgrade() throws Exception;
 
     boolean fullStopUpgrade() throws Exception;
+
+    boolean rollingUpgrade() throws Exception;
+
+    boolean freshStartNewVersion() throws Exception;
+
+    void upgrade(int nodeIndex) throws Exception;
+
+    void downgrade(int nodeIndex) throws Exception;
 
     IDocker getDocker(int i);
 }

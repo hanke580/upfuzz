@@ -1,7 +1,6 @@
 package org.zlab.upfuzz.fuzzingengine.server;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -29,6 +28,7 @@ import org.zlab.upfuzz.fuzzingengine.testplan.FullStopUpgrade;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.downgradeop.DowngradeOp;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.*;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.FinalizeUpgrade;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.HDFSStopSNN;
@@ -175,11 +175,8 @@ public class FuzzingServer {
         } else if (Config.getConf().testingMode == 2) {
             return generateMixedTestPacket();
         } else if (Config.getConf().testingMode == 3) {
-            // execute example testplan
             logger.info("execute example test plan");
-            if (testPlanPackets.isEmpty())
-                generateExampleTestplanPacket();
-            return testPlanPackets.poll();
+            return generateExampleTestplanPacket();
         } else if (Config.getConf().testingMode == 4) {
             // test full-stop and rolling upgrade iteratively
             Packet packet;
@@ -281,7 +278,7 @@ public class FuzzingServer {
         }
     }
 
-    private boolean fuzzTestPlan() {
+    private void fuzzTestPlan() {
 
         // We should first try to mutate the test plan, but there
         // should still be possibility for generating a new test plan
@@ -324,7 +321,6 @@ public class FuzzingServer {
                         testID++, testPlan));
             }
         }
-        return true;
     }
 
     public boolean fuzzFullStopUpgrade() {
@@ -392,16 +388,85 @@ public class FuzzingServer {
         return fb;
     }
 
+    public Packet generateExampleTestplanPacket() {
+        return new TestPlanPacket(
+                Config.getConf().system,
+                testID++, generateExampleTestPlan());
+    }
+
+    public Packet generateExampleFullStopPacket() {
+        Path commandPath = Paths.get(System.getProperty("user.dir"),
+                "examplecase");
+        List<String> commands = readcommands(
+                commandPath.resolve("commands.txt"));
+        List<String> validcommands = readcommands(
+                commandPath.resolve("validcommands.txt"));
+        Set<String> targetSystemStates = new HashSet<>();
+
+        logger.info("commands = " + commands);
+        logger.info("validcommands = " + validcommands);
+
+        FullStopUpgrade fullStopUpgrade = new FullStopUpgrade(
+                Config.getConf().nodeNum,
+                commands,
+                validcommands,
+                targetSystemStates);
+        int configIdx = configGen.generateConfig();
+        String configFileName = "test" + configIdx;
+        FullStopPacket fullStopPacket = new FullStopPacket(
+                Config.getConf().system,
+                testID++, configFileName, fullStopUpgrade);
+        logger.info("config path = " + configFileName);
+        return fullStopPacket;
+    }
+
+    public TestPlan generateExampleTestPlan() {
+        List<Event> exampleEvents = new LinkedList<>();
+        int nodeNum = 4;
+        exampleEvents.add(new ShellCommand("dfs -mkdir /cvBMNAEnzAVj"));
+        exampleEvents.add(new ShellCommand("dfs -touchz /kSAXkQAXGPToQX.yaml"));
+
+        exampleEvents.add(new PrepareUpgrade());
+
+        exampleEvents.add(new ShellCommand(
+                "dfs -touchz /cvBMNAEnzAVj/kSAXkQAXGPToQX.xml"));
+
+        if (Config.getConf().system.equals("hdfs")) {
+            exampleEvents.add(new HDFSStopSNN());
+        }
+
+        exampleEvents.add(new UpgradeOp(0));
+
+        exampleEvents.add(new ShellCommand(
+                "dfs -touchz /ddddd.xml"));
+
+        exampleEvents.add(new ShellCommand(
+                "dfs -touchz /tmp.xml"));
+        exampleEvents.add(new ShellCommand(
+                "dfs -rm /kSAXkQAXGPToQX.yaml"));
+
+        exampleEvents.add(new RestartFailure(0));
+
+        exampleEvents.add(new ShellCommand(
+                "dfs -touchz /tmp1.xml"));
+        // exampleEvents.add(new UpgradeOp(1));
+        // exampleEvents.add(new UpgradeOp(2));
+        // exampleEvents.add(new UpgradeOp(3));
+
+        Set<String> targetSystemStates = new HashSet<>();
+        Map<Integer, Map<String, String>> oracle = new HashMap<>();
+        List<String> validationCommands = new LinkedList<>();
+        List<String> validationReadResultsOracle = new LinkedList<>();
+
+        return new TestPlan(nodeNum, exampleEvents, targetSystemStates,
+                oracle, validationCommands, validationReadResultsOracle);
+    }
+
     public TestPlan generateTestPlan(FullStopSeed fullStopSeed) {
         // Some systems might have special requirements for
-        // upgrade, like HDFS needs to upgrade NN first
+        // upgrade, like HDFS needs to upgrade NN.
 
         int nodeNum = fullStopSeed.nodeNum;
-
-        int faultNum = rand.nextInt(Config.getConf().faultMaxNum + 1);
-        List<Pair<Fault, FaultRecover>> faultPairs = Fault
-                .randomGenerateFaults(nodeNum, faultNum);
-
         List<Event> upgradeOps = new LinkedList<>();
         for (int i = 0; i < nodeNum; i++) {
             upgradeOps.add(new UpgradeOp(i));
@@ -409,11 +474,21 @@ public class FuzzingServer {
         if (Config.getConf().shuffleUpgradeOrder) {
             Collections.shuffle(upgradeOps);
         }
+        // -----------downgrade----------
+        if (Config.getConf().testDowngrade) {
+            upgradeOps = addDowngrade(upgradeOps, nodeNum);
+        }
+
+        // -----------prepare----------
         if (Config.getConf().system.equals("hdfs")) {
             upgradeOps.add(0, new HDFSStopSNN());
         }
         upgradeOps.add(0, new PrepareUpgrade());
 
+        // -----------fault----------
+        int faultNum = rand.nextInt(Config.getConf().faultMaxNum + 1);
+        List<Pair<Fault, FaultRecover>> faultPairs = Fault
+                .randomGenerateFaults(nodeNum, faultNum);
         List<Event> upgradeOpAndFaults = interleaveFaultAndUpgradeOp(faultPairs,
                 upgradeOps);
 
@@ -470,38 +545,6 @@ public class FuzzingServer {
                 fullStopSeed.validationReadResults);
     }
 
-    public void generateExampleTestplanPacket() {
-        testPlanPackets.add(new TestPlanPacket(
-                Config.getConf().system,
-                testID++, generateExampleTestPlan()));
-    }
-
-    public Packet generateExampleFullStopPacket() {
-        Path commandPath = Paths.get(System.getProperty("user.dir"),
-                "examplecase");
-        List<String> commands = readcommands(
-                commandPath.resolve("commands.txt"));
-        List<String> validcommands = readcommands(
-                commandPath.resolve("validcommands.txt"));
-        Set<String> targetSystemStates = new HashSet<>();
-
-        logger.info("commands = " + commands);
-        logger.info("validcommands = " + validcommands);
-
-        FullStopUpgrade fullStopUpgrade = new FullStopUpgrade(
-                Config.getConf().nodeNum,
-                commands,
-                validcommands,
-                targetSystemStates);
-        int configIdx = configGen.generateConfig();
-        String configFileName = "test" + configIdx;
-        FullStopPacket fullStopPacket = new FullStopPacket(
-                Config.getConf().system,
-                testID++, configFileName, fullStopUpgrade);
-        logger.info("config path = " + configFileName);
-        return fullStopPacket;
-    }
-
     public List<String> readcommands(Path path) {
         List<String> strings = new LinkedList<>();
         try {
@@ -516,48 +559,6 @@ public class FuzzingServer {
             System.exit(1);
         }
         return strings;
-    }
-
-    public TestPlan generateExampleTestPlan() {
-        List<Event> exampleEvents = new LinkedList<>();
-        int nodeNum = 4;
-        exampleEvents.add(new ShellCommand("dfs -mkdir /cvBMNAEnzAVj"));
-        exampleEvents.add(new ShellCommand("dfs -touchz /kSAXkQAXGPToQX.yaml"));
-
-        exampleEvents.add(new PrepareUpgrade());
-
-        exampleEvents.add(new ShellCommand(
-                "dfs -touchz /cvBMNAEnzAVj/kSAXkQAXGPToQX.xml"));
-
-        if (Config.getConf().system.equals("hdfs")) {
-            exampleEvents.add(new HDFSStopSNN());
-        }
-
-        exampleEvents.add(new UpgradeOp(0));
-
-        exampleEvents.add(new ShellCommand(
-                "dfs -touchz /ddddd.xml"));
-
-        exampleEvents.add(new ShellCommand(
-                "dfs -touchz /tmp.xml"));
-        exampleEvents.add(new ShellCommand(
-                "dfs -rm /kSAXkQAXGPToQX.yaml"));
-
-        exampleEvents.add(new RestartFailure(0));
-
-        exampleEvents.add(new ShellCommand(
-                "dfs -touchz /tmp1.xml"));
-        // exampleEvents.add(new UpgradeOp(1));
-        // exampleEvents.add(new UpgradeOp(2));
-        // exampleEvents.add(new UpgradeOp(3));
-
-        Set<String> targetSystemStates = new HashSet<>();
-        Map<Integer, Map<String, String>> oracle = new HashMap<>();
-        List<String> validationCommands = new LinkedList<>();
-        List<String> validationReadResultsOracle = new LinkedList<>();
-
-        return new TestPlan(nodeNum, exampleEvents, targetSystemStates,
-                oracle, validationCommands, validationReadResultsOracle);
     }
 
     public synchronized void updateStatus(
@@ -921,7 +922,7 @@ public class FuzzingServer {
         return upgradeOpAndFaults;
     }
 
-    public static List<Event> interleaveWithOrder(List<Event> events1,
+    public List<Event> interleaveWithOrder(List<Event> events1,
             List<Event> events2) {
         // Merge two lists but still maintain the inner order
         // Prefer to execute events2 first. Not uniform distribution
@@ -958,6 +959,49 @@ public class FuzzingServer {
             }
         }
         return events;
+    }
+
+    public List<Event> addDowngrade(List<Event> events, int nodeNum) {
+        // Add downgrade during the upgrade/when all nodes have been upgraded.
+        /**
+         * 1. find a position after the first upgrade operation
+         * 2. collect all upgrade op node idx between [first_upgrade, pos]
+         * 3. remove all the upgrade op after it
+         * 4. downgrade all nodeidx collected
+         */
+        List<Event> newEvents = new LinkedList<>();
+        // find first upgrade op
+        int pos1 = 0;
+        for (; pos1 < events.size(); pos1++) {
+            if (events.get(pos1) instanceof UpgradeOp) {
+                break;
+            }
+        }
+        if (pos1 == events.size()) {
+            throw new RuntimeException(
+                    "no nodes are upgraded, cannot downgrade");
+        }
+        int pos2 = Utilities.randWithRange(rand, pos1 + 1, events.size() + 1);
+
+        logger.info("downgrade inject position = " + pos2);
+
+        newEvents = events.subList(0, pos2);
+        assert newEvents.size() == pos2;
+
+        List<Integer> upgradeNodeIdxes = new LinkedList<>();
+        for (int i = pos1; i < pos2; i++) {
+            if (newEvents.get(i) instanceof UpgradeOp)
+                upgradeNodeIdxes.add(((UpgradeOp) newEvents.get(i)).nodeIndex);
+        }
+
+        // downgrade op
+        // downgrade in a reverse way
+        upgradeNodeIdxes.sort(Collections.reverseOrder());
+        logger.info("upgrade = " + upgradeNodeIdxes);
+        for (int nodeIdx : upgradeNodeIdxes) {
+            newEvents.add(new DowngradeOp(nodeIdx));
+        }
+        return newEvents;
     }
 
     public static Set<String> readState(Path filePath)

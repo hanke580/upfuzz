@@ -10,12 +10,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.fuzzingengine.Config.Configuration;
 import org.zlab.upfuzz.fuzzingengine.configgen.ConfigGen;
-import org.zlab.upfuzz.fuzzingengine.configgen.ConfigValGenerator;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
-import java.util.*;
 
 public class ConfigTest extends TestCase {
     private static final Logger logger = LogManager.getLogger(ConfigTest.class);

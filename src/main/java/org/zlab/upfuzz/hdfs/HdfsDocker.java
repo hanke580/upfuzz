@@ -12,6 +12,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.docker.Docker;
 import org.zlab.upfuzz.docker.DockerCluster;
+import org.zlab.upfuzz.fuzzingengine.LogInfo;
 import org.zlab.upfuzz.utils.Utilities;
 
 public class HdfsDocker extends Docker {
@@ -127,6 +128,7 @@ public class HdfsDocker extends Docker {
         return false;
     }
 
+    @Override
     public void upgrade() throws Exception {
         type = "upgraded";
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
@@ -156,6 +158,39 @@ public class HdfsDocker extends Docker {
         logger.debug("upgrade version start: " + ret + "\n" + message);
         hdfsShell = new HDFSShellDaemon(getNetworkIP(), hdfsDaemonPort,
                 executorID);
+    }
+
+    @Override
+    public void downgrade() throws Exception {
+        type = "original";
+        javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
+                + "/org.jacoco.agent.rt.jar"
+                + "=append=false"
+                + ",includes=" + includes + ",excludes=" + excludes +
+                ",output=dfe,address=" + hostIP + ",port=" + agentPort +
+                ",sessionid=" + system + "-" + executorID + "_"
+                + type + "-" + index +
+                "\"";
+        hdfsDaemonPort ^= 1;
+        String hdfsHome = "/hdfs/" + originalVersion;
+        String hdfsConf = "/etc/" + originalVersion + "/etc/hadoop";
+        env = new String[] {
+                "HADOOP_HOME=\"" + hdfsHome + "\"",
+                "HADOOP_CONF_DIR=\"" + hdfsConf + "\"", javaToolOpts,
+                "HDFS_SHELL_DAEMON_PORT=\"" + hdfsDaemonPort + "\"",
+                "PYTHON=python3" };
+        setEnvironment();
+        String restartCommand = "supervisorctl restart upfuzz_hdfs:";
+        // Seems the env doesn't really matter...
+        Process restart = runInContainer(
+                new String[] { "/bin/bash", "-c", restartCommand });
+        int ret = restart.waitFor();
+        String message = Utilities.readProcess(restart);
+        logger.debug(
+                "downgrade to original version start: " + ret + "\n" + message);
+        hdfsShell = new HDFSShellDaemon(getNetworkIP(), hdfsDaemonPort,
+                executorID);
+
     }
 
     @Override
@@ -200,6 +235,11 @@ public class HdfsDocker extends Docker {
 
     @Override
     public Map<String, String> readSystemState() {
+        return null;
+    }
+
+    @Override
+    public LogInfo readLogInfo() {
         return null;
     }
 

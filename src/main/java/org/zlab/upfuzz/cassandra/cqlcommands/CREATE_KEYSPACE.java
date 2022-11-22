@@ -1,16 +1,15 @@
 package org.zlab.upfuzz.cassandra.cqlcommands;
 
-import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.cassandra.CassandraCommands;
+import org.zlab.upfuzz.cassandra.CassandraCommand;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.INTType;
 import org.zlab.upfuzz.utils.UUIDType;
 
-public class CREATE_KEYSPACE extends CassandraCommands {
+public class CREATE_KEYSPACE extends CassandraCommand {
 
     public CREATE_KEYSPACE(State state, Object init0, Object init1,
             Object init2) {
@@ -39,7 +38,6 @@ public class CREATE_KEYSPACE extends CassandraCommands {
         params.add(IF_NOT_EXIST); // [2]
 
         updateExecutableCommandString();
-
     }
 
     public CREATE_KEYSPACE(State state) {

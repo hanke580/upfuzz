@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.downgradeop.DowngradeOp;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.*;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.FinalizeUpgrade;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.HDFSStopSNN;
@@ -50,6 +51,7 @@ public class TestPlanPacket extends Packet {
                         "PartitionFailureRecover")
                 .registerSubtype(RestartFailure.class, "RestartFailure")
                 .registerSubtype(UpgradeOp.class, "UpgradeOp")
+                .registerSubtype(DowngradeOp.class, "DowngradeOp")
                 .registerSubtype(PrepareUpgrade.class, "PrepareUpgrade")
                 .registerSubtype(FinalizeUpgrade.class, "FinalizeUpgrade")
                 .registerSubtype(HDFSStopSNN.class, "HDFSStopSNN")

@@ -1,10 +1,9 @@
 package org.zlab.upfuzz.cassandra.cqlcommands;
 
-import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.cassandra.CassandraCommands;
+import org.zlab.upfuzz.cassandra.CassandraCommand;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.cassandra.CassandraTypes;
 import org.zlab.upfuzz.utils.PAIRType;
@@ -15,7 +14,7 @@ import org.zlab.upfuzz.utils.STRINGType;
  * ALTER TABLE [keyspace_name.] table_name
  * [DROP column_list];
  */
-public class ALTER_TABLE_ADD extends CassandraCommands {
+public class ALTER_TABLE_ADD extends CassandraCommand {
 
     public ALTER_TABLE_ADD(State state) {
         super();
@@ -55,14 +54,12 @@ public class ALTER_TABLE_ADD extends CassandraCommands {
 
     @Override
     public String constructCommandString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("ALTER TABLE");
-        sb.append(" " + this.params.get(0) + "."
-                + this.params.get(1).toString() + " ");
-        sb.append("ADD");
-        sb.append(" " + this.params.get(2).toString() + " "
-                + this.params.get(3).toString() + " ;");
-        return sb.toString();
+        return "ALTER TABLE" +
+                " " + this.params.get(0) + "."
+                + this.params.get(1).toString() + " " +
+                "ADD" +
+                " " + this.params.get(2).toString() + " "
+                + this.params.get(3).toString() + " ;";
     }
 
     @Override

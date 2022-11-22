@@ -4,7 +4,7 @@ import info.debatty.java.stringsimilarity.QGram;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import org.junit.jupiter.api.Test;
-import org.zlab.upfuzz.cassandra.CassandraCommands;
+import org.zlab.upfuzz.cassandra.CassandraCommand;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.cassandra.CommandTests;
 
@@ -19,8 +19,8 @@ public class CommandSequenceTests {
 
         CassandraState state = new CassandraState();
         CommandSequence commandSequence = CommandSequence.generateSequence(
-                CassandraCommands.cassandraCommandPool.commandClassList,
-                CassandraCommands.cassandraCommandPool.createCommandClassList,
+                CassandraCommand.cassandraCommandPool.commandClassList,
+                CassandraCommand.cassandraCommandPool.createCommandClassList,
                 CassandraState.class,
                 null);
 

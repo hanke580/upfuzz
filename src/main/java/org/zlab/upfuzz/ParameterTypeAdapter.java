@@ -25,7 +25,7 @@ public class ParameterTypeAdapter<T>
         // if (actualType.equals(CREATE_KEYSPACE.class)) {
         // System.err.println("wow !");
         // CassandraState s = new CassandraState();
-        // return (T) new CassandraCommands.CREATE_KEYSPACE(s);
+        // return (T) new CassandraCommand.CREATE_KEYSPACE(s);
         // }
         return context.deserialize(data, actualType);
     }

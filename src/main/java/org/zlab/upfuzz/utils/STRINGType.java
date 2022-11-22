@@ -6,7 +6,7 @@ import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.cassandra.CassandraCommands;
+import org.zlab.upfuzz.cassandra.CassandraCommand;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -114,7 +114,7 @@ public class STRINGType extends ParameterType.BasicConcreteType {
     @Override
     public boolean isValid(State s, Command c, Parameter p) {
         if (p == null || !(p.type instanceof STRINGType) ||
-                contains(CassandraCommands.reservedKeywords,
+                contains(CassandraCommand.reservedKeywords,
                         (String) p.value)) // Specially
                                            // for
                                            // Cassandra
@@ -142,7 +142,7 @@ public class STRINGType extends ParameterType.BasicConcreteType {
         int choice = rand.nextInt(7);
 
         // Debug
-        if (CassandraCommands.DEBUG) {
+        if (CassandraCommand.DEBUG) {
             // choice = 4; // Only test the mutate method
         }
 
@@ -152,21 +152,21 @@ public class STRINGType extends ParameterType.BasicConcreteType {
         switch (choice) {
         // Temporally Disable bit level mutation
         case 0: // Regenerate
-            if (CassandraCommands.DEBUG) {
+            if (CassandraCommand.DEBUG) {
                 System.out.println("\t[String Mutation]: Regeneration");
             }
             // regenerate can make sure the value is valid
             regenerate(s, c, p);
             return true;
         case 1: // Add a Byte
-            if (CassandraCommands.DEBUG) {
+            if (CassandraCommand.DEBUG) {
                 System.out.println("\t[String Mutation]: Add Byte");
             }
             // addByte might cause a string to be in the reserved keyword
             mutatedString = addByte((String) p.value);
             break;
         case 2: // Delete a Byte
-            if (CassandraCommands.DEBUG) {
+            if (CassandraCommand.DEBUG) {
                 System.out.println("\t[String Mutation]: Delete Byte");
             }
             if (((String) p.value).isEmpty())
@@ -175,7 +175,7 @@ public class STRINGType extends ParameterType.BasicConcreteType {
             break;
         case 3:
             // Mutate a byte
-            if (CassandraCommands.DEBUG) {
+            if (CassandraCommand.DEBUG) {
                 System.out.println("\t[String Mutation]: Mutate Byte");
             }
             if (((String) p.value).isEmpty())

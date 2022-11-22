@@ -1,10 +1,9 @@
 package org.zlab.upfuzz.cassandra.cqlcommands;
 
-import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.cassandra.CassandraCommands;
+import org.zlab.upfuzz.cassandra.CassandraCommand;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.cassandra.CassandraTable;
 import org.zlab.upfuzz.cassandra.CassandraTypes;
@@ -15,10 +14,8 @@ import org.zlab.upfuzz.utils.STRINGType;
 import org.zlab.upfuzz.utils.Utilities;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
-public class CREATE_TABLE extends CassandraCommands {
+public class CREATE_TABLE extends CassandraCommand {
     /**
      * a parameter should correspond to one variable in the text format of this command.
      * mutating a parameter could depend on and the state updated by all nested internal commands and other parameters.

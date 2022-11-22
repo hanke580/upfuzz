@@ -48,8 +48,6 @@ public class Config {
 
         public String targetSystemStateFile = "states.json";
 
-        public int testPlanEpoch = 10; // each seed can randomly generate 10
-                                       // test plans
         public int STACKED_TESTS_NUM = 60;
         public long timeInterval = 600; // seconds, record time
         public boolean keepDir = true; // set to false if start a long running
@@ -74,6 +72,9 @@ public class Config {
         public double testConfigRatio = 0.4; // We mutate 60% configuration each
                                              // test
 
+        // ------------Test Plan-------------
+        public boolean testDowngrade = true;
+
         // 0: only full-stop test using StackedTestPacket
         // 1: only test plan test using TestPlanPacket
         // 2: mixed test using MixedTestPlan
@@ -88,6 +89,10 @@ public class Config {
         public boolean startUpClusterForDebugging = false;
         public boolean useExampleTestPlan = false;
         public boolean debug = false;
+
+        // ------------State Comparison-------------
+        // check ERROR/WARN in log
+        public boolean enableLogCheck = false;
 
         @Override
         public String toString() {

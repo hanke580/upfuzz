@@ -1,17 +1,16 @@
 package org.zlab.upfuzz.cassandra.cqlcommands;
 
-import com.fasterxml.jackson.databind.deser.impl.CreatorCandidate;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.cassandra.CassandraCommands;
+import org.zlab.upfuzz.cassandra.CassandraCommand;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.STRINGType;
 
 import java.util.List;
 
-public class ALTER_TABLE_RENAME extends CassandraCommands {
+public class ALTER_TABLE_RENAME extends CassandraCommand {
     /**
      * You can only rename clustering columns, which are part of the primary key.
      * You cannot rename the partition key.

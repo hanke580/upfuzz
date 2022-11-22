@@ -1,5 +1,7 @@
 package org.zlab.upfuzz.docker;
 
+import org.zlab.upfuzz.fuzzingengine.LogInfo;
+
 import java.nio.file.Path;
 import java.util.Map;
 
@@ -14,6 +16,8 @@ public interface IDocker {
 
     void upgrade() throws Exception;
 
+    void downgrade() throws Exception;
+
     // Stop the process in container
     // Don't stop the container
     boolean shutdown();
@@ -22,6 +26,8 @@ public interface IDocker {
     boolean clear();
 
     Map<String, String> readSystemState();
+
+    LogInfo readLogInfo();
 
     Path getDataPath();
 

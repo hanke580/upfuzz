@@ -1,16 +1,15 @@
 package org.zlab.upfuzz.cassandra.cqlcommands;
 
-import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.cassandra.CassandraCommands;
+import org.zlab.upfuzz.cassandra.CassandraCommand;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.STRINGType;
 import org.zlab.upfuzz.utils.Utilities;
 
-public class DROP_TYPE extends CassandraCommands {
+public class DROP_TYPE extends CassandraCommand {
     public DROP_TYPE(State state) {
         super();
 

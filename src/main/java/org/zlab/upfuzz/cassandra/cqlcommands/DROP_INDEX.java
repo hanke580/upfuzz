@@ -1,15 +1,14 @@
 package org.zlab.upfuzz.cassandra.cqlcommands;
 
-import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.cassandra.CassandraCommands;
+import org.zlab.upfuzz.cassandra.CassandraCommand;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.Utilities;
 
-public class DROP_INDEX extends CassandraCommands {
+public class DROP_INDEX extends CassandraCommand {
     public DROP_INDEX(State state) {
         super();
 
@@ -34,10 +33,7 @@ public class DROP_INDEX extends CassandraCommands {
         this.params.add(indexName); // 2
 
         ParameterType.ConcreteType IF_EXISTType = new ParameterType.OptionalType(
-                new CONSTANTSTRINGType("IF EXISTS"), null // TODO: Make a
-        // pure
-        // CONSTANTType
-        );
+                new CONSTANTSTRINGType("IF EXISTS"), null);
         Parameter IF_EXIST = IF_EXISTType
                 .generateRandomParameter(cassandraState, this);
         params.add(IF_EXIST); // 3
@@ -47,11 +43,9 @@ public class DROP_INDEX extends CassandraCommands {
 
     @Override
     public String constructCommandString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("DROP INDEX ").append(params.get(3))
-                .append(" " + this.params.get(0) + "."
-                        + this.params.get(2).toString() + ";");
-        return sb.toString();
+        return "DROP INDEX " + params.get(3) +
+                " " + this.params.get(0) + "."
+                + this.params.get(2).toString() + ";";
     }
 
     @Override

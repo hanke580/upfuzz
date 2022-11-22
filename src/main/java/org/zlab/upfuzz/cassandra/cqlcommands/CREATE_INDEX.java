@@ -1,28 +1,23 @@
 package org.zlab.upfuzz.cassandra.cqlcommands;
 
-import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.cassandra.CassandraCommands;
+import org.zlab.upfuzz.cassandra.CassandraCommand;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.STRINGType;
 import org.zlab.upfuzz.utils.Utilities;
 
-public class CREATE_INDEX extends CassandraCommands {
+public class CREATE_INDEX extends CassandraCommand {
 
-    public CREATE_INDEX(State state) {
-        super();
+    public CREATE_INDEX(CassandraState state) {
 
-        assert state instanceof CassandraState;
-        CassandraState cassandraState = (CassandraState) state;
-
-        Parameter keyspaceName = chooseKeyspace(cassandraState, this, null);
+        Parameter keyspaceName = chooseKeyspace(state, this, null);
         this.params.add(keyspaceName); // P0
 
-        Parameter TableName = chooseTable(cassandraState, this, null);
+        Parameter TableName = chooseTable(state, this, null);
         this.params.add(TableName); // P1
 
         ParameterType.ConcreteType indexNameType = new ParameterType.NotInCollectionType(
@@ -43,7 +38,7 @@ public class CREATE_INDEX extends CassandraCommands {
                         c.params.get(1).toString()).colName2Type,
                 null, null);
         Parameter indexColumn = indexColumnType
-                .generateRandomParameter(cassandraState, this);
+                .generateRandomParameter(state, this);
         this.params.add(indexColumn); // P3
 
         ParameterType.ConcreteType IF_NOT_EXISTType = new ParameterType.OptionalType(
@@ -60,16 +55,14 @@ public class CREATE_INDEX extends CassandraCommands {
 
     @Override
     public String constructCommandString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("CREATE INDEX");
-        sb.append(" " + this.params.get(4) + " " + this.params.get(2)
-                + " ON");
-        sb.append(" " + this.params.get(0) + "."
-                + this.params.get(1).toString() + " ");
-        sb.append("( "
+        return "CREATE INDEX" +
+                " " + this.params.get(4) + " " + this.params.get(2)
+                + " ON" +
+                " " + this.params.get(0) + "."
+                + this.params.get(1).toString() + " " +
+                "( "
                 + ((Pair) this.params.get(3).getValue()).left.toString()
-                + ");");
-        return sb.toString();
+                + ");";
     }
 
     @Override

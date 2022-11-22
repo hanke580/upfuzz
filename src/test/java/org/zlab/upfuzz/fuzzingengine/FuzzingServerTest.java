@@ -1,6 +1,8 @@
 package org.zlab.upfuzz.fuzzingengine;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,10 +22,13 @@ import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 import org.zlab.upfuzz.hdfs.HdfsCommandPool;
 import org.zlab.upfuzz.hdfs.HdfsState;
+import org.zlab.upfuzz.utils.Utilities;
 
 import java.io.*;
 import java.lang.reflect.Type;
 import java.math.BigInteger;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,7 +45,6 @@ public class FuzzingServerTest {
 
     @Test
     public void testTestPlanGeneration() {
-
         CommandPool commandPool = new HdfsCommandPool();
         Class stateClass = HdfsState.class;
         Seed seed = Executor.generateSeed(commandPool, stateClass);
@@ -53,9 +57,7 @@ public class FuzzingServerTest {
         System.out.println(testPlan);
         testPlan.mutate();
         System.out.println("\nMutate Test Plan\n");
-
         System.out.println(testPlan);
-
     }
 
     // @Test
@@ -113,6 +115,40 @@ public class FuzzingServerTest {
 
         logger.info(str);
         logger.info(deStr);
+    }
+
+    @Test
+    public void test1() {
+        LogInfo logInfo = new LogInfo();
+        Path filePath = Paths.get(System.getProperty("user.dir"), "system.log");
+        logger.info("filePath = " + filePath);
+        int grepLineNum = 2;
+
+        // ERROR
+        String target = "ERROR";
+        String[] grepStateCmd = new String[] {
+                "/bin/sh", "-c",
+                "grep -a -A " + grepLineNum + " \"" + target + "\" " + filePath
+        };
+        try {
+            System.out.println("\n\n");
+            Process grepProc = Utilities.exec(grepStateCmd,
+                    System.getProperty("user.dir"));
+            String result = new String(
+                    grepProc.getInputStream().readAllBytes());
+
+            String[] results = result.split("--");
+            logger.info("res20 = " + results[20]);
+            logger.info("res21 = " + results[21]);
+
+            for (String res : results) {
+                logInfo.addErrorMsg(res);
+            }
+            logger.info("len = " + results.length);
+            logger.info(result);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 //    @Test

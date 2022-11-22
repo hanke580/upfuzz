@@ -12,6 +12,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.docker.Docker;
 import org.zlab.upfuzz.docker.DockerCluster;
+import org.zlab.upfuzz.fuzzingengine.LogInfo;
 import org.zlab.upfuzz.utils.Utilities;
 
 public class CassandraDocker extends Docker {
@@ -19,7 +20,7 @@ public class CassandraDocker extends Docker {
 
     String composeYaml;
     String javaToolOpts;
-    int cqlshDaemonPort = 18251;
+    int cqlshDaemonPort = 18250;
 
     public String seedIP;
 
@@ -27,7 +28,6 @@ public class CassandraDocker extends Docker {
 
     public CassandraDocker(CassandraDockerCluster dockerCluster, int index) {
         this.index = index;
-        type = "original";
         workdir = dockerCluster.workdir;
         system = dockerCluster.system;
         originalVersion = dockerCluster.originalVersion;
@@ -121,7 +121,7 @@ public class CassandraDocker extends Docker {
         try {
             int main_version = Integer
                     .parseInt(spStrings[spStrings.length - 1].substring(0, 1));
-            logger.debug("[HKLOG] upgrade main version = " + main_version);
+            logger.debug("[HKLOG] original main version = " + main_version);
             if (main_version > 3)
                 pythonVersion = "python3";
         } catch (Exception e) {
@@ -143,6 +143,7 @@ public class CassandraDocker extends Docker {
         return true;
     }
 
+    @Override
     public void upgrade() throws Exception {
         type = "upgraded";
         String cassandraHome = "/cassandra/" + upgradedVersion;
@@ -179,6 +180,52 @@ public class CassandraDocker extends Docker {
         int ret = restart.waitFor();
         String message = Utilities.readProcess(restart);
         logger.debug("upgrade version start: " + ret + "\n" + message);
+        cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort,
+                executorID);
+    }
+
+    @Override
+    public void downgrade() throws Exception {
+        type = "original";
+        String cassandraHome = "/cassandra/" + originalVersion;
+        String cassandraConf = "/etc/" + originalVersion;
+        javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
+                + "/org.jacoco.agent.rt.jar"
+                + "=append=false"
+                + ",includes=" + includes + ",excludes=" + excludes +
+                ",output=dfe,address=" + hostIP + ",port=" + agentPort +
+                ",sessionid=" + system + "-" + executorID + "_"
+                + type + "-" + index +
+                "\"";
+        cqlshDaemonPort ^= 1;
+
+        String pythonVersion = "python2";
+        String[] spStrings = originalVersion.split("-");
+        try {
+            int main_version = Integer
+                    .parseInt(spStrings[spStrings.length - 1].substring(0, 1));
+            logger.debug("[HKLOG] original main version = " + main_version);
+            if (main_version > 3)
+                pythonVersion = "python3";
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        env = new String[] {
+                "CASSANDRA_HOME=\"" + cassandraHome + "\"",
+                "CASSANDRA_CONF=\"" + cassandraConf + "\"", javaToolOpts,
+                "CQLSH_DAEMON_PORT=\"" + cqlshDaemonPort + "\"",
+                "PYTHON=" + pythonVersion };
+
+        setEnvironment();
+
+        String restartCommand = "supervisorctl restart upfuzz_cassandra:";
+        // TODO remove the env arguments, we already have /usr/bin/set_env
+        Process restart = runInContainer(
+                new String[] { "/bin/bash", "-c", restartCommand }, env);
+        int ret = restart.waitFor();
+        String message = Utilities.readProcess(restart);
+        logger.debug("downgrade version start: " + ret + "\n" + message);
         cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort,
                 executorID);
     }
@@ -301,6 +348,56 @@ public class CassandraDocker extends Docker {
             }
         }
         return stateValues;
+    }
+
+    public String[] constructGrepCommand(Path filePath, String target,
+            int grepLineNum) {
+        return new String[] {
+                "/bin/sh", "-c",
+                "grep -a -A " + grepLineNum + " \"" + target + "\" " + filePath
+        };
+    }
+
+    @Override
+    public LogInfo readLogInfo() {
+        LogInfo logInfo = new LogInfo();
+        Path filePath = Paths.get("/var/log/cassandra/system.log");
+        int grepLineNum = 2;
+
+        // ERROR
+        String[] cmd = constructGrepCommand(filePath, "ERROR", grepLineNum);
+        try {
+            System.out.println("\n\n");
+            Process grepProc = runInContainer(cmd);
+            String result = new String(
+                    grepProc.getInputStream().readAllBytes());
+            for (String msg : result.split("--")) {
+                logInfo.addErrorMsg(msg);
+            }
+        } catch (IOException e) {
+            logger.error(String.format(
+                    "Problem when reading log information in docker[%d]",
+                    index));
+            e.printStackTrace();
+        }
+
+        // WARN
+        cmd = constructGrepCommand(filePath, "WARN", grepLineNum);
+        try {
+            System.out.println("\n\n");
+            Process grepProc = runInContainer(cmd);
+            String result = new String(
+                    grepProc.getInputStream().readAllBytes());
+            for (String msg : result.split("--")) {
+                logInfo.addWARNMsg(msg);
+            }
+        } catch (IOException e) {
+            logger.error(String.format(
+                    "Problem when reading log information in docker[%d]",
+                    index));
+            e.printStackTrace();
+        }
+        return logInfo;
     }
 
 }
