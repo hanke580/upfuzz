@@ -119,36 +119,6 @@ public class FuzzingServerTest {
 
     @Test
     public void test1() {
-        LogInfo logInfo = new LogInfo();
-        Path filePath = Paths.get(System.getProperty("user.dir"), "system.log");
-        logger.info("filePath = " + filePath);
-        int grepLineNum = 2;
-
-        // ERROR
-        String target = "ERROR";
-        String[] grepStateCmd = new String[] {
-                "/bin/sh", "-c",
-                "grep -a -A " + grepLineNum + " \"" + target + "\" " + filePath
-        };
-        try {
-            System.out.println("\n\n");
-            Process grepProc = Utilities.exec(grepStateCmd,
-                    System.getProperty("user.dir"));
-            String result = new String(
-                    grepProc.getInputStream().readAllBytes());
-
-            String[] results = result.split("--");
-            logger.info("res20 = " + results[20]);
-            logger.info("res21 = " + results[21]);
-
-            for (String res : results) {
-                logInfo.addErrorMsg(res);
-            }
-            logger.info("len = " + results.length);
-            logger.info(result);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
 //    @Test
