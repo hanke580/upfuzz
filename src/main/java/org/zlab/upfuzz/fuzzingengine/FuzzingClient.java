@@ -253,6 +253,29 @@ public class FuzzingClient {
             return null;
         }
 
+        // LOG checking
+        if (Config.getConf().enableLogCheck) {
+            logger.info("[HKLOG] error checking");
+            Map<Integer, LogInfo> logInfo = executor.readLogInfo();
+            logger.info("[HKLOG] Node0 ERROR size = "
+                    + logInfo.get(0).getErrorMsg().size());
+            logger.info("[HKLOG] Node0 WARN size = "
+                    + logInfo.get(0).getWARNMsg().size());
+
+            // print all error log, prepare for filtering
+            logger.info("errorMsg");
+            List<String> ERRORMsg = logInfo.get(0).getErrorMsg();
+            for (String msg : ERRORMsg) {
+                System.out.println(msg);
+            }
+
+            logger.info("warnMsg");
+            List<String> WARNMsg = logInfo.get(0).getWARNMsg();
+            for (String msg : WARNMsg) {
+                System.out.println(msg);
+            }
+        }
+
         // Execute
         executor.executeCommands(fullStopPacket.fullStopUpgrade.commands);
         List<String> oriResult = executor.executeCommands(
@@ -675,18 +698,6 @@ public class FuzzingClient {
         logger.info("verifying configuration");
         Executor executor = initExecutor(1, null, configPath);
         boolean startUpStatus = executor.startup();
-        // LOG checking
-        if (Config.getConf().enableLogCheck) {
-            logger.info("[HKLOG] error checking");
-            Map<Integer, LogInfo> logInfo = executor.readLogInfo();
-            logger.info("[HKLOG] Node0 ERROR size = "
-                    + logInfo.get(0).getErrorMsg().size());
-            logger.info("[HKLOG] Node0 WARN size = "
-                    + logInfo.get(0).getWARNMsg().size());
-            List<String> ERRORMsg = logInfo.get(0).getErrorMsg();
-            logger.info("[HKLOG] Node0 last ERROR = "
-                    + ERRORMsg.get(ERRORMsg.size() - 1));
-        }
 
         if (!startUpStatus) {
             logger.error("config cannot start up old version");

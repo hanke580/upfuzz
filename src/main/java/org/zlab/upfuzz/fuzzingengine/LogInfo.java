@@ -15,7 +15,7 @@ public class LogInfo {
     }
 
     public List<String> getWARNMsg() {
-        return ERRORMsg;
+        return WARNMsg;
     }
 
     public void addErrorMsg(String msg) {
@@ -23,7 +23,7 @@ public class LogInfo {
     }
 
     public void addWARNMsg(String msg) {
-        ERRORMsg.add(msg);
+        WARNMsg.add(msg);
     }
 
 }

@@ -11,8 +11,14 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.zlab.upfuzz.docker.Docker;
+import org.zlab.upfuzz.fuzzingengine.LogInfo;
+import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.utils.Utilities;
 
 public class CassandraCqlshDaemon {
@@ -20,6 +26,11 @@ public class CassandraCqlshDaemon {
     private Socket socket;
     public static String cqlshPython2Script;
     public static String cqlshPython3Script;
+
+    public static List<String> noiseErrors = new LinkedList<>();
+    static {
+        noiseErrors.add("Bootstrap Token collision");
+    }
 
     static {
         InputStream cqlsh_daemon2 = CassandraCqlshDaemon.class.getClassLoader()
@@ -44,28 +55,47 @@ public class CassandraCqlshDaemon {
         }
     }
 
-    public CassandraCqlshDaemon(String ipAddress, int port, String executorID) {
+    public CassandraCqlshDaemon(String ipAddress, int port, Docker docker) {
         int retry = 20;
-        logger.info("[HKLOG] executor ID = " + executorID + "  "
+        logger.info("[HKLOG] executor ID = " + docker.executorID + "  "
                 + "Connect to cqlsh:" + ipAddress + "...");
         for (int i = 0; i < retry; ++i) {
             try {
-                logger.debug("[HKLOG] executor ID = " + executorID + "  "
+                logger.debug("[HKLOG] executor ID = " + docker.executorID + "  "
                         + "Connect to cqlsh:" + ipAddress + "..." + i);
                 socket = new Socket();
                 socket.connect(new InetSocketAddress(ipAddress, port),
                         3 * 1000);
-                logger.info("[HKLOG] executor ID = " + executorID + "  "
+                logger.info("[HKLOG] executor ID = " + docker.executorID + "  "
                         + "Cqlsh connected: " + ipAddress);
                 return;
-            } catch (IOException e) {
+            } catch (Exception e) {
             }
             try {
                 Thread.sleep(10 * 1000);
             } catch (InterruptedException e) {
             }
+
+            // read log to check whether it ends
+            LogInfo logInfo = docker.readLogInfo();
+            if (logInfo.getErrorMsg().size() > 0) {
+                for (String msg : logInfo.getErrorMsg()) {
+                    boolean isNoise = false;
+                    for (String noiseError : noiseErrors) {
+                        if (msg.contains(noiseError)) {
+                            isNoise = true;
+                            break;
+                        }
+                    }
+                    if (!isNoise) {
+                        break;
+                    }
+                    System.out.println(msg);
+                }
+                break;
+            }
         }
-        throw new RuntimeException("[HKLOG] executor ID = " + executorID
+        throw new RuntimeException("[HKLOG] executor ID = " + docker.executorID
                 + "  " + "cannot connect to cqlsh at " + ipAddress);
     }
 

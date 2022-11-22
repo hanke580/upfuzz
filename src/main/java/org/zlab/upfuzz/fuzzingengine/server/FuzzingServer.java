@@ -983,7 +983,7 @@ public class FuzzingServer {
         }
         int pos2 = Utilities.randWithRange(rand, pos1 + 1, events.size() + 1);
 
-        logger.info("downgrade inject position = " + pos2);
+        // logger.info("downgrade inject position = " + pos2);
 
         newEvents = events.subList(0, pos2);
         assert newEvents.size() == pos2;
@@ -997,7 +997,7 @@ public class FuzzingServer {
         // downgrade op
         // downgrade in a reverse way
         upgradeNodeIdxes.sort(Collections.reverseOrder());
-        logger.info("upgrade = " + upgradeNodeIdxes);
+        // logger.info("upgrade = " + upgradeNodeIdxes);
         for (int nodeIdx : upgradeNodeIdxes) {
             newEvents.add(new DowngradeOp(nodeIdx));
         }

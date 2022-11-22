@@ -80,8 +80,7 @@ public class CassandraDocker extends Docker {
 
     @Override
     public int start() throws Exception {
-        cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort,
-                executorID);
+        cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort, this);
         return 0;
     }
 
@@ -181,8 +180,7 @@ public class CassandraDocker extends Docker {
         int ret = restart.waitFor();
         String message = Utilities.readProcess(restart);
         logger.debug("upgrade version start: " + ret + "\n" + message);
-        cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort,
-                executorID);
+        cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort, this);
     }
 
     @Override
@@ -227,8 +225,7 @@ public class CassandraDocker extends Docker {
         int ret = restart.waitFor();
         String message = Utilities.readProcess(restart);
         logger.debug("downgrade version start: " + ret + "\n" + message);
-        cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort,
-                executorID);
+        cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort, this);
     }
 
     @Override
@@ -363,17 +360,18 @@ public class CassandraDocker extends Docker {
     public LogInfo readLogInfo() {
         LogInfo logInfo = new LogInfo();
         Path filePath = Paths.get("/var/log/cassandra/system.log");
-        int grepLineNum = 2;
+        int grepLineNum = 4;
 
         // ERROR
         String[] cmd = constructGrepCommand(filePath, "ERROR", grepLineNum);
         try {
-            System.out.println("\n\n");
             Process grepProc = runInContainer(cmd);
             String result = new String(
                     grepProc.getInputStream().readAllBytes());
-            for (String msg : result.split("--")) {
-                logInfo.addErrorMsg(msg);
+            if (!result.isEmpty()) {
+                for (String msg : result.split("--")) {
+                    logInfo.addErrorMsg(msg);
+                }
             }
         } catch (IOException e) {
             logger.error(String.format(
@@ -385,12 +383,13 @@ public class CassandraDocker extends Docker {
         // WARN
         cmd = constructGrepCommand(filePath, "WARN", grepLineNum);
         try {
-            System.out.println("\n\n");
             Process grepProc = runInContainer(cmd);
             String result = new String(
                     grepProc.getInputStream().readAllBytes());
-            for (String msg : result.split("--")) {
-                logInfo.addWARNMsg(msg);
+            if (!result.isEmpty()) {
+                for (String msg : result.split("--")) {
+                    logInfo.addWARNMsg(msg);
+                }
             }
         } catch (IOException e) {
             logger.error(String.format(
