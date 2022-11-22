@@ -90,6 +90,10 @@ public class Config {
         public boolean useExampleTestPlan = false;
         public boolean debug = false;
 
+        // ------------State Comparison-------------
+        // check ERROR/WARN in log
+        public boolean enableLogCheck = false;
+
         @Override
         public String toString() {
             return new GsonBuilder()

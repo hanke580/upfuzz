@@ -12,6 +12,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.docker.Docker;
 import org.zlab.upfuzz.docker.DockerCluster;
+import org.zlab.upfuzz.fuzzingengine.LogInfo;
 import org.zlab.upfuzz.utils.Utilities;
 
 public class CassandraDocker extends Docker {
@@ -347,6 +348,56 @@ public class CassandraDocker extends Docker {
             }
         }
         return stateValues;
+    }
+
+    public String[] constructGrepCommand(Path filePath, String target,
+            int grepLineNum) {
+        return new String[] {
+                "/bin/sh", "-c",
+                "grep -a -A " + grepLineNum + " \"" + target + "\" " + filePath
+        };
+    }
+
+    @Override
+    public LogInfo readLogInfo() {
+        LogInfo logInfo = new LogInfo();
+        Path filePath = Paths.get("/var/log/cassandra/system.log");
+        int grepLineNum = 2;
+
+        // ERROR
+        String[] cmd = constructGrepCommand(filePath, "ERROR", grepLineNum);
+        try {
+            System.out.println("\n\n");
+            Process grepProc = runInContainer(cmd);
+            String result = new String(
+                    grepProc.getInputStream().readAllBytes());
+            for (String msg : result.split("--")) {
+                logInfo.addErrorMsg(msg);
+            }
+        } catch (IOException e) {
+            logger.error(String.format(
+                    "Problem when reading log information in docker[%d]",
+                    index));
+            e.printStackTrace();
+        }
+
+        // WARN
+        cmd = constructGrepCommand(filePath, "WARN", grepLineNum);
+        try {
+            System.out.println("\n\n");
+            Process grepProc = runInContainer(cmd);
+            String result = new String(
+                    grepProc.getInputStream().readAllBytes());
+            for (String msg : result.split("--")) {
+                logInfo.addWARNMsg(msg);
+            }
+        } catch (IOException e) {
+            logger.error(String.format(
+                    "Problem when reading log information in docker[%d]",
+                    index));
+            e.printStackTrace();
+        }
+        return logInfo;
     }
 
 }

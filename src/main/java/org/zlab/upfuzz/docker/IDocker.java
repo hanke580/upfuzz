@@ -1,5 +1,7 @@
 package org.zlab.upfuzz.docker;
 
+import org.zlab.upfuzz.fuzzingengine.LogInfo;
+
 import java.nio.file.Path;
 import java.util.Map;
 
@@ -24,6 +26,8 @@ public interface IDocker {
     boolean clear();
 
     Map<String, String> readSystemState();
+
+    LogInfo readLogInfo();
 
     Path getDataPath();
 

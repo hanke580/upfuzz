@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.RandomUtils;
 import org.zlab.upfuzz.fuzzingengine.Config;
+import org.zlab.upfuzz.fuzzingengine.LogInfo;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -153,6 +154,18 @@ public abstract class DockerCluster implements IDockerCluster {
         Map<Integer, Map<String, String>> states = new HashMap<>();
         for (int i = 0; i < nodeNum; i++) {
             states.put(i, dockers[i].readSystemState());
+        }
+        return states;
+    }
+
+    /**
+     * collecting system states from each node
+     */
+    public Map<Integer, LogInfo> readLogInfo() {
+        // nodeId -> {class.state -> value}
+        Map<Integer, LogInfo> states = new HashMap<>();
+        for (int i = 0; i < nodeNum; i++) {
+            states.put(i, dockers[i].readLogInfo());
         }
         return states;
     }
