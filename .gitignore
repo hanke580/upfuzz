@@ -12,7 +12,7 @@ upfuzz.log
 hdfs-cl-*
 cass-cl*
 configtests
-results/
+bugs
 config/
 examplecase/
 
