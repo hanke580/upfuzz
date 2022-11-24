@@ -49,7 +49,7 @@ public class ALTER_TABLE_TYPE extends CassandraCommand {
                 " " + this.params.get(0) + "."
                 + this.params.get(1).toString() + " " +
                 "ALTER" +
-                " " + targetColumnName.toString() + " "
+                " " + targetColumnName.toString() + " TYPE "
                 + this.params.get(3).toString() + " ;";
     }
 

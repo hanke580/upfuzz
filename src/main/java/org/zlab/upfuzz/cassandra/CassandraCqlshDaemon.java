@@ -56,7 +56,7 @@ public class CassandraCqlshDaemon {
     }
 
     public CassandraCqlshDaemon(String ipAddress, int port, Docker docker) {
-        int retry = 25;
+        int retry = 30;
         logger.info("[HKLOG] executor ID = " + docker.executorID + "  "
                 + "Connect to cqlsh:" + ipAddress + "...");
         for (int i = 0; i < retry; ++i) {

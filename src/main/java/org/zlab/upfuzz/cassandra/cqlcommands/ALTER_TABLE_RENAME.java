@@ -22,13 +22,11 @@ public class ALTER_TABLE_RENAME extends CassandraCommand {
      * * Only make sure the column to be rename is in PRIMARY KEY
      */
     public ALTER_TABLE_RENAME(CassandraState cassandraState) {
-        super();
-
         Parameter keyspaceName = chooseKeyspace(cassandraState, this, null);
-        this.params.add(keyspaceName);
+        params.add(keyspaceName);
 
         Parameter TableName = chooseTable(cassandraState, this, null);
-        this.params.add(TableName);
+        params.add(TableName);
 
         Parameter targetColumn = new ParameterType.InCollectionType(null,
                 (s, c) -> ((CassandraState) s).getTable(
@@ -36,7 +34,7 @@ public class ALTER_TABLE_RENAME extends CassandraCommand {
                         c.params.get(1).toString()).primaryColName2Type,
                 null, null)
                         .generateRandomParameter(cassandraState, this);
-        this.params.add(targetColumn);
+        params.add(targetColumn);
 
         Parameter newColumnName = new ParameterType.NotInCollectionType(
                 new STRINGType(),
@@ -45,7 +43,7 @@ public class ALTER_TABLE_RENAME extends CassandraCommand {
                         c.params.get(1).toString()).colName2Type,
                 p -> ((Pair) (((Parameter) p).getValue())).left)
                         .generateRandomParameter(cassandraState, this);
-        this.params.add(newColumnName);
+        params.add(newColumnName);
 
         updateExecutableCommandString();
     }
