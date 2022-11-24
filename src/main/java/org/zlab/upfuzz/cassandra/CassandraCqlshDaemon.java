@@ -56,7 +56,7 @@ public class CassandraCqlshDaemon {
     }
 
     public CassandraCqlshDaemon(String ipAddress, int port, Docker docker) {
-        int retry = 20;
+        int retry = 25;
         logger.info("[HKLOG] executor ID = " + docker.executorID + "  "
                 + "Connect to cqlsh:" + ipAddress + "...");
         for (int i = 0; i < retry; ++i) {
@@ -82,15 +82,16 @@ public class CassandraCqlshDaemon {
                         "ps -ef | grep org.apache.cassandra.service.CassandraDaemon | wc -l"
                 });
                 String result = new String(
-                        grepProc.getInputStream().readAllBytes());
+                        grepProc.getInputStream().readAllBytes()).strip();
                 int processNum = Integer.parseInt(result);
-                logger.info("[HKLOG] processNum = " + processNum);
-                if (Integer.parseInt(result) == 1) {
+                if (Integer.parseInt(result) <= 2) {
                     // Process has died
                     break;
                 }
 
-            } catch (Exception ignore) {
+            } catch (Exception e) {
+                e.printStackTrace();
+
             }
 
             // read log to check whether it ends

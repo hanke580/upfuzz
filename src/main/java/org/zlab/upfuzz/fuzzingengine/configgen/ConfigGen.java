@@ -38,6 +38,10 @@ public class ConfigGen {
                 .add("minimum_replication_factor_fail_threshold");
         cassandraConfigBlackList
                 .add("user_defined_functions_threads_enabled");
+
+        cassandraConfigBlackList
+                .add("concurrent_validations");
+
     }
 
     public ConfigGen() {
