@@ -87,6 +87,7 @@ echo "Starting Cassandra on $IP..."
 echo "Starting Cassandra on $IP... Config dir $CASSANDRA_HOME/conf" >>/tmp.log
 
 echo "ENV: HOME:${CASSANDRA_HOME}\nCONF:${CASSANDRA_CONF}"
-#exec cassandra -f
-exec $CASSANDRA_HOME/bin/cassandra -fR
+#exec $CASSANDRA_HOME/bin/cassandra -fR
+exec $CASSANDRA_HOME/bin/cassandra -R
+
 # use R so that Cassandra can be run as root

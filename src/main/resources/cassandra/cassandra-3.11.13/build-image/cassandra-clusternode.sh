@@ -52,6 +52,6 @@ sed -i -e "s/- seeds: \"127.0.0.1\"/- seeds: \"$CASSANDRA_SEEDS\"/" $CASSANDRA_C
 echo "Starting Cassandra on $IP..."
 echo "Starting Cassandra on $IP... Config dir $CASSANDRA_CONFIG" >>  /tmp.log
 
-#exec cassandra -f
-exec /cassandra/bin/cassandra -fR
+#exec /cassandra/bin/cassandra -fR
+exec /cassandra/bin/cassandra -R
 # use R so that Cassandra can be run as root

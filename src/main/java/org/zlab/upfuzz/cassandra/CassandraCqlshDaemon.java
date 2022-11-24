@@ -69,31 +69,48 @@ public class CassandraCqlshDaemon {
                 logger.info("[HKLOG] executor ID = " + docker.executorID + "  "
                         + "Cqlsh connected: " + ipAddress);
                 return;
-            } catch (Exception e) {
+            } catch (Exception ignored) {
             }
             try {
                 Thread.sleep(10 * 1000);
-            } catch (InterruptedException e) {
+            } catch (InterruptedException ignored) {
+            }
+
+            try {
+                Process grepProc = docker.runInContainer(new String[] {
+                        "/bin/sh", "-c",
+                        "ps -ef | grep org.apache.cassandra.service.CassandraDaemon | wc -l"
+                });
+                String result = new String(
+                        grepProc.getInputStream().readAllBytes());
+                int processNum = Integer.parseInt(result);
+                logger.info("[HKLOG] processNum = " + processNum);
+                if (Integer.parseInt(result) == 1) {
+                    // Process has died
+                    break;
+                }
+
+            } catch (Exception ignore) {
             }
 
             // read log to check whether it ends
-            LogInfo logInfo = docker.readLogInfo();
-            if (logInfo.getErrorMsg().size() > 0) {
-                for (String msg : logInfo.getErrorMsg()) {
-                    boolean isNoise = false;
-                    for (String noiseError : noiseErrors) {
-                        if (msg.contains(noiseError)) {
-                            isNoise = true;
-                            break;
-                        }
-                    }
-                    if (!isNoise) {
-                        break;
-                    }
-                    System.out.println(msg);
-                }
-                break;
-            }
+//            LogInfo logInfo = docker.readLogInfo();
+//            if (logInfo.getErrorMsg().size() > 0) {
+//                for (String msg : logInfo.getErrorMsg()) {
+//                    boolean isNoise = false;
+//                    for (String noiseError : noiseErrors) {
+//                        if (msg.contains(noiseError)) {
+//                            isNoise = true;
+//                            break;
+//                        }
+//                    }
+//                    if (!isNoise) {
+//                        break;
+//                    }
+//                    System.out.println(msg);
+//                }
+//                break;
+//            }
         }
         throw new RuntimeException("[HKLOG] executor ID = " + docker.executorID
                 + "  " + "cannot connect to cqlsh at " + ipAddress);
