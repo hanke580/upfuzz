@@ -15,6 +15,7 @@ configtests
 bugs
 config/
 examplecase/
+crash/
 
 
 ##############################

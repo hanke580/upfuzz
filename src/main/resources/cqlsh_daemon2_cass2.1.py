@@ -93,7 +93,7 @@ def get_shell(options, hostname, port):
                       max_trace_wait=options.max_trace_wait,
                       ssl=options.ssl,
                       single_statement=options.execute,
-                      request_timeout=options.request_timeout,
+                      request_timeout=30,
                       connect_timeout=options.connect_timeout,
                       encoding=options.encoding)
     except KeyboardInterrupt:

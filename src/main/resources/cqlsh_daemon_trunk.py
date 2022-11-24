@@ -135,7 +135,7 @@ def get_shell(options, hostname, port):
                       max_trace_wait=options.max_trace_wait,
                       ssl=options.ssl,
                       single_statement=options.execute,
-                      request_timeout=25,
+                      request_timeout=30,
                       connect_timeout=options.connect_timeout,
                       encoding=options.encoding,
                       auth_provider=authproviderhandling.load_auth_provider(
