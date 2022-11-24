@@ -129,6 +129,10 @@ public class HdfsDocker extends Docker {
     }
 
     @Override
+    public void flush() throws Exception {
+    }
+
+    @Override
     public void upgrade() throws Exception {
         type = "upgraded";
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
@@ -194,7 +198,7 @@ public class HdfsDocker extends Docker {
     }
 
     @Override
-    public boolean shutdown() {
+    public void shutdown() {
         String nodeType;
         if (index == 0) {
             nodeType = "namenode";
@@ -211,12 +215,9 @@ public class HdfsDocker extends Docker {
             // Secondary is stopped in a specific op (HDFSStopSNN)
             String[] stopNode = new String[] { orihadoopDaemonPath, "stop",
                     nodeType };
-            int ret = runProcessInContainer(stopNode);
-            if (ret != 0)
-                return false;
+            runProcessInContainer(stopNode);
         }
         logger.debug("shutdown " + nodeType);
-        return true;
     }
 
     @Override

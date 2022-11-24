@@ -292,40 +292,6 @@ public class CassandraDockerCluster extends DockerCluster {
 
     @Override
     public void prepareUpgrade() throws Exception {
-        // Flush to disk
-        // Find a live node, issue the command to it
-
-        // TODO: All nodes might need a flush...
-        // int idx = getFirstLiveNodeIdx();
-
-        for (int idx = 0; idx < nodeNum; idx++) {
-            if (dockerStates[idx].alive) {
-
-                if (idx == -1) {
-                    logger.error("cannot upgrade, all nodes are down");
-                    throw new RuntimeException(
-                            "all nodes are down, cannot prepare upgrade");
-                }
-                if (Config.getConf().originalVersion.contains("2.1.0")) {
-                    Process flushCass = dockers[idx]
-                            .runInContainer(new String[] {
-                                    "/" + system + "/" + originalVersion + "/"
-                                            + "bin/nodetool",
-                                    "-h", "::FFFF:127.0.0.1",
-                                    "flush" });
-                    flushCass.waitFor();
-                } else {
-                    Process flushCass = dockers[idx]
-                            .runInContainer(new String[] {
-                                    "/" + system + "/" + originalVersion + "/"
-                                            + "bin/nodetool",
-                                    "flush" });
-                    flushCass.waitFor();
-                }
-
-            }
-        }
-
     }
 
     @Override

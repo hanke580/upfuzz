@@ -14,13 +14,13 @@ public interface IDocker {
 
     boolean build() throws Exception;
 
+    void flush() throws Exception;
+
+    void shutdown() throws Exception;
+
     void upgrade() throws Exception;
 
     void downgrade() throws Exception;
-
-    // Stop the process in container
-    // Don't stop the container
-    boolean shutdown();
 
     // remove all system data (data/ in cassandra)
     boolean clear();

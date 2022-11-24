@@ -66,8 +66,8 @@ public abstract class DockerCluster implements IDockerCluster {
                 Config.getConf().upgradedVersion,
                 UUID.randomUUID());
         this.subnetID = RandomUtils.nextInt(1, 256);
-        this.subnet = "192.168." + Integer.toString(subnetID) + ".1/24";
-        this.hostIP = "192.168." + Integer.toString(subnetID) + ".1";
+        this.subnet = "192.168." + subnetID + ".1/24";
+        this.hostIP = "192.168." + subnetID + ".1";
         this.agentPort = executor.agentPort;
         this.executor = executor;
         this.executorID = executor.executorID;
@@ -108,6 +108,7 @@ public abstract class DockerCluster implements IDockerCluster {
         logger.info("Cluster full-stop upgrading...");
         prepareUpgrade();
         for (int i = 0; i < dockers.length; i++) {
+            dockers[i].flush();
             dockers[i].shutdown();
         }
         for (int i = 0; i < dockers.length; i++) {
@@ -122,6 +123,7 @@ public abstract class DockerCluster implements IDockerCluster {
         logger.info("Cluster upgrading...");
         prepareUpgrade();
         for (int i = 0; i < dockers.length; ++i) {
+            dockers[i].flush();
             dockers[i].shutdown();
             dockers[i].upgrade();
         }
@@ -179,6 +181,7 @@ public abstract class DockerCluster implements IDockerCluster {
     public void upgrade(int nodeIndex) throws Exception {
         // upgrade a specific node
         logger.info(String.format("Upgrade Node[%d]", nodeIndex));
+        dockers[nodeIndex].flush();
         dockers[nodeIndex].shutdown();
         dockers[nodeIndex].upgrade();
         dockerStates[nodeIndex].dockerVersion = DockerMeta.DockerVersion.upgraded;
@@ -361,7 +364,7 @@ public abstract class DockerCluster implements IDockerCluster {
             containerRecoverProcess.waitFor();
 
             // recreate the cqlsh connection
-            logger.info(String.format("[HKLOG] Wait for node to restart",
+            logger.info(String.format("[HKLOG] Wait for node%d to restart",
                     nodeIndex));
             dockers[nodeIndex].start();
 
@@ -377,10 +380,7 @@ public abstract class DockerCluster implements IDockerCluster {
     }
 
     public boolean checkIndex(int nodeIndex) {
-        if (nodeIndex >= nodeNum || nodeIndex < 0) {
-            return false;
-        }
-        return true;
+        return nodeIndex < nodeNum && nodeIndex >= 0;
     }
 
     public abstract void finalizeUpgrade();
