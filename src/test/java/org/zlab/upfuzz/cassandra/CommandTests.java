@@ -77,8 +77,7 @@ public class CommandTests {
 
     @Test
     public void testCommandWithInitialValue()
-            throws InvocationTargetException, NoSuchMethodException,
-            InstantiationException, IllegalAccessException {
+            throws Exception {
         CommandSequence commandSequence = cass13939CommandSequence();
         CommandSequence validationCommandSequence = commandSequence
                 .generateRelatedReadSequence();
@@ -133,8 +132,7 @@ public class CommandTests {
 
     @Test
     public void testOneByteDiffCommandWithInitialValue()
-            throws InvocationTargetException, NoSuchMethodException,
-            InstantiationException, IllegalAccessException {
+            throws Exception {
         // This will create a command which only have one Byte difference,
         // remove one char from the string
         CommandSequence commandSequence = cass13939CommandSequence_One_Byte_Diff();
@@ -191,8 +189,7 @@ public class CommandTests {
 
     @Test
     public void testTwoByteDiffCommandWithInitialValue1()
-            throws InvocationTargetException, NoSuchMethodException,
-            InstantiationException, IllegalAccessException {
+            throws Exception {
         // This will create a command which only have one Byte difference,
         // remove one char from the string
         CommandSequence commandSequence = cass13939CommandSequence_Two_Byte_Diff1();
@@ -249,8 +246,7 @@ public class CommandTests {
 
     @Test
     public void testTwoByteDiffCommandWithInitialValue2()
-            throws InvocationTargetException, NoSuchMethodException,
-            InstantiationException, IllegalAccessException {
+            throws Exception {
         // This will create a command which only have one Byte difference,
         // remove one char from the string
         CommandSequence commandSequence = cass13939CommandSequence_Two_Byte_Diff2();
@@ -307,8 +303,7 @@ public class CommandTests {
 
     @Test
     public void testFourByteDiffCommandWithInitialValue()
-            throws InvocationTargetException, NoSuchMethodException,
-            InstantiationException, IllegalAccessException {
+            throws Exception {
         // Delete four bytes in two different commands
         CommandSequence commandSequence = cass13939CommandSequence_Four_Byte_Diff();
         CommandSequence validationCommandSequence = commandSequence
@@ -364,8 +359,7 @@ public class CommandTests {
 
     @Test
     public void testOneCmdDiffCommandWithInitialValue1()
-            throws InvocationTargetException, NoSuchMethodException,
-            InstantiationException, IllegalAccessException {
+            throws Exception {
         // This will create a command which only have one Byte difference,
         // remove one char from the string
         CommandSequence commandSequence = cass13939CommandSequence_One_Command_Diff1();
@@ -422,8 +416,7 @@ public class CommandTests {
 
     @Test
     public void testOneCmdDiffCommandWithInitialValue2()
-            throws InvocationTargetException, NoSuchMethodException,
-            InstantiationException, IllegalAccessException {
+            throws Exception {
         // This will create a command which only have one Byte difference,
         // remove one char from the string
         CommandSequence commandSequence = cass13939CommandSequence_One_Command_Diff2();
@@ -480,8 +473,7 @@ public class CommandTests {
 
     @Test
     public void testTwoCmdDiffCommandWithInitialValue()
-            throws InvocationTargetException, NoSuchMethodException,
-            InstantiationException, IllegalAccessException {
+            throws Exception {
         // This will create a command which only have one Byte difference,
         // remove one char from the string
         CommandSequence commandSequence = cass13939CommandSequence_Two_Command_Diff();
@@ -537,8 +529,7 @@ public class CommandTests {
 
     @Test
     public void testTwoCmdDiffCommandWithInitialValue1()
-            throws InvocationTargetException, NoSuchMethodException,
-            InstantiationException, IllegalAccessException {
+            throws Exception {
         CommandSequence commandSequence = cass13939CommandSequence_Two_Command_Diff1();
         CommandSequence validationCommandSequence = commandSequence
                 .generateRelatedReadSequence();
@@ -834,7 +825,7 @@ public class CommandTests {
         l.add(cmd11);
 
         for (Command cmd : l) {
-            System.out.println(cmd.executableCommandString);
+            System.out.println(cmd.constructCommandString());
         }
 
         CommandSequence commandSequence = new CommandSequence(l,
@@ -917,7 +908,7 @@ public class CommandTests {
         l.add(cmd11);
 
         for (Command cmd : l) {
-            System.out.println(cmd.executableCommandString);
+            System.out.println(cmd.constructCommandString());
         }
 
         CommandSequence commandSequence = new CommandSequence(l,
@@ -930,8 +921,7 @@ public class CommandTests {
 
     @Test
     public void test_cass14803()
-            throws InvocationTargetException, NoSuchMethodException,
-            InstantiationException, IllegalAccessException {
+            throws Exception {
         CommandPool commandPool = new CassandraCommandPool();
         CommandSequence cass14803_cq = cass14803CommandSequence();
 
@@ -1032,7 +1022,7 @@ public class CommandTests {
         // STRINGType.addToPool(LONGSTRING_1025_LEN);
 
         for (Command cmd : l) {
-            System.out.println(cmd.executableCommandString);
+            System.out.println(cmd.constructCommandString());
         }
 
         CommandSequence commandSequence = new CommandSequence(l,
@@ -1109,7 +1099,7 @@ public class CommandTests {
         l.add(cmd11);
 
         for (Command cmd : l) {
-            System.out.println(cmd.executableCommandString);
+            System.out.println(cmd.constructCommandString());
         }
 
         CommandSequence commandSequence = new CommandSequence(l,
@@ -1186,7 +1176,7 @@ public class CommandTests {
         l.add(cmd11);
 
         for (Command cmd : l) {
-            System.out.println(cmd.executableCommandString);
+            System.out.println(cmd.constructCommandString());
         }
 
         CommandSequence commandSequence = new CommandSequence(l,
@@ -1264,7 +1254,7 @@ public class CommandTests {
         l.add(cmd11);
 
         for (Command cmd : l) {
-            System.out.println(cmd.executableCommandString);
+            System.out.println(cmd.constructCommandString());
         }
 
         CommandSequence commandSequence = new CommandSequence(l,
@@ -1350,7 +1340,7 @@ public class CommandTests {
         l.add(cmd11);
 
         for (Command cmd : l) {
-            System.out.println(cmd.executableCommandString);
+            System.out.println(cmd.constructCommandString());
         }
 
         CommandSequence commandSequence = new CommandSequence(l,
@@ -1427,7 +1417,7 @@ public class CommandTests {
         l.add(cmd11);
 
         for (Command cmd : l) {
-            System.out.println(cmd.executableCommandString);
+            System.out.println(cmd.constructCommandString());
         }
 
         CommandSequence commandSequence = new CommandSequence(l,
@@ -1507,7 +1497,7 @@ public class CommandTests {
         // l.add(cmd11);
 
         for (Command cmd : l) {
-            System.out.println(cmd.executableCommandString);
+            System.out.println(cmd.constructCommandString());
         }
 
         CommandSequence commandSequence = new CommandSequence(l,
@@ -1578,7 +1568,7 @@ public class CommandTests {
         }
 
         for (Command cmd : l) {
-            System.out.println(cmd.executableCommandString);
+            System.out.println(cmd.constructCommandString());
         }
 
         CommandSequence commandSequence = new CommandSequence(l,
@@ -1718,7 +1708,7 @@ public class CommandTests {
         l.add(cmd11);
 
         for (Command cmd : l) {
-            System.out.println(cmd.executableCommandString);
+            System.out.println(cmd.constructCommandString());
         }
 
         CommandSequence commandSequence = new CommandSequence(l,

@@ -48,8 +48,6 @@ public class ALTER_TABLE_DROP extends CassandraCommand {
         Parameter dropColumn = dropColumnType
                 .generateRandomParameter(cassandraState, this, init2);
         this.params.add(dropColumn);
-
-        updateExecutableCommandString();
     }
 
     public ALTER_TABLE_DROP(State state) {
@@ -90,8 +88,6 @@ public class ALTER_TABLE_DROP extends CassandraCommand {
         Parameter dropColumn = dropColumnType
                 .generateRandomParameter(cassandraState, this);
         this.params.add(dropColumn);
-
-        updateExecutableCommandString();
     }
 
     @Override

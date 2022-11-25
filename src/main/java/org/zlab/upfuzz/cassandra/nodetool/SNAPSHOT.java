@@ -7,7 +7,6 @@ import org.zlab.upfuzz.cassandra.CassandraState;
 public class SNAPSHOT extends CassandraCommand {
 
     public SNAPSHOT(CassandraState state) {
-        updateExecutableCommandString();
     }
 
     @Override

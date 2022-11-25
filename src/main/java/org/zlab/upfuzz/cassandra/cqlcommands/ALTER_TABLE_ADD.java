@@ -48,8 +48,6 @@ public class ALTER_TABLE_ADD extends CassandraCommand {
         Parameter addColumnType = addColumnTypeType
                 .generateRandomParameter(cassandraState, this);
         this.params.add(addColumnType);
-
-        updateExecutableCommandString();
     }
 
     @Override

@@ -17,6 +17,8 @@ public class SaveNamespaceCommand extends DfsadminCommand {
      * fsimage/editlog corruption.
      */
     public SaveNamespaceCommand(HdfsState hdfsState) {
+        super(hdfsState.subdir);
+
         Parameter saveNamespaceCmd = new CONSTANTSTRINGType("-savenamespace")
                 .generateRandomParameter(null, null);
 

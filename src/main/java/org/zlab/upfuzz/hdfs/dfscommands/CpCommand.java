@@ -16,7 +16,9 @@ public class CpCommand extends DfsCommand {
      * Copy files from source to destination. This command allows multiple
      * sources as well in which case the destination must be a directory.
      */
-    public CpCommand(HdfsState hdfsState) {
+    public CpCommand(HdfsState state) {
+        super(state.subdir);
+
         Parameter cpcmd = new CONSTANTSTRINGType("-cp")
                 .generateRandomParameter(null, null);
 
@@ -64,10 +66,10 @@ public class CpCommand extends DfsCommand {
                         .generateRandomParameter(null, null);
 
         Parameter srcParameter = new RandomHadoopPathType()
-                .generateRandomParameter(hdfsState, null);
+                .generateRandomParameter(state, null);
 
         Parameter dstParameter = new RandomHadoopPathType()
-                .generateRandomParameter(hdfsState, null);
+                .generateRandomParameter(state, null);
 
         params.add(cpcmd);
         params.add(fOption);
@@ -77,6 +79,21 @@ public class CpCommand extends DfsCommand {
         params.add(threadQueueOption);
         params.add(srcParameter);
         params.add(dstParameter);
+    }
+
+    @Override
+    public String constructCommandString() {
+        return "dfs" + " " +
+                params.get(0) + " " +
+                params.get(1) + " " +
+                params.get(2) + " " +
+                params.get(3) + " " +
+                params.get(4) + " " +
+                params.get(5) + " " +
+                subdir +
+                params.get(6) + " " +
+                subdir +
+                params.get(7);
     }
 
     @Override

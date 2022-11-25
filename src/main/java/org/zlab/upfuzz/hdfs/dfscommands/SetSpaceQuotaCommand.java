@@ -26,7 +26,9 @@ public class SetSpaceQuotaCommand extends DfsadminCommand {
         storageTypeOptions.add("ARCHIVE");
     }
 
-    public SetSpaceQuotaCommand(HdfsState hdfsState) {
+    public SetSpaceQuotaCommand(HdfsState state) {
+        super(state.subdir);
+
         Parameter setSpaceQuotaCmd = new CONSTANTSTRINGType("-setSpaceQuota")
                 .generateRandomParameter(null, null);
 
@@ -43,7 +45,7 @@ public class SetSpaceQuotaCommand extends DfsadminCommand {
                 null).generateRandomParameter(null, null);
 
         Parameter dir = new HDFSDirPathType()
-                .generateRandomParameter(hdfsState, null);
+                .generateRandomParameter(state, null);
 
         params.add(setSpaceQuotaCmd);
         params.add(quota);
@@ -51,6 +53,17 @@ public class SetSpaceQuotaCommand extends DfsadminCommand {
 
         params.add(storage);
         params.add(dir);
+    }
+
+    @Override
+    public String constructCommandString() {
+        return "dfs" + " " +
+                params.get(0) + " " +
+                params.get(1) + " " +
+                params.get(2) + " " +
+                params.get(3) + " " +
+                subdir +
+                params.get(4);
     }
 
     @Override

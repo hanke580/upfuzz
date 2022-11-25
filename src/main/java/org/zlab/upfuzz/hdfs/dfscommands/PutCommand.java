@@ -18,7 +18,9 @@ public class PutCommand extends DfsCommand {
      * destination file system if the source is set to “-” Copying fails if the
      * file already exists, unless the -f flag is given.
      */
-    public PutCommand(HdfsState hdfsState) {
+    public PutCommand(HdfsState state) {
+        super(state.subdir);
+
         Parameter putcmd = new CONSTANTSTRINGType("-put")
                 .generateRandomParameter(null, null);
 
@@ -70,10 +72,11 @@ public class PutCommand extends DfsCommand {
                         .generateRandomParameter(null, null);
 
         Parameter srcParameter = new RandomLocalPathType()
-                .generateRandomParameter(hdfsState, null);
+                .generateRandomParameter(state, null);
 
-        Parameter dstParameter = new RandomHadoopPathType()
-                .generateRandomParameter(hdfsState, null);
+        Parameter dstParameter = new RandomHadoopPathType() // give a subpath
+                                                            // here
+                .generateRandomParameter(state, null);
 
         params.add(putcmd);
         params.add(fOption);
@@ -84,6 +87,22 @@ public class PutCommand extends DfsCommand {
         params.add(threadQueueOption);
         params.add(srcParameter);
         params.add(dstParameter);
+    }
+
+    @Override
+    public String constructCommandString() {
+        return "dfs" + " " +
+                params.get(0) + " " +
+                params.get(1) + " " +
+                params.get(2) + " " +
+                params.get(3) + " " +
+                params.get(4) + " " +
+                params.get(5) + " " +
+                params.get(6) + " " +
+                subdir +
+                params.get(7) + " " +
+                subdir +
+                params.get(8);
     }
 
     @Override

@@ -12,7 +12,9 @@ public class RefreshNodesCommand extends DfsadminCommand {
      * are allowed to connect to the Namenode and those that should be
      * decommissioned or recommissioned.
      */
-    public RefreshNodesCommand(HdfsState hdfsState) {
+    public RefreshNodesCommand(HdfsState state) {
+        super(state.subdir);
+
         Parameter refreshNodesCmd = new CONSTANTSTRINGType("-refreshNodes")
                 .generateRandomParameter(null, null);
 

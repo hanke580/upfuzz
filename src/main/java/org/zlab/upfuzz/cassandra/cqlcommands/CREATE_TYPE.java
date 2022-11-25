@@ -56,8 +56,6 @@ public class CREATE_TYPE extends CassandraCommand {
         Parameter columns = columnsType
                 .generateRandomParameter(cassandraState, this);
         params.add(columns); // 2
-
-        updateExecutableCommandString();
     }
 
     @Override

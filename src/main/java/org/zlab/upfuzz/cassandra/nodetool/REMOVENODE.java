@@ -27,8 +27,6 @@ public class REMOVENODE extends CassandraCommand {
                         (((REMOVENODE) c).options)),
                 null).generateRandomParameter(state, this);
         params.add(operation);
-
-        updateExecutableCommandString();
     }
 
     @Override

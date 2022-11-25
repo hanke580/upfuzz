@@ -7,7 +7,6 @@ import org.zlab.upfuzz.cassandra.CassandraState;
 public class GARBAGE_COLLECT extends CassandraCommand {
 
     public GARBAGE_COLLECT(CassandraState state) {
-        updateExecutableCommandString();
     }
 
     @Override

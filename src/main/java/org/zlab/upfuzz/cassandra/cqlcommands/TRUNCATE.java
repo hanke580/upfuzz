@@ -14,8 +14,6 @@ public class TRUNCATE extends CassandraCommand {
 
         Parameter TableName = chooseTable(state, this, null);
         this.params.add(TableName); // [1]
-
-        updateExecutableCommandString();
     }
 
     @Override

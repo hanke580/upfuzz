@@ -21,19 +21,15 @@ public abstract class Command implements Serializable {
     public static final int RETRY_TIMES = 5;
 
     public List<Parameter> params;
-    public String executableCommandString;
 
     public Command() {
         params = new LinkedList<>();
     }
 
-    public void updateExecutableCommandString() {
-        executableCommandString = constructCommandString();
-    }
-
     @Override
     public String toString() {
-        return String.format("[COMMAND] Execute {%s}", executableCommandString);
+        return String.format("[COMMAND] Execute {%s}",
+                constructCommandString());
     }
 
     public abstract String constructCommandString();
@@ -51,20 +47,18 @@ public abstract class Command implements Serializable {
                 mutateParamIdx = 2;
             }
             // logger.debug("Mutate Parameter Pos = " + mutateParamIdx);
-            if (params.get(mutateParamIdx).mutate(s, this) == true)
+            if (params.get(mutateParamIdx).mutate(s, this))
                 return true;
         }
         return false;
     }
 
     public boolean regenerateIfNotValid(State s) {
-        /**
-         * Run check on each existing parameters in order.
-         * It will includes
-         * - Parameter.isValid()
-         * - Parameter.fixIfNotValid()
-         * Two functions
-         */
+        // Run check on each existing parameters in order.
+        // It will includes
+        // - Parameter.isValid()
+        // - Parameter.fixIfNotValid()
+        // Two functions
         for (Parameter param : params) {
             try {
                 if (!param.isValid(s, this)) {
@@ -86,10 +80,7 @@ public abstract class Command implements Serializable {
 
     public Set<Command> generateRelatedReadCommand(State state) {
         return null;
-    };
-
-    public void changeKeyspaceName() {
-        // Only Create keyspace command should override this method
-        return;
     }
+
+    public abstract void separate(State state);
 }

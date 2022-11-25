@@ -2,8 +2,15 @@ package org.zlab.upfuzz.hdfs.dfscommands;
 
 import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
+import org.zlab.upfuzz.State;
+import org.zlab.upfuzz.hdfs.HdfsCommand;
+import org.zlab.upfuzz.hdfs.HdfsState;
 
-public abstract class DfsCommand extends Command {
+public abstract class DfsCommand extends HdfsCommand {
+
+    public DfsCommand(String subdir) {
+        super(subdir);
+    }
 
     @Override
     public String constructCommandString() {
@@ -21,4 +28,5 @@ public abstract class DfsCommand extends Command {
     public String toString() {
         return constructCommandString();
     }
+
 }

@@ -24,8 +24,6 @@ public class ALTER_TABLE extends CassandraCommand {
                 null).generateRandomParameter(null, null);
 
         params.add(speculative_retry); // [2]
-
-        updateExecutableCommandString();
     }
 
     @Override

@@ -11,24 +11,26 @@ import org.zlab.upfuzz.utils.STRINGType;
 import org.zlab.upfuzz.utils.Utilities;
 
 public class Touchz extends DfsCommand {
-    public Touchz(HdfsState hdfsState) {
+    public Touchz(HdfsState state) {
+        super(state.subdir);
+
         Parameter mkdirCmd = new CONSTANTSTRINGType("-touchz")
                 .generateRandomParameter(null, null);
         params.add(mkdirCmd);
 
         Parameter pathParameter = new HDFSDirPathType()
-                .generateRandomParameter(hdfsState, this);
+                .generateRandomParameter(state, this);
         params.add(pathParameter);
 
         Parameter fileNameParameter = new STRINGType(20)
-                .generateRandomParameter(hdfsState, null);
+                .generateRandomParameter(state, null);
         params.add(fileNameParameter);
 
         Parameter fileTypeParameter = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
                 (s, c) -> Utilities.strings2Parameters(
                         ((HdfsState) s).dfs.fileType),
-                null).generateRandomParameter(hdfsState, this);
+                null).generateRandomParameter(state, this);
 
         params.add(fileTypeParameter);
 
@@ -43,11 +45,9 @@ public class Touchz extends DfsCommand {
 
     @Override
     public String constructCommandString() {
-        StringBuilder ret = new StringBuilder();
-        ret.append("dfs");
-        ret.append(" ").append(params.get(0));
-        ret.append(" ").append(resolvePath());
-        return ret.toString();
+        return "dfs" +
+                " " + params.get(0) +
+                " " + subdir + resolvePath();
     }
 
     private String resolvePath() {

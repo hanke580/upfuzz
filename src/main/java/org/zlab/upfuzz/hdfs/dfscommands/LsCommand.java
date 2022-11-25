@@ -17,12 +17,14 @@ public class LsCommand extends DfsCommand {
      * sources as well in which case the destination needs to be a directory.
      * Moving files across file systems is not permitted.
      */
-    public LsCommand(HdfsState hdfsState) {
+    public LsCommand(HdfsState state) {
+        super(state.subdir);
+
         Parameter lsCmd = new CONSTANTSTRINGType("-ls")
                 .generateRandomParameter(null, null);
 
         Parameter pathParameter = new RandomHadoopPathType()
-                .generateRandomParameter(hdfsState, null);
+                .generateRandomParameter(state, null);
 
         // -C: Display the paths of files and directories only.
         Parameter cOption = new ParameterType.OptionalType(
@@ -81,6 +83,22 @@ public class LsCommand extends DfsCommand {
         params.add(rOption);
         params.add(uOption);
         params.add(pathParameter);
+    }
+
+    @Override
+    public String constructCommandString() {
+        return "dfs" + " " +
+                params.get(0) + " " +
+                params.get(1) + " " +
+                params.get(2) + " " +
+                params.get(3) + " " +
+                params.get(4) + " " +
+                params.get(5) + " " +
+                params.get(6) + " " +
+                params.get(7) + " " +
+                params.get(8) + " " +
+                subdir +
+                params.get(9);
     }
 
     @Override

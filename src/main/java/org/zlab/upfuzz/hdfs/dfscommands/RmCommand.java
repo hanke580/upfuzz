@@ -34,6 +34,8 @@ public class RmCommand extends DfsCommand {
      * the confirmation.*
      */
     public RmCommand(HdfsState hdfsState) {
+        super(hdfsState.subdir);
+
         Parameter rmcmd = new CONSTANTSTRINGType("-rm")
                 .generateRandomParameter(null, null);
 
@@ -74,6 +76,18 @@ public class RmCommand extends DfsCommand {
         params.add(saveOption);
         params.add(skipOption);
         params.add(dstParameter);
+    }
+
+    @Override
+    public String constructCommandString() {
+        return "dfs" + " " +
+                params.get(0) + " " +
+                params.get(1) + " " +
+                params.get(2) + " " +
+                params.get(3) + " " +
+                params.get(4) + " " +
+                subdir +
+                params.get(5);
     }
 
     @Override

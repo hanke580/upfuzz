@@ -10,20 +10,20 @@ import org.zlab.upfuzz.utils.STRINGType;
 
 public class Mkdir extends DfsCommand {
 
-    public Mkdir(HdfsState hdfsState) {
+    public Mkdir(HdfsState state) {
+        super(state.subdir);
+
         Parameter mkdirCmd = new CONSTANTSTRINGType("-mkdir")
                 .generateRandomParameter(null, null);
         params.add(mkdirCmd);
 
         Parameter parentPathParameter = new HDFSDirPathType()
-                .generateRandomParameter(hdfsState, null);
+                .generateRandomParameter(state, null);
         params.add(parentPathParameter);
 
         Parameter dirNameParameter = new STRINGType(20)
-                .generateRandomParameter(hdfsState, null);
+                .generateRandomParameter(state, null);
         params.add(dirNameParameter);
-
-        constructCommandString();
     }
 
     @Override
@@ -34,11 +34,8 @@ public class Mkdir extends DfsCommand {
 
     @Override
     public String constructCommandString() {
-        StringBuilder ret = new StringBuilder();
-        ret.append("dfs");
-        ret.append(" ").append(params.get(0));
-        ret.append(" ").append(resolvePath());
-        return ret.toString();
+        return "dfs" + " " + params.get(0) +
+                " " + subdir + resolvePath();
     }
 
     private String resolvePath() {

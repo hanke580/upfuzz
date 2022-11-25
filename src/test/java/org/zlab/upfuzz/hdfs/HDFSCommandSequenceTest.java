@@ -2,6 +2,7 @@ package org.zlab.upfuzz.hdfs;
 
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.CommandPool;
+import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.server.Seed;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 
@@ -9,19 +10,25 @@ public class HDFSCommandSequenceTest {
 
     @Test
     public void test() {
+        new Config();
+        Config.getConf().system = "hdfs";
+
         CommandPool hdfsCommandPool = new HdfsCommandPool();
-        Class state = HdfsState.class;
+        Class<HdfsState> state = HdfsState.class;
 
         Seed seed = Executor.generateSeed(hdfsCommandPool, state);
 
+        assert seed != null;
         for (String str : seed.originalCommandSequence.getCommandStringList()) {
             System.out.println(str);
         }
 
-        System.out.println("");
+        System.out.println("\n\n");
 
-        for (String str : seed.validationCommandSequnece
-                .getCommandStringList()) {
+        boolean status = seed.mutate(hdfsCommandPool, state);
+        System.out.println("state = " + status);
+
+        for (String str : seed.originalCommandSequence.getCommandStringList()) {
             System.out.println(str);
         }
 

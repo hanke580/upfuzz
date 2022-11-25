@@ -49,8 +49,6 @@ public class CREATE_INDEX extends CassandraCommand {
         Parameter IF_NOT_EXIST = IF_NOT_EXISTType
                 .generateRandomParameter(state, this);
         params.add(IF_NOT_EXIST); // P4
-
-        updateExecutableCommandString();
     }
 
     @Override

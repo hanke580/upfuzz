@@ -29,8 +29,6 @@ public class REBUILD_INDEX extends CassandraCommand {
         Parameter indexName = indexNameType.generateRandomParameter(state,
                 this);
         params.add(indexName); // P1
-
-        updateExecutableCommandString();
     }
 
     @Override

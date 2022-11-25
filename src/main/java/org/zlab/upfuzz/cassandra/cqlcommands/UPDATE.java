@@ -57,8 +57,6 @@ public class UPDATE extends CassandraCommand {
         Parameter whereValues = whereValuesType
                 .generateRandomParameter(state, this);
         this.params.add(whereValues); // Param5
-
-        updateExecutableCommandString();
     }
 
     @Override

@@ -6,11 +6,14 @@ import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.ParameterType.ConcreteType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.ConcatenateType;
+import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 
 public class SetaclCommand extends DfsCommand {
 
-    public SetaclCommand() {
+    public SetaclCommand(HdfsState state) {
+        super(state.subdir);
+
         // -setfacl [-R] [{-b|-k} {-m|-x <acl_spec>} <path>]|[--set <acl_spec>
         // <path>]
 

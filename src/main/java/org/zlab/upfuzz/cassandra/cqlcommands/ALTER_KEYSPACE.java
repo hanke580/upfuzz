@@ -38,21 +38,15 @@ public class ALTER_KEYSPACE extends CassandraCommand {
         Parameter replicationFactor = replicationFactorType
                 .generateRandomParameter(state, this);
         this.params.add(replicationFactor); // [1]
-
-        updateExecutableCommandString();
     }
 
     @Override
     public String constructCommandString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("ALTER KEYSPACE" + " " + this.params.get(0).toString()
-                + " ");
-        sb.append(
+        return "ALTER KEYSPACE" + " " + this.params.get(0).toString()
+                + " " +
                 "WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' :"
-                        + " ");
-        sb.append(this.params.get(1).toString() + " " + "};");
-
-        return sb.toString();
+                + " " +
+                this.params.get(1).toString() + " " + "};";
     }
 
     @Override

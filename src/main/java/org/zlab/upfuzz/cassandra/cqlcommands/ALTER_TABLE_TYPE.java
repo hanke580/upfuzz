@@ -37,8 +37,6 @@ public class ALTER_TABLE_TYPE extends CassandraCommand {
         Parameter newType = newTypeType
                 .generateRandomParameter(cassandraState, this);
         this.params.add(newType);
-
-        updateExecutableCommandString();
     }
 
     @Override

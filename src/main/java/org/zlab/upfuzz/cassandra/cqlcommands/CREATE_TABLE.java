@@ -97,8 +97,6 @@ public class CREATE_TABLE extends CassandraCommand {
                 null).generateRandomParameter(null, null);
 
         params.add(speculative_retry); // [5]
-
-        updateExecutableCommandString();
     }
 
     public CREATE_TABLE(CassandraState state) {
@@ -172,7 +170,6 @@ public class CREATE_TABLE extends CassandraCommand {
 
         params.add(speculative_retry); // [5]
 
-        updateExecutableCommandString();
     }
 
     @Override

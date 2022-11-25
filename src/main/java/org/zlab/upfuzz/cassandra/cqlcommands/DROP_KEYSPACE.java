@@ -25,8 +25,6 @@ public class DROP_KEYSPACE extends CassandraCommand {
         Parameter IF_EXIST = IF_EXISTType
                 .generateRandomParameter(cassandraState, this);
         params.add(IF_EXIST); // 1
-
-        updateExecutableCommandString();
     }
 
     @Override

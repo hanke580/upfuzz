@@ -54,8 +54,6 @@ public class INSERT extends CassandraCommand {
         Parameter insertValues = insertValuesType
                 .generateRandomParameter(state, this, init3);
         this.params.add(insertValues); // [3]
-
-        updateExecutableCommandString();
     }
 
     public INSERT(CassandraState state) {
@@ -85,8 +83,6 @@ public class INSERT extends CassandraCommand {
         Parameter insertValues = insertValuesType
                 .generateRandomParameter(state, this);
         this.params.add(insertValues);
-
-        updateExecutableCommandString();
     }
 
     @Override

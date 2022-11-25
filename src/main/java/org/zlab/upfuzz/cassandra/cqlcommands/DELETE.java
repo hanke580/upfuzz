@@ -52,8 +52,6 @@ public class DELETE extends CassandraCommand {
         Parameter insertValues = whereValuesType
                 .generateRandomParameter(state, this);
         this.params.add(insertValues); // Param3
-
-        updateExecutableCommandString();
     }
 
     @Override

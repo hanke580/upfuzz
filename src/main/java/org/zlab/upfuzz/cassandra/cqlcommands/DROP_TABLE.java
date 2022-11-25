@@ -23,8 +23,6 @@ public class DROP_TABLE extends CassandraCommand {
         Parameter IF_EXIST = IF_EXISTType
                 .generateRandomParameter(state, this);
         params.add(IF_EXIST); // 2
-
-        updateExecutableCommandString();
     }
 
     @Override

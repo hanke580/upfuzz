@@ -38,14 +38,13 @@ public class DROP_TYPE extends CassandraCommand {
         Parameter IF_EXIST = IF_EXISTType
                 .generateRandomParameter(cassandraState, this);
         params.add(IF_EXIST); // 2
-
-        updateExecutableCommandString();
     }
 
     @Override
     public String constructCommandString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("DROP TYPE " + params.get(2));
+        StringBuilder sb;
+        sb = new StringBuilder();
+        sb.append("DROP TYPE ").append(params.get(2));
         // sb.append(" " + this.params.get(0).toString() + "." + ";");
         sb.append(" " + this.params.get(0).toString() + "."
                 + this.params.get(1).toString() + ";");

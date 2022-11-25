@@ -8,7 +8,9 @@ import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 
 public class AddPoliciesCommand extends ErasureCodingCommand {
 
-    public AddPoliciesCommand(HdfsState hdfsState) {
+    public AddPoliciesCommand(HdfsState state) {
+        super(state.subdir);
+
         Parameter addPolicyCmd = new CONSTANTSTRINGType("-addPolicies")
                 .generateRandomParameter(null, null);
 
@@ -17,11 +19,20 @@ public class AddPoliciesCommand extends ErasureCodingCommand {
 
         // TODO: This needs to be a new policy file!
         Parameter policyFile = new RandomHadoopPathType()
-                .generateRandomParameter(hdfsState, null);
+                .generateRandomParameter(state, null);
 
         params.add(addPolicyCmd);
         params.add(policyFileOpt);
         params.add(policyFile);
+    }
+
+    @Override
+    public String constructCommandString() {
+        return "ec" + " " +
+                params.get(0) + " " +
+                params.get(1) + " " +
+                subdir +
+                params.get(2);
     }
 
     @Override

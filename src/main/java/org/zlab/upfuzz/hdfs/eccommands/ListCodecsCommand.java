@@ -8,7 +8,9 @@ import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 
 public class ListCodecsCommand extends ErasureCodingCommand {
 
-    public ListCodecsCommand(HdfsState hdfsState) {
+    public ListCodecsCommand(HdfsState state) {
+        super(state.subdir);
+
         Parameter listCodecsCmd = new CONSTANTSTRINGType("-listCodecs")
                 .generateRandomParameter(null, null);
 

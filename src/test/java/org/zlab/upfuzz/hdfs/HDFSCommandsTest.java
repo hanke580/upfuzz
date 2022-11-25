@@ -18,7 +18,7 @@ public class HDFSCommandsTest {
 
     @Test
     public void testSetACL() {
-        Command setaclCommand = new SetaclCommand();
+        Command setaclCommand = new SetaclCommand(hdfsState);
         System.out.println(setaclCommand.constructCommandString());
     }
 
@@ -45,6 +45,14 @@ public class HDFSCommandsTest {
         Command countCommand = new Mkdir(hdfsState);
         countCommand.updateState(hdfsState);
         System.out.println(countCommand.constructCommandString());
+    }
+
+    @Test
+    public void testCat() {
+        HdfsState hdfsState = new HdfsState();
+        hdfsState.subdir = "/test1";
+        Command catCommand = new CatCommand(hdfsState);
+        System.out.println(catCommand.constructCommandString());
     }
 
 }

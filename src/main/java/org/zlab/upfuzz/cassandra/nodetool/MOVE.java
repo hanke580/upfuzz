@@ -18,8 +18,6 @@ public class MOVE extends CassandraCommand {
         Parameter newToken = new BIGINTType(64).generateRandomParameter(state,
                 this);
         params.add(newToken);
-
-        updateExecutableCommandString();
     }
 
     @Override

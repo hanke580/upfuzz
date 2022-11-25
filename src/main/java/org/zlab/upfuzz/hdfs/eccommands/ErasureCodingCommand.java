@@ -2,6 +2,8 @@ package org.zlab.upfuzz.hdfs.eccommands;
 
 import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
+import org.zlab.upfuzz.State;
+import org.zlab.upfuzz.hdfs.HdfsCommand;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -21,7 +23,7 @@ import java.util.List;
  *
  *      URL: https://docs.cloudera.com/HDPDocuments/HDP3/HDP-3.0.1/data-storage/content/erasure_coding_commands.html
  */
-public abstract class ErasureCodingCommand extends Command {
+public abstract class ErasureCodingCommand extends HdfsCommand {
 
     public static List<String> policies = new LinkedList<>();
 
@@ -30,6 +32,10 @@ public abstract class ErasureCodingCommand extends Command {
         policies.add("RS-6-3-1024k");
         policies.add("RS-LEGACY-6-3-1024k");
         policies.add("XOR-2-1-1024k");
+    }
+
+    public ErasureCodingCommand(String subdir) {
+        super(subdir);
     }
 
     @Override
@@ -48,5 +54,4 @@ public abstract class ErasureCodingCommand extends Command {
     public String toString() {
         return constructCommandString();
     }
-
 }

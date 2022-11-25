@@ -10,8 +10,6 @@ public class COMPACT extends CassandraCommand {
     public COMPACT(CassandraState state) {
         Parameter keyspaceName = chooseKeyspace(state, this, null);
         this.params.add(keyspaceName); // [0]
-
-        updateExecutableCommandString();
     }
 
     @Override

@@ -14,21 +14,32 @@ public class CatCommand extends DfsCommand {
      * sources as well in which case the destination needs to be a directory.
      * Moving files across file systems is not permitted.
      */
-    public CatCommand(HdfsState hdfsState) {
+    public CatCommand(HdfsState state) {
+        super(state.subdir);
+
         Parameter catCmd = new CONSTANTSTRINGType("-cat")
                 .generateRandomParameter(null, null);
-
-        Parameter pathParameter = new RandomHadoopPathType()
-                .generateRandomParameter(hdfsState, null);
 
         // The -ignoreCrc option disables checkshum verification.
         Parameter crcOption = new ParameterType.OptionalType(
                 new CONSTANTSTRINGType("-ignoreCrc"), null)
                         .generateRandomParameter(null, null);
 
+        Parameter pathParameter = new RandomHadoopPathType()
+                .generateRandomParameter(state, null);
+
         params.add(catCmd);
         params.add(crcOption);
         params.add(pathParameter);
+    }
+
+    @Override
+    public String constructCommandString() {
+        return "dfs" + " " +
+                params.get(0) + " " +
+                params.get(1) + " " +
+                subdir +
+                params.get(2);
     }
 
     @Override

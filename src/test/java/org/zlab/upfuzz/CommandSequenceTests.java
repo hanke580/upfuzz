@@ -16,12 +16,10 @@ public class CommandSequenceTests {
 
     @Test
     public void testSequenceGeneration()
-            throws InvocationTargetException, IllegalAccessException,
-            NoSuchMethodException, InstantiationException {
+            throws Exception {
 
         boolean useIdx = false;
 
-        CassandraState state = new CassandraState();
         CommandSequence commandSequence = CommandSequence.generateSequence(
                 CassandraCommand.cassandraCommandPool.commandClassList,
                 CassandraCommand.cassandraCommandPool.createCommandClassList,
@@ -58,8 +56,7 @@ public class CommandSequenceTests {
 
     @Test
     public void testMutation()
-            throws InvocationTargetException, IllegalAccessException,
-            NoSuchMethodException, InstantiationException {
+            throws Exception {
         CommandSequence commandSequence = CommandTests
                 .cass13939CommandSequence();
 
@@ -95,13 +92,7 @@ public class CommandSequenceTests {
 
         try {
             commandSequence.mutate();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

@@ -32,8 +32,6 @@ public class ALTER_USER extends CassandraCommand {
                 new STRINGType(10));
         Parameter password = passwordType.generateRandomParameter(state, this);
         params.add(password);
-
-        updateExecutableCommandString();
     }
 
     @Override

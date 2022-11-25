@@ -8,7 +8,9 @@ import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 
 public class ListPoliciesCommand extends ErasureCodingCommand {
 
-    public ListPoliciesCommand(HdfsState hdfsState) {
+    public ListPoliciesCommand(HdfsState state) {
+        super(state.subdir);
+
         Parameter listPolicyCmd = new CONSTANTSTRINGType("-listPolicies")
                 .generateRandomParameter(null, null);
 

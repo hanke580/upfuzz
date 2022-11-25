@@ -44,8 +44,6 @@ public class ALTER_TABLE_RENAME extends CassandraCommand {
                 p -> ((Pair) (((Parameter) p).getValue())).left)
                         .generateRandomParameter(cassandraState, this);
         params.add(newColumnName);
-
-        updateExecutableCommandString();
     }
 
     @Override

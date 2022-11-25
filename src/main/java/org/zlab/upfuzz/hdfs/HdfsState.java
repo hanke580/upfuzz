@@ -4,12 +4,19 @@ import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.MockFS.HadoopFileSystem;
 import org.zlab.upfuzz.hdfs.MockFS.INode;
 import org.zlab.upfuzz.hdfs.MockFS.LocalFileSystem;
+import org.zlab.upfuzz.utils.Utilities;
+
+import java.util.UUID;
 
 public class HdfsState extends State {
+
+    public String subdir;
+
     public HadoopFileSystem dfs = new HadoopFileSystem();
     public LocalFileSystem lfs = new LocalFileSystem();
 
     public HdfsState() {
+        subdir = UUID.randomUUID().toString().replace("-", "");
         randomize(0.6);
     }
 

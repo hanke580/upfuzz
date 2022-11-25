@@ -7,7 +7,6 @@ import org.zlab.upfuzz.cassandra.CassandraState;
 public class STOP extends CassandraCommand {
 
     public STOP(CassandraState state) {
-        updateExecutableCommandString();
     }
 
     @Override

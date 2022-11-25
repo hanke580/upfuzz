@@ -37,8 +37,6 @@ public class DROP_INDEX extends CassandraCommand {
         Parameter IF_EXIST = IF_EXISTType
                 .generateRandomParameter(cassandraState, this);
         params.add(IF_EXIST); // 3
-
-        updateExecutableCommandString();
     }
 
     @Override

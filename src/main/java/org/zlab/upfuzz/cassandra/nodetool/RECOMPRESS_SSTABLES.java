@@ -10,8 +10,6 @@ public class RECOMPRESS_SSTABLES extends CassandraCommand {
     public RECOMPRESS_SSTABLES(CassandraState state) {
         Parameter keyspaceName = chooseKeyspace(state, this, null);
         this.params.add(keyspaceName); // [0]
-
-        updateExecutableCommandString();
     }
 
     @Override

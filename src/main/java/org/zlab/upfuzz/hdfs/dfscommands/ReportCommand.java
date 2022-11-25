@@ -16,7 +16,9 @@ public class ReportCommand extends DfsadminCommand {
      * usually used before shutting down the NameNode to prevent potential
      * fsimage/editlog corruption.
      */
-    public ReportCommand(HdfsState hdfsState) {
+    public ReportCommand(HdfsState state) {
+        super(state.subdir);
+
         Parameter reportCmd = new CONSTANTSTRINGType("-report")
                 .generateRandomParameter(null,
                         null);

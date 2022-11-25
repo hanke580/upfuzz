@@ -15,7 +15,9 @@ public class CountCommand extends DfsCommand {
     /**
      * bin/hdfs dfs -count -q -h -t ARCHIVE /dir
      */
-    public CountCommand(HdfsState hdfsState) {
+    public CountCommand(HdfsState state) {
+        super(state.subdir);
+
         Parameter countCmd = new CONSTANTSTRINGType("-count")
                 .generateRandomParameter(null, null);
 
@@ -29,12 +31,22 @@ public class CountCommand extends DfsCommand {
                 null).generateRandomParameter(null, null);
 
         Parameter dir = new HDFSDirPathType()
-                .generateRandomParameter(hdfsState, null);
+                .generateRandomParameter(state, null);
 
         params.add(countCmd);
         params.add(countOptCmd);
         params.add(storageType);
         params.add(dir);
+    }
+
+    @Override
+    public String constructCommandString() {
+        return "dfs" + " " +
+                params.get(0) + " " +
+                params.get(1) + " " +
+                params.get(2) + " " +
+                subdir +
+                params.get(3);
     }
 
     @Override

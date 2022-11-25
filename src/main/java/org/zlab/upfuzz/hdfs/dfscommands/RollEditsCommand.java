@@ -11,6 +11,8 @@ public class RollEditsCommand extends DfsadminCommand {
      * Rolls the edit log on the active NameNode.
      */
     public RollEditsCommand(HdfsState hdfsState) {
+        super(hdfsState.subdir);
+
         Parameter rollEditsCmd = new CONSTANTSTRINGType("-rollEdits")
                 .generateRandomParameter(null, null);
 

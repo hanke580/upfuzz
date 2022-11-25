@@ -64,8 +64,6 @@ public class SELECT extends CassandraCommand {
         Parameter insertValues = whereValuesType
                 .generateRandomParameter(state, this, init4);
         this.params.add(insertValues); // Param4
-
-        updateExecutableCommandString();
     }
 
     public SELECT(State state) {
@@ -117,8 +115,6 @@ public class SELECT extends CassandraCommand {
         Parameter ascOrdesc = ascOrdescType.generateRandomParameter(state,
                 this);
         this.params.add(ascOrdesc); // Param 6
-
-        updateExecutableCommandString();
     }
 
     @Override

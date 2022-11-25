@@ -125,8 +125,7 @@ public abstract class Executor implements IExecutor {
                     commandPool.readCommandClassList, null, stateClass,
                     originalCommandSequence.state);
             return new Seed(originalCommandSequence, validationCommandSequence);
-        } catch (NoSuchMethodException | InvocationTargetException
-                | InstantiationException | IllegalAccessException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         }

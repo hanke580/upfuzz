@@ -36,8 +36,6 @@ public class CREATE_KEYSPACE extends CassandraCommand {
         Parameter IF_NOT_EXIST = IF_NOT_EXISTType
                 .generateRandomParameter(state, this, init2);
         params.add(IF_NOT_EXIST); // [2]
-
-        updateExecutableCommandString();
     }
 
     public CREATE_KEYSPACE(State state) {
@@ -63,20 +61,15 @@ public class CREATE_KEYSPACE extends CassandraCommand {
         Parameter IF_NOT_EXIST = IF_NOT_EXISTType
                 .generateRandomParameter(state, this);
         params.add(IF_NOT_EXIST); // [2]
-
-        updateExecutableCommandString();
     }
 
     @Override
     public String constructCommandString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("CREATE KEYSPACE" + " " + this.params.get(2).toString()
-                + " " + this.params.get(0).toString() + " ");
-        sb.append(
+        return "CREATE KEYSPACE" + " " + this.params.get(2).toString()
+                + " " + this.params.get(0).toString() + " " +
                 "WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' :"
-                        + " ");
-        sb.append(this.params.get(1).toString() + " " + "};");
-        return sb.toString();
+                + " " +
+                this.params.get(1).toString() + " " + "};";
     }
 
     @Override
@@ -85,7 +78,7 @@ public class CREATE_KEYSPACE extends CassandraCommand {
     }
 
     @Override
-    public void changeKeyspaceName() {
+    public void separate(State state) {
         this.params.get(0).regenerate(null, this);
     }
 }

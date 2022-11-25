@@ -14,8 +14,6 @@ public class USE extends CassandraCommand {
 
         Parameter keyspaceName = chooseKeyspace(cassandraState, this, null);
         this.params.add(keyspaceName); // 0
-
-        updateExecutableCommandString();
     }
 
     @Override

@@ -103,4 +103,8 @@ public abstract class CassandraCommand extends Command {
                 null);
         return tableNameType.generateRandomParameter(state, command, init);
     }
+
+    @Override
+    public void separate(State state) {
+    }
 }

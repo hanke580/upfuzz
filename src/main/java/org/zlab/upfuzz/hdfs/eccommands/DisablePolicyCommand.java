@@ -9,7 +9,9 @@ import org.zlab.upfuzz.utils.Utilities;
 
 public class DisablePolicyCommand extends ErasureCodingCommand {
 
-    public DisablePolicyCommand(HdfsState hdfsState) {
+    public DisablePolicyCommand(HdfsState state) {
+        super(state.subdir);
+
         Parameter disablePolicyCmd = new CONSTANTSTRINGType("-disablePolicy")
                 .generateRandomParameter(null, null);
 

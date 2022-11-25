@@ -26,7 +26,9 @@ public class HelpCommand extends ErasureCodingCommand {
         policies.add("disablePolicy");
     }
 
-    public HelpCommand(HdfsState hdfsState) {
+    public HelpCommand(HdfsState state) {
+        super(state.subdir);
+
         Parameter helpCmd = new CONSTANTSTRINGType("-help")
                 .generateRandomParameter(null, null);
 

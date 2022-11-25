@@ -7,7 +7,6 @@ import org.zlab.upfuzz.cassandra.CassandraState;
 public class TRUNCATEHINTS extends CassandraCommand {
 
     public TRUNCATEHINTS(CassandraState state) {
-        updateExecutableCommandString();
     }
 
     @Override

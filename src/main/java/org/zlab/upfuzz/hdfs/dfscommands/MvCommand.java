@@ -17,19 +17,31 @@ public class MvCommand extends DfsCommand {
      * sources as well in which case the destination needs to be a directory.
      * Moving files across file systems is not permitted.
      */
-    public MvCommand(HdfsState hdfsState) {
+    public MvCommand(HdfsState state) {
+        super(state.subdir);
+
         Parameter mvcmd = new CONSTANTSTRINGType("-mv")
                 .generateRandomParameter(null, null);
 
         Parameter srcParameter = new RandomLocalPathType()
-                .generateRandomParameter(hdfsState, null);
+                .generateRandomParameter(state, null);
 
         Parameter dstParameter = new RandomHadoopPathType()
-                .generateRandomParameter(hdfsState, null);
+                .generateRandomParameter(state, null);
 
         params.add(mvcmd);
         params.add(srcParameter);
         params.add(dstParameter);
+    }
+
+    @Override
+    public String constructCommandString() {
+        return "dfs" + " " +
+                params.get(0) + " " +
+                subdir +
+                params.get(1) + " " +
+                subdir +
+                params.get(2);
     }
 
     @Override
