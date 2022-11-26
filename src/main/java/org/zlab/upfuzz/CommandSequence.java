@@ -101,7 +101,7 @@ public class CommandSequence implements Serializable {
             int pos;
             if (choice == 0 || choice == 1) {
                 // Mutate a specific command
-                if (Config.getConf().system != null
+                if (Config.getConf() != null && Config.getConf().system != null
                         && Config.getConf().system.equals("hdfs")) {
                     // do not mutate the first command
                     pos = Utilities.randWithRange(rand, 1, commands.size());
@@ -132,7 +132,7 @@ public class CommandSequence implements Serializable {
             } else {
                 // Insert a command
 
-                if (Config.getConf().system != null
+                if (Config.getConf() != null && Config.getConf().system != null
                         && Config.getConf().system.equals("hdfs")) {
                     // Do not insert before the first special command
                     pos = org.zlab.upfuzz.utils.Utilities.biasRand(
@@ -249,7 +249,8 @@ public class CommandSequence implements Serializable {
 
         for (int i = 0; i < len; i++) {
 
-            if (i == 0 && Config.getConf().system != null
+            if (i == 0 && Config.getConf() != null
+                    && Config.getConf().system != null
                     && Config.getConf().system.equals("hdfs")) {
                 // add a mkdir command for separation
                 commands.add(new SpecialMkdir((HdfsState) state));

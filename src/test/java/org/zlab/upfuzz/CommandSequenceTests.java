@@ -6,13 +6,20 @@ import java.util.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.cassandra.*;
+import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.server.Seed;
 
 public class CommandSequenceTests {
     protected final Logger logger = LogManager.getLogger(getClass());
+
+    @BeforeAll
+    public static void prepare() {
+        new Config();
+    }
 
     @Test
     public void testSequenceGeneration()
