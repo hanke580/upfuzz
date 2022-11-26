@@ -157,8 +157,6 @@ public class FuzzingClient {
 
         boolean ret = executor.fullStopUpgrade();
 
-        executor.readSystemState();
-
         if (!ret) {
             // upgrade failed
             stackedTestPacketStr = recordStackedTestPacket(stackedTestPacket);

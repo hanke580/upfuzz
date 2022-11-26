@@ -85,7 +85,8 @@ public abstract class Executor implements IExecutor {
         try {
             return dockerCluster.freshStartNewVersion();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error(String.format(
+                    "new version cannot start up with exception ", e));
             return false;
         }
     }
