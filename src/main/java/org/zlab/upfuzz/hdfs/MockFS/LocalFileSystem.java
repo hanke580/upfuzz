@@ -26,8 +26,10 @@ public class LocalFileSystem extends FileSystem {
 
     public String localRoot;
 
-    public LocalFileSystem() {
-        localRoot = "/tmp/hdfslocal/" + RandomStringUtils.randomAlphabetic(10);
+    // If we are using too much space, we can stop generating
+    // mockFS. Everytime, we only use existing files/folder
+    public LocalFileSystem(String root) {
+        localRoot = root;
         Paths.get(localRoot).toFile().mkdirs();
     }
 
@@ -36,7 +38,7 @@ public class LocalFileSystem extends FileSystem {
     }
 
     public void randomize(double ratio) {
-        int num = RandomUtils.nextInt(0, 128) + 1;
+        int num = RandomUtils.nextInt(0, 16) + 1;
         for (int i = 0; i < num; ++i) {
             String dir = getRandomDir().toString();
             if (RandomUtils.nextDouble(0, 1) < ratio) {

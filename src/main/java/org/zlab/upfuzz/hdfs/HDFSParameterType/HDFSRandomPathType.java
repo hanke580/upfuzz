@@ -6,8 +6,10 @@ import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.HdfsState;
 
-public class HDFSFilePathType extends ParameterType.ConcreteType {
-    // Return an existing file
+import java.util.Random;
+
+public class HDFSRandomPathType extends ParameterType.ConcreteType {
+    // Return an existing file or dir
 
     @Override
     public Parameter generateRandomParameter(State s, Command c, Object init) {
@@ -16,24 +18,33 @@ public class HDFSFilePathType extends ParameterType.ConcreteType {
 
     @Override
     public Parameter generateRandomParameter(State s, Command c) {
-        assert s instanceof HdfsState;
         HdfsState hdfsState = (HdfsState) s;
-        String filePath = hdfsState.dfs.getRandomFilePath();
-        if (filePath == null) {
-            throw new RuntimeException(
-                    "cannot generate rm command, there's no file");
+        boolean retFile = new Random().nextBoolean();
+        String path;
+        if (retFile) {
+            path = hdfsState.dfs.getRandomFilePath();
+        } else {
+            path = hdfsState.dfs.getRandomDirPath();
         }
-        return new Parameter(this, filePath);
+        if (path == null) {
+            throw new RuntimeException(
+                    "cannot generate a valid path, there's no inode");
+        }
+        return new Parameter(this, path);
     }
 
     @Override
     public String generateStringValue(Parameter p) {
-        return null;
+        assert p != null && p.type instanceof HDFSRandomPathType;
+        return (String) p.value;
     }
 
     @Override
     public boolean isValid(State s, Command c, Parameter p) {
-        return ((HdfsState) s).dfs.containsFile((String) p.getValue());
+        HdfsState hdfsState = (HdfsState) s;
+        String path = (String) p.getValue();
+        return hdfsState.dfs.containsDir(path)
+                || hdfsState.dfs.containsFile(path);
     }
 
     @Override

@@ -99,7 +99,6 @@ public class PutCommand extends DfsCommand {
                 params.get(4) + " " +
                 params.get(5) + " " +
                 params.get(6) + " " +
-                subdir +
                 params.get(7) + " " +
                 subdir +
                 params.get(8);

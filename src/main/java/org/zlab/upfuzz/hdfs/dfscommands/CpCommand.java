@@ -3,9 +3,7 @@ package org.zlab.upfuzz.hdfs.dfscommands;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.hdfs.HDFSParameterType.ConcatenateType;
-import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomHadoopPathType;
-import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomLocalPathType;
+import org.zlab.upfuzz.hdfs.HDFSParameterType.*;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.INTType;
@@ -65,10 +63,10 @@ public class CpCommand extends DfsCommand {
                 null)
                         .generateRandomParameter(null, null);
 
-        Parameter srcParameter = new RandomHadoopPathType()
+        Parameter srcParameter = new HDFSRandomPathType()
                 .generateRandomParameter(state, null);
 
-        Parameter dstParameter = new RandomHadoopPathType()
+        Parameter dstParameter = new HDFSDirPathType()
                 .generateRandomParameter(state, null);
 
         params.add(cpcmd);
@@ -98,5 +96,16 @@ public class CpCommand extends DfsCommand {
 
     @Override
     public void updateState(State state) {
+        HdfsState hdfsState = (HdfsState) state;
+        for (String dir : hdfsState.dfs.getDirs(params.get(6).toString())) {
+            String newDir = dir.replace(params.get(6).toString(),
+                    params.get(7).toString());
+            hdfsState.dfs.createDir(newDir);
+        }
+        for (String file : hdfsState.dfs.getFiles(params.get(6).toString())) {
+            String newFile = file.replace(params.get(6).toString(),
+                    params.get(7).toString());
+            hdfsState.dfs.createFile(newFile);
+        }
     }
 }

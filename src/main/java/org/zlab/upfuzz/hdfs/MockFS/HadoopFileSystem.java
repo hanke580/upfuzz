@@ -110,6 +110,26 @@ public class HadoopFileSystem implements Serializable {
     public boolean containsFile(String path) {
         return files.contains(path);
     }
+
+    public List<String> getFiles(String path) {
+        List<String> retFiles = new LinkedList<>();
+        for (String file : files) {
+            if (file.startsWith(path)) {
+                retFiles.add(file);
+            }
+        }
+        return retFiles;
+    }
+
+    public List<String> getDirs(String path) {
+        List<String> retDirs = new LinkedList<>();
+        for (String dir : dirs) {
+            if (dir.startsWith(path)) {
+                retDirs.add(dir);
+            }
+        }
+        return retDirs;
+    }
     // --------Simple FS End--------
 
     public Integer remixHash(int x) {

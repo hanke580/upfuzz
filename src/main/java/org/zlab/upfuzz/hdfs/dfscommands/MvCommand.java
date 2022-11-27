@@ -3,9 +3,7 @@ package org.zlab.upfuzz.hdfs.dfscommands;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.hdfs.HDFSParameterType.ConcatenateType;
-import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomHadoopPathType;
-import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomLocalPathType;
+import org.zlab.upfuzz.hdfs.HDFSParameterType.*;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.INTType;
@@ -23,10 +21,10 @@ public class MvCommand extends DfsCommand {
         Parameter mvcmd = new CONSTANTSTRINGType("-mv")
                 .generateRandomParameter(null, null);
 
-        Parameter srcParameter = new RandomLocalPathType()
+        Parameter srcParameter = new HDFSRandomPathType()
                 .generateRandomParameter(state, null);
 
-        Parameter dstParameter = new RandomHadoopPathType()
+        Parameter dstParameter = new HDFSDirPathType()
                 .generateRandomParameter(state, null);
 
         params.add(mvcmd);
@@ -37,14 +35,32 @@ public class MvCommand extends DfsCommand {
     @Override
     public String constructCommandString() {
         return "dfs" + " " +
-                params.get(0) + " " +
+                params.get(0).toString() + " " +
                 subdir +
-                params.get(1) + " " +
+                params.get(1).toString() + " " +
                 subdir +
-                params.get(2);
+                params.get(2).toString();
     }
 
     @Override
     public void updateState(State state) {
+        HdfsState hdfsState = (HdfsState) state;
+
+        // move to new path
+        for (String dir : hdfsState.dfs.getDirs(params.get(1).toString())) {
+            String newDir = dir.replace(params.get(1).toString(),
+                    params.get(2).toString());
+            hdfsState.dfs.createDir(newDir);
+        }
+        for (String file : hdfsState.dfs.getFiles(params.get(1).toString())) {
+            String newFile = file.replace(params.get(1).toString(),
+                    params.get(2).toString());
+            hdfsState.dfs.createFile(newFile);
+        }
+
+        // remove the original path
+        hdfsState.dfs.removeDir(params.get(1).toString());
+        hdfsState.dfs.removeFile(params.get(1).toString());
+
     }
 }

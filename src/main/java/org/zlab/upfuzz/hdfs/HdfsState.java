@@ -1,5 +1,6 @@
 package org.zlab.upfuzz.hdfs;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.MockFS.HadoopFileSystem;
 import org.zlab.upfuzz.hdfs.MockFS.INode;
@@ -10,13 +11,22 @@ import java.util.UUID;
 
 public class HdfsState extends State {
 
+    private String localRoot;
+
+    public HadoopFileSystem dfs;
+    public LocalFileSystem lfs;
+
     public String subdir;
 
-    public HadoopFileSystem dfs = new HadoopFileSystem();
-    public LocalFileSystem lfs = new LocalFileSystem();
-
     public HdfsState() {
-        subdir = UUID.randomUUID().toString().replace("-", "");
+//        subdir = UUID.randomUUID().toString().replace("-", "");
+
+        subdir = "/" + RandomStringUtils.randomAlphabetic(8, 8 + 1);
+        localRoot = "/tmp/upfuzz/hdfs" + subdir;
+
+        dfs = new HadoopFileSystem();
+        lfs = new LocalFileSystem(localRoot);
+
         randomize(0.6);
     }
 

@@ -269,6 +269,7 @@ public class HdfsDocker extends Docker {
             + "            - ./persistent/node_${index}/env.sh:/usr/bin/set_env\n"
             + "            - ./persistent/node_${index}/consolelog:/var/log/supervisor\n"
             + "            - ./persistent/config:/test_config\n"
+            + "            - /tmp/upfuzz/hdfs:/tmp/upfuzz/hdfs\n"
             + "            - ${projectRoot}/prebuild/${system}/${originalVersion}:/${system}/${originalVersion}\n"
             + "            - ${projectRoot}/prebuild/${system}/${upgradedVersion}:/${system}/${upgradedVersion}\n"
             + "        environment:\n"
