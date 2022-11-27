@@ -290,10 +290,10 @@ public class FuzzingServer {
                 TestPlan mutateTestPlan = SerializationUtils.clone(testPlan);
                 mutateTestPlan.mutate();
                 logger.info("mutate a test plan");
-                testID2TestPlan.put(testID, testPlan);
+                testID2TestPlan.put(testID, mutateTestPlan);
                 testPlanPackets.add(new TestPlanPacket(
                         Config.getConf().system,
-                        testID++, testPlan));
+                        testID++, mutateTestPlan));
             }
         } else {
 
