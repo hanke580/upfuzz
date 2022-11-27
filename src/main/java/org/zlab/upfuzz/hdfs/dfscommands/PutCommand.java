@@ -107,5 +107,6 @@ public class PutCommand extends DfsCommand {
 
     @Override
     public void updateState(State state) {
+        ((HdfsState) state).dfs.createFile(params.get(8).toString());
     }
 }

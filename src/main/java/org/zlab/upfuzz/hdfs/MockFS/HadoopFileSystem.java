@@ -14,6 +14,7 @@ public class HadoopFileSystem implements Serializable {
 
     Map<String, INode> inodeMap = new HashMap<String, INode>();
 
+    // --------Simple FS--------
     Set<String> files = new HashSet<>();
     Set<String> dirs = new HashSet<>();
 
@@ -59,6 +60,7 @@ public class HadoopFileSystem implements Serializable {
         inodeMap.put(node.file_path, node);
     }
 
+    // --------Simple FS--------
     public String getRandomFilePath() {
         // If there is no file in FS, we return NULL
         if (files.isEmpty())
@@ -77,23 +79,38 @@ public class HadoopFileSystem implements Serializable {
         return dirArr[idx];
     }
 
-    public boolean createFile(String path) {
+    public void createFile(String path) {
         files.add(path);
-        return false;
     }
 
-    public boolean createDir(String path) {
+    public void createDir(String path) {
         dirs.add(path);
-        return false;
     }
 
-    public boolean removeFile() {
-        return false;
+    public void removeFile(String path) {
+        files.remove(path);
     }
 
-    public boolean removeDir() {
-        return false;
+    public void removeDir(String path) {
+        dirs.remove(path);
+
+        Set<String> updateFiles = new HashSet<>();
+        for (String file : files) {
+            if (!file.startsWith(path)) {
+                updateFiles.add(file);
+            }
+        }
+        files = updateFiles;
     }
+
+    public boolean containsDir(String path) {
+        return dirs.contains(path);
+    }
+
+    public boolean containsFile(String path) {
+        return files.contains(path);
+    }
+    // --------Simple FS End--------
 
     public Integer remixHash(int x) {
         return x ^ (x >>> 16);

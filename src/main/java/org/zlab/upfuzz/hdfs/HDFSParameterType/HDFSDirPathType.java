@@ -20,7 +20,7 @@ public class HDFSDirPathType extends ParameterType.ConcreteType {
         String dirPath = hdfsState.dfs.getRandomDirPath();
         // We need to forbid removing "/"
         if (dirPath == null)
-            return null;
+            throw new RuntimeException("there is no dir in hdfs");
         return new Parameter(this, dirPath);
     }
 
@@ -32,7 +32,7 @@ public class HDFSDirPathType extends ParameterType.ConcreteType {
 
     @Override
     public boolean isValid(State s, Command c, Parameter p) {
-        return false;
+        return ((HdfsState) s).dfs.containsDir((String) p.getValue());
     }
 
     @Override

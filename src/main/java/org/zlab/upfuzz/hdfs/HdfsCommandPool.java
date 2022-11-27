@@ -33,7 +33,7 @@ public class HdfsCommandPool extends CommandPool {
                         ReportCommand.class, 2));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
-                        RmCommand.class, 2));
+                        RmDir.class, 2));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
                         RollEditsCommand.class, 2));

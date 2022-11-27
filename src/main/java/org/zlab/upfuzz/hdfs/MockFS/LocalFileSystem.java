@@ -36,7 +36,7 @@ public class LocalFileSystem extends FileSystem {
     }
 
     public void randomize(double ratio) {
-        Integer num = RandomUtils.nextInt(0, 128) + 1;
+        int num = RandomUtils.nextInt(0, 128) + 1;
         for (int i = 0; i < num; ++i) {
             String dir = getRandomDir().toString();
             if (RandomUtils.nextDouble(0, 1) < ratio) {

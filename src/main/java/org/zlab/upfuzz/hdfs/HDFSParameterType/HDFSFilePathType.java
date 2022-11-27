@@ -20,7 +20,8 @@ public class HDFSFilePathType extends ParameterType.ConcreteType {
         HdfsState hdfsState = (HdfsState) s;
         String filePath = hdfsState.dfs.getRandomFilePath();
         if (filePath == null) {
-            return null;
+            throw new RuntimeException(
+                    "cannot generate rm command, there's no file");
         }
         return new Parameter(this, filePath);
     }

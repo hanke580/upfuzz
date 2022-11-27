@@ -26,8 +26,7 @@ public class RandomLocalPathType extends ConcreteType {
 
     @Override
     public String generateStringValue(Parameter p) {
-        String filename = (String) p.getValue();
-        return filename;
+        return (String) p.getValue();
     }
 
     @Override

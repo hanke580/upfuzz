@@ -6,6 +6,7 @@ import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.HDFSDirPathType;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomHadoopPathType;
 import org.zlab.upfuzz.hdfs.HdfsState;
+import org.zlab.upfuzz.hdfs.MockFS.HadoopFileSystem;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.STRINGType;
 import org.zlab.upfuzz.utils.Utilities;
@@ -29,7 +30,7 @@ public class Touchz extends DfsCommand {
         Parameter fileTypeParameter = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
                 (s, c) -> Utilities.strings2Parameters(
-                        ((HdfsState) s).dfs.fileType),
+                        HadoopFileSystem.fileType),
                 null).generateRandomParameter(state, this);
 
         params.add(fileTypeParameter);

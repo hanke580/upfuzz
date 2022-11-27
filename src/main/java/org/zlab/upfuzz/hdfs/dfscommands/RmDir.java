@@ -2,16 +2,19 @@ package org.zlab.upfuzz.hdfs.dfscommands;
 
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
+import org.zlab.upfuzz.Predicate;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.hdfs.HDFSParameterType.ConcatenateType;
-import org.zlab.upfuzz.hdfs.HDFSParameterType.OrType;
-import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomHadoopPathType;
-import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomLocalPathType;
+import org.zlab.upfuzz.cassandra.CassandraState;
+import org.zlab.upfuzz.cassandra.CassandraTable;
+import org.zlab.upfuzz.cassandra.cqlcommands.ALTER_TABLE_DROP;
+import org.zlab.upfuzz.hdfs.HDFSParameterType.*;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.INTType;
+import org.zlab.upfuzz.utils.Pair;
+import org.zlab.upfuzz.utils.STRINGType;
 
-public class RmCommand extends DfsCommand {
+public class RmDir extends DfsCommand {
 
     /*
      * Delete files specified as args.
@@ -33,7 +36,7 @@ public class RmCommand extends DfsCommand {
      * directory recursively to count the number of files to be deleted before
      * the confirmation.*
      */
-    public RmCommand(HdfsState hdfsState) {
+    public RmDir(HdfsState hdfsState) {
         super(hdfsState.subdir);
 
         Parameter rmcmd = new CONSTANTSTRINGType("-rm")
@@ -47,9 +50,8 @@ public class RmCommand extends DfsCommand {
 
         // The -R option deletes the directory and any content under it
         // recursively.
-        Parameter rOption = new ParameterType.OptionalType(
-                new CONSTANTSTRINGType("-R"), null)
-                        .generateRandomParameter(null, null);
+        Parameter rOption = new CONSTANTSTRINGType("-R")
+                .generateRandomParameter(null, null);
 
         // The -safely option will require safety confirmation before deleting
         // directory with total number of files greater than
@@ -67,7 +69,7 @@ public class RmCommand extends DfsCommand {
                 new CONSTANTSTRINGType("-skipTrash"), null)
                         .generateRandomParameter(null, null);
 
-        Parameter dstParameter = new RandomHadoopPathType()
+        Parameter dstParameter = new HDFSDirPathType()
                 .generateRandomParameter(hdfsState, null);
 
         params.add(rmcmd);
@@ -92,5 +94,6 @@ public class RmCommand extends DfsCommand {
 
     @Override
     public void updateState(State state) {
+        ((HdfsState) state).dfs.removeDir(params.get(5).toString());
     }
 }
