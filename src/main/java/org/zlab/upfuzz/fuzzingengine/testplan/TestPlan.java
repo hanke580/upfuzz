@@ -99,7 +99,7 @@ public class TestPlan implements Serializable {
                 int pos1 = rand.nextInt(events.size() + 1);
                 events.add(pos1, faultPair.left);
                 if (faultPair.right != null) {
-                    int pos2 = Utilities.randWithRange(rand, pos1,
+                    int pos2 = Utilities.randWithRange(rand, pos1 + 1,
                             events.size() + 1);
                     events.add(pos2, faultPair.right);
                 }
