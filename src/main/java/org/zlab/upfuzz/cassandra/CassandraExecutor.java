@@ -127,7 +127,11 @@ public class CassandraExecutor extends Executor {
         // TODO: Use Event here, since not all commands are executed
         List<String> ret = new LinkedList<>();
         for (String command : commandList) {
-            ret.add(execShellCommand(new ShellCommand(command)));
+            if (command.isEmpty()) {
+                ret.add("");
+            } else {
+                ret.add(execShellCommand(new ShellCommand(command)));
+            }
         }
         return ret;
     }

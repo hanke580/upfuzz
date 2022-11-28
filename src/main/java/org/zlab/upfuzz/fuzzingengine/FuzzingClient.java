@@ -239,10 +239,13 @@ public class FuzzingClient {
                 fullStopPacket.configFileName);
 
         // config verification
-        boolean validConfig = verifyConfig(configPath);
-        if (!validConfig) {
-            logger.error("problem with configuration! system cannot start up");
-            return null;
+        if (Config.getConf().verifyConfig) {
+            boolean validConfig = verifyConfig(configPath);
+            if (!validConfig) {
+                logger.error(
+                        "problem with configuration! system cannot start up");
+                return null;
+            }
         }
 
         // start up
@@ -402,10 +405,13 @@ public class FuzzingClient {
         logger.info("[HKLOG] configPath = " + configPath);
 
         // config verification
-        boolean validConfig = verifyConfig(configPath);
-        if (!validConfig) {
-            logger.error("problem with configuration! system cannot start up");
-            return null;
+        if (Config.getConf().verifyConfig) {
+            boolean validConfig = verifyConfig(configPath);
+            if (!validConfig) {
+                logger.error(
+                        "problem with configuration! system cannot start up");
+                return null;
+            }
         }
 
         // start up

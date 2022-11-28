@@ -552,7 +552,8 @@ public class FuzzingServer {
                     new FileReader(path.toFile()));
             String line;
             while ((line = br.readLine()) != null) {
-                strings.add(line);
+                if (!line.isEmpty())
+                    strings.add(line);
             }
         } catch (IOException e) {
             e.printStackTrace();
