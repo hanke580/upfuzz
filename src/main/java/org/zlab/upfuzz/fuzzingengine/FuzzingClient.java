@@ -256,27 +256,11 @@ public class FuzzingClient {
             return null;
         }
 
-        // LOG checking
+        // LOG checking1
+        Map<Integer, LogInfo> logInfoBeforeUpgrade = null;
         if (Config.getConf().enableLogCheck) {
             logger.info("[HKLOG] error checking");
-            Map<Integer, LogInfo> logInfo = executor.readLogInfo();
-            logger.info("[HKLOG] Node0 ERROR size = "
-                    + logInfo.get(0).getErrorMsg().size());
-            logger.info("[HKLOG] Node0 WARN size = "
-                    + logInfo.get(0).getWARNMsg().size());
-
-            // print all error log, prepare for filtering
-            logger.info("errorMsg");
-            List<String> ERRORMsg = logInfo.get(0).getErrorMsg();
-            for (String msg : ERRORMsg) {
-                System.out.println(msg);
-            }
-
-            logger.info("warnMsg");
-            List<String> WARNMsg = logInfo.get(0).getWARNMsg();
-            for (String msg : WARNMsg) {
-                System.out.println(msg);
-            }
+            logInfoBeforeUpgrade = executor.grepLogInfo();
         }
 
         // Execute
@@ -359,7 +343,7 @@ public class FuzzingClient {
                         + "\ninconsistency: " + compareRes.right);
                 if (Config.getConf().startUpClusterForDebugging) {
                     logger.info(String.format(
-                            "Start up a cluster %d and leave it for debugging: This is not testing mode! Please set this startUpClusterForDebugging to false for real testing mode",
+                            "Start up a cluster %s and leave it for debugging: This is not testing mode! Please set this startUpClusterForDebugging to false for real testing mode",
                             executor.executorID));
                     try {
                         Thread.sleep(3600 * 1000);
@@ -373,6 +357,19 @@ public class FuzzingClient {
                 fullStopFeedbackPacket.isInconsistent = false;
             }
         }
+
+        // LOG checking2
+        if (Config.getConf().enableLogCheck) {
+            logger.info("[HKLOG] error checking");
+            assert logInfoBeforeUpgrade != null;
+            Map<Integer, LogInfo> logInfo = filterErrorLog(logInfoBeforeUpgrade,
+                    executor.grepLogInfo());
+            if (hasERRORLOG(logInfo)) {
+                fullStopFeedbackPacket.hasERRORLog = true;
+                fullStopFeedbackPacket.errorLogReport = recordERRORLOG(logInfo);
+            }
+        }
+
         tearDownExecutor();
         return fullStopFeedbackPacket;
     }
@@ -825,6 +822,55 @@ public class FuzzingClient {
             sb.append(commandStr).append("\n");
         }
         return sb.toString();
+    }
+
+    private Map<Integer, LogInfo> filterErrorLog(
+            Map<Integer, LogInfo> logInfoBeforeUpgrade,
+            Map<Integer, LogInfo> logInfoAfterUpgrade) {
+        Map<Integer, LogInfo> filteredLogInfo = new HashMap<>();
+        for (int nodeIdx : logInfoBeforeUpgrade.keySet()) {
+            LogInfo beforeUpgradeLogInfo = logInfoBeforeUpgrade.get(nodeIdx);
+            LogInfo afterUpgradeLogInfo = logInfoAfterUpgrade.get(nodeIdx);
+
+            LogInfo logInfo = new LogInfo();
+            for (String errorMsg : afterUpgradeLogInfo.ERRORMsg) {
+                if (!beforeUpgradeLogInfo.ERRORMsg.contains(errorMsg)) {
+                    logInfo.addErrorMsg(errorMsg);
+                }
+            }
+            for (String warnMsg : afterUpgradeLogInfo.WARNMsg) {
+                if (!beforeUpgradeLogInfo.WARNMsg.contains(warnMsg)) {
+                    logInfo.addWARNMsg(warnMsg);
+                }
+            }
+            filteredLogInfo.put(nodeIdx, logInfo);
+        }
+        return filteredLogInfo;
+    }
+
+    private boolean hasERRORLOG(Map<Integer, LogInfo> logInfo) {
+        boolean hasErrorLog = false;
+        for (int i : logInfo.keySet()) {
+            if (logInfo.get(i).ERRORMsg.size() > 0) {
+                hasErrorLog = true;
+                break;
+            }
+        }
+        return hasErrorLog;
+    }
+
+    private String recordERRORLOG(Map<Integer, LogInfo> logInfo) {
+        StringBuilder ret = new StringBuilder("[ERROR LOG]\n");
+        for (int i : logInfo.keySet()) {
+            if (logInfo.get(i).ERRORMsg.size() > 0) {
+                ret.append("Node").append(i).append("\n");
+                for (String msg : logInfo.get(i).ERRORMsg) {
+                    ret.append(msg).append("\n");
+                }
+                ret.append("\n");
+            }
+        }
+        return ret.toString();
     }
 
     private Map<Integer, Map<String, Pair<String, String>>> stateCompare(

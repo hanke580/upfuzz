@@ -4,8 +4,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class LogInfo {
-    List<String> ERRORMsg = new LinkedList<>();
-    List<String> WARNMsg = new LinkedList<>();
+    public List<String> ERRORMsg = new LinkedList<>();
+    public List<String> WARNMsg = new LinkedList<>();
 
     public LogInfo() {
     }

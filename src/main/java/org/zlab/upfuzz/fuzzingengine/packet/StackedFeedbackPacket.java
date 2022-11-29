@@ -15,14 +15,13 @@ import org.apache.logging.log4j.Logger;
 public class StackedFeedbackPacket extends Packet {
     static Logger logger = LogManager.getLogger(StackedFeedbackPacket.class);
 
-    private final List<FeedbackPacket> fpList;
+    public final List<FeedbackPacket> fpList;
     public boolean isUpgradeProcessFailed = false;
     public String upgradeFailureReport;
 
     public String stackedCommandSequenceStr;
 
     // public int nodeNum;
-
     // (1) Failed Upgrade Process: Report all command sequences
     // (2) Result Inconsistency: Report the target seed's inconsistency
 

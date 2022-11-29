@@ -42,6 +42,7 @@ public abstract class Executor implements IExecutor {
     public Set<String> targetSystemStates;
     public Path configPath;
 
+    // Use for test plan coverage collection
     public ExecutionDataStore[] oriCoverage;
 
     public DockerCluster dockerCluster;
@@ -470,8 +471,8 @@ public abstract class Executor implements IExecutor {
         return dockerCluster.readSystemState();
     }
 
-    public Map<Integer, LogInfo> readLogInfo() {
-        return dockerCluster.readLogInfo();
+    public Map<Integer, LogInfo> grepLogInfo() {
+        return dockerCluster.grepLogInfo();
     }
 
 }

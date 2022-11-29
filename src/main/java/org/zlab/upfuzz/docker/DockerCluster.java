@@ -163,11 +163,11 @@ public abstract class DockerCluster implements IDockerCluster {
     /**
      * collecting system states from each node
      */
-    public Map<Integer, LogInfo> readLogInfo() {
+    public Map<Integer, LogInfo> grepLogInfo() {
         // nodeId -> {class.state -> value}
         Map<Integer, LogInfo> states = new HashMap<>();
         for (int i = 0; i < nodeNum; i++) {
-            states.put(i, dockers[i].readLogInfo());
+            states.put(i, dockers[i].grepLogInfo());
         }
         return states;
     }

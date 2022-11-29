@@ -375,7 +375,7 @@ public class CassandraDocker extends Docker {
     }
 
     @Override
-    public LogInfo readLogInfo() {
+    public LogInfo grepLogInfo() {
         LogInfo logInfo = new LogInfo();
         Path filePath = Paths.get("/var/log/cassandra/system.log");
         int grepLineNum = 4;

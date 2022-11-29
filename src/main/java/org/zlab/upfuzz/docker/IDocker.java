@@ -27,7 +27,7 @@ public interface IDocker {
 
     Map<String, String> readSystemState();
 
-    LogInfo readLogInfo();
+    LogInfo grepLogInfo();
 
     Path getDataPath();
 

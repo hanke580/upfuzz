@@ -242,7 +242,7 @@ public class HdfsDocker extends Docker {
     }
 
     @Override
-    public LogInfo readLogInfo() {
+    public LogInfo grepLogInfo() {
         return null;
     }
 

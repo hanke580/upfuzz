@@ -92,11 +92,10 @@ public class CassandraCqlshDaemon {
 
             } catch (Exception e) {
                 e.printStackTrace();
-
             }
 
             // read log to check whether it ends
-            LogInfo logInfo = docker.readLogInfo();
+            LogInfo logInfo = docker.grepLogInfo();
             if (logInfo.getErrorMsg().size() > 0) {
                 for (String msg : logInfo.getErrorMsg()) {
                     boolean isNoise = false;

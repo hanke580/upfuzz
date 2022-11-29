@@ -36,7 +36,15 @@ public class Config {
         public String dataDir = null;
         public String logFile = null;
         public String initSeedDir = null;
-        public String crashDir = null;
+
+        public String failureDir = null;
+        // event execution failure (rolling upgrade)
+        public String eventCrashDir = null;
+        // full-stop upgrade failure
+        public String fullStopCrashDir = null;
+        // state inconsistency between versions
+        public String inconsistencyDir = null;
+
         public String corpusDir = null;
 
         public int mutationEpoch = 120;
@@ -92,7 +100,7 @@ public class Config {
 
         // ------------State Comparison-------------
         // check ERROR/WARN in log
-        public boolean enableLogCheck = false;
+        public boolean enableLogCheck = true;
 
         @Override
         public String toString() {

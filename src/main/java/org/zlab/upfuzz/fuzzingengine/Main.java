@@ -70,12 +70,37 @@ public class Main {
             Config.instance.corpusDir = corpusPath.toString();
         }
 
-        if (Config.getConf().crashDir == null) {
+        // construct failure folder
+        if (Config.getConf().failureDir == null) {
             // create a corpus dir in the folder
-            Path crashPath = Paths.get(System.getProperty("user.dir"))
-                    .resolve("crash");
-            crashPath.toFile().mkdir();
-            Config.instance.crashDir = crashPath.toString();
+            Path path = Paths.get(System.getProperty("user.dir"))
+                    .resolve("failure");
+            path.toFile().mkdir();
+            Config.instance.failureDir = path.toString();
+        }
+
+        if (Config.getConf().fullStopCrashDir == null) {
+            // create a corpus dir in the folder
+            Path path = Paths.get(Config.instance.failureDir)
+                    .resolve("fullstop_crash");
+            path.toFile().mkdir();
+            Config.instance.fullStopCrashDir = path.toString();
+        }
+
+        if (Config.getConf().eventCrashDir == null) {
+            // create a corpus dir in the folder
+            Path path = Paths.get(Config.instance.failureDir)
+                    .resolve("event_crash");
+            path.toFile().mkdir();
+            Config.instance.eventCrashDir = path.toString();
+        }
+
+        if (Config.getConf().inconsistencyDir == null) {
+            // create a corpus dir in the folder
+            Path path = Paths.get(Config.instance.failureDir)
+                    .resolve("inconsistency");
+            path.toFile().mkdir();
+            Config.instance.inconsistencyDir = path.toString();
         }
 
         String type = cmd.getOptionValue(clazzOption);
