@@ -19,6 +19,9 @@ public class StackedFeedbackPacket extends Packet {
     public boolean isUpgradeProcessFailed = false;
     public String upgradeFailureReport;
 
+    public boolean hasERRORLog;
+    public String errorLogReport;
+
     public String stackedCommandSequenceStr;
 
     // public int nodeNum;

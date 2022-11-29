@@ -105,7 +105,8 @@ public class FuzzingClient {
         executor = initExecutor(stackedTestPacket.nodeNum, null, configPath);
         boolean startUpStatus = startUpExecutor();
         if (!startUpStatus) {
-            // old version **cluster** start up problem
+            // old version **cluster** start up problem, this won't be upgrade
+            // bugs
             return null;
         }
 
@@ -154,6 +155,13 @@ public class FuzzingClient {
         StackedFeedbackPacket stackedFeedbackPacket = new StackedFeedbackPacket();
         stackedFeedbackPacket.stackedCommandSequenceStr = recordStackedTestPacket(
                 stackedTestPacket);
+
+        // LOG checking1
+        Map<Integer, LogInfo> logInfoBeforeUpgrade = null;
+        if (Config.getConf().enableLogCheck) {
+            logger.info("[HKLOG] error checking");
+            logInfoBeforeUpgrade = executor.grepLogInfo();
+        }
 
         boolean ret = executor.fullStopUpgrade();
 
@@ -215,6 +223,18 @@ public class FuzzingClient {
         }
         logger.info(executor.systemID + " executor: " + executor.executorID
                 + " finished execution");
+
+        // LOG checking2
+        if (Config.getConf().enableLogCheck) {
+            logger.info("[HKLOG] error checking");
+            assert logInfoBeforeUpgrade != null;
+            Map<Integer, LogInfo> logInfo = filterErrorLog(logInfoBeforeUpgrade,
+                    executor.grepLogInfo());
+            if (hasERRORLOG(logInfo)) {
+                stackedFeedbackPacket.hasERRORLog = true;
+                stackedFeedbackPacket.errorLogReport = recordERRORLOG(logInfo);
+            }
+        }
         tearDownExecutor();
         return stackedFeedbackPacket;
     }
@@ -291,7 +311,6 @@ public class FuzzingClient {
 
         if (!upgradeStatus) {
             fullStopFeedbackPacket.isEventFailed = true;
-
             fullStopFeedbackPacket.eventFailedReport = genUpgradeFailureReport(
                     executor.executorID, fullStopPacket.configFileName,
                     recordFullStopPacket(fullStopPacket));
@@ -586,7 +605,14 @@ public class FuzzingClient {
         stackedFeedbackPacket.stackedCommandSequenceStr = recordStackedTestPacket(
                 stackedTestPacket);
 
-        // execute test plan
+        // LOG checking1
+        Map<Integer, LogInfo> logInfoBeforeUpgrade = null;
+        if (Config.getConf().enableLogCheck) {
+            logger.info("[HKLOG] error checking");
+            logInfoBeforeUpgrade = executor.grepLogInfo();
+        }
+
+        // execute test plan (rolling upgrade + fault)
         boolean status = executor.execute(testPlanPacket.getTestPlan());
 
         // collect test plan coverage
@@ -688,6 +714,20 @@ public class FuzzingClient {
             feedbackPacket.validationReadResults = testID2upResults
                     .get(tp.testPacketID);
             stackedFeedbackPacket.addFeedbackPacket(feedbackPacket);
+        }
+
+        // LOG checking2
+        if (Config.getConf().enableLogCheck) {
+            logger.info("[HKLOG] error checking");
+            assert logInfoBeforeUpgrade != null;
+            Map<Integer, LogInfo> logInfo = filterErrorLog(logInfoBeforeUpgrade,
+                    executor.grepLogInfo());
+            if (hasERRORLOG(logInfo)) {
+                stackedFeedbackPacket.hasERRORLog = true;
+                stackedFeedbackPacket.errorLogReport = recordERRORLOG(logInfo);
+                testPlanFeedbackPacket.hasERRORLog = true;
+                testPlanFeedbackPacket.errorLogReport = recordERRORLOG(logInfo);
+            }
         }
 
         tearDownExecutor();

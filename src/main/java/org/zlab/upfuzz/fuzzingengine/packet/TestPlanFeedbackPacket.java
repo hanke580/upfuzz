@@ -21,6 +21,9 @@ public class TestPlanFeedbackPacket extends Packet {
     public boolean isEventFailed = false; // One event failed.
     public String eventFailedReport;
 
+    public boolean hasERRORLog;
+    public String errorLogReport;
+
     // For test plan, we only collect the new version coverage
     public FeedBack[] feedBacks;
 
