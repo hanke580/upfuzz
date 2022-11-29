@@ -79,11 +79,9 @@ public class ConcatenateType extends ParameterType.ConcreteType {
         List<Integer> mutateOrder = Utilities.permutation(parameterList.size());
         for (int index : mutateOrder) {
             Parameter pi = parameterList.get(index);
-            if (pi.type.mutate(s, c, p)) {
-                return true;
-            }
+            pi.mutate(s, c);
         }
-        return false;
+        return true;
     }
 
     @Override
