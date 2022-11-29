@@ -157,8 +157,8 @@ public class HdfsExecutor extends Executor {
 
             if (Config.getConf().debug) {
                 logger.info(String.format(
-                        "Command is sent to node[%d], exec time: %ds",
-                        nodeIndex, timeElapsed));
+                        "Command %s is sent to node[%d], exec time: %ds",
+                        command.getCommand(), nodeIndex, timeElapsed));
             }
             if (cp != null) {
                 ret = cp.message;

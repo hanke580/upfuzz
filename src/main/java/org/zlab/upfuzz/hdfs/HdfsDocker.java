@@ -115,8 +115,8 @@ public class HdfsDocker extends Docker {
                 "\"";
 
         env = new String[] {
-                "HADOOP_HOME=\"" + hdfsHome + "\"",
-                "HADOOP_CONF_DIR=\"" + hdfsConf + "\"", javaToolOpts,
+                "HADOOP_HOME=" + hdfsHome,
+                "HADOOP_CONF_DIR=" + hdfsConf, javaToolOpts,
                 "HDFS_SHELL_DAEMON_PORT=\"" + hdfsDaemonPort + "\"",
                 "PYTHON=python3" };
         setEnvironment();
@@ -148,8 +148,8 @@ public class HdfsDocker extends Docker {
         String hdfsHome = "/hdfs/" + upgradedVersion;
         String hdfsConf = "/etc/" + upgradedVersion + "/etc/hadoop";
         env = new String[] {
-                "HADOOP_HOME=\"" + hdfsHome + "\"",
-                "HADOOP_CONF_DIR=\"" + hdfsConf + "\"", javaToolOpts,
+                "HADOOP_HOME=" + hdfsHome,
+                "HADOOP_CONF_DIR=" + hdfsConf, javaToolOpts,
                 "HDFS_SHELL_DAEMON_PORT=\"" + hdfsDaemonPort + "\"",
                 "PYTHON=python3" };
         setEnvironment();
@@ -179,8 +179,8 @@ public class HdfsDocker extends Docker {
         String hdfsHome = "/hdfs/" + originalVersion;
         String hdfsConf = "/etc/" + originalVersion + "/etc/hadoop";
         env = new String[] {
-                "HADOOP_HOME=\"" + hdfsHome + "\"",
-                "HADOOP_CONF_DIR=\"" + hdfsConf + "\"", javaToolOpts,
+                "HADOOP_HOME=" + hdfsHome,
+                "HADOOP_CONF_DIR=" + hdfsConf, javaToolOpts,
                 "HDFS_SHELL_DAEMON_PORT=\"" + hdfsDaemonPort + "\"",
                 "PYTHON=python3" };
         setEnvironment();
@@ -215,7 +215,9 @@ public class HdfsDocker extends Docker {
             // Secondary is stopped in a specific op (HDFSStopSNN)
             String[] stopNode = new String[] { orihadoopDaemonPath, "stop",
                     nodeType };
-            runProcessInContainer(stopNode);
+
+            int ret = runProcessInContainer(stopNode, env);
+            logger.info("daemon stopped ret = " + ret);
         }
         logger.debug("shutdown " + nodeType);
     }

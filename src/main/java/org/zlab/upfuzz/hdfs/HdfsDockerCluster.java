@@ -171,11 +171,14 @@ public class HdfsDockerCluster extends DockerCluster {
         String[] leaveSafemode = new String[] { oriHDFS, "dfsadmin",
                 "-safemode", "leave" };
         int ret;
-        ret = dockers[idx].runProcessInContainer(enterSafemode);
+        ret = dockers[idx].runProcessInContainer(enterSafemode,
+                dockers[idx].env);
         logger.debug("enter safe mode ret = " + ret);
-        ret = dockers[idx].runProcessInContainer(prepareFSImage);
+        ret = dockers[idx].runProcessInContainer(prepareFSImage,
+                dockers[idx].env);
         logger.debug("prepare image ret = " + ret);
-        ret = dockers[idx].runProcessInContainer(leaveSafemode);
+        ret = dockers[idx].runProcessInContainer(leaveSafemode,
+                dockers[idx].env);
         logger.debug("leave safemode ret = " + ret);
     }
 
@@ -196,7 +199,7 @@ public class HdfsDockerCluster extends DockerCluster {
                 + "sbin/hadoop-daemon.sh";
         String[] stopNode = new String[] { orihadoopDaemonPath, "stop",
                 "secondarynamenode" };
-        int ret = dockers[1].runProcessInContainer(stopNode);
+        int ret = dockers[1].runProcessInContainer(stopNode, dockers[1].env);
         logger.debug("secondarynamenode stop: " + ret);
     }
 

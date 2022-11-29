@@ -68,6 +68,15 @@ public abstract class DockerMeta {
         return Utilities.exec(cmds.toArray(new String[] {}), workdir);
     }
 
+    public int runProcessInContainer(String[] cmd, String[] env) {
+        try {
+            return runInContainer(cmd, env).waitFor();
+        } catch (IOException | InterruptedException e) {
+            logger.error("process failed in container: " + e);
+            return -1;
+        }
+    }
+
     public int runProcessInContainer(String[] cmd) {
         try {
             return runInContainer(cmd).waitFor();
