@@ -93,25 +93,6 @@ public class CassandraCqlshDaemon {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
-            // read log to check whether it ends
-            LogInfo logInfo = docker.grepLogInfo();
-            if (logInfo.getErrorMsg().size() > 0) {
-                for (String msg : logInfo.getErrorMsg()) {
-                    boolean isNoise = false;
-                    for (String noiseError : noiseErrors) {
-                        if (msg.contains(noiseError)) {
-                            isNoise = true;
-                            break;
-                        }
-                    }
-                    if (!isNoise) {
-                        break;
-                    }
-                    System.out.println(msg);
-                }
-                break;
-            }
         }
         throw new RuntimeException("[HKLOG] executor ID = " + docker.executorID
                 + "  " + "cannot connect to cqlsh at " + ipAddress);
