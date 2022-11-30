@@ -298,8 +298,8 @@ public class FuzzingClient {
                 }
             }
         } catch (Exception e) {
-            fullStopFeedbackPacket.isEventFailed = true;
-            fullStopFeedbackPacket.eventFailedReport = genOriCoverageCollFailureReport(
+            fullStopFeedbackPacket.isUpgradeProcessFailed = true;
+            fullStopFeedbackPacket.upgradeFailureReport = genOriCoverageCollFailureReport(
                     executor.executorID, fullStopPacket.configFileName,
                     recordFullStopPacket(fullStopPacket),
                     "") + "Exception:" + e;
@@ -310,13 +310,12 @@ public class FuzzingClient {
         boolean upgradeStatus = executor.fullStopUpgrade();
 
         if (!upgradeStatus) {
-            fullStopFeedbackPacket.isEventFailed = true;
-            fullStopFeedbackPacket.eventFailedReport = genUpgradeFailureReport(
+            fullStopFeedbackPacket.isUpgradeProcessFailed = true;
+            fullStopFeedbackPacket.upgradeFailureReport = genUpgradeFailureReport(
                     executor.executorID, fullStopPacket.configFileName,
                     recordFullStopPacket(fullStopPacket));
         } else {
             // Upgrade is done successfully, collect coverage and check results
-            fullStopFeedbackPacket.isEventFailed = false;
             // Collect new version coverage
             try {
                 ExecutionDataStore[] upCoverages = executor
@@ -329,8 +328,8 @@ public class FuzzingClient {
             } catch (Exception e) {
                 // Cannot collect code coverage in the upgraded version
                 // Report it as the situations that "No nodes are upgraded"
-                fullStopFeedbackPacket.isEventFailed = true;
-                fullStopFeedbackPacket.eventFailedReport = genUpCoverageCollFailureReport(
+                fullStopFeedbackPacket.isUpgradeProcessFailed = true;
+                fullStopFeedbackPacket.upgradeFailureReport = genUpCoverageCollFailureReport(
                         executor.executorID, fullStopPacket.configFileName,
                         recordFullStopPacket(fullStopPacket),
                         "") + "Exception:" + e;
@@ -756,7 +755,7 @@ public class FuzzingClient {
 
     private String genTestPlanFailureReport(int failEventIdx, String executorID,
             String configIdx, String testPlanPacket, String fullTestPacket) {
-        return "Test plan execution failed at event" + failEventIdx + "\n" +
+        return "[Test plan execution failed at event" + failEventIdx + "]\n" +
                 "executionId = " + executorID + "\n" +
                 "ConfigIdx = " + configIdx + "\n" +
                 testPlanPacket + "\n" +
@@ -767,7 +766,7 @@ public class FuzzingClient {
     private String genInconsistencyReport(String executorID,
             String configIdx, String inconsistencyRecord,
             String singleTestPacket, String fullTestPacket) {
-        return "Results are inconsistent between two versions\n" +
+        return "[Results inconsistency between two versions]\n" +
                 "executionId = " + executorID + "\n" +
                 "ConfigIdx = " + configIdx + "\n" +
                 inconsistencyRecord + "\n" +
@@ -779,7 +778,7 @@ public class FuzzingClient {
     private String genTestPlanInconsistencyReport(String executorID,
             String configIdx, String inconsistencyRecord,
             String singleTestPacket, String fullTestPacket) {
-        return "Results are inconsistent between full-stop and rolling upgrade\n"
+        return "[Results inconsistency between full-stop and rolling upgrade]\n"
                 +
                 "executionId = " + executorID + "\n" +
                 "ConfigIdx = " + configIdx + "\n" +

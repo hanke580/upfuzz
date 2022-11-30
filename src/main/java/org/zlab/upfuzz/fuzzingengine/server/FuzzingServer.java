@@ -83,12 +83,12 @@ public class FuzzingServer {
 
     public static int round = 0;
 
-    public static int event_crash_epoch = 0;
-    public static int fullstop_crash_epoch = 0;
-    public static int inconsistency_epoch = 0;
+    public static int failureId = 0;
 
-    public static int crashID = 0;
-    public static int inconsistencyID = 0;
+    public static int fullStopCrashNum = 0;
+    public static int eventCrashNum = 0;
+    public static int inconsistencyNum = 0;
+    public static int errorLogNum = 0;
 
     boolean isFullStopUpgrade = true;
     ConfigGen configGen;
@@ -565,7 +565,6 @@ public class FuzzingServer {
 
     public synchronized void updateStatus(
             FullStopFeedbackPacket fullStopFeedbackPacket) {
-        // TODO: update status for test plan feed back
         FeedBack fb = mergeCoverage(fullStopFeedbackPacket.feedBacks);
 
         // Print states
@@ -593,19 +592,6 @@ public class FuzzingServer {
             curUpCoverage.merge(fb.upgradedCodeCoverage);
         }
 
-        if (fullStopFeedbackPacket.isEventFailed) {
-            saveEventCrashReport(fullStopFeedbackPacket.testPacketID,
-                    fullStopFeedbackPacket.eventFailedReport,
-                    fullStopFeedbackPacket.errorLogReport);
-        } else if (fullStopFeedbackPacket.isInconsistent) {
-            Path inconsistencyDirPath = createInconsistencySubDir();
-
-            saveInconsistencyReport(inconsistencyDirPath,
-                    fullStopFeedbackPacket.testPacketID,
-                    fullStopFeedbackPacket.eventFailedReport);
-        }
-        testID2Seed.remove(fullStopFeedbackPacket.testPacketID);
-
         if (addToCorpus) {
             fullStopCorpus.addSeed(new FullStopSeed(
                     testID2Seed.get(fullStopFeedbackPacket.testPacketID),
@@ -627,6 +613,30 @@ public class FuzzingServer {
             upgradedProbeNum = curUpCoverageStatus.right;
         }
 
+        Path failureDir;
+        if (fullStopFeedbackPacket.isUpgradeProcessFailed
+                || fullStopFeedbackPacket.isInconsistent
+                || fullStopFeedbackPacket.hasERRORLog) {
+            failureDir = createFailureDir();
+
+            if (fullStopFeedbackPacket.isUpgradeProcessFailed) {
+                saveFullStopCrashReport(failureDir,
+                        fullStopFeedbackPacket.testPacketID,
+                        fullStopFeedbackPacket.upgradeFailureReport);
+            }
+            if (fullStopFeedbackPacket.isInconsistent) {
+                saveInconsistencyReport(failureDir,
+                        fullStopFeedbackPacket.testPacketID,
+                        fullStopFeedbackPacket.inconsistencyReport);
+            }
+            if (fullStopFeedbackPacket.hasERRORLog) {
+                saveErrorReport(failureDir,
+                        fullStopFeedbackPacket.testPacketID,
+                        fullStopFeedbackPacket.errorLogReport);
+            }
+        }
+        testID2Seed.remove(fullStopFeedbackPacket.testPacketID);
+
         Long timeElapsed = TimeUnit.SECONDS.convert(
                 System.nanoTime(), TimeUnit.NANOSECONDS) - startTime;
         if (timeElapsed - lastTimePoint > Config.getConf().timeInterval ||
@@ -638,6 +648,7 @@ public class FuzzingServer {
                     new Pair(timeElapsed, upgradedCoveredBranches));
             lastTimePoint = timeElapsed;
         }
+
         finishedTestID++;
         printInfo();
         System.out.println();
@@ -667,22 +678,6 @@ public class FuzzingServer {
             }
 
         }
-
-        if (testPlanFeedbackPacket.isEventFailed) {
-            saveEventCrashReport(testPlanFeedbackPacket.testPacketID,
-                    testPlanFeedbackPacket.eventFailedReport,
-                    testPlanFeedbackPacket.errorLogReport);
-        } else if (testPlanFeedbackPacket.isInconsistent) {
-            Path inconsistencySubDir = createInconsistencySubDir();
-            saveInconsistencyReport(inconsistencySubDir,
-                    testPlanFeedbackPacket.testPacketID,
-                    testPlanFeedbackPacket.inconsistencyReport);
-            if (testPlanFeedbackPacket.hasERRORLog)
-                saveInconsistencyReport(inconsistencySubDir,
-                        testPlanFeedbackPacket.inconsistencyReport);
-        }
-        testID2TestPlan.remove(testPlanFeedbackPacket.testPacketID);
-
         // Update the coveredBranches to the newest value
         Pair<Integer, Integer> curOriCoverageStatus = Utilities
                 .getCoverageStatus(curOriCoverage);
@@ -694,74 +689,102 @@ public class FuzzingServer {
         upgradedCoveredBranches = curUpCoverageStatus.left;
         upgradedProbeNum = curUpCoverageStatus.right;
 
-        finishedTestID++;
+        Path failureDir;
+        if (testPlanFeedbackPacket.isEventFailed
+                || testPlanFeedbackPacket.isInconsistent
+                || testPlanFeedbackPacket.hasERRORLog) {
+            failureDir = createFailureDir();
 
+            if (testPlanFeedbackPacket.isEventFailed) {
+                saveEventCrashReport(failureDir,
+                        testPlanFeedbackPacket.testPacketID,
+                        testPlanFeedbackPacket.eventFailedReport);
+            }
+            if (testPlanFeedbackPacket.isInconsistent) {
+                saveInconsistencyReport(failureDir,
+                        testPlanFeedbackPacket.testPacketID,
+                        testPlanFeedbackPacket.inconsistencyReport);
+            }
+            if (testPlanFeedbackPacket.hasERRORLog) {
+                saveInconsistencyReport(failureDir,
+                        testPlanFeedbackPacket.testPacketID,
+                        testPlanFeedbackPacket.errorLogReport);
+            }
+        }
+        testID2TestPlan.remove(testPlanFeedbackPacket.testPacketID);
+
+        finishedTestID++;
         printInfo();
         System.out.println();
     }
 
     public synchronized void updateStatus(
             StackedFeedbackPacket stackedFeedbackPacket) {
-        if (stackedFeedbackPacket.isUpgradeProcessFailed) {
-            saveFullStopCrashReport(stackedFeedbackPacket.upgradeFailureReport,
-                    stackedFeedbackPacket.errorLogReport);
-            finishedTestID++;
-        } else {
-            logger.info("update Status");
-            FuzzingServerHandler.printClientNum();
-            logger.info(
-                    "fp size = " + stackedFeedbackPacket.getFpList().size());
+        Path failureDir = null;
+        int startTestId = stackedFeedbackPacket.fpList.get(0).testPacketID;
 
-            Path inconsistencySubDir = null;
-            for (FeedbackPacket feedbackPacket : stackedFeedbackPacket
-                    .getFpList()) {
-                finishedTestID++;
-                if (Config.getConf().useFeedBack) {
-                    boolean addToCorpus = false;
-                    // Merge all the feedbacks
-                    FeedBack fb = mergeCoverage(feedbackPacket.feedBacks);
-                    if (Utilities.hasNewBits(
-                            curOriCoverage,
-                            fb.originalCodeCoverage)) {
-                        // Write Seed to Disk + Add to Corpus
-                        curOriCoverage.merge(
-                                fb.originalCodeCoverage);
-                        addToCorpus = true;
-                    }
-                    if (Utilities.hasNewBits(curUpCoverage,
-                            fb.upgradedCodeCoverage)) {
-                        curUpCoverage.merge(
-                                fb.upgradedCodeCoverage);
-                        addToCorpus = true;
-                    }
-                    if (addToCorpus) {
-                        Seed seed = testID2Seed
-                                .get(feedbackPacket.testPacketID);
-                        Fuzzer.saveSeed(seed.originalCommandSequence,
-                                seed.validationCommandSequnece);
-                        fullStopCorpus.addSeed(
-                                new FullStopSeed(seed, feedbackPacket.nodeNum,
-                                        null,
-                                        feedbackPacket.validationReadResults));
-                        corpus.addSeed(seed);
-                    }
+        if (stackedFeedbackPacket.isUpgradeProcessFailed) {
+            failureDir = createFailureDir();
+            saveFullStopCrashReport(failureDir, startTestId,
+                    stackedFeedbackPacket.upgradeFailureReport);
+
+            finishedTestID++;
+        }
+
+        logger.info("update Status");
+        FuzzingServerHandler.printClientNum();
+        logger.info(
+                "fp size = " + stackedFeedbackPacket.getFpList().size());
+
+        for (FeedbackPacket feedbackPacket : stackedFeedbackPacket
+                .getFpList()) {
+            finishedTestID++;
+            if (Config.getConf().useFeedBack) {
+                boolean addToCorpus = false;
+                // Merge all the feedbacks
+                FeedBack fb = mergeCoverage(feedbackPacket.feedBacks);
+                if (Utilities.hasNewBits(
+                        curOriCoverage,
+                        fb.originalCodeCoverage)) {
+                    // Write Seed to Disk + Add to Corpus
+                    curOriCoverage.merge(
+                            fb.originalCodeCoverage);
+                    addToCorpus = true;
                 }
-                if (feedbackPacket.isInconsistent) {
-                    if (inconsistencySubDir == null)
-                        inconsistencySubDir = createInconsistencySubDir();
-                    saveInconsistencyReport(inconsistencySubDir,
-                            feedbackPacket.testPacketID,
-                            feedbackPacket.inconsistencyReport);
+                if (Utilities.hasNewBits(curUpCoverage,
+                        fb.upgradedCodeCoverage)) {
+                    curUpCoverage.merge(
+                            fb.upgradedCodeCoverage);
+                    addToCorpus = true;
                 }
-                // Remove the seed from the waiting list
-                testID2Seed.remove(feedbackPacket.testPacketID);
+                if (addToCorpus) {
+                    Seed seed = testID2Seed
+                            .get(feedbackPacket.testPacketID);
+                    Fuzzer.saveSeed(seed.originalCommandSequence,
+                            seed.validationCommandSequnece);
+                    fullStopCorpus.addSeed(
+                            new FullStopSeed(seed, feedbackPacket.nodeNum,
+                                    null,
+                                    feedbackPacket.validationReadResults));
+                    corpus.addSeed(seed);
+                }
             }
-            if (stackedFeedbackPacket.hasERRORLog) {
-                if (inconsistencySubDir == null)
-                    inconsistencySubDir = createInconsistencySubDir();
-                saveInconsistencyReport(inconsistencySubDir,
-                        stackedFeedbackPacket.errorLogReport);
+            if (feedbackPacket.isInconsistent) {
+                if (failureDir == null)
+                    failureDir = createFailureDir();
+                saveInconsistencyReport(failureDir,
+                        feedbackPacket.testPacketID,
+                        feedbackPacket.inconsistencyReport);
             }
+            // Remove the seed from the waiting list
+            testID2Seed.remove(feedbackPacket.testPacketID);
+        }
+
+        if (stackedFeedbackPacket.hasERRORLog) {
+            if (failureDir == null)
+                failureDir = createFailureDir();
+            saveErrorReport(failureDir, startTestId,
+                    stackedFeedbackPacket.errorLogReport);
         }
 
         // Update the coveredBranches to the newest value
@@ -790,98 +813,87 @@ public class FuzzingServer {
         System.out.println();
     }
 
-    private Path createFullStopCrashSubDir() {
+    /**
+     * FailureIdx
+     * - crash
+     * - inconsistency
+     * - error
+     * @return
+     */
+    private Path createFailureDir() {
         while (Paths
-                .get(Config.getConf().fullStopCrashDir,
-                        "fullstop_crash_" + fullstop_crash_epoch)
+                .get(Config.getConf().failureDir,
+                        "failure_" + failureId)
                 .toFile().exists()) {
-            fullstop_crash_epoch++;
+            failureId++;
         }
-        Path crashSubDir = Paths.get(Config.getConf().fullStopCrashDir,
-                "crash_" + fullstop_crash_epoch++);
-        crashSubDir.toFile().mkdir();
-        return crashSubDir;
+        Path failureSubDir = Paths.get(Config.getConf().failureDir,
+                "crash_" + failureId++);
+        failureSubDir.toFile().mkdir();
+        return failureSubDir;
     }
 
-    private Path createEventCrashSubDir() {
-        while (Paths
-                .get(Config.getConf().eventCrashDir,
-                        "event_crash_" + event_crash_epoch)
-                .toFile().exists()) {
-            event_crash_epoch++;
-        }
-        Path crashSubDir = Paths.get(Config.getConf().eventCrashDir,
-                "crash_" + event_crash_epoch++);
-        crashSubDir.toFile().mkdir();
-        return crashSubDir;
+    private Path createFullStopCrashSubDir(Path failureSubDir) {
+        Path dir = failureSubDir.resolve("fullstop_crash");
+        dir.toFile().mkdir();
+        return dir;
     }
 
-    private Path createInconsistencySubDir() {
-        while (Paths
-                .get(Config.getConf().inconsistencyDir,
-                        "inconsistency_" + inconsistency_epoch)
-                .toFile()
-                .exists()) {
-            inconsistency_epoch++;
-        }
-        Path inconsistencySubDir = Paths.get(Config.getConf().inconsistencyDir,
-                "inconsistency_" + inconsistency_epoch++);
-        inconsistencySubDir.toFile().mkdir();
-        return inconsistencySubDir;
+    private Path createEventCrashSubDir(Path failureSubDir) {
+        Path dir = failureSubDir.resolve("event_crash");
+        dir.toFile().mkdir();
+        return dir;
     }
 
-    private void saveFullStopCrashReport(String report, String errorReport) {
-        Path fullstopCrashSubDir = createFullStopCrashSubDir();
+    private Path createInconsistencySubDir(Path failureSubDir) {
+        Path inconsistencyDir = failureSubDir.resolve("inconsistency");
+        inconsistencyDir.toFile().mkdir();
+        return inconsistencyDir;
+    }
+
+    private Path createErrorSubDir(Path failureSubDir) {
+        Path inconsistencyDir = failureSubDir.resolve("errorLog");
+        inconsistencyDir.toFile().mkdir();
+        return inconsistencyDir;
+    }
+
+    private void saveFullStopCrashReport(Path failureDir, int testID,
+            String report) {
+        Path subDir = createFullStopCrashSubDir(failureDir);
         Path crashReportPath = Paths.get(
-                fullstopCrashSubDir.toString(),
+                subDir.toString(),
                 "fullstop_crash_" + testID + ".report");
         Utilities.write2TXT(crashReportPath.toFile(), report, false);
-
-        if (!errorReport.isEmpty()) {
-            Path errorReportPath = Paths.get(
-                    fullstopCrashSubDir.toString(),
-                    "error_" + testID + ".report");
-            Utilities.write2TXT(errorReportPath.toFile(), errorReport, false);
-        }
-
-        crashID++;
+        fullStopCrashNum++;
     }
 
-    private void saveEventCrashReport(int testID, String report,
-            String errorReport) {
-        Path eventCrashSubDir = createEventCrashSubDir();
+    private void saveEventCrashReport(Path failureDir, int testID,
+            String report) {
+        Path subDir = createEventCrashSubDir(failureDir);
         Path crashReportPath = Paths.get(
-                eventCrashSubDir.toString(),
+                subDir.toString(),
                 "event_crash_" + testID + ".report");
         Utilities.write2TXT(crashReportPath.toFile(), report, false);
-
-        if (!errorReport.isEmpty()) {
-            Path errorReportPath = Paths.get(
-                    eventCrashSubDir.toString(),
-                    "error_" + testID + ".report");
-            Utilities.write2TXT(errorReportPath.toFile(), errorReport, false);
-        }
-        crashID++;
+        eventCrashNum++;
     }
 
-    private void saveInconsistencyReport(Path inconsistencySubDir, int testID,
+    private void saveInconsistencyReport(Path failureDir, int testID,
             String report) {
-        Path inconsistencyReport = Paths.get(
+        Path inconsistencySubDir = createInconsistencySubDir(failureDir);
+        Path crashReportPath = Paths.get(
                 inconsistencySubDir.toString(),
-                "inconsistency_" + testID
-                        + ".report");
-        Utilities.write2TXT(inconsistencyReport.toFile(), report, false);
-        inconsistencyID++;
+                "inconsistency_" + testID + ".report");
+        Utilities.write2TXT(crashReportPath.toFile(), report, false);
+        inconsistencyNum++;
     }
 
-    private void saveInconsistencyReport(Path inconsistencySubDir,
-            String errorReport) {
-        if (!errorReport.isEmpty()) {
-            Path errorReportPath = Paths.get(
-                    inconsistencySubDir.toString(),
-                    "error.report");
-            Utilities.write2TXT(errorReportPath.toFile(), errorReport, false);
-        }
+    private void saveErrorReport(Path failureDir, int testID, String report) {
+        Path errorSubDir = createErrorSubDir(failureDir);
+        Path reportPath = Paths.get(
+                errorSubDir.toString(),
+                "error_" + testID + ".report");
+        Utilities.write2TXT(reportPath.toFile(), report, false);
+        inconsistencyNum++;
     }
 
     public void printInfo() {
@@ -897,7 +909,10 @@ public class FuzzingServer {
                         + "|"
                         + "Queue Size = " + corpus.queue.size() + "|"
                         + "Round = " + round + "|"
-                        + "Crash Found = " + crashID + "|"
+                        + "Full Stop Crash Found = " + fullStopCrashNum + "|"
+                        + "Event Crash Found = " + eventCrashNum + "|"
+                        + "Inconsistency Found = " + inconsistencyNum + "|"
+                        + "Error Log Found = " + errorLogNum + "|"
                         + "Current Test ID = " + testID + "|"
                         + "Finished Test Num = " + finishedTestID + "|"
                         + "Covered oriBranches Num = " + originalCoveredBranches

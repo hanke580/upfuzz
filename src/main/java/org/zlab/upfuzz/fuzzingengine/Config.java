@@ -38,12 +38,6 @@ public class Config {
         public String initSeedDir = null;
 
         public String failureDir = null;
-        // event execution failure (rolling upgrade)
-        public String eventCrashDir = null;
-        // full-stop upgrade failure
-        public String fullStopCrashDir = null;
-        // state inconsistency between versions
-        public String inconsistencyDir = null;
 
         public String corpusDir = null;
 

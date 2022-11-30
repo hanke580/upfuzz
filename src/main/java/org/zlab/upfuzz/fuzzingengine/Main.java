@@ -79,30 +79,6 @@ public class Main {
             Config.instance.failureDir = path.toString();
         }
 
-        if (Config.getConf().fullStopCrashDir == null) {
-            // create a corpus dir in the folder
-            Path path = Paths.get(Config.instance.failureDir)
-                    .resolve("fullstop_crash");
-            path.toFile().mkdir();
-            Config.instance.fullStopCrashDir = path.toString();
-        }
-
-        if (Config.getConf().eventCrashDir == null) {
-            // create a corpus dir in the folder
-            Path path = Paths.get(Config.instance.failureDir)
-                    .resolve("event_crash");
-            path.toFile().mkdir();
-            Config.instance.eventCrashDir = path.toString();
-        }
-
-        if (Config.getConf().inconsistencyDir == null) {
-            // create a corpus dir in the folder
-            Path path = Paths.get(Config.instance.failureDir)
-                    .resolve("inconsistency");
-            path.toFile().mkdir();
-            Config.instance.inconsistencyDir = path.toString();
-        }
-
         String type = cmd.getOptionValue(clazzOption);
         logger.info("start " + type);
         if (type.toLowerCase().equals("server")) {

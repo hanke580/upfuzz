@@ -22,9 +22,8 @@ public class FullStopFeedbackPacket extends Packet {
     public FeedBack[] feedBacks;
     public Map<Integer, Map<String, String>> systemStates;
 
-    // Failure Report
-    public boolean isEventFailed; // One event failed.
-    public String eventFailedReport;
+    public boolean isUpgradeProcessFailed = false;
+    public String upgradeFailureReport;
 
     public boolean isInconsistent;
     public String inconsistencyReport;
