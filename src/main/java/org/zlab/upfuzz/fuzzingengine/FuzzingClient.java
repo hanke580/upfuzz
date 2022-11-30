@@ -86,8 +86,6 @@ public class FuzzingClient {
      */
     public StackedFeedbackPacket executeStackedTestPacket(
             StackedTestPacket stackedTestPacket) {
-        String stackedTestPacketStr = null;
-
         Path configPath = Paths.get(configDirPath.toString(),
                 stackedTestPacket.configIdx);
         logger.info("[HKLOG] configPath = " + configPath);
@@ -167,7 +165,6 @@ public class FuzzingClient {
 
         if (!ret) {
             // upgrade failed
-            stackedTestPacketStr = recordStackedTestPacket(stackedTestPacket);
             String upgradeFailureReport = genUpgradeFailureReport(
                     executor.executorID, stackedTestPacket.configIdx);
             stackedFeedbackPacket.isUpgradeProcessFailed = true;
@@ -206,9 +203,6 @@ public class FuzzingClient {
                     .get(tp.testPacketID);
 
             if (!compareRes.left) {
-                if (stackedTestPacketStr == null)
-                    stackedTestPacketStr = recordStackedTestPacket(
-                            stackedTestPacket);
                 String failureReport = genInconsistencyReport(
                         executor.executorID, stackedTestPacket.configIdx,
                         compareRes.right, recordSingleTestPacket(tp));
@@ -230,7 +224,9 @@ public class FuzzingClient {
                     executor.grepLogInfo());
             if (hasERRORLOG(logInfo)) {
                 stackedFeedbackPacket.hasERRORLog = true;
-                stackedFeedbackPacket.errorLogReport = recordERRORLOG(logInfo);
+                stackedFeedbackPacket.errorLogReport = genErrorLogReport(
+                        executor.executorID, stackedTestPacket.configIdx,
+                        logInfo);
             }
         }
         tearDownExecutor();
@@ -368,8 +364,17 @@ public class FuzzingClient {
                     System.exit(1);
 
                 }
-            } else {
-                fullStopFeedbackPacket.isInconsistent = false;
+            }
+
+            // test downgrade
+            if (Config.getConf().testDowngrade) {
+                boolean downgradeStatus = executor.downgrade();
+                if (!downgradeStatus) {
+                    // downgrade failed
+                    fullStopFeedbackPacket.isDowngradeProcessFailed = true;
+                    fullStopFeedbackPacket.downgradeFailureReport = genDowngradeFailureReport(
+                            executor.executorID, fullStopPacket.configFileName);
+                }
             }
         }
 
@@ -381,7 +386,9 @@ public class FuzzingClient {
                     executor.grepLogInfo());
             if (hasERRORLOG(logInfo)) {
                 fullStopFeedbackPacket.hasERRORLog = true;
-                fullStopFeedbackPacket.errorLogReport = recordERRORLOG(logInfo);
+                fullStopFeedbackPacket.errorLogReport = genErrorLogReport(
+                        executor.executorID, fullStopPacket.configFileName,
+                        logInfo);
             }
         }
 
@@ -634,8 +641,10 @@ public class FuzzingClient {
             testPlanFeedbackPacket.inconsistencyReport = "";
         } else {
             Pair<Boolean, String> compareRes;
-            // read results comparison between full-stop upgrade and rolling upgrade
-            if (!testPlanPacket.testPlan.validationReadResultsOracle.isEmpty()) {
+            // read results comparison between full-stop upgrade and rolling
+            // upgrade
+            if (!testPlanPacket.testPlan.validationReadResultsOracle
+                    .isEmpty()) {
                 List<String> testPlanReadResults = executor
                         .executeCommands(
                                 testPlanPacket.testPlan.validationCommands);
@@ -713,9 +722,13 @@ public class FuzzingClient {
                     executor.grepLogInfo());
             if (hasERRORLOG(logInfo)) {
                 stackedFeedbackPacket.hasERRORLog = true;
-                stackedFeedbackPacket.errorLogReport = recordERRORLOG(logInfo);
+                stackedFeedbackPacket.errorLogReport = genErrorLogReport(
+                        executor.executorID, stackedTestPacket.configIdx,
+                        logInfo);
                 testPlanFeedbackPacket.hasERRORLog = true;
-                testPlanFeedbackPacket.errorLogReport = recordERRORLOG(logInfo);
+                testPlanFeedbackPacket.errorLogReport = genErrorLogReport(
+                        executor.executorID, stackedTestPacket.configIdx,
+                        logInfo);
             }
         }
 
@@ -779,6 +792,13 @@ public class FuzzingClient {
                 "ConfigIdx = " + configIdx + "\n";
     }
 
+    private String genDowngradeFailureReport(String executorID,
+            String configIdx) {
+        return "[Downgrade Failed]\n" +
+                "executionId = " + executorID + "\n" +
+                "ConfigIdx = " + configIdx + "\n";
+    }
+
     private String genOriCoverageCollFailureReport(String executorID,
             String configIdx, String singleTestPacket) {
         return "[Original Coverage Collect Failed]\n" +
@@ -793,6 +813,23 @@ public class FuzzingClient {
                 "executionId = " + executorID + "\n" +
                 "ConfigIdx = " + configIdx + "\n" +
                 singleTestPacket + "\n";
+    }
+
+    private String genErrorLogReport(String executorID, String configIdx,
+            Map<Integer, LogInfo> logInfo) {
+        StringBuilder ret = new StringBuilder("[ERROR LOG]\n");
+        ret.append("executionId = ").append(executorID).append("\n");
+        ret.append("ConfigIdx = ").append(configIdx).append("\n");
+        for (int i : logInfo.keySet()) {
+            if (logInfo.get(i).ERRORMsg.size() > 0) {
+                ret.append("Node").append(i).append("\n");
+                for (String msg : logInfo.get(i).ERRORMsg) {
+                    ret.append(msg).append("\n");
+                }
+                ret.append("\n");
+            }
+        }
+        return ret.toString();
     }
 
     private String recordStackedTestPacket(
@@ -874,20 +911,6 @@ public class FuzzingClient {
             }
         }
         return hasErrorLog;
-    }
-
-    private String recordERRORLOG(Map<Integer, LogInfo> logInfo) {
-        StringBuilder ret = new StringBuilder("[ERROR LOG]\n");
-        for (int i : logInfo.keySet()) {
-            if (logInfo.get(i).ERRORMsg.size() > 0) {
-                ret.append("Node").append(i).append("\n");
-                for (String msg : logInfo.get(i).ERRORMsg) {
-                    ret.append(msg).append("\n");
-                }
-                ret.append("\n");
-            }
-        }
-        return ret.toString();
     }
 
     private Map<Integer, Map<String, Pair<String, String>>> stateCompare(

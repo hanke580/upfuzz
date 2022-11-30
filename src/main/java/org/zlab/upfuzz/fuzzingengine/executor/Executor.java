@@ -110,6 +110,15 @@ public abstract class Executor implements IExecutor {
         }
     }
 
+    public boolean downgrade() {
+        try {
+            return dockerCluster.downgrade();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public abstract void upgradeTeardown();
 
     public abstract List<String> executeCommands(List<String> commandList);

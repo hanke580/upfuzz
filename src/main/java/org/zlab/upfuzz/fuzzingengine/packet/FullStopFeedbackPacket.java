@@ -25,10 +25,13 @@ public class FullStopFeedbackPacket extends Packet {
     public String fullSequence = ""; // for reproducing
 
     public boolean isUpgradeProcessFailed = false;
-    public String upgradeFailureReport;
+    public String upgradeFailureReport = "";
 
-    public boolean isInconsistent;
-    public String inconsistencyReport;
+    public boolean isDowngradeProcessFailed = false;
+    public String downgradeFailureReport = "";
+
+    public boolean isInconsistent = false;
+    public String inconsistencyReport = "";
 
     public boolean hasERRORLog = false;
     public String errorLogReport = "";

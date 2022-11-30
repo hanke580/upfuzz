@@ -19,7 +19,8 @@ public class TestPlanFeedbackPacket extends Packet {
     // no matter whether the normal command is correct or not
     public String fullSequence = ""; // for reproducing
 
-    public boolean isEventFailed = false; // One event failed.
+    public boolean isEventFailed = false; // One event failed (including
+                                          // downgrade op)
     public String eventFailedReport;
 
     public boolean hasERRORLog = false;

@@ -132,6 +132,19 @@ public abstract class DockerCluster implements IDockerCluster {
     }
 
     @Override
+    public boolean downgrade() throws Exception {
+        logger.info("Cluster downgrading...");
+        // downgrade in reverse order
+        for (int i = dockers.length - 1; i >= 0; i--) {
+            dockers[i].flush();
+            dockers[i].shutdown();
+            dockers[i].downgrade();
+        }
+        logger.info("Cluster downgraded");
+        return true;
+    }
+
+    @Override
     public boolean freshStartNewVersion() throws Exception {
         logger.info("Fresh start new version ...");
         for (int i = 0; i < dockers.length; i++) {
@@ -192,6 +205,7 @@ public abstract class DockerCluster implements IDockerCluster {
     public void downgrade(int nodeIndex) throws Exception {
         // upgrade a specific node
         logger.info(String.format("Downgrade Node[%d]", nodeIndex));
+        dockers[nodeIndex].flush();
         dockers[nodeIndex].shutdown();
         dockers[nodeIndex].downgrade();
         dockerStates[nodeIndex].dockerVersion = DockerMeta.DockerVersion.original;

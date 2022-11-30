@@ -20,6 +20,8 @@ public interface IDockerCluster {
 
     boolean rollingUpgrade() throws Exception;
 
+    boolean downgrade() throws Exception;
+
     boolean freshStartNewVersion() throws Exception;
 
     void upgrade(int nodeIndex) throws Exception;

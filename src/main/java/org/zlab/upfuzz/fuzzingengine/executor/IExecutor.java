@@ -13,4 +13,6 @@ public interface IExecutor {
     boolean rollingUpgrade();
 
     boolean fullStopUpgrade();
+
+    boolean downgrade();
 }
