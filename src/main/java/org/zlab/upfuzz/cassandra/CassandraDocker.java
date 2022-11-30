@@ -366,55 +366,12 @@ public class CassandraDocker extends Docker {
         return stateValues;
     }
 
-    public String[] constructGrepCommand(Path filePath, String target,
-            int grepLineNum) {
-        return new String[] {
-                "/bin/sh", "-c",
-                "grep -a -A " + grepLineNum + " \"" + target + "\" " + filePath
-        };
-    }
-
     @Override
     public LogInfo grepLogInfo() {
         LogInfo logInfo = new LogInfo();
         Path filePath = Paths.get("/var/log/cassandra/system.log");
-        int grepLineNum = 4;
 
-        // ERROR
-        String[] cmd = constructGrepCommand(filePath, "ERROR", grepLineNum);
-        try {
-            Process grepProc = runInContainer(cmd);
-            String result = new String(
-                    grepProc.getInputStream().readAllBytes());
-            if (!result.isEmpty()) {
-                for (String msg : result.split("--")) {
-                    logInfo.addErrorMsg(msg);
-                }
-            }
-        } catch (IOException e) {
-            logger.error(String.format(
-                    "Problem when reading log information in docker[%d]",
-                    index));
-            e.printStackTrace();
-        }
-
-        // WARN
-        cmd = constructGrepCommand(filePath, "WARN", grepLineNum);
-        try {
-            Process grepProc = runInContainer(cmd);
-            String result = new String(
-                    grepProc.getInputStream().readAllBytes());
-            if (!result.isEmpty()) {
-                for (String msg : result.split("--")) {
-                    logInfo.addWARNMsg(msg);
-                }
-            }
-        } catch (IOException e) {
-            logger.error(String.format(
-                    "Problem when reading log information in docker[%d]",
-                    index));
-            e.printStackTrace();
-        }
+        constructLogInfo(logInfo, filePath);
         return logInfo;
     }
 

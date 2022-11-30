@@ -29,8 +29,8 @@ public class FullStopFeedbackPacket extends Packet {
     public boolean isInconsistent;
     public String inconsistencyReport;
 
-    public boolean hasERRORLog;
-    public String errorLogReport;
+    public boolean hasERRORLog = false;
+    public String errorLogReport = "";
 
     public FullStopFeedbackPacket(String systemID, int nodeNum,
             int testPacketID,
@@ -43,9 +43,6 @@ public class FullStopFeedbackPacket extends Packet {
         this.testPacketID = testPacketID;
         this.feedBacks = feedBacks;
         this.systemStates = systemStates;
-
-        hasERRORLog = false;
-        errorLogReport = "";
     }
 
     public static FullStopFeedbackPacket read(DataInputStream in) {

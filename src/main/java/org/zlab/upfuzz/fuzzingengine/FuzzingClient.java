@@ -226,7 +226,7 @@ public class FuzzingClient {
 
         // LOG checking2
         if (Config.getConf().enableLogCheck) {
-            logger.info("[HKLOG] error checking");
+            logger.info("[HKLOG] error checking: merge logs");
             assert logInfoBeforeUpgrade != null;
             Map<Integer, LogInfo> logInfo = filterErrorLog(logInfoBeforeUpgrade,
                     executor.grepLogInfo());

@@ -133,6 +133,31 @@ public class HdfsDocker extends Docker {
     }
 
     @Override
+    public void shutdown() {
+        String nodeType;
+        if (index == 0) {
+            nodeType = "namenode";
+        } else if (index == 1) {
+            nodeType = "secondarynamenode";
+        } else {
+            nodeType = "datanode";
+        }
+
+        String orihadoopDaemonPath = "/" + system + "/" + originalVersion + "/"
+                + "sbin/hadoop-daemon.sh";
+
+        if (!nodeType.equals("secondarynamenode")) {
+            // Secondary is stopped in a specific op (HDFSStopSNN)
+            String[] stopNode = new String[] { orihadoopDaemonPath, "stop",
+                    nodeType };
+
+            int ret = runProcessInContainer(stopNode, env);
+            logger.info("daemon stopped ret = " + ret);
+        }
+        logger.debug("shutdown " + nodeType);
+    }
+
+    @Override
     public void upgrade() throws Exception {
         type = "upgraded";
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
@@ -198,31 +223,6 @@ public class HdfsDocker extends Docker {
     }
 
     @Override
-    public void shutdown() {
-        String nodeType;
-        if (index == 0) {
-            nodeType = "namenode";
-        } else if (index == 1) {
-            nodeType = "secondarynamenode";
-        } else {
-            nodeType = "datanode";
-        }
-
-        String orihadoopDaemonPath = "/" + system + "/" + originalVersion + "/"
-                + "sbin/hadoop-daemon.sh";
-
-        if (!nodeType.equals("secondarynamenode")) {
-            // Secondary is stopped in a specific op (HDFSStopSNN)
-            String[] stopNode = new String[] { orihadoopDaemonPath, "stop",
-                    nodeType };
-
-            int ret = runProcessInContainer(stopNode, env);
-            logger.info("daemon stopped ret = " + ret);
-        }
-        logger.debug("shutdown " + nodeType);
-    }
-
-    @Override
     public boolean clear() {
         try {
             runInContainer(new String[] {
@@ -243,7 +243,11 @@ public class HdfsDocker extends Docker {
 
     @Override
     public LogInfo grepLogInfo() {
-        return null;
+        LogInfo logInfo = new LogInfo();
+        Path filePath = Paths.get("/var/log/hdfs/*.log");
+
+        constructLogInfo(logInfo, filePath);
+        return logInfo;
     }
 
     @Override

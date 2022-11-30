@@ -98,9 +98,10 @@ public class Config {
         public boolean useExampleTestPlan = false;
         public boolean debug = false;
 
-        // ------------State Comparison-------------
+        // ------------Log Check-------------
         // check ERROR/WARN in log
         public boolean enableLogCheck = true;
+        public int grepLineNum = 4;
 
         @Override
         public String toString() {

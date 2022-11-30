@@ -2,6 +2,8 @@ package org.zlab.upfuzz.docker;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.zlab.upfuzz.fuzzingengine.Config;
+import org.zlab.upfuzz.fuzzingengine.LogInfo;
 import org.zlab.upfuzz.utils.Utilities;
 
 import java.io.File;
@@ -131,6 +133,55 @@ public abstract class DockerMeta {
                     StandardCopyOption.REPLACE_EXISTING);
         }
         return true;
+    }
+
+    public String[] constructGrepCommand(Path filePath, String target,
+            int grepLineNum) {
+        return new String[] {
+                "/bin/sh", "-c",
+                "grep -a -A " + grepLineNum + " \"" + target + "\" " + filePath
+        };
+    }
+
+    public void constructLogInfo(LogInfo logInfo, Path filePath) {
+        // grep ERROR/WARN from log file
+        // ERROR
+        String[] cmd = constructGrepCommand(filePath, "ERROR",
+                Config.getConf().grepLineNum);
+        try {
+            Process grepProc = runInContainer(cmd);
+            String result = new String(
+                    grepProc.getInputStream().readAllBytes());
+            if (!result.isEmpty()) {
+                for (String msg : result.split("--")) {
+                    logInfo.addErrorMsg(msg);
+                }
+            }
+        } catch (IOException e) {
+            logger.error(String.format(
+                    "Problem when reading log information in docker[%d]",
+                    index));
+            e.printStackTrace();
+        }
+
+        // WARN
+        cmd = constructGrepCommand(filePath, "WARN",
+                Config.getConf().grepLineNum);
+        try {
+            Process grepProc = runInContainer(cmd);
+            String result = new String(
+                    grepProc.getInputStream().readAllBytes());
+            if (!result.isEmpty()) {
+                for (String msg : result.split("--")) {
+                    logInfo.addWARNMsg(msg);
+                }
+            }
+        } catch (IOException e) {
+            logger.error(String.format(
+                    "Problem when reading log information in docker[%d]",
+                    index));
+            e.printStackTrace();
+        }
     }
 
 }
