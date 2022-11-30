@@ -17,6 +17,7 @@ public class TestPlanFeedbackPacket extends Packet {
     // If the upgradeOp failed, this will be marked as true
     // We expect the system upgrade op should always succeed
     // no matter whether the normal command is correct or not
+    public String fullSequence = ""; // for reproducing
 
     public boolean isEventFailed = false; // One event failed.
     public String eventFailedReport;

@@ -153,7 +153,7 @@ public class FuzzingClient {
         }
 
         StackedFeedbackPacket stackedFeedbackPacket = new StackedFeedbackPacket();
-        stackedFeedbackPacket.stackedCommandSequenceStr = recordStackedTestPacket(
+        stackedFeedbackPacket.fullSequence = recordStackedTestPacket(
                 stackedTestPacket);
 
         // LOG checking1
@@ -169,8 +169,7 @@ public class FuzzingClient {
             // upgrade failed
             stackedTestPacketStr = recordStackedTestPacket(stackedTestPacket);
             String upgradeFailureReport = genUpgradeFailureReport(
-                    executor.executorID, stackedTestPacket.configIdx,
-                    stackedTestPacketStr);
+                    executor.executorID, stackedTestPacket.configIdx);
             stackedFeedbackPacket.isUpgradeProcessFailed = true;
             stackedFeedbackPacket.upgradeFailureReport = upgradeFailureReport;
             tearDownExecutor();
@@ -212,8 +211,7 @@ public class FuzzingClient {
                             stackedTestPacket);
                 String failureReport = genInconsistencyReport(
                         executor.executorID, stackedTestPacket.configIdx,
-                        compareRes.right, recordSingleTestPacket(tp),
-                        stackedTestPacketStr);
+                        compareRes.right, recordSingleTestPacket(tp));
                 feedbackPacket.isInconsistent = true;
                 feedbackPacket.inconsistencyReport = failureReport;
             }
@@ -253,6 +251,8 @@ public class FuzzingClient {
         FullStopFeedbackPacket fullStopFeedbackPacket = new FullStopFeedbackPacket(
                 fullStopPacket.systemID, nodeNum,
                 fullStopPacket.testPacketID, feedBacks, new HashMap<>());
+        fullStopFeedbackPacket.fullSequence = recordFullStopPacket(
+                fullStopPacket);
 
         logger.info("[HKLOG] configPath = " + fullStopPacket.configFileName);
         Path configPath = Paths.get(configDirPath.toString(),
@@ -301,8 +301,7 @@ public class FuzzingClient {
             fullStopFeedbackPacket.isUpgradeProcessFailed = true;
             fullStopFeedbackPacket.upgradeFailureReport = genOriCoverageCollFailureReport(
                     executor.executorID, fullStopPacket.configFileName,
-                    recordFullStopPacket(fullStopPacket),
-                    "") + "Exception:" + e;
+                    recordFullStopPacket(fullStopPacket)) + "Exception:" + e;
             tearDownExecutor();
             return fullStopFeedbackPacket;
         }
@@ -312,8 +311,7 @@ public class FuzzingClient {
         if (!upgradeStatus) {
             fullStopFeedbackPacket.isUpgradeProcessFailed = true;
             fullStopFeedbackPacket.upgradeFailureReport = genUpgradeFailureReport(
-                    executor.executorID, fullStopPacket.configFileName,
-                    recordFullStopPacket(fullStopPacket));
+                    executor.executorID, fullStopPacket.configFileName);
         } else {
             // Upgrade is done successfully, collect coverage and check results
             // Collect new version coverage
@@ -331,8 +329,8 @@ public class FuzzingClient {
                 fullStopFeedbackPacket.isUpgradeProcessFailed = true;
                 fullStopFeedbackPacket.upgradeFailureReport = genUpCoverageCollFailureReport(
                         executor.executorID, fullStopPacket.configFileName,
-                        recordFullStopPacket(fullStopPacket),
-                        "") + "Exception:" + e;
+                        recordFullStopPacket(fullStopPacket)) + "Exception:"
+                        + e;
                 tearDownExecutor();
                 return fullStopFeedbackPacket;
             }
@@ -354,8 +352,7 @@ public class FuzzingClient {
                 fullStopFeedbackPacket.isInconsistent = true;
                 fullStopFeedbackPacket.inconsistencyReport = genInconsistencyReport(
                         executor.executorID, fullStopPacket.configFileName,
-                        compareRes.right, recordFullStopPacket(fullStopPacket),
-                        "");
+                        compareRes.right, recordFullStopPacket(fullStopPacket));
 
                 logger.info("Execution ID = " + executor.executorID
                         + "\ninconsistency: " + compareRes.right);
@@ -461,6 +458,7 @@ public class FuzzingClient {
         TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
                 testPlanPacket.systemID, nodeNum,
                 testPlanPacket.testPacketID, feedBacks);
+        testPlanFeedbackPacket.fullSequence = testPlanPacketStr;
 
         // collect old version coverage
         for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
@@ -484,7 +482,7 @@ public class FuzzingClient {
         if (!status) {
             testPlanFeedbackPacket.eventFailedReport = genTestPlanFailureReport(
                     executor.eventIdx, executor.executorID, configIdx,
-                    testPlanPacketStr, "");
+                    testPlanPacketStr);
             testPlanFeedbackPacket.isEventFailed = true;
             testPlanFeedbackPacket.isInconsistent = false;
             testPlanFeedbackPacket.inconsistencyReport = "";
@@ -505,8 +503,7 @@ public class FuzzingClient {
                     testPlanFeedbackPacket.isInconsistent = true;
                     testPlanFeedbackPacket.inconsistencyReport = genTestPlanInconsistencyReport(
                             executor.executorID, configIdx,
-                            compareRes.right, testPlanPacketStr,
-                            "");
+                            compareRes.right, testPlanPacketStr);
                 }
             }
 
@@ -524,8 +521,8 @@ public class FuzzingClient {
                 testPlanFeedbackPacket.isEventFailed = true;
                 testPlanFeedbackPacket.eventFailedReport = genUpCoverageCollFailureReport(
                         executor.executorID, configIdx,
-                        recordTestPlanPacket(testPlanPacket),
-                        "") + "Exception:" + e;
+                        recordTestPlanPacket(testPlanPacket)) + "Exception:"
+                        + e;
                 tearDownExecutor();
                 return testPlanFeedbackPacket;
             }
@@ -601,8 +598,7 @@ public class FuzzingClient {
         }
 
         StackedFeedbackPacket stackedFeedbackPacket = new StackedFeedbackPacket();
-        stackedFeedbackPacket.stackedCommandSequenceStr = recordStackedTestPacket(
-                stackedTestPacket);
+        stackedFeedbackPacket.fullSequence = mixedTestPacketStr;
 
         // LOG checking1
         Map<Integer, LogInfo> logInfoBeforeUpgrade = null;
@@ -625,6 +621,7 @@ public class FuzzingClient {
         TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
                 testPlanPacket.systemID, nodeNum,
                 testPlanPacket.testPacketID, testPlanFeedBacks);
+        testPlanFeedbackPacket.fullSequence = mixedTestPacketStr;
 
         if (!status) {
             // one event in the test plan failed
@@ -632,8 +629,7 @@ public class FuzzingClient {
 
             testPlanFeedbackPacket.eventFailedReport = genTestPlanFailureReport(
                     executor.eventIdx, executor.executorID,
-                    stackedTestPacket.configIdx, testPlanPacketStr,
-                    mixedTestPacketStr);
+                    stackedTestPacket.configIdx, testPlanPacketStr);
             testPlanFeedbackPacket.isInconsistent = false;
             testPlanFeedbackPacket.inconsistencyReport = "";
             MixedFeedbackPacket mixedFeedbackPacket = new MixedFeedbackPacket(
@@ -658,8 +654,7 @@ public class FuzzingClient {
                 testPlanFeedbackPacket.isInconsistent = true;
                 testPlanFeedbackPacket.inconsistencyReport = genTestPlanInconsistencyReport(
                         executor.executorID, stackedTestPacket.configIdx,
-                        compareRes.right, testPlanPacketStr,
-                        mixedTestPacketStr);
+                        compareRes.right, testPlanPacketStr);
             }
         }
 
@@ -701,8 +696,7 @@ public class FuzzingClient {
             if (!compareRes.left) {
                 String failureReport = genInconsistencyReport(
                         executor.executorID, stackedTestPacket.configIdx,
-                        compareRes.right, recordSingleTestPacket(tp),
-                        mixedTestPacketStr);
+                        compareRes.right, recordSingleTestPacket(tp));
 
                 // Create the feedback packet
                 feedbackPacket.isInconsistent = true;
@@ -754,67 +748,55 @@ public class FuzzingClient {
     }
 
     private String genTestPlanFailureReport(int failEventIdx, String executorID,
-            String configIdx, String testPlanPacket, String fullTestPacket) {
+            String configIdx, String testPlanPacket) {
         return "[Test plan execution failed at event" + failEventIdx + "]\n" +
                 "executionId = " + executorID + "\n" +
                 "ConfigIdx = " + configIdx + "\n" +
-                testPlanPacket + "\n" +
-                "[Full Sequence]\n" +
-                fullTestPacket + "\n";
+                testPlanPacket + "\n";
     }
 
     private String genInconsistencyReport(String executorID,
             String configIdx, String inconsistencyRecord,
-            String singleTestPacket, String fullTestPacket) {
+            String singleTestPacket) {
         return "[Results inconsistency between two versions]\n" +
                 "executionId = " + executorID + "\n" +
                 "ConfigIdx = " + configIdx + "\n" +
                 inconsistencyRecord + "\n" +
-                singleTestPacket + "\n" +
-                "[Full Sequence]" + "\n" +
-                fullTestPacket + "\n";
+                singleTestPacket + "\n";
     }
 
     private String genTestPlanInconsistencyReport(String executorID,
             String configIdx, String inconsistencyRecord,
-            String singleTestPacket, String fullTestPacket) {
+            String singleTestPacket) {
         return "[Results inconsistency between full-stop and rolling upgrade]\n"
                 +
                 "executionId = " + executorID + "\n" +
                 "ConfigIdx = " + configIdx + "\n" +
                 inconsistencyRecord + "\n" +
-                singleTestPacket + "\n" +
-                "[Full Sequence]" + "\n" +
-                fullTestPacket + "\n";
+                singleTestPacket + "\n";
     }
 
     private String genUpgradeFailureReport(String executorID,
-            String configIdx, String fullTestPacket) {
+            String configIdx) {
         return "[Upgrade Failed]\n" +
                 "executionId = " + executorID + "\n" +
-                "ConfigIdx = " + configIdx + "\n" +
-                "[Full Sequence]" + "\n" +
-                fullTestPacket + "\n";
+                "ConfigIdx = " + configIdx + "\n";
     }
 
     private String genOriCoverageCollFailureReport(String executorID,
-            String configIdx, String singleTestPacket, String fullTestPacket) {
+            String configIdx, String singleTestPacket) {
         return "[Original Coverage Collect Failed]\n" +
                 "executionId = " + executorID + "\n" +
                 "ConfigIdx = " + configIdx + "\n" +
-                singleTestPacket + "\n" +
-                "[Full Sequence]" + "\n" +
-                fullTestPacket + "\n";
+                singleTestPacket + "\n";
     }
 
     private String genUpCoverageCollFailureReport(String executorID,
-            String configIdx, String singleTestPacket, String fullTestPacket) {
+            String configIdx, String singleTestPacket) {
         return "[Upgrade Coverage Collect Failed]\n" +
                 "executionId = " + executorID + "\n" +
                 "ConfigIdx = " + configIdx + "\n" +
-                singleTestPacket + "\n" +
-                "[Full Sequence]" + "\n" +
-                fullTestPacket + "\n";
+                singleTestPacket + "\n";
     }
 
     private String recordStackedTestPacket(

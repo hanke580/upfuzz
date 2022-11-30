@@ -828,7 +828,7 @@ public class FuzzingServer {
             failureId++;
         }
         Path failureSubDir = Paths.get(Config.getConf().failureDir,
-                "crash_" + failureId++);
+                "failure_" + failureId++);
         failureSubDir.toFile().mkdir();
         return failureSubDir;
     }
@@ -893,7 +893,7 @@ public class FuzzingServer {
                 errorSubDir.toString(),
                 "error_" + testID + ".report");
         Utilities.write2TXT(reportPath.toFile(), report, false);
-        inconsistencyNum++;
+        errorLogNum++;
     }
 
     public void printInfo() {

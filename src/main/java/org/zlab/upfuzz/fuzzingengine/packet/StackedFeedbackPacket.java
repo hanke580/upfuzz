@@ -16,13 +16,14 @@ public class StackedFeedbackPacket extends Packet {
     static Logger logger = LogManager.getLogger(StackedFeedbackPacket.class);
 
     public final List<FeedbackPacket> fpList;
+
+    public String fullSequence = ""; // for reproducing
+
     public boolean isUpgradeProcessFailed = false;
     public String upgradeFailureReport;
 
     public boolean hasERRORLog = false;
     public String errorLogReport = "";
-
-    public String stackedCommandSequenceStr;
 
     // public int nodeNum;
     // (1) Failed Upgrade Process: Report all command sequences

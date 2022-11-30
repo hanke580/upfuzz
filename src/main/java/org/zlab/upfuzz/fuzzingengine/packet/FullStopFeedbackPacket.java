@@ -22,6 +22,8 @@ public class FullStopFeedbackPacket extends Packet {
     public FeedBack[] feedBacks;
     public Map<Integer, Map<String, String>> systemStates;
 
+    public String fullSequence = ""; // for reproducing
+
     public boolean isUpgradeProcessFailed = false;
     public String upgradeFailureReport;
 
