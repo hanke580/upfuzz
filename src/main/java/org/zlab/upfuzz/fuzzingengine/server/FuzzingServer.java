@@ -621,7 +621,6 @@ public class FuzzingServer {
 
             if (fullStopFeedbackPacket.isUpgradeProcessFailed) {
                 saveFullStopCrashReport(failureDir,
-                        fullStopFeedbackPacket.testPacketID,
                         fullStopFeedbackPacket.upgradeFailureReport);
             }
             if (fullStopFeedbackPacket.isInconsistent) {
@@ -631,7 +630,6 @@ public class FuzzingServer {
             }
             if (fullStopFeedbackPacket.hasERRORLog) {
                 saveErrorReport(failureDir,
-                        fullStopFeedbackPacket.testPacketID,
                         fullStopFeedbackPacket.errorLogReport);
             }
         }
@@ -721,11 +719,10 @@ public class FuzzingServer {
     public synchronized void updateStatus(
             StackedFeedbackPacket stackedFeedbackPacket) {
         Path failureDir = null;
-        int startTestId = stackedFeedbackPacket.fpList.get(0).testPacketID;
 
         if (stackedFeedbackPacket.isUpgradeProcessFailed) {
             failureDir = createFailureDir();
-            saveFullStopCrashReport(failureDir, startTestId,
+            saveFullStopCrashReport(failureDir,
                     stackedFeedbackPacket.upgradeFailureReport);
 
             finishedTestID++;
@@ -783,7 +780,7 @@ public class FuzzingServer {
         if (stackedFeedbackPacket.hasERRORLog) {
             if (failureDir == null)
                 failureDir = createFailureDir();
-            saveErrorReport(failureDir, startTestId,
+            saveErrorReport(failureDir,
                     stackedFeedbackPacket.errorLogReport);
         }
 
@@ -857,12 +854,12 @@ public class FuzzingServer {
         return inconsistencyDir;
     }
 
-    private void saveFullStopCrashReport(Path failureDir, int testID,
+    private void saveFullStopCrashReport(Path failureDir,
             String report) {
         Path subDir = createFullStopCrashSubDir(failureDir);
         Path crashReportPath = Paths.get(
                 subDir.toString(),
-                "fullstop_crash_" + testID + ".report");
+                "fullstop_crash.report");
         Utilities.write2TXT(crashReportPath.toFile(), report, false);
         fullStopCrashNum++;
     }
@@ -887,11 +884,11 @@ public class FuzzingServer {
         inconsistencyNum++;
     }
 
-    private void saveErrorReport(Path failureDir, int testID, String report) {
+    private void saveErrorReport(Path failureDir, String report) {
         Path errorSubDir = createErrorSubDir(failureDir);
         Path reportPath = Paths.get(
                 errorSubDir.toString(),
-                "error_" + testID + ".report");
+                "error.report");
         Utilities.write2TXT(reportPath.toFile(), report, false);
         errorLogNum++;
     }
