@@ -618,7 +618,7 @@ public class FuzzingServer {
                 || fullStopFeedbackPacket.isInconsistent
                 || fullStopFeedbackPacket.hasERRORLog) {
             failureDir = createFailureDir();
-
+            saveFullSequence(failureDir, fullStopFeedbackPacket.fullSequence);
             if (fullStopFeedbackPacket.isUpgradeProcessFailed) {
                 saveFullStopCrashReport(failureDir,
                         fullStopFeedbackPacket.upgradeFailureReport);
@@ -692,7 +692,7 @@ public class FuzzingServer {
                 || testPlanFeedbackPacket.isInconsistent
                 || testPlanFeedbackPacket.hasERRORLog) {
             failureDir = createFailureDir();
-
+            saveFullSequence(failureDir, testPlanFeedbackPacket.fullSequence);
             if (testPlanFeedbackPacket.isEventFailed) {
                 saveEventCrashReport(failureDir,
                         testPlanFeedbackPacket.testPacketID,
@@ -722,9 +722,9 @@ public class FuzzingServer {
 
         if (stackedFeedbackPacket.isUpgradeProcessFailed) {
             failureDir = createFailureDir();
+            saveFullSequence(failureDir, stackedFeedbackPacket.fullSequence);
             saveFullStopCrashReport(failureDir,
                     stackedFeedbackPacket.upgradeFailureReport);
-
             finishedTestID++;
         }
 
@@ -767,8 +767,11 @@ public class FuzzingServer {
                 }
             }
             if (feedbackPacket.isInconsistent) {
-                if (failureDir == null)
+                if (failureDir == null) {
                     failureDir = createFailureDir();
+                    saveFullSequence(failureDir,
+                            stackedFeedbackPacket.fullSequence);
+                }
                 saveInconsistencyReport(failureDir,
                         feedbackPacket.testPacketID,
                         feedbackPacket.inconsistencyReport);
@@ -778,8 +781,11 @@ public class FuzzingServer {
         }
 
         if (stackedFeedbackPacket.hasERRORLog) {
-            if (failureDir == null)
+            if (failureDir == null) {
                 failureDir = createFailureDir();
+                saveFullSequence(failureDir,
+                        stackedFeedbackPacket.fullSequence);
+            }
             saveErrorReport(failureDir,
                     stackedFeedbackPacket.errorLogReport);
         }
@@ -852,6 +858,14 @@ public class FuzzingServer {
         Path inconsistencyDir = failureSubDir.resolve("errorLog");
         inconsistencyDir.toFile().mkdir();
         return inconsistencyDir;
+    }
+
+    private void saveFullSequence(Path failureDir,
+            String fullSequence) {
+        Path crashReportPath = Paths.get(
+                failureDir.toString(),
+                "fullSequence.report");
+        Utilities.write2TXT(crashReportPath.toFile(), fullSequence, false);
     }
 
     private void saveFullStopCrashReport(Path failureDir,

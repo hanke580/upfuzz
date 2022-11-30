@@ -632,81 +632,77 @@ public class FuzzingClient {
                     stackedTestPacket.configIdx, testPlanPacketStr);
             testPlanFeedbackPacket.isInconsistent = false;
             testPlanFeedbackPacket.inconsistencyReport = "";
-            MixedFeedbackPacket mixedFeedbackPacket = new MixedFeedbackPacket(
-                    stackedFeedbackPacket, testPlanFeedbackPacket);
-            tearDownExecutor();
-            return mixedFeedbackPacket;
-        }
+        } else {
+            Pair<Boolean, String> compareRes;
+            // read results comparison between full-stop upgrade and rolling upgrade
+            if (!testPlanPacket.testPlan.validationReadResultsOracle.isEmpty()) {
+                List<String> testPlanReadResults = executor
+                        .executeCommands(
+                                testPlanPacket.testPlan.validationCommands);
 
-        Pair<Boolean, String> compareRes;
-        // read results comparison between full-stop upgrade and rolling upgrade
-        if (!testPlanPacket.testPlan.validationReadResultsOracle.isEmpty()) {
-            List<String> testPlanReadResults = executor
-                    .executeCommands(
-                            testPlanPacket.testPlan.validationCommands);
+                compareRes = executor
+                        .checkResultConsistency(
+                                testPlanReadResults,
+                                testPlanPacket.testPlan.validationReadResultsOracle);
 
-            compareRes = executor
-                    .checkResultConsistency(
-                            testPlanReadResults,
-                            testPlanPacket.testPlan.validationReadResultsOracle);
-
-            if (!compareRes.left) {
-                testPlanFeedbackPacket.isInconsistent = true;
-                testPlanFeedbackPacket.inconsistencyReport = genTestPlanInconsistencyReport(
-                        executor.executorID, stackedTestPacket.configIdx,
-                        compareRes.right, testPlanPacketStr);
+                if (!compareRes.left) {
+                    testPlanFeedbackPacket.isInconsistent = true;
+                    testPlanFeedbackPacket.inconsistencyReport = genTestPlanInconsistencyReport(
+                            executor.executorID, stackedTestPacket.configIdx,
+                            compareRes.right, testPlanPacketStr);
+                }
             }
-        }
 
-        // ----test plan upgrade coverage----
-        ExecutionDataStore[] upCoverages = executor
-                .collectCoverageSeparate("upgraded");
-        if (upCoverages != null) {
-            for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
-                testPlanFeedbackPacket.feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+            // ----test plan upgrade coverage----
+            ExecutionDataStore[] upCoverages = executor
+                    .collectCoverageSeparate("upgraded");
+            if (upCoverages != null) {
+                for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
+                    testPlanFeedbackPacket.feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+                }
             }
-        }
 
-        // ----stacked read upgrade coverage----
-        for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
-            List<String> upResult = executor
-                    .executeCommands(tp.validationCommandSequneceList);
-            testID2upResults.put(tp.testPacketID, upResult);
-            if (Config.getConf().collUpFeedBack) {
-                upCoverages = executor
-                        .collectCoverageSeparate("upgraded");
-                if (upCoverages != null) {
-                    for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
-                        testID2FeedbackPacket.get(
-                                tp.testPacketID).feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+            // ----stacked read upgrade coverage----
+            for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
+                List<String> upResult = executor
+                        .executeCommands(tp.validationCommandSequneceList);
+                testID2upResults.put(tp.testPacketID, upResult);
+                if (Config.getConf().collUpFeedBack) {
+                    upCoverages = executor
+                            .collectCoverageSeparate("upgraded");
+                    if (upCoverages != null) {
+                        for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
+                            testID2FeedbackPacket.get(
+                                    tp.testPacketID).feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+                        }
                     }
                 }
             }
-        }
-        // Check read results consistency
-        for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
-            compareRes = executor
-                    .checkResultConsistency(
-                            testID2oriResults.get(tp.testPacketID),
-                            testID2upResults.get(tp.testPacketID));
+            // Check read results consistency
+            for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
+                compareRes = executor
+                        .checkResultConsistency(
+                                testID2oriResults.get(tp.testPacketID),
+                                testID2upResults.get(tp.testPacketID));
 
-            FeedbackPacket feedbackPacket = testID2FeedbackPacket
-                    .get(tp.testPacketID);
+                FeedbackPacket feedbackPacket = testID2FeedbackPacket
+                        .get(tp.testPacketID);
 
-            if (!compareRes.left) {
-                String failureReport = genInconsistencyReport(
-                        executor.executorID, stackedTestPacket.configIdx,
-                        compareRes.right, recordSingleTestPacket(tp));
+                if (!compareRes.left) {
+                    String failureReport = genInconsistencyReport(
+                            executor.executorID, stackedTestPacket.configIdx,
+                            compareRes.right, recordSingleTestPacket(tp));
 
-                // Create the feedback packet
-                feedbackPacket.isInconsistent = true;
-                feedbackPacket.inconsistencyReport = failureReport;
-            } else {
-                feedbackPacket.isInconsistent = false;
+                    // Create the feedback packet
+                    feedbackPacket.isInconsistent = true;
+                    feedbackPacket.inconsistencyReport = failureReport;
+                } else {
+                    feedbackPacket.isInconsistent = false;
+                }
+                feedbackPacket.validationReadResults = testID2upResults
+                        .get(tp.testPacketID);
+                stackedFeedbackPacket.addFeedbackPacket(feedbackPacket);
             }
-            feedbackPacket.validationReadResults = testID2upResults
-                    .get(tp.testPacketID);
-            stackedFeedbackPacket.addFeedbackPacket(feedbackPacket);
         }
 
         // LOG checking2

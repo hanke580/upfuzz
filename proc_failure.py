@@ -16,7 +16,6 @@ import subprocess
 
 def print_list(l):
     for i in l:
-        # i = i.strip()
         print("size = ", len(i))
         print(i)
 
@@ -29,33 +28,33 @@ def saveUniqueFailure(uniq_failure):
         json.dump(uniq_failure, f)
 
 
-str = ""
-proc = subprocess.Popen(["grep", "-hr", "-A", "4", "ERROR", "system.log"],stdout=subprocess.PIPE)
-for line in proc.stdout:
-    #the real code does filtering here
-    line_str = line.decode().rstrip()
-    print("line = ", line_str)
-    if ("ERROR" in line_str):
-        arr = line_str.split()
-        str += arr[0]
-        str += " "
-        assert len(arr) > 5
-        for i in range(4, len(arr)):
-            str += arr[i]
-            if i != len(arr):
-                str += " "
-    else:
-        str += line_str
-    str += "\n"
+def grepUniqueError():
+    str = ""
+    proc = subprocess.Popen(["grep", "-hr", "-A", "4", "ERROR", "system.log"],stdout=subprocess.PIPE)
+    for line in proc.stdout:
+        #the real code does filtering here
+        line_str = line.decode().rstrip()
+        print("line = ", line_str)
+        if ("ERROR" in line_str):
+            arr = line_str.split()
+            str += arr[0]
+            str += " "
+            assert len(arr) > 5
+            for i in range(4, len(arr)):
+                str += arr[i]
+                if i != len(arr):
+                    str += " "
+        else:
+            str += line_str
+        str += "\n"
 
-error_arr = str.split("--")
-filter_arr = []
-for e in error_arr:
-    filter_arr.append(e.strip())
+    error_arr = str.split("--")
+    filter_arr = []
+    for e in error_arr:
+        filter_arr.append(e.strip())
 
-filter_arr = list(set(filter_arr))
-print_list(filter_arr)
-
+    filter_arr = list(set(filter_arr))
+    print_list(filter_arr)
 
 """
 for all the failures, grep again using the class:line number, get all case ID
@@ -63,8 +62,8 @@ this time, how do we perform the grep? By class:line, there is a problem where t
 
 Grep1: using class:line number
 Grep2: using 
- 
 """
+
 
 
 
