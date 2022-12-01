@@ -216,6 +216,19 @@ public class FuzzingClient {
         logger.info(executor.systemID + " executor: " + executor.executorID
                 + " finished execution");
 
+        // test downgrade
+        if (Config.getConf().testDowngrade) {
+            logger.info("downgrade cluster");
+            boolean downgradeStatus = executor.downgrade();
+            if (!downgradeStatus) {
+                // downgrade failed
+                stackedFeedbackPacket.isDowngradeProcessFailed = true;
+                stackedFeedbackPacket.downgradeFailureReport = genDowngradeFailureReport(
+                        executor.executorID,
+                        stackedFeedbackPacket.configFileName);
+            }
+        }
+
         // LOG checking2
         if (Config.getConf().enableLogCheck) {
             logger.info("[HKLOG] error checking: merge logs");
