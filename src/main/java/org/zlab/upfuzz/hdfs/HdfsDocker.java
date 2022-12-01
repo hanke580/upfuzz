@@ -80,7 +80,7 @@ public class HdfsDocker extends Docker {
     public int start() throws Exception {
         // Connect to the HDFS daemon
         hdfsShell = new HDFSShellDaemon(getNetworkIP(), hdfsDaemonPort,
-                executorID);
+                executorID, this);
         return 0;
     }
 
@@ -186,7 +186,7 @@ public class HdfsDocker extends Docker {
         String message = Utilities.readProcess(restart);
         logger.debug("upgrade version start: " + ret + "\n" + message);
         hdfsShell = new HDFSShellDaemon(getNetworkIP(), hdfsDaemonPort,
-                executorID);
+                executorID, this);
     }
 
     @Override
@@ -218,7 +218,7 @@ public class HdfsDocker extends Docker {
         logger.debug(
                 "downgrade to original version start: " + ret + "\n" + message);
         hdfsShell = new HDFSShellDaemon(getNetworkIP(), hdfsDaemonPort,
-                executorID);
+                executorID, this);
 
     }
 

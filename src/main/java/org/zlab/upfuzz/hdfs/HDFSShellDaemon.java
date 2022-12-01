@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.cassandra.CassandraCqlshDaemon;
+import org.zlab.upfuzz.docker.Docker;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -15,7 +16,8 @@ public class HDFSShellDaemon {
 
     private Socket socket;
 
-    public HDFSShellDaemon(String ipAddress, int port, String executorID) {
+    public HDFSShellDaemon(String ipAddress, int port, String executorID,
+            Docker docker) {
         int retry = 10;
         logger.info("[HKLOG] executor ID = " + executorID + "  "
                 + "Connect to hdfs shell daemon:" + ipAddress + "...");
@@ -29,11 +31,29 @@ public class HDFSShellDaemon {
                 logger.info("[HKLOG] executor ID = " + executorID + "  "
                         + "hdfs shell connected: " + ipAddress);
                 return;
-            } catch (IOException e) {
+            } catch (Exception ignored) {
             }
             try {
                 Thread.sleep(10 * 1000);
-            } catch (InterruptedException e) {
+            } catch (InterruptedException ignored) {
+            }
+
+            try {
+                Process grepProc = docker.runInContainer(new String[] {
+                        "/bin/sh", "-c",
+                        "ps -ef | grep org.apache.hadoop.hdfs.server | wc -l"
+                });
+                String result = new String(
+                        grepProc.getInputStream().readAllBytes()).strip();
+                int processNum = Integer.parseInt(result);
+                logger.info("[HKLOG] processNum = " + processNum);
+                if (Integer.parseInt(result) <= 2) {
+                    // Process has died
+                    break;
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
         throw new RuntimeException("[HKLOG] executor ID = " + executorID

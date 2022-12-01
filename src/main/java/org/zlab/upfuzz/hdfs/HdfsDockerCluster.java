@@ -50,99 +50,8 @@ public class HdfsDockerCluster extends DockerCluster {
         return true;
     }
 
-    public int start() {
-        // String dockerTimestamp =
-        // formatter.format(System.currentTimeMillis());
-
-        File composeFile = new File(workdir, "docker-compose.yaml");
-        if (!workdir.exists()) {
-            workdir.mkdirs();
-        }
-
-        Process buildProcess = null;
-        int retry = 3, ret = -1;
-
-        for (int i = 0; i < retry; ++i) {
-            try {
-                BufferedWriter writer = new BufferedWriter(
-                        new FileWriter(composeFile));
-
-                formatComposeYaml();
-                composeFile.createNewFile();
-                // logger.info("\n\n compose yaml \n" + composeYaml + "\n\n");
-                writer.write(composeYaml);
-                writer.close();
-
-                buildProcess = Utilities.exec(
-                        new String[] { "docker-compose", "up", "-d" }, workdir);
-                ret = buildProcess.waitFor();
-                if (ret == 0) {
-                    logger.info("docker-compose up " + workdir);
-                    break;
-                } else {
-                    Utilities.exec(
-                            new String[] { "docker", "network", "prune" },
-                            workdir);
-                    refreshNetwork();
-                    String errorMessage = Utilities.readProcess(buildProcess);
-                    logger.warn("docker-compose up\n" + errorMessage);
-                }
-            } catch (IOException | InterruptedException e) {
-                e.printStackTrace();
-                throw new RuntimeException(e.toString());
-            }
-        }
-        if (ret != 0) {
-            String errorMessage = Utilities.readProcess(buildProcess);
-            logger.error("docker-compose up\n" + errorMessage);
-            // System.exit(ret);
-        }
-
-        try {
-            // Get network full name here, so that later we can disconnect and
-            // reconnect
-            Process getNameProcess = Utilities.exec(
-                    new String[] { "/bin/sh", "-c",
-                            "docker network ls | grep " + networkName },
-                    workdir);
-            getNameProcess.waitFor();
-
-            BufferedReader stdInput = new BufferedReader(
-                    new InputStreamReader(getNameProcess.getInputStream()));
-
-            BufferedReader stdError = new BufferedReader(
-                    new InputStreamReader(getNameProcess.getErrorStream()));
-
-            List<String> results = new ArrayList<>();
-            String s;
-            while ((s = stdInput.readLine()) != null) {
-                results.add(s);
-            }
-            if (results.size() != 1) {
-                logger.error(
-                        "There should be one matching network, but there is "
-                                + results.size() + " matching");
-                this.networkID = null;
-            } else {
-                this.networkID = results.get(0).split(" ")[0];
-            }
-
-            System.out.println("network ID = " + this.networkID);
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        for (int i = 0; i < dockers.length; ++i) {
-            try {
-                dockers[i].start();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return ret;
-    }
-
-    private void refreshNetwork() throws IOException {
+    @Override
+    public void refreshNetwork() {
         this.subnetID = RandomUtils.nextInt(1, 256);
         this.subnet = "192.168." + Integer.toString(subnetID) + ".1/24";
         this.hostIP = "192.168." + Integer.toString(subnetID) + ".1";
@@ -259,7 +168,8 @@ public class HdfsDockerCluster extends DockerCluster {
             + "            config:\n"
             + "                - subnet: ${subnet}\n";
 
-    private void formatComposeYaml() {
+    @Override
+    public void formatComposeYaml() {
         Map<String, String> formatMap = new HashMap<>();
 
         StringBuilder sb = new StringBuilder();
