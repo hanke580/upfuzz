@@ -103,6 +103,22 @@ public class HdfsDockerCluster extends DockerCluster {
         logger.debug("hdfs upgrade finalized");
     }
 
+    @Override
+    public boolean fullStopUpgrade() throws Exception {
+        logger.info("[HDFS] Cluster full-stop upgrading...");
+        prepareUpgrade();
+        stopSNN(); // HDFS is special since it needs to stop SNN first
+        for (int i = 0; i < dockers.length; i++) {
+            dockers[i].flush();
+            dockers[i].shutdown();
+        }
+        for (int i = 0; i < dockers.length; i++) {
+            dockers[i].upgrade();
+        }
+        logger.info("Cluster upgraded");
+        return true;
+    }
+
     public void stopSNN() {
         String orihadoopDaemonPath = "/" + system + "/" + originalVersion + "/"
                 + "sbin/hadoop-daemon.sh";

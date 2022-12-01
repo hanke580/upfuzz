@@ -153,8 +153,8 @@ public class HdfsDocker extends Docker {
 
             int ret = runProcessInContainer(stopNode, env);
             logger.info("daemon stopped ret = " + ret);
+            logger.debug("shutdown " + nodeType);
         }
-        logger.debug("shutdown " + nodeType);
     }
 
     @Override

@@ -140,10 +140,9 @@ public abstract class DockerMeta {
             int grepLineNum) {
         return new String[] {
                 "/bin/sh", "-c",
-                "grep -a -A " + grepLineNum + " \"" + target + "\" " + filePath
+                "grep -ah -A " + grepLineNum + " \"" + target + "\" " + filePath
         };
     }
-
 
     static final String[] hdfsErrorBlackList = new String[] {
             "RECEIVED SIGNAL"
@@ -151,7 +150,7 @@ public abstract class DockerMeta {
 
     public boolean isBlackListed(String errorMsg) {
         if (Config.getConf().system.equals("hdfs")) {
-            for (String str: hdfsErrorBlackList) {
+            for (String str : hdfsErrorBlackList) {
                 if (errorMsg.contains(str)) {
                     return true;
                 }
@@ -159,7 +158,6 @@ public abstract class DockerMeta {
         }
         return false;
     }
-
 
     public void constructLogInfo(LogInfo logInfo, Path filePath) {
         // grep ERROR/WARN from log file
