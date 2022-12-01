@@ -180,7 +180,6 @@ def processCassandra():
 def read_failureInfo():
     with open(os.path.join(failure_stat_dir, "unique_error.json"), 'r') as f:
         error2failure = json.load(f)
-        print(len(error2failure))
         for error_msg in error2failure:
             print("error msg: ", error_msg)
             for failureIdx in error2failure[error_msg]:

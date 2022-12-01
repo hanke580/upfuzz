@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 public abstract class DockerMeta {
@@ -143,6 +144,23 @@ public abstract class DockerMeta {
         };
     }
 
+
+    static final String[] hdfsErrorBlackList = new String[] {
+            "RECEIVED SIGNAL"
+    };
+
+    public boolean isBlackListed(String errorMsg) {
+        if (Config.getConf().system.equals("hdfs")) {
+            for (String str: hdfsErrorBlackList) {
+                if (errorMsg.contains(str)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+
     public void constructLogInfo(LogInfo logInfo, Path filePath) {
         // grep ERROR/WARN from log file
         // ERROR
@@ -154,7 +172,8 @@ public abstract class DockerMeta {
                     grepProc.getInputStream().readAllBytes());
             if (!result.isEmpty()) {
                 for (String msg : result.split("--")) {
-                    logInfo.addErrorMsg(msg);
+                    if (!isBlackListed(msg))
+                        logInfo.addErrorMsg(msg);
                 }
             }
         } catch (IOException e) {
