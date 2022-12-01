@@ -150,7 +150,8 @@ public class FuzzingClient {
             testID2oriResults.put(tp.testPacketID, oriResult);
         }
 
-        StackedFeedbackPacket stackedFeedbackPacket = new StackedFeedbackPacket();
+        StackedFeedbackPacket stackedFeedbackPacket = new StackedFeedbackPacket(
+                stackedTestPacket.configFileName);
         stackedFeedbackPacket.fullSequence = recordStackedTestPacket(
                 stackedTestPacket);
 
@@ -258,7 +259,7 @@ public class FuzzingClient {
             feedBacks[i] = new FeedBack();
         }
         FullStopFeedbackPacket fullStopFeedbackPacket = new FullStopFeedbackPacket(
-                fullStopPacket.systemID, nodeNum,
+                fullStopPacket.systemID, fullStopPacket.configFileName,
                 fullStopPacket.testPacketID, feedBacks, new HashMap<>());
         fullStopFeedbackPacket.fullSequence = recordFullStopPacket(
                 fullStopPacket);
@@ -476,7 +477,7 @@ public class FuzzingClient {
             feedBacks[i] = new FeedBack();
         }
         TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
-                testPlanPacket.systemID, nodeNum,
+                testPlanPacket.systemID, configFileName,
                 testPlanPacket.testPacketID, feedBacks);
         testPlanFeedbackPacket.fullSequence = testPlanPacketStr;
 
@@ -617,7 +618,8 @@ public class FuzzingClient {
             testID2oriResults.put(tp.testPacketID, oriResult);
         }
 
-        StackedFeedbackPacket stackedFeedbackPacket = new StackedFeedbackPacket();
+        StackedFeedbackPacket stackedFeedbackPacket = new StackedFeedbackPacket(
+                stackedTestPacket.configFileName);
         stackedFeedbackPacket.fullSequence = mixedTestPacketStr;
 
         // LOG checking1
@@ -639,7 +641,7 @@ public class FuzzingClient {
         }
 
         TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
-                testPlanPacket.systemID, nodeNum,
+                testPlanPacket.systemID, stackedTestPacket.configFileName,
                 testPlanPacket.testPacketID, testPlanFeedBacks);
         testPlanFeedbackPacket.fullSequence = mixedTestPacketStr;
 

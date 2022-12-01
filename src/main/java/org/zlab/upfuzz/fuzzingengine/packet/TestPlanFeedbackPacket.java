@@ -36,14 +36,15 @@ public class TestPlanFeedbackPacket extends Packet {
     public String inconsistencyReport; // The inconsistency information should
     // be placed here
 
-    public TestPlanFeedbackPacket(String systemID, int nodeNum,
-            int testPacketID,
-            FeedBack[] feedBacks) {
+    public TestPlanFeedbackPacket(String systemID, String configFileName,
+            int testPacketID, FeedBack[] feedBacks) {
         this.type = PacketType.TestPlanFeedbackPacket;
 
         this.systemID = systemID;
+        this.configFileName = configFileName;
         this.testPacketID = testPacketID;
         this.feedBacks = feedBacks;
+
     }
 
     public static TestPlanFeedbackPacket read(DataInputStream in) {

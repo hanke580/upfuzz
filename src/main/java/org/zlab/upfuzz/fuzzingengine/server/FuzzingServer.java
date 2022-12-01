@@ -602,7 +602,7 @@ public class FuzzingServer {
         if (addToCorpus) {
             fullStopCorpus.addSeed(new FullStopSeed(
                     testID2Seed.get(fullStopFeedbackPacket.testPacketID),
-                    fullStopFeedbackPacket.nodeNum,
+                    Config.getConf().nodeNum,
                     fullStopFeedbackPacket.systemStates, null));
 
             logger.info("[HKLOG] system state = "

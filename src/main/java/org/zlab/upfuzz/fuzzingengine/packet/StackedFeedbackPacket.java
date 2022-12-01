@@ -33,7 +33,8 @@ public class StackedFeedbackPacket extends Packet {
     // (1) Failed Upgrade Process: Report all command sequences
     // (2) Result Inconsistency: Report the target seed's inconsistency
 
-    public StackedFeedbackPacket() {
+    public StackedFeedbackPacket(String configFileName) {
+        this.configFileName = configFileName;
         this.type = PacketType.StackedFeedbackPacket;
         fpList = new LinkedList<>();
     }

@@ -16,7 +16,6 @@ public class FullStopFeedbackPacket extends Packet {
     static Logger logger = LogManager.getLogger(FeedbackPacket.class);
 
     public String systemID;
-    public int nodeNum;
     public int testPacketID;
 
     public FeedBack[] feedBacks;
@@ -37,14 +36,14 @@ public class FullStopFeedbackPacket extends Packet {
     public boolean hasERRORLog = false;
     public String errorLogReport = "";
 
-    public FullStopFeedbackPacket(String systemID, int nodeNum,
+    public FullStopFeedbackPacket(String systemID, String configFileName,
             int testPacketID,
             FeedBack[] feedBacks,
             Map<Integer, Map<String, String>> systemStates) {
         this.type = PacketType.FullStopFeedbackPacket;
 
         this.systemID = systemID;
-        this.nodeNum = nodeNum;
+        this.configFileName = configFileName;
         this.testPacketID = testPacketID;
         this.feedBacks = feedBacks;
         this.systemStates = systemStates;
