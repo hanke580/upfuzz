@@ -1,11 +1,11 @@
 {
-  "originalVersion" : "hadoop-3.1.3",
-  "upgradedVersion" : "hadoop-3.3.0",
+  "originalVersion" : "hadoop-2.10.2",
+  "upgradedVersion" : "hadoop-3.4.0_trunk",
   "system" : "hdfs",
-  "serverPort" : "6399",
-  "clientPort" : "6400",
+  "serverPort" : "6499",
+  "clientPort" : "6500",
   "initSeedDir" : "/project/upfuzz/initSeedDir",
-  "STACKED_TESTS_NUM" : "5",
+  "STACKED_TESTS_NUM" : "30",
   "keepDir": true,
   "nodeNum": 4,
   "useFeedBack": true,
@@ -14,5 +14,10 @@
   "testingMode": 4,
   "startUpClusterForDebugging": false,
   "debug": false,
+  "testDowngrade": false,
+  "verifyConfig": true,
+  "testAddedConfig": true,
+  "testCommonConfig": true,
+  "enableLogCheck": true,
   "collUpFeedBack": true 
 }

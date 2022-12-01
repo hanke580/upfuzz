@@ -16,6 +16,7 @@ bugs
 config/
 examplecase/
 failure/
+failure_stat/
 
 
 ##############################
