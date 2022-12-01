@@ -18,6 +18,9 @@ from functools import cmp_to_key
 failure_dir = "failure"
 failure_stat_dir = "failure_stat"
 
+full_stop_crash = "fullstop_crash"
+event_crash = "event_crash"
+inconsistency = "inconsistency"
 
 HDFS_BLACK_LIST = ["RECEIVED SIGNAL"]
 
@@ -113,7 +116,6 @@ def hdfs_construct_map(unique_errors):
     """
     for each arr, grep failure folder again
     """
-    print("log status")
     error2failure = {}
 
     for unique_error in unique_errors:
@@ -184,6 +186,17 @@ def read_failureInfo():
             for failureIdx in error2failure[error_msg]:
                 print("\t - ", failureIdx)
             print()
+    read_failure_list(full_stop_crash)
+    read_failure_list(event_crash)
+    read_failure_list(inconsistency)
+
+def read_failure_list(target):
+    with open(os.path.join(failure_stat_dir, target + ".json"), 'r') as f:
+        failure_list = json.load(f)
+        print(target)
+        for failureIdx in failure_list:
+            print("\t - ", failureIdx)
+        print()
 
 def sort_failureIdx(a, b):
     a_idx = int(a.split("_")[1])
@@ -196,8 +209,34 @@ def sort_failureIdx(a, b):
         return -1
 
 
-# read_failureInfo()
-# processCassandra()
+def getFailure(target):
+    failure_list = []
+    proc = subprocess.Popen(["find", "failure", "-name", target] ,stdout=subprocess.PIPE)
+    for line in proc.stdout:
+        line_str = line.decode().rstrip()
+        path_arr = line_str.split("/")
+        failure_folder = path_arr[1]
+        failure_list.append(failure_folder)
+
+    failure_list.sort(key=cmp_to_key(sort_failureIdx))
+    save_failure_info(failure_list, target)
+
+def save_failure_info(failureInfo, filename):
+    dir = os.path.join(os.getcwd(), failure_stat_dir)
+    if not os.path.exists(os.path.join(os.getcwd(), dir)):
+        os.mkdir(dir)
+
+    with open(os.path.join(dir, filename + ".json"), 'w') as f:
+        json.dump(failureInfo, f)
+
+def getEventCrashFailure():
+    getFailure("event_crash")
+
+def getFullStopCrashFailure():
+    pass
+
+def getInconsistencyFailure():
+    pass
 
 
 if __name__ == "__main__":
@@ -206,10 +245,18 @@ if __name__ == "__main__":
         print("usage: python3 proc_failure.py SYSTEM")
         print("usage: python3 proc_failure.py read")
         exit(1)
+    
+    if args[0] == "read":
+        read_failureInfo()
+        exit(0)
     if args[0] == "cassandra":
         processCassandra()
     elif args[0] == "hdfs":
         processHDFS()
-    elif args[0] == "read":
-        read_failureInfo()
+    else:
+        print("unknow input", args[0])
+        print("please try hdfs or cassandra")
+    getFailure("event_crash")
+    getFailure("fullstop_crash")
+    getFailure("inconsistency")
 
