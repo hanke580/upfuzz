@@ -40,13 +40,17 @@ def cass_grepUniqueError():
     for line in proc.stdout:
         #the real code does filtering here
         line_str = line.decode().rstrip()
+        if "ERROR LOG" in line_str:
+            continue
         if ("ERROR" in line_str):
             str = ""
             arr = line_str.split()
             str += arr[0]
             str += " "
-            assert len(arr) > 5
-            for i in range(4, len(arr)):
+            min = 5 + more_match
+            if (min > len(arr)):
+                min = len(arr)
+            for i in range(4, min):
                 str += arr[i]
                 if i != len(arr):
                     str += " "
@@ -54,7 +58,6 @@ def cass_grepUniqueError():
 
     print("err size = ", len(error_arr))
     unique_errors = list(set(error_arr))
-    print_list(unique_errors)
     print("unique err size = ", len(unique_errors))
     return unique_errors
 
@@ -123,10 +126,42 @@ def hdfs_construct_map(unique_errors):
         error2failure[error_msg] = list(error2failure[error_msg])
     return error2failure
 
+def cass_construct_map(unique_errors):
+    """
+    for each arr, grep failure folder again
+    """
+    print("log status")
+    error2failure = {}
+
+    for unique_error in unique_errors:
+        target = unique_error[6:]
+        print("target = ", target)
+        error2failure[target] = set()
+        proc = subprocess.Popen(["grep", "-lr", target, failure_dir],stdout=subprocess.PIPE)
+        for line in proc.stdout:
+            line_str = line.decode().rstrip()
+            path_arr = line_str.split("/")
+            failure_folder = path_arr[1]
+            error2failure[target].add(failure_folder)
+
+
+    # transform to list
+    for error_msg in error2failure:
+        error2failure[error_msg] = list(error2failure[error_msg])
+    return error2failure
+
+
 def processHDFS():
     unique_errors = hdfs_grepUniqueError()
     error2failure = hdfs_construct_map(unique_errors)
 
+    for error_msg in error2failure:
+        print("error: ", error_msg, "\t size = ", len(error2failure[error_msg]))
+    save_failureinfo(error2failure)
+
+def processCassandra():
+    unique_errors = cass_grepUniqueError()
+    error2failure = cass_construct_map(unique_errors)
     for error_msg in error2failure:
         print("error: ", error_msg, "\t size = ", len(error2failure[error_msg]))
     save_failureinfo(error2failure)
@@ -137,3 +172,6 @@ def read_failureInfo():
         print(len(error2failure))
 
 read_failureInfo()
+# processCassandra()
+
+
