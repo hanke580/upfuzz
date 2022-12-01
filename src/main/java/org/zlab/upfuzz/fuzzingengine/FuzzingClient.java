@@ -87,7 +87,7 @@ public class FuzzingClient {
     public StackedFeedbackPacket executeStackedTestPacket(
             StackedTestPacket stackedTestPacket) {
         Path configPath = Paths.get(configDirPath.toString(),
-                stackedTestPacket.configIdx);
+                stackedTestPacket.configFileName);
         logger.info("[HKLOG] configPath = " + configPath);
 
         // config verification
@@ -166,7 +166,7 @@ public class FuzzingClient {
         if (!ret) {
             // upgrade failed
             String upgradeFailureReport = genUpgradeFailureReport(
-                    executor.executorID, stackedTestPacket.configIdx);
+                    executor.executorID, stackedTestPacket.configFileName);
             stackedFeedbackPacket.isUpgradeProcessFailed = true;
             stackedFeedbackPacket.upgradeFailureReport = upgradeFailureReport;
             tearDownExecutor();
@@ -204,7 +204,7 @@ public class FuzzingClient {
 
             if (!compareRes.left) {
                 String failureReport = genInconsistencyReport(
-                        executor.executorID, stackedTestPacket.configIdx,
+                        executor.executorID, stackedTestPacket.configFileName,
                         compareRes.right, recordSingleTestPacket(tp));
                 feedbackPacket.isInconsistent = true;
                 feedbackPacket.inconsistencyReport = failureReport;
@@ -225,7 +225,7 @@ public class FuzzingClient {
             if (hasERRORLOG(logInfo)) {
                 stackedFeedbackPacket.hasERRORLog = true;
                 stackedFeedbackPacket.errorLogReport = genErrorLogReport(
-                        executor.executorID, stackedTestPacket.configIdx,
+                        executor.executorID, stackedTestPacket.configFileName,
                         logInfo);
             }
         }
@@ -418,9 +418,9 @@ public class FuzzingClient {
             System.exit(1);
         }
 
-        String configIdx = "test21";
+        String configFileName = "test21";
 
-        Path configPath = Paths.get(configDirPath.toString(), configIdx);
+        Path configPath = Paths.get(configDirPath.toString(), configFileName);
         logger.info("[HKLOG] configPath = " + configPath);
 
         // config verification
@@ -488,7 +488,7 @@ public class FuzzingClient {
 
         if (!status) {
             testPlanFeedbackPacket.eventFailedReport = genTestPlanFailureReport(
-                    executor.eventIdx, executor.executorID, configIdx,
+                    executor.eventIdx, executor.executorID, configFileName,
                     testPlanPacketStr);
             testPlanFeedbackPacket.isEventFailed = true;
             testPlanFeedbackPacket.isInconsistent = false;
@@ -509,7 +509,7 @@ public class FuzzingClient {
                 if (!compareRes.left) {
                     testPlanFeedbackPacket.isInconsistent = true;
                     testPlanFeedbackPacket.inconsistencyReport = genTestPlanInconsistencyReport(
-                            executor.executorID, configIdx,
+                            executor.executorID, configFileName,
                             compareRes.right, testPlanPacketStr);
                 }
             }
@@ -527,7 +527,7 @@ public class FuzzingClient {
                 // Cannot collect code coverage in the upgraded version
                 testPlanFeedbackPacket.isEventFailed = true;
                 testPlanFeedbackPacket.eventFailedReport = genUpCoverageCollFailureReport(
-                        executor.executorID, configIdx,
+                        executor.executorID, configFileName,
                         recordTestPlanPacket(testPlanPacket)) + "Exception:"
                         + e;
                 tearDownExecutor();
@@ -552,7 +552,7 @@ public class FuzzingClient {
         int nodeNum = stackedTestPacket.nodeNum;
 
         Path configPath = Paths.get(configDirPath.toString(),
-                stackedTestPacket.configIdx);
+                stackedTestPacket.configFileName);
         logger.info("[HKLOG] configPath = " + configPath);
 
         // config verification
@@ -636,7 +636,7 @@ public class FuzzingClient {
 
             testPlanFeedbackPacket.eventFailedReport = genTestPlanFailureReport(
                     executor.eventIdx, executor.executorID,
-                    stackedTestPacket.configIdx, testPlanPacketStr);
+                    stackedTestPacket.configFileName, testPlanPacketStr);
             testPlanFeedbackPacket.isInconsistent = false;
             testPlanFeedbackPacket.inconsistencyReport = "";
         } else {
@@ -657,7 +657,8 @@ public class FuzzingClient {
                 if (!compareRes.left) {
                     testPlanFeedbackPacket.isInconsistent = true;
                     testPlanFeedbackPacket.inconsistencyReport = genTestPlanInconsistencyReport(
-                            executor.executorID, stackedTestPacket.configIdx,
+                            executor.executorID,
+                            stackedTestPacket.configFileName,
                             compareRes.right, testPlanPacketStr);
                 }
             }
@@ -699,7 +700,8 @@ public class FuzzingClient {
 
                 if (!compareRes.left) {
                     String failureReport = genInconsistencyReport(
-                            executor.executorID, stackedTestPacket.configIdx,
+                            executor.executorID,
+                            stackedTestPacket.configFileName,
                             compareRes.right, recordSingleTestPacket(tp));
 
                     // Create the feedback packet
@@ -723,11 +725,11 @@ public class FuzzingClient {
             if (hasERRORLOG(logInfo)) {
                 stackedFeedbackPacket.hasERRORLog = true;
                 stackedFeedbackPacket.errorLogReport = genErrorLogReport(
-                        executor.executorID, stackedTestPacket.configIdx,
+                        executor.executorID, stackedTestPacket.configFileName,
                         logInfo);
                 testPlanFeedbackPacket.hasERRORLog = true;
                 testPlanFeedbackPacket.errorLogReport = genErrorLogReport(
-                        executor.executorID, stackedTestPacket.configIdx,
+                        executor.executorID, stackedTestPacket.configFileName,
                         logInfo);
             }
         }
@@ -757,69 +759,69 @@ public class FuzzingClient {
     }
 
     private String genTestPlanFailureReport(int failEventIdx, String executorID,
-            String configIdx, String testPlanPacket) {
+            String configFileName, String testPlanPacket) {
         return "[Test plan execution failed at event" + failEventIdx + "]\n" +
                 "executionId = " + executorID + "\n" +
-                "ConfigIdx = " + configIdx + "\n" +
+                "ConfigIdx = " + configFileName + "\n" +
                 testPlanPacket + "\n";
     }
 
     private String genInconsistencyReport(String executorID,
-            String configIdx, String inconsistencyRecord,
+            String configFileName, String inconsistencyRecord,
             String singleTestPacket) {
         return "[Results inconsistency between two versions]\n" +
                 "executionId = " + executorID + "\n" +
-                "ConfigIdx = " + configIdx + "\n" +
+                "ConfigIdx = " + configFileName + "\n" +
                 inconsistencyRecord + "\n" +
                 singleTestPacket + "\n";
     }
 
     private String genTestPlanInconsistencyReport(String executorID,
-            String configIdx, String inconsistencyRecord,
+            String configFileName, String inconsistencyRecord,
             String singleTestPacket) {
         return "[Results inconsistency between full-stop and rolling upgrade]\n"
                 +
                 "executionId = " + executorID + "\n" +
-                "ConfigIdx = " + configIdx + "\n" +
+                "ConfigIdx = " + configFileName + "\n" +
                 inconsistencyRecord + "\n" +
                 singleTestPacket + "\n";
     }
 
     private String genUpgradeFailureReport(String executorID,
-            String configIdx) {
+            String configFileName) {
         return "[Upgrade Failed]\n" +
                 "executionId = " + executorID + "\n" +
-                "ConfigIdx = " + configIdx + "\n";
+                "ConfigIdx = " + configFileName + "\n";
     }
 
     private String genDowngradeFailureReport(String executorID,
-            String configIdx) {
+            String configFileName) {
         return "[Downgrade Failed]\n" +
                 "executionId = " + executorID + "\n" +
-                "ConfigIdx = " + configIdx + "\n";
+                "ConfigIdx = " + configFileName + "\n";
     }
 
     private String genOriCoverageCollFailureReport(String executorID,
-            String configIdx, String singleTestPacket) {
+            String configFileName, String singleTestPacket) {
         return "[Original Coverage Collect Failed]\n" +
                 "executionId = " + executorID + "\n" +
-                "ConfigIdx = " + configIdx + "\n" +
+                "ConfigIdx = " + configFileName + "\n" +
                 singleTestPacket + "\n";
     }
 
     private String genUpCoverageCollFailureReport(String executorID,
-            String configIdx, String singleTestPacket) {
+            String configFileName, String singleTestPacket) {
         return "[Upgrade Coverage Collect Failed]\n" +
                 "executionId = " + executorID + "\n" +
-                "ConfigIdx = " + configIdx + "\n" +
+                "ConfigIdx = " + configFileName + "\n" +
                 singleTestPacket + "\n";
     }
 
-    private String genErrorLogReport(String executorID, String configIdx,
+    private String genErrorLogReport(String executorID, String configFileName,
             Map<Integer, LogInfo> logInfo) {
         StringBuilder ret = new StringBuilder("[ERROR LOG]\n");
         ret.append("executionId = ").append(executorID).append("\n");
-        ret.append("ConfigIdx = ").append(configIdx).append("\n");
+        ret.append("ConfigIdx = ").append(configFileName).append("\n");
         for (int i : logInfo.keySet()) {
             if (logInfo.get(i).ERRORMsg.size() > 0) {
                 ret.append("Node").append(i).append("\n");

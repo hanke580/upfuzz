@@ -23,6 +23,7 @@ public class FullStopFeedbackPacket extends Packet {
     public Map<Integer, Map<String, String>> systemStates;
 
     public String fullSequence = ""; // for reproducing
+    public String configFileName;
 
     public boolean isUpgradeProcessFailed = false;
     public String upgradeFailureReport = "";

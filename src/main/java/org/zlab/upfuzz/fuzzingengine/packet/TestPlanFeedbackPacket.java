@@ -18,6 +18,7 @@ public class TestPlanFeedbackPacket extends Packet {
     // We expect the system upgrade op should always succeed
     // no matter whether the normal command is correct or not
     public String fullSequence = ""; // for reproducing
+    public String configFileName;
 
     public boolean isEventFailed = false; // One event failed (including
                                           // downgrade op)

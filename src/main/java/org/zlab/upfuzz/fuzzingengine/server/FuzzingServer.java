@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -91,7 +92,9 @@ public class FuzzingServer {
     public static int errorLogNum = 0;
 
     boolean isFullStopUpgrade = true;
+
     ConfigGen configGen;
+    public Path configDirPath;
 
     public FuzzingServer() {
         testID2Seed = new HashMap<>();
@@ -101,6 +104,10 @@ public class FuzzingServer {
         testPlanPackets = new LinkedList<>();
         curOriCoverage = new ExecutionDataStore();
         curUpCoverage = new ExecutionDataStore();
+
+        configDirPath = Paths.get(System.getProperty("user.dir"),
+                Config.getConf().configDir, Config.getConf().originalVersion
+                        + "_" + Config.getConf().upgradedVersion);
 
         startTime = TimeUnit.SECONDS.convert(System.nanoTime(),
                 TimeUnit.NANOSECONDS);
@@ -256,7 +263,7 @@ public class FuzzingServer {
 
                     // Each upgrade should execute with different config
                     configIdx = configGen.generateConfig();
-                    configFileName = "test" + configIdx;
+                    configFileName = "test" + configFileName;
 
                     stackedTestPacket = new StackedTestPacket(
                             Config.getConf().nodeNum, configFileName);
@@ -617,7 +624,8 @@ public class FuzzingServer {
         if (fullStopFeedbackPacket.isUpgradeProcessFailed
                 || fullStopFeedbackPacket.isInconsistent
                 || fullStopFeedbackPacket.hasERRORLog) {
-            failureDir = createFailureDir();
+            failureDir = createFailureDir(
+                    fullStopFeedbackPacket.configFileName);
             saveFullSequence(failureDir, fullStopFeedbackPacket.fullSequence);
             if (fullStopFeedbackPacket.isUpgradeProcessFailed) {
                 saveFullStopCrashReport(failureDir,
@@ -691,7 +699,8 @@ public class FuzzingServer {
         if (testPlanFeedbackPacket.isEventFailed
                 || testPlanFeedbackPacket.isInconsistent
                 || testPlanFeedbackPacket.hasERRORLog) {
-            failureDir = createFailureDir();
+            failureDir = createFailureDir(
+                    testPlanFeedbackPacket.configFileName);
             saveFullSequence(failureDir, testPlanFeedbackPacket.fullSequence);
             if (testPlanFeedbackPacket.isEventFailed) {
                 saveEventCrashReport(failureDir,
@@ -704,8 +713,7 @@ public class FuzzingServer {
                         testPlanFeedbackPacket.inconsistencyReport);
             }
             if (testPlanFeedbackPacket.hasERRORLog) {
-                saveInconsistencyReport(failureDir,
-                        testPlanFeedbackPacket.testPacketID,
+                saveErrorReport(failureDir,
                         testPlanFeedbackPacket.errorLogReport);
             }
         }
@@ -721,7 +729,7 @@ public class FuzzingServer {
         Path failureDir = null;
 
         if (stackedFeedbackPacket.isUpgradeProcessFailed) {
-            failureDir = createFailureDir();
+            failureDir = createFailureDir(stackedFeedbackPacket.configFileName);
             saveFullSequence(failureDir, stackedFeedbackPacket.fullSequence);
             saveFullStopCrashReport(failureDir,
                     stackedFeedbackPacket.upgradeFailureReport);
@@ -768,7 +776,8 @@ public class FuzzingServer {
             }
             if (feedbackPacket.isInconsistent) {
                 if (failureDir == null) {
-                    failureDir = createFailureDir();
+                    failureDir = createFailureDir(
+                            stackedFeedbackPacket.configFileName);
                     saveFullSequence(failureDir,
                             stackedFeedbackPacket.fullSequence);
                 }
@@ -782,7 +791,8 @@ public class FuzzingServer {
 
         if (stackedFeedbackPacket.hasERRORLog) {
             if (failureDir == null) {
-                failureDir = createFailureDir();
+                failureDir = createFailureDir(
+                        stackedFeedbackPacket.configFileName);
                 saveFullSequence(failureDir,
                         stackedFeedbackPacket.fullSequence);
             }
@@ -823,7 +833,7 @@ public class FuzzingServer {
      * - error
      * @return
      */
-    private Path createFailureDir() {
+    private Path createFailureDir(String configFileName) {
         while (Paths
                 .get(Config.getConf().failureDir,
                         "failure_" + failureId)
@@ -833,7 +843,20 @@ public class FuzzingServer {
         Path failureSubDir = Paths.get(Config.getConf().failureDir,
                 "failure_" + failureId++);
         failureSubDir.toFile().mkdir();
+        copyConfig(failureSubDir, configFileName);
         return failureSubDir;
+    }
+
+    private void copyConfig(Path failureSubDir, String configFileName) {
+        if (configFileName == null || configFileName.isEmpty())
+            return;
+        Path configPath = Paths.get(configDirPath.toString(), configFileName);
+        try {
+            FileUtils.copyDirectory(configPath.toFile(),
+                    failureSubDir.toFile());
+        } catch (IOException e) {
+            logger.error("config file not exist with exception: " + e);
+        }
     }
 
     private Path createFullStopCrashSubDir(Path failureSubDir) {

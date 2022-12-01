@@ -18,6 +18,7 @@ public class StackedFeedbackPacket extends Packet {
     public final List<FeedbackPacket> fpList;
 
     public String fullSequence = ""; // for reproducing
+    public String configFileName;
 
     public boolean isUpgradeProcessFailed = false;
     public String upgradeFailureReport;
