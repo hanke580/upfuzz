@@ -16,7 +16,6 @@ import subprocess
 
 def print_list(l):
     for i in l:
-        print("size = ", len(i))
         print(i)
 
 def saveUniqueFailure(uniq_failure):
@@ -53,16 +52,43 @@ def grepUniqueError():
     for e in error_arr:
         filter_arr.append(e.strip())
 
-    filter_arr = list(set(filter_arr))
-    print_list(filter_arr)
+    unique_errors = list(set(filter_arr))
+    return unique_errors
+
 
 """
 for all the failures, grep again using the class:line number, get all case ID
 this time, how do we perform the grep? By class:line, there is a problem where the
 
-Grep1: using class:line number
-Grep2: using 
+return the map [unique_failure -> cases]
 """
+def construct_map(unique_errors):
+    """
+    for each arr, grep failure folder again
+    """
+    print("log status")
+    error2failure = {}
+
+    for unique_error in unique_errors:
+        target = unique_error.split()[1]
+        error2failure[target] = set()
+
+
+        proc = subprocess.Popen(["grep", "-l", target, "system.log"],stdout=subprocess.PIPE)
+        for line in proc.stdout:
+            line_str = line.decode().rstrip()
+            print("line = ", line_str)
+            error2failure[target].add(line_str)
+
+    print("error2failure = ", error2failure)
+
+
+    return error2failure
+
+unique_errors = grepUniqueError()
+construct_map(unique_errors)
+
+
 
 
 
