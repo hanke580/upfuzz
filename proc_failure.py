@@ -9,6 +9,7 @@ $ grep -r "ERROR"
 """
 
 import os
+import sys
 import json
 import subprocess
 
@@ -171,7 +172,20 @@ def read_failureInfo():
         error2failure = json.load(f)
         print(len(error2failure))
 
-read_failureInfo()
+# read_failureInfo()
 # processCassandra()
 
+
+if __name__ == "__main__":
+    args = sys.argv[1:]
+    if len(args) != 1:
+        print("usage: python3 proc_failure.py SYSTEM")
+        print("usage: python3 proc_failure.py read")
+        exit(1)
+    if args[0] == "cassandra":
+        processCassandra()
+    elif args[0] == "hdfs":
+        processHDFS()
+    elif args[0] == "read":
+        read_failureInfo()
 
