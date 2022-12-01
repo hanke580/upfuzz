@@ -19,6 +19,7 @@ failure_dir = "failure"
 failure_stat_dir = "failure_stat"
 
 
+HDFS_BLACK_LIST = ["RECEIVED SIGNAL"]
 
 # subprocess.run(["grep", "-r", "-A", "4", "ERROR", "/Users/hanke/Desktop/Project/upfuzz/system.log"])
 
@@ -44,19 +45,18 @@ def cass_grepUniqueError():
         line_str = line.decode().rstrip()
         if "ERROR LOG" in line_str:
             continue
-        if ("ERROR" in line_str):
-            str = ""
-            arr = line_str.split()
-            str += arr[0]
-            str += " "
-            min = 5 + more_match
-            if (min > len(arr)):
-                min = len(arr)
-            for i in range(4, min):
-                str += arr[i]
-                if i != len(arr):
-                    str += " "
-            error_arr.append(str.strip())
+        str = ""
+        arr = line_str.split()
+        str += arr[0]
+        str += " "
+        min = 5 + more_match
+        if (min > len(arr)):
+            min = len(arr)
+        for i in range(4, min):
+            str += arr[i]
+            if i != len(arr):
+                str += " "
+        error_arr.append(str.strip())
 
     print("err size = ", len(error_arr))
     unique_errors = list(set(error_arr))
@@ -76,21 +76,26 @@ def hdfs_grepUniqueError():
         line_str = line.decode().rstrip()
         if "ERROR LOG" in line_str:
             continue
-        if ("ERROR" in line_str):
-            arr = line_str.split()
-            if (len(arr) > 3):
-                str = ""
-                min = 4 + more_match
-                if (min > len(arr)):
-                    min = len(arr)
-                
-                for i in range(2, min):
-                    str += arr[i]
-                    if i != len(arr):
-                        str += " "
-                error_arr.append(str.strip())
-            else:
-                error_arr.append(line_str.strip())
+        blacklisted = False
+        for blacklist_error in HDFS_BLACK_LIST:
+            if blacklist_error in line_str:
+                blacklisted = True
+                break
+        if blacklisted:
+            continue
+        arr = line_str.split()
+        if (len(arr) > 3):
+            str = ""
+            min = 4 + more_match
+            if (min > len(arr)):
+                min = len(arr)
+            for i in range(2, min):
+                str += arr[i]
+                if i != len(arr):
+                    str += " "
+            error_arr.append(str.strip())
+        else:
+            error_arr.append(line_str.strip())
 
     print("err size = ", len(error_arr))
     unique_errors = set(error_arr)
