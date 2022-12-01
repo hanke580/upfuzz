@@ -12,6 +12,7 @@ import os
 import sys
 import json
 import subprocess
+from functools import cmp_to_key
 
 
 failure_dir = "failure"
@@ -125,6 +126,7 @@ def hdfs_construct_map(unique_errors):
     # transform to list
     for error_msg in error2failure:
         error2failure[error_msg] = list(error2failure[error_msg])
+        error2failure[error_msg].sort(key=cmp_to_key(sort_failureIdx))
     return error2failure
 
 def cass_construct_map(unique_errors):
@@ -149,6 +151,7 @@ def cass_construct_map(unique_errors):
     # transform to list
     for error_msg in error2failure:
         error2failure[error_msg] = list(error2failure[error_msg])
+        error2failure[error_msg].sort(key=cmp_to_key(sort_failureIdx))
     return error2failure
 
 
@@ -171,6 +174,22 @@ def read_failureInfo():
     with open(os.path.join(failure_stat_dir, "unique_error.json"), 'r') as f:
         error2failure = json.load(f)
         print(len(error2failure))
+        for error_msg in error2failure:
+            print("error msg: ", error_msg)
+            for failureIdx in error2failure[error_msg]:
+                print("\t - ", failureIdx)
+            print()
+
+def sort_failureIdx(a, b):
+    a_idx = int(a.split("_")[1])
+    b_idx = int(b.split("_")[1])
+    if a_idx > b_idx:
+        return 1;
+    elif a_idx == b_idx:
+        return 0;
+    else:
+        return -1
+
 
 # read_failureInfo()
 # processCassandra()
