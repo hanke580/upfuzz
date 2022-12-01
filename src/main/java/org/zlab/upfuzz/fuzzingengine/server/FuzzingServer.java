@@ -935,18 +935,15 @@ public class FuzzingServer {
                 System.nanoTime(), TimeUnit.NANOSECONDS) - startTime;
 
         logger.info(
-                "\n\n------------------- Executing one fuzzing test -------------------"
-                        + "[Fuzz Status]\n"
-                        +
-                        "================================================================="
+                "\n\n------------------- Fuzz Status -------------------\n"
+                        + "System: " + Config.getConf().system + "\n"
+                        + "Upgrade: " + Config.getConf().originalVersion + "=>"
+                        + Config.getConf().upgradedVersion + "\n"
+                        + "================================================================="
                         + "====================================================\n"
                         + "|"
                         + "Queue Size = " + corpus.queue.size() + "|"
                         + "Round = " + round + "|"
-                        + "Full Stop Crash Found = " + fullStopCrashNum + "|"
-                        + "Event Crash Found = " + eventCrashNum + "|"
-                        + "Inconsistency Found = " + inconsistencyNum + "|"
-                        + "Error Log Found = " + errorLogNum + "|"
                         + "Current Test ID = " + testID + "|"
                         + "Finished Test Num = " + finishedTestID + "|"
                         + "Covered oriBranches Num = " + originalCoveredBranches
@@ -955,7 +952,11 @@ public class FuzzingServer {
                         + "Covered upBranches Num = " + upgradedCoveredBranches
                         + "|"
                         + "Total upBranch Num = " + upgradedProbeNum + "|"
-                        + "Time Elapsed = " + timeElapsed + "s" + "|"
+                        + "Time Elapsed = " + timeElapsed + "s" + "|" + "\n"
+                        + "Full Stop Crash Found = " + fullStopCrashNum + "|"
+                        + "Event Crash Found = " + eventCrashNum + "|"
+                        + "Inconsistency Found = " + inconsistencyNum + "|"
+                        + "Error Log Found = " + errorLogNum + "|"
                         + "\n"
                         +
                         "-----------------------------------------------------------------"
