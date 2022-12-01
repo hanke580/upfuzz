@@ -848,6 +848,9 @@ public class FuzzingServer {
     }
 
     private void copyConfig(Path failureSubDir, String configFileName) {
+        logger.info("[HKLOG] debug copy config, failureSubDir = "
+                + failureSubDir + " configFile = " + configFileName
+                + " configPath = " + configDirPath);
         if (configFileName == null || configFileName.isEmpty())
             return;
         Path configPath = Paths.get(configDirPath.toString(), configFileName);
