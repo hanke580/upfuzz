@@ -947,11 +947,11 @@ public class FuzzingServer {
                         + "Queue Size = " + corpus.queue.size() + "|"
                         + "Round = " + round + "|"
                         + "Cur TestID = " + testID + "|"
-                        + "Finished TestNum = " + finishedTestID + "|"
-                        + "Time Elapsed = " + timeElapsed + "s"
+                        + "Finished TestNum = " + finishedTestID
                         + "|" + "\n"
 
                         + "|"
+                        + "Time Elapsed = " + timeElapsed + "s" + "|"
                         + "Ori Coverage = " + originalCoveredBranches + "/"
                         + originalProbeNum + "|"
                         + "Up Coverage = " + upgradedCoveredBranches + "/"
