@@ -263,7 +263,7 @@ public class FuzzingServer {
 
                     // Each upgrade should execute with different config
                     configIdx = configGen.generateConfig();
-                    configFileName = "test" + configFileName;
+                    configFileName = "test" + configIdx;
 
                     stackedTestPacket = new StackedTestPacket(
                             Config.getConf().nodeNum, configFileName);
@@ -831,7 +831,7 @@ public class FuzzingServer {
      * - crash
      * - inconsistency
      * - error
-     * @return
+     * @return path
      */
     private Path createFailureDir(String configFileName) {
         while (Paths
@@ -935,32 +935,38 @@ public class FuzzingServer {
                 System.nanoTime(), TimeUnit.NANOSECONDS) - startTime;
 
         logger.info(
-                "\n\n------------------- Fuzz Status -------------------\n"
+                "\n\n-------------------------------------------- TestStatus ----"
+                        +
+                        "----------------------------------------\n"
                         + "System: " + Config.getConf().system + "\n"
                         + "Upgrade: " + Config.getConf().originalVersion + "=>"
                         + Config.getConf().upgradedVersion + "\n"
-                        + "================================================================="
-                        + "====================================================\n"
+                        + "============================================================"
+                        + "========================================\n"
                         + "|"
                         + "Queue Size = " + corpus.queue.size() + "|"
                         + "Round = " + round + "|"
-                        + "Current Test ID = " + testID + "|"
-                        + "Finished Test Num = " + finishedTestID + "|"
-                        + "Covered oriBranches Num = " + originalCoveredBranches
+                        + "Cur TestID = " + testID + "|"
+                        + "Finished TestNum = " + finishedTestID + "|"
+                        + "Time Elapsed = " + timeElapsed + "s"
+                        + "|" + "\n"
+
                         + "|"
-                        + "Total oriBranch Num = " + originalProbeNum + "|"
-                        + "Covered upBranches Num = " + upgradedCoveredBranches
+                        + "Ori Coverage = " + originalCoveredBranches + "/"
+                        + originalProbeNum + "|"
+                        + "Up Coverage = " + upgradedCoveredBranches + "/"
+                        + upgradedProbeNum
+                        + "|" + "\n"
+
                         + "|"
-                        + "Total upBranch Num = " + upgradedProbeNum + "|"
-                        + "Time Elapsed = " + timeElapsed + "s" + "|" + "\n"
-                        + "Full Stop Crash Found = " + fullStopCrashNum + "|"
-                        + "Event Crash Found = " + eventCrashNum + "|"
-                        + "Inconsistency Found = " + inconsistencyNum + "|"
-                        + "Error Log Found = " + errorLogNum + "|"
-                        + "\n"
+                        + "FullStop Crash = " + fullStopCrashNum + "|"
+                        + "Event Crash = " + eventCrashNum + "|"
+                        + "Inconsistency = " + inconsistencyNum + "|"
+                        + "Error Log = " + errorLogNum
+                        + "|" + "\n"
                         +
-                        "-----------------------------------------------------------------"
-                        + "----------------------------------------------------");
+                        "------------------------------------------------------------"
+                        + "----------------------------------------");
 
         // Print the coverage status
         // for (Pair<Integer, Integer> timeCoveragePair :
@@ -1062,14 +1068,14 @@ public class FuzzingServer {
         return events;
     }
 
+    /**
+     * 1. find a position after the first upgrade operation
+     * 2. collect all upgrade op node idx between [first_upgrade, pos]
+     * 3. remove all the upgrade op after it
+     * 4. downgrade all nodeidx collected
+     */
     public List<Event> addDowngrade(List<Event> events) {
         // Add downgrade during the upgrade/when all nodes have been upgraded.
-        /**
-         * 1. find a position after the first upgrade operation
-         * 2. collect all upgrade op node idx between [first_upgrade, pos]
-         * 3. remove all the upgrade op after it
-         * 4. downgrade all nodeidx collected
-         */
         List<Event> newEvents;
         // find first upgrade op
         int pos1 = 0;
