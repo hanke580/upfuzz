@@ -12,29 +12,36 @@ import os
 import json
 import subprocess
 
+
+failure_dir = "failure"
+failure_stat_dir = "failure_stat"
+
+
+
 # subprocess.run(["grep", "-r", "-A", "4", "ERROR", "/Users/hanke/Desktop/Project/upfuzz/system.log"])
 
 def print_list(l):
     for i in l:
         print(i)
 
-def saveUniqueFailure(uniq_failure):
-    dir = os.path.join(os.getcwd(), "failure_stat")
+# Map {uniqFailure => set(failure cases)}
+def save_failureinfo(error2failure):
+    dir = os.path.join(os.getcwd(), failure_stat_dir)
     if not os.path.exists(os.path.join(os.getcwd(), dir)):
         os.mkdir(dir)
 
     with open(os.path.join(dir, "unique_error.json"), 'w') as f:
-        json.dump(uniq_failure, f)
+        json.dump(error2failure, f)
 
 
-def grepUniqueError():
-    str = ""
-    proc = subprocess.Popen(["grep", "-hr", "-A", "4", "ERROR", "system.log"],stdout=subprocess.PIPE)
+def cass_grepUniqueError():
+    proc = subprocess.Popen(["grep", "-hr", "ERROR", "failure"],stdout=subprocess.PIPE)
+    error_arr = []
     for line in proc.stdout:
         #the real code does filtering here
         line_str = line.decode().rstrip()
-        print("line = ", line_str)
         if ("ERROR" in line_str):
+            str = ""
             arr = line_str.split()
             str += arr[0]
             str += " "
@@ -43,16 +50,46 @@ def grepUniqueError():
                 str += arr[i]
                 if i != len(arr):
                     str += " "
-        else:
-            str += line_str
-        str += "\n"
+            error_arr.append(str.strip())
 
-    error_arr = str.split("--")
-    filter_arr = []
-    for e in error_arr:
-        filter_arr.append(e.strip())
+    print("err size = ", len(error_arr))
+    unique_errors = list(set(error_arr))
+    print_list(unique_errors)
+    print("unique err size = ", len(unique_errors))
+    return unique_errors
 
-    unique_errors = list(set(filter_arr))
+
+# compare 2 more words following the error message
+more_match = 3
+
+
+def hdfs_grepUniqueError():
+    proc = subprocess.Popen(["grep", "-hr", "ERROR", failure_dir],stdout=subprocess.PIPE)
+    error_arr = []
+    for line in proc.stdout:
+        #the real code does filtering here
+        line_str = line.decode().rstrip()
+        if "ERROR LOG" in line_str:
+            continue
+        if ("ERROR" in line_str):
+            arr = line_str.split()
+            if (len(arr) > 3):
+                str = ""
+                min = 4 + more_match
+                if (min > len(arr)):
+                    min = len(arr)
+                
+                for i in range(2, min):
+                    str += arr[i]
+                    if i != len(arr):
+                        str += " "
+                error_arr.append(str.strip())
+            else:
+                error_arr.append(line_str.strip())
+
+    print("err size = ", len(error_arr))
+    unique_errors = set(error_arr)
+    print("unique err size = ", len(unique_errors))
     return unique_errors
 
 
@@ -62,7 +99,7 @@ this time, how do we perform the grep? By class:line, there is a problem where t
 
 return the map [unique_failure -> cases]
 """
-def construct_map(unique_errors):
+def hdfs_construct_map(unique_errors):
     """
     for each arr, grep failure folder again
     """
@@ -70,31 +107,33 @@ def construct_map(unique_errors):
     error2failure = {}
 
     for unique_error in unique_errors:
-        target = unique_error.split()[1]
+        target = unique_error
         error2failure[target] = set()
 
-
-        proc = subprocess.Popen(["grep", "-l", target, "system.log"],stdout=subprocess.PIPE)
+        proc = subprocess.Popen(["grep", "-lr", target, failure_dir],stdout=subprocess.PIPE)
         for line in proc.stdout:
             line_str = line.decode().rstrip()
-            print("line = ", line_str)
-            error2failure[target].add(line_str)
-
-    print("error2failure = ", error2failure)
-
-
+            path_arr = line_str.split("/")
+            failure_folder = path_arr[1]
+            # print("line = ", line_str)
+            error2failure[target].add(failure_folder)
+            
+    # transform to list
+    for error_msg in error2failure:
+        error2failure[error_msg] = list(error2failure[error_msg])
     return error2failure
 
-unique_errors = grepUniqueError()
-construct_map(unique_errors)
+def processHDFS():
+    unique_errors = hdfs_grepUniqueError()
+    error2failure = hdfs_construct_map(unique_errors)
 
+    for error_msg in error2failure:
+        print("error: ", error_msg, "\t size = ", len(error2failure[error_msg]))
+    save_failureinfo(error2failure)
 
+def read_failureInfo():
+    with open(os.path.join(failure_stat_dir, "unique_error.json"), 'r') as f:
+        error2failure = json.load(f)
+        print(len(error2failure))
 
-
-
-
-
-
-
-
-
+read_failureInfo()
