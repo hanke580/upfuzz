@@ -30,6 +30,7 @@ public class TestPlanPacket extends Packet {
 
     public String systemID;
     public int testPacketID;
+    public String configFileName;
     public TestPlan testPlan;
 
     static RuntimeTypeAdapterFactory<Event> runtimeTypeAdapterFactory;
@@ -65,11 +66,13 @@ public class TestPlanPacket extends Packet {
     }
 
     public TestPlanPacket(String systemID, int testPacketID,
+            String configFileName,
             TestPlan testPlan) {
         this.type = PacketType.TestPlanPacket;
 
         this.systemID = systemID;
         this.testPacketID = testPacketID;
+        this.configFileName = configFileName;
         this.testPlan = testPlan;
     }
 
@@ -86,6 +89,9 @@ public class TestPlanPacket extends Packet {
             String systemID = readString(in);
 
             int testPacketId = in.readInt();
+
+            String configFileName = readString(in);
+
             int nodeNum = in.readInt();
             // targetStates
             String targetSystemStatesStr = readString(in);
@@ -132,7 +138,7 @@ public class TestPlanPacket extends Packet {
             TestPlan testPlan = new TestPlan(nodeNum, events,
                     targetSystemStates, targetSystemStatesOracle,
                     validationCommands, validationReadResultsOracle);
-            return new TestPlanPacket(systemID, testPacketId,
+            return new TestPlanPacket(systemID, testPacketId, configFileName,
                     testPlan);
         } catch (IOException e) {
             e.printStackTrace();
@@ -150,6 +156,12 @@ public class TestPlanPacket extends Packet {
         out.write(systemID.getBytes(StandardCharsets.UTF_8));
 
         out.writeInt(testPacketID);
+
+        int configFileNameLen = configFileName.length();
+        out.writeInt(configFileNameLen);
+        out.write(configFileName.getBytes(StandardCharsets.UTF_8));
+
+        // test plan
         out.writeInt(testPlan.nodeNum);
 
         String stateStr = new Gson().toJson(testPlan.targetSystemStates);

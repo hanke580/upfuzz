@@ -1,12 +1,9 @@
 package org.zlab.upfuzz.fuzzingengine;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonIOException;
-import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.config.plugins.convert.HexConverter;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.CommandPool;
@@ -17,23 +14,17 @@ import org.zlab.upfuzz.fuzzingengine.packet.TestPlanPacket;
 import org.zlab.upfuzz.fuzzingengine.server.FullStopSeed;
 import org.zlab.upfuzz.fuzzingengine.server.FuzzingServer;
 import org.zlab.upfuzz.fuzzingengine.server.Seed;
+import org.zlab.upfuzz.fuzzingengine.configgen.ConfigGen;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 import org.zlab.upfuzz.hdfs.HdfsCommandPool;
 import org.zlab.upfuzz.hdfs.HdfsState;
-import org.zlab.upfuzz.utils.Utilities;
 
 import java.io.*;
 import java.lang.reflect.Type;
-import java.math.BigInteger;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class FuzzingServerTest {
     static Logger logger = LogManager.getLogger(FuzzingServerTest.class);
@@ -73,7 +64,12 @@ public class FuzzingServerTest {
         try {
             DataOutputStream os = new DataOutputStream(
                     new FileOutputStream("tmp.txt"));
-            testPlanPacket = new TestPlanPacket("cassandra", 2,
+            ConfigGen configGen = new ConfigGen();
+
+            int configIdx = configGen.generateConfig();
+            String configFileName = "test" + configIdx;
+
+            testPlanPacket = new TestPlanPacket("cassandra", 2, configFileName,
                     testPlan);
             testPlanPacket.write(os);
         } catch (IOException e) {

@@ -194,7 +194,10 @@ public class FuzzingServer {
                 assert !stackedTestPackets.isEmpty();
                 packet = stackedTestPackets.poll();
             } else {
-                packet = generateMixedTestPacket();
+                // packet = generateMixedTestPacket();
+                if (testPlanPackets.isEmpty())
+                    fuzzTestPlan();
+                packet = testPlanPackets.poll();
             }
             isFullStopUpgrade = !isFullStopUpgrade;
             return packet;
@@ -215,10 +218,6 @@ public class FuzzingServer {
         if (testPlanPackets.isEmpty())
             fuzzTestPlan();
         testPlanPacket = testPlanPackets.poll();
-
-        if (testPlanPacket == null) {
-            logger.error("hklog null testPlanPacket");
-        }
 
         return new MixedTestPacket(stackedTestPacket, testPlanPacket);
 
@@ -299,9 +298,13 @@ public class FuzzingServer {
                 mutateTestPlan.mutate();
                 logger.info("mutate a test plan");
                 testID2TestPlan.put(testID, mutateTestPlan);
+
+                int configIdx = configGen.generateConfig();
+                String configFileName = "test" + configIdx;
+
                 testPlanPackets.add(new TestPlanPacket(
                         Config.getConf().system,
-                        testID++, mutateTestPlan));
+                        testID++, configFileName, mutateTestPlan));
             }
         } else {
 
@@ -324,9 +327,13 @@ public class FuzzingServer {
             for (int i = 0; i < Config.getConf().testPlanGenerationNum; i++) {
                 testPlan = generateTestPlan(fullStopSeed);
                 testID2TestPlan.put(testID, testPlan);
+
+                int configIdx = configGen.generateConfig();
+                String configFileName = "test" + configIdx;
+
                 testPlanPackets.add(new TestPlanPacket(
                         Config.getConf().system,
-                        testID++, testPlan));
+                        testID++, configFileName, testPlan));
             }
         }
     }
@@ -397,9 +404,13 @@ public class FuzzingServer {
     }
 
     public Packet generateExampleTestplanPacket() {
+        // Modify configID for debugging
+        int configIdx = configGen.generateConfig();
+        String configFileName = "test" + configIdx;
+
         return new TestPlanPacket(
-                Config.getConf().system,
-                testID++, generateExampleTestPlan());
+                Config.getConf().system, testID++, configFileName,
+                generateExampleTestPlan());
     }
 
     public Packet generateExampleFullStopPacket() {
@@ -420,8 +431,8 @@ public class FuzzingServer {
                 validcommands,
                 targetSystemStates);
         // TODO: Change this to the configIdx you want to test
-        int configIdx = configGen.generateConfig();
-        // int configIdx = 470;
+        // int configIdx = configGen.generateConfig();
+        int configIdx = 470;
 
         String configFileName = "test" + configIdx;
         FullStopPacket fullStopPacket = new FullStopPacket(
@@ -941,19 +952,26 @@ public class FuzzingServer {
                 System.nanoTime(), TimeUnit.NANOSECONDS) - startTime;
 
         logger.info(
-                "\n\n-------------------------------------------- TestStatus ----"
+                "\n\n------------------------------------------------"
                         +
-                        "----------------------------------------\n"
+                        "---- TestStatus ----------------------------------------------------\n"
                         + "System: " + Config.getConf().system + "\n"
                         + "Upgrade: " + Config.getConf().originalVersion + "=>"
                         + Config.getConf().upgradedVersion + "\n"
                         + "============================================================"
-                        + "========================================\n"
+                        + "======================================================\n"
                         + "|\t"
                         + "Queue Size = " + corpus.queue.size() + "\t\t|\t"
                         + "Round = " + round + "\t|\t"
                         + "Cur TestID = " + testID + "\t|\t"
-                        + "Finished TestNum = " + finishedTestID
+                        + "Finished Test = " + finishedTestID
+                        + "\t|" + "\n"
+
+                        + "|\t"
+                        + "FullStop Crash = " + fullStopCrashNum + "\t|\t"
+                        + "Event Crash = " + eventCrashNum + "\t|\t"
+                        + "Inconsistency = " + inconsistencyNum + "\t|\t"
+                        + "Error Log = " + errorLogNum
                         + "\t|" + "\n"
 
                         + "|\t"
@@ -964,15 +982,9 @@ public class FuzzingServer {
                         + upgradedProbeNum
                         + "\t|" + "\n"
 
-                        + "|\t"
-                        + "FullStop Crash = " + fullStopCrashNum + "\t|\t"
-                        + "Event Crash = " + eventCrashNum + "\t|\t"
-                        + "Inconsistency = " + inconsistencyNum + "\t|\t"
-                        + "Error Log = " + errorLogNum
-                        + "\t|" + "\n"
                         +
                         "------------------------------------------------------------"
-                        + "----------------------------------------");
+                        + "------------------------------------------------------");
 
         // Print the coverage status
         // for (Pair<Integer, Integer> timeCoveragePair :

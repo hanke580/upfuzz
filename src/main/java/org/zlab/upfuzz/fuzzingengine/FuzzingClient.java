@@ -158,7 +158,7 @@ public class FuzzingClient {
         // LOG checking1
         Map<Integer, LogInfo> logInfoBeforeUpgrade = null;
         if (Config.getConf().enableLogCheck) {
-            logger.info("[HKLOG] error checking");
+            logger.info("[HKLOG] error log checking");
             logInfoBeforeUpgrade = executor.grepLogInfo();
         }
 
@@ -232,7 +232,7 @@ public class FuzzingClient {
 
         // LOG checking2
         if (Config.getConf().enableLogCheck) {
-            logger.info("[HKLOG] error checking: merge logs");
+            logger.info("[HKLOG] error log checking: merge logs");
             assert logInfoBeforeUpgrade != null;
             Map<Integer, LogInfo> logInfo = filterErrorLog(logInfoBeforeUpgrade,
                     executor.grepLogInfo());
@@ -289,7 +289,7 @@ public class FuzzingClient {
         // LOG checking1
         Map<Integer, LogInfo> logInfoBeforeUpgrade = null;
         if (Config.getConf().enableLogCheck) {
-            logger.info("[HKLOG] error checking");
+            logger.info("[HKLOG] error log checking");
             logInfoBeforeUpgrade = executor.grepLogInfo();
         }
 
@@ -394,7 +394,7 @@ public class FuzzingClient {
 
         // LOG checking2
         if (Config.getConf().enableLogCheck) {
-            logger.info("[HKLOG] error checking");
+            logger.info("[HKLOG] error log checking");
             assert logInfoBeforeUpgrade != null;
             Map<Integer, LogInfo> logInfo = filterErrorLog(logInfoBeforeUpgrade,
                     executor.grepLogInfo());
@@ -414,27 +414,28 @@ public class FuzzingClient {
             TestPlanPacket testPlanPacket) {
 
         logger.debug("test plan: \n");
-        logger.debug(testPlanPacket.testPlan);
+        // logger.debug(testPlanPacket.testPlan);
 
         String testPlanPacketStr = recordTestPlanPacket(testPlanPacket);
-
         int nodeNum = testPlanPacket.getNodeNum();
 
         // read states
-        Path targetSystemStatesPath = Paths.get(System.getProperty("user.dir"),
-                Config.getConf().targetSystemStateFile);
         Set<String> targetSystemStates = null;
-        try {
-            targetSystemStates = readState(targetSystemStatesPath);
-        } catch (IOException e) {
-            logger.error("Not tracking system state");
-            e.printStackTrace();
-            System.exit(1);
+        if (Config.getConf().enableStateComp) {
+            Path targetSystemStatesPath = Paths.get(
+                    System.getProperty("user.dir"),
+                    Config.getConf().targetSystemStateFile);
+            try {
+                targetSystemStates = readState(targetSystemStatesPath);
+            } catch (IOException e) {
+                logger.error("Not tracking system state");
+                e.printStackTrace();
+                System.exit(1);
+            }
         }
 
-        String configFileName = "test21";
-
-        Path configPath = Paths.get(configDirPath.toString(), configFileName);
+        Path configPath = Paths.get(configDirPath.toString(),
+                testPlanPacket.configFileName);
         logger.info("[HKLOG] configPath = " + configPath);
 
         // config verification
@@ -447,7 +448,7 @@ public class FuzzingClient {
             }
         }
 
-        // start up
+        // start up cluster
         executor = initExecutor(testPlanPacket.getNodeNum(), targetSystemStates,
                 configPath);
         boolean startUpStatus = startUpExecutor();
@@ -455,37 +456,28 @@ public class FuzzingClient {
             return null;
         }
 
-        // TestPlan only contains one test sequence
-        // We need to compare the results between two versions for once
-        // Then we return the feedback packet
+        // LOG checking1
+        Map<Integer, LogInfo> logInfoBeforeUpgrade = null;
+        if (Config.getConf().enableLogCheck) {
+            logger.info("[HKLOG] error log checking");
+            logInfoBeforeUpgrade = executor.grepLogInfo();
+        }
+
+        // execute test plan (rolling upgrade + fault)
         boolean status = executor.execute(testPlanPacket.getTestPlan());
 
-        if (Config.getConf().startUpClusterForDebugging) {
-            logger.info(
-                    "Start up a cluster and leave it for debugging: This is not testing mode! Please set this startUpClusterForDebugging to false for real testing mode");
-            try {
-                Thread.sleep(1800 * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            System.exit(1);
-
-        }
-
-        FeedBack[] feedBacks = new FeedBack[nodeNum];
+        // collect test plan coverage
+        FeedBack[] testPlanFeedBacks = new FeedBack[nodeNum];
         for (int i = 0; i < nodeNum; i++) {
-            feedBacks[i] = new FeedBack();
+            testPlanFeedBacks[i] = new FeedBack();
+            if (executor.oriCoverage[i] != null)
+                testPlanFeedBacks[i].originalCodeCoverage = executor.oriCoverage[i];
         }
-        TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
-                testPlanPacket.systemID, configFileName,
-                testPlanPacket.testPacketID, feedBacks);
-        testPlanFeedbackPacket.fullSequence = testPlanPacketStr;
 
-        // collect old version coverage
-        for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
-            if (executor.oriCoverage[nodeIdx] != null)
-                testPlanFeedbackPacket.feedBacks[nodeIdx].originalCodeCoverage = executor.oriCoverage[nodeIdx];
-        }
+        TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
+                testPlanPacket.systemID, testPlanPacket.configFileName,
+                testPlanPacket.testPacketID, testPlanFeedBacks);
+        testPlanFeedbackPacket.fullSequence = testPlanPacketStr;
 
         // System state comparison
         if (Config.getConf().enableStateComp) {
@@ -501,21 +493,26 @@ public class FuzzingClient {
         }
 
         if (!status) {
-            testPlanFeedbackPacket.eventFailedReport = genTestPlanFailureReport(
-                    executor.eventIdx, executor.executorID, configFileName,
-                    testPlanPacketStr);
             testPlanFeedbackPacket.isEventFailed = true;
+
+            testPlanFeedbackPacket.eventFailedReport = genTestPlanFailureReport(
+                    executor.eventIdx, executor.executorID,
+                    testPlanPacket.configFileName,
+                    testPlanPacketStr);
             testPlanFeedbackPacket.isInconsistent = false;
             testPlanFeedbackPacket.inconsistencyReport = "";
-
         } else {
             Pair<Boolean, String> compareRes;
-            // collect read results of a test plan
+            // read comparison between full-stop and rolling
             if (!testPlanPacket.testPlan.validationReadResultsOracle
                     .isEmpty()) {
+
                 List<String> testPlanReadResults = executor
                         .executeCommands(
                                 testPlanPacket.testPlan.validationCommands);
+                // logger.debug("[HKLOG] old results = "
+                // + testPlanPacket.testPlan.validationReadResultsOracle);
+                // logger.debug("[HKLOG] new results = " + testPlanReadResults);
                 compareRes = executor
                         .checkResultConsistency(
                                 testPlanReadResults,
@@ -523,7 +520,8 @@ public class FuzzingClient {
                 if (!compareRes.left) {
                     testPlanFeedbackPacket.isInconsistent = true;
                     testPlanFeedbackPacket.inconsistencyReport = genTestPlanInconsistencyReport(
-                            executor.executorID, configFileName,
+                            executor.executorID,
+                            testPlanPacket.configFileName,
                             compareRes.right, testPlanPacketStr);
                 }
             }
@@ -536,16 +534,29 @@ public class FuzzingClient {
                         testPlanFeedbackPacket.feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
                     }
                 }
-
             } catch (Exception e) {
                 // Cannot collect code coverage in the upgraded version
                 testPlanFeedbackPacket.isEventFailed = true;
                 testPlanFeedbackPacket.eventFailedReport = genUpCoverageCollFailureReport(
-                        executor.executorID, configFileName,
+                        executor.executorID, testPlanPacket.configFileName,
                         recordTestPlanPacket(testPlanPacket)) + "Exception:"
                         + e;
                 tearDownExecutor();
                 return testPlanFeedbackPacket;
+            }
+        }
+
+        // LOG checking2
+        if (Config.getConf().enableLogCheck) {
+            logger.info("[HKLOG] error log checking");
+            assert logInfoBeforeUpgrade != null;
+            Map<Integer, LogInfo> logInfo = filterErrorLog(logInfoBeforeUpgrade,
+                    executor.grepLogInfo());
+            if (hasERRORLOG(logInfo)) {
+                testPlanFeedbackPacket.hasERRORLog = true;
+                testPlanFeedbackPacket.errorLogReport = genErrorLogReport(
+                        executor.executorID, testPlanPacket.configFileName,
+                        logInfo);
             }
         }
 
@@ -625,7 +636,7 @@ public class FuzzingClient {
         // LOG checking1
         Map<Integer, LogInfo> logInfoBeforeUpgrade = null;
         if (Config.getConf().enableLogCheck) {
-            logger.info("[HKLOG] error checking");
+            logger.info("[HKLOG] error log checking");
             logInfoBeforeUpgrade = executor.grepLogInfo();
         }
 
@@ -656,14 +667,12 @@ public class FuzzingClient {
             testPlanFeedbackPacket.inconsistencyReport = "";
         } else {
             Pair<Boolean, String> compareRes;
-            // read results comparison between full-stop upgrade and rolling
-            // upgrade
+            // read comparison between full-stop and rolling
             if (!testPlanPacket.testPlan.validationReadResultsOracle
                     .isEmpty()) {
                 List<String> testPlanReadResults = executor
                         .executeCommands(
                                 testPlanPacket.testPlan.validationCommands);
-
                 compareRes = executor
                         .checkResultConsistency(
                                 testPlanReadResults,
@@ -733,7 +742,7 @@ public class FuzzingClient {
 
         // LOG checking2
         if (Config.getConf().enableLogCheck) {
-            logger.info("[HKLOG] error checking");
+            logger.info("[HKLOG] error log checking");
             assert logInfoBeforeUpgrade != null;
             Map<Integer, LogInfo> logInfo = filterErrorLog(logInfoBeforeUpgrade,
                     executor.grepLogInfo());
