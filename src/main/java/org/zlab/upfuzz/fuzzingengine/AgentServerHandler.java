@@ -113,8 +113,9 @@ public class AgentServerHandler
 
             return;
         }
-        logger.info("Agent" + socket.getRemoteSocketAddress().toString() + " " +
-                sessionId + " registered");
+        logger.debug(
+                "Agent" + socket.getRemoteSocketAddress().toString() + " " +
+                        sessionId + " registered");
         // There could be several process to monitor
         // We need to update this variable
         // How to make sure that handler is updated???

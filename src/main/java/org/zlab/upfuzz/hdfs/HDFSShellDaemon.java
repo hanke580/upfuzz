@@ -46,7 +46,7 @@ public class HDFSShellDaemon {
                 String result = new String(
                         grepProc.getInputStream().readAllBytes()).strip();
                 int processNum = Integer.parseInt(result);
-                logger.info("[HKLOG] processNum = " + processNum);
+                logger.debug("[HKLOG] processNum = " + processNum);
                 if (Integer.parseInt(result) <= 2) {
                     // Process has died
                     break;
