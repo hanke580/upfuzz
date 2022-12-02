@@ -252,7 +252,7 @@ public class FuzzingClient {
         int nodeNum = fullStopPacket.getNodeNum();
 
         logger.debug("full stop: \n");
-        logger.debug(fullStopPacket.fullStopUpgrade);
+        // logger.debug(fullStopPacket.fullStopUpgrade);
 
         FeedBack[] feedBacks = new FeedBack[nodeNum];
         for (int i = 0; i < nodeNum; i++) {

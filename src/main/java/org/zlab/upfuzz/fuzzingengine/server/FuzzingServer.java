@@ -411,15 +411,18 @@ public class FuzzingServer {
                 commandPath.resolve("validcommands.txt"));
         Set<String> targetSystemStates = new HashSet<>();
 
-        logger.info("commands = " + commands);
-        logger.info("validcommands = " + validcommands);
+        logger.info("commands size = " + commands.size());
+        logger.info("validcommands size = " + validcommands.size());
 
         FullStopUpgrade fullStopUpgrade = new FullStopUpgrade(
                 Config.getConf().nodeNum,
                 commands,
                 validcommands,
                 targetSystemStates);
+        // TODO: Change this to the configIdx you want to test
         int configIdx = configGen.generateConfig();
+        // int configIdx = 470;
+
         String configFileName = "test" + configIdx;
         FullStopPacket fullStopPacket = new FullStopPacket(
                 Config.getConf().system,
@@ -946,27 +949,27 @@ public class FuzzingServer {
                         + Config.getConf().upgradedVersion + "\n"
                         + "============================================================"
                         + "========================================\n"
-                        + "|"
-                        + "Queue Size = " + corpus.queue.size() + "|"
-                        + "Round = " + round + "|"
-                        + "Cur TestID = " + testID + "|"
+                        + "|\t"
+                        + "Queue Size = " + corpus.queue.size() + "\t\t|\t"
+                        + "Round = " + round + "\t|\t"
+                        + "Cur TestID = " + testID + "\t|\t"
                         + "Finished TestNum = " + finishedTestID
-                        + "|" + "\n"
+                        + "\t|" + "\n"
 
-                        + "|"
-                        + "Time Elapsed = " + timeElapsed + "s" + "|"
+                        + "|\t"
+                        + "Time Elapsed = " + timeElapsed + "s" + "\t|\t"
                         + "Ori Coverage = " + originalCoveredBranches + "/"
-                        + originalProbeNum + "|"
+                        + originalProbeNum + "\t|\t"
                         + "Up Coverage = " + upgradedCoveredBranches + "/"
                         + upgradedProbeNum
-                        + "|" + "\n"
+                        + "\t|" + "\n"
 
-                        + "|"
-                        + "FullStop Crash = " + fullStopCrashNum + "|"
-                        + "Event Crash = " + eventCrashNum + "|"
-                        + "Inconsistency = " + inconsistencyNum + "|"
+                        + "|\t"
+                        + "FullStop Crash = " + fullStopCrashNum + "\t|\t"
+                        + "Event Crash = " + eventCrashNum + "\t|\t"
+                        + "Inconsistency = " + inconsistencyNum + "\t|\t"
                         + "Error Log = " + errorLogNum
-                        + "|" + "\n"
+                        + "\t|" + "\n"
                         +
                         "------------------------------------------------------------"
                         + "----------------------------------------");
