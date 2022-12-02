@@ -677,7 +677,6 @@ public class FuzzingServer {
     public synchronized void updateStatus(
             TestPlanFeedbackPacket testPlanFeedbackPacket) {
 
-        logger.info("testplan updating status");
         FeedBack fb = mergeCoverage(testPlanFeedbackPacket.feedBacks);
         boolean addToCorpus = false;
         if (Config.getConf().useFeedBack) {
@@ -749,12 +748,7 @@ public class FuzzingServer {
                     stackedFeedbackPacket.upgradeFailureReport);
             finishedTestID++;
         }
-
-        logger.info("update Status");
         FuzzingServerHandler.printClientNum();
-        logger.info(
-                "fp size = " + stackedFeedbackPacket.getFpList().size());
-
         for (FeedbackPacket feedbackPacket : stackedFeedbackPacket
                 .getFpList()) {
             finishedTestID++;
@@ -952,39 +946,39 @@ public class FuzzingServer {
                 System.nanoTime(), TimeUnit.NANOSECONDS) - startTime;
 
         logger.info(
-                "\n\n------------------------------------------------"
+                "\n\n-----------------------------------------------"
                         +
-                        "---- TestStatus ----------------------------------------------------\n"
+                        "--- TestStatus ---------------------------------------------------\n"
                         + "System: " + Config.getConf().system + "\n"
                         + "Upgrade: " + Config.getConf().originalVersion + "=>"
                         + Config.getConf().upgradedVersion + "\n"
                         + "============================================================"
-                        + "======================================================\n"
+                        + "=====================================================\n"
                         + "|\t"
-                        + "Queue Size = " + corpus.queue.size() + "\t\t|\t"
-                        + "Round = " + round + "\t|\t"
-                        + "Cur TestID = " + testID + "\t|\t"
-                        + "Finished Test = " + finishedTestID
+                        + "queue size : " + corpus.queue.size() + "\t|\t"
+                        + "round : " + round + "\t|\t"
+                        + "cur testID : " + testID + "\t|\t"
+                        + "total exec : " + finishedTestID
                         + "\t|" + "\n"
 
                         + "|\t"
-                        + "FullStop Crash = " + fullStopCrashNum + "\t|\t"
-                        + "Event Crash = " + eventCrashNum + "\t|\t"
-                        + "Inconsistency = " + inconsistencyNum + "\t|\t"
-                        + "Error Log = " + errorLogNum
+                        + "fullstop crash : " + fullStopCrashNum + "\t|\t"
+                        + "event crash : " + eventCrashNum + "\t|\t"
+                        + "inconsistency : " + inconsistencyNum + "\t|\t"
+                        + "error log : " + errorLogNum
                         + "\t|" + "\n"
 
                         + "|\t"
-                        + "Time Elapsed = " + timeElapsed + "s" + "\t|\t"
-                        + "Ori Coverage = " + originalCoveredBranches + "/"
+                        + "run time : " + timeElapsed + "s" + "\t|\t"
+                        + "ori cov : " + originalCoveredBranches + "/"
                         + originalProbeNum + "\t|\t"
-                        + "Up Coverage = " + upgradedCoveredBranches + "/"
+                        + "up cov : " + upgradedCoveredBranches + "/"
                         + upgradedProbeNum
                         + "\t|" + "\n"
 
                         +
                         "------------------------------------------------------------"
-                        + "------------------------------------------------------");
+                        + "-----------------------------------------------------");
 
         // Print the coverage status
         // for (Pair<Integer, Integer> timeCoveragePair :
