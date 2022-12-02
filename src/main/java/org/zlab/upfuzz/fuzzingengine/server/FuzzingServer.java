@@ -275,7 +275,7 @@ public class FuzzingServer {
                     testID2Seed.put(testID, mutateSeed);
                     stackedTestPacket.addTestPacket(mutateSeed, testID++);
                 } else {
-                    logger.info("Mutation failed");
+                    logger.debug("Mutation failed");
                     i--;
                 }
             }
@@ -296,7 +296,6 @@ public class FuzzingServer {
             for (int i = 0; i < Config.getConf().testPlanMutationEpoch; i++) {
                 TestPlan mutateTestPlan = SerializationUtils.clone(testPlan);
                 mutateTestPlan.mutate();
-                logger.info("mutate a test plan");
                 testID2TestPlan.put(testID, mutateTestPlan);
 
                 int configIdx = configGen.generateConfig();
