@@ -14,11 +14,10 @@
   "testingMode": 4,
   "startUpClusterForDebugging": false,
   "debug": false,
+  "testDowngrade": false,
   "verifyConfig": true,
   "testAddedConfig": true,
   "testCommonConfig": true,
-  "testDowngrade": false,
-  "enableLogCheck": false,
+  "enableLogCheck": true,
   "collUpFeedBack": true 
-  
 }
