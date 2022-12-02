@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.command.NodetoolCommand;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.downgradeop.DowngradeOp;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.*;
@@ -56,6 +57,7 @@ public class TestPlanPacket extends Packet {
                 .registerSubtype(PrepareUpgrade.class, "PrepareUpgrade")
                 .registerSubtype(FinalizeUpgrade.class, "FinalizeUpgrade")
                 .registerSubtype(HDFSStopSNN.class, "HDFSStopSNN")
+                .registerSubtype(NodetoolCommand.class, "NodetoolCommand")
                 .registerSubtype(ShellCommand.class, "ShellCommand");
         listType = new TypeToken<List<Event>>() {
         }.getType();

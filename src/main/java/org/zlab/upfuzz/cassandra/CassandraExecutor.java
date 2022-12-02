@@ -1,26 +1,16 @@
 package org.zlab.upfuzz.cassandra;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-import org.jacoco.core.data.ExecutionDataStore;
-import org.zlab.upfuzz.Command;
-import org.zlab.upfuzz.CommandSequence;
-import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.cassandra.CassandraCqlshDaemon.CqlshPacket;
 import org.zlab.upfuzz.fuzzingengine.AgentServerSocket;
 import org.zlab.upfuzz.fuzzingengine.Config;
-import org.zlab.upfuzz.fuzzingengine.LogInfo;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
 import org.zlab.upfuzz.utils.Pair;
-import org.zlab.upfuzz.utils.Utilities;
 
 /**
  * validity procedure

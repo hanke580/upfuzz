@@ -24,6 +24,9 @@ public class HdfsCommandPool extends CommandPool {
                         Mkdir.class, 2));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
+                        MvCommand.class, 2));
+        commandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(
                         PutCommand.class, 2));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
