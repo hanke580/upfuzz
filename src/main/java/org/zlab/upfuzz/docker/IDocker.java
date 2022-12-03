@@ -20,6 +20,8 @@ public interface IDocker {
 
     void upgrade() throws Exception;
 
+    void upgradeFromCrash() throws Exception;
+
     void downgrade() throws Exception;
 
     // remove all system data (data/ in cassandra)

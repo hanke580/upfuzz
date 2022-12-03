@@ -164,6 +164,24 @@ public class CassandraDocker extends Docker {
 
     @Override
     public void upgrade() throws Exception {
+        prepareUpgradeEnv();
+
+        String restartCommand = "supervisorctl restart upfuzz_cassandra:";
+        Process restart = runInContainer(
+                new String[] { "/bin/bash", "-c", restartCommand }, env);
+        int ret = restart.waitFor();
+        String message = Utilities.readProcess(restart);
+        logger.debug("upgrade version start: " + ret + "\n" + message);
+        cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort, this);
+    }
+
+    @Override
+    public void upgradeFromCrash() throws Exception {
+        prepareUpgradeEnv();
+        restart();
+    }
+
+    public void prepareUpgradeEnv() throws IOException {
         type = "upgraded";
         String cassandraHome = "/cassandra/" + upgradedVersion;
         String cassandraConf = "/etc/" + upgradedVersion;
@@ -193,13 +211,6 @@ public class CassandraDocker extends Docker {
                 "CQLSH_DAEMON_PORT=\"" + cqlshDaemonPort + "\"",
                 "PYTHON=" + pythonVersion };
         setEnvironment();
-        String restartCommand = "supervisorctl restart upfuzz_cassandra:";
-        Process restart = runInContainer(
-                new String[] { "/bin/bash", "-c", restartCommand }, env);
-        int ret = restart.waitFor();
-        String message = Utilities.readProcess(restart);
-        logger.debug("upgrade version start: " + ret + "\n" + message);
-        cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort, this);
     }
 
     @Override

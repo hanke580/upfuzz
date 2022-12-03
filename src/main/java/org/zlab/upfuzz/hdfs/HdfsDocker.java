@@ -157,8 +157,7 @@ public class HdfsDocker extends Docker {
         }
     }
 
-    @Override
-    public void upgrade() throws Exception {
+    public void prepareUpgradeEnv() throws IOException {
         type = "upgraded";
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
                 + "/org.jacoco.agent.rt.jar"
@@ -178,6 +177,11 @@ public class HdfsDocker extends Docker {
                 "HDFS_SHELL_DAEMON_PORT=\"" + hdfsDaemonPort + "\"",
                 "PYTHON=python3" };
         setEnvironment();
+    }
+
+    @Override
+    public void upgrade() throws Exception {
+        prepareUpgradeEnv();
         String restartCommand = "supervisorctl restart upfuzz_hdfs:";
         // Seems the env doesn't really matter...
         Process restart = runInContainer(
@@ -187,6 +191,11 @@ public class HdfsDocker extends Docker {
         logger.debug("upgrade version start: " + ret + "\n" + message);
         hdfsShell = new HDFSShellDaemon(getNetworkIP(), hdfsDaemonPort,
                 executorID, this);
+    }
+
+    @Override
+    public void upgradeFromCrash() throws Exception {
+
     }
 
     @Override

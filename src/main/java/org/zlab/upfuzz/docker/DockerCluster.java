@@ -270,7 +270,7 @@ public abstract class DockerCluster implements IDockerCluster {
     }
 
     /**
-     * collecting system states from each node
+     * collecting log Info from each node
      */
     public Map<Integer, LogInfo> grepLogInfo() {
         // nodeId -> {class.state -> value}
@@ -281,20 +281,31 @@ public abstract class DockerCluster implements IDockerCluster {
         return states;
     }
 
-    // Some preparation before upgrading nodes
-    // - prepare FSImage in HDFS
-    // - flush memTable in Cassandra
+    /**
+     * Some preparation before upgrading nodes
+     * - prepare FSImage in HDFS
+     * - flush memTable in Cassandra
+     */
     public abstract void prepareUpgrade() throws Exception;
 
+    /**
+     * Upgrade a node
+     */
     @Override
     public void upgrade(int nodeIndex) throws Exception {
-        // upgrade a specific node
-        logger.info(String.format("Upgrade Node[%d]", nodeIndex));
-        dockers[nodeIndex].flush();
-        dockers[nodeIndex].shutdown();
-        dockers[nodeIndex].upgrade();
-        dockerStates[nodeIndex].dockerVersion = DockerMeta.DockerVersion.upgraded;
-        logger.info(String.format("Node[%d] is upgraded", nodeIndex));
+        if (dockerStates[nodeIndex].alive) {
+            logger.info(String.format("Upgrade Node[%d]", nodeIndex));
+            dockers[nodeIndex].flush();
+            dockers[nodeIndex].shutdown();
+            dockers[nodeIndex].upgrade();
+            dockerStates[nodeIndex].dockerVersion = DockerMeta.DockerVersion.upgraded;
+            logger.info(String.format("Node[%d] is upgraded", nodeIndex));
+        } else {
+            // Upgrade from a crashed container
+            logger.info(
+                    String.format("Upgrade Node[%d] from crash", nodeIndex));
+            dockers[nodeIndex].upgradeFromCrash();
+        }
     }
 
     @Override
@@ -308,8 +319,6 @@ public abstract class DockerCluster implements IDockerCluster {
         logger.info(String.format("Node[%d] is downgraded", nodeIndex));
     }
 
-    // Link failure on two nodes
-    // Always provide the node index to clients
     public boolean linkFailure(int nodeIndex1, int nodeIndex2) {
         if (!checkIndex(nodeIndex1) || !checkIndex(nodeIndex2))
             return false;
@@ -435,57 +444,24 @@ public abstract class DockerCluster implements IDockerCluster {
             return false;
 
         try {
-            String[] restartContainerCMD = new String[] {
-                    "docker-compose", "restart", dockers[nodeIndex].serviceName
-            };
-            logger.debug("workdir = " + workdir);
-            Process restartContainerProcess = Utilities.exec(
-                    restartContainerCMD,
-                    workdir);
-            restartContainerProcess.waitFor();
-
-            // recreate the shell connection
-            dockers[nodeIndex].start();
+            dockers[nodeIndex].restart();
+            dockerStates[nodeIndex].alive = true;
         } catch (Exception e) {
-            logger.error("Cannot restart container index "
-                    + dockers[nodeIndex].containerName, e);
             return false;
         }
-
-        dockerStates[nodeIndex].alive = true;
         return true;
     }
 
-    // Is it currently in the new version or the old version?
-    // I crash it, but it should still remain the original state
-    // So it should restart from where it crashed
     public boolean killContainerRecover(int nodeIndex) {
         if (!checkIndex(nodeIndex))
             return false;
 
-        // docker-compose recover SERVICE_NAME
         try {
-            String[] containerRecoverCMD = new String[] {
-                    "docker-compose", "restart", dockers[nodeIndex].serviceName
-            };
-            Process containerRecoverProcess = Utilities.exec(
-                    containerRecoverCMD,
-                    workdir);
-            containerRecoverProcess.waitFor();
-
-            // recreate the cqlsh connection
-            logger.info(String.format("[HKLOG] Wait for node%d to restart",
-                    nodeIndex));
-            dockers[nodeIndex].start();
-
-            logger.info(
-                    String.format("Node%d recover successfully!", nodeIndex));
+            dockers[nodeIndex].restart();
+            dockerStates[nodeIndex].alive = true;
         } catch (Exception e) {
-            logger.error("Cannot recover container index "
-                    + dockers[nodeIndex].containerName, e);
             return false;
         }
-        dockerStates[nodeIndex].alive = true;
         return true;
     }
 
