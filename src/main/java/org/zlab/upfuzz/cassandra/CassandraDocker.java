@@ -165,7 +165,6 @@ public class CassandraDocker extends Docker {
     @Override
     public void upgrade() throws Exception {
         prepareUpgradeEnv();
-
         String restartCommand = "supervisorctl restart upfuzz_cassandra:";
         Process restart = runInContainer(
                 new String[] { "/bin/bash", "-c", restartCommand }, env);

@@ -195,7 +195,8 @@ public class HdfsDocker extends Docker {
 
     @Override
     public void upgradeFromCrash() throws Exception {
-
+        prepareUpgradeEnv();
+        restart();
     }
 
     @Override
