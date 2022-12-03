@@ -443,6 +443,8 @@ public class FuzzingServer {
     public TestPlan generateExampleTestPlan() {
         List<Event> exampleEvents = new LinkedList<>();
         int nodeNum = 3;
+        if (Config.getConf().system.equals("hdfs"))
+            nodeNum = 4;
 //        exampleEvents.add(new ShellCommand("dfs -mkdir /cvBMNAEnzAVj"));
 //        exampleEvents.add(new ShellCommand("dfs -touchz /kSAXkQAXGPToQX.yaml"));
 
@@ -934,40 +936,34 @@ public class FuzzingServer {
         long timeElapsed = TimeUnit.SECONDS.convert(
                 System.nanoTime(), TimeUnit.NANOSECONDS) - startTime;
 
-        logger.info(
-                "\n\n-----------------------------------------------"
-                        +
-                        "--- TestStatus ---------------------------------------------------\n"
-                        + "System: " + Config.getConf().system + "\n"
-                        + "Upgrade: " + Config.getConf().originalVersion + "=>"
-                        + Config.getConf().upgradedVersion + "\n"
-                        + "============================================================"
-                        + "=====================================================\n"
-                        + "|\t"
-                        + "queue size : " + corpus.queue.size() + "\t|\t"
-                        + "round : " + round + "\t|\t"
-                        + "cur testID : " + testID + "\t|\t"
-                        + "total exec : " + finishedTestID
-                        + "\t|" + "\n"
-
-                        + "|\t"
-                        + "fullstop crash : " + fullStopCrashNum + "\t|\t"
-                        + "event crash : " + eventCrashNum + "\t|\t"
-                        + "inconsistency : " + inconsistencyNum + "\t|\t"
-                        + "error log : " + errorLogNum
-                        + "\t|" + "\n"
-
-                        + "|\t"
-                        + "run time : " + timeElapsed + "s" + "\t|\t"
-                        + "ori cov : " + originalCoveredBranches + "/"
-                        + originalProbeNum + "\t|\t"
-                        + "up cov : " + upgradedCoveredBranches + "/"
-                        + upgradedProbeNum
-                        + "\t|" + "\n"
-
-                        +
-                        "------------------------------------------------------------"
-                        + "-----------------------------------------------------");
+        System.out.println("--------------------------------------------------"
+                +
+                " TestStatus ---------------------------------------------------------------");
+        System.out.println("System: " + Config.getConf().system + "\n"
+                + "Upgrade: " + Config.getConf().originalVersion + "=>"
+                + Config.getConf().upgradedVersion);
+        System.out.println(
+                "============================================================"
+                        + "=================================================================");
+        System.out.format("|%30s|%30s|%30s|%30s|\n",
+                "queue size : " + corpus.queue.size(),
+                "round : " + round,
+                "cur testID : " + testID,
+                "total exec : " + finishedTestID);
+        System.out.format("|%30s|%30s|%30s|%30s|\n",
+                "fullstop crash : " + fullStopCrashNum,
+                "event crash : " + eventCrashNum,
+                "inconsistency : " + inconsistencyNum,
+                "error log : " + errorLogNum);
+        System.out.format("|%30s|%30s|%30s|\n",
+                "run time : " + timeElapsed + "s",
+                "ori cov : " + originalCoveredBranches + "/"
+                        + originalProbeNum,
+                "up cov : " + upgradedCoveredBranches + "/"
+                        + upgradedProbeNum);
+        System.out.println(
+                "------------------------------------------------------------"
+                        + "-----------------------------------------------------------------");
 
         // Print the coverage status
         // for (Pair<Integer, Integer> timeCoveragePair :

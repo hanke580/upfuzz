@@ -115,6 +115,13 @@ public class FuzzingServerTest {
 
     @Test
     public void test1() {
+
+        String s1 = "hhdfsfsdfadfasdfashddddddd";
+        int s2 = 2;
+        String s3 = "hhddh";
+
+        System.out.format("|%10s|%10d|%16s|\n", s1, s2, s3);
+
     }
 
 //    @Test
