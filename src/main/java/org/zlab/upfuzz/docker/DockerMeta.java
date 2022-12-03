@@ -145,12 +145,23 @@ public abstract class DockerMeta {
     }
 
     static final String[] hdfsErrorBlackList = new String[] {
-            "RECEIVED SIGNAL"
+            "RECEIVED SIGNAL",
+            "Error response from daemon: Container"
+    };
+
+    static final String[] cassErrorBlackList = new String[] {
+            "Error response from daemon: Container"
     };
 
     public boolean isBlackListed(String errorMsg) {
         if (Config.getConf().system.equals("hdfs")) {
             for (String str : hdfsErrorBlackList) {
+                if (errorMsg.contains(str)) {
+                    return true;
+                }
+            }
+        } else if (Config.getConf().system.equals("cassandra")) {
+            for (String str : cassErrorBlackList) {
                 if (errorMsg.contains(str)) {
                     return true;
                 }
