@@ -7,6 +7,7 @@ import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.CommandPool;
+import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.cassandra.CassandraCommandPool;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.docker.DockerCluster;
@@ -18,12 +19,11 @@ import org.zlab.upfuzz.fuzzingengine.configgen.ConfigGen;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
-import org.zlab.upfuzz.hdfs.HdfsCommandPool;
-import org.zlab.upfuzz.hdfs.HdfsState;
 
 import java.io.*;
 import java.lang.reflect.Type;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 
 public class FuzzingServerTest {
@@ -36,15 +36,17 @@ public class FuzzingServerTest {
 
     @Test
     public void testTestPlanGeneration() {
-        CommandPool commandPool = new HdfsCommandPool();
-        Class stateClass = HdfsState.class;
+        CommandPool commandPool = new CassandraCommandPool();
+        Class<? extends State> stateClass = CassandraState.class;
         Seed seed = Executor.generateSeed(commandPool, stateClass);
         FullStopSeed fullStopSeed = new FullStopSeed(
                 seed, 3, null, null);
-        Config.getConf().system = "hdfs";
+        Config.getConf().system = "cassandra";
         FuzzingServer fuzzingServer = new FuzzingServer();
-        TestPlan testPlan = fuzzingServer.generateTestPlan(fullStopSeed);
-
+        TestPlan testPlan;
+        while ((testPlan = fuzzingServer
+                .generateTestPlan(fullStopSeed)) == null)
+            ;
         System.out.println(testPlan);
         testPlan.mutate();
         System.out.println("\nMutate Test Plan\n");
@@ -115,12 +117,26 @@ public class FuzzingServerTest {
 
     @Test
     public void test1() {
+        Config config = new Config();
+        Config.getConf().system = "cassandra";
+        Config.getConf().faultMaxNum = 2;
 
-        String s1 = "hhdfsfsdfadfasdfashddddddd";
-        int s2 = 2;
-        String s3 = "hhddh";
+        FuzzingServer fuzzingServer = new FuzzingServer();
+        Seed seed;
+        CommandPool commandPool = new CassandraCommandPool();
+        Class stateClass = CassandraState.class;
+        seed = Executor.generateSeed(commandPool, stateClass);
+        FullStopSeed fullStopSeed = new FullStopSeed(seed,
+                Config.getConf().nodeNum,
+                new HashMap<>(), new LinkedList<>());
 
-        System.out.format("|%10s|%10d|%16s|\n", s1, s2, s3);
+        logger.info(fullStopSeed.seed.originalCommandSequence
+                .getCommandStringList());
+
+        TestPlan testPlan;
+        while ((testPlan = fuzzingServer
+                .generateTestPlan(fullStopSeed)) == null)
+            ;
 
     }
 

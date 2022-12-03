@@ -96,6 +96,9 @@ public class FuzzingServer {
     ConfigGen configGen;
     public Path configDirPath;
 
+    // ----------test plan----------
+    public int testPlanMutationRetry = 50;
+
     public FuzzingServer() {
         testID2Seed = new HashMap<>();
         testID2TestPlan = new HashMap<>();
@@ -215,7 +218,7 @@ public class FuzzingServer {
             fuzzOne();
         stackedTestPacket = stackedTestPackets.poll();
 
-        if (testPlanPackets.isEmpty())
+        while (testPlanPackets.isEmpty())
             fuzzTestPlan();
         testPlanPacket = testPlanPackets.poll();
 
@@ -293,8 +296,18 @@ public class FuzzingServer {
 
         if (testPlan != null) {
             for (int i = 0; i < Config.getConf().testPlanMutationEpoch; i++) {
-                TestPlan mutateTestPlan = SerializationUtils.clone(testPlan);
-                mutateTestPlan.mutate();
+                TestPlan mutateTestPlan = null;
+                int j = 0;
+                for (; j < testPlanMutationRetry; j++) {
+                    mutateTestPlan = SerializationUtils.clone(testPlan);
+                    mutateTestPlan.mutate();
+                    if (testPlanVerifier(mutateTestPlan.getEvents(),
+                            testPlan.nodeNum)) {
+                        break;
+                    }
+                }
+                if (j == testPlanMutationRetry)
+                    return;
                 testID2TestPlan.put(testID, mutateTestPlan);
 
                 int configIdx = configGen.generateConfig();
@@ -323,7 +336,10 @@ public class FuzzingServer {
 
             // Generate several test plan...
             for (int i = 0; i < Config.getConf().testPlanGenerationNum; i++) {
-                testPlan = generateTestPlan(fullStopSeed);
+
+                while ((testPlan = generateTestPlan(fullStopSeed)) != null)
+                    ;
+
                 testID2TestPlan.put(testID, testPlan);
 
                 int configIdx = configGen.generateConfig();
@@ -476,6 +492,7 @@ public class FuzzingServer {
     }
 
     public TestPlan generateTestPlan(FullStopSeed fullStopSeed) {
+        logger.info("generate a test plan");
         // Some systems might have special requirements for
         // upgrade, like HDFS needs to upgrade NN.
 
@@ -504,6 +521,10 @@ public class FuzzingServer {
                 .randomGenerateFaults(nodeNum, faultNum);
         List<Event> upgradeOpAndFaults = interleaveFaultAndUpgradeOp(faultPairs,
                 upgradeOps);
+
+        if (!testPlanVerifier(upgradeOpAndFaults, nodeNum)) {
+            return null;
+        }
 
         if (Config.getConf().useExampleTestPlan) {
             // DEBUG USE
@@ -538,8 +559,27 @@ public class FuzzingServer {
                     new LinkedList<>());
         }
 
-        // TODO: If the node is current down, we should switch to
-        // another node for execution.
+        // -----------verifier----------
+        // Make sure the test plan is executable
+        /**
+         * There are several patterns
+         * Cassandra
+         * Pattern1
+         * - If we isolate the seed node (node0), all the other nodes
+         * cannot upgrade.
+         * Pattern2
+         * - If we isolate a node which is not a seed node, then we cannot upgrade it
+         * - (If the fault is not recovered)
+         *
+         * Pattern3
+         * - If we crash the seed node, then all the other nodes cannot upgrade
+         *
+         * HDFS
+         * - Shared the two patterns, but has another pattern
+         * - For a node, if there's a bi-link fault between the node
+         * - and the NN (node0), then we cannot upgrade it.
+         */
+
         // Randomly interleave the commands with the upgradeOp&faults
         List<Event> shellCommands = new LinkedList<>();
         if (fullStopSeed.seed != null)
@@ -556,6 +596,91 @@ public class FuzzingServer {
                 fullStopSeed.seed.validationCommandSequnece
                         .getCommandStringList(),
                 fullStopSeed.validationReadResults);
+    }
+
+    public boolean testPlanVerifier(List<Event> events, int nodeNum) {
+        // check connection status to the seed node
+        boolean[][] connection = new boolean[nodeNum][nodeNum];
+        for (int i = 0; i < nodeNum; i++) {
+            for (int j = 0; j < nodeNum; j++) {
+                connection[i][j] = true;
+            }
+        }
+        for (Event event : events) {
+            if (event instanceof IsolateFailure) {
+                int nodeIdx = ((IsolateFailure) event).nodeIndex;
+                for (int i = 0; i < nodeNum; i++) {
+                    if (i != nodeIdx)
+                        connection[i][nodeIdx] = false;
+                }
+                for (int i = 0; i < nodeNum; i++) {
+                    if (i != nodeIdx)
+                        connection[nodeIdx][i] = false;
+                }
+            } else if (event instanceof IsolateFailureRecover) {
+                int nodeIdx = ((IsolateFailureRecover) event).nodeIndex;
+                for (int i = 0; i < nodeNum; i++) {
+                    if (i != nodeIdx)
+                        connection[i][nodeIdx] = true;
+                }
+                for (int i = 0; i < nodeNum; i++) {
+                    if (i != nodeIdx)
+                        connection[nodeIdx][i] = true;
+                }
+            } else if (event instanceof LinkFailure) {
+                int nodeIdx1 = ((LinkFailure) event).nodeIndex1;
+                int nodeIdx2 = ((LinkFailure) event).nodeIndex2;
+                connection[nodeIdx1][nodeIdx2] = false;
+                connection[nodeIdx2][nodeIdx1] = false;
+            } else if (event instanceof LinkFailureRecover) {
+                int nodeIdx1 = ((LinkFailureRecover) event).nodeIndex1;
+                int nodeIdx2 = ((LinkFailureRecover) event).nodeIndex2;
+                connection[nodeIdx1][nodeIdx2] = true;
+                connection[nodeIdx2][nodeIdx1] = true;
+            } else if (event instanceof UpgradeOp) {
+                int nodeIdx = ((UpgradeOp) event).nodeIndex;
+                if (nodeIdx == 0)
+                    continue;
+                if (Config.getConf().system.equals("hdfs")) {
+                    if (!connection[nodeIdx][0])
+                        return false;
+                } else {
+                    int connectedPeerNum = 0;
+                    for (int i = 0; i < nodeNum; i++) {
+                        if (i != nodeIdx) {
+                            if (connection[nodeIdx][i]) {
+                                connectedPeerNum++;
+                            }
+                        }
+                    }
+                    if (connectedPeerNum == 0) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        boolean isSeedAlive = true;
+        // check upgrade while seed node is down
+        for (Event event : events) {
+            if (event instanceof NodeFailure) {
+                int nodeIdx = ((NodeFailure) event).nodeIndex;
+                if (nodeIdx == 0)
+                    isSeedAlive = false;
+            } else if (event instanceof NodeFailureRecover) {
+                int nodeIdx = ((NodeFailureRecover) event).nodeIndex;
+                if (nodeIdx == 0) {
+                    isSeedAlive = true;
+                }
+            } else if (event instanceof UpgradeOp) {
+                int nodeIdx = ((UpgradeOp) event).nodeIndex;
+                if (nodeIdx != 0 && !isSeedAlive) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     public List<String> readcommands(Path path) {

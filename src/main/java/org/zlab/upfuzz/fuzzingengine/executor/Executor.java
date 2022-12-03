@@ -148,7 +148,7 @@ public abstract class Executor implements IExecutor {
 
         boolean status = true;
         for (eventIdx = 0; eventIdx < testPlan.getEvents().size(); eventIdx++) {
-            Event event = testPlan.events.get(eventIdx);
+            Event event = testPlan.getEvents().get(eventIdx);
             logger.info(String.format("\nhandle %s\n", event));
             if (event instanceof Fault) {
                 if (!handleFault((Fault) event)) {

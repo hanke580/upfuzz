@@ -17,7 +17,7 @@ public class TestPlan implements Serializable {
     static Logger logger = LogManager.getLogger(TestPlan.class);
 
     public int nodeNum;
-    public List<Event> events;
+    private List<Event> events;
 
     // ----system state comparison----
     public Set<String> targetSystemStates;
