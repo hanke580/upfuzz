@@ -337,7 +337,7 @@ public class FuzzingServer {
             // Generate several test plan...
             for (int i = 0; i < Config.getConf().testPlanGenerationNum; i++) {
 
-                while ((testPlan = generateTestPlan(fullStopSeed)) != null)
+                while ((testPlan = generateTestPlan(fullStopSeed)) == null)
                     ;
 
                 testID2TestPlan.put(testID, testPlan);

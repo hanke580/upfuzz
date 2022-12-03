@@ -19,6 +19,8 @@ import org.zlab.upfuzz.fuzzingengine.configgen.ConfigGen;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
+import org.zlab.upfuzz.hdfs.HdfsCommandPool;
+import org.zlab.upfuzz.hdfs.HdfsState;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -36,8 +38,8 @@ public class FuzzingServerTest {
 
     @Test
     public void testTestPlanGeneration() {
-        CommandPool commandPool = new CassandraCommandPool();
-        Class<? extends State> stateClass = CassandraState.class;
+        CommandPool commandPool = new HdfsCommandPool();
+        Class<? extends State> stateClass = HdfsState.class;
         Seed seed = Executor.generateSeed(commandPool, stateClass);
         FullStopSeed fullStopSeed = new FullStopSeed(
                 seed, 3, null, null);
