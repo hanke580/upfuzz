@@ -772,6 +772,7 @@ public class FuzzingClient {
 
         if (!startUpStatus) {
             logger.error("config cannot start up old version");
+            executor.teardown();
             return false;
         }
         startUpStatus = executor.freshStartNewVersion();

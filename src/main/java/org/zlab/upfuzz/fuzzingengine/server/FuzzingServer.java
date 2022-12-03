@@ -492,10 +492,8 @@ public class FuzzingServer {
     }
 
     public TestPlan generateTestPlan(FullStopSeed fullStopSeed) {
-        logger.info("generate a test plan");
         // Some systems might have special requirements for
         // upgrade, like HDFS needs to upgrade NN.
-
         int nodeNum = fullStopSeed.nodeNum;
         List<Event> upgradeOps = new LinkedList<>();
         for (int i = 0; i < nodeNum; i++) {
