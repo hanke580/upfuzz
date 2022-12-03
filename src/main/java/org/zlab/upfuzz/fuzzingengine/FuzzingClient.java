@@ -286,13 +286,6 @@ public class FuzzingClient {
             return null;
         }
 
-        // LOG checking1
-        Map<Integer, LogInfo> logInfoBeforeUpgrade = null;
-        if (Config.getConf().enableLogCheck) {
-            logger.info("[HKLOG] error log checking");
-            logInfoBeforeUpgrade = executor.grepLogInfo();
-        }
-
         // Execute
         executor.executeCommands(fullStopPacket.fullStopUpgrade.commands);
         List<String> oriResult = executor.executeCommands(
@@ -314,6 +307,13 @@ public class FuzzingClient {
                     recordFullStopPacket(fullStopPacket)) + "Exception:" + e;
             tearDownExecutor();
             return fullStopFeedbackPacket;
+        }
+
+        // LOG checking1
+        Map<Integer, LogInfo> logInfoBeforeUpgrade = null;
+        if (Config.getConf().enableLogCheck) {
+            logger.info("[HKLOG] error log checking");
+            logInfoBeforeUpgrade = executor.grepLogInfo();
         }
 
         boolean upgradeStatus = executor.fullStopUpgrade();
