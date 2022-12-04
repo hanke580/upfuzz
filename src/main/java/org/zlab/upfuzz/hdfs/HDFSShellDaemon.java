@@ -107,10 +107,10 @@ public class HDFSShellDaemon {
                     + hdfsMessage);
         }
 
-        logger.debug(
-                "HdfsMessage:\n" +
-                        new GsonBuilder().setPrettyPrinting().create()
-                                .toJson(hdfsPacket));
+        // logger.debug(
+        // "HdfsMessage:\n" +
+        // new GsonBuilder().setPrettyPrinting().create()
+        // .toJson(hdfsPacket));
         return hdfsPacket;
     }
 
