@@ -12,4 +12,4 @@ while true; do
     sleep 5
 done
 
-${PYTHON} ${HADOOP_HOME}/bin/hdfs_daemon.py
+$HDFS dfsdaemon

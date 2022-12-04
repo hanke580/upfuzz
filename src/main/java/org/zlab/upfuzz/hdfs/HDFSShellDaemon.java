@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.zlab.upfuzz.cassandra.CassandraCqlshDaemon;
 import org.zlab.upfuzz.docker.Docker;
 
 import java.io.*;
@@ -12,7 +11,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 
 public class HDFSShellDaemon {
-    static Logger logger = LogManager.getLogger(CassandraCqlshDaemon.class);
+    static Logger logger = LogManager.getLogger(HDFSShellDaemon.class);
 
     private Socket socket;
 
@@ -60,13 +59,17 @@ public class HDFSShellDaemon {
                 + "  " + "cannot connect to hdfs shell at " + ipAddress);
     }
 
-    public CassandraCqlshDaemon.CqlshPacket execute(String cmd)
+    public HdfsPacket execute(String cmd)
             throws IOException {
-        BufferedWriter bw = new BufferedWriter(
-                new OutputStreamWriter(socket.getOutputStream()));
+        // BufferedWriter bw = new BufferedWriter(
+        // new OutputStreamWriter(socket.getOutputStream()));
 
-        bw.write(cmd);
-        bw.flush();
+        // bw.write(cmd);
+        // bw.flush();
+        DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+        out.writeInt(cmd.getBytes().length);
+        out.write(cmd.getBytes());
+
         // logger.info(String.format("Command: %s", cmd));
         BufferedReader br = new BufferedReader(
                 new InputStreamReader(socket.getInputStream()));
@@ -74,41 +77,56 @@ public class HDFSShellDaemon {
         // // Socket
         // System.out.println("Socket Debug");
         // byte[] output = new byte[10240];
-        // cqlsh.getInputStream().read(output);
+        // hdfs.getInputStream().read(output);
         // System.out.println(new String(output));
 
-        // FIXME: Also need to modify cqlsh_daemon
-        char[] chars = new char[51200];
+        // FIXME: Also need to modify hdfs_daemon
+        char[] chars = new char[65536];
 
         int cnt = br.read(chars);
         if (cnt == -1) {
             throw new IllegalStateException("hdfs daemon crashed");
         }
-        String cqlshMessage = new String(chars, 0, cnt);
+        String hdfsMessage = new String(chars, 0, cnt);
 
-        // logger.info("[HKLOG] length of cqlshMessage: " +
-        // cqlshMessage.length());
+        // logger.info("[HKLOG] length of hdfsMessage: " +
+        // hdfsMessage.length());
 
         Gson gson = new GsonBuilder()
                 .setLenient()
                 .create();
 
-        // logger.info("hdfs Message: " + cqlshMessage);
-        CassandraCqlshDaemon.CqlshPacket cqlshPacket = null;
+        // logger.info("hdfs Message: " + hdfsMessage);
+        HdfsPacket hdfsPacket = null;
         try {
-            cqlshPacket = gson.fromJson(cqlshMessage,
-                    CassandraCqlshDaemon.CqlshPacket.class);
+            hdfsPacket = gson.fromJson(hdfsMessage,
+                    HdfsPacket.class);
         } catch (Exception e) {
             e.printStackTrace();
-            logger.error("ERROR: Cannot read from json\n WRONG_CQLSH MESSAGE: "
-                    + cqlshMessage);
+            logger.error("ERROR: Cannot read from json\n WRONG_HDFS MESSAGE: "
+                    + hdfsMessage);
         }
 
-        // logger.info(
-        // "CqlshMessage:\n" +
-        // new GsonBuilder().setPrettyPrinting().create()
-        // .toJson(cqlshPacket));
-        return cqlshPacket;
+        logger.debug(
+                "HdfsMessage:\n" +
+                        new GsonBuilder().setPrettyPrinting().create()
+                                .toJson(hdfsPacket));
+        return hdfsPacket;
     }
 
+    public static class HdfsPacket {
+        public String cmd;
+        public int exitValue;
+        public String message;
+        public String error;
+        public double timeUsage;
+
+        public HdfsPacket() {
+            cmd = "";
+            exitValue = 0;
+            message = "";
+            error = "";
+            timeUsage = -1;
+        }
+    }
 }

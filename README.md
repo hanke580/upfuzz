@@ -135,7 +135,7 @@ Make sure `docker` and `docker-compose` is correctly installed.
   "system" : "cassandra",
   "serverPort" : "6399",
   "clientPort" : "6400",
-  "initSeedDir" : "/path/to/upfuzz/initSeedDir", 
+  "initSeedDir" : "/path/to/upfuzz/initSeedDir",
   "STACKED_TESTS_NUM" : "20",
   "nodeNum": 4,
   "useFeedBack": true,
@@ -149,7 +149,7 @@ Make sure `docker` and `docker-compose` is correctly installed.
 
 ```
 
-Note that you need to create the initSeedDir directory under upfuzz/ and the initSeedDir needs to be an absolute path. 
+Note that you need to create the initSeedDir directory under upfuzz/ and the initSeedDir needs to be an absolute path.
 
 3. Create a configInfo directory,
 ```bash
@@ -213,6 +213,17 @@ E.g. If you are testing Cassandra 3.11 (pwd=/path/to/upfuzz/)
 ```bash
 cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-3.11.13/bin/cqlsh_daemon.py
 cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-4.0.0/bin/cqlsh_daemon.py
+```
+
++ for hdfs shell
+```bash
+cp src/main/resources/FsShellDaemon3.java prebuild/hdfs/hadoop-3.3.0/FsShellDaemon.java
+cd prebuild/hdfs/hadoop-3.3.0/
+javac -d . -cp "share/hadoop/hdfs/hadoop-hdfs-3.3.0.jar:share/hadoop/common/hadoop-common-3.3.0.jar:share/hadoop/common/lib/*" FsShellDaemon.java
+sed -i "s/  case \${subcmd} in/&\n    dfsdaemon)\n      HADOOP_CLASSNAME=\"org.apache.hadoop.fs.FsShellDaemon\"\n    ;;/" bin/hdfs
+-----
+hdfs 2.x
+sed -i "s/elif \[ \"\$COMMAND\" = \"dfs\" \] ; then/elif [ \"\$COMMAND\" = \"dfsdaemon\" ] ; then\n  CLASS=org.apache.hadoop.fs.FsShellDaemon\n  HADOOP_OPTS=\"\$HADOOP_OPTS \$HADOOP_CLIENT_OPTS\"\n&/" bin/hdfs
 ```
 
 > Cassandra document notification: If you are upgrading from 3.x to 4.0.0, you also need to modify the `conf/cassandra.yaml` to make sure the `num_tokens` matches. Since the default `num_tokens` for the 3.x is 256, while for 4.0 it's 16.

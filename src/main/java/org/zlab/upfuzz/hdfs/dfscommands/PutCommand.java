@@ -83,8 +83,8 @@ public class PutCommand extends DfsCommand {
         params.add(pOption);
         params.add(lOption);
         params.add(dOption);
-        params.add(threadOption);
-        params.add(threadQueueOption);
+        // params.add(threadOption);
+        // params.add(threadQueueOption);
         params.add(srcParameter);
         params.add(dstParameter);
     }
@@ -97,15 +97,15 @@ public class PutCommand extends DfsCommand {
                 params.get(2) + " " +
                 params.get(3) + " " +
                 params.get(4) + " " +
+                // params.get(5) + " " +
+                // params.get(6) + " " +
                 params.get(5) + " " +
-                params.get(6) + " " +
-                params.get(7) + " " +
                 subdir +
-                params.get(8);
+                params.get(6);
     }
 
     @Override
     public void updateState(State state) {
-        ((HdfsState) state).dfs.createFile(params.get(8).toString());
+        ((HdfsState) state).dfs.createFile(params.get(6).toString());
     }
 }

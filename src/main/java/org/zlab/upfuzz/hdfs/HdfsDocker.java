@@ -20,7 +20,7 @@ public class HdfsDocker extends Docker {
 
     String composeYaml;
     String javaToolOpts;
-    int hdfsDaemonPort = 18251;
+    int hdfsDaemonPort = 11116;
 
     public String namenodeIP;
 
@@ -129,10 +129,6 @@ public class HdfsDocker extends Docker {
     }
 
     @Override
-    public void flush() throws Exception {
-    }
-
-    @Override
     public void shutdown() {
         String nodeType;
         if (index == 0) {
@@ -168,7 +164,7 @@ public class HdfsDocker extends Docker {
                 + type + "-" + index +
                 "\"";
 
-        hdfsDaemonPort ^= 1;
+        // hdfsDaemonPort ^= 1;
         String hdfsHome = "/hdfs/" + upgradedVersion;
         String hdfsConf = "/etc/" + upgradedVersion + "/etc/hadoop";
         env = new String[] {
@@ -210,7 +206,8 @@ public class HdfsDocker extends Docker {
                 ",sessionid=" + system + "-" + executorID + "_"
                 + type + "-" + index +
                 "\"";
-        hdfsDaemonPort ^= 1;
+
+        // hdfsDaemonPort ^= 1;
         String hdfsHome = "/hdfs/" + originalVersion;
         String hdfsConf = "/etc/" + originalVersion + "/etc/hadoop";
         env = new String[] {
@@ -317,5 +314,9 @@ public class HdfsDocker extends Docker {
                 new String[] { "chmod", "-R", "777", "/var/log/supervisor" });
         runInContainer(
                 new String[] { "chmod", "-R", "777", "/usr/bin/set_env" });
+    }
+
+    @Override
+    public void flush() throws Exception {
     }
 }

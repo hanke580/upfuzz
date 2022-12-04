@@ -35,7 +35,9 @@ if [[ ! -f "/var/log/.setup_conf" ]]; then
         echo "export HDFS_DATANODE_USER=\"root\"" >> ${CONFIG}/hadoop-env.sh
         echo "export HDFS_SECONDARYNAMENODE_USER=\"root\"" >> ${CONFIG}/hadoop-env.sh
 
-        echo "export HADOOP_LOG_DIR=/var/log/hdfs" >> ${CONFIG}\hadoop-env.sh
+        echo "export HADOOP_LOG_DIR=/var/log/hdfs" >> ${CONFIG}/hadoop-env.sh
+
+        echo "export HADOOP_CLASSPATH=\${HADOOP_CLASSPATH}:/hdfs/${VERSION}" >> ${CONFIG}/hadoop-env.sh
 
         echo datanode1 > ${CONFIG}/slaves
         echo datanode2 >> ${CONFIG}/slaves
@@ -87,10 +89,10 @@ then
         echo "up  version = $UPG_VERSION"
         if [[ $CUR_VERSION == $ORG_VERSION ]];
         then
-		            echo "start up old version $HADOOP_HOME"
+                            echo "start up old version $HADOOP_HOME"
                 $HADOOP_HOME/sbin/hadoop-daemon.sh start namenode
         else
-		            echo "start up new version $HADOOP_HOME"
+                            echo "start up new version $HADOOP_HOME"
                 $HADOOP_HOME/sbin/hadoop-daemon.sh start namenode -rollingUpgrade started
         fi
 elif [[ "$IP" == "$HDFS_SECONDARY_NAMENODE" ]];

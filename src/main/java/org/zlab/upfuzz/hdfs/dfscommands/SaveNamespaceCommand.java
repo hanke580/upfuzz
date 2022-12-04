@@ -19,7 +19,7 @@ public class SaveNamespaceCommand extends DfsadminCommand {
     public SaveNamespaceCommand(HdfsState hdfsState) {
         super(hdfsState.subdir);
 
-        Parameter saveNamespaceCmd = new CONSTANTSTRINGType("-savenamespace")
+        Parameter saveNamespaceCmd = new CONSTANTSTRINGType("-saveNamespace")
                 .generateRandomParameter(null, null);
 
         Parameter beforeShutdownOption = new ParameterType.OptionalType(

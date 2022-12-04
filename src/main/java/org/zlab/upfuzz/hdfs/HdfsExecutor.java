@@ -1,24 +1,21 @@
 package org.zlab.upfuzz.hdfs;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-import org.codehaus.plexus.util.FileUtils;
-import org.zlab.upfuzz.Command;
-import org.zlab.upfuzz.CustomExceptions;
-import org.zlab.upfuzz.cassandra.CassandraCqlshDaemon;
-import org.zlab.upfuzz.cassandra.CassandraDocker;
 import org.zlab.upfuzz.fuzzingengine.AgentServerSocket;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
+import org.zlab.upfuzz.hdfs.HDFSShellDaemon.HdfsPacket;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
@@ -145,10 +142,9 @@ public class HdfsExecutor extends Executor {
             hdfsShell = ((HdfsDocker) dockerCluster
                     .getDocker(nodeIndex)).hdfsShell;
 
-            // cqlsh = ((CassandraDocker) dockerCluster.getDocker(0)).cqlsh;
             logger.trace("hdfs shell execute: " + command);
             long startTime = System.currentTimeMillis();
-            CassandraCqlshDaemon.CqlshPacket cp = hdfsShell
+            HdfsPacket cp = hdfsShell
                     .execute(command.getCommand());
             long endTime = System.currentTimeMillis();
 
