@@ -8,8 +8,8 @@ if [ $# == 1 ]; then
 else SEEDS="$IP"; fi
 
 # Change it to the target systems
-ORG_VERSION=apache-cassandra-4.1
-UPG_VERSION=apache-cassandra-4.2_trunk
+ORG_VERSION=apache-cassandra-3.0
+UPG_VERSION=apache-cassandra-3.11
 
 # create necessary dirs (some version of cassandra cannot create these)
 mkdir -p /var/log/cassandra
@@ -45,7 +45,8 @@ if [[ ! -f "/tmp/.setup_conf" ]]; then
         if [[ ${MAIN_VERSION} -gt "2" ]]; then
                 echo "hints_directory: /var/lib/cassandra/hints" >> ${CONFIG}/cassandra.yaml
                 if [[ ${MINOR_VERSION} -ge "11" ]]; then
-                echo "cdc_raw_directory: /var/lib/cassandra/cdc_raw" >> ${CONFIG}/cassandra.yaml
+                        echo "cdc_raw_directory: /var/lib/cassandra/cdc_raw" >> ${CONFIG}/cassandra.yaml
+                fi
         fi
 
         sed -i 's/#MAX_HEAP_SIZE="4G"/MAX_HEAP_SIZE="512M"/' ${CONFIG}/cassandra-env.sh
@@ -111,5 +112,5 @@ echo "Starting Cassandra on $IP... Config dir $CASSANDRA_HOME/conf" >>/tmp.log
 
 echo "ENV: HOME:${CASSANDRA_HOME}\nCONF:${CASSANDRA_CONF}"
 #exec cassandra -f
-exec $CASSANDRA_HOME/bin/cassandra -fR
+exec $CASSANDRA_HOME/bin/cassandra -Dcassandra.ring_delay_ms=100 -Dcassandra.broadcast_interval_ms=100 -fR 
 # use R so that Cassandra can be run as root
