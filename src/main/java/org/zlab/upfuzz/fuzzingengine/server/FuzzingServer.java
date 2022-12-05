@@ -445,8 +445,8 @@ public class FuzzingServer {
                 validcommands,
                 targetSystemStates);
         // TODO: Change this to the configIdx you want to test
-        // int configIdx = configGen.generateConfig();
-        int configIdx = 470;
+        int configIdx = configGen.generateConfig();
+        // int configIdx = 470;
 
         String configFileName = "test" + configIdx;
         FullStopPacket fullStopPacket = new FullStopPacket(
