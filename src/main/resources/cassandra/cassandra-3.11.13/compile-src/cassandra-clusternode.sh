@@ -8,7 +8,7 @@ if [ $# == 1 ]; then
 else SEEDS="$IP"; fi
 
 # Change it to the target systems
-ORG_VERSION=apache-cassandra-4.0.6
+ORG_VERSION=apache-cassandra-4.1
 UPG_VERSION=apache-cassandra-4.2_trunk
 
 # create necessary dirs (some version of cassandra cannot create these)
@@ -41,9 +41,11 @@ if [[ ! -f "/tmp/.setup_conf" ]]; then
         echo "split1 = " ${arrIN[2]}
         arrIN1=(${arrIN[2]//./ })
         MAIN_VERSION=${arrIN1[0]}
+        MINOR_VERSION=${arrIN1[1]}
         if [[ ${MAIN_VERSION} -gt "2" ]]; then
                 echo "hints_directory: /var/lib/cassandra/hints" >> ${CONFIG}/cassandra.yaml
-                # echo "cdc_raw_directory: /var/lib/cassandra/cdc_raw" >> ${CONFIG}/cassandra.yaml
+                if [[ ${MINOR_VERSION} -ge "11" ]]; then
+                echo "cdc_raw_directory: /var/lib/cassandra/cdc_raw" >> ${CONFIG}/cassandra.yaml
         fi
 
         sed -i 's/#MAX_HEAP_SIZE="4G"/MAX_HEAP_SIZE="512M"/' ${CONFIG}/cassandra-env.sh

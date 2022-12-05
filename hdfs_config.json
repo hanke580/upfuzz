@@ -5,7 +5,7 @@
   "serverPort" : "6499",
   "clientPort" : "6500",
   "initSeedDir" : "/project/upfuzz/initSeedDir",
-  "STACKED_TESTS_NUM" : "30",
+  "STACKED_TESTS_NUM" : "1",
   "keepDir": true,
   "nodeNum": 4,
   "useFeedBack": true,

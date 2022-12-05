@@ -182,6 +182,7 @@ def read_failureInfo():
         error2failure = json.load(f)
         for error_msg in error2failure:
             print("error msg: ", error_msg)
+            print("size = ", len(error2failure[error_msg]))
             for failureIdx in error2failure[error_msg]:
                 print("\t - ", failureIdx)
             print()
@@ -193,6 +194,7 @@ def read_failure_list(target):
     with open(os.path.join(failure_stat_dir, target + ".json"), 'r') as f:
         failure_list = json.load(f)
         print(target)
+        print("size = ", len(failure_list))
         for failureIdx in failure_list:
             print("\t - ", failureIdx)
         print()
