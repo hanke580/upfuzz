@@ -263,20 +263,16 @@ public class CassandraDocker extends Docker {
                 "/" + system + "/" + originalVersion + "/"
                         + "bin/nodetool",
                 "stopdaemon" };
-        runProcessInContainer(stopNode);
+        int ret = runProcessInContainer(stopNode);
+        logger.debug("cassandra shutdown ret = " + ret);
     }
 
     @Override
     public boolean clear() {
-        try {
-            runInContainer(new String[] {
-                    "rm", "-rf", "/var/lib/cassandra/*"
-            });
-        } catch (IOException e) {
-            logger.error(e);
-            // FIXME: remove this line after debugging
-            System.exit(1);
-        }
+        int ret = runProcessInContainer(new String[] {
+                "rm", "-rf", "/var/lib/cassandra/*"
+        });
+        logger.debug("cassandra clear data ret = " + ret);
         return true;
     }
 
