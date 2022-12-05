@@ -461,23 +461,31 @@ public class FuzzingServer {
         int nodeNum = 3;
         if (Config.getConf().system.equals("hdfs"))
             nodeNum = 4;
-//        exampleEvents.add(new ShellCommand("dfs -mkdir /cvBMNAEnzAVj"));
-//        exampleEvents.add(new ShellCommand("dfs -touchz /kSAXkQAXGPToQX.yaml"));
+        exampleEvents.add(new ShellCommand(
+                "CREATE KEYSPACE IF NOT EXISTS uuid54944042eef940e88c689d5c5f9517ae WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };"));
+
+        exampleEvents.add(new ShellCommand(
+                "CREATE TABLE  uuid54944042eef940e88c689d5c5f9517ae.wYd (wYd TEXT,kwkJcHpnkNUZtvdD TEXT,BhAkXweAcvAJnpcGfuyr TEXT, PRIMARY KEY (BhAkXweAcvAJnpcGfuyr, kwkJcHpnkNUZtvdD )) WITH speculative_retry = 'always';"));
 
         exampleEvents.add(new PrepareUpgrade());
-
-//        exampleEvents.add(new ShellCommand(
-//                "dfs -touchz /cvBMNAEnzAVj/kSAXkQAXGPToQX.xml"));
 
         if (Config.getConf().system.equals("hdfs")) {
             exampleEvents.add(new HDFSStopSNN());
         }
 
-        exampleEvents.add(new NodeFailure(0));
         exampleEvents.add(new UpgradeOp(0));
 
-//        exampleEvents.add(new ShellCommand(
-//                "dfs -touchz /ddddd.xml"));
+        exampleEvents.add(new ShellCommand(
+                "CREATE TABLE  uuid54944042eef940e88c689d5c5f9517ae.tb2 (wYd TEXT,kwkJcHpnkNUZtvdD TEXT,BhAkXweAcvAJnpcGfuyr TEXT, PRIMARY KEY (BhAkXweAcvAJnpcGfuyr, kwkJcHpnkNUZtvdD )) WITH speculative_retry = 'always';"));
+
+        exampleEvents.add(new ShellCommand(
+                "INSERT INTO uuid54944042eef940e88c689d5c5f9517ae.wYd (BhAkXweAcvAJnpcGfuyr, kwkJcHpnkNUZtvdD) VALUES ('val1','val2');"));
+
+        exampleEvents.add(new ShellCommand(
+                "SELECT * FROM uuid54944042eef940e88c689d5c5f9517ae.wYd;"));
+
+        exampleEvents.add(new ShellCommand(
+                "TRUNCATE TABLE uuid54944042eef940e88c689d5c5f9517ae.wYd;"));
 
         exampleEvents.add(new UpgradeOp(1));
         exampleEvents.add(new UpgradeOp(2));

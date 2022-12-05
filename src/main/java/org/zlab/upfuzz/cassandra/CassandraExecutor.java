@@ -130,6 +130,8 @@ public class CassandraExecutor extends Executor {
     @Override
     public String execShellCommand(ShellCommand command) {
         String ret = "null cp message";
+        if (command.getCommand().isEmpty())
+            return ret;
         try {
             // We update the cqlsh each time
             // (1) Try to find a working cqlsh
@@ -159,8 +161,10 @@ public class CassandraExecutor extends Executor {
                         "Command is sent to node[%d], exec time: %ds",
                         cqlshNodeIndex, timeElapsed));
                 if (cp != null)
-                    logger.debug(String.format("command = %s, result = %s",
-                            command.getCommand(), cp.message));
+                    logger.debug(String.format(
+                            "command = %s, result = %s, error = %s, exitValue = %d",
+                            command.getCommand(), cp.message, cp.error,
+                            cp.exitValue));
             }
 
             if (cp != null) {

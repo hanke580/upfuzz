@@ -133,6 +133,8 @@ public class HdfsExecutor extends Executor {
     public String execShellCommand(ShellCommand command) {
         // execute with HDFS
         String ret = "null cp message";
+        if (command.getCommand().isEmpty())
+            return ret;
         try {
             // Cannot perform test plan
             // We shouldn't crash nn

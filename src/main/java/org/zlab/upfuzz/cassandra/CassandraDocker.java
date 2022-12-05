@@ -132,6 +132,8 @@ public class CassandraDocker extends Docker {
         env = new String[] {
                 "CASSANDRA_HOME=\"" + cassandraHome + "\"",
                 "CASSANDRA_CONF=\"" + cassandraConf + "\"", javaToolOpts,
+                "cassandra.broadcast_interval_ms=100",
+                "cassandra.ring_delay_ms=100",
                 "CQLSH_DAEMON_PORT=\"" + cqlshDaemonPort + "\"",
                 "PYTHON=" + pythonVersion };
 
@@ -207,6 +209,8 @@ public class CassandraDocker extends Docker {
         env = new String[] {
                 "CASSANDRA_HOME=\"" + cassandraHome + "\"",
                 "CASSANDRA_CONF=\"" + cassandraConf + "\"", javaToolOpts,
+                "cassandra.broadcast_interval_ms=100",
+                "cassandra.ring_delay_ms=100",
                 "CQLSH_DAEMON_PORT=\"" + cqlshDaemonPort + "\"",
                 "PYTHON=" + pythonVersion };
         setEnvironment();
@@ -242,6 +246,8 @@ public class CassandraDocker extends Docker {
         env = new String[] {
                 "CASSANDRA_HOME=\"" + cassandraHome + "\"",
                 "CASSANDRA_CONF=\"" + cassandraConf + "\"", javaToolOpts,
+                "cassandra.broadcast_interval_ms=100",
+                "cassandra.ring_delay_ms=100",
                 "CQLSH_DAEMON_PORT=\"" + cqlshDaemonPort + "\"",
                 "PYTHON=" + pythonVersion };
 

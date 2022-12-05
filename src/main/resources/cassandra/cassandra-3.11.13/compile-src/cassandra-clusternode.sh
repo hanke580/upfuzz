@@ -9,7 +9,7 @@ else SEEDS="$IP"; fi
 
 # Change it to the target systems
 ORG_VERSION=apache-cassandra-4.0.6
-UPG_VERSION=apache-cassandra-4.1.0_trunk
+UPG_VERSION=apache-cassandra-4.2_trunk
 
 # create necessary dirs (some version of cassandra cannot create these)
 mkdir -p /var/log/cassandra

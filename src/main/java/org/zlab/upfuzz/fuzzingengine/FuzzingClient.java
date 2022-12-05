@@ -24,7 +24,7 @@ public class FuzzingClient {
     public Path configDirPath;
 
     // If the cluster cannot start up for 3 times, it's serious
-    int CLUSTER_START_RETRY = 1; // stop retry for now
+    int CLUSTER_START_RETRY = 3; // stop retry for now
 
     FuzzingClient() {
         // FIX orphan process
