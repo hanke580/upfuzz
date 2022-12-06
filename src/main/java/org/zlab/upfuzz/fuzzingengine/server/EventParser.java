@@ -46,7 +46,7 @@ public class EventParser {
             int idx = eventStr.indexOf("]");
             int idx1, idx2;
             String type = eventStr.substring(1, idx);
-            logger.debug("type = " + type);
+            // logger.debug("type = " + type);
             String restStr = eventStr.substring(idx + 1);
             switch (type) {
             case "Command":
