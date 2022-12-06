@@ -17,6 +17,7 @@ import org.zlab.upfuzz.fuzzingengine.server.FuzzingServer;
 import org.zlab.upfuzz.fuzzingengine.server.Seed;
 import org.zlab.upfuzz.fuzzingengine.configgen.ConfigGen;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
+import org.zlab.upfuzz.fuzzingengine.server.EventParser;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 import org.zlab.upfuzz.hdfs.HdfsCommandPool;
@@ -26,6 +27,7 @@ import java.io.*;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 public class FuzzingServerTest {
@@ -42,7 +44,7 @@ public class FuzzingServerTest {
         Class<? extends State> stateClass = HdfsState.class;
         Seed seed = Executor.generateSeed(commandPool, stateClass);
         FullStopSeed fullStopSeed = new FullStopSeed(
-                seed, 3, null, null);
+                seed, 3, new HashMap<>(), new LinkedList<>());
         Config.getConf().system = "cassandra";
         FuzzingServer fuzzingServer = new FuzzingServer();
         TestPlan testPlan;
@@ -119,27 +121,8 @@ public class FuzzingServerTest {
 
     @Test
     public void test1() {
-        Config config = new Config();
-        Config.getConf().system = "cassandra";
-        Config.getConf().faultMaxNum = 2;
-
-        FuzzingServer fuzzingServer = new FuzzingServer();
-        Seed seed;
-        CommandPool commandPool = new CassandraCommandPool();
-        Class stateClass = CassandraState.class;
-        seed = Executor.generateSeed(commandPool, stateClass);
-        FullStopSeed fullStopSeed = new FullStopSeed(seed,
-                Config.getConf().nodeNum,
-                new HashMap<>(), new LinkedList<>());
-
-        logger.info(fullStopSeed.seed.originalCommandSequence
-                .getCommandStringList());
-
-        TestPlan testPlan;
-        while ((testPlan = fuzzingServer
-                .generateTestPlan(fullStopSeed)) == null)
-            ;
-
+        List<Event> events = EventParser.construct();
+        logger.info(events.size());
     }
 
 //    @Test

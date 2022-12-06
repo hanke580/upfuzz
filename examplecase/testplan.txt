@@ -1,0 +1,31 @@
+[Command] Execute {CREATE KEYSPACE  uuidd70f6d1e98244ff9a915560bc7998ad5 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 2 };}
+[Command] Execute {CREATE TABLE  uuidd70f6d1e98244ff9a915560bc7998ad5.dKNzNyfIyd (MjksupnJuGXzpK TEXT,SBGnPKLVSZRGpL INT,KvUiiVsEADtJUlSEU TEXT,dKNzNyfIyd TEXT,ICAxOYg TEXT,SaPOGZkHgPZd INT,OyScYWFcYsOHfXNL INT,pDdmRiCmE INT, PRIMARY KEY (dKNzNyfIyd, SaPOGZkHgPZd )) WITH speculative_retry = '90MS';}
+[FaultRecover] LinkFailure Recover: Node[0], Node[2]
+[Command] Execute {CREATE TABLE IF NOT EXISTS uuidd70f6d1e98244ff9a915560bc7998ad5.L (XIqPDl INT,XAYi INT,pDdmRiCmE INT,L TEXT,SBGnPKLVSZRGpL TEXT,OyScYWFcYsOHfXNL TEXT,dKNzNyfIyd INT,SaPOGZkHgPZd INT, PRIMARY KEY (XAYi, SBGnPKLVSZRGpL, SaPOGZkHgPZd, XIqPDl, L, dKNzNyfIyd, pDdmRiCmE, OyScYWFcYsOHfXNL )) WITH speculative_retry = '40percentile';}
+[Command] Execute {CREATE INDEX  XAYi ON uuidd70f6d1e98244ff9a915560bc7998ad5.dKNzNyfIyd ( dKNzNyfIyd);}
+[Command] Execute {INSERT INTO uuidd70f6d1e98244ff9a915560bc7998ad5.L (L, pDdmRiCmE, XAYi, XIqPDl, SaPOGZkHgPZd, dKNzNyfIyd, OyScYWFcYsOHfXNL, SBGnPKLVSZRGpL) VALUES ('qNmlUwKfIsOTnMEcGUwNlZBOoEYChqdTbwKqNwICKUUkBygdpluYvMuOBNBwXeIgBUoFzoItSXOgYAzXjShDvxudpPjLFsstotURPTSkrIuHOAxDwBztLvvBtsGiLhCcsMzSYyrrHWVEivQrMEmrasRAhtjOKxiSQHrZOYWCgEMzEQFMaehENpbUxPYKpfXDZQpZGaoBXzBpBxLVjqgMmpiOkFGWkgtPPSpvzAZLQwhdPTL',2,2,2,-183417061,2,'sxUjskMGKomxznYGhvErchfUwgOEZQgvPbmqsqAsXpGNyYjvARxUNDuXzGIXIydVeTdyLmUkNVfURgfeRkvJEukJLtORxCxLnlVg','GNXuvKzlPKWNNPMaWCdmaTNREUWEwHbXjAbXHuYTWDMfSKYGzwEVgnllgjECtjACIdFZtKRLwtwcxcnZosVAOdrWOhywLoozfOHhMwqiyRudrsEgznKDgIXzlIBMSoyZJYrIlgyLZGSwXWJvqxiRZlIFTOIAAd');}
+[Fault] LinkFailure: Node[0], Node[2]
+[Command] Execute {ALTER TABLE uuidd70f6d1e98244ff9a915560bc7998ad5.dKNzNyfIyd ADD XAYi TEXT ;}
+[Command] Execute {ALTER KEYSPACE uuidd70f6d1e98244ff9a915560bc7998ad5 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 2 };}
+[Command] Execute {INSERT INTO uuidd70f6d1e98244ff9a915560bc7998ad5.L (SBGnPKLVSZRGpL, SaPOGZkHgPZd, XAYi, XIqPDl, L, dKNzNyfIyd, pDdmRiCmE, OyScYWFcYsOHfXNL) VALUES ('fNKHCVwGepcntVIUSDBKazXQWzoWAZhjzLZCeFNiilpWrY',-183417061,2,-183417061,'TiPmvNJGjzTSvCzALwzqvxTcte',2,2,'mhFhBFdeQqlPuQDYmLFYXaCRdkidmQYPFuQtyBLUiIQKbHtlFXPYgGjLmyTgQGMYxiqqLrxObqLfznBLbIvmeIUHbyFiQleVGdHSXFuWeszQRQkPAGrqBztOYXCwXLnxQOMnzesFeCymWIuwkUpZazGQFqZIswKRPDwgKvsNQwGSkVCDnPEBstCEmzXfEWFwXyTkYrRuktyOqmRIdDg');}
+[PrepareUpgrade] flush/create image before starting upgrade
+[Command] Execute {USE uuidd70f6d1e98244ff9a915560bc7998ad5;}
+[Command] Execute {ALTER ROLE ICAxOYg WITH PASSWORD = 'XAYi';}
+[Command] Execute {INSERT INTO uuidd70f6d1e98244ff9a915560bc7998ad5.L (L, OyScYWFcYsOHfXNL, XIqPDl, pDdmRiCmE, SBGnPKLVSZRGpL, dKNzNyfIyd, XAYi, SaPOGZkHgPZd) VALUES ('NbjPIpMshzVWNCRLrZSuGUKVJTxNFhGNZuDquAxStbhQVVgjplhRHvEpQWYeUOnLftaLiFEIorIRVzPusEwpovGzFcoEaRQjAQrCyEabjUtZUwEqjNzFrzAHHtInRqzsHvxEwCiqmuGM','gALJUVBhJosbLNJAnCYNIeJpsgUdozCbxzLwMSOEBPUYVDFARCQBHXqXcUebbaIiuFQxzSqViNVtGNxMJDadSqmRqVzeHwHiiickPBsBLSCoivsCvomQtaTrLkiecYPASZZxeCpTtchGNKaEudsHorRRzVcbLxVzaWNjOvQXEYMaXcoKjADWHtPgqvSASpgoJyVkhTyFbZUepae',2,-183417061,'BOxtlUbouxoRHvVnOTjofgwzHpOkJdtZiRiixRdpqvBhadtuVWTecpAuCJDLTVaooUDuqFZXQKXMRjKajHyQOmnoVRXbPakjCkwApotXBXqvtFdxna',1673431024,-183417061,-183417061);}
+[UpgradeOp] Upgrade Node[0]
+[Command] Execute {CREATE KEYSPACE IF NOT EXISTS uuidc96506a5aae64cfa8e047b07e092fe38 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 2 };}
+[Command] Execute {CREATE KEYSPACE  uuidbcc9bea98f3c461eaa7f365bb02a5a60 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 2 };}
+[Command] Execute {INSERT INTO uuidd70f6d1e98244ff9a915560bc7998ad5.dKNzNyfIyd (KvUiiVsEADtJUlSEU, SaPOGZkHgPZd, dKNzNyfIyd, OyScYWFcYsOHfXNL, XAYi, ICAxOYg, SBGnPKLVSZRGpL) VALUES ('cujWy',2,'kcGYNZjbtZbUgwheRkuMZckKvkbgN',-183417061,'mUZJSeGKVEawFepmjcmFHIFmaYBQvhNHGIihDqkDmDrPEToKoC','zhADGXXzKvwkSmkmytARyqHtyoZxPUarpEkjniMpRScewprOeCsYtDhEdZkKaJEBGTTqdRficeUjVVtIiYDIvyfwyRitmyPyXCCoZRNXHWAFhXSBLdSayQwbsTuXSCTmOdjCDeQUngFrPfKUWfDJYMGQGFQbXKUEZUNrurlxPLmqADkjSAKdZDvydmVVRxqenPNoLpIeLqkZwuCnrLqjfJxiiKhKrDMKgPZfybxOTPKkOiao',2);}
+[Command] Execute {CREATE TABLE  uuidbcc9bea98f3c461eaa7f365bb02a5a60.L (aDXLIgEq TEXT,OyScYWFcYsOHfXNL INT,SBGnPKLVSZRGpL INT,MjksupnJuGXzpK TEXT,vrNaxlmbg INT,dKNzNyfIyd INT,XAYi TEXT,KvUiiVsEADtJUlSEU TEXT, PRIMARY KEY (SBGnPKLVSZRGpL, aDXLIgEq, vrNaxlmbg )) WITH speculative_retry = 'ALWAYS';}
+[UpgradeOp] Upgrade Node[1]
+[Command] Execute {DROP TABLE  uuidd70f6d1e98244ff9a915560bc7998ad5.L;}
+[UpgradeOp] Upgrade Node[2]
+[Command] Execute {USE uuidbcc9bea98f3c461eaa7f365bb02a5a60;}
+[Command] Execute {USE uuidc96506a5aae64cfa8e047b07e092fe38;}
+[Command] Execute {DROP KEYSPACE  uuidd70f6d1e98244ff9a915560bc7998ad5;}
+[Command] Execute {ALTER KEYSPACE uuidc96506a5aae64cfa8e047b07e092fe38 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 2 };}
+
+[Fault] RestartFailure: Node[1]
+[Command] Execute {ALTER TABLE uuidbcc9bea98f3c461eaa7f365bb02a5a60.L RENAME SaPOGZkHgPZd TO SaPOGZkHgPZd;}
+[FinalizeUpgrade] Finalize Upgrade Process
+

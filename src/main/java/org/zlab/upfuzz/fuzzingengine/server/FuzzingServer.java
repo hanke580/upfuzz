@@ -65,7 +65,7 @@ public class FuzzingServer {
     public final Queue<FullStopPacket> fullStopPackets;
     private final Queue<TestPlanPacket> testPlanPackets;
 
-    public Set<String> targetSystemStates = null;
+    public Set<String> targetSystemStates = new HashSet<>();
 
     // When merge new branches, increase this number
     public static int originalCoveredBranches = 0;
@@ -457,45 +457,18 @@ public class FuzzingServer {
     }
 
     public TestPlan generateExampleTestPlan() {
-        List<Event> exampleEvents = new LinkedList<>();
         int nodeNum = 3;
         if (Config.getConf().system.equals("hdfs"))
             nodeNum = 4;
-        exampleEvents.add(new ShellCommand(
-                "CREATE KEYSPACE IF NOT EXISTS uuid54944042eef940e88c689d5c5f9517ae WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };"));
 
-        exampleEvents.add(new ShellCommand(
-                "CREATE TABLE  uuid54944042eef940e88c689d5c5f9517ae.wYd (wYd TEXT,kwkJcHpnkNUZtvdD TEXT,BhAkXweAcvAJnpcGfuyr TEXT, PRIMARY KEY (BhAkXweAcvAJnpcGfuyr, kwkJcHpnkNUZtvdD )) WITH speculative_retry = 'always';"));
-
-        exampleEvents.add(new PrepareUpgrade());
-
-        if (Config.getConf().system.equals("hdfs")) {
-            exampleEvents.add(new HDFSStopSNN());
-        }
-
-        exampleEvents.add(new UpgradeOp(0));
-
-        exampleEvents.add(new ShellCommand(
-                "CREATE TABLE  uuid54944042eef940e88c689d5c5f9517ae.tb2 (wYd TEXT,kwkJcHpnkNUZtvdD TEXT,BhAkXweAcvAJnpcGfuyr TEXT, PRIMARY KEY (BhAkXweAcvAJnpcGfuyr, kwkJcHpnkNUZtvdD )) WITH speculative_retry = 'always';"));
-
-        exampleEvents.add(new ShellCommand(
-                "INSERT INTO uuid54944042eef940e88c689d5c5f9517ae.wYd (BhAkXweAcvAJnpcGfuyr, kwkJcHpnkNUZtvdD) VALUES ('val1','val2');"));
-
-        exampleEvents.add(new ShellCommand(
-                "SELECT * FROM uuid54944042eef940e88c689d5c5f9517ae.wYd;"));
-
-        exampleEvents.add(new ShellCommand(
-                "TRUNCATE TABLE uuid54944042eef940e88c689d5c5f9517ae.wYd;"));
-
-        exampleEvents.add(new UpgradeOp(1));
-        exampleEvents.add(new UpgradeOp(2));
+        List<Event> events = EventParser.construct();
 
         Set<String> targetSystemStates = new HashSet<>();
         Map<Integer, Map<String, String>> oracle = new HashMap<>();
         List<String> validationCommands = new LinkedList<>();
         List<String> validationReadResultsOracle = new LinkedList<>();
 
-        return new TestPlan(nodeNum, exampleEvents, targetSystemStates,
+        return new TestPlan(nodeNum, events, targetSystemStates,
                 oracle, validationCommands, validationReadResultsOracle);
     }
 
@@ -565,27 +538,6 @@ public class FuzzingServer {
                     new LinkedList<>());
         }
 
-        // -----------verifier----------
-        // Make sure the test plan is executable
-        /**
-         * There are several patterns
-         * Cassandra
-         * Pattern1
-         * - If we isolate the seed node (node0), all the other nodes
-         * cannot upgrade.
-         * Pattern2
-         * - If we isolate a node which is not a seed node, then we cannot upgrade it
-         * - (If the fault is not recovered)
-         *
-         * Pattern3
-         * - If we crash the seed node, then all the other nodes cannot upgrade
-         *
-         * HDFS
-         * - Shared the two patterns, but has another pattern
-         * - For a node, if there's a bi-link fault between the node
-         * - and the NN (node0), then we cannot upgrade it.
-         */
-
         // Randomly interleave the commands with the upgradeOp&faults
         List<Event> shellCommands = new LinkedList<>();
         if (fullStopSeed.seed != null)
@@ -597,6 +549,7 @@ public class FuzzingServer {
                 shellCommands);
 
         events.add(events.size(), new FinalizeUpgrade());
+
         return new TestPlan(nodeNum, events, targetSystemStates,
                 fullStopSeed.targetSystemStateResults,
                 fullStopSeed.seed.validationCommandSequnece
@@ -694,7 +647,7 @@ public class FuzzingServer {
         return true;
     }
 
-    public List<String> readcommands(Path path) {
+    public static List<String> readcommands(Path path) {
         List<String> strings = new LinkedList<>();
         try {
             BufferedReader br = new BufferedReader(
@@ -744,7 +697,7 @@ public class FuzzingServer {
             fullStopCorpus.addSeed(new FullStopSeed(
                     testID2Seed.get(fullStopFeedbackPacket.testPacketID),
                     Config.getConf().nodeNum,
-                    fullStopFeedbackPacket.systemStates, null));
+                    fullStopFeedbackPacket.systemStates, new LinkedList<>()));
 
             logger.info("[HKLOG] system state = "
                     + fullStopFeedbackPacket.systemStates);
@@ -904,7 +857,7 @@ public class FuzzingServer {
                             seed.validationCommandSequnece);
                     fullStopCorpus.addSeed(
                             new FullStopSeed(seed, feedbackPacket.nodeNum,
-                                    null,
+                                    new HashMap<>(),
                                     feedbackPacket.validationReadResults));
                     corpus.addSeed(seed);
                 }

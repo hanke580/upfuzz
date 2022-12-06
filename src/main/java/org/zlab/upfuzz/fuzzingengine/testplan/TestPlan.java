@@ -32,6 +32,12 @@ public class TestPlan implements Serializable {
             Map<Integer, Map<String, String>> targetSystemStatesOracle,
             List<String> validationCommands,
             List<String> validationReadResultsOracle) {
+
+        assert targetSystemStates != null;
+        assert targetSystemStatesOracle != null;
+        assert validationCommands != null;
+        assert validationReadResultsOracle != null;
+
         this.nodeNum = nodeNum;
         this.events = events;
         this.targetSystemStates = targetSystemStates;
