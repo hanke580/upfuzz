@@ -276,8 +276,10 @@ public class HdfsDocker extends Docker {
             + "            ${networkName}:\n"
             + "                ipv4_address: ${networkIP}\n"
             + "        volumes:\n"
-            + "            - ./persistent/node_${index}/nndata:/var/hadoop/data/nameNode\n"
-            + "            - ./persistent/node_${index}/dndata:/var/hadoop/data/dataNode\n"
+            // + " -
+            // ./persistent/node_${index}/nndata:/var/hadoop/data/nameNode\n"
+            // + " -
+            // ./persistent/node_${index}/dndata:/var/hadoop/data/dataNode\n"
             + "            - ./persistent/node_${index}/log:/var/log/hdfs\n"
             + "            - ./persistent/node_${index}/env.sh:/usr/bin/set_env\n"
             + "            - ./persistent/node_${index}/consolelog:/var/log/supervisor\n"
