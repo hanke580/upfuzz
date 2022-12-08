@@ -876,9 +876,6 @@ public class FuzzingServer {
                     Seed seed = testID2Seed
                             .get(feedbackPacket.testPacketID);
 
-                    logger.debug("[hklog] old score = " + old_score);
-                    logger.debug("[hklog] new score = " + new_score);
-
                     if (Config.getConf().debug) {
                         PriorityQueue<Seed> pqCopy = new PriorityQueue<>(
                                 corpus.queue);
@@ -887,7 +884,6 @@ public class FuzzingServer {
                             logger.debug("score = " + pqCopy.poll().score);
                         }
                     }
-
                     seed.score = (int) (old_score * Config.getConf().oldCovRatio
                             + new_score * (1 - Config.getConf().oldCovRatio));
 
