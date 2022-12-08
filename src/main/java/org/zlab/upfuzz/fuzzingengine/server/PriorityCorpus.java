@@ -1,21 +1,17 @@
 package org.zlab.upfuzz.fuzzingengine.server;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.util.LinkedList;
-import java.util.Queue;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
-public class Corpus {
+import java.io.File;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.PriorityQueue;
 
-    // PriorityQueue queue = new PriorityQueue<TestPacket>(
-    // new TestPacketComparator());
+public class PriorityCorpus {
 
-    // Q0 corpus seed (level 0) always in the corpus
-
-    Queue<Seed> queue = new LinkedList<>();
+    PriorityQueue<Seed> queue = new PriorityQueue<>(Collections.reverseOrder());
 
     public boolean initCorpus(Path initSeedDirPath) {
         if (!initSeedDirPath.toFile().exists())
@@ -27,13 +23,10 @@ public class Corpus {
                 Pair<CommandSequence, CommandSequence> commandSequencePair = Utilities
                         .deserializeCommandSequence(seedFile.toPath());
                 if (commandSequencePair != null) {
-                    // Fuzzer.saveSeed(commandSequencePair.left,
-                    // commandSequencePair.right);
-                    // Utilities.printCommandSequence(commandSequencePair.left);
-                    // Utilities.printCommandSequence(commandSequencePair.right);
-
-                    queue.add(new Seed(commandSequencePair.left,
-                            commandSequencePair.right));
+                    Seed seed = new Seed(commandSequencePair.left,
+                            commandSequencePair.right);
+                    seed.score = 10;
+                    queue.add(seed);
                 }
             }
         }
@@ -52,7 +45,6 @@ public class Corpus {
         return queue.peek();
     }
 
-    // Add one interesting seed to corpus
     public void addSeed(Seed seed) {
         queue.add(seed);
     }
@@ -60,4 +52,5 @@ public class Corpus {
     public boolean isEmpty() {
         return queue.isEmpty();
     }
+
 }

@@ -46,7 +46,7 @@ public class FuzzingServer {
     static Random rand = new Random();
 
     // Seed Corpus (tuple(Seed, Info))
-    public Corpus corpus = new Corpus();
+    public PriorityCorpus corpus = new PriorityCorpus();
     public TestPlanCorpus testPlanCorpus = new TestPlanCorpus();
     public FullStopCorpus fullStopCorpus = new FullStopCorpus();
 
@@ -836,23 +836,52 @@ public class FuzzingServer {
                 boolean addToCorpus = false;
                 // Merge all the feedbacks
                 FeedBack fb = mergeCoverage(feedbackPacket.feedBacks);
-                if (Utilities.hasNewBits(
-                        curOriCoverage,
-                        fb.originalCodeCoverage)) {
-                    // Write Seed to Disk + Add to Corpus
-                    curOriCoverage.merge(
-                            fb.originalCodeCoverage);
-                    addToCorpus = true;
+
+                int old_score = 0;
+                int new_score = 0;
+
+                if (Config.getConf().usePriorityCov) {
+                    if (Utilities.hasNewBitsAccum(
+                            curOriCoverage,
+                            fb.originalCodeCoverage)) {
+                        // Write Seed to Disk + Add to Corpus
+                        old_score = Utilities.mergeMax(curOriCoverage,
+                                fb.originalCodeCoverage);
+                        addToCorpus = true;
+                    }
+                    if (Utilities.hasNewBitsAccum(curUpCoverage,
+                            fb.upgradedCodeCoverage)) {
+                        new_score = Utilities.mergeMax(curUpCoverage,
+                                fb.upgradedCodeCoverage);
+                        addToCorpus = true;
+                    }
+                } else {
+                    if (Utilities.hasNewBits(
+                            curOriCoverage,
+                            fb.originalCodeCoverage)) {
+                        // Write Seed to Disk + Add to Corpus
+                        curOriCoverage.merge(
+                                fb.originalCodeCoverage);
+                        addToCorpus = true;
+                    }
+                    if (Utilities.hasNewBits(curUpCoverage,
+                            fb.upgradedCodeCoverage)) {
+                        curUpCoverage.merge(
+                                fb.upgradedCodeCoverage);
+                        addToCorpus = true;
+                    }
                 }
-                if (Utilities.hasNewBits(curUpCoverage,
-                        fb.upgradedCodeCoverage)) {
-                    curUpCoverage.merge(
-                            fb.upgradedCodeCoverage);
-                    addToCorpus = true;
-                }
+
                 if (addToCorpus) {
                     Seed seed = testID2Seed
                             .get(feedbackPacket.testPacketID);
+
+                    logger.debug("[hklog] old score = " + old_score);
+                    logger.debug("[hklog] new score = " + new_score);
+
+                    seed.score = (int) (old_score * Config.getConf().oldCovRatio
+                            + new_score * (1 - Config.getConf().oldCovRatio));
+
                     Fuzzer.saveSeed(seed.originalCommandSequence,
                             seed.validationCommandSequnece);
                     fullStopCorpus.addSeed(

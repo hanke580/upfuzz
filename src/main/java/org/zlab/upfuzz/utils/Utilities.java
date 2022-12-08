@@ -164,6 +164,83 @@ public class Utilities {
         }
     }
 
+    public static boolean hasNewBitsAccum(ExecutionDataStore curCoverage,
+            ExecutionDataStore testSequenceCoverage) {
+
+        if (testSequenceCoverage == null)
+            return false;
+
+        if (curCoverage == null) {
+            return true;
+        } else {
+            for (final ExecutionData testSequenceData : testSequenceCoverage
+                    .getContents()) {
+
+                final Long id = Long.valueOf(testSequenceData.getId());
+                final ExecutionData curData = curCoverage.get(id);
+
+                // For one class, merge the coverage
+                if (curData != null) {
+                    assertCompatibility(curData, testSequenceData);
+                    int[] curProbes = curData.getProbes();
+                    final int[] testSequenceProbes = testSequenceData
+                            .getProbes();
+                    for (int i = 0; i < curProbes.length; i++) {
+                        if (curProbes[i] < testSequenceProbes[i]) {
+                            return true;
+                        }
+                    }
+                } else {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    public static int mergeMax(ExecutionDataStore curCoverage,
+            ExecutionDataStore testSequenceCoverage) {
+        int score = 0;
+
+        if (testSequenceCoverage == null)
+            return score;
+
+        if (curCoverage == null) {
+            throw new RuntimeException("Please initialize curCoverage");
+        }
+
+        for (final ExecutionData testSequenceData : testSequenceCoverage
+                .getContents()) {
+
+            final long id = testSequenceData.getId();
+            final ExecutionData curData = curCoverage.get(id);
+
+            // For one class, merge the coverage
+            if (curData != null) {
+                assertCompatibility(curData, testSequenceData);
+                int[] curProbes = curData.getProbes();
+                final int[] testSequenceProbes = testSequenceData
+                        .getProbes();
+                for (int i = 0; i < curProbes.length; i++) {
+                    if (curProbes[i] < testSequenceProbes[i]) {
+                        score += testSequenceProbes[i] - curProbes[i];
+                        curProbes[i] = testSequenceProbes[i];
+                    }
+                }
+            } else {
+                final int[] testSequenceProbes = testSequenceData
+                        .getProbes();
+                for (int i = 0; i < testSequenceProbes.length; i++) {
+                    score += testSequenceProbes[i];
+                }
+            }
+            curCoverage.merge(testSequenceData);
+        }
+        return score;
+    }
+
+    // Overwrite the merge function
+    // use max instead of merge
     // compute the new bits bring by testSequenceCoverage
     public static boolean computeDelta(ExecutionDataStore curCoverage,
             ExecutionDataStore testSequenceCoverage) {

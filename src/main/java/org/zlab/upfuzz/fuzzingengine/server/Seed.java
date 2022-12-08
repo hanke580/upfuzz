@@ -9,11 +9,13 @@ import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacket;
 
-public class Seed implements Serializable {
+public class Seed implements Serializable, Comparable<Seed> {
     static Logger logger = LogManager.getLogger(Seed.class);
 
     private final int MAX_STACK_MUTATION = 10;
     private final Random rand;
+
+    public int score = 0;
 
     // Write commands
     public CommandSequence originalCommandSequence;
@@ -70,5 +72,16 @@ public class Seed implements Serializable {
 
     public StackedTestPacket toPacket() {
         return null;
+    }
+
+    @Override
+    public int compareTo(Seed o) {
+        if (score < o.score) {
+            return -1;
+        } else if (score > o.score) {
+            return 1;
+        } else {
+            return 0;
+        }
     }
 }

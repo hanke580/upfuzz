@@ -97,6 +97,10 @@ public class Config {
         public boolean enableLogCheck = true;
         public int grepLineNum = 4;
 
+        // ------------Priority Coverage-------------
+        public boolean usePriorityCov = false;
+        public double oldCovRatio = 0.4;
+
         @Override
         public String toString() {
             return new GsonBuilder()
