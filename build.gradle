@@ -41,7 +41,7 @@ dependencies {
 
 	implementation 'info.debatty:java-string-similarity:2.0.0'
 
-	implementation 'com.github.hanke580.jacoco:jacoco:4e5168b9b5'
+	implementation 'com.github.ST-Saint:jacoco:f874c40919'
 
 	implementation 'org.codehaus.plexus:plexus-utils:1.5.12'
 

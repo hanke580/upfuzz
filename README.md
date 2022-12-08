@@ -215,17 +215,6 @@ cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-3.11.
 cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-4.0.0/bin/cqlsh_daemon.py
 ```
 
-+ for hdfs shell
-```bash
-cp src/main/resources/FsShellDaemon3.java prebuild/hdfs/hadoop-3.3.0/FsShellDaemon.java
-cd prebuild/hdfs/hadoop-3.3.0/
-javac -d . -cp "share/hadoop/hdfs/hadoop-hdfs-3.3.0.jar:share/hadoop/common/hadoop-common-3.3.0.jar:share/hadoop/common/lib/*" FsShellDaemon.java
-sed -i "s/  case \${subcmd} in/&\n    dfsdaemon)\n      HADOOP_CLASSNAME=\"org.apache.hadoop.fs.FsShellDaemon\"\n    ;;/" bin/hdfs
------
-hdfs 2.x
-sed -i "s/elif \[ \"\$COMMAND\" = \"dfs\" \] ; then/elif [ \"\$COMMAND\" = \"dfsdaemon\" ] ; then\n  CLASS=org.apache.hadoop.fs.FsShellDaemon\n  HADOOP_OPTS=\"\$HADOOP_OPTS \$HADOOP_CLIENT_OPTS\"\n&/" bin/hdfs
-```
-
 > Cassandra document notification: If you are upgrading from 3.x to 4.0.0, you also need to modify the `conf/cassandra.yaml` to make sure the `num_tokens` matches. Since the default `num_tokens` for the 3.x is 256, while for 4.0 it's 16.
 
 
@@ -291,11 +280,18 @@ Upgrade from hadoop-2.10.2 to hadoop-3.3.0. You should replace them with the ver
 }
 ```
 
-4. Copy the hdfs daemon file to the `bin` folder in hadoop
-```shell
-cp src/main/resources/hdfs_daemon3.py prebuild/hdfs/hadoop-2.10.2/bin/hdfs_daemon.py
-cp src/main/resources/hdfs_daemon3.py prebuild/hdfs/hadoop-3.3.0/bin/hdfs_daemon.py
+4. Compile the daemon file
+```bash
+cp src/main/resources/FsShellDaemon3.java prebuild/hdfs/hadoop-3.3.0/FsShellDaemon.java
+cd prebuild/hdfs/hadoop-3.3.0/
+javac -d . -cp "share/hadoop/hdfs/hadoop-hdfs-3.3.0.jar:share/hadoop/common/hadoop-common-3.3.0.jar:share/hadoop/common/lib/*" FsShellDaemon.java
+sed -i "s/  case \${subcmd} in/&\n    dfsdaemon)\n      HADOOP_CLASSNAME=\"org.apache.hadoop.fs.FsShellDaemon\"\n    ;;/" bin/hdfs
+-----
+hdfs 2.x
+sed -i "s/elif \[ \"\$COMMAND\" = \"dfs\" \] ; then/elif [ \"\$COMMAND\" = \"dfsdaemon\" ] ; then\n  CLASS=org.apache.hadoop.fs.FsShellDaemon\n  HADOOP_OPTS=\"\$HADOOP_OPTS \$HADOOP_CLIENT_OPTS\"\n&/" bin/hdfs
 ```
+
+
 
 5. Modify `bin/main/hdfs/compile-src/hdfs-clusternode.sh` file. Change the version.
 ```shell
@@ -319,3 +315,9 @@ docker build . -t upfuzz_hdfs:hadoop-2.10.2_hadoop-3.3.0
 ```
 
 8. Start testing (Same as the command in Cassandra set up)
+
+
+
+### Notes
+- If jacoco jar is modified, make sure put the runtime jar into the compile/ so that it can be put into the container.
+- If we want to test with functions with weight, use diffchecker to generate a diff_func.txt and put it in the cassandra folder, like `Cassandra-2.2.8/diff_func.txt`.

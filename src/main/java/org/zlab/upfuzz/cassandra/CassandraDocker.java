@@ -112,6 +112,7 @@ public class CassandraDocker extends Docker {
                 + "=append=false"
                 + ",includes=" + includes + ",excludes=" + excludes +
                 ",output=dfe,address=" + hostIP + ",port=" + agentPort +
+                ",weights=" + cassandraHome + "/diff_func.txt" +
                 ",sessionid=" + system + "-" + executorID + "_"
                 + type + "-" + index +
                 "\"";
@@ -189,6 +190,7 @@ public class CassandraDocker extends Docker {
                 + "=append=false"
                 + ",includes=" + includes + ",excludes=" + excludes +
                 ",output=dfe,address=" + hostIP + ",port=" + agentPort +
+                ",weights=" + cassandraHome + "/diff_func.txt" +
                 ",sessionid=" + system + "-" + executorID + "_" + type +
                 "-" + index +
                 "\"";
@@ -222,6 +224,7 @@ public class CassandraDocker extends Docker {
                 + "=append=false"
                 + ",includes=" + includes + ",excludes=" + excludes +
                 ",output=dfe,address=" + hostIP + ",port=" + agentPort +
+                ",weights=" + cassandraHome + "/diff_func.txt" +
                 ",sessionid=" + system + "-" + executorID + "_"
                 + type + "-" + index +
                 "\"";

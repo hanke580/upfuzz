@@ -105,11 +105,13 @@ public class HdfsDocker extends Docker {
     public boolean build() throws IOException {
         String hdfsHome = "/hdfs/" + originalVersion;
         String hdfsConf = "/etc/" + originalVersion + "/etc/hadoop";
+
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
                 + "/org.jacoco.agent.rt.jar"
                 + "=append=false"
                 + ",includes=" + includes + ",excludes=" + excludes +
                 ",output=dfe,address=" + hostIP + ",port=" + agentPort +
+                ",weights=" + hdfsHome + "/diff_func.txt" +
                 ",sessionid=" + system + "-" + executorID + "_"
                 + type + "-" + index +
                 "\"";
@@ -155,18 +157,20 @@ public class HdfsDocker extends Docker {
 
     public void prepareUpgradeEnv() throws IOException {
         type = "upgraded";
+        String hdfsHome = "/hdfs/" + upgradedVersion;
+        String hdfsConf = "/etc/" + upgradedVersion + "/etc/hadoop";
+
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
                 + "/org.jacoco.agent.rt.jar"
                 + "=append=false"
                 + ",includes=" + includes + ",excludes=" + excludes +
                 ",output=dfe,address=" + hostIP + ",port=" + agentPort +
+                ",weights=" + hdfsHome + "/diff_func.txt" +
                 ",sessionid=" + system + "-" + executorID + "_"
                 + type + "-" + index +
                 "\"";
 
         // hdfsDaemonPort ^= 1;
-        String hdfsHome = "/hdfs/" + upgradedVersion;
-        String hdfsConf = "/etc/" + upgradedVersion + "/etc/hadoop";
         env = new String[] {
                 "HADOOP_HOME=" + hdfsHome,
                 "HADOOP_CONF_DIR=" + hdfsConf, javaToolOpts,
@@ -198,18 +202,20 @@ public class HdfsDocker extends Docker {
     @Override
     public void downgrade() throws Exception {
         type = "original";
+        String hdfsHome = "/hdfs/" + originalVersion;
+        String hdfsConf = "/etc/" + originalVersion + "/etc/hadoop";
+
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
                 + "/org.jacoco.agent.rt.jar"
                 + "=append=false"
                 + ",includes=" + includes + ",excludes=" + excludes +
                 ",output=dfe,address=" + hostIP + ",port=" + agentPort +
+                ",weights=" + hdfsHome + "/diff_func.txt" +
                 ",sessionid=" + system + "-" + executorID + "_"
                 + type + "-" + index +
                 "\"";
 
         // hdfsDaemonPort ^= 1;
-        String hdfsHome = "/hdfs/" + originalVersion;
-        String hdfsConf = "/etc/" + originalVersion + "/etc/hadoop";
         env = new String[] {
                 "HADOOP_HOME=" + hdfsHome,
                 "HADOOP_CONF_DIR=" + hdfsConf, javaToolOpts,
