@@ -3,7 +3,7 @@ package org.zlab.upfuzz.fuzzingengine.server;
 import java.util.List;
 import java.util.Map;
 
-public class FullStopSeed {
+public class FullStopSeed implements Comparable<FullStopSeed> {
     public Seed seed;
     public int nodeNum;
     public Map<Integer, Map<String, String>> targetSystemStateResults;
@@ -18,5 +18,10 @@ public class FullStopSeed {
         this.nodeNum = nodeNum;
         this.targetSystemStateResults = targetSystemStateResults;
         this.validationReadResults = validationReadResults;
+    }
+
+    @Override
+    public int compareTo(FullStopSeed o) {
+        return seed.compareTo(o.seed);
     }
 }

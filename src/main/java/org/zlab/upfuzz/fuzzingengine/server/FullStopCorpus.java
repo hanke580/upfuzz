@@ -4,11 +4,12 @@ import org.zlab.upfuzz.fuzzingengine.testplan.FullStopUpgrade;
 
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Queue;
 
 public class FullStopCorpus {
 
-    Queue<FullStopSeed> queue = new LinkedList();
+    PriorityQueue<FullStopSeed> queue = new PriorityQueue<>();
 
     public FullStopSeed getSeed() {
         if (queue.isEmpty())
