@@ -463,6 +463,8 @@ public class FuzzingServer {
 
         List<Event> events = EventParser.construct();
 
+        logger.debug("example test plan size = " + events.size());
+
         Set<String> targetSystemStates = new HashSet<>();
         Map<Integer, Map<String, String>> oracle = new HashMap<>();
         List<String> validationCommands = new LinkedList<>();

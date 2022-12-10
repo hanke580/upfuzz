@@ -78,8 +78,8 @@ public class EventParser {
                     idx2 = restStr.indexOf("]", idx2 + 1);
                     int nodeIdx2 = Integer
                             .parseInt(restStr.substring(idx1 + 1, idx2));
-                    logger.info(String.format("LinkFailure: %d and %d",
-                            nodeIdx1, nodeIdx2));
+//                    logger.info(String.format("LinkFailure: %d and %d",
+//                            nodeIdx1, nodeIdx2));
                     return new LinkFailure(nodeIdx1, nodeIdx2);
                 } else if (restStr.contains("RestartFailure")) {
                     idx1 = restStr.indexOf("[");
@@ -113,8 +113,8 @@ public class EventParser {
                     idx2 = restStr.indexOf("]", idx2 + 1);
                     int nodeIdx2 = Integer
                             .parseInt(restStr.substring(idx1 + 1, idx2));
-                    logger.info(String.format("LinkFailure: %d and %d",
-                            nodeIdx1, nodeIdx2));
+//                    logger.info(String.format("LinkFailureRecover: %d and %d",
+//                            nodeIdx1, nodeIdx2));
                     return new LinkFailureRecover(nodeIdx1, nodeIdx2);
                 } else if (restStr.contains("IsolateFailureRecover")) {
                     idx1 = restStr.indexOf("[");
