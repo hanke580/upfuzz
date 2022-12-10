@@ -22,6 +22,8 @@ public class FullStopSeed implements Comparable<FullStopSeed> {
 
     @Override
     public int compareTo(FullStopSeed o) {
+        if (o.seed == null)
+            return 1;
         return seed.compareTo(o.seed);
     }
 }
