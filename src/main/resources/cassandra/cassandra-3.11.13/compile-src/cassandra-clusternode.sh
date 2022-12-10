@@ -8,8 +8,8 @@ if [ $# == 1 ]; then
 else SEEDS="$IP"; fi
 
 # Change it to the target systems
-ORG_VERSION=apache-cassandra-3.0
-UPG_VERSION=apache-cassandra-3.11
+ORG_VERSION=apache-cassandra-3.11
+UPG_VERSION=apache-cassandra-4.0.7
 
 # create necessary dirs (some version of cassandra cannot create these)
 mkdir -p /var/log/cassandra
@@ -112,5 +112,6 @@ echo "Starting Cassandra on $IP... Config dir $CASSANDRA_HOME/conf" >>/tmp.log
 
 echo "ENV: HOME:${CASSANDRA_HOME}\nCONF:${CASSANDRA_CONF}"
 #exec cassandra -f
-exec $CASSANDRA_HOME/bin/cassandra -Dcassandra.ring_delay_ms=100 -Dcassandra.broadcast_interval_ms=100 -fR 
+# -exec $CASSANDRA_HOME/bin/cassandra -Dcassandra.ring_delay_ms=100 -Dcassandra.broadcast_interval_ms=100 -fR 
+exec $CASSANDRA_HOME/bin/cassandra -fR 
 # use R so that Cassandra can be run as root
