@@ -73,7 +73,10 @@ public abstract class DockerMeta {
 
     public int runProcessInContainer(String[] cmd, String[] env) {
         try {
-            return runInContainer(cmd, env).waitFor();
+            logger.debug("run Proc in Container...");
+            Process p = runInContainer(cmd, env);
+            p.getInputStream().readAllBytes();
+            return p.waitFor();
         } catch (IOException | InterruptedException e) {
             logger.error("process failed in container: " + e);
             return -1;
