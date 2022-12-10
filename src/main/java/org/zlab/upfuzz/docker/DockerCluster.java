@@ -305,6 +305,7 @@ public abstract class DockerCluster implements IDockerCluster {
             logger.info(
                     String.format("Upgrade Node[%d] from crash", nodeIndex));
             dockers[nodeIndex].upgradeFromCrash();
+            dockerStates[nodeIndex].alive = true;
         }
     }
 
