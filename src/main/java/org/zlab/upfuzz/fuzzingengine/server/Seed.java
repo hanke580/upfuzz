@@ -7,6 +7,7 @@ import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.State;
+import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacket;
 
 public class Seed implements Serializable, Comparable<Seed> {
@@ -21,13 +22,13 @@ public class Seed implements Serializable, Comparable<Seed> {
     public CommandSequence originalCommandSequence;
     public CommandSequence upgradedCommandSequence; // No use for now
     // Read Commands
-    public CommandSequence validationCommandSequnece;
+    public CommandSequence validationCommandSequence;
 
     public Seed(CommandSequence originalCommandSequence,
-            CommandSequence validationCommandSequnece) {
+            CommandSequence validationCommandSequence) {
         rand = new Random();
         this.originalCommandSequence = originalCommandSequence;
-        this.validationCommandSequnece = validationCommandSequnece;
+        this.validationCommandSequence = validationCommandSequence;
     }
 
     public boolean mutate(CommandPool commandPool,
@@ -36,10 +37,13 @@ public class Seed implements Serializable, Comparable<Seed> {
             if (mutateImpl(originalCommandSequence)) {
 
                 originalCommandSequence.initializeTypePool();
-                validationCommandSequnece = CommandSequence.generateSequence(
+                validationCommandSequence = CommandSequence.generateSequence(
                         commandPool.readCommandClassList,
                         null,
                         stateClass, originalCommandSequence.state);
+                if (Config.getConf().system.equals("hdfs")) {
+                    validationCommandSequence.commands.remove(0);
+                }
                 return true;
             }
         } catch (Exception e) {

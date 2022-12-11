@@ -11,17 +11,17 @@ public class TestPacket {
     public List<String> originalCommandSequenceList;
     public List<String> upgradeCommandSequenceList;
     // Read Commands
-    public List<String> validationCommandSequneceList;
+    public List<String> validationCommandSequenceList;
 
     public TestPacket(String systemID, int testPacketID,
             List<String> originalCommandSequenceList,
             List<String> upgradeCommandSequenceList,
-            List<String> validationCommandSequneceList) {
+            List<String> validationCommandSequenceList) {
         this.systemID = systemID;
         this.testPacketID = testPacketID;
         this.originalCommandSequenceList = originalCommandSequenceList;
         this.upgradeCommandSequenceList = upgradeCommandSequenceList;
-        this.validationCommandSequneceList = validationCommandSequneceList;
+        this.validationCommandSequenceList = validationCommandSequenceList;
     }
 
     public void serializeTo(String pathString) {

@@ -33,7 +33,7 @@ public class ShellCommand extends Event {
         if (seed == null)
             return null;
         List<Event> events = new LinkedList<>();
-        for (String command : seed.validationCommandSequnece
+        for (String command : seed.validationCommandSequence
                 .getCommandStringList()) {
             events.add(new ShellCommand(command));
         }

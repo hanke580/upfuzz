@@ -177,11 +177,11 @@ public class CommandSequenceTests {
             }
             logger.info("\n\n");
 
-            for (String str : seed.validationCommandSequnece
+            for (String str : seed.validationCommandSequence
                     .getCommandStringList()) {
                 logger.info(str);
             }
-            logger.info("size = " + seed.validationCommandSequnece
+            logger.info("size = " + seed.validationCommandSequence
                     .getCommandStringList().size());
 
         }

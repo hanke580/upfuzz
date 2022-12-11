@@ -366,7 +366,7 @@ public class FuzzingServer {
                 FullStopUpgrade fullStopUpgrade = new FullStopUpgrade(
                         Config.getConf().nodeNum,
                         seed.originalCommandSequence.getCommandStringList(),
-                        seed.validationCommandSequnece.getCommandStringList(),
+                        seed.validationCommandSequence.getCommandStringList(),
                         targetSystemStates);
                 testID2Seed.put(testID, seed);
                 fullStopPackets.add(new FullStopPacket(Config.getConf().system,
@@ -384,7 +384,7 @@ public class FuzzingServer {
                     FullStopUpgrade fullStopUpgrade = new FullStopUpgrade(
                             Config.getConf().nodeNum,
                             seed.originalCommandSequence.getCommandStringList(),
-                            seed.validationCommandSequnece
+                            seed.validationCommandSequence
                                     .getCommandStringList(),
                             targetSystemStates);
                     testID2Seed.put(testID, mutateSeed);
@@ -554,7 +554,7 @@ public class FuzzingServer {
 
         return new TestPlan(nodeNum, events, targetSystemStates,
                 fullStopSeed.targetSystemStateResults,
-                fullStopSeed.seed.validationCommandSequnece
+                fullStopSeed.seed.validationCommandSequence
                         .getCommandStringList(),
                 fullStopSeed.validationReadResults);
     }
@@ -958,7 +958,7 @@ public class FuzzingServer {
                             + new_score * (1 - Config.getConf().oldCovRatio));
 
                     Fuzzer.saveSeed(seed.originalCommandSequence,
-                            seed.validationCommandSequnece);
+                            seed.validationCommandSequence);
                     fullStopCorpus.addSeed(
                             new FullStopSeed(seed, feedbackPacket.nodeNum,
                                     new HashMap<>(),

@@ -145,7 +145,7 @@ public class FuzzingClient {
                             tp.testPacketID, feedBacks, null));
 
             List<String> oriResult = executor
-                    .executeCommands(tp.validationCommandSequneceList);
+                    .executeCommands(tp.validationCommandSequenceList);
 
             testID2oriResults.put(tp.testPacketID, oriResult);
         }
@@ -179,7 +179,7 @@ public class FuzzingClient {
 
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             List<String> upResult = executor
-                    .executeCommands(tp.validationCommandSequneceList);
+                    .executeCommands(tp.validationCommandSequenceList);
             testID2upResults.put(tp.testPacketID, upResult);
             if (Config.getConf().collUpFeedBack) {
                 ExecutionDataStore[] upCoverages = executor
@@ -628,7 +628,7 @@ public class FuzzingClient {
                             tp.testPacketID, feedBacks, null));
 
             List<String> oriResult = executor
-                    .executeCommands(tp.validationCommandSequneceList);
+                    .executeCommands(tp.validationCommandSequenceList);
             testID2oriResults.put(tp.testPacketID, oriResult);
         }
 
@@ -702,7 +702,7 @@ public class FuzzingClient {
             // ----stacked read upgrade coverage----
             for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
                 List<String> upResult = executor
-                        .executeCommands(tp.validationCommandSequneceList);
+                        .executeCommands(tp.validationCommandSequenceList);
                 testID2upResults.put(tp.testPacketID, upResult);
                 if (Config.getConf().collUpFeedBack) {
                     upCoverages = executor
@@ -870,7 +870,7 @@ public class FuzzingClient {
                 sb.append(cmdStr).append("\n");
             }
             sb.append("\n");
-            for (String cmdStr : tp.validationCommandSequneceList) {
+            for (String cmdStr : tp.validationCommandSequenceList) {
                 sb.append(cmdStr).append("\n");
             }
             sb.append("\n\n");
@@ -902,7 +902,7 @@ public class FuzzingClient {
         }
         sb.append("\n\n");
         sb.append("[Read Command Sequence]\n");
-        for (String commandStr : tp.validationCommandSequneceList) {
+        for (String commandStr : tp.validationCommandSequenceList) {
             sb.append(commandStr).append("\n");
         }
         return sb.toString();

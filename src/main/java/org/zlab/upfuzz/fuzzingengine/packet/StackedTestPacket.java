@@ -33,13 +33,13 @@ public class StackedTestPacket extends Packet {
             tpList.add(new TestPacket(
                     Config.getConf().system, testID,
                     seed.originalCommandSequence.getCommandStringList(), null,
-                    seed.validationCommandSequnece.getCommandStringList()));
+                    seed.validationCommandSequence.getCommandStringList()));
         } else {
             tpList.add(new TestPacket(
                     Config.getConf().system, testID,
                     seed.originalCommandSequence.getCommandStringList(),
                     seed.upgradedCommandSequence.getCommandStringList(),
-                    seed.validationCommandSequnece.getCommandStringList()));
+                    seed.validationCommandSequence.getCommandStringList()));
         }
     }
 
