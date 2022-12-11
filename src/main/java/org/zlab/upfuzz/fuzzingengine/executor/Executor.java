@@ -17,6 +17,7 @@ import org.zlab.upfuzz.docker.DockerCluster;
 import org.zlab.upfuzz.docker.DockerMeta;
 import org.zlab.upfuzz.fuzzingengine.AgentServerHandler;
 import org.zlab.upfuzz.fuzzingengine.AgentServerSocket;
+import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.LogInfo;
 import org.zlab.upfuzz.fuzzingengine.server.Seed;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
@@ -147,6 +148,9 @@ public abstract class Executor implements IExecutor {
             validationCommandSequence = CommandSequence.generateSequence(
                     commandPool.readCommandClassList, null, stateClass,
                     originalCommandSequence.state);
+            if (Config.getConf().system.equals("hdfs")) {
+                validationCommandSequence.commands.remove(0);
+            }
             return new Seed(originalCommandSequence, validationCommandSequence);
         } catch (Exception e) {
             e.printStackTrace();
