@@ -57,7 +57,7 @@ public class SetSpaceQuotaCommand extends DfsadminCommand {
 
     @Override
     public String constructCommandString() {
-        return "dfs" + " " +
+        return "dfsadmin" + " " +
                 params.get(0) + " " +
                 params.get(1) + " " +
                 params.get(2) + " " +
