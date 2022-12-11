@@ -44,7 +44,7 @@ public class ConfigGen {
 
     }
 
-    public ConfigGen() {
+    void init() {
         Path oldVersionPath = Paths.get(System.getProperty("user.dir"),
                 "prebuild", Config.getConf().system,
                 Config.getConf().originalVersion);
@@ -56,17 +56,40 @@ public class ConfigGen {
                 Config.getConf().configDir,
                 Config.getConf().originalVersion + "_"
                         + Config.getConf().upgradedVersion);
+
+        switch (Config.getConf().system) {
+        case "cassandra": {
+            Path defaultConfigPath = Paths.get(oldVersionPath.toString(),
+                    "conf/cassandra.yaml");
+            Path defaultNewConfigPath = Paths.get(newVersionPath.toString(),
+                    "conf/cassandra.yaml");
+            configFileGenerator = new YamlGenerator(defaultConfigPath,
+                    defaultNewConfigPath, generateFolderPath);
+            break;
+        }
+        case "hdfs": {
+            Path defaultConfigPath = Paths.get(oldVersionPath.toString(),
+                    "etc/hadoop/hdfs-site.xml");
+            Path defaultNewConfigPath = Paths.get(newVersionPath.toString(),
+                    "etc/hadoop/hdfs-site.xml");
+            configFileGenerator = new XmlGenerator(defaultConfigPath,
+                    defaultNewConfigPath, generateFolderPath);
+            break;
+        }
+        }
+    }
+
+    public ConfigGen() {
+        init();
+
+        if (!Config.getConf().testCommonConfig
+                && !Config.getConf().testAddedConfig) {
+            return;
+        }
+
         Path configInfoPath = Paths.get(System.getProperty("user.dir"),
                 "configInfo", Config.getConf().originalVersion + "_"
                         + Config.getConf().upgradedVersion);
-
-        Path addedConfigPath = configInfoPath.resolve("addedClassConfig.json");
-        Path addedConfig2typePath = configInfoPath
-                .resolve("addedClassConfig2Type.json");
-        Path addedConfig2initPath = configInfoPath
-                .resolve("addedClassConfig2Init.json");
-        Path addedEnum2constantPath = configInfoPath
-                .resolve("addedClassEnum2Constant.json");
 
         Path commonConfigPath = configInfoPath.resolve("commonConfig.json");
         Path commonConfig2typePath = configInfoPath
@@ -75,6 +98,14 @@ public class ConfigGen {
                 .resolve("commonConfig2Init.json");
         Path commonEnum2constantPath = configInfoPath
                 .resolve("commonEnum2Constant.json");
+
+        Path addedConfigPath = configInfoPath.resolve("addedClassConfig.json");
+        Path addedConfig2typePath = configInfoPath
+                .resolve("addedClassConfig2Type.json");
+        Path addedConfig2initPath = configInfoPath
+                .resolve("addedClassConfig2Init.json");
+        Path addedEnum2constantPath = configInfoPath
+                .resolve("addedClassEnum2Constant.json");
 
         try {
             commonConfig = mapper.readValue(commonConfigPath.toFile(),
@@ -103,13 +134,6 @@ public class ConfigGen {
 
         switch (Config.getConf().system) {
         case "cassandra": {
-            Path defaultConfigPath = Paths.get(oldVersionPath.toString(),
-                    "conf/cassandra.yaml");
-            Path defaultNewConfigPath = Paths.get(newVersionPath.toString(),
-                    "conf/cassandra.yaml");
-            configFileGenerator = new YamlGenerator(defaultConfigPath,
-                    defaultNewConfigPath, generateFolderPath);
-
             commonConfig = removeBlacklistConfig(commonConfig,
                     cassandraConfigBlackList);
             commonConfigValGenerator = new ConfigValGenerator(commonConfig,
@@ -127,13 +151,6 @@ public class ConfigGen {
             break;
         }
         case "hdfs": {
-            Path defaultConfigPath = Paths.get(oldVersionPath.toString(),
-                    "etc/hadoop/hdfs-site.xml");
-            Path defaultNewConfigPath = Paths.get(newVersionPath.toString(),
-                    "etc/hadoop/hdfs-site.xml");
-            configFileGenerator = new XmlGenerator(defaultConfigPath,
-                    defaultNewConfigPath, generateFolderPath);
-
             commonConfigValGenerator = new ConfigValGenerator(commonConfig,
                     commonConfigName2Type, commonConfig2Init,
                     commonEnumName2ConstantMap);
@@ -158,7 +175,6 @@ public class ConfigGen {
         Map<String, String> upConfig2Type = new HashMap<>();
 
         if (Config.getConf().testCommonConfig) {
-
             Map<String, String> commonConfigTest = commonConfigValGenerator
                     .generateValues(true);
             Map<String, String> commonPairConfigTest = commonConfigValGenerator
@@ -191,7 +207,6 @@ public class ConfigGen {
         }
 
         if (Config.getConf().testAddedConfig) {
-
             Map<String, String> addedConfigTest = addedConfigValGenerator
                     .generateValues(false);
             Map<String, String> addedConfigPairTest = addedConfigValGenerator
@@ -219,7 +234,6 @@ public class ConfigGen {
             upConfigtest.putAll(filteredCommonConfigTest);
             upConfig2Type.putAll(addedConfigName2Type);
         }
-
         return configFileGenerator.generate(oriConfigtest, oriConfig2Type,
                 upConfigtest, upConfig2Type);
     }
