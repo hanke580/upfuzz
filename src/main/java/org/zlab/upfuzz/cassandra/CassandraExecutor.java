@@ -114,20 +114,6 @@ public class CassandraExecutor extends Executor {
     }
 
     @Override
-    public List<String> executeCommands(List<String> commandList) {
-        // TODO: Use Event here, since not all commands are executed
-        List<String> ret = new LinkedList<>();
-        for (String command : commandList) {
-            if (command.isEmpty()) {
-                ret.add("");
-            } else {
-                ret.add(execShellCommand(new ShellCommand(command)));
-            }
-        }
-        return ret;
-    }
-
-    @Override
     public String execShellCommand(ShellCommand command) {
         String ret = "null cp message";
         if (command.getCommand().isEmpty())
@@ -181,7 +167,7 @@ public class CassandraExecutor extends Executor {
     }
 
     public Pair<Boolean, String> checkResultConsistency(List<String> oriResult,
-            List<String> upResult) {
+            List<String> upResult, boolean compareOldAndNew) {
         // This could be override by each system to filter some false positive
         // Such as: the exception is the same, but the print format is different
 
@@ -219,16 +205,23 @@ public class CassandraExecutor extends Executor {
                         continue;
                     }
 
-                    // if (oriResult.get(i).isEmpty() ||
-                    // upResult.get(i).isEmpty()) {
-                    // continue;
-                    // }
-
-                    String errorMsg = "Result not the same at read sequence id = "
-                            + i + "\n"
-                            + "Old Version Result: " + oriResult.get(i) + "  "
-                            + "New Version Result: " + upResult.get(i) + "\n";
-
+                    String errorMsg = "Result inconsistency at read id: " + i
+                            + "\n";
+                    if (compareOldAndNew) {
+                        errorMsg += "Old Version Result: "
+                                + oriResult.get(i).strip()
+                                + "\n"
+                                + "New Version Result: "
+                                + upResult.get(i).strip()
+                                + "\n";
+                    } else {
+                        errorMsg += "Full Stop Result: "
+                                + oriResult.get(i).strip()
+                                + "\n"
+                                + "Rolling Upgrade Result: "
+                                + upResult.get(i).strip()
+                                + "\n";
+                    }
                     failureInfo.append(errorMsg);
                     ret = false;
                 }

@@ -198,7 +198,7 @@ public class FuzzingClient {
             Pair<Boolean, String> compareRes = executor
                     .checkResultConsistency(
                             testID2oriResults.get(tp.testPacketID),
-                            testID2upResults.get(tp.testPacketID));
+                            testID2upResults.get(tp.testPacketID), true);
 
             FeedbackPacket feedbackPacket = testID2FeedbackPacket
                     .get(tp.testPacketID);
@@ -357,7 +357,7 @@ public class FuzzingClient {
 
             // Compare results
             Pair<Boolean, String> compareRes = executor
-                    .checkResultConsistency(oriResult, upResult);
+                    .checkResultConsistency(oriResult, upResult, true);
             if (!compareRes.left) {
                 fullStopFeedbackPacket.isInconsistent = true;
                 fullStopFeedbackPacket.inconsistencyReport = genInconsistencyReport(
@@ -510,13 +510,14 @@ public class FuzzingClient {
                 List<String> testPlanReadResults = executor
                         .executeCommands(
                                 testPlanPacket.testPlan.validationCommands);
-                // logger.debug("[HKLOG] old results = "
-                // + testPlanPacket.testPlan.validationReadResultsOracle);
-                // logger.debug("[HKLOG] new results = " + testPlanReadResults);
+                logger.debug("[HKLOG] full-stop results = \n"
+                        + testPlanPacket.testPlan.validationReadResultsOracle);
+                logger.debug("[HKLOG] rolling upgrade results = \n"
+                        + testPlanReadResults);
                 compareRes = executor
                         .checkResultConsistency(
-                                testPlanReadResults,
-                                testPlanPacket.testPlan.validationReadResultsOracle);
+                                testPlanPacket.testPlan.validationReadResultsOracle,
+                                testPlanReadResults, false);
                 if (!compareRes.left) {
                     testPlanFeedbackPacket.isInconsistent = true;
                     testPlanFeedbackPacket.inconsistencyReport = genTestPlanInconsistencyReport(
@@ -524,6 +525,8 @@ public class FuzzingClient {
                             testPlanPacket.configFileName,
                             compareRes.right, testPlanPacketStr);
                 }
+            } else {
+                logger.debug("validationReadResultsOracle is empty!");
             }
 
             try {
@@ -675,8 +678,8 @@ public class FuzzingClient {
                                 testPlanPacket.testPlan.validationCommands);
                 compareRes = executor
                         .checkResultConsistency(
-                                testPlanReadResults,
-                                testPlanPacket.testPlan.validationReadResultsOracle);
+                                testPlanPacket.testPlan.validationReadResultsOracle,
+                                testPlanReadResults, false);
 
                 if (!compareRes.left) {
                     testPlanFeedbackPacket.isInconsistent = true;
@@ -717,7 +720,7 @@ public class FuzzingClient {
                 compareRes = executor
                         .checkResultConsistency(
                                 testID2oriResults.get(tp.testPacketID),
-                                testID2upResults.get(tp.testPacketID));
+                                testID2upResults.get(tp.testPacketID), true);
 
                 FeedbackPacket feedbackPacket = testID2FeedbackPacket
                         .get(tp.testPacketID);

@@ -29,11 +29,6 @@ public class NullExecutor extends Executor {
     }
 
     @Override
-    public List<String> executeCommands(List<String> commandList) {
-        return null;
-    }
-
-    @Override
     public String execShellCommand(ShellCommand command) {
         return null;
     }

@@ -121,15 +121,6 @@ public class HdfsExecutor extends Executor {
     }
 
     @Override
-    public List<String> executeCommands(List<String> commandList) {
-        List<String> ret = new LinkedList<>();
-        for (String cmd : commandList) {
-            execShellCommand(new ShellCommand(cmd));
-        }
-        return ret;
-    }
-
-    @Override
     public String execShellCommand(ShellCommand command) {
         // execute with HDFS
         String ret = "null cp message";
@@ -170,7 +161,7 @@ public class HdfsExecutor extends Executor {
     }
 
     public Pair<Boolean, String> checkResultConsistency(List<String> oriResult,
-            List<String> upResult) {
+            List<String> upResult, boolean compareOldAndNew) {
         // This could be override by each system to filter some false positive
         // Such as: the exception is the same, but the print format is different
 
@@ -189,11 +180,23 @@ public class HdfsExecutor extends Executor {
             boolean ret = true;
             for (int i = 0; i < oriResult.size(); i++) {
                 if (oriResult.get(i).compareTo(upResult.get(i)) != 0) {
-                    String errorMsg = "Result not the same at read sequence id = "
-                            + i + "\n"
-                            + "Old Version Result: " + oriResult.get(i) + "  "
-                            + "New Version Result: " + upResult.get(i) + "\n";
-
+                    String errorMsg = "Result inconsistency at read id: " + i
+                            + "\n";
+                    if (compareOldAndNew) {
+                        errorMsg += "Old Version Result: "
+                                + oriResult.get(i).strip()
+                                + "\n"
+                                + "New Version Result: "
+                                + upResult.get(i).strip()
+                                + "\n";
+                    } else {
+                        errorMsg += "Full Stop Result: "
+                                + oriResult.get(i).strip()
+                                + "\n"
+                                + "Rolling Upgrade Result: "
+                                + upResult.get(i).strip()
+                                + "\n";
+                    }
                     failureInfo.append(errorMsg);
                     ret = false;
                 }

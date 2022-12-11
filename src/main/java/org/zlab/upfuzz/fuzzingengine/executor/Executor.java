@@ -2,6 +2,7 @@ package org.zlab.upfuzz.fuzzingengine.executor;
 
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -121,7 +122,18 @@ public abstract class Executor implements IExecutor {
 
     public abstract void upgradeTeardown();
 
-    public abstract List<String> executeCommands(List<String> commandList);
+    public List<String> executeCommands(List<String> commandList) {
+        // TODO: Use Event here, since not all commands are executed
+        List<String> ret = new LinkedList<>();
+        for (String command : commandList) {
+            if (command.isEmpty()) {
+                ret.add("");
+            } else {
+                ret.add(execShellCommand(new ShellCommand(command)));
+            }
+        }
+        return ret;
+    }
 
     public static Seed generateSeed(CommandPool commandPool,
             Class<? extends State> stateClass) {
@@ -331,7 +343,7 @@ public abstract class Executor implements IExecutor {
     }
 
     public Pair<Boolean, String> checkResultConsistency(List<String> oriResult,
-            List<String> upResult) {
+            List<String> upResult, boolean compareOldAndNew) {
         return new Pair<>(true, "");
     }
 

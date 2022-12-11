@@ -62,7 +62,7 @@ public class TestPlan implements Serializable {
 
         sb.append("validation commands: \n");
         for (String cmd : validationCommands) {
-            sb.append(cmd);
+            sb.append(cmd).append("\n");
         }
         sb.append("\n");
         return sb.toString();
