@@ -162,7 +162,7 @@ public class CassandraExecutor extends Executor {
                         cqlshNodeIndex, timeElapsed));
                 if (cp != null)
                     logger.debug(String.format(
-                            "command = %s, result = %s, error = %s, exitValue = %d",
+                            "command = {%s}, result = {%s}, error = {%s}, exitValue = {%d}",
                             command.getCommand(), cp.message, cp.error,
                             cp.exitValue));
             }

@@ -154,9 +154,10 @@ public class HdfsExecutor extends Executor {
                     endTime - startTime, TimeUnit.MILLISECONDS);
 
             if (Config.getConf().debug) {
-                logger.info(String.format(
-                        "Command %s is sent to node[%d], exec time: %ds",
-                        command.getCommand(), nodeIndex, timeElapsed));
+                logger.debug(String.format(
+                        "command = {%s}, result = {%s}, error = {%s}, exitValue = {%d}",
+                        command.getCommand(), cp.message, cp.error,
+                        cp.exitValue));
             }
             if (cp != null) {
                 ret = cp.message;

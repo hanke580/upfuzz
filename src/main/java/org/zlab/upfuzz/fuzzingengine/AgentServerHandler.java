@@ -96,20 +96,20 @@ public class AgentServerHandler
         if (sessionSplit[0].equals("hdfs")
                 && !Utilities.contains(sessionSplit[3],
                         HdfsDockerCluster.includeJacocoHandlers)) {
-            if (Config.getConf().debug) {
-                logger.info("Skip register: "
-                        + socket.getRemoteSocketAddress().toString() + " " +
-                        sessionId + ": not in target hdfs process");
-            }
+            // if (Config.getConf().debug) {
+            // logger.info("Skip register: "
+            // + socket.getRemoteSocketAddress().toString() + " " +
+            // sessionId + ": not in target hdfs process");
+            // }
             return;
         }
 
         if (sessionSplit[3].equals("null")) {
-            if (Config.getConf().debug) {
-                logger.info("Skip register: "
-                        + socket.getRemoteSocketAddress().toString() + " " +
-                        sessionId + ", main function is null");
-            }
+            // if (Config.getConf().debug) {
+            // logger.info("Skip register: "
+            // + socket.getRemoteSocketAddress().toString() + " " +
+            // sessionId + ", main function is null");
+            // }
 
             return;
         }
