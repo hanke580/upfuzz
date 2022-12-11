@@ -559,7 +559,7 @@ public class FuzzingServer {
                 fullStopSeed.validationReadResults);
     }
 
-    public boolean testPlanVerifier(List<Event> events, int nodeNum) {
+    public static boolean testPlanVerifier(List<Event> events, int nodeNum) {
         // check connection status to the seed node
         boolean[][] connection = new boolean[nodeNum][nodeNum];
         for (int i = 0; i < nodeNum; i++) {
@@ -567,6 +567,7 @@ public class FuzzingServer {
                 connection[i][j] = true;
             }
         }
+        // Check the connection with the seed node
         for (Event event : events) {
             if (event instanceof IsolateFailure) {
                 int nodeIdx = ((IsolateFailure) event).nodeIndex;
@@ -638,14 +639,81 @@ public class FuzzingServer {
                 if (nodeIdx == 0) {
                     isSeedAlive = true;
                 }
+            } else if (event instanceof RestartFailure) {
+                int nodeIdx = ((RestartFailure) event).nodeIndex;
+                if (nodeIdx == 0) {
+                    isSeedAlive = true;
+                }
             } else if (event instanceof UpgradeOp) {
                 int nodeIdx = ((UpgradeOp) event).nodeIndex;
-                if (nodeIdx != 0 && !isSeedAlive) {
+                if (nodeIdx == 0) {
+                    isSeedAlive = true;
+                } else if (!isSeedAlive) {
                     return false;
                 }
             }
         }
 
+        // Check double failure injection (NodeFailure[0] -x-> LinkFailure[0])
+        boolean[] nodeState = new boolean[nodeNum];
+        for (int i = 0; i < nodeNum; i++)
+            nodeState[i] = true;
+        for (Event event : events) {
+            if (event instanceof NodeFailure) {
+                int nodeIdx = ((NodeFailure) event).nodeIndex;
+                nodeState[nodeIdx] = false;
+            } else if (event instanceof NodeFailureRecover) {
+                int nodeIdx = ((NodeFailureRecover) event).nodeIndex;
+                nodeState[nodeIdx] = true;
+            } else if (event instanceof RestartFailure) {
+                int nodeIdx = ((RestartFailure) event).nodeIndex;
+                nodeState[nodeIdx] = true;
+            } else if (event instanceof UpgradeOp) {
+                int nodeIdx = ((UpgradeOp) event).nodeIndex;
+                nodeState[nodeIdx] = true;
+            } else if (event instanceof LinkFailure) {
+                int nodeIdx1 = ((LinkFailure) event).nodeIndex1;
+                int nodeIdx2 = ((LinkFailure) event).nodeIndex2;
+                if (!nodeState[nodeIdx1] || !nodeState[nodeIdx2])
+                    return false;
+            } else if (event instanceof LinkFailureRecover) {
+                int nodeIdx1 = ((LinkFailureRecover) event).nodeIndex1;
+                int nodeIdx2 = ((LinkFailureRecover) event).nodeIndex2;
+                if (!nodeState[nodeIdx1] || !nodeState[nodeIdx2])
+                    return false;
+            } else if (event instanceof IsolateFailure) {
+                int nodeIdx = ((IsolateFailure) event).nodeIndex;
+                if (!nodeState[nodeIdx]) {
+                    return false;
+                }
+            } else if (event instanceof IsolateFailureRecover) {
+                int nodeIdx = ((IsolateFailureRecover) event).nodeIndex;
+                if (!nodeState[nodeIdx]) {
+                    return false;
+                }
+            }
+        }
+
+        // hdfs specific, no restart failure between STOPSNN and UpgradeSNN
+        if (Config.getConf().system.equals("hdfs")) {
+            boolean metStopSNN = false;
+            for (Event event : events) {
+                if (event instanceof HDFSStopSNN) {
+                    metStopSNN = true;
+                } else if (event instanceof RestartFailure) {
+                    int nodeIdx = ((RestartFailure) event).nodeIndex;
+                    if (metStopSNN && nodeIdx == 1) {
+                        return false;
+                    }
+                } else if (event instanceof UpgradeOp) {
+                    int nodeIdx = ((UpgradeOp) event).nodeIndex;
+                    if (nodeIdx == 1) {
+                        // checked the process between STOPSNN and UpgradeSNN
+                        break;
+                    }
+                }
+            }
+        }
         return true;
     }
 

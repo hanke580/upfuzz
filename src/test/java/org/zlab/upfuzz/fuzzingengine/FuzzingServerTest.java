@@ -20,6 +20,12 @@ import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.server.EventParser;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.IsolateFailureRecover;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.LinkFailure;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.NodeFailure;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.RestartFailure;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.HDFSStopSNN;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.UpgradeOp;
 import org.zlab.upfuzz.hdfs.HdfsCommandPool;
 import org.zlab.upfuzz.hdfs.HdfsState;
 
@@ -40,12 +46,12 @@ public class FuzzingServerTest {
 
     @Test
     public void testTestPlanGeneration() {
+        Config.getConf().system = "hdfs";
         CommandPool commandPool = new HdfsCommandPool();
         Class<? extends State> stateClass = HdfsState.class;
         Seed seed = Executor.generateSeed(commandPool, stateClass);
         FullStopSeed fullStopSeed = new FullStopSeed(
                 seed, 3, new HashMap<>(), new LinkedList<>());
-        Config.getConf().system = "cassandra";
         FuzzingServer fuzzingServer = new FuzzingServer();
         TestPlan testPlan;
         while ((testPlan = fuzzingServer
@@ -121,8 +127,19 @@ public class FuzzingServerTest {
 
     @Test
     public void test1() {
-        List<Event> events = EventParser.construct();
-        logger.info(events.size());
+        List<Event> events = new LinkedList<>();
+
+        Config.instance.system = "hdfs";
+
+        events.add(new HDFSStopSNN());
+        events.add(new NodeFailure(2));
+
+        events.add(new UpgradeOp(0));
+        events.add(new UpgradeOp(1));
+
+        events.add(new IsolateFailureRecover(2));
+
+        assert !FuzzingServer.testPlanVerifier(events, 4);
     }
 
 //    @Test

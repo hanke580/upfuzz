@@ -17,7 +17,7 @@ public class HDFSShellDaemon {
 
     public HDFSShellDaemon(String ipAddress, int port, String executorID,
             Docker docker) {
-        int retry = 10;
+        int retry = 20;
         logger.info("[HKLOG] executor ID = " + executorID + "  "
                 + "Connect to hdfs shell daemon:" + ipAddress + "...");
         for (int i = 0; i < retry; ++i) {
