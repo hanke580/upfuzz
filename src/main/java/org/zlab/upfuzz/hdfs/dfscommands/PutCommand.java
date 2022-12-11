@@ -4,6 +4,7 @@ import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.ConcatenateType;
+import org.zlab.upfuzz.hdfs.HDFSParameterType.HDFSDirPathType;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomHadoopPathType;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomLocalPathType;
 import org.zlab.upfuzz.hdfs.HdfsState;
@@ -74,8 +75,8 @@ public class PutCommand extends DfsCommand {
         Parameter srcParameter = new RandomLocalPathType()
                 .generateRandomParameter(state, null);
 
-        Parameter dstParameter = new RandomHadoopPathType() // give a subpath
-                                                            // here
+        Parameter dstParameter = new HDFSDirPathType() // give a subpath
+                                                       // here
                 .generateRandomParameter(state, null);
 
         params.add(putcmd);

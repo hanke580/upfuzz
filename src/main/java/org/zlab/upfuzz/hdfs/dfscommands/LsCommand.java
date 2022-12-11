@@ -3,12 +3,9 @@ package org.zlab.upfuzz.hdfs.dfscommands;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.hdfs.HDFSParameterType.ConcatenateType;
-import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomHadoopPathType;
-import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomLocalPathType;
+import org.zlab.upfuzz.hdfs.HDFSParameterType.HDFSDirPathType;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
-import org.zlab.upfuzz.utils.INTType;
 
 public class LsCommand extends DfsCommand {
 
@@ -23,7 +20,7 @@ public class LsCommand extends DfsCommand {
         Parameter lsCmd = new CONSTANTSTRINGType("-ls")
                 .generateRandomParameter(null, null);
 
-        Parameter pathParameter = new RandomHadoopPathType()
+        Parameter pathParameter = new HDFSDirPathType()
                 .generateRandomParameter(state, null);
 
         // -C: Display the paths of files and directories only.

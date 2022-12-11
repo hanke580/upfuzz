@@ -3,7 +3,7 @@ package org.zlab.upfuzz.hdfs.dfscommands;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomHadoopPathType;
+import org.zlab.upfuzz.hdfs.HDFSParameterType.HDFSFilePathType;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 
@@ -14,19 +14,19 @@ public class CatCommand extends DfsCommand {
      * sources as well in which case the destination needs to be a directory.
      * Moving files across file systems is not permitted.
      */
-    public CatCommand(HdfsState state) {
-        super(state.subdir);
+    public CatCommand(HdfsState hdfsState) {
+        super(hdfsState.subdir);
 
         Parameter catCmd = new CONSTANTSTRINGType("-cat")
-                .generateRandomParameter(null, null);
+                .generateRandomParameter(hdfsState, null);
 
         // The -ignoreCrc option disables checkshum verification.
         Parameter crcOption = new ParameterType.OptionalType(
                 new CONSTANTSTRINGType("-ignoreCrc"), null)
-                        .generateRandomParameter(null, null);
+                        .generateRandomParameter(hdfsState, null);
 
-        Parameter pathParameter = new RandomHadoopPathType()
-                .generateRandomParameter(state, null);
+        Parameter pathParameter = new HDFSFilePathType()
+                .generateRandomParameter(hdfsState, null);
 
         params.add(catCmd);
         params.add(crcOption);

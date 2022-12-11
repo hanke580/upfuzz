@@ -2,7 +2,7 @@ package org.zlab.upfuzz.hdfs.eccommands;
 
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomHadoopPathType;
+import org.zlab.upfuzz.hdfs.HDFSParameterType.HDFSDirPathType;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 
@@ -18,7 +18,7 @@ public class AddPoliciesCommand extends ErasureCodingCommand {
                 .generateRandomParameter(null, null);
 
         // TODO: This needs to be a new policy file!
-        Parameter policyFile = new RandomHadoopPathType()
+        Parameter policyFile = new HDFSDirPathType()
                 .generateRandomParameter(state, null);
 
         params.add(addPolicyCmd);

@@ -21,7 +21,7 @@ public class HDFSFilePathType extends ParameterType.ConcreteType {
         String filePath = hdfsState.dfs.getRandomFilePath();
         if (filePath == null) {
             throw new RuntimeException(
-                    "cannot generate rm command, there's no file");
+                    "cannot generate hdfs file path, there's no file in hdfs");
         }
         return new Parameter(this, filePath);
     }

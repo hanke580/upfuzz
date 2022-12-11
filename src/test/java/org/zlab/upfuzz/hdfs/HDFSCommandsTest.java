@@ -2,10 +2,8 @@ package org.zlab.upfuzz.hdfs;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.Command;
-import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.hdfs.dfscommands.*;
 
 public class HDFSCommandsTest {
@@ -51,6 +49,8 @@ public class HDFSCommandsTest {
     @Test
     public void testCat() {
         HdfsState hdfsState = new HdfsState();
+        Command touchCommand = new Touchz(hdfsState);
+        touchCommand.updateState(hdfsState);
         Command catCommand = new CatCommand(hdfsState);
         System.out.println(catCommand.constructCommandString());
     }

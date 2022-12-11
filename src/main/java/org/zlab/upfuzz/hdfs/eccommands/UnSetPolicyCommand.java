@@ -2,7 +2,7 @@ package org.zlab.upfuzz.hdfs.eccommands;
 
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomHadoopPathType;
+import org.zlab.upfuzz.hdfs.HDFSParameterType.HDFSDirPathType;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 
@@ -17,7 +17,7 @@ public class UnSetPolicyCommand extends ErasureCodingCommand {
         Parameter pathOpt = new CONSTANTSTRINGType("-path")
                 .generateRandomParameter(null, null);
 
-        Parameter path = new RandomHadoopPathType()
+        Parameter path = new HDFSDirPathType()
                 .generateRandomParameter(state, null);
 
         params.add(unsetPolicyCmd);
