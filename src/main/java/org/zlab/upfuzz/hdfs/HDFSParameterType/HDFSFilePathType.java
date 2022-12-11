@@ -28,7 +28,8 @@ public class HDFSFilePathType extends ParameterType.ConcreteType {
 
     @Override
     public String generateStringValue(Parameter p) {
-        return null;
+        assert p != null && p.type instanceof HDFSFilePathType;
+        return (String) p.value;
     }
 
     @Override
@@ -50,4 +51,5 @@ public class HDFSFilePathType extends ParameterType.ConcreteType {
     public boolean mutate(State s, Command c, Parameter p) {
         return false;
     }
+
 }
