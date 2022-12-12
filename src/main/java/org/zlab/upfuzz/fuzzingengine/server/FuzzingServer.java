@@ -959,6 +959,8 @@ public class FuzzingServer {
 
                     Fuzzer.saveSeed(seed.originalCommandSequence,
                             seed.validationCommandSequence);
+                    // logger.debug("valid res = "
+                    // + feedbackPacket.validationReadResults);
                     fullStopCorpus.addSeed(
                             new FullStopSeed(seed, feedbackPacket.nodeNum,
                                     new HashMap<>(),

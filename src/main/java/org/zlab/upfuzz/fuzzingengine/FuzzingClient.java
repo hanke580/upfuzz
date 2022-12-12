@@ -210,6 +210,8 @@ public class FuzzingClient {
                 feedbackPacket.isInconsistent = true;
                 feedbackPacket.inconsistencyReport = failureReport;
             }
+            // logger.debug("testID2upResults = " + testID2upResults
+            // .get(tp.testPacketID));
             feedbackPacket.validationReadResults = testID2upResults
                     .get(tp.testPacketID);
             stackedFeedbackPacket.addFeedbackPacket(feedbackPacket);
