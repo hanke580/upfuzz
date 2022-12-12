@@ -5,9 +5,6 @@ import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.MockFS.HadoopFileSystem;
 import org.zlab.upfuzz.hdfs.MockFS.INode;
 import org.zlab.upfuzz.hdfs.MockFS.LocalFileSystem;
-import org.zlab.upfuzz.utils.Utilities;
-
-import java.util.UUID;
 
 public class HdfsState extends State {
 

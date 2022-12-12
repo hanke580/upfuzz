@@ -49,7 +49,7 @@ public class CommandSequence implements Serializable {
             throws Exception {
 
         Constructor<?> constructor = stateClass.getConstructor();
-        State state = (State) constructor.newInstance();
+        state = (State) constructor.newInstance();
         for (Command command : commands) {
             command.separate(state);
         }
@@ -81,6 +81,11 @@ public class CommandSequence implements Serializable {
         separateFromFormerTest();
         initializeTypePool();
 
+        // hdfs specific
+        String hdfsSubDir = null;
+        if (state instanceof HdfsState) {
+            hdfsSubDir = ((HdfsState) state).subdir;
+        }
         if (CassandraCommand.DEBUG) {
             System.out.println("String Pool:" + STRINGType.stringPool);
             System.out.println("Int Pool: " + INTType.intPool);
@@ -97,6 +102,10 @@ public class CommandSequence implements Serializable {
             assert commands.size() > 0;
             Constructor<?> constructor = stateClass.getConstructor();
             State state = (State) constructor.newInstance(); // Recreate a state
+            // hdfs specific
+            if (state instanceof HdfsState && hdfsSubDir != null) {
+                ((HdfsState) state).subdir = hdfsSubDir;
+            }
 
             int pos;
             if (choice == 0 || choice == 1) {

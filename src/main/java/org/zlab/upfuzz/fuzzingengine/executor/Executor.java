@@ -33,7 +33,7 @@ import org.zlab.upfuzz.hdfs.HdfsDockerCluster;
 import org.zlab.upfuzz.utils.Pair;
 
 public abstract class Executor implements IExecutor {
-    protected final Logger logger = LogManager.getLogger(getClass());
+    protected static final Logger logger = LogManager.getLogger(Executor.class);
 
     public int agentPort;
     public Long timestamp = 0L;

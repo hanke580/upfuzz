@@ -1,5 +1,8 @@
 package org.zlab.upfuzz.hdfs.dfscommands;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.HDFSDirPathType;
@@ -29,23 +32,17 @@ public class Mkdir extends DfsCommand {
     @Override
     public void updateState(State state) {
         // Add a real inode to state
-        ((HdfsState) state).dfs.createDir(resolvePath());
+        Path dir = Paths.get(params.get(1).toString());
+        String p = dir.resolve(params.get(2).toString()).toString();
+        ((HdfsState) state).dfs.createDir(p);
     }
 
     @Override
     public String constructCommandString() {
+        Path dir = Paths.get(params.get(1).toString());
+        String p = dir.resolve(params.get(2).toString()).toString();
         return "dfs" + " " + params.get(0) +
-                " " + subdir + resolvePath();
-    }
-
-    private String resolvePath() {
-        StringBuilder ret = new StringBuilder();
-        if (params.get(1).toString().equals("/")) {
-            ret.append(params.get(1)).append(params.get(2));
-        } else {
-            ret.append(params.get(1)).append("/").append(params.get(2));
-        }
-        return ret.toString();
+                " " + subdir + p;
     }
 
 }

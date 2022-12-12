@@ -1,5 +1,8 @@
 package org.zlab.upfuzz.hdfs.dfscommands;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
@@ -107,6 +110,10 @@ public class PutCommand extends DfsCommand {
 
     @Override
     public void updateState(State state) {
-        ((HdfsState) state).dfs.createFile(params.get(6).toString());
+
+        Path dir = Paths.get(params.get(6).toString());
+        String filename = Paths.get(params.get(5).toString()).getFileName()
+                .toString();
+        ((HdfsState) state).dfs.createFile(dir.resolve(filename).toString());
     }
 }

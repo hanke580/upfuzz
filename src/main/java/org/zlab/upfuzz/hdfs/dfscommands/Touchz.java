@@ -1,5 +1,8 @@
 package org.zlab.upfuzz.hdfs.dfscommands;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
@@ -41,26 +44,22 @@ public class Touchz extends DfsCommand {
     @Override
     public void updateState(State state) {
         // Add a real inode to state
-        ((HdfsState) state).dfs.createFile(resolvePath());
+        Path dir = Paths.get(params.get(1).toString())
+                .resolve(params.get(2).toString());
+        String p = dir.toString() + params.get(3).toString();
+
+        ((HdfsState) state).dfs.createFile(p);
     }
 
     @Override
     public String constructCommandString() {
+
+        Path dir = Paths.get(params.get(1).toString())
+                .resolve(params.get(2).toString());
+        String p = dir.toString() + params.get(3).toString();
         return "dfs" +
                 " " + params.get(0) +
-                " " + subdir + resolvePath();
-    }
-
-    private String resolvePath() {
-        StringBuilder ret = new StringBuilder();
-        if (params.get(1).toString().equals("/")) {
-            ret.append(params.get(1)).append(params.get(2))
-                    .append(params.get(3));
-        } else {
-            ret.append(params.get(1)).append("/").append(params.get(2))
-                    .append(params.get(3));
-        }
-        return ret.toString();
+                " " + subdir + p;
     }
 
 }
