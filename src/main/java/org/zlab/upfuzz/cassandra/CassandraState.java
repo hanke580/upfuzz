@@ -43,5 +43,6 @@ public class CassandraState extends State {
     @Override
     public void clearState() {
         keyspace2tables.clear();
+        keyspace2UDTs.clear();
     }
 }

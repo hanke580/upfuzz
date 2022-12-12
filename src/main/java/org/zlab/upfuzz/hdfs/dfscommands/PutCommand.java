@@ -1,5 +1,6 @@
 package org.zlab.upfuzz.hdfs.dfscommands;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -8,9 +9,9 @@ import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.ConcatenateType;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.HDFSDirPathType;
-import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomHadoopPathType;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomLocalPathType;
 import org.zlab.upfuzz.hdfs.HdfsState;
+import org.zlab.upfuzz.hdfs.MockFS.HadoopFileSystem;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.INTType;
 
@@ -110,10 +111,21 @@ public class PutCommand extends DfsCommand {
 
     @Override
     public void updateState(State state) {
+        File f = Paths.get(params.get(5).toString()).toFile();
+        Path baseDir = Paths.get(params.get(6).toString());
+        updateDfs(((HdfsState) state).dfs, f, baseDir);
+    }
 
-        Path dir = Paths.get(params.get(6).toString());
-        String filename = Paths.get(params.get(5).toString()).getFileName()
-                .toString();
-        ((HdfsState) state).dfs.createFile(dir.resolve(filename).toString());
+    public void updateDfs(HadoopFileSystem dfs, File f, Path baseDir) {
+        if (f.isDirectory()) {
+            String dirName = f.getName();
+            dfs.createDir(baseDir.resolve(dirName).toString());
+            for (File subFile : f.listFiles()) {
+                updateDfs(dfs, subFile, baseDir.resolve(dirName));
+            }
+        } else {
+            String fileName = f.getName();
+            dfs.createFile(baseDir.resolve(fileName).toString());
+        }
     }
 }

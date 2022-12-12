@@ -81,11 +81,6 @@ public class CommandSequence implements Serializable {
         separateFromFormerTest();
         initializeTypePool();
 
-        // hdfs specific
-        String hdfsSubDir = null;
-        if (state instanceof HdfsState) {
-            hdfsSubDir = ((HdfsState) state).subdir;
-        }
         if (CassandraCommand.DEBUG) {
             System.out.println("String Pool:" + STRINGType.stringPool);
             System.out.println("Int Pool: " + INTType.intPool);
@@ -93,19 +88,10 @@ public class CommandSequence implements Serializable {
 
         Random rand = new Random();
         for (int mutateRetryIdx = 0; mutateRetryIdx < RETRY_MUTATE_TIME; mutateRetryIdx++) {
-
             int choice = rand.nextInt(3);
-
-            // When choice = 1 or 2, the program will stuck at mutation stage
-            // Mutating a specific command
-
-            assert commands.size() > 0;
-            Constructor<?> constructor = stateClass.getConstructor();
-            State state = (State) constructor.newInstance(); // Recreate a state
-            // hdfs specific
-            if (state instanceof HdfsState && hdfsSubDir != null) {
-                ((HdfsState) state).subdir = hdfsSubDir;
-            }
+            // hdfs: only clear dfs state, since we will recompute
+            // cassandra: clear all states
+            state.clearState();
 
             int pos;
             if (choice == 0 || choice == 1) {

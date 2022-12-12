@@ -6,9 +6,9 @@ import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.hdfs.dfscommands.*;
 
-public class HDFSCommandsTest {
+public class CommandTest {
     static Logger logger = LogManager
-            .getLogger(HDFSCommandsTest.class);
+            .getLogger(CommandTest.class);
 
     @Test
     public void testSetACL() {
@@ -21,6 +21,7 @@ public class HDFSCommandsTest {
     public void testPut() {
         HdfsState hdfsState = new HdfsState();
         Command putCommand = new PutCommand(hdfsState);
+        putCommand.updateState(hdfsState);
         System.out.println(putCommand.constructCommandString());
     }
 

@@ -16,8 +16,6 @@ public class HdfsState extends State {
     public String subdir;
 
     public HdfsState() {
-//        subdir = UUID.randomUUID().toString().replace("-", "");
-
         subdir = "/" + RandomStringUtils.randomAlphabetic(8, 8 + 1);
         localRoot = "/tmp/upfuzz/hdfs" + subdir;
 
@@ -34,7 +32,8 @@ public class HdfsState extends State {
 
     @Override
     public void clearState() {
-        // TODO Auto-generated method stub
+        dfs = new HadoopFileSystem();
+        // lfs remain the same
     }
 
     public INode getRandomHadoopPath() {
