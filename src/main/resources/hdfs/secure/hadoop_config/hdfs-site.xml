@@ -63,8 +63,17 @@
     </property>
     <property>
         <name>dfs.namenode.kerberos.https.principal</name>
-        <value>host/master@master</value> 
+        <value>hdfs/master@master</value> 
     </property>
+    <property>
+        <name>dfs.web.authentication.kerberos.principal</name>
+        <value>HTTP/master@master</value> 
+    </property>
+    <property>
+        <name>dfs.web.authentication.kerberos.keytab</name>
+        <value>/etc/krb5.keytab</value> 
+    </property>
+
 
     <!-- Secondary NameNode security config -->
     <property>
@@ -111,7 +120,7 @@
     </property>
     <property>
         <name>dfs.datanode.kerberos.https.principal</name>
-        <value>host/datanode1@master</value> 
+        <value>hdfs/datanode1@master</value> 
     </property>
 
     <!-- DataNode2 security config -->
@@ -137,7 +146,7 @@
     </property>
     <property>
         <name>dfs.datanode.kerberos.https.principal</name>
-        <value>host/datanode2@master</value> 
+        <value>hdfs/datanode2@master</value> 
     </property>
 
 </configuration>
