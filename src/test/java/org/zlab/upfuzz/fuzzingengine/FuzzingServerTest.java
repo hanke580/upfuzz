@@ -20,10 +20,7 @@ import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.server.EventParser;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
-import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.IsolateFailureRecover;
-import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.LinkFailure;
-import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.NodeFailure;
-import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.RestartFailure;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.*;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.HDFSStopSNN;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.UpgradeOp;
 import org.zlab.upfuzz.hdfs.HdfsCommandPool;
@@ -132,12 +129,13 @@ public class FuzzingServerTest {
         Config.instance.system = "hdfs";
 
         events.add(new HDFSStopSNN());
-        events.add(new NodeFailure(2));
+//        events.add(new NodeFailure(2));
+        events.add(new IsolateFailure(2));
 
         events.add(new UpgradeOp(0));
         events.add(new UpgradeOp(1));
 
-        events.add(new IsolateFailureRecover(2));
+        events.add(new NodeFailureRecover(2));
 
         assert !FuzzingServer.testPlanVerifier(events, 4);
     }

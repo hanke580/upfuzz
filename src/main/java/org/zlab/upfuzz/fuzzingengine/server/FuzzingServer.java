@@ -600,12 +600,18 @@ public class FuzzingServer {
                 connection[nodeIdx1][nodeIdx2] = true;
                 connection[nodeIdx2][nodeIdx1] = true;
             } else if (event instanceof UpgradeOp
-                    || event instanceof DowngradeOp) {
+                    || event instanceof DowngradeOp
+                    || event instanceof RestartFailure
+                    || event instanceof NodeFailureRecover) {
                 int nodeIdx;
                 if (event instanceof UpgradeOp)
                     nodeIdx = ((UpgradeOp) event).nodeIndex;
-                else
+                else if (event instanceof DowngradeOp)
                     nodeIdx = ((DowngradeOp) event).nodeIndex;
+                else if (event instanceof RestartFailure)
+                    nodeIdx = ((RestartFailure) event).nodeIndex;
+                else
+                    nodeIdx = ((NodeFailureRecover) event).nodeIndex;
                 if (nodeIdx == 0)
                     continue;
                 if (Config.getConf().system.equals("hdfs")) {
