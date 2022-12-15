@@ -9,3 +9,21 @@
 [Kerberos for Ubuntu](https://ubuntu.com/server/docs/service-kerberos-principals)
 
 [JSVC](https://commons.apache.org/proper/commons-daemon/download_daemon.cgi)
+
+
+/etc/krb5.conf
+```bash
+kadmin.local addprinc -randkey hdfs/master
+kadmin.local ktadd -k /master.keytab hdfs/master
+
+kadmin.local addprinc -randkey hdfs/secondarynn
+kadmin.local ktadd -k /secondarynn.keytab hdfs/secondarynn
+
+kadmin.local addprinc -randkey hdfs/datanode1
+kadmin.local ktadd -k /datanode1.keytab hdfs/datanode1
+
+kadmin.local addprinc -randkey hdfs/datanode2
+kadmin.local ktadd -k /datanode2.keytab hdfs/datanode2
+```
+
+The other nodes need to wait for the keytab file.

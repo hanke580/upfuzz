@@ -24,6 +24,11 @@ RUN sh /usr/local/bin/general-setup.sh
 COPY org.jacoco.agent.rt.jar /org.jacoco.agent.rt.jar
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
+# Kerberos Setup
+RUN DEBIAN_FRONTEND=noninteractive apt install krb5-kdc krb5-admin-server -y
+COPY krb5.conf /etc/krb5.conf
+COPY krb5kdc/kadm5.acl /etc/krb5kdc/kadm5.acl
+
 # 2. System setup.
 RUN mkdir /hadoop-config
 COPY hadoop_config/* /hadoop-config/
