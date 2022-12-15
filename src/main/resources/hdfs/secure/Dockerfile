@@ -29,6 +29,9 @@ RUN DEBIAN_FRONTEND=noninteractive apt install krb5-kdc krb5-admin-server -y
 COPY krb5.conf /etc/krb5.conf
 COPY krb5kdc/kadm5.acl /etc/krb5kdc/kadm5.acl
 
+ADD kerberos.sh /usr/local/bin/kerberos.sh
+RUN chmod +x /usr/local/bin/kerberos.sh
+
 # 2. System setup.
 RUN mkdir /hadoop-config
 COPY hadoop_config/* /hadoop-config/
