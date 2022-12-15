@@ -37,23 +37,23 @@ public class HDFSShellDaemon {
             } catch (InterruptedException ignored) {
             }
 
-            try {
-                Process grepProc = docker.runInContainer(new String[] {
-                        "/bin/sh", "-c",
-                        "ps -ef | grep org.apache.hadoop.hdfs.server | wc -l"
-                });
-                String result = new String(
-                        grepProc.getInputStream().readAllBytes()).strip();
-                int processNum = Integer.parseInt(result);
-                logger.debug("[HKLOG] processNum = " + processNum);
-                if (Integer.parseInt(result) <= 2) {
-                    // Process has died
-                    break;
-                }
+            // try {
+            // Process grepProc = docker.runInContainer(new String[] {
+            // "/bin/sh", "-c",
+            // "ps -ef | grep org.apache.hadoop.hdfs.server | wc -l"
+            // });
+            // String result = new String(
+            // grepProc.getInputStream().readAllBytes()).strip();
+            // int processNum = Integer.parseInt(result);
+            // logger.debug("[HKLOG] processNum = " + processNum);
+            // if (Integer.parseInt(result) <= 2) {
+            // // Process has died
+            // break;
+            // }
 
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            // } catch (Exception e) {
+            // e.printStackTrace();
+            // }
         }
         throw new RuntimeException("[HKLOG] executor ID = " + executorID
                 + "  " + "cannot connect to hdfs shell at " + ipAddress);
