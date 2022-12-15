@@ -191,16 +191,21 @@ public class FuzzingServer {
         } else if (Config.getConf().testingMode == 4) {
             // test full-stop and rolling upgrade iteratively
             Packet packet;
-            if (isFullStopUpgrade) {
+            if (isFullStopUpgrade
+                    || (testPlanPackets.isEmpty() && !fuzzTestPlan())) {
                 if (stackedTestPackets.isEmpty())
                     fuzzOne();
                 assert !stackedTestPackets.isEmpty();
                 packet = stackedTestPackets.poll();
             } else {
-                // packet = generateMixedTestPacket();
                 if (testPlanPackets.isEmpty())
                     fuzzTestPlan();
                 packet = testPlanPackets.poll();
+                // TestPlanPacket tp = (TestPlanPacket) packet;
+                // logger.info("val cmd size = "
+                //         + tp.testPlan.validationCommands.size());
+                // logger.info("val oracle size = "
+                //         + tp.testPlan.validationReadResultsOracle.size());
             }
             isFullStopUpgrade = !isFullStopUpgrade;
             return packet;
@@ -288,7 +293,7 @@ public class FuzzingServer {
         }
     }
 
-    private void fuzzTestPlan() {
+    private boolean fuzzTestPlan() {
         // We should first try to mutate the test plan, but there
         // should still be possibility for generating a new test plan
         // Mutate a testplan
@@ -306,8 +311,9 @@ public class FuzzingServer {
                         break;
                     }
                 }
+                // Always failed mutating this test plan
                 if (j == testPlanMutationRetry)
-                    return;
+                    return false;
                 testID2TestPlan.put(testID, mutateTestPlan);
 
                 int configIdx = configGen.generateConfig();
@@ -318,20 +324,11 @@ public class FuzzingServer {
                         testID++, configFileName, mutateTestPlan));
             }
         } else {
-
             // disable system state comparison
             FullStopSeed fullStopSeed = fullStopCorpus.getSeed();
             if (fullStopSeed == null) {
-                // genenrate a full-stop upgrade, do not compare read results
-                Seed seed;
-                if (corpus.isEmpty()) {
-                    // random generate a fullStopSeed
-                    seed = Executor.generateSeed(commandPool, stateClass);
-                } else {
-                    seed = corpus.peekSeed();
-                }
-                fullStopSeed = new FullStopSeed(seed, Config.getConf().nodeNum,
-                        new HashMap<>(), new LinkedList<>());
+                // return false, cannot fuzz test plan
+                return false;
             }
 
             // Generate several test plan...
@@ -350,6 +347,7 @@ public class FuzzingServer {
                         testID++, configFileName, testPlan));
             }
         }
+        return true;
     }
 
     public boolean fuzzFullStopUpgrade() {
