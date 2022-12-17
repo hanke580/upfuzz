@@ -30,12 +30,15 @@ then
         service krb5-admin-server restart
         service krb5-kdc restart
 
+        { echo 'password'; echo 'password'; } | kadmin.local addprinc ubuntu/admin 
         kadmin.local addprinc -randkey hdfs/master
-        kadmin.local ktadd -k /master.keytab hdfs/master
+        kadmin.local addprinc -randkey HTTP/master
+        kadmin.local ktadd -k /master.keytab hdfs/master HTTP/master
 elif [[ "$IP" == "$HDFS_SECONDARY_NAMENODE" ]];
 then
         { echo 'password';} | kadmin -p ubuntu/admin addprinc -randkey hdfs/secondarynn
-        { echo 'password';} | kadmin -p ubuntu/admin ktadd -k /secondarynn.keytab hdfs/secondarynn
+        { echo 'password';} | kadmin -p ubuntu/admin addprinc -randkey HTTP/secondarynn
+        { echo 'password';} | kadmin -p ubuntu/admin ktadd -k /secondarynn.keytab hdfs/secondarynn HTTP/secondarynn
 elif [[ "$IP" == "$HDFS_DATANODE1" ]];
 then
         { echo 'password';} | kadmin -p ubuntu/admin addprinc -randkey hdfs/datanode1

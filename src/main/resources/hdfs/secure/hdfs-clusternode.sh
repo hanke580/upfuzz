@@ -7,9 +7,15 @@ if [ $# == 1 ]; then
     NAMENODE="$1,$IP"
 else NAMENODE="$IP"; fi
 
+IP_MASK=$(echo $IP | cut -d "." -f -3)
+HDFS_NAMENODE=$IP_MASK.2
+HDFS_SECONDARY_NAMENODE=$IP_MASK.3
+HDFS_DATANODE1=$IP_MASK.4
+HDFS_DATANODE2=$IP_MASK.5
+
 # Change it to the target systems
-ORG_VERSION=hadoop-2.10.2
-UPG_VERSION=hadoop-3.2.4
+ORG_VERSION=hadoop-2.9.2
+UPG_VERSION=hadoop-3.3.0_14509
 
 # create necessary dirs (some version of cassandra cannot create these)
 mkdir -p /var/log/hdfs
@@ -20,17 +26,38 @@ if [[ ! -f "/var/log/.setup_conf" ]]; then
     for VERSION in ${ORG_VERSION} ${UPG_VERSION}; do
         mkdir /etc/${VERSION}
         cp -r /hdfs/${VERSION}/etc /etc/${VERSION}/
-        cp /hadoop-config/* /etc/${VERSION}/etc/hadoop/
 
-        CONFIG="/etc/${VERSION}/etc/hadoop/"
-        if [[ $VERSION == "${ORG_VERSION}" ]]; then
-            cp /test_config/oriconfig/* ${CONFIG}/
-        fi
-        if [[ $VERSION == "${UPG_VERSION}" ]]; then
-            cp /test_config/upconfig/* ${CONFIG}/
+        # disable config testing for debugging purpose
+        CONFIG="/etc/${VERSION}/etc/hadoop"
+        cp /hadoop-config/core-site.xml $CONFIG/
+
+        if [[ "$IP" == "$HDFS_NAMENODE" ]];
+        then
+                cp /hadoop-config/hdfs-site-nn.xml $CONFIG/hdfs-site.xml
+        elif [[ "$IP" == "$HDFS_SECONDARY_NAMENODE" ]];
+        then
+                cp /hadoop-config/hdfs-site-snn.xml $CONFIG/hdfs-site.xml
+        elif [[ "$IP" == "$HDFS_DATANODE1" ]];
+        then
+                cp /hadoop-config/hdfs-site-dn1.xml $CONFIG/hdfs-site.xml
+        elif [[ "$IP" == "$HDFS_DATANODE2" ]];
+        then
+                cp /hadoop-config/hdfs-site-dn2.xml $CONFIG/hdfs-site.xml
         fi
 
-        echo "export JAVA_HOME=\/usr\/lib\/jvm\/java-8-openjdk-amd64\/" >> ${CONFIG}/hadoop-env.sh
+        # Only for 2.x version
+        arrIN=(${VERSION//-/ })
+        VERSION_PART=${arrIN[1]}
+        arrIN=(${VERSION_PART//./ })
+        MAJOR_VERSION=arrIN[0]
+        if [[ "$MAJOR_VERSION" -le 3 ]];
+        then
+                echo "2.x version"
+                echo "export HADOOP_SECURE_DN_USER=root" >> ${CONFIG}/hadoop-env.sh
+                echo "export JSVC_HOME=/hdfs/$VERSION/libexec" >> ${CONFIG}/hadoop-env.sh
+        fi
+
+        echo "export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/" >> ${CONFIG}/hadoop-env.sh
         echo "export HDFS_NAMENODE_USER=\"root\"" >> ${CONFIG}/hadoop-env.sh
         echo "export HDFS_DATANODE_USER=\"root\"" >> ${CONFIG}/hadoop-env.sh
         echo "export HDFS_SECONDARYNAMENODE_USER=\"root\"" >> ${CONFIG}/hadoop-env.sh
@@ -51,25 +78,13 @@ if [[ ! -f "/var/log/.setup_conf" ]]; then
     touch "/var/log/.setup_conf"
 fi
 
-
-IP_MASK=$(echo $IP | cut -d "." -f -3)
-HDFS_NAMENODE=$IP_MASK.2
-HDFS_SECONDARY_NAMENODE=$IP_MASK.3
-
 if [[ -z $(grep -F "master" "/etc/hosts") ]];
 then
         echo "$HDFS_NAMENODE    master" >> /etc/hosts
-        echo "$IP_MASK.3    secondarynn" >> /etc/hosts
-        echo "$IP_MASK.4    datanode1" >> /etc/hosts
-        echo "$IP_MASK.5    datanode2" >> /etc/hosts
-
-        # echo "HADOOP_HOME=$HADOOP_HOME" >> ~/.bashrc
-        # echo "PATH=\${PATH}:\${HADOOP_HOME}/bin:\${HADOOP_HOME}/sbin" >> ~/.bashrc
-        # source ~/.bashrc
+        echo "$HDFS_SECONDARY_NAMENODE    secondarynn" >> /etc/hosts
+        echo "$HDFS_DATANODE1    datanode1" >> /etc/hosts
+        echo "$HDFS_DATANODE2    datanode2" >> /etc/hosts
 fi
-
-#HADOOP_HOME=/etc/$ORG_VERSION
-#PATH=${PATH}:${HADOOP_HOME}/bin:${HADOOP_HOME}/sbin
 
 echo "Starting HDFS on $IP..."
 
