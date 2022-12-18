@@ -32,20 +32,23 @@ then
 
         { echo 'password'; echo 'password'; } | kadmin.local addprinc ubuntu/admin 
         kadmin.local addprinc -randkey hdfs/master
-        kadmin.local addprinc -randkey HTTP/master
-        kadmin.local ktadd -k /master.keytab hdfs/master HTTP/master
+        kadmin.local ktadd -k /master.keytab hdfs/master
+        kinit hdfs/master -k -t /master.keytab 
 elif [[ "$IP" == "$HDFS_SECONDARY_NAMENODE" ]];
 then
         { echo 'password';} | kadmin -p ubuntu/admin addprinc -randkey hdfs/secondarynn
         { echo 'password';} | kadmin -p ubuntu/admin addprinc -randkey HTTP/secondarynn
         { echo 'password';} | kadmin -p ubuntu/admin ktadd -k /secondarynn.keytab hdfs/secondarynn HTTP/secondarynn
+        kinit hdfs/secondarynn -k -t /secondarynn.keytab 
 elif [[ "$IP" == "$HDFS_DATANODE1" ]];
 then
         { echo 'password';} | kadmin -p ubuntu/admin addprinc -randkey hdfs/datanode1
         { echo 'password';} | kadmin -p ubuntu/admin ktadd -k /datanode1.keytab hdfs/datanode1
+        kinit hdfs/datanode1 -k -t /datanode1.keytab
 elif [[ "$IP" == "$HDFS_DATANODE2" ]];
 then
         { echo 'password';} | kadmin -p ubuntu/admin addprinc -randkey hdfs/datanode2
         { echo 'password';} | kadmin -p ubuntu/admin ktadd -k /datanode2.keytab hdfs/datanode2
+        kinit hdfs/datanode2 -k -t /datanode2.keytab 
 fi
 

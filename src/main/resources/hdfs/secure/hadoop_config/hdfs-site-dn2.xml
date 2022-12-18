@@ -44,6 +44,15 @@
         <value>true</value> 
     </property>
 
+    <property>
+        <name>dfs.web.authentication.kerberos.principal</name>
+        <value>hdfs/datanode2@secure.com</value> 
+    </property>
+    <property>
+        <name>dfs.web.authentication.kerberos.keytab</name>
+        <value>/datanode2.keytab</value> 
+    </property>
+
     <!-- DataNode2 security config -->
     <property>
         <name>dfs.datanode.data.dir.perm</name>
@@ -55,7 +64,7 @@
     </property>
     <property>
         <name>dfs.datanode.http.address</name>
-        <value>2:1006</value> 
+        <value>datanode2:1006</value> 
     </property>
     <property>
         <name>dfs.datanode.keytab.file</name>

@@ -43,6 +43,14 @@
         <name>dfs.block.access.token.enable</name>
         <value>true</value> 
     </property>
+    <property>
+        <name>dfs.web.authentication.kerberos.principal</name>
+        <value>hdfs/datanode1@secure.com</value> 
+    </property>
+    <property>
+        <name>dfs.web.authentication.kerberos.keytab</name>
+        <value>/datanode1.keytab</value> 
+    </property>
 
     <!-- DataNode1 security config -->
     <property>

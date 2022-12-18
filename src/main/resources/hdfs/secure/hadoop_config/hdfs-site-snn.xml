@@ -46,14 +46,6 @@
 
     <!-- Secondary NameNode security config -->
     <property>
-        <name>dfs.web.authentication.kerberos.principal</name>
-        <value>HTTP/secondarynn@secure.com</value> 
-    </property>
-    <property>
-        <name>dfs.web.authentication.kerberos.keytab</name>
-        <value>/secondarynn.keytab</value> 
-    </property>
-    <property>
         <name>dfs.secondary.namenode.keytab.file</name>
         <value>/secondarynn.keytab</value> <!-- path to the HDFS keytab -->
     </property>
@@ -72,5 +64,13 @@
     <property>
         <name>dfs.secondary.https.port</name>
         <value>50495</value> 
+    </property>
+    <property>
+        <name>dfs.web.authentication.kerberos.principal</name>
+        <value>hdfs/secondarynn@secure.com</value> 
+    </property>
+    <property>
+        <name>dfs.web.authentication.kerberos.keytab</name>
+        <value>/secondarynn.keytab</value> 
     </property>
 </configuration>

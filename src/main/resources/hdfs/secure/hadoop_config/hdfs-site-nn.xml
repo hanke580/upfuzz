@@ -67,7 +67,7 @@
     </property>
     <property>
         <name>dfs.web.authentication.kerberos.principal</name>
-        <value>HTTP/master@secure.com</value> 
+        <value>hdfs/master@secure.com</value> 
     </property>
     <property>
         <name>dfs.web.authentication.kerberos.keytab</name>
