@@ -33,8 +33,7 @@ public class TestPlanFeedbackPacket extends Packet {
     // TODO: We might want to compare the state between
     // (1) Rolling upgrade and (2) Full-stop upgrade
     public boolean isInconsistent = false; // true if inconsistent
-    public String inconsistencyReport; // The inconsistency information should
-    // be placed here
+    public String inconsistencyReport = "";
 
     public TestPlanFeedbackPacket(String systemID, String configFileName,
             int testPacketID, FeedBack[] feedBacks) {
