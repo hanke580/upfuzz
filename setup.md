@@ -1,21 +1,20 @@
 # Env set up for upfuzz
 
-Mount SSD
+Mount SSD & Generate ssh key
 
 ```bash
+# mount ssd
 mkdir project
 sudo fdisk -l
 sudo mkfs.ext4 /dev/sda4
 sudo mount /dev/sda4 project/
-sudo chown $USER project/
-```
+sudo chown $USER ~/project/
 
-Generate ssh key
+# ssh
+ssh-keygen -t ed25519 -P '' -f ~/.ssh/id_ed25519  -C "kehan5800@gmail.com"
 
-```bash
-ssh-keygen -t ed25519 -P '' -f ~/.ssh/ed25519  -C "kehan5800@gmail.com"
-cat ~/.ssh/ed25519.pub >> ~/.ssh/authorized_keys
-cat ~/.ssh/ed25519.pub
+cat ~/.ssh/id_ed25519.pub >> ~/.ssh/authorized_keys
+cat ~/.ssh/id_ed25519.pub
 ```
 
 Env
@@ -23,7 +22,8 @@ Env
 ```bash
 sudo apt-get update
 sudo apt-get install openjdk-11-jdk openjdk-8-jdk -y
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+echo "Y" | sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+echo "exec zsh" >> ~/.bashrc
 
 git config --global user.name "Ke Han"
 git config --global user.email "kehan5800@gmail.com"
@@ -42,10 +42,22 @@ echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
   $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 sudo apt-get update
-sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
 
 sudo usermod -aG docker $USER
 newgrp docker
+
+
+# Mount docker image folder to another path (Cloudlib only)
+sudo systemctl stop docker.service
+sudo systemctl stop docker.socket
+sudo mkdir /mydata/docker
+sudo vim /lib/systemd/system/docker.service
+# ExecStart=/usr/bin/dockerd -g /mydata/docker -H fd:// --containerd=/run/containerd/containerd.sock
+sudo rsync -aqxP /var/lib/docker/ /mydata/docker
+sudo systemctl daemon-reload
+sudo systemctl start docker
+# ps aux | grep -i docker | grep -v grep
 ```
 
 Get binaries: all binaries are stored in `in6:/data/khan/test_binary`
@@ -56,7 +68,7 @@ sudo mkdir /mydata/test_binary
 sudo chown $USER /mydata/test_binary
 
 # Enter indy6 server
-scp -r /data/khan/test_binary/* Tingjia@c220g5-111026.wisc.cloudlab.us:/mydata/test_binary/
+scp -r /data/khan/test_binary/* Tingjia@c220g5-111004.wisc.cloudlab.us:/mydata/test_binary/
 scp -r /data/khan/test_binary/* Tingjia@c220g5-xxxxxx.wisc.cloudlab.us:/mydata/test_binary/
 ```
 
@@ -65,16 +77,18 @@ Add ssh to [github](https://github.com/settings/keys)
 Set up upfuzz
 
 ```bash
-cd project
+sudo chown $USER ~/project/
+cd ~/project
 git clone --recursive git@github.com:zlab-purdue/upfuzz.git
+cd ~/project/upfuzz
 git checkout -b server-client origin/server-client
 
-cd upfuzz
 ./gradlew copyDependencies
 ./gradlew :spotlessApply build
 
 mkdir -p ~/project/upfuzz/prebuild/hdfs
 mkdir -p ~/project/upfuzz/prebuild/cassandra
+
 
 cd ~/project/upfuzz/prebuild/hdfs
 tar -xzvf /mydata/test_binary/hdfs/hadoop-3.4.0_trunk.tar.gz
