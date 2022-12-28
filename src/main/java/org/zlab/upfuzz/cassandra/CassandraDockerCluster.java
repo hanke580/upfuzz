@@ -85,9 +85,9 @@ public class CassandraDockerCluster extends DockerCluster {
 
         try {
             Process buildProcess = Utilities.exec(
-                    new String[] { "docker-compose", "down" }, workdir);
+                    new String[] { "docker", "compose", "down" }, workdir);
             buildProcess.waitFor();
-            logger.info("teardown docker-compose in " + workdir);
+            logger.info("teardown docker compose in " + workdir);
         } catch (IOException | InterruptedException e) {
             logger.error("failed to teardown docker", e);
         }

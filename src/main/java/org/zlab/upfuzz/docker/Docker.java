@@ -10,7 +10,7 @@ public abstract class Docker extends DockerMeta implements IDocker {
 
     public void restart() throws Exception {
         String[] containerRecoverCMD = new String[] {
-                "docker-compose", "restart", serviceName
+                "docker", "compose", "restart", serviceName
         };
         Process containerRecoverProcess = Utilities.exec(
                 containerRecoverCMD,

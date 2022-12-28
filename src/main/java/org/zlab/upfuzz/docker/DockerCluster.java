@@ -128,10 +128,11 @@ public abstract class DockerCluster implements IDockerCluster {
                 writer.close();
 
                 buildProcess = Utilities.exec(
-                        new String[] { "docker-compose", "up", "-d" }, workdir);
+                        new String[] { "docker", "compose", "up", "-d" },
+                        workdir);
                 ret = buildProcess.waitFor();
                 if (ret == 0) {
-                    logger.info("docker-compose up " + workdir);
+                    logger.info("docker compose up " + workdir);
                     break;
                 } else {
                     Utilities.exec(
@@ -139,7 +140,7 @@ public abstract class DockerCluster implements IDockerCluster {
                             workdir);
                     refreshNetwork();
                     String errorMessage = Utilities.readProcess(buildProcess);
-                    logger.warn("docker-compose up\n" + errorMessage);
+                    logger.warn("docker compose up\n" + errorMessage);
                 }
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
@@ -148,7 +149,7 @@ public abstract class DockerCluster implements IDockerCluster {
         }
         if (ret != 0) {
             String errorMessage = Utilities.readProcess(buildProcess);
-            logger.error("docker-compose up\n" + errorMessage);
+            logger.error("docker compose up\n" + errorMessage);
             return ret;
         }
 
@@ -424,7 +425,7 @@ public abstract class DockerCluster implements IDockerCluster {
 
         try {
             String[] killContainerCMD = new String[] {
-                    "docker-compose", "stop", dockers[nodeIndex].serviceName
+                    "docker", "compose", "stop", dockers[nodeIndex].serviceName
             };
             logger.debug("workdir = " + workdir);
             Process killContainerProcess = Utilities.exec(killContainerCMD,

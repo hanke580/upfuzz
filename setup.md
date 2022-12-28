@@ -48,7 +48,7 @@ sudo usermod -aG docker $USER
 newgrp docker
 ```
 
-Get binaries: all binaries are stored in `in6:/data/khan/test_binary` 
+Get binaries: all binaries are stored in `in6:/data/khan/test_binary`
 
 ```bash
 # Current server
