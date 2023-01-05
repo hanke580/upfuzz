@@ -178,7 +178,12 @@ public class HdfsExecutor extends Executor {
         } else {
             boolean ret = true;
             for (int i = 0; i < oriResult.size(); i++) {
-                if (oriResult.get(i).compareTo(upResult.get(i)) != 0) {
+                // Mask timestamp
+                String str1 = Utilities.maskTimeStampYYYYMMDD(
+                        Utilities.maskTimeStampHHSS(oriResult.get(i)));
+                String str2 = Utilities.maskTimeStampYYYYMMDD(
+                        Utilities.maskTimeStampHHSS(upResult.get(i)));
+                if (str1.compareTo(str2) != 0) {
                     String errorMsg = "Result inconsistency at read id: " + i
                             + "\n";
                     if (compareOldAndNew) {

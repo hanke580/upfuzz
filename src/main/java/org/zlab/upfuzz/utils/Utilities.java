@@ -18,6 +18,8 @@ import org.zlab.upfuzz.Parameter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -664,6 +666,22 @@ public class Utilities {
         double randomValue = rangeMin
                 + (rangeMax - rangeMin) * rand.nextDouble();
         return randomValue;
+    }
+
+    public static String maskTimeStampHHSS(String str) {
+        // remove HH:SS
+        String regex = "([0-1]?[0-9]|2[0-3]):[0-5][0-9]";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(str);
+        return matcher.replaceAll("");
+    }
+
+    public static String maskTimeStampYYYYMMDD(String str) {
+        // remove YYYY-MM-DD
+        String regex = "\\d{4}-\\d{2}-\\d{2}";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(str);
+        return matcher.replaceAll("");
     }
 
 }
