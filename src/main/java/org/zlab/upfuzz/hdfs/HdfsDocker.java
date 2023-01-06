@@ -179,6 +179,19 @@ public class HdfsDocker extends Docker {
         setEnvironment();
     }
 
+    public void waitSafeModeInterval() {
+        // For NN, if it's a rolling upgrade, add a safemode waiting time for 30
+        // seconds.
+        // This might be changed if HA is enabled.
+        if (index == 0) {
+            logger.info("NN waiting for safemode interval for 30s");
+            try {
+                Thread.sleep(30 * 1000);
+            } catch (InterruptedException ignored) {
+            }
+        }
+    }
+
     @Override
     public void upgrade() throws Exception {
         prepareUpgradeEnv();
@@ -191,12 +204,14 @@ public class HdfsDocker extends Docker {
         logger.debug("upgrade version start: " + ret + "\n" + message);
         hdfsShell = new HDFSShellDaemon(getNetworkIP(), hdfsDaemonPort,
                 executorID, this);
+        waitSafeModeInterval();
     }
 
     @Override
     public void upgradeFromCrash() throws Exception {
         prepareUpgradeEnv();
         restart();
+        waitSafeModeInterval();
     }
 
     @Override
@@ -232,7 +247,7 @@ public class HdfsDocker extends Docker {
                 "downgrade to original version start: " + ret + "\n" + message);
         hdfsShell = new HDFSShellDaemon(getNetworkIP(), hdfsDaemonPort,
                 executorID, this);
-
+        waitSafeModeInterval();
     }
 
     @Override
