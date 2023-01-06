@@ -49,7 +49,12 @@ public abstract class Fault extends Event {
             break;
 
         case NodeFailure:
-            nodeIndex = rand.nextInt(nodeNum);
+            // for hdfs, avoid crash NN
+            if (Config.getConf().system.equals("hdfs")) {
+                nodeIndex = Utilities.randWithRange(rand, 1, nodeNum);
+            } else {
+                nodeIndex = rand.nextInt(nodeNum);
+            }
             fault = new NodeFailure(nodeIndex);
             break;
         case RestartFailure:
