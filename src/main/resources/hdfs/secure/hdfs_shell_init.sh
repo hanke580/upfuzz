@@ -2,6 +2,7 @@
 
 HDFS="$HADOOP_HOME/bin/hdfs"
 
+# TODO: Add similar jps check bug for Secur data node
 
 while true; do
     $HDFS dfs -ls /
