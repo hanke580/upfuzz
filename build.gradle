@@ -40,8 +40,7 @@ dependencies {
 
 
 	implementation 'info.debatty:java-string-similarity:2.0.0'
-
-	implementation 'com.github.hanke580:jacoco:2047737ee4'
+	implementation 'com.github.hanke580:jacoco:b7b0d20c38'
 
 
 	implementation 'org.codehaus.plexus:plexus-utils:1.5.12'
