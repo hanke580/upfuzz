@@ -468,6 +468,18 @@ public class FuzzingClient {
         // execute test plan (rolling upgrade + fault)
         boolean status = executor.execute(testPlanPacket.getTestPlan());
 
+        if (Config.getConf().startUpClusterForDebugging) {
+            logger.info(
+                    "Start up a cluster and leave it for debugging: This is not testing mode! Please set this startUpClusterForDebugging to false for real testing mode");
+            try {
+                Thread.sleep(1800 * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.exit(1);
+
+        }
+
         // collect test plan coverage
         FeedBack[] testPlanFeedBacks = new FeedBack[nodeNum];
         for (int i = 0; i < nodeNum; i++) {
