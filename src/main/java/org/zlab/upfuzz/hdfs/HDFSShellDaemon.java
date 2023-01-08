@@ -5,6 +5,8 @@ import com.google.gson.GsonBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.docker.Docker;
+import org.zlab.upfuzz.fuzzingengine.Config;
+import org.zlab.upfuzz.utils.Utilities;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -61,36 +63,21 @@ public class HDFSShellDaemon {
 
     public HdfsPacket execute(String cmd)
             throws IOException {
-        // BufferedWriter bw = new BufferedWriter(
-        // new OutputStreamWriter(socket.getOutputStream()));
-
-        // bw.write(cmd);
-        // bw.flush();
+        DataInputStream in = new DataInputStream(socket.getInputStream());
         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
         out.writeInt(cmd.getBytes().length);
         out.write(cmd.getBytes());
 
-        // logger.info(String.format("Command: %s", cmd));
-        BufferedReader br = new BufferedReader(
-                new InputStreamReader(socket.getInputStream()));
-
-        // // Socket
-        // System.out.println("Socket Debug");
-        // byte[] output = new byte[10240];
-        // hdfs.getInputStream().read(output);
-        // System.out.println(new String(output));
-
-        // FIXME: Also need to modify hdfs_daemon
-        char[] chars = new char[65536];
-
-        int cnt = br.read(chars);
-        if (cnt == -1) {
-            throw new IllegalStateException("hdfs daemon crashed");
+        int packetLength = in.readInt();
+        logger.info("ret len = " + packetLength);
+        byte[] bytes = new byte[packetLength];
+        int len = 0;
+        len = in.read(bytes, len, packetLength - len);
+        while (len < packetLength) {
+            int size = in.read(bytes, len, packetLength - len);
+            len += size;
         }
-        String hdfsMessage = new String(chars, 0, cnt);
-
-        // logger.info("[HKLOG] length of hdfsMessage: " +
-        // hdfsMessage.length());
+        String hdfsMessage = new String(bytes);
 
         Gson gson = new GsonBuilder()
                 .setLenient()
@@ -101,16 +88,19 @@ public class HDFSShellDaemon {
         try {
             hdfsPacket = gson.fromJson(hdfsMessage,
                     HdfsPacket.class);
+            hdfsPacket.message = Utilities.decodeString(hdfsPacket.message)
+                    .replace("\0", "");
         } catch (Exception e) {
             e.printStackTrace();
             logger.error("ERROR: Cannot read from json\n WRONG_HDFS MESSAGE: "
                     + hdfsMessage);
         }
-
-        // logger.debug(
-        // "HdfsMessage:\n" +
-        // new GsonBuilder().setPrettyPrinting().create()
-        // .toJson(hdfsPacket));
+        if (Config.getConf().debug) {
+            logger.debug(
+                    "HdfsMessage:\n" +
+                            new GsonBuilder().setPrettyPrinting().create()
+                                    .toJson(hdfsPacket));
+        }
         return hdfsPacket;
     }
 

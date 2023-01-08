@@ -37,6 +37,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.Base64;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -354,7 +355,6 @@ public class FsShellDaemon extends Configured implements Tool {
             System.out.println("accept socket");
             in = new DataInputStream( socket.getInputStream() );
             out = new DataOutputStream( socket.getOutputStream() );
-            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             Gson gson = new Gson();
 
             while( true ){
@@ -398,8 +398,8 @@ public class FsShellDaemon extends Configured implements Tool {
                         hdfsPacket.timeUsage = (System.currentTimeMillis() - st) / 1000.;
                     }
                     String data = gson.toJson(hdfsPacket, HdfsPacket.class);
-                    bw.write(data);
-                    bw.flush();
+                    out.writeInt(data.length());
+                    out.write(data.getBytes());
                     continue;
                 }
 
@@ -430,16 +430,16 @@ public class FsShellDaemon extends Configured implements Tool {
                     try {
                         exitCode = instance.run(
                                                 Arrays.copyOfRange( commands, 1, commands.length ) );
-                        // System.out.println("cmdoutput: " + byteOutput.toString());
+                        String encodedString = Base64.getEncoder().encodeToString(byteOutput.toString().getBytes());
                         hdfsPacket.cmd = commandString;
                         hdfsPacket.exitValue = exitCode;
-                        hdfsPacket.message = byteOutput.toString();
+                        hdfsPacket.message = encodedString;
                         hdfsPacket.error = byteErrput.toString();
                         hdfsPacket.timeUsage = (System.currentTimeMillis() - st) / 1000.;
                         String data = gson.toJson(hdfsPacket, HdfsPacket.class);
                         // System.out.println(data);
-                        bw.write(data);
-                        bw.flush();
+                        out.writeInt(data.length());
+                        out.write(data.getBytes());
                     }
                     finally { scope.close(); }
                 }
@@ -453,8 +453,8 @@ public class FsShellDaemon extends Configured implements Tool {
                     hdfsPacket.timeUsage = (System.currentTimeMillis() - st) / 1000.;
                     String data = gson.toJson(hdfsPacket, HdfsPacket.class);
                     // System.out.println(data);
-                    bw.write(data);
-                    bw.flush();
+                    out.writeInt(data.length());
+                    out.write(data.getBytes());
                 }
             }
         }
