@@ -44,9 +44,9 @@ public class PutCommand extends DfsCommand {
         // -l : Allow DataNode to lazily persist the file to disk, Forces a
         // replication factor of 1. This flag will result in reduced durability.
         // Use with care.
-        Parameter lOption = new ParameterType.OptionalType(
-                new CONSTANTSTRINGType("-l"), null)
-                        .generateRandomParameter(null, null);
+        // Parameter lOption = new ParameterType.OptionalType(
+        // new CONSTANTSTRINGType("-l"), null)
+        // .generateRandomParameter(null, null);
 
         // -d : Skip creation of temporary file with the suffix ._COPYING_.
         Parameter dOption = new ParameterType.OptionalType(
@@ -86,7 +86,7 @@ public class PutCommand extends DfsCommand {
         params.add(putcmd);
         params.add(fOption);
         params.add(pOption);
-        params.add(lOption);
+        // params.add(lOption);
         params.add(dOption);
         // params.add(threadOption);
         // params.add(threadQueueOption);
@@ -102,17 +102,14 @@ public class PutCommand extends DfsCommand {
                 params.get(2) + " " +
                 params.get(3) + " " +
                 params.get(4) + " " +
-                // params.get(5) + " " +
-                // params.get(6) + " " +
-                params.get(5) + " " +
                 subdir +
-                params.get(6);
+                params.get(5);
     }
 
     @Override
     public void updateState(State state) {
-        File f = Paths.get(params.get(5).toString()).toFile();
-        Path baseDir = Paths.get(params.get(6).toString());
+        File f = Paths.get(params.get(4).toString()).toFile();
+        Path baseDir = Paths.get(params.get(5).toString());
         updateDfs(((HdfsState) state).dfs, f, baseDir);
     }
 
