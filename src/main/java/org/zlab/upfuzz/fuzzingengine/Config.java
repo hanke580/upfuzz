@@ -65,6 +65,7 @@ public class Config {
 
         public boolean useFeedBack = true;
         public boolean collUpFeedBack = true;
+        public int rebuildConnectionSecs = 5;
 
         // ------------Configuration-------------
         public Boolean verifyConfig = false;

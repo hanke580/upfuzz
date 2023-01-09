@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -387,9 +388,11 @@ public abstract class Executor implements IExecutor {
         if (faultRecover instanceof LinkFailureRecover) {
             // Link failure between two nodes
             LinkFailureRecover linkFailureRecover = (LinkFailureRecover) faultRecover;
-            return dockerCluster.linkFailureRecover(
+            boolean ret = dockerCluster.linkFailureRecover(
                     linkFailureRecover.nodeIndex1,
                     linkFailureRecover.nodeIndex2);
+            FaultRecover.waitToRebuildConnection();
+            return ret;
         } else if (faultRecover instanceof NodeFailureRecover) {
             // recover from node crash
             NodeFailureRecover nodeFailureRecover = (NodeFailureRecover) faultRecover;
@@ -398,14 +401,18 @@ public abstract class Executor implements IExecutor {
         } else if (faultRecover instanceof IsolateFailureRecover) {
             // Isolate a single node from the rest nodes
             IsolateFailureRecover isolateFailureRecover = (IsolateFailureRecover) faultRecover;
-            return dockerCluster
+            boolean ret = dockerCluster
                     .isolateNodeRecover(isolateFailureRecover.nodeIndex);
+            FaultRecover.waitToRebuildConnection();
+            return ret;
         } else if (faultRecover instanceof PartitionFailureRecover) {
             // Partition two sets of nodes
             PartitionFailureRecover partitionFailureRecover = (PartitionFailureRecover) faultRecover;
-            return dockerCluster.partitionRecover(
+            boolean ret = dockerCluster.partitionRecover(
                     partitionFailureRecover.nodeSet1,
                     partitionFailureRecover.nodeSet2);
+            FaultRecover.waitToRebuildConnection();
+            return ret;
         }
         return false;
     }
