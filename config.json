@@ -1,0 +1,17 @@
+{
+  "originalVersion" : "apache-cassandra-3.11.14",
+  "upgradedVersion" : "apache-cassandra-4.1.0",
+  "system" : "cassandra",
+  "serverPort" : "6399",
+  "clientPort" : "6400",
+  "initSeedDir" : "/path/to/upfuzz/initSeedDir",
+  "STACKED_TESTS_NUM" : "2",
+  "nodeNum": 1,
+  "useFeedBack": true,
+  "faultMaxNum": 2,
+  "useExampleTestPlan": false,
+  "testingMode": 4,
+  "startUpClusterForDebugging": false,
+  "debug": false,
+  "collUpFeedBack": true
+}

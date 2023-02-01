@@ -70,8 +70,8 @@ public class Config {
         // ------------Configuration-------------
         public Boolean verifyConfig = false;
         public String configDir = "configtests";
-        public Boolean testAddedConfig = true;
-        public Boolean testCommonConfig = true;
+        public Boolean testAddedConfig = false;
+        public Boolean testCommonConfig = false;
         public double testConfigRatio = 0.4; // We mutate 60% configuration each
                                              // test
 
