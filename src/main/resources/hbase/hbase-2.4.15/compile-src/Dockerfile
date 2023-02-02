@@ -24,7 +24,7 @@ RUN ln -sf /usr/lib/jvm/java-1.8.0-openjdk-amd64/bin/java /usr/bin/java
 ADD general-setup.sh /usr/local/bin/general-setup.sh
 RUN sh /usr/local/bin/general-setup.sh
 COPY org.jacoco.agent.rt.jar /org.jacoco.agent.rt.jar
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+# COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # 2. System setup.
 
