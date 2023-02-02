@@ -29,6 +29,7 @@ __pycache__/
 .mtj.tmp/
 *.class
 *.jar
+!org.jacoco.agent.rt.jar
 *.war
 *.ear
 *.nar
