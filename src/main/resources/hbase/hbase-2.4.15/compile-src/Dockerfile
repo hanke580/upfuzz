@@ -25,6 +25,8 @@ ADD general-setup.sh /usr/local/bin/general-setup.sh
 RUN sh /usr/local/bin/general-setup.sh
 COPY org.jacoco.agent.rt.jar /org.jacoco.agent.rt.jar
 # COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY hbase-init.sh /hbase-init.sh
+RUN chmod +x /hbase-init.sh
 
 # 2. System setup.
 
