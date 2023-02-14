@@ -20,6 +20,7 @@ public abstract class DockerCluster implements IDockerCluster {
     static Logger logger = LogManager.getLogger(DockerCluster.class);
 
     protected Docker[] dockers;
+    protected Docker[] extranodes;
     public DockerMeta.DockerState[] dockerStates;
 
     public Network network;
