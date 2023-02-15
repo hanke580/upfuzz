@@ -182,7 +182,6 @@ public class FuzzingServer {
             // always execute one test case (to verify whether a bug really
             // exists)
             return generateExampleFullStopPacket();
-
         } else if (Config.getConf().testingMode == 2) {
             return generateMixedTestPacket();
         } else if (Config.getConf().testingMode == 3) {

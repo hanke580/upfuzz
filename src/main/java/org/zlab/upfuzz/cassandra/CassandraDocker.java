@@ -262,8 +262,11 @@ public class CassandraDocker extends Docker {
 
     @Override
     public void shutdown() {
+        // Use the target version's script to shutdown the node
+        String curVersion = type.equals("upgraded") ? upgradedVersion
+                : originalVersion;
         String[] stopNode = new String[] {
-                "/" + system + "/" + originalVersion + "/"
+                "/" + system + "/" + curVersion + "/"
                         + "bin/nodetool",
                 "stopdaemon" };
         int ret = runProcessInContainer(stopNode);
