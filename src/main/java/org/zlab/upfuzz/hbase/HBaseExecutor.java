@@ -14,19 +14,19 @@ import org.zlab.upfuzz.fuzzingengine.AgentServerSocket;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
-import org.zlab.upfuzz.hdfs.HDFSShellDaemon.HdfsPacket;
+import org.zlab.upfuzz.hbase.HBaseShellDaemon.HBasePacket;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
-public class HdfsExecutor extends Executor {
+public class HBaseExecutor extends Executor {
 
     // static final String jacocoOptions =
     // "=append=false,includes=org.apache.hadoop.*,output=dfe,address=localhost,port=6300,sessionid=";
 
-    HDFSShellDaemon hdfsShell = null;
+    HBaseShellDaemon HBaseShell = null;
 
-    public HdfsExecutor() {
-        super("hdfs", Config.getConf().nodeNum);
+    public HBaseExecutor() {
+        super("HBase", Config.getConf().nodeNum);
 
         timestamp = System.currentTimeMillis();
 
@@ -35,28 +35,30 @@ public class HdfsExecutor extends Executor {
         sessionGroup = new ConcurrentHashMap<>();
     }
 
-    public HdfsExecutor(int nodeNum,
-            Set<String> targetSystemStates, Path configPath) {
-        super("hdfs", nodeNum);
+    public HBaseExecutor(int nodeNum,
+            Set<String> targetSystemStates, Path configPath,
+            Boolean exportComposeOnly) {
+        super("HBase", nodeNum);
 
         timestamp = System.currentTimeMillis();
 
         this.targetSystemStates = targetSystemStates;
         this.configPath = configPath;
+        this.exportComposeOnly = exportComposeOnly;
 
         agentStore = new HashMap<>();
         agentHandler = new HashMap<>();
         sessionGroup = new ConcurrentHashMap<>();
     }
 
-    public boolean isHdfsReady(String hdfsPath) {
+    public boolean isHBaseReady(String HBasePath) {
         ProcessBuilder isReadyBuilder = new ProcessBuilder();
         Process isReady;
         int ret = 0;
         try {
             isReady = Utilities.exec(
-                    new String[] { "bin/hdfs", "dfsadmin", "-report" },
-                    hdfsPath);
+                    new String[] { "bin/HBase", "dfsadmin", "-report" },
+                    HBasePath);
             BufferedReader in = new BufferedReader(
                     new InputStreamReader(isReady.getInputStream()));
             String line;
@@ -83,9 +85,9 @@ public class HdfsExecutor extends Executor {
             return false;
         }
 
-        dockerCluster = new HdfsDockerCluster(this,
+        dockerCluster = new HBaseDockerCluster(this,
                 Config.getConf().originalVersion,
-                nodeNum, null, configPath);
+                nodeNum, null, configPath, exportComposeOnly);
 
         try {
             dockerCluster.build();
@@ -94,19 +96,24 @@ public class HdfsExecutor extends Executor {
             return false;
         }
 
-        logger.info("[Old Version] HDFS Start...");
+        if (exportComposeOnly) {
+            dockerCluster.start();
+            return true;
+        }
+
+        logger.info("[Old Version] HBase Start...");
 
         try {
             int ret = dockerCluster.start();
             if (ret != 0) {
-                logger.error("hdfs " + executorID + " failed to started");
+                logger.error("HBase " + executorID + " failed to started");
                 return false;
             }
         } catch (Exception e) {
             logger.error("docker cluster start up failed", e);
         }
 
-        logger.info("hdfs " + executorID + " started");
+        logger.info("HBase " + executorID + " started");
         return true;
     }
 
@@ -121,7 +128,7 @@ public class HdfsExecutor extends Executor {
 
     @Override
     public String execShellCommand(ShellCommand command) {
-        // execute with HDFS
+        // execute with HBase
         String ret = "null cp message";
         if (command.getCommand().isEmpty())
             return ret;
@@ -131,12 +138,12 @@ public class HdfsExecutor extends Executor {
             int nodeIndex = 0; // NN
 
             assert dockerCluster.dockerStates[nodeIndex].alive;
-            hdfsShell = ((HdfsDocker) dockerCluster
-                    .getDocker(nodeIndex)).hdfsShell;
+            HBaseShell = ((HBaseDocker) dockerCluster
+                    .getDocker(nodeIndex)).HBaseShell;
 
-            logger.trace("hdfs shell execute: " + command);
+            logger.trace("HBase shell execute: " + command);
             long startTime = System.currentTimeMillis();
-            HdfsPacket cp = hdfsShell
+            HBasePacket cp = HBaseShell
                     .execute(command.getCommand());
             long endTime = System.currentTimeMillis();
 

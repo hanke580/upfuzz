@@ -44,7 +44,7 @@ public class HBaseShellDaemon {
                 + "  " + "cannot connect to hbase shell at " + ipAddress);
     }
 
-    public HbasePacket execute(String cmd)
+    public HBasePacket execute(String cmd)
             throws IOException {
         DataInputStream in = new DataInputStream(socket.getInputStream());
         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
@@ -67,10 +67,10 @@ public class HBaseShellDaemon {
                 .create();
 
         // logger.info("hbase Message: " + hbaseMessage);
-        HbasePacket hbasePacket = null;
+        HBasePacket hbasePacket = null;
         try {
             hbasePacket = gson.fromJson(hbaseMessage,
-                    hbasePacket.class);
+                    HBasePacket.class);
             hbasePacket.message = Utilities.decodeString(hbasePacket.message)
                     .replace("\0", "");
         } catch (Exception e) {
@@ -80,21 +80,21 @@ public class HBaseShellDaemon {
         }
         if (Config.getConf().debug) {
             logger.debug(
-                    "HbaseMessage:\n" +
+                    "HBaseMessage:\n" +
                             new GsonBuilder().setPrettyPrinting().create()
                                     .toJson(hbasePacket));
         }
         return hbasePacket;
     }
 
-    public static class HbasePacket {
+    public static class HBasePacket {
         public String cmd;
         public int exitValue;
         public String message;
         public String error;
         public double timeUsage;
 
-        public HbasePacket() {
+        public HBasePacket() {
             cmd = "";
             exitValue = 0;
             message = "";

@@ -24,9 +24,9 @@ public class HBaseHDFSDocker extends Docker {
 
     public String namenodeIP;
 
-    public HDFSShellDaemon hdfsShell;
+    // public HDFSShellDaemon hdfsShell;
 
-    public HdfsDocker(HdfsDockerCluster dockerCluster, int index) {
+    public HBaseHDFSDocker(HBaseDockerCluster dockerCluster, int index) {
         this.index = index;
         type = "original";
         workdir = dockerCluster.workdir;
@@ -37,7 +37,7 @@ public class HBaseHDFSDocker extends Docker {
         subnet = dockerCluster.subnet;
         hostIP = dockerCluster.hostIP;
         networkIP = DockerCluster.getKthIP(hostIP, index);
-        namenodeIP = dockerCluster.namenodeIP;
+        namenodeIP = dockerCluster.seedIP;
         agentPort = dockerCluster.agentPort;
         includes = dockerCluster.includes;
         excludes = dockerCluster.excludes;
@@ -79,8 +79,8 @@ public class HBaseHDFSDocker extends Docker {
     @Override
     public int start() throws Exception {
         // Connect to the HDFS daemon
-        hdfsShell = new HDFSShellDaemon(getNetworkIP(), hdfsDaemonPort,
-                executorID, this);
+        // hdfsShell = new HDFSShellDaemon(getNetworkIP(), hdfsDaemonPort,
+        // executorID, this);
         return 0;
     }
 
@@ -202,8 +202,8 @@ public class HBaseHDFSDocker extends Docker {
         int ret = restart.waitFor();
         String message = Utilities.readProcess(restart);
         logger.debug("upgrade version start: " + ret + "\n" + message);
-        hdfsShell = new HDFSShellDaemon(getNetworkIP(), hdfsDaemonPort,
-                executorID, this);
+        // hdfsShell = new HDFSShellDaemon(getNetworkIP(), hdfsDaemonPort,
+        // executorID, this);
         waitSafeModeInterval();
     }
 
@@ -245,8 +245,8 @@ public class HBaseHDFSDocker extends Docker {
         String message = Utilities.readProcess(restart);
         logger.debug(
                 "downgrade to original version start: " + ret + "\n" + message);
-        hdfsShell = new HDFSShellDaemon(getNetworkIP(), hdfsDaemonPort,
-                executorID, this);
+        // hdfsShell = new HDFSShellDaemon(getNetworkIP(), hdfsDaemonPort,
+        // executorID, this);
         waitSafeModeInterval();
     }
 

@@ -39,12 +39,15 @@ public class HBaseDockerCluster extends DockerCluster {
         super(executor, version, nodeNum, null);
 
         this.dockers = new HBaseDocker[nodeNum];
+        this.extranodes = new HBaseHDFSDocker[1];
         this.seedIP = DockerCluster.getKthIP(hostIP, 0);
     }
 
     HBaseDockerCluster(HBaseExecutor executor, String version,
-            int nodeNum, Set<String> targetSystemStates, Path configPath) {
-        super(executor, version, nodeNum, targetSystemStates);
+            int nodeNum, Set<String> targetSystemStates, Path configPath,
+            Boolean exportComposeOnly) {
+        super(executor, version, nodeNum, targetSystemStates,
+                exportComposeOnly);
 
         this.dockers = new HBaseDocker[nodeNum];
         this.extranodes = new HBaseHDFSDocker[1];
@@ -57,7 +60,7 @@ public class HBaseDockerCluster extends DockerCluster {
             dockers[i] = new HBaseDocker(this, i);
             dockers[i].build();
         }
-        extranodes[0] = new HBaseHDFSDocker(this);
+        extranodes[0] = new HBaseHDFSDocker(this, 0);
         extranodes[0].build();
         return true;
     }
@@ -76,6 +79,9 @@ public class HBaseDockerCluster extends DockerCluster {
     }
 
     public void teardown() {
+        if (exportComposeOnly) {
+            return;
+        }
 
         // Chmod so that we can read/write them on the host machine
         try {

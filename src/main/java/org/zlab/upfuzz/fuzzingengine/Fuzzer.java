@@ -28,6 +28,9 @@ import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.hdfs.HdfsCommandPool;
 import org.zlab.upfuzz.hdfs.HdfsExecutor;
 import org.zlab.upfuzz.hdfs.HdfsState;
+import org.zlab.upfuzz.hbase.HBaseCommandPool;
+import org.zlab.upfuzz.hbase.HBaseExecutor;
+import org.zlab.upfuzz.hbase.HBaseState;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
@@ -105,7 +108,6 @@ public class Fuzzer {
                     }
                 }
             });
-
         } else if (Config.getConf().system.equals("hdfs")) {
             executor = new HdfsExecutor();
             commandPool = new HdfsCommandPool();
@@ -115,6 +117,21 @@ public class Fuzzer {
                 public void run() {
                     try {
                         Utilities.exec(new String[] { "sbin/stop-dfs.sh" },
+                                Config.getConf().oldSystemPath);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        } else if (Config.getConf().system.equals("hbase")) {
+            executor = new HBaseExecutor();
+            commandPool = new HBaseCommandPool();
+            stateClass = HBaseState.class;
+
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+                public void run() {
+                    try {
+                        Utilities.exec(new String[] { "bin/stop-hbase.sh" },
                                 Config.getConf().oldSystemPath);
                     } catch (IOException e) {
                         e.printStackTrace();

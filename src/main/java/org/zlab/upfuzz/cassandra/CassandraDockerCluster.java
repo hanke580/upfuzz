@@ -43,8 +43,10 @@ public class CassandraDockerCluster extends DockerCluster {
     }
 
     CassandraDockerCluster(CassandraExecutor executor, String version,
-            int nodeNum, Set<String> targetSystemStates, Path configPath) {
-        super(executor, version, nodeNum, targetSystemStates);
+            int nodeNum, Set<String> targetSystemStates, Path configPath,
+            Boolean exportComposeOnly) {
+        super(executor, version, nodeNum, targetSystemStates,
+                exportComposeOnly);
 
         this.dockers = new CassandraDocker[nodeNum];
         this.seedIP = DockerCluster.getKthIP(hostIP, 0);
@@ -73,6 +75,9 @@ public class CassandraDockerCluster extends DockerCluster {
     }
 
     public void teardown() {
+        if (exportComposeOnly) {
+            return;
+        }
 
         // Chmod so that we can read/write them on the host machine
         try {

@@ -28,6 +28,7 @@ public class Config {
 
         public String originalVersion = null;
         public String upgradedVersion = null;
+        public String extraNodeVersion = null;
 
         public String oldSystemPath = null;
         public String newSystemPath = null;
@@ -68,6 +69,7 @@ public class Config {
         public int rebuildConnectionSecs = 5;
 
         // ------------Configuration-------------
+        public Boolean exportComposeOnly = false;
         public Boolean verifyConfig = false;
         public String configDir = "configtests";
         public Boolean testAddedConfig = false;

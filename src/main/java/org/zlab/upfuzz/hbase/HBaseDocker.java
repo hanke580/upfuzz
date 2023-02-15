@@ -21,11 +21,11 @@ public class HBaseDocker extends Docker {
 
     String composeYaml;
     String javaToolOpts;
-    int hbaseDaemonPort = 36000;
+    int HBaseDaemonPort = 36000;
 
     public String seedIP;
 
-    public HBaseShellDaemon hbaseShell;
+    public HBaseShellDaemon HBaseShell;
 
     public HBaseDocker(HBaseDockerCluster dockerCluster, int index) {
         this.index = index;
@@ -81,7 +81,9 @@ public class HBaseDocker extends Docker {
 
     @Override
     public int start() throws Exception {
-        hbaseShell = new HBaseShellDaemon(getNetworkIP(), hbaseDaemonPort, this);
+        HBaseShell = new HBaseShellDaemon(getNetworkIP(), HBaseDaemonPort,
+                this.executorID,
+                this);
         return 0;
     }
 
@@ -131,9 +133,9 @@ public class HBaseDocker extends Docker {
         }
 
         env = new String[] {
-                "HBASE_HOME=\"" + hbaseHome + "\"",
-                "HBASE_CONF=\"" + hbaseConf + "\"", javaToolOpts,
-                "HBASE_SHELL_DAEMON_PORT=\"" + hbaseDaemonPort + "\"",
+                "HBASE_HOME=\"" + HBaseHome + "\"",
+                "HBASE_CONF=\"" + HBaseConf + "\"", javaToolOpts,
+                "HBASE_SHELL_DAEMON_PORT=\"" + HBaseDaemonPort + "\"",
                 "PYTHON=" + pythonVersion };
 
         setEnvironment();
@@ -171,7 +173,9 @@ public class HBaseDocker extends Docker {
         int ret = restart.waitFor();
         String message = Utilities.readProcess(restart);
         logger.debug("upgrade version start: " + ret + "\n" + message);
-        hbaseShell = new HBaseShellDaemon(getNetworkIP(), hbaseDaemonPort, this);
+        HBaseShell = new HBaseShellDaemon(getNetworkIP(), HBaseDaemonPort,
+                this.executorID,
+                this);
     }
 
     @Override
@@ -193,7 +197,7 @@ public class HBaseDocker extends Docker {
                 ",sessionid=" + system + "-" + executorID + "_" + type +
                 "-" + index +
                 "\"";
-        hbaseDaemonPort ^= 1;
+        HBaseDaemonPort ^= 1;
 
         String pythonVersion = "python2";
         String[] spStrings = upgradedVersion.split("-");
@@ -208,7 +212,7 @@ public class HBaseDocker extends Docker {
         env = new String[] {
                 "HBASE_HOME=\"" + hbaseHome + "\"",
                 "HBASE_CONF=\"" + hbaseConf + "\"", javaToolOpts,
-                "HBASE_SHELL_DAEMON_PORT=\"" + hbaseDaemonPort + "\"",
+                "HBASE_SHELL_DAEMON_PORT=\"" + HBaseDaemonPort + "\"",
                 "PYTHON=" + pythonVersion };
         setEnvironment();
     }
@@ -227,7 +231,7 @@ public class HBaseDocker extends Docker {
                 ",sessionid=" + system + "-" + executorID + "_"
                 + type + "-" + index +
                 "\"";
-        hbaseDaemonPort ^= 1;
+        HBaseDaemonPort ^= 1;
 
         String pythonVersion = "python2";
         String[] spStrings = originalVersion.split("-");
@@ -244,7 +248,7 @@ public class HBaseDocker extends Docker {
         env = new String[] {
                 "CASSANDRA_HOME=\"" + hbaseHome + "\"",
                 "CASSANDRA_CONF=\"" + hbaseConf + "\"", javaToolOpts,
-                "HBASE_SHELL_DAEMON_PORT=\"" + hbaseDaemonPort + "\"",
+                "HBASE_SHELL_DAEMON_PORT=\"" + HBaseDaemonPort + "\"",
                 "PYTHON=" + pythonVersion };
 
         setEnvironment();
@@ -256,7 +260,9 @@ public class HBaseDocker extends Docker {
         int ret = restart.waitFor();
         String message = Utilities.readProcess(restart);
         logger.debug("downgrade version start: " + ret + "\n" + message);
-        hbaseShell = new HBaseShellDaemon(getNetworkIP(), hbaseDaemonPort, this);
+        HBaseShell = new HBaseShellDaemon(getNetworkIP(), HBaseDaemonPort,
+                this.executorID,
+                this);
     }
 
     @Override
