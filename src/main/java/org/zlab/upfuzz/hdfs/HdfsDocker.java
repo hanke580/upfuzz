@@ -141,7 +141,9 @@ public class HdfsDocker extends Docker {
             nodeType = "datanode";
         }
 
-        String orihadoopDaemonPath = "/" + system + "/" + originalVersion + "/"
+        String curVersion = type.equals("upgraded") ? upgradedVersion
+                : originalVersion;
+        String orihadoopDaemonPath = "/" + system + "/" + curVersion + "/"
                 + "sbin/hadoop-daemon.sh";
 
         if (!nodeType.equals("secondarynamenode")) {
