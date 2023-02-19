@@ -49,7 +49,7 @@ public class HBaseDockerCluster extends DockerCluster {
         super(executor, version, nodeNum, targetSystemStates,
                 exportComposeOnly);
 
-        this.dockers = new HBaseDocker[nodeNum];
+        this.dockers = new HBaseDocker[nodeNum + 1];
         this.extranodes = new HBaseHDFSDocker[1];
         this.seedIP = DockerCluster.getKthIP(hostIP, 0);
         this.configpath = configPath;
@@ -146,6 +146,7 @@ public class HBaseDockerCluster extends DockerCluster {
         for (Docker docker : dockers) {
             sb.append(docker.formatComposeYaml());
         }
+        sb.append(extranodes[0].formatComposeYaml());
         String dockersFormat = sb.toString();
         formatMap.put("dockers", dockersFormat);
         formatMap.put("subnet", subnet);

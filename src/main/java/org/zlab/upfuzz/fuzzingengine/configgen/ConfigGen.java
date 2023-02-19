@@ -76,6 +76,15 @@ public class ConfigGen {
                     defaultNewConfigPath, generateFolderPath);
             break;
         }
+        case "hbase": {
+            Path defaultConfigPath = Paths.get(oldVersionPath.toString(),
+                    "conf/hbase-site.xml");
+            Path defaultNewConfigPath = Paths.get(newVersionPath.toString(),
+                    "conf/hbase-site.xml");
+            configFileGenerator = new XmlGenerator(defaultConfigPath,
+                    defaultNewConfigPath, generateFolderPath);
+            break;
+        }
         }
     }
 
@@ -158,6 +167,10 @@ public class ConfigGen {
             addedConfigValGenerator = new ConfigValGenerator(addedConfig,
                     addedConfigName2Type, addedConfig2Init,
                     addedEnumName2ConstantMap);
+            break;
+        }
+        case "hbase": {
+            // TODO
             break;
         }
         default: {

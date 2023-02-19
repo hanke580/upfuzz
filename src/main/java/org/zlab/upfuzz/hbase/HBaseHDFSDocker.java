@@ -306,8 +306,11 @@ public class HBaseHDFSDocker extends Docker {
             + "            - ./persistent/node_${index}/consolelog:/var/log/supervisor\n"
             + "            - ./persistent/config:/test_config\n"
             + "            - /tmp/upfuzz/hdfs:/tmp/upfuzz/hdfs\n"
-            + "            - ${projectRoot}/prebuild/${system}/${originalVersion}:/${system}/${originalVersion}\n"
-            + "            - ${projectRoot}/prebuild/${system}/${upgradedVersion}:/${system}/${upgradedVersion}\n"
+            + "            - ${projectRoot}/prebuild/hadoop/hadoop-2.10.2:/hadoop/hadoop-2.10.2\n" // TODO:
+                                                                                                   // depend
+                                                                                                   // system
+                                                                                                   // &
+                                                                                                   // version
             + "        environment:\n"
             + "            - HDFS_CLUSTER_NAME=dev_cluster\n"
             + "            - namenodeIP=${namenodeIP},\n"
@@ -315,13 +318,16 @@ public class HBaseHDFSDocker extends Docker {
             + "            - HDFS_SHELL_HOST=${networkIP}\n"
             + "            - HDFS_LOG_DIR=/var/log/hadoop\n"
             + "        expose:\n"
-            + "            - ${agentPort}\n"
-            + "            - 50020\n"
-            + "            - 50010\n"
-            + "            - 50075\n"
-            + "            - 9000\n"
-            + "            - 50070\n"
-            + "            - 50090\n"
+            + "             - 22\n"
+            + "             - 7000\n"
+            + "             - 7001\n"
+            + "             - 7199\n"
+            + "             - 8020\n"
+            + "             - 9042\n"
+            + "             - 9160\n"
+            + "             - 18251\n"
+            + "             - 16000\n"
+            + "             - 16010\n"
             + "        ulimits:\n"
             + "            memlock: -1\n"
             + "            nproc: 32768\n"

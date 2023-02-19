@@ -42,7 +42,7 @@ public class HBaseDocker extends Docker {
         includes = HBaseDockerCluster.includes;
         excludes = HBaseDockerCluster.excludes;
         executorID = dockerCluster.executorID;
-        name = "HBase-" + originalVersion + "_" + upgradedVersion + "_" +
+        name = "hbase-" + originalVersion + "_" + upgradedVersion + "_" +
                 executorID + "_N" + index;
         serviceName = "DC3N" + index;
         targetSystemStates = dockerCluster.targetSystemStates;
@@ -58,7 +58,7 @@ public class HBaseDocker extends Docker {
     public String formatComposeYaml() {
         Map<String, String> formatMap = new HashMap<>();
 
-        containerName = "HBase-" + originalVersion + "_" + upgradedVersion +
+        containerName = "hbase-" + originalVersion + "_" + upgradedVersion +
                 "_" + executorID + "_N" + index;
         formatMap.put("projectRoot", System.getProperty("user.dir"));
         formatMap.put("system", system);
@@ -107,7 +107,7 @@ public class HBaseDocker extends Docker {
     @Override
     public boolean build() throws IOException {
         type = "original";
-        String HBaseHome = "/HBase/" + originalVersion;
+        String HBaseHome = "/hbase/" + originalVersion;
         String HBaseConf = "/etc/" + originalVersion;
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
                 + "/org.jacoco.agent.rt.jar"
@@ -320,12 +320,20 @@ public class HBaseDocker extends Docker {
             + "                ipv4_address: ${networkIP}\n"
             + "        volumes:\n"
             // + " - ./persistent/node_${index}/data:/var/lib/cassandra\n"
-            + "            - ./persistent/node_${index}/log:/var/log/cassandra\n"
-            + "            - ./persistent/node_${index}/env.sh:/usr/bin/set_env\n"
+            + "            - ./persistent/node_${index}/log:/var/log/hbase\n"
+            // + " - ./persistent/node_${index}/env.sh:/usr/bin/set_env\n"
+            + "            - ./persistent/node_${index}/zookeeper:/usr/local/zookeeper\n"
             + "            - ./persistent/node_${index}/consolelog:/var/log/supervisor\n"
+            + "            - ./persistent/node_${index}/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf\n"
+            + "            - ./persistent/node_${index}/hbase-init.sh:/usr/local/hbase-init.sh\n"
             + "            - ./persistent/config:/test_config\n"
             + "            - ${projectRoot}/prebuild/${system}/${originalVersion}:/${system}/${originalVersion}\n"
             + "            - ${projectRoot}/prebuild/${system}/${upgradedVersion}:/${system}/${upgradedVersion}\n"
+            + "            - ${projectRoot}/prebuild/hadoop/hadoop-2.10.2:/hadoop/hadoop-2.10.2\n" // TODO:
+                                                                                                   // depend
+                                                                                                   // system
+                                                                                                   // &
+                                                                                                   // version
             + "        environment:\n"
             + "            - HBASE_CLUSTER_NAME=dev_cluster\n"
             + "            - HBASE_SEEDS=${seedIP},\n"
@@ -334,12 +342,19 @@ public class HBaseDocker extends Docker {
             + "            - HBASE_LOG_DIR=/var/log/cassandra\n"
             + "        expose:\n"
             + "            - ${agentPort}\n"
+            + "            - 22\n"
+            + "            - 2181\n"
+            + "            - 2888\n"
+            + "            - 3888\n"
             + "            - 7000\n"
             + "            - 7001\n"
             + "            - 7199\n"
+            + "            - 8020\n"
             + "            - 9042\n"
             + "            - 9160\n"
             + "            - 18251\n"
+            + "            - 16000\n"
+            + "            - 16010\n"
             + "        ulimits:\n"
             + "            memlock: -1\n"
             + "            nproc: 32768\n"

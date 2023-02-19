@@ -26,7 +26,7 @@ public class HBaseExecutor extends Executor {
     HBaseShellDaemon HBaseShell = null;
 
     public HBaseExecutor() {
-        super("HBase", Config.getConf().nodeNum);
+        super("hbase", Config.getConf().nodeNum);
 
         timestamp = System.currentTimeMillis();
 
@@ -38,7 +38,7 @@ public class HBaseExecutor extends Executor {
     public HBaseExecutor(int nodeNum,
             Set<String> targetSystemStates, Path configPath,
             Boolean exportComposeOnly) {
-        super("HBase", nodeNum);
+        super("hbase", nodeNum);
 
         timestamp = System.currentTimeMillis();
 
@@ -57,7 +57,7 @@ public class HBaseExecutor extends Executor {
         int ret = 0;
         try {
             isReady = Utilities.exec(
-                    new String[] { "bin/HBase", "dfsadmin", "-report" },
+                    new String[] { "bin/hbase", "dfsadmin", "-report" },
                     HBasePath);
             BufferedReader in = new BufferedReader(
                     new InputStreamReader(isReady.getInputStream()));
