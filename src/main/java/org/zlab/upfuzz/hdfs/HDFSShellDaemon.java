@@ -69,7 +69,9 @@ public class HDFSShellDaemon {
         out.write(cmd.getBytes());
 
         int packetLength = in.readInt();
-        logger.info("ret len = " + packetLength);
+        if (Config.getConf().debug) {
+            logger.info("hdfs daemon ret len = " + packetLength);
+        }
         byte[] bytes = new byte[packetLength];
         int len = 0;
         len = in.read(bytes, len, packetLength - len);

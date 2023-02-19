@@ -124,7 +124,7 @@ addedClassConfig2Type.json  addedClassEnum2Constant.json  commonConfig2Init.json
 
 1. Clone upfuzz repo.
 
-Make sure `docker` and `docker-compose` is correctly installed.
+Make sure `docker` and `docker compose` is correctly installed.
 
 2. Create a `config.json` file, a sample config file is provided in
    config.json. You need to modify the value for the target system.
@@ -294,6 +294,15 @@ Upgrade from hadoop-2.10.2 to hadoop-3.3.0. You should replace them with the ver
 ```
 
 4. Compile the daemon file
+
+> FsShellDaemon_trunk.java is for Hadoop trunk version
+>
+> FsShellDaemon3.java is for Hadoop > 3.x
+>
+> FsShellDaemon2.java is for Hadoop > 2.8.5
+>
+> The exact suitable version might still change.
+
 ```bash
 cp src/main/resources/FsShellDaemon3.java prebuild/hdfs/hadoop-3.3.0/FsShellDaemon.java
 cd prebuild/hdfs/hadoop-3.3.0/
@@ -323,8 +332,7 @@ docker build . -t upfuzz_hdfs:hadoop-2.10.2_hadoop-3.3.0
 7. Compile the project
 ```shell
 ./gradlew copyDependencies
-./gradlew :spotlessApply
-./gradlew build
+./gradlew :spotlessApply build
 ```
 
 8. Start testing (Same as the command in Cassandra set up)
@@ -334,7 +342,9 @@ docker build . -t upfuzz_hdfs:hadoop-2.10.2_hadoop-3.3.0
 
 ### Debug related
 
-If the system doesn't
+If the tool runs into problems, you can enter the container to check the log.
+
+There could be several reasons (1) System starts up but the daemon in container cannot start up (2) The target system cannot start up due to configuration problem or jacoco agent instrumentation problem.
 
 
 ### Notes
