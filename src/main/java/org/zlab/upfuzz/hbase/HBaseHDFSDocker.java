@@ -44,7 +44,7 @@ public class HBaseHDFSDocker extends Docker {
         executorID = dockerCluster.executorID;
         name = "hdfs-" + originalVersion + "_" + upgradedVersion + "_" +
                 executorID + "_N" + index;
-        serviceName = "DC3N" + index; // Remember update the service name
+        serviceName = "DEPN" + index; // Remember update the service name
         configPath = dockerCluster.configpath;
     }
 
@@ -289,7 +289,7 @@ public class HBaseHDFSDocker extends Docker {
     }
 
     static String template = ""
-            + "    DC3N${index}:\n"
+            + "    DEPN${index}:\n"
             + "        container_name: hdfs-${originalVersion}_${upgradedVersion}_${executorID}_N${index}\n"
             + "        image: upfuzz_${system}:${originalVersion}_${upgradedVersion}\n"
             + "        command: bash -c 'sleep 0 && /usr/bin/supervisord'\n"

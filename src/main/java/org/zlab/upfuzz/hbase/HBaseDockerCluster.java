@@ -143,10 +143,10 @@ public class HBaseDockerCluster extends DockerCluster {
         Map<String, String> formatMap = new HashMap<>();
 
         StringBuilder sb = new StringBuilder();
+        sb.append(extranodes[0].formatComposeYaml());
         for (Docker docker : dockers) {
             sb.append(docker.formatComposeYaml());
         }
-        sb.append(extranodes[0].formatComposeYaml());
         String dockersFormat = sb.toString();
         formatMap.put("dockers", dockersFormat);
         formatMap.put("subnet", subnet);
