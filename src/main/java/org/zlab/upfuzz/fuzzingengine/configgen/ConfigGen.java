@@ -27,6 +27,8 @@ public class ConfigGen {
     ConfigValGenerator commonConfigValGenerator;
     ConfigValGenerator addedConfigValGenerator;
 
+    String hostIP;
+
     ObjectMapper mapper = new ObjectMapper();
 
     static Set<String> cassandraConfigBlackList = new HashSet<>();
@@ -179,6 +181,11 @@ public class ConfigGen {
                             + Config.getConf().system);
         }
         }
+    }
+
+    public ConfigGen(String IP) {
+        this();
+        hostIP = IP;
     }
 
     public int generateConfig() {

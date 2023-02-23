@@ -78,6 +78,13 @@ public abstract class Executor implements IExecutor {
         this.oriCoverage = new ExecutionDataStore[nodeNum];
     }
 
+    public void setConfigPath(Path ConfigPath) {
+        this.configPath = ConfigPath;
+        if (this.dockerCluster != null) {
+            this.dockerCluster.configpath = ConfigPath;
+        }
+    }
+
     public void clearState() {
         executorID = RandomStringUtils.randomAlphanumeric(8);
     }

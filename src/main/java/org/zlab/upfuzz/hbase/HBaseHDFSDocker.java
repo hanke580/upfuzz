@@ -291,26 +291,20 @@ public class HBaseHDFSDocker extends Docker {
     static String template = ""
             + "    DEPN${index}:\n"
             + "        container_name: hdfs-${originalVersion}_${upgradedVersion}_${executorID}_N${index}\n"
-            + "        image: upfuzz_${system}:${originalVersion}_${upgradedVersion}\n"
+            + "        image: upfuzz_hdfs:hadoop-2.10.2\n" // TODO: depend
+                                                           // system & version
             + "        command: bash -c 'sleep 0 && /usr/bin/supervisord'\n"
             + "        networks:\n"
             + "            ${networkName}:\n"
             + "                ipv4_address: ${networkIP}\n"
             + "        volumes:\n"
-            // + " -
             // ./persistent/node_${index}/nndata:/var/hadoop/data/nameNode\n"
-            // + " -
             // ./persistent/node_${index}/dndata:/var/hadoop/data/dataNode\n"
-            + "            - ./persistent/node_${index}/log:/var/log/hdfs\n"
-            + "            - ./persistent/node_${index}/env.sh:/usr/bin/set_env\n"
-            + "            - ./persistent/node_${index}/consolelog:/var/log/supervisor\n"
+            + "            - ./persistent/hdfs_${index}/log:/var/log/hdfs\n"
+            + "            - ./persistent/hdfs_${index}/consolelog:/var/log/supervisor\n"
             + "            - ./persistent/config:/test_config\n"
-            + "            - /tmp/upfuzz/hdfs:/tmp/upfuzz/hdfs\n"
-            + "            - ${projectRoot}/prebuild/hadoop/hadoop-2.10.2:/hadoop/hadoop-2.10.2\n" // TODO:
-                                                                                                   // depend
-                                                                                                   // system
-                                                                                                   // &
-                                                                                                   // version
+            // /tmp/upfuzz/hdfs:/tmp/upfuzz/hdfs\n"
+            + "            - ${projectRoot}/prebuild/hadoop/hadoop-2.10.2:/hadoop/hadoop-2.10.2\n"
             + "        environment:\n"
             + "            - HDFS_CLUSTER_NAME=dev_cluster\n"
             + "            - namenodeIP=${namenodeIP},\n"

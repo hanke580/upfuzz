@@ -108,8 +108,11 @@ public class FuzzingClient {
             }
         }
 
-        executor = initExecutor(Config.getConf().nodeNum, null, configPath);
+        executor = initExecutor(Config.getConf().nodeNum, null, null);
         boolean startUpStatus = startUpExecutor();
+
+        executor.setConfigPath(configPath);
+
         if (!startUpStatus) {
             // old version **cluster** start up problem, this won't be upgrade
             // bugs

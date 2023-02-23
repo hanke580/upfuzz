@@ -28,6 +28,8 @@ public class XmlGenerator extends ConfigFileGenerator {
     public Path defaultXMLPath;
     public Path defaultNewXMLPath;
 
+    public String IPAddress;
+
     public XmlGenerator(
             Path defaultXMLPath, Path defaultNewXMLPath,
             Path generateFolderPath) {
@@ -44,6 +46,20 @@ public class XmlGenerator extends ConfigFileGenerator {
             hdfsClusterSetting(configurations);
             hdfsClusterSetting(newConfigurations);
         }
+        if (Config.getConf().system.equals("hbase")
+                && defaultXMLPath.getFileName().toString()
+                        .equals("hdfs-site.xml")) {
+            logger.info("set hbase hdfs basic cluster config");
+            HBasehdfsClusterSetting(configurations);
+            HBasehdfsClusterSetting(newConfigurations);
+        }
+        if (Config.getConf().system.equals("hbase")
+                && defaultXMLPath.getFileName().toString()
+                        .equals("core-site.xml")) {
+            logger.info("set hbase hdfs namenode cluster config");
+            HBasehdfsNameClusterSetting(configurations);
+            HBasehdfsNameClusterSetting(newConfigurations);
+        }
     }
 
     public void hdfsClusterSetting(Map<String, String> configurations) {
@@ -56,6 +72,19 @@ public class XmlGenerator extends ConfigFileGenerator {
                 "dfs.namenode.datanode.registration.ip-hostname-check",
                 "false");
         configurations.put("dfs.secondary.http.address", "secondarynn:50090");
+    }
+
+    public void HBasehdfsClusterSetting(Map<String, String> configurations) {
+        configurations.put("dfs.namenode.name.dir",
+                "/var/hadoop/data/nameNode");
+        configurations.put("dfs.datanode.data.dir",
+                "/var/hadoop/data/dataNode");
+    }
+
+    public void HBasehdfsNameClusterSetting(
+            Map<String, String> configurations) {
+        configurations.put("fs.default.name",
+                "hdfs://master:8020");
     }
 
     public static Map<String, String> parseXmlFile(Path filePath) {
