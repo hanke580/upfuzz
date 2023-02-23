@@ -60,7 +60,7 @@ public class HBaseDockerCluster extends DockerCluster {
             dockers[i] = new HBaseDocker(this, i);
             dockers[i].build();
         }
-        extranodes[0] = new HBaseHDFSDocker(this, 10);
+        extranodes[0] = new HBaseHDFSDocker(this, 100);
         extranodes[0].build();
         return true;
     }

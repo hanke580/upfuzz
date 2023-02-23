@@ -33,6 +33,10 @@ public class HBaseExecutor extends Executor {
         agentStore = new HashMap<>();
         agentHandler = new HashMap<>();
         sessionGroup = new ConcurrentHashMap<>();
+
+        dockerCluster = new HBaseDockerCluster(this,
+                Config.getConf().originalVersion,
+                nodeNum, null, configPath, exportComposeOnly);
     }
 
     public HBaseExecutor(int nodeNum,
@@ -49,6 +53,10 @@ public class HBaseExecutor extends Executor {
         agentStore = new HashMap<>();
         agentHandler = new HashMap<>();
         sessionGroup = new ConcurrentHashMap<>();
+
+        dockerCluster = new HBaseDockerCluster(this,
+                Config.getConf().originalVersion,
+                nodeNum, null, configPath, exportComposeOnly);
     }
 
     public boolean isHBaseReady(String HBasePath) {
@@ -84,10 +92,6 @@ public class HBaseExecutor extends Executor {
             logger.error(e);
             return false;
         }
-
-        dockerCluster = new HBaseDockerCluster(this,
-                Config.getConf().originalVersion,
-                nodeNum, null, configPath, exportComposeOnly);
 
         try {
             dockerCluster.build();

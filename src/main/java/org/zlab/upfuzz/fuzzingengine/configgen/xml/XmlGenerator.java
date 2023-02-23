@@ -28,8 +28,6 @@ public class XmlGenerator extends ConfigFileGenerator {
     public Path defaultXMLPath;
     public Path defaultNewXMLPath;
 
-    public String IPAddress;
-
     public XmlGenerator(
             Path defaultXMLPath, Path defaultNewXMLPath,
             Path generateFolderPath) {
@@ -39,6 +37,9 @@ public class XmlGenerator extends ConfigFileGenerator {
 
         configurations = parseXmlFile(defaultXMLPath);
         newConfigurations = parseXmlFile(defaultNewXMLPath);
+    }
+
+    public void ProcessConfig() {
         if (Config.getConf().system.equals("hdfs")
                 && defaultXMLPath.getFileName().toString()
                         .equals("hdfs-site.xml")) {
@@ -59,6 +60,13 @@ public class XmlGenerator extends ConfigFileGenerator {
             logger.info("set hbase hdfs namenode cluster config");
             HBasehdfsNameClusterSetting(configurations);
             HBasehdfsNameClusterSetting(newConfigurations);
+        }
+        if (Config.getConf().system.equals("hbase")
+                && defaultXMLPath.getFileName().toString()
+                        .equals("hbase-site.xml")) {
+            logger.info("set hbase cluster config");
+            HBaseClusterSetting(configurations);
+            HBaseClusterSetting(newConfigurations);
         }
     }
 
@@ -85,6 +93,18 @@ public class XmlGenerator extends ConfigFileGenerator {
             Map<String, String> configurations) {
         configurations.put("fs.default.name",
                 "hdfs://master:8020");
+    }
+
+    public void HBaseClusterSetting(
+            Map<String, String> configurations) {
+        configurations.put("hbase.cluster.distributed",
+                "true");
+        configurations.put("hbase.rootdir",
+                "hdfs://master:8020/hbase");
+        configurations.put("hbase.zookeeper.property.dataDir",
+                "/usr/local/zookeeper");
+        configurations.put("hbase.zookeeper.quorum",
+                this.hostIP);
     }
 
     public static Map<String, String> parseXmlFile(Path filePath) {
@@ -170,6 +190,7 @@ public class XmlGenerator extends ConfigFileGenerator {
             Map<String, String> key2type,
             Map<String, String> newkey2vals,
             Map<String, String> newkey2type) {
+        this.ProcessConfig();
         // clone a configuration map, and dump it
         Path savePath = generateFolderPath
                 .resolve(String.format("test%d", fileNameIdx));

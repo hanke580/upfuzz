@@ -28,6 +28,7 @@ public class ConfigGen {
     ConfigValGenerator addedConfigValGenerator;
 
     String hostIP;
+    int nodeNum;
 
     ObjectMapper mapper = new ObjectMapper();
 
@@ -183,9 +184,17 @@ public class ConfigGen {
         }
     }
 
-    public ConfigGen(String IP) {
+    public ConfigGen(int nodeNum, String IP) {
         this();
-        hostIP = IP;
+        this.nodeNum = nodeNum;
+        this.hostIP = IP;
+        configFileGenerator.SetConfig(nodeNum, IP);
+    }
+
+    public void SetConfig(int nodeNum, String IP) {
+        this.nodeNum = nodeNum;
+        this.hostIP = IP;
+        configFileGenerator.SetConfig(nodeNum, IP);
     }
 
     public int generateConfig() {
