@@ -72,49 +72,50 @@ public class XmlGenerator extends ConfigFileGenerator {
         }
     }
 
-    public void hdfsClusterSetting(Map<String, String> configurations) {
-        configurations.put("dfs.namenode.name.dir",
+    public void hdfsClusterSetting(Map<String, String> curConfigurations) {
+        curConfigurations.put("dfs.namenode.name.dir",
                 "/var/hadoop/data/nameNode");
-        configurations.put("dfs.datanode.data.dir",
+        curConfigurations.put("dfs.datanode.data.dir",
                 "/var/hadoop/data/dataNode");
-        configurations.put("dfs.replication", "2");
-        configurations.put(
+        curConfigurations.put("dfs.replication", "2");
+        curConfigurations.put(
                 "dfs.namenode.datanode.registration.ip-hostname-check",
                 "false");
-        configurations.put("dfs.secondary.http.address", "secondarynn:50090");
+        curConfigurations.put("dfs.secondary.http.address",
+                "secondarynn:50090");
     }
 
-    public void HBasehdfsClusterSetting(Map<String, String> configurations) {
-        configurations.put("dfs.namenode.name.dir",
+    public void HBasehdfsClusterSetting(Map<String, String> curConfigurations) {
+        curConfigurations.put("dfs.namenode.name.dir",
                 "/var/hadoop/data/nameNode");
-        configurations.put("dfs.datanode.data.dir",
+        curConfigurations.put("dfs.datanode.data.dir",
                 "/var/hadoop/data/dataNode");
     }
 
     public void HBasehdfsNameClusterSetting(
-            Map<String, String> configurations) {
-        configurations.put("fs.default.name",
+            Map<String, String> curConfigurations) {
+        curConfigurations.put("fs.default.name",
                 "hdfs://master:8020");
     }
 
     public void HBaseClusterSetting(
-            Map<String, String> configurations) {
-        configurations.put("hbase.cluster.distributed",
+            Map<String, String> curConfigurations) {
+        curConfigurations.put("hbase.cluster.distributed",
                 "true");
-        configurations.put("hbase.rootdir",
+        curConfigurations.put("hbase.rootdir",
                 "hdfs://master:8020/hbase");
-        configurations.put("hbase.zookeeper.property.dataDir",
+        curConfigurations.put("hbase.zookeeper.property.dataDir",
                 "/usr/local/zookeeper");
-        String[] totalIP = new String[this.nodeNum];
-        for (int i = 0; i < this.nodeNum; i++) {
-            totalIP[i] = DockerCluster.getKthIP(this.hostIP, i);
+        String[] totalIP = new String[nodeNum];
+        for (int i = 0; i < nodeNum; i++) {
+            totalIP[i] = DockerCluster.getKthIP(hostIP, i);
         }
-        configurations.put("hbase.zookeeper.quorum",
+        curConfigurations.put("hbase.zookeeper.quorum",
                 String.join(",", totalIP));
     }
 
     public static Map<String, String> parseXmlFile(Path filePath) {
-        Map<String, String> configurations = new LinkedHashMap<>();
+        Map<String, String> curConfigurations = new LinkedHashMap<>();
 
         SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
         try {
@@ -129,7 +130,7 @@ public class XmlGenerator extends ConfigFileGenerator {
                     String name = property.getName();
                     String value = property.getValue();
                     if ((name != null) && (value != null)) {
-                        configurations.put(name, value);
+                        curConfigurations.put(name, value);
                     }
                 }
             }
@@ -137,7 +138,7 @@ public class XmlGenerator extends ConfigFileGenerator {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
-        return configurations;
+        return curConfigurations;
     }
 
     public void generateXmlFile(Map<String, String> key2val, Path path) {
@@ -196,7 +197,7 @@ public class XmlGenerator extends ConfigFileGenerator {
             Map<String, String> key2type,
             Map<String, String> newkey2vals,
             Map<String, String> newkey2type) {
-        this.ProcessConfig();
+        ProcessConfig();
         // clone a configuration map, and dump it
         Path savePath = generateFolderPath
                 .resolve(String.format("test%d", fileNameIdx));

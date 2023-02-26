@@ -283,13 +283,14 @@ public class ConfigGen {
             upConfigtest.putAll(filteredCommonConfigTest);
             upConfig2Type.putAll(addedConfigName2Type);
         }
-        int generateIdx = 0;
-        for (int i = 0; i < configFileGenerator.length; i++) {
-            generateIdx = configFileGenerator[i].generate(oriConfigtest,
-                    oriConfig2Type,
-                    upConfigtest, upConfig2Type);
+        for (int i = 1; i < configFileGenerator.length; i++) {
+            configFileGenerator[i].generate(
+                    new LinkedHashMap<>(), new LinkedHashMap<>(),
+                    new LinkedHashMap<>(), new LinkedHashMap<>());
         }
-        return generateIdx;
+        return configFileGenerator[0].generate(oriConfigtest,
+                oriConfig2Type,
+                upConfigtest, upConfig2Type);
     }
 
     static Set<String> removeBlacklistConfig(Set<String> configs,
