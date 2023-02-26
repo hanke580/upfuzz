@@ -12,7 +12,7 @@ import java.util.*;
 
 public class ConfigGen {
     Random rand = new Random();
-    ConfigFileGenerator configFileGenerator;
+    ConfigFileGenerator[] configFileGenerator;
 
     Set<String> commonConfig;
     Map<String, String> commonConfigName2Type;
@@ -54,6 +54,9 @@ public class ConfigGen {
         Path newVersionPath = Paths.get(System.getProperty("user.dir"),
                 "prebuild", Config.getConf().system,
                 Config.getConf().upgradedVersion);
+        Path depSystemPath = Paths.get(System.getProperty("user.dir"),
+                "prebuild", Config.getConf().depSystem,
+                Config.getConf().depVersion);
 
         Path generateFolderPath = Paths.get(System.getProperty("user.dir"),
                 Config.getConf().configDir,
@@ -66,7 +69,8 @@ public class ConfigGen {
                     "conf/cassandra.yaml");
             Path defaultNewConfigPath = Paths.get(newVersionPath.toString(),
                     "conf/cassandra.yaml");
-            configFileGenerator = new YamlGenerator(defaultConfigPath,
+            configFileGenerator = new YamlGenerator[1];
+            configFileGenerator[0] = new YamlGenerator(defaultConfigPath,
                     defaultNewConfigPath, generateFolderPath);
             break;
         }
@@ -75,7 +79,8 @@ public class ConfigGen {
                     "etc/hadoop/hdfs-site.xml");
             Path defaultNewConfigPath = Paths.get(newVersionPath.toString(),
                     "etc/hadoop/hdfs-site.xml");
-            configFileGenerator = new XmlGenerator(defaultConfigPath,
+            configFileGenerator = new XmlGenerator[1];
+            configFileGenerator[0] = new XmlGenerator(defaultConfigPath,
                     defaultNewConfigPath, generateFolderPath);
             break;
         }
@@ -84,8 +89,19 @@ public class ConfigGen {
                     "conf/hbase-site.xml");
             Path defaultNewConfigPath = Paths.get(newVersionPath.toString(),
                     "conf/hbase-site.xml");
-            configFileGenerator = new XmlGenerator(defaultConfigPath,
+            Path defaultHdfsConfigPath = Paths.get(depSystemPath.toString(),
+                    "etc/hadoop/hdfs-site.xml");
+            Path defaultHdfsNamenodeConfigPath = Paths.get(
+                    depSystemPath.toString(),
+                    "etc/hadoop/core-site.xml");
+            configFileGenerator = new XmlGenerator[3];
+            configFileGenerator[0] = new XmlGenerator(defaultConfigPath,
                     defaultNewConfigPath, generateFolderPath);
+            configFileGenerator[1] = new XmlGenerator(defaultHdfsConfigPath,
+                    defaultHdfsConfigPath, generateFolderPath);
+            configFileGenerator[2] = new XmlGenerator(
+                    defaultHdfsNamenodeConfigPath,
+                    defaultHdfsNamenodeConfigPath, generateFolderPath);
             break;
         }
         }
@@ -188,13 +204,17 @@ public class ConfigGen {
         this();
         this.nodeNum = nodeNum;
         this.hostIP = IP;
-        configFileGenerator.SetConfig(nodeNum, IP);
+        for (int i = 0; i < configFileGenerator.length; i++) {
+            configFileGenerator[i].SetConfig(nodeNum, IP);
+        }
     }
 
     public void SetConfig(int nodeNum, String IP) {
         this.nodeNum = nodeNum;
         this.hostIP = IP;
-        configFileGenerator.SetConfig(nodeNum, IP);
+        for (int i = 0; i < configFileGenerator.length; i++) {
+            configFileGenerator[i].SetConfig(nodeNum, IP);
+        }
     }
 
     public int generateConfig() {
@@ -263,8 +283,13 @@ public class ConfigGen {
             upConfigtest.putAll(filteredCommonConfigTest);
             upConfig2Type.putAll(addedConfigName2Type);
         }
-        return configFileGenerator.generate(oriConfigtest, oriConfig2Type,
-                upConfigtest, upConfig2Type);
+        int generateIdx = 0;
+        for (int i = 0; i < configFileGenerator.length; i++) {
+            generateIdx = configFileGenerator[i].generate(oriConfigtest,
+                    oriConfig2Type,
+                    upConfigtest, upConfig2Type);
+        }
+        return generateIdx;
     }
 
     static Set<String> removeBlacklistConfig(Set<String> configs,

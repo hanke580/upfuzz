@@ -49,7 +49,7 @@ public class HBaseDockerCluster extends DockerCluster {
         super(executor, version, nodeNum, targetSystemStates,
                 exportComposeOnly);
 
-        this.dockers = new HBaseDocker[nodeNum + 1];
+        this.dockers = new HBaseDocker[nodeNum];
         this.extranodes = new HBaseHDFSDocker[1];
         this.seedIP = DockerCluster.getKthIP(hostIP, 0);
         this.configpath = configPath;

@@ -15,6 +15,7 @@ import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
+import org.zlab.upfuzz.docker.DockerCluster;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.configgen.ConfigFileGenerator;
 
@@ -32,6 +33,10 @@ public class XmlGenerator extends ConfigFileGenerator {
             Path defaultXMLPath, Path defaultNewXMLPath,
             Path generateFolderPath) {
         super(generateFolderPath);
+        SetXMLPath(defaultXMLPath, defaultNewXMLPath);
+    }
+
+    public void SetXMLPath(Path defaultXMLPath, Path defaultNewXMLPath) {
         this.defaultXMLPath = defaultXMLPath;
         this.defaultNewXMLPath = defaultNewXMLPath;
 
@@ -46,22 +51,19 @@ public class XmlGenerator extends ConfigFileGenerator {
             logger.info("set hdfs basic cluster config");
             hdfsClusterSetting(configurations);
             hdfsClusterSetting(newConfigurations);
-        }
-        if (Config.getConf().system.equals("hbase")
+        } else if (Config.getConf().system.equals("hbase")
                 && defaultXMLPath.getFileName().toString()
                         .equals("hdfs-site.xml")) {
             logger.info("set hbase hdfs basic cluster config");
             HBasehdfsClusterSetting(configurations);
             HBasehdfsClusterSetting(newConfigurations);
-        }
-        if (Config.getConf().system.equals("hbase")
+        } else if (Config.getConf().system.equals("hbase")
                 && defaultXMLPath.getFileName().toString()
                         .equals("core-site.xml")) {
             logger.info("set hbase hdfs namenode cluster config");
             HBasehdfsNameClusterSetting(configurations);
             HBasehdfsNameClusterSetting(newConfigurations);
-        }
-        if (Config.getConf().system.equals("hbase")
+        } else if (Config.getConf().system.equals("hbase")
                 && defaultXMLPath.getFileName().toString()
                         .equals("hbase-site.xml")) {
             logger.info("set hbase cluster config");
@@ -103,8 +105,12 @@ public class XmlGenerator extends ConfigFileGenerator {
                 "hdfs://master:8020/hbase");
         configurations.put("hbase.zookeeper.property.dataDir",
                 "/usr/local/zookeeper");
+        String[] totalIP = new String[this.nodeNum];
+        for (int i = 0; i < this.nodeNum; i++) {
+            totalIP[i] = DockerCluster.getKthIP(this.hostIP, i);
+        }
         configurations.put("hbase.zookeeper.quorum",
-                this.hostIP);
+                String.join(",", totalIP));
     }
 
     public static Map<String, String> parseXmlFile(Path filePath) {
