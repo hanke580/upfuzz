@@ -15,21 +15,12 @@ public class HBaseTable implements Serializable {
 
     public Set<String> indexes;
 
-    public HBaseTable(Parameter name, Parameter colName2Type,
-                          Parameter primaryColName2Type) {
+    public HBaseTable(Parameter name, Parameter colName2Type) {
         this.name = (String) name.getValue();
         if (colName2Type != null) {
             this.colName2Type = new LinkedList<>();
             for (Parameter col : (List<Parameter>) colName2Type.getValue()) {
                 this.colName2Type.add(SerializationUtils.clone(col));
-            }
-        }
-        if (primaryColName2Type != null) {
-            this.primaryColName2Type = new LinkedList<>();
-            for (Parameter primaryCol : (List<Parameter>) primaryColName2Type
-                    .getValue()) {
-                this.primaryColName2Type.add(
-                        SerializationUtils.clone(primaryCol));
             }
         }
 
