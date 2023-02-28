@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.configgen.xml.XmlGenerator;
 import org.zlab.upfuzz.fuzzingengine.configgen.yaml.YamlGenerator;
+import org.zlab.upfuzz.fuzzingengine.configgen.PlainTextGenerator;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -13,6 +14,7 @@ import java.util.*;
 public class ConfigGen {
     Random rand = new Random();
     ConfigFileGenerator[] configFileGenerator;
+    ConfigFileGenerator[] extraGenerator;
 
     Set<String> commonConfig;
     Map<String, String> commonConfigName2Type;
@@ -94,6 +96,11 @@ public class ConfigGen {
             Path defaultHdfsNamenodeConfigPath = Paths.get(
                     depSystemPath.toString(),
                     "etc/hadoop/core-site.xml");
+            Path defaultRegionserversPath = Paths.get(oldVersionPath.toString(),
+                    "conf/regionservers");
+            Path defaultNewRegionserversPath = Paths.get(
+                    newVersionPath.toString(),
+                    "conf/regionservers");
             configFileGenerator = new XmlGenerator[3];
             configFileGenerator[0] = new XmlGenerator(defaultConfigPath,
                     defaultNewConfigPath, generateFolderPath);
@@ -102,6 +109,10 @@ public class ConfigGen {
             configFileGenerator[2] = new XmlGenerator(
                     defaultHdfsNamenodeConfigPath,
                     defaultHdfsNamenodeConfigPath, generateFolderPath);
+            extraGenerator = new PlainTextGenerator[1];
+            extraGenerator[0] = new PlainTextGenerator(defaultRegionserversPath,
+                    defaultNewRegionserversPath, "regionservers",
+                    generateFolderPath);
             break;
         }
         }
@@ -202,11 +213,7 @@ public class ConfigGen {
 
     public ConfigGen(int nodeNum, String IP) {
         this();
-        this.nodeNum = nodeNum;
-        this.hostIP = IP;
-        for (int i = 0; i < configFileGenerator.length; i++) {
-            configFileGenerator[i].SetConfig(nodeNum, IP);
-        }
+        SetConfig(nodeNum, IP);
     }
 
     public void SetConfig(int nodeNum, String IP) {
@@ -214,6 +221,9 @@ public class ConfigGen {
         this.hostIP = IP;
         for (int i = 0; i < configFileGenerator.length; i++) {
             configFileGenerator[i].SetConfig(nodeNum, IP);
+        }
+        for (int i = 0; i < extraGenerator.length; i++) {
+            extraGenerator[i].SetConfig(nodeNum, IP);
         }
     }
 
@@ -285,6 +295,11 @@ public class ConfigGen {
         }
         for (int i = 1; i < configFileGenerator.length; i++) {
             configFileGenerator[i].generate(
+                    new LinkedHashMap<>(), new LinkedHashMap<>(),
+                    new LinkedHashMap<>(), new LinkedHashMap<>());
+        }
+        for (int i = 0; i < extraGenerator.length; i++) {
+            extraGenerator[i].generate(
                     new LinkedHashMap<>(), new LinkedHashMap<>(),
                     new LinkedHashMap<>(), new LinkedHashMap<>());
         }

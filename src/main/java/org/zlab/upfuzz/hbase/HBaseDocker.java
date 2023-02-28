@@ -73,6 +73,14 @@ public class HBaseDocker extends Docker {
         formatMap.put("agentPort", Integer.toString(agentPort));
         formatMap.put("executorID", executorID);
         formatMap.put("serviceName", serviceName);
+        formatMap.put("HadoopIP", DockerCluster.getKthIP(hostIP, 100));
+        if (index == 0) {
+            formatMap.put("HBaseMaster", "true");
+            formatMap.put("depDockerID", "DEPN100");
+        } else {
+            formatMap.put("HBaseMaster", "false");
+            formatMap.put("depDockerID", "DC3N0");
+        }
 
         StringSubstitutor sub = new StringSubstitutor(formatMap);
         this.composeYaml = sub.replace(template);
@@ -134,7 +142,7 @@ public class HBaseDocker extends Docker {
 
         env = new String[] {
                 "HBASE_HOME=\"" + HBaseHome + "\"",
-                "HBASE_CONF=\"" + HBaseConf + "\"", javaToolOpts,
+                "HBASE_CONF=\"" + HBaseConf + "\"", /*javaToolOpts,*/
                 "HBASE_SHELL_DAEMON_PORT=\"" + HBaseDaemonPort + "\"",
                 "PYTHON=" + pythonVersion };
 
@@ -211,7 +219,7 @@ public class HBaseDocker extends Docker {
         }
         env = new String[] {
                 "HBASE_HOME=\"" + hbaseHome + "\"",
-                "HBASE_CONF=\"" + hbaseConf + "\"", javaToolOpts,
+                "HBASE_CONF=\"" + hbaseConf + "\"", /*javaToolOpts,*/
                 "HBASE_SHELL_DAEMON_PORT=\"" + HBaseDaemonPort + "\"",
                 "PYTHON=" + pythonVersion };
         setEnvironment();
@@ -246,8 +254,8 @@ public class HBaseDocker extends Docker {
         }
 
         env = new String[] {
-                "CASSANDRA_HOME=\"" + hbaseHome + "\"",
-                "CASSANDRA_CONF=\"" + hbaseConf + "\"", javaToolOpts,
+                "HBASE_HOME=\"" + hbaseHome + "\"",
+                "HBASE_CONF=\"" + hbaseConf + "\"", /*javaToolOpts,*/
                 "HBASE_SHELL_DAEMON_PORT=\"" + HBaseDaemonPort + "\"",
                 "PYTHON=" + pythonVersion };
 
@@ -314,18 +322,16 @@ public class HBaseDocker extends Docker {
             + "    ${serviceName}:\n"
             + "        container_name: hbase-${originalVersion}_${upgradedVersion}_${executorID}_N${index}\n"
             + "        image: upfuzz_${system}:${originalVersion}_${upgradedVersion}\n"
-            + "        command: bash -c 'sleep 0 && /usr/bin/supervisord'\n"
+            + "        command: bash -c 'sleep 0 && source /usr/bin/set_env && /usr/bin/supervisord'\n"
             + "        networks:\n"
             + "            ${networkName}:\n"
             + "                ipv4_address: ${networkIP}\n"
             + "        volumes:\n"
             // + " - ./persistent/node_${index}/data:/var/lib/cassandra\n"
             + "            - ./persistent/node_${index}/log:/var/log/hbase\n"
-            // + " - ./persistent/node_${index}/env.sh:/usr/bin/set_env\n"
+            + "            - ./persistent/node_${index}/env.sh:/usr/bin/set_env\n"
             + "            - ./persistent/node_${index}/zookeeper:/usr/local/zookeeper\n"
             + "            - ./persistent/node_${index}/consolelog:/var/log/supervisor\n"
-            + "            - ./persistent/node_${index}/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf\n"
-            + "            - ./persistent/node_${index}/hbase-init.sh:/usr/local/hbase-init.sh\n"
             + "            - ./persistent/config:/test_config\n"
             + "            - ${projectRoot}/prebuild/${system}/${originalVersion}:/${system}/${originalVersion}\n"
             + "            - ${projectRoot}/prebuild/${system}/${upgradedVersion}:/${system}/${upgradedVersion}\n"
@@ -335,6 +341,8 @@ public class HBaseDocker extends Docker {
                                                                                                    // &
                                                                                                    // version
             + "        environment:\n"
+            + "            - HADOOP_IP=${HadoopIP}\n"
+            + "            - IS_HMASTER=${HBaseMaster}\n"
             + "            - HBASE_CLUSTER_NAME=dev_cluster\n"
             + "            - HBASE_SEEDS=${seedIP},\n"
             + "            - HBASE_LOGGING_LEVEL=DEBUG\n"
@@ -358,7 +366,9 @@ public class HBaseDocker extends Docker {
             + "        ulimits:\n"
             + "            memlock: -1\n"
             + "            nproc: 32768\n"
-            + "            nofile: 100000\n";
+            + "            nofile: 100000\n"
+            + "        depends_on:\n"
+            + "             - ${depDockerID}\n";
 
     @Override
     public Map<String, String> readSystemState() {

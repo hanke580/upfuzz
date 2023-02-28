@@ -70,6 +70,7 @@ public class HBaseHDFSDocker extends Docker {
         formatMap.put("networkIP", networkIP);
         formatMap.put("agentPort", Integer.toString(agentPort));
         formatMap.put("executorID", executorID);
+        formatMap.put("HadoopIP", hostIP);
         StringSubstitutor sub = new StringSubstitutor(formatMap);
         this.composeYaml = sub.replace(template);
 
@@ -86,7 +87,7 @@ public class HBaseHDFSDocker extends Docker {
 
     private void setEnvironment() throws IOException {
         File envFile = new File(workdir,
-                "./persistent/node_" + index + "/env.sh");
+                "./persistent/hdfs_" + index + "/env.sh");
 
         FileWriter fw;
         envFile.getParentFile().mkdirs();
@@ -103,8 +104,9 @@ public class HBaseHDFSDocker extends Docker {
 
     @Override
     public boolean build() throws IOException {
-        String hdfsHome = "/hdfs/" + originalVersion;
-        String hdfsConf = "/etc/" + originalVersion + "/etc/hadoop";
+        // TODO: introduce depVersion here
+        String hdfsHome = "/hdfs/" + "hadoop-2.10.2";
+        String hdfsConf = "/etc/" + "hadoop-2.10.2";
 
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
                 + "/org.jacoco.agent.rt.jar"
@@ -118,7 +120,7 @@ public class HBaseHDFSDocker extends Docker {
 
         env = new String[] {
                 "HADOOP_HOME=" + hdfsHome,
-                "HADOOP_CONF_DIR=" + hdfsConf, javaToolOpts,
+                "HADOOP_CONF_DIR=" + hdfsConf, /*javaToolOpts,*/
                 "HDFS_SHELL_DAEMON_PORT=\"" + hdfsDaemonPort + "\"",
                 "PYTHON=python3" };
         setEnvironment();
@@ -158,7 +160,7 @@ public class HBaseHDFSDocker extends Docker {
     public void prepareUpgradeEnv() throws IOException {
         type = "upgraded";
         String hdfsHome = "/hdfs/" + upgradedVersion;
-        String hdfsConf = "/etc/" + upgradedVersion + "/etc/hadoop";
+        String hdfsConf = "/etc/" + upgradedVersion;
 
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
                 + "/org.jacoco.agent.rt.jar"
@@ -173,7 +175,7 @@ public class HBaseHDFSDocker extends Docker {
         // hdfsDaemonPort ^= 1;
         env = new String[] {
                 "HADOOP_HOME=" + hdfsHome,
-                "HADOOP_CONF_DIR=" + hdfsConf, javaToolOpts,
+                "HADOOP_CONF_DIR=" + hdfsConf, /*javaToolOpts,*/
                 "HDFS_SHELL_DAEMON_PORT=\"" + hdfsDaemonPort + "\"",
                 "PYTHON=python3" };
         setEnvironment();
@@ -218,7 +220,7 @@ public class HBaseHDFSDocker extends Docker {
     public void downgrade() throws Exception {
         type = "original";
         String hdfsHome = "/hdfs/" + originalVersion;
-        String hdfsConf = "/etc/" + originalVersion + "/etc/hadoop";
+        String hdfsConf = "/etc/" + originalVersion;
 
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
                 + "/org.jacoco.agent.rt.jar"
@@ -233,7 +235,7 @@ public class HBaseHDFSDocker extends Docker {
         // hdfsDaemonPort ^= 1;
         env = new String[] {
                 "HADOOP_HOME=" + hdfsHome,
-                "HADOOP_CONF_DIR=" + hdfsConf, javaToolOpts,
+                "HADOOP_CONF_DIR=" + hdfsConf, /*javaToolOpts,*/
                 "HDFS_SHELL_DAEMON_PORT=\"" + hdfsDaemonPort + "\"",
                 "PYTHON=python3" };
         setEnvironment();
@@ -281,7 +283,7 @@ public class HBaseHDFSDocker extends Docker {
     @Override
     public Path getDataPath() {
         return Paths.get(workdir.toString(),
-                "/persistent/node_" + index + "/nndata");
+                "/persistent/hdfs_" + index + "/nndata");
     }
 
     public Path getWorkPath() {
@@ -293,19 +295,21 @@ public class HBaseHDFSDocker extends Docker {
             + "        container_name: hdfs-${originalVersion}_${upgradedVersion}_${executorID}_N${index}\n"
             + "        image: upfuzz_hdfs:hadoop-2.10.2\n" // TODO: depend
                                                            // system & version
-            + "        command: bash -c 'sleep 0 && /usr/bin/supervisord'\n"
+            + "        command: bash -c 'sleep 0 && source /usr/bin/set_env && /usr/bin/supervisord'\n"
             + "        networks:\n"
             + "            ${networkName}:\n"
             + "                ipv4_address: ${networkIP}\n"
             + "        volumes:\n"
-            // ./persistent/node_${index}/nndata:/var/hadoop/data/nameNode\n"
-            // ./persistent/node_${index}/dndata:/var/hadoop/data/dataNode\n"
+            // ./persistent/hdfs_${index}/nndata:/var/hadoop/data/nameNode\n"
+            // ./persistent/hdfs_${index}/dndata:/var/hadoop/data/dataNode\n"
+            + "            - ./persistent/hdfs_${index}/env.sh:/usr/bin/set_env\n"
             + "            - ./persistent/hdfs_${index}/log:/var/log/hdfs\n"
             + "            - ./persistent/hdfs_${index}/consolelog:/var/log/supervisor\n"
             + "            - ./persistent/config:/test_config\n"
             // /tmp/upfuzz/hdfs:/tmp/upfuzz/hdfs\n"
-            + "            - ${projectRoot}/prebuild/hadoop/hadoop-2.10.2:/hadoop/hadoop-2.10.2\n"
+            + "            - ${projectRoot}/prebuild/hadoop/hadoop-2.10.2:/hdfs/hadoop-2.10.2\n"
             + "        environment:\n"
+            + "            - HADOOP_IP=${HadoopIP}\n"
             + "            - HDFS_CLUSTER_NAME=dev_cluster\n"
             + "            - namenodeIP=${namenodeIP},\n"
             + "            - HDFS_LOGGING_LEVEL=DEBUG\n"
