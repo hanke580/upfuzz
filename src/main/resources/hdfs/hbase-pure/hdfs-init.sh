@@ -7,31 +7,32 @@ then
         echo "master written to host"
 fi
 
-mkdir -p ${HADOOP_CONF_DIR}
+# mkdir -p ${HADOOP_CONF}
 
-bin=${HADOOP_HOME}
+# bin=${HADOOP_HOME}
 
-cp ${bin}/etc/hadoop/* ${HADOOP_CONF_DIR}/
-cp /test_config/oriconfig/* ${HADOOP_CONF_DIR}/ -f
+# cp ${bin}/etc/hadoop/* ${HADOOP_CONF}/
+# cp /test_config/oriconfig/* ${HADOOP_CONF}/ -f
 
-DEFAULT_LIBEXEC_DIR="$bin"/libexec
-HADOOP_LIBEXEC_DIR=${HADOOP_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
-. $HADOOP_LIBEXEC_DIR/hadoop-config.sh --config ${HADOOP_CONF_DIR}
+# DEFAULT_LIBEXEC_DIR="$bin"/libexec
+# HADOOP_LIBEXEC_DIR=${HADOOP_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
+# . $HADOOP_LIBEXEC_DIR/hadoop-config.sh --config ${HADOOP_CONF}
 
+mkdir -p /var/hadoop/data/
 if [[ ! -f /var/hadoop/data/.formatted ]];
 then
         echo "formatting namenode"
-        ${bin}/bin/hdfs namenode -format
+        ${HADOOP_HOME}/bin/hdfs namenode -format
         touch /var/hadoop/data/.formatted
 fi
+bash ${HADOOP_HOME}/sbin/start-all.sh
 
 # start hdfs daemons if hdfs is present
-if [ -f "${HADOOP_HDFS_HOME}"/sbin/start-dfs.sh ]; then
-  "${HADOOP_HDFS_HOME}"/sbin/start-dfs.sh --config $HADOOP_CONF_DIR
-fi
+# if [ -f "${HADOOP_HDFS_HOME}"/sbin/start-dfs.sh ]; then
+#   "${HADOOP_HDFS_HOME}"/sbin/start-dfs.sh --config $HADOOP_CONF_DIR
+# fi
 
 # start yarn daemons if yarn is present
-if [ -f "${HADOOP_YARN_HOME}"/sbin/start-yarn.sh ]; then
-  "${HADOOP_YARN_HOME}"/sbin/start-yarn.sh --config $HADOOP_CONF_DIR
-fi
-
+# if [ -f "${HADOOP_YARN_HOME}"/sbin/start-yarn.sh ]; then
+#   "${HADOOP_YARN_HOME}"/sbin/start-yarn.sh --config $HADOOP_CONF_DIR
+# fi

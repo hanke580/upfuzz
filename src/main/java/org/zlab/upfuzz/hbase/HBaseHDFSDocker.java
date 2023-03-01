@@ -120,7 +120,8 @@ public class HBaseHDFSDocker extends Docker {
 
         env = new String[] {
                 "HADOOP_HOME=" + hdfsHome,
-                "HADOOP_CONF_DIR=" + hdfsConf, /*javaToolOpts,*/
+                "HADOOP_CONF=" + hdfsConf, /*javaToolOpts,*/
+                "JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/",
                 "HDFS_SHELL_DAEMON_PORT=\"" + hdfsDaemonPort + "\"",
                 "PYTHON=python3" };
         setEnvironment();
@@ -175,7 +176,8 @@ public class HBaseHDFSDocker extends Docker {
         // hdfsDaemonPort ^= 1;
         env = new String[] {
                 "HADOOP_HOME=" + hdfsHome,
-                "HADOOP_CONF_DIR=" + hdfsConf, /*javaToolOpts,*/
+                "HADOOP_CONF=" + hdfsConf, /*javaToolOpts,*/
+                "JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/",
                 "HDFS_SHELL_DAEMON_PORT=\"" + hdfsDaemonPort + "\"",
                 "PYTHON=python3" };
         setEnvironment();
@@ -235,7 +237,8 @@ public class HBaseHDFSDocker extends Docker {
         // hdfsDaemonPort ^= 1;
         env = new String[] {
                 "HADOOP_HOME=" + hdfsHome,
-                "HADOOP_CONF_DIR=" + hdfsConf, /*javaToolOpts,*/
+                "HADOOP_CONF=" + hdfsConf, /*javaToolOpts,*/
+                "JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/",
                 "HDFS_SHELL_DAEMON_PORT=\"" + hdfsDaemonPort + "\"",
                 "PYTHON=python3" };
         setEnvironment();
