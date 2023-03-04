@@ -58,6 +58,8 @@ public class CREATE extends HBaseCommand {
     @Override
     public void updateState(State state) {
         Parameter tableName = params.get(0);
+        ((HBaseState) state).addTable(tableName.toString());
+
         List<Pair<HBaseTypes.TEXTType, Type>> columnFamilies = (List<Pair<HBaseTypes.TEXTType, Type>>) params.get(1); // LIST<PAIR<TEXTType,TYPE>>
 
         for (Pair<HBaseTypes.TEXTType, Type> columnFamily2typePair:columnFamilies){

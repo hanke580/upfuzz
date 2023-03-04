@@ -13,9 +13,20 @@ public class HBaseState extends State {
 
     public Map<String, Map<String, HBaseColumnFamily>> table2families = new HashMap<>();
     public Map<String, Set<String>> table2UDTs = new HashMap<>();
+    public Map<String, Boolean> table2enable = new HashMap<>();
+
+    public void enableTable(String tableName){
+        table2enable.put(tableName, Boolean.TRUE);
+    }
+    public void disableTable(String tableName){
+        table2enable.put(tableName, Boolean.FALSE);
+    }
+    public Map<String, Boolean> getTable2enable() {
+        return table2enable;
+    }
 
     public void addColumnFamily(String tableName, String columnFamilyName,
-                         HBaseColumnFamily columnFamily) {
+                                HBaseColumnFamily columnFamily) {
         table2families.get(tableName).put(columnFamilyName, columnFamily);
     }
 
@@ -26,6 +37,15 @@ public class HBaseState extends State {
         if (!table2UDTs.containsKey(tableName)) {
             table2UDTs.put(tableName, new HashSet<>());
         }
+        if (!table2enable.containsKey(tableName)) {
+            table2enable.put(tableName, Boolean.TRUE);
+        }
+    }
+
+    public void deleteTable(String tableName){
+        table2families.remove(tableName);
+        table2UDTs.remove(tableName);
+        table2enable.remove(tableName);
     }
 
     public Set<Parameter> getTables() {
@@ -45,6 +65,7 @@ public class HBaseState extends State {
     public void clearState() {
         table2families.clear();
         table2UDTs.clear();
+        table2enable.clear();
     }
 
     //public HBaseState() {
