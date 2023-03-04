@@ -11,40 +11,40 @@ import java.util.Set;
 
 public class HBaseState extends State {
 
-    public Map<String, Map<String, HBaseTable>> keyspace2tables = new HashMap<>();
-    public Map<String, Set<String>> keyspace2UDTs = new HashMap<>();
+    public Map<String, Map<String, HBaseColumnFamily>> table2families = new HashMap<>();
+    public Map<String, Set<String>> table2UDTs = new HashMap<>();
 
-    public void addTable(String keyspaceName, String tableName,
-                         HBaseTable table) {
-        keyspace2tables.get(keyspaceName).put(tableName, table);
+    public void addColumnFamily(String tableName, String columnFamilyName,
+                         HBaseColumnFamily columnFamily) {
+        table2families.get(tableName).put(columnFamilyName, columnFamily);
     }
 
-    public void addKeyspace(String keyspaceName) {
-        if (!keyspace2tables.containsKey(keyspaceName)) {
-            keyspace2tables.put(keyspaceName, new HashMap<>());
+    public void addTable(String tableName) {
+        if (!table2families.containsKey(tableName)) {
+            table2families.put(tableName, new HashMap<>());
         }
-        if (!keyspace2UDTs.containsKey(keyspaceName)) {
-            keyspace2UDTs.put(keyspaceName, new HashSet<>());
+        if (!table2UDTs.containsKey(tableName)) {
+            table2UDTs.put(tableName, new HashSet<>());
         }
     }
 
-    public Set<Parameter> getKeyspaces() {
-        return Utilities.strings2Parameters(keyspace2tables.keySet());
+    public Set<Parameter> getTables() {
+        return Utilities.strings2Parameters(table2families.keySet());
     }
 
-    public Set<Parameter> getTablesInKeyspace(String keyspaceName) {
+    public Set<Parameter> getColumnFamiliesInTable(String tableName) {
         return Utilities
-                .strings2Parameters(keyspace2tables.get(keyspaceName).keySet());
+                .strings2Parameters(table2families.get(tableName).keySet());
     }
 
-    public HBaseTable getTable(String keyspaceName, String tableName) {
-        return keyspace2tables.get(keyspaceName).get(tableName);
+    public HBaseColumnFamily getColumnFamily(String tableName, String columnFamilyName) {
+        return table2families.get(tableName).get(columnFamilyName);
     }
 
     @Override
     public void clearState() {
-        keyspace2tables.clear();
-        keyspace2UDTs.clear();
+        table2families.clear();
+        table2UDTs.clear();
     }
 
     //public HBaseState() {

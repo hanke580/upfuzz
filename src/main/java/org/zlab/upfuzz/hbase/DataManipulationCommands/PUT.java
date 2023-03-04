@@ -18,6 +18,10 @@ public class PUT extends HBaseCommand {
     * init3: 'columnName'
     * init3: 'value'
     * */
+    // PUT 'tableName' 'columnCluster:Column' 'value'
+    // keyspace,
+    // primary key, index
+    // PUT 'STUDENT' 'Address:City/Street' 'value'
     public PUT(HBaseState state, Object init0, Object init1, Object init2, Object init3, Object init4) {
 
         // 0. get key space name

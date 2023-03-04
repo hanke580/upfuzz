@@ -13,28 +13,28 @@ public abstract class HBaseCommand extends Command {
     public static HBaseCommandPool hBaseCommandPool = new HBaseCommandPool();
 
 
-    public static Parameter chooseKeyspace(State state, Command command,
-                                           Object init) {
-
-        ParameterType.ConcreteType keyspaceNameType = new ParameterType.InCollectionType(
-                CONSTANTSTRINGType.instance,
-                (s, c) -> Utilities.strings2Parameters(
-                        ((HBaseState) s).keyspace2tables.keySet()),
-                null);
-        return keyspaceNameType.generateRandomParameter(state, command, init);
-    }
-
     public static Parameter chooseTable(State state, Command command,
-                                        Object init) {
+                                           Object init) {
 
         ParameterType.ConcreteType tableNameType = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
+                (s, c) -> Utilities.strings2Parameters(
+                        ((HBaseState) s).table2families.keySet()),
+                null);
+        return tableNameType.generateRandomParameter(state, command, init);
+    }
+
+    public static Parameter chooseColumnFamily(State state, Command command,
+                                        Object init) {
+
+        ParameterType.ConcreteType columnFamilyNameType = new ParameterType.InCollectionType(
+                CONSTANTSTRINGType.instance,
                 (s, c) -> Utilities
-                        .strings2Parameters(((HBaseState) s).keyspace2tables
+                        .strings2Parameters(((HBaseState) s).table2families
                                 .get(c.params.get(0).toString())
                                 .keySet()),
                 null);
-        return tableNameType.generateRandomParameter(state, command, init);
+        return columnFamilyNameType.generateRandomParameter(state, command, init);
     }
 
     @Override
