@@ -63,6 +63,7 @@ public class CREATE extends HBaseCommand {
         for (Pair<HBaseTypes.TEXTType, Type> columnFamily2typePair:columnFamilies){
             HBaseTypes.TEXTType columnFamilyName = columnFamily2typePair.left;
             HBaseColumnFamily hBaseColumnFamily = new HBaseColumnFamily(columnFamilyName.toString(), null);
+            // Because when create table, we do not need to list the columns within the columnFamily but just columnFamily
             ((HBaseState) state).addColumnFamily(tableName.toString(), columnFamilyName.toString(), hBaseColumnFamily);
         }
     }

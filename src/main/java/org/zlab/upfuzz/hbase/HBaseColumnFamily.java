@@ -12,8 +12,13 @@ public class HBaseColumnFamily implements Serializable {
 
     public Set<String> indexes;
 
+    public void addColumn(Parameter colName2Type){
+        this.colName2Type.add(SerializationUtils.clone(colName2Type));
+    }
+    // Because the column within the column family is created dynamically
+
     public HBaseColumnFamily(String name, Parameter colName2Type) {
-        this.name = (String) name.getValue();
+        this.name = name;
         if (colName2Type != null) {
             this.colName2Type = new LinkedList<>();
             for (Parameter col : (List<Parameter>) colName2Type.getValue()) {
