@@ -24,6 +24,18 @@ public abstract class HBaseCommand extends Command {
         return tableNameType.generateRandomParameter(state, command, init);
     }
 
+    public static Parameter chooseRowKey(State state, Command command,
+                                               Object init) {
+
+        ParameterType.ConcreteType columnFamilyNameType = new ParameterType.InCollectionType(
+                CONSTANTSTRINGType.instance,
+                (s, c) -> Utilities
+                        .strings2Parameters(((HBaseState) s).table2rowKeys
+                                .get(c.params.get(0).toString())),
+                null);
+        return columnFamilyNameType.generateRandomParameter(state, command, init);
+    }
+
     public static Parameter chooseColumnFamily(State state, Command command,
                                         Object init) {
 
