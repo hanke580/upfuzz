@@ -9,9 +9,9 @@ import org.zlab.upfuzz.utils.Pair;
 
 import java.util.Collection;
 
-public class PUT extends HBaseCommand {
+public class PUT_NEW_COLUMN extends HBaseCommand {
 
-    public PUT(HBaseState state) {
+    public PUT_NEW_COLUMN(HBaseState state) {
         Parameter tableName = chooseTable(state, this, null);
         this.params.add(tableName);
 
@@ -24,9 +24,7 @@ public class PUT extends HBaseCommand {
                                 tableName.toString(),
                                 columnFamilyName.toString()).colName2Type,
                         null),
-                (s, c) -> ((HBaseState) s).getColumnFamily(
-                        tableName.toString(),
-                        columnFamilyName.toString()).primaryColName2Type,
+                null,
                 null);
         Parameter columns = columnsType
                 .generateRandomParameter(state, this);
