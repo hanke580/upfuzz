@@ -28,4 +28,8 @@ public class HBaseColumnFamily implements Serializable {
 
         indexes = new HashSet<>();
     }
+
+    public void addColName2Type(Parameter colName2Type){
+        this.colName2Type.add(colName2Type);
+    }
 }

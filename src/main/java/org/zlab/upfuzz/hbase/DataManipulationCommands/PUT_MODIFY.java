@@ -1,4 +1,69 @@
 package org.zlab.upfuzz.hbase.DataManipulationCommands;
 
-public class PUT_MODIFY {
+import org.zlab.upfuzz.Parameter;
+import org.zlab.upfuzz.ParameterType;
+import org.zlab.upfuzz.State;
+import org.zlab.upfuzz.hbase.HBaseTypes;
+import org.zlab.upfuzz.hbase.HBaseCommand;
+import org.zlab.upfuzz.hbase.HBaseState;
+import org.zlab.upfuzz.utils.Pair;
+
+import java.util.Collection;
+
+public class PUT_MODIFY extends HBaseCommand {
+    public PUT_MODIFY(HBaseState state){
+        Parameter tableName = chooseTable(state, this, null);
+        this.params.add(tableName); // [0] table name
+
+        Parameter columnFamilyName = chooseColumnFamily(state, this, null);
+        this.params.add(columnFamilyName); // [1] column family name
+
+        Parameter rowKey = chooseRowKey(state, this, null);
+        this.params.add(rowKey); // [1] column family name
+
+        ParameterType.ConcreteType columnsType = new ParameterType.SuperSetType(
+                new ParameterType.SubsetType(null,
+                        (s, c) -> ((HBaseState) s).getColumnFamily(
+                                c.params.get(0).toString(),
+                                c.params.get(1).toString()).colName2Type,
+                        null),
+                null,
+                null);
+        Parameter columns = columnsType
+                .generateRandomParameter(state, this);
+        this.params.add(columns);
+
+        ParameterType.ConcreteType insertValuesType = new ParameterType.Type2ValueType(
+                null, (s, c) -> (Collection) c.params.get(2).getValue(), // columns
+                p -> ((Pair) ((Parameter) p).value).right);
+        Parameter insertValues = insertValuesType
+                .generateRandomParameter(state, this);
+        this.params.add(insertValues);
+    }
+
+    @Override
+    public String constructCommandString() {
+        Parameter tableName = params.get(0);
+        Parameter columnFamilyName = params.get(1);
+        Parameter rowKey = params.get(2);
+        ParameterType.ConcreteType columnNameType = new ParameterType.StreamMapType(
+                null, (s, c) -> (Collection) c.params.get(3).getValue(),
+                p -> ((Pair) ((Parameter) p).getValue()).left);
+        Parameter columnName = columnNameType.generateRandomParameter(null,
+                this);
+        Parameter insertValues = params.get(4);
+
+
+        return "PUT "
+                + "'" + tableName.toString() + "' "
+                + "'" + rowKey.toString() + "' "
+                + "'" + columnFamilyName.toString() + ":"
+                + columnName.toString() + "' "
+                + "'" + insertValues.toString() + "'";
+    }
+
+    @Override
+    public void updateState(State state) {
+
+    }
 }
