@@ -41,6 +41,9 @@ public class HBaseState extends State {
                                 HBaseColumnFamily columnFamily) {
         table2families.get(tableName).put(columnFamilyName, columnFamily);
     }
+    public void deleteColumnFamily(String tableName, String columnFamilyName){
+        table2families.get(tableName).remove(columnFamilyName);
+    }
 
     public void addTable(String tableName) {
         if (!table2families.containsKey(tableName)) {
