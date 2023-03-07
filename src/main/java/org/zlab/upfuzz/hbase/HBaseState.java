@@ -17,6 +17,9 @@ public class HBaseState extends State {
 
     public Map<String, Set<String>> table2rowKeys = new HashMap<>();
 
+    public Set<String> getRowKey(String tableName){
+        return table2rowKeys.get(tableName);
+    }
     public void addRowKey(String tableName, String rowKey){
         table2rowKeys.get(tableName).add(rowKey);
     }
