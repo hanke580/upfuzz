@@ -15,6 +15,7 @@ import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.hbase.HBaseState;
 import org.zlab.upfuzz.hbase.DataDefinitionCommands.CREATE;
+import org.zlab.upfuzz.hbase.DataDefinitionCommands.LIST;
 import org.zlab.upfuzz.hbase.hbasecommands.*;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.utils.INTType;

@@ -45,12 +45,13 @@ public class CREATE extends HBaseCommand {
     public String constructCommandString() {
         // TODO: Need a helper function, add space between all strings
         Parameter tableName = params.get(0);
-        List<Pair<HBaseTypes.TEXTType, Type>> columnFamilies = (List<Pair<HBaseTypes.TEXTType, Type>>) params.get(1); // LIST<PAIR<TEXTType,TYPE>>
+        Parameter columnFamilies = params.get(1); // LIST<PAIR<TEXTType,TYPE>>
+        StringBuilder commandStr = new StringBuilder("CREATE " + "'" + tableName.toString() + "'");
 
-        StringBuilder commandStr = new StringBuilder("CREATE " + "' " + tableName.toString() + "'");
-        for (Pair<HBaseTypes.TEXTType, Type> columnFamily2typePair:columnFamilies){
-            HBaseTypes.TEXTType columnFamilyName = columnFamily2typePair.left;
-            commandStr.append(" '").append(columnFamilyName.toString()).append("'");
+        String columnFamiliesString = columnFamilies.toString();
+        for (String colFamiStr: columnFamiliesString.split(",")){
+            String colFamiName = colFamiStr.substring(0, colFamiStr.indexOf(" "));
+            commandStr.append(", '"+colFamiName+"'");
         }
         return commandStr.toString();
     }
@@ -60,12 +61,12 @@ public class CREATE extends HBaseCommand {
         Parameter tableName = params.get(0);
         ((HBaseState) state).addTable(tableName.toString());
 
-        List<Pair<HBaseTypes.TEXTType, Type>> columnFamilies = (List<Pair<HBaseTypes.TEXTType, Type>>) params.get(1); // LIST<PAIR<TEXTType,TYPE>>
+        Parameter columnFamilies = params.get(1); // LIST<PAIR<TEXTType,TYPE>>
 
-        for (Pair<HBaseTypes.TEXTType, Type> columnFamily2typePair:columnFamilies){
-            HBaseTypes.TEXTType columnFamilyName = columnFamily2typePair.left;
+        String columnFamiliesString = columnFamilies.toString();
+        for (String colFamiStr: columnFamiliesString.split(",")){
+            String columnFamilyName = colFamiStr.substring(0, colFamiStr.indexOf(" "));
             HBaseColumnFamily hBaseColumnFamily = new HBaseColumnFamily(columnFamilyName.toString(), null);
-            // Because when create table, we do not need to list the columns within the columnFamily but just columnFamily
             ((HBaseState) state).addColumnFamily(tableName.toString(), columnFamilyName.toString(), hBaseColumnFamily);
         }
     }
