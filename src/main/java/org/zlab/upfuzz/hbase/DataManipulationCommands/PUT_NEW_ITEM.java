@@ -64,10 +64,10 @@ public class PUT_NEW_ITEM extends HBaseCommand {
 
 
         return "PUT "
-                + "'" + tableName.toString() + "' "
-                + "'" + rowKey.toString() + "' "
+                + "'" + tableName.toString() + "', "
+                + "'" + rowKey.toString() + "', "
                 + "'" + columnFamilyName.toString() + ":"
-                + columnName.toString() + "' "
+                + columnName.toString() + "', "
                 + "'" + insertValues.toString() + "'";
     }
 

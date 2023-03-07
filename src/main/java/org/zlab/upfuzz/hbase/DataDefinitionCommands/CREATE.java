@@ -47,7 +47,7 @@ public class CREATE extends HBaseCommand {
         Parameter tableName = params.get(0);
         List<Pair<HBaseTypes.TEXTType, Type>> columnFamilies = (List<Pair<HBaseTypes.TEXTType, Type>>) params.get(1); // LIST<PAIR<TEXTType,TYPE>>
 
-        StringBuilder commandStr = new StringBuilder("CREATE " + "'" + tableName.toString() + "'");
+        StringBuilder commandStr = new StringBuilder("CREATE " + "' " + tableName.toString() + "'");
         for (Pair<HBaseTypes.TEXTType, Type> columnFamily2typePair:columnFamilies){
             HBaseTypes.TEXTType columnFamilyName = columnFamily2typePair.left;
             commandStr.append(" '").append(columnFamilyName.toString()).append("'");

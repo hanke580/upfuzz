@@ -32,7 +32,7 @@ public class ALTER_ADD_FAMILY extends HBaseCommand {
         Parameter columnFamilyName = params.get(1);
 
         return "ALTER "
-                + "'" + tableName.toString() + "',"
+                + "'" + tableName.toString() + "', "
                 + "'" + columnFamilyName.toString() + "'";
     }
 

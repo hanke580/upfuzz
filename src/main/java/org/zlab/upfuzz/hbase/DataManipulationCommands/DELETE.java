@@ -47,8 +47,8 @@ public class DELETE extends HBaseCommand {
 
 
         return "DELETE "
-                + "'" + tableName.toString() + "' "
-                + "'" + rowKey.toString() + "' "
+                + "'" + tableName.toString() + "', "
+                + "'" + rowKey.toString() + "', "
                 + "'" + columnFamilyName.toString() + ":"
                 + columnName.toString() + "'";
     }
