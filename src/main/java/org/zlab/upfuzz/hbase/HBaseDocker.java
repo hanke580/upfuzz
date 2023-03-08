@@ -143,6 +143,7 @@ public class HBaseDocker extends Docker {
         env = new String[] {
                 "HBASE_HOME=\"" + HBaseHome + "\"",
                 "HBASE_CONF=\"" + HBaseConf + "\"", /*javaToolOpts,*/
+                "JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/",
                 "HBASE_SHELL_DAEMON_PORT=\"" + HBaseDaemonPort + "\"",
                 "PYTHON=" + pythonVersion };
 
@@ -220,6 +221,7 @@ public class HBaseDocker extends Docker {
         env = new String[] {
                 "HBASE_HOME=\"" + hbaseHome + "\"",
                 "HBASE_CONF=\"" + hbaseConf + "\"", /*javaToolOpts,*/
+                "JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/",
                 "HBASE_SHELL_DAEMON_PORT=\"" + HBaseDaemonPort + "\"",
                 "PYTHON=" + pythonVersion };
         setEnvironment();
@@ -256,6 +258,7 @@ public class HBaseDocker extends Docker {
         env = new String[] {
                 "HBASE_HOME=\"" + hbaseHome + "\"",
                 "HBASE_CONF=\"" + hbaseConf + "\"", /*javaToolOpts,*/
+                "JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/",
                 "HBASE_SHELL_DAEMON_PORT=\"" + HBaseDaemonPort + "\"",
                 "PYTHON=" + pythonVersion };
 
@@ -347,7 +350,7 @@ public class HBaseDocker extends Docker {
             + "            - HBASE_SEEDS=${seedIP},\n"
             + "            - HBASE_LOGGING_LEVEL=DEBUG\n"
             + "            - HBASE_SHELL_HOST=${networkIP}\n"
-            + "            - HBASE_LOG_DIR=/var/log/cassandra\n"
+            // + "            - HBASE_LOG_DIR=/var/log/cassandra\n"
             + "        expose:\n"
             + "            - ${agentPort}\n"
             + "            - 22\n"

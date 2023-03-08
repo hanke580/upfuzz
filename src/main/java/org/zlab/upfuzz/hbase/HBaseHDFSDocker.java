@@ -70,7 +70,7 @@ public class HBaseHDFSDocker extends Docker {
         formatMap.put("networkIP", networkIP);
         formatMap.put("agentPort", Integer.toString(agentPort));
         formatMap.put("executorID", executorID);
-        formatMap.put("HadoopIP", hostIP);
+        formatMap.put("HadoopIP", networkIP);
         StringSubstitutor sub = new StringSubstitutor(formatMap);
         this.composeYaml = sub.replace(template);
 

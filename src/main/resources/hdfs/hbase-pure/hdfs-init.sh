@@ -18,21 +18,22 @@ fi
 # HADOOP_LIBEXEC_DIR=${HADOOP_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
 # . $HADOOP_LIBEXEC_DIR/hadoop-config.sh --config ${HADOOP_CONF}
 
-mkdir -p /var/hadoop/data/
+mkdir -p /var/hadoop/data/nameNode
+mkdir -p /var/hadoop/data/dataNode
 if [[ ! -f /var/hadoop/data/.formatted ]];
 then
         echo "formatting namenode"
-        ${HADOOP_HOME}/bin/hdfs namenode -format
+        ${HADOOP_HOME}/bin/hdfs namenode -format -force
         touch /var/hadoop/data/.formatted
 fi
-bash ${HADOOP_HOME}/sbin/start-all.sh
+"${HADOOP_HOME}"/sbin/start-all.sh
 
 # start hdfs daemons if hdfs is present
 # if [ -f "${HADOOP_HDFS_HOME}"/sbin/start-dfs.sh ]; then
-#   "${HADOOP_HDFS_HOME}"/sbin/start-dfs.sh --config $HADOOP_CONF_DIR
+#       "${HADOOP_HDFS_HOME}"/sbin/start-dfs.sh --config $HADOOP_CONF_DIR
 # fi
 
 # start yarn daemons if yarn is present
 # if [ -f "${HADOOP_YARN_HOME}"/sbin/start-yarn.sh ]; then
-#   "${HADOOP_YARN_HOME}"/sbin/start-yarn.sh --config $HADOOP_CONF_DIR
+#       "${HADOOP_YARN_HOME}"/sbin/start-yarn.sh --config $HADOOP_CONF_DIR
 # fi
