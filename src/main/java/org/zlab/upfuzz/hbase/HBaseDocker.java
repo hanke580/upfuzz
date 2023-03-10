@@ -74,6 +74,7 @@ public class HBaseDocker extends Docker {
         formatMap.put("executorID", executorID);
         formatMap.put("serviceName", serviceName);
         formatMap.put("HadoopIP", DockerCluster.getKthIP(hostIP, 100));
+        formatMap.put("daemonPort", Integer.toString(HBaseDaemonPort));
         if (index == 0) {
             formatMap.put("HBaseMaster", "true");
             formatMap.put("depDockerID", "DEPN100");
@@ -350,9 +351,11 @@ public class HBaseDocker extends Docker {
             + "            - HBASE_SEEDS=${seedIP},\n"
             + "            - HBASE_LOGGING_LEVEL=DEBUG\n"
             + "            - HBASE_SHELL_HOST=${networkIP}\n"
-            // + "            - HBASE_LOG_DIR=/var/log/cassandra\n"
+            + "            - HBASE_SHELL_DAEMON_PORT=${daemonPort}\n"
+            // + " - HBASE_LOG_DIR=/var/log/cassandra\n"
             + "        expose:\n"
             + "            - ${agentPort}\n"
+            + "            - ${daemonPort}\n"
             + "            - 22\n"
             + "            - 2181\n"
             + "            - 2888\n"

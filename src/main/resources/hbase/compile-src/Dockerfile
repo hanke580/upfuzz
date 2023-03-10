@@ -37,12 +37,12 @@ RUN chmod +777 /usr/local/bin/hbase-init.sh
 # COPY cassandra /cassandra
 # WORKDIR /cassandra
 # RUN ant
-# COPY cqlsh_daemon.py /cassandra/bin/cqlsh_daemon.py
+COPY hbase_daemon3.py /hbase/hbase_daemon.py
 
 # TODO: copy hshell init
 # when the system has started up, we start up the hshell
 # daemon process
-#COPY cqlsh_init.sh /cassandra/cqlsh_init.sh
+# COPY cqlsh_init.sh /cassandra/cqlsh_init.sh
 
 
 # This file contains relatively permanent configurations.

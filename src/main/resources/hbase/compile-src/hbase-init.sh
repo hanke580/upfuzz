@@ -55,3 +55,5 @@ HBASE_REGIONSERVERS="${HBASE_REGIONSERVERS:-$HBASE_CONF/regionservers}"
 "$bin"/bin/hbase-daemon.sh --config "${HBASE_CONF}" start master
 "$bin"/bin/hbase-daemons.sh --config "${HBASE_CONF}" \
     --hosts "${HBASE_REGIONSERVERS}" start regionserver
+
+python3 /hbase/hbase_daemon.py
