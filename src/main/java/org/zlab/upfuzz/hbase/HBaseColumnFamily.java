@@ -7,7 +7,7 @@ import org.zlab.upfuzz.Parameter;
 
 public class HBaseColumnFamily implements Serializable {
     public String name;
-    public List<Parameter> colName2Type;
+    public List<Parameter> colName2Type=new ArrayList<>();
     // Doesn't support composite key now
 
     public Set<String> indexes;

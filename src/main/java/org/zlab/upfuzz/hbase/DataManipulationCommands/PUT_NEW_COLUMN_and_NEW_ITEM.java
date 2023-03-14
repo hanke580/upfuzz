@@ -3,6 +3,7 @@ package org.zlab.upfuzz.hbase.DataManipulationCommands;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
+import org.zlab.upfuzz.cassandra.CassandraTypes;
 import org.zlab.upfuzz.hbase.HBaseCommand;
 import org.zlab.upfuzz.hbase.HBaseState;
 import org.zlab.upfuzz.hbase.HBaseTypes;
@@ -10,14 +11,18 @@ import org.zlab.upfuzz.utils.*;
 
 import java.util.Collection;
 
-public class PUT_NEW_ITEM extends HBaseCommand {
-
-    public PUT_NEW_ITEM(HBaseState state){
+public class PUT_NEW_COLUMN_and_NEW_ITEM  extends HBaseCommand {
+    // Table->ColumnFamily->Column
+    // CREATE TABLE+ColumnFamily
+    // PUT TABLE rowKey ColumnFamily:Column value
+    // Table->RowKey:primaryKey
+    public PUT_NEW_COLUMN_and_NEW_ITEM(HBaseState state){
         Parameter tableName = chooseTable(state, this, null);
         this.params.add(tableName); // [0] table name
 
         Parameter columnFamilyName = chooseColumnFamily(state, this, null);
         this.params.add(columnFamilyName); // [1] column family name
+
         ParameterType.ConcreteType rowKeyType = new ParameterType.NotInCollectionType(
                 new ParameterType.NotEmpty(UUIDType.instance),
                 (s, c) -> ((HBaseState) s).getRowKey(tableName.toString()), null);
@@ -25,27 +30,25 @@ public class PUT_NEW_ITEM extends HBaseCommand {
                 .generateRandomParameter(state, this);
         this.params.add(rowKeyName); // [2] row key
 
-        System.out.println("table name "+tableName.toString()+"column family name "+columnFamilyName.toString());
-        ParameterType.ConcreteType columnsType = new ParameterType.SuperSetType(
-                new ParameterType.SubsetType(null,
-                        (s, c) -> ((HBaseState) s).getColumnFamily(
-                                c.params.get(0).toString(),
-                                c.params.get(1).toString()).colName2Type,
-                        null),
-                (s, c) -> ((HBaseState) s).getColumnFamily(
-                        c.params.get(0).toString(),
-                        c.params.get(1).toString()).colName2Type,
-                null);
+        ParameterType.ConcreteType columnsType = // LIST<PAIR<String,TYPEType>>
+                new ParameterType.NotEmpty(
+                        ParameterType.ConcreteGenericType
+                                .constructConcreteGenericType(
+                                        PAIRType.instance,
+                                        new ParameterType.NotEmpty(
+                                                new STRINGType(20)),
+                                        HBaseTypes.TYPEType.instance)
+                );
         Parameter columns = columnsType
                 .generateRandomParameter(state, this);
-        this.params.add(columns);
+        params.add(columns); // [3] column2type
 
         ParameterType.ConcreteType insertValuesType = new ParameterType.Type2ValueType(
-                null, (s, c) -> (Collection) c.params.get(2).getValue(), // columns
+                null, columns.value.right, // columns
                 p -> ((Pair) ((Parameter) p).value).right);
         Parameter insertValues = insertValuesType
                 .generateRandomParameter(state, this);
-        this.params.add(insertValues);
+        this.params.add(insertValues); // [4] insert value
     }
 
     @Override
@@ -60,13 +63,18 @@ public class PUT_NEW_ITEM extends HBaseCommand {
                 this);
         Parameter insertValues = params.get(4);
 
+        //String columnString = columnFamilies.toString();
+        //for (String colFamiStr: columnFamiliesString.split(",")){
+        //    String colFamiName = colFamiStr.substring(0, colFamiStr.indexOf(" "));
+        //    commandStr.append(", '"+colFamiName+"'");
+        //}
 
         return "PUT "
-                + "'" + tableName.toString() + "', "
-                + "'" + rowKey.toString() + "', "
-                + "'" + columnFamilyName.toString() + ":"
+                + "table name: '" + tableName.toString() + "', "
+                + "row key: '" + rowKey.toString() + "', "
+                + "column family: '" + columnFamilyName.toString() + ": column name: "
                 + columnName.toString() + "', "
-                + "'" + insertValues.toString() + "'";
+                + "insert value: '" + insertValues.toString() + "'";
     }
 
     @Override

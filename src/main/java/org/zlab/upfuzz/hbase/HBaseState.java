@@ -17,8 +17,14 @@ public class HBaseState extends State {
 
     public Map<String, Set<String>> table2rowKeys = new HashMap<>();
 
-    public Set<String> getRowKey(String tableName){
-        return table2rowKeys.get(tableName);
+    public void addRowKeyTable(String tableName){
+        table2rowKeys.put(tableName, new HashSet<>());
+    }
+    public void removeRowKeyTable(String tableName){
+        table2rowKeys.remove(tableName);
+    }
+    public Set<Parameter> getRowKey(String tableName){
+        return Utilities.strings2Parameters(table2rowKeys.get(tableName));
     }
     public void addRowKey(String tableName, String rowKey){
         table2rowKeys.get(tableName).add(rowKey);
@@ -55,12 +61,16 @@ public class HBaseState extends State {
         if (!table2enable.containsKey(tableName)) {
             table2enable.put(tableName, Boolean.TRUE);
         }
+        if (!table2rowKeys.containsKey(tableName)) {
+            table2rowKeys.put(tableName, new HashSet<>());
+        }
     }
 
     public void deleteTable(String tableName){
         table2families.remove(tableName);
         table2UDTs.remove(tableName);
         table2enable.remove(tableName);
+        table2rowKeys.remove(tableName);
     }
 
     public Set<Parameter> getTables() {
