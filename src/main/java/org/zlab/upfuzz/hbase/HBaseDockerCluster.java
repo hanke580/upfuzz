@@ -60,7 +60,7 @@ public class HBaseDockerCluster extends DockerCluster {
             dockers[i] = new HBaseDocker(this, i);
             dockers[i].build();
         }
-        extranodes[0] = new HBaseHDFSDocker(this, 0);
+        extranodes[0] = new HBaseHDFSDocker(this, 100);
         extranodes[0].build();
         return true;
     }
@@ -143,6 +143,7 @@ public class HBaseDockerCluster extends DockerCluster {
         Map<String, String> formatMap = new HashMap<>();
 
         StringBuilder sb = new StringBuilder();
+        sb.append(extranodes[0].formatComposeYaml());
         for (Docker docker : dockers) {
             sb.append(docker.formatComposeYaml());
         }

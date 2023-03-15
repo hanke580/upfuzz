@@ -15,6 +15,7 @@ import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
+import org.zlab.upfuzz.docker.DockerCluster;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.configgen.ConfigFileGenerator;
 
@@ -32,34 +33,89 @@ public class XmlGenerator extends ConfigFileGenerator {
             Path defaultXMLPath, Path defaultNewXMLPath,
             Path generateFolderPath) {
         super(generateFolderPath);
+        SetXMLPath(defaultXMLPath, defaultNewXMLPath);
+    }
+
+    public void SetXMLPath(Path defaultXMLPath, Path defaultNewXMLPath) {
         this.defaultXMLPath = defaultXMLPath;
         this.defaultNewXMLPath = defaultNewXMLPath;
 
         configurations = parseXmlFile(defaultXMLPath);
         newConfigurations = parseXmlFile(defaultNewXMLPath);
+    }
+
+    public void ProcessConfig() {
         if (Config.getConf().system.equals("hdfs")
                 && defaultXMLPath.getFileName().toString()
                         .equals("hdfs-site.xml")) {
             logger.info("set hdfs basic cluster config");
             hdfsClusterSetting(configurations);
             hdfsClusterSetting(newConfigurations);
+        } else if (Config.getConf().system.equals("hbase")
+                && defaultXMLPath.getFileName().toString()
+                        .equals("hdfs-site.xml")) {
+            logger.info("set hbase hdfs basic cluster config");
+            HBasehdfsClusterSetting(configurations);
+            HBasehdfsClusterSetting(newConfigurations);
+        } else if (Config.getConf().system.equals("hbase")
+                && defaultXMLPath.getFileName().toString()
+                        .equals("core-site.xml")) {
+            logger.info("set hbase hdfs namenode cluster config");
+            HBasehdfsNameClusterSetting(configurations);
+            HBasehdfsNameClusterSetting(newConfigurations);
+        } else if (Config.getConf().system.equals("hbase")
+                && defaultXMLPath.getFileName().toString()
+                        .equals("hbase-site.xml")) {
+            logger.info("set hbase cluster config");
+            HBaseClusterSetting(configurations);
+            HBaseClusterSetting(newConfigurations);
         }
     }
 
-    public void hdfsClusterSetting(Map<String, String> configurations) {
-        configurations.put("dfs.namenode.name.dir",
+    public void hdfsClusterSetting(Map<String, String> curConfigurations) {
+        curConfigurations.put("dfs.namenode.name.dir",
                 "/var/hadoop/data/nameNode");
-        configurations.put("dfs.datanode.data.dir",
+        curConfigurations.put("dfs.datanode.data.dir",
                 "/var/hadoop/data/dataNode");
-        configurations.put("dfs.replication", "2");
-        configurations.put(
+        curConfigurations.put("dfs.replication", "2");
+        curConfigurations.put(
                 "dfs.namenode.datanode.registration.ip-hostname-check",
                 "false");
-        configurations.put("dfs.secondary.http.address", "secondarynn:50090");
+        curConfigurations.put("dfs.secondary.http.address",
+                "secondarynn:50090");
+    }
+
+    public void HBasehdfsClusterSetting(Map<String, String> curConfigurations) {
+        curConfigurations.put("dfs.namenode.name.dir",
+                "/var/hadoop/data/nameNode");
+        curConfigurations.put("dfs.datanode.data.dir",
+                "/var/hadoop/data/dataNode");
+    }
+
+    public void HBasehdfsNameClusterSetting(
+            Map<String, String> curConfigurations) {
+        curConfigurations.put("fs.default.name",
+                "hdfs://master:8020");
+    }
+
+    public void HBaseClusterSetting(
+            Map<String, String> curConfigurations) {
+        curConfigurations.put("hbase.cluster.distributed",
+                "true");
+        curConfigurations.put("hbase.rootdir",
+                "hdfs://master:8020/hbase");
+        curConfigurations.put("hbase.zookeeper.property.dataDir",
+                "/usr/local/zookeeper");
+        String[] totalIP = new String[nodeNum];
+        for (int i = 0; i < nodeNum; i++) {
+            totalIP[i] = DockerCluster.getKthIP(hostIP, i);
+        }
+        curConfigurations.put("hbase.zookeeper.quorum",
+                String.join(",", totalIP));
     }
 
     public static Map<String, String> parseXmlFile(Path filePath) {
-        Map<String, String> configurations = new LinkedHashMap<>();
+        Map<String, String> curConfigurations = new LinkedHashMap<>();
 
         SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
         try {
@@ -74,7 +130,7 @@ public class XmlGenerator extends ConfigFileGenerator {
                     String name = property.getName();
                     String value = property.getValue();
                     if ((name != null) && (value != null)) {
-                        configurations.put(name, value);
+                        curConfigurations.put(name, value);
                     }
                 }
             }
@@ -82,7 +138,7 @@ public class XmlGenerator extends ConfigFileGenerator {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
-        return configurations;
+        return curConfigurations;
     }
 
     public void generateXmlFile(Map<String, String> key2val, Path path) {
@@ -141,6 +197,7 @@ public class XmlGenerator extends ConfigFileGenerator {
             Map<String, String> key2type,
             Map<String, String> newkey2vals,
             Map<String, String> newkey2type) {
+        ProcessConfig();
         // clone a configuration map, and dump it
         Path savePath = generateFolderPath
                 .resolve(String.format("test%d", fileNameIdx));

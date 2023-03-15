@@ -33,6 +33,10 @@ public class HdfsExecutor extends Executor {
         agentStore = new HashMap<>();
         agentHandler = new HashMap<>();
         sessionGroup = new ConcurrentHashMap<>();
+
+        dockerCluster = new HdfsDockerCluster(this,
+                Config.getConf().originalVersion,
+                nodeNum, null, configPath, exportComposeOnly);
     }
 
     public HdfsExecutor(int nodeNum,
@@ -49,6 +53,10 @@ public class HdfsExecutor extends Executor {
         agentStore = new HashMap<>();
         agentHandler = new HashMap<>();
         sessionGroup = new ConcurrentHashMap<>();
+
+        dockerCluster = new HdfsDockerCluster(this,
+                Config.getConf().originalVersion,
+                nodeNum, null, configPath, exportComposeOnly);
     }
 
     public boolean isHdfsReady(String hdfsPath) {
@@ -84,10 +92,6 @@ public class HdfsExecutor extends Executor {
             logger.error(e);
             return false;
         }
-
-        dockerCluster = new HdfsDockerCluster(this,
-                Config.getConf().originalVersion,
-                nodeNum, null, configPath, exportComposeOnly);
 
         try {
             dockerCluster.build();

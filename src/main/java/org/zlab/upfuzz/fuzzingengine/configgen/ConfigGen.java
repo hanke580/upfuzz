@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.configgen.xml.XmlGenerator;
 import org.zlab.upfuzz.fuzzingengine.configgen.yaml.YamlGenerator;
+import org.zlab.upfuzz.fuzzingengine.configgen.PlainTextGenerator;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -12,7 +13,8 @@ import java.util.*;
 
 public class ConfigGen {
     Random rand = new Random();
-    ConfigFileGenerator configFileGenerator;
+    ConfigFileGenerator[] configFileGenerator;
+    ConfigFileGenerator[] extraGenerator;
 
     Set<String> commonConfig;
     Map<String, String> commonConfigName2Type;
@@ -26,6 +28,9 @@ public class ConfigGen {
 
     ConfigValGenerator commonConfigValGenerator;
     ConfigValGenerator addedConfigValGenerator;
+
+    String hostIP;
+    int nodeNum;
 
     ObjectMapper mapper = new ObjectMapper();
 
@@ -51,6 +56,9 @@ public class ConfigGen {
         Path newVersionPath = Paths.get(System.getProperty("user.dir"),
                 "prebuild", Config.getConf().system,
                 Config.getConf().upgradedVersion);
+        Path depSystemPath = Paths.get(System.getProperty("user.dir"),
+                "prebuild", Config.getConf().depSystem,
+                Config.getConf().depVersion);
 
         Path generateFolderPath = Paths.get(System.getProperty("user.dir"),
                 Config.getConf().configDir,
@@ -63,7 +71,8 @@ public class ConfigGen {
                     "conf/cassandra.yaml");
             Path defaultNewConfigPath = Paths.get(newVersionPath.toString(),
                     "conf/cassandra.yaml");
-            configFileGenerator = new YamlGenerator(defaultConfigPath,
+            configFileGenerator = new YamlGenerator[1];
+            configFileGenerator[0] = new YamlGenerator(defaultConfigPath,
                     defaultNewConfigPath, generateFolderPath);
             break;
         }
@@ -72,8 +81,38 @@ public class ConfigGen {
                     "etc/hadoop/hdfs-site.xml");
             Path defaultNewConfigPath = Paths.get(newVersionPath.toString(),
                     "etc/hadoop/hdfs-site.xml");
-            configFileGenerator = new XmlGenerator(defaultConfigPath,
+            configFileGenerator = new XmlGenerator[1];
+            configFileGenerator[0] = new XmlGenerator(defaultConfigPath,
                     defaultNewConfigPath, generateFolderPath);
+            break;
+        }
+        case "hbase": {
+            Path defaultConfigPath = Paths.get(oldVersionPath.toString(),
+                    "conf/hbase-site.xml");
+            Path defaultNewConfigPath = Paths.get(newVersionPath.toString(),
+                    "conf/hbase-site.xml");
+            Path defaultHdfsConfigPath = Paths.get(depSystemPath.toString(),
+                    "etc/hadoop/hdfs-site.xml");
+            Path defaultHdfsNamenodeConfigPath = Paths.get(
+                    depSystemPath.toString(),
+                    "etc/hadoop/core-site.xml");
+            Path defaultRegionserversPath = Paths.get(oldVersionPath.toString(),
+                    "conf/regionservers");
+            Path defaultNewRegionserversPath = Paths.get(
+                    newVersionPath.toString(),
+                    "conf/regionservers");
+            configFileGenerator = new XmlGenerator[3];
+            configFileGenerator[0] = new XmlGenerator(defaultConfigPath,
+                    defaultNewConfigPath, generateFolderPath);
+            configFileGenerator[1] = new XmlGenerator(defaultHdfsConfigPath,
+                    defaultHdfsConfigPath, generateFolderPath);
+            configFileGenerator[2] = new XmlGenerator(
+                    defaultHdfsNamenodeConfigPath,
+                    defaultHdfsNamenodeConfigPath, generateFolderPath);
+            extraGenerator = new PlainTextGenerator[1];
+            extraGenerator[0] = new PlainTextGenerator(defaultRegionserversPath,
+                    defaultNewRegionserversPath, "regionservers",
+                    generateFolderPath);
             break;
         }
         }
@@ -160,11 +199,31 @@ public class ConfigGen {
                     addedEnumName2ConstantMap);
             break;
         }
+        case "hbase": {
+            // TODO
+            break;
+        }
         default: {
             throw new RuntimeException(
                     "configuration is not support yet for system "
                             + Config.getConf().system);
         }
+        }
+    }
+
+    public ConfigGen(int nodeNum, String IP) {
+        this();
+        SetConfig(nodeNum, IP);
+    }
+
+    public void SetConfig(int nodeNum, String IP) {
+        this.nodeNum = nodeNum;
+        this.hostIP = IP;
+        for (int i = 0; i < configFileGenerator.length; i++) {
+            configFileGenerator[i].SetConfig(nodeNum, IP);
+        }
+        for (int i = 0; i < extraGenerator.length; i++) {
+            extraGenerator[i].SetConfig(nodeNum, IP);
         }
     }
 
@@ -234,7 +293,18 @@ public class ConfigGen {
             upConfigtest.putAll(filteredCommonConfigTest);
             upConfig2Type.putAll(addedConfigName2Type);
         }
-        return configFileGenerator.generate(oriConfigtest, oriConfig2Type,
+        for (int i = 1; i < configFileGenerator.length; i++) {
+            configFileGenerator[i].generate(
+                    new LinkedHashMap<>(), new LinkedHashMap<>(),
+                    new LinkedHashMap<>(), new LinkedHashMap<>());
+        }
+        for (int i = 0; i < extraGenerator.length; i++) {
+            extraGenerator[i].generate(
+                    new LinkedHashMap<>(), new LinkedHashMap<>(),
+                    new LinkedHashMap<>(), new LinkedHashMap<>());
+        }
+        return configFileGenerator[0].generate(oriConfigtest,
+                oriConfig2Type,
                 upConfigtest, upConfig2Type);
     }
 

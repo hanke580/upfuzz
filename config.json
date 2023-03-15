@@ -1,17 +1,20 @@
 {
-  "originalVersion" : "apache-cassandra-3.11.14",
-  "upgradedVersion" : "apache-cassandra-4.1.0",
-  "system" : "cassandra",
+  "originalVersion" : "hbase-2.4.15",
+  "upgradedVersion" : "hbase-2.5.2",
+  "system" : "hbase",
+  "depSystem": "hadoop",
+  "depVersion": "hadoop-2.10.2",
   "serverPort" : "6399",
   "clientPort" : "6400",
-  "initSeedDir" : "/path/to/upfuzz/initSeedDir",
+  "initSeedDir" : "/vagrant/workdir/upfuzz/initSeedDir",
   "STACKED_TESTS_NUM" : "2",
-  "nodeNum": 1,
+  "nodeNum": 3,
   "useFeedBack": true,
   "faultMaxNum": 2,
   "useExampleTestPlan": false,
   "testingMode": 4,
   "startUpClusterForDebugging": false,
   "debug": false,
-  "collUpFeedBack": true
+  "collUpFeedBack": true,
+  "exportComposeOnly": true
 }

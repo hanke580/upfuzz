@@ -91,7 +91,11 @@ public class FuzzingClient {
 
     public void ComposeExport() {
         logger.info("[HKLOG] export compose file");
-        ConfigGen configGen = new ConfigGen();
+
+        executor = initExecutor(Config.getConf().nodeNum, null, null);
+
+        ConfigGen configGen = new ConfigGen(executor.nodeNum,
+                executor.getSubnet());
         int configIdx = configGen.generateConfig();
         String configFileName = "test" + configIdx;
         Path configPath = Paths.get(configDirPath.toString(),
@@ -108,13 +112,14 @@ public class FuzzingClient {
             }
         }
 
-        executor = initExecutor(Config.getConf().nodeNum, null, configPath);
+        executor.setConfigPath(configPath);
         boolean startUpStatus = startUpExecutor();
         if (!startUpStatus) {
             // old version **cluster** start up problem, this won't be upgrade
             // bugs
             return;
         }
+
         logger.info("[HKLOG] export finished");
     }
 

@@ -21,12 +21,13 @@ RUN apt-get install iptables -y
 RUN apt-get install openjdk-8-jdk -y
 RUN ln -sf /usr/lib/jvm/java-1.8.0-openjdk-amd64/bin/java /usr/bin/java
 
-# ADD general-setup.sh /usr/local/bin/general-setup.sh
+ADD general-setup.sh /usr/local/bin/general-setup.sh
 COPY org.jacoco.agent.rt.jar /org.jacoco.agent.rt.jar
-# COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-ADD *.sh /
-RUN chmod +x /*.sh
-RUN sh /general-setup.sh
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY hbase-init.sh /usr/local/bin/hbase-init.sh
+
+RUN sh /usr/local/bin/general-setup.sh
+RUN chmod +777 /usr/local/bin/hbase-init.sh
 
 # 2. System setup.
 
@@ -36,12 +37,12 @@ RUN sh /general-setup.sh
 # COPY cassandra /cassandra
 # WORKDIR /cassandra
 # RUN ant
-# COPY cqlsh_daemon.py /cassandra/bin/cqlsh_daemon.py
+COPY hbase_daemon3.py /hbase/hbase_daemon.py
 
 # TODO: copy hshell init
 # when the system has started up, we start up the hshell
 # daemon process
-#COPY cqlsh_init.sh /cassandra/cqlsh_init.sh
+# COPY cqlsh_init.sh /cassandra/cqlsh_init.sh
 
 
 # This file contains relatively permanent configurations.
