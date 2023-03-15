@@ -43,12 +43,12 @@ public class PUT_NEW_COLUMN_and_NEW_ITEM  extends HBaseCommand {
                 .generateRandomParameter(state, this);
         params.add(columns); // [3] column2type
 
-        ParameterType.ConcreteType insertValuesType = new ParameterType.Type2ValueType(
-                null, columns.value.right, // columns
-                p -> ((Pair) ((Parameter) p).value).right);
-        Parameter insertValues = insertValuesType
-                .generateRandomParameter(state, this);
-        this.params.add(insertValues); // [4] insert value
+        //ParameterType.ConcreteType insertValuesType = new ParameterType.Type2ValueType(
+        //        null, columns.value.right, // columns
+        //        p -> ((Pair) ((Parameter) p).value).right);
+        //Parameter insertValues = insertValuesType
+        //        .generateRandomParameter(state, this);
+        //this.params.add(insertValues); // [4] insert value
     }
 
     @Override
