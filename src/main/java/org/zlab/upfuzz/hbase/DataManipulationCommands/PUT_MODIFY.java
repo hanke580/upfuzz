@@ -6,7 +6,10 @@ import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hbase.HBaseTypes;
 import org.zlab.upfuzz.hbase.HBaseCommand;
 import org.zlab.upfuzz.hbase.HBaseState;
+import org.zlab.upfuzz.utils.PAIRType;
 import org.zlab.upfuzz.utils.Pair;
+import org.zlab.upfuzz.utils.STRINGType;
+import org.zlab.upfuzz.utils.UUIDType;
 
 import java.util.Collection;
 
@@ -19,26 +22,23 @@ public class PUT_MODIFY extends HBaseCommand {
         this.params.add(columnFamilyName); // [1] column family name
 
         Parameter rowKey = chooseRowKey(state, this, null);
-        this.params.add(rowKey); // [1] column family name
+        this.params.add(rowKey); // [2] column family name
 
-        ParameterType.ConcreteType columnsType = new ParameterType.SuperSetType(
-                new ParameterType.SubsetType(null,
-                        (s, c) -> ((HBaseState) s).getColumnFamily(
-                                c.params.get(0).toString(),
-                                c.params.get(1).toString()).colName2Type,
-                        null),
-                null,
-                null);
-        Parameter columns = columnsType
-                .generateRandomParameter(state, this);
-        this.params.add(columns);
+        Parameter column = chooseColumnName(state, this, columnFamilyName.toString(), null);
+        params.add(column); // [3] column2type
 
-        ParameterType.ConcreteType insertValuesType = new ParameterType.Type2ValueType(
-                null, (s, c) -> (Collection) c.params.get(2).getValue(), // columns
-                p -> ((Pair) ((Parameter) p).value).right);
-        Parameter insertValues = insertValuesType
+        ParameterType.ConcreteType valueType = // LIST<PAIR<String,TYPEType>>
+                new ParameterType.NotEmpty(
+                        ParameterType.ConcreteGenericType
+                                .constructConcreteGenericType(
+                                        PAIRType.instance,
+                                        new ParameterType.NotEmpty(
+                                                new STRINGType(30)),
+                                        HBaseTypes.TYPEType.instance)
+                );
+        Parameter value = valueType
                 .generateRandomParameter(state, this);
-        this.params.add(insertValues);
+        params.add(value); // [4] column2type
     }
 
     @Override
@@ -46,24 +46,28 @@ public class PUT_MODIFY extends HBaseCommand {
         Parameter tableName = params.get(0);
         Parameter columnFamilyName = params.get(1);
         Parameter rowKey = params.get(2);
-        ParameterType.ConcreteType columnNameType = new ParameterType.StreamMapType(
-                null, (s, c) -> (Collection) c.params.get(3).getValue(),
-                p -> ((Pair) ((Parameter) p).getValue()).left);
-        Parameter columnName = columnNameType.generateRandomParameter(null,
-                this);
+        Parameter columnName = params.get(3);
+        String colNameStr = columnName.toString();
+        colNameStr = colNameStr.substring(0, colNameStr.indexOf(" "));
         Parameter insertValues = params.get(4);
+        String valueStr = insertValues.toString();
+        valueStr = valueStr.substring(0, valueStr.indexOf(" "));
 
+        //String columnString = columnFamilies.toString();
+        //for (String colFamiStr: columnFamiliesString.split(",")){
+        //    String colFamiName = colFamiStr.substring(0, colFamiStr.indexOf(" "));
+        //    commandStr.append(", '"+colFamiName+"'");
+        //}
 
         return "PUT "
                 + "'" + tableName.toString() + "', "
                 + "'" + rowKey.toString() + "', "
-                + "'" + columnFamilyName.toString() + ":"
-                + columnName.toString() + "', "
-                + "'" + insertValues.toString() + "'";
+                + "'" + columnFamilyName.toString() + "':'"
+                + colNameStr + "', "
+                + "'" + valueStr + "'";
     }
 
     @Override
     public void updateState(State state) {
-
     }
 }

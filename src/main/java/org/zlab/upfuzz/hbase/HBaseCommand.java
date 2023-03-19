@@ -36,6 +36,17 @@ public abstract class HBaseCommand extends Command {
         return columnFamilyNameType.generateRandomParameter(state, command, init);
     }
 
+    public static Parameter chooseColumnName(State state, Command command, String columnFamilyName,
+                                               Object init) {
+
+        ParameterType.ConcreteType columnNameType = new ParameterType.InCollectionType(
+                CONSTANTSTRINGType.instance,
+                (s, c) -> ((HBaseState) s).table2families
+                                .get(c.params.get(0).toString()).get(columnFamilyName).colName2Type,
+                null);
+        return columnNameType.generateRandomParameter(state, command, init);
+    }
+
     public static Parameter chooseColumnFamily(State state, Command command,
                                         Object init) {
 

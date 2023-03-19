@@ -1,5 +1,6 @@
 package org.zlab.upfuzz.hbase.DataManipulationCommands;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
@@ -39,16 +40,22 @@ public class PUT_NEW_COLUMN_and_NEW_ITEM  extends HBaseCommand {
                                                 new STRINGType(20)),
                                         HBaseTypes.TYPEType.instance)
                 );
-        Parameter columns = columnsType
+        Parameter column = columnsType
                 .generateRandomParameter(state, this);
-        params.add(columns); // [3] column2type
+        params.add(column); // [3] column2type
 
-        //ParameterType.ConcreteType insertValuesType = new ParameterType.Type2ValueType(
-        //        null, columns.value.right, // columns
-        //        p -> ((Pair) ((Parameter) p).value).right);
-        //Parameter insertValues = insertValuesType
-        //        .generateRandomParameter(state, this);
-        //this.params.add(insertValues); // [4] insert value
+        ParameterType.ConcreteType valueType = // LIST<PAIR<String,TYPEType>>
+                new ParameterType.NotEmpty(
+                        ParameterType.ConcreteGenericType
+                                .constructConcreteGenericType(
+                                        PAIRType.instance,
+                                        new ParameterType.NotEmpty(
+                                                new STRINGType(30)),
+                                        HBaseTypes.TYPEType.instance)
+                );
+        Parameter value = valueType
+                .generateRandomParameter(state, this);
+        params.add(value); // [4] column2type
     }
 
     @Override
@@ -56,12 +63,12 @@ public class PUT_NEW_COLUMN_and_NEW_ITEM  extends HBaseCommand {
         Parameter tableName = params.get(0);
         Parameter columnFamilyName = params.get(1);
         Parameter rowKey = params.get(2);
-        ParameterType.ConcreteType columnNameType = new ParameterType.StreamMapType(
-                null, (s, c) -> (Collection) c.params.get(3).getValue(),
-                p -> ((Pair) ((Parameter) p).getValue()).left);
-        Parameter columnName = columnNameType.generateRandomParameter(null,
-                this);
+        Parameter columnName = params.get(3);
+        String colNameStr = columnName.toString();
+        colNameStr = colNameStr.substring(0, colNameStr.indexOf(" "));
         Parameter insertValues = params.get(4);
+        String valueStr = insertValues.toString();
+        valueStr = valueStr.substring(0, valueStr.indexOf(" "));
 
         //String columnString = columnFamilies.toString();
         //for (String colFamiStr: columnFamiliesString.split(",")){
@@ -70,11 +77,11 @@ public class PUT_NEW_COLUMN_and_NEW_ITEM  extends HBaseCommand {
         //}
 
         return "PUT "
-                + "table name: '" + tableName.toString() + "', "
-                + "row key: '" + rowKey.toString() + "', "
-                + "column family: '" + columnFamilyName.toString() + ": column name: "
-                + columnName.toString() + "', "
-                + "insert value: '" + insertValues.toString() + "'";
+                + "'" + tableName.toString() + "', "
+                + "'" + rowKey.toString() + "', "
+                + "'" + columnFamilyName.toString() + "':'"
+                + colNameStr + "', "
+                + "'" + valueStr + "'";
     }
 
     @Override
@@ -82,6 +89,8 @@ public class PUT_NEW_COLUMN_and_NEW_ITEM  extends HBaseCommand {
         Parameter tableName = params.get(0);
         Parameter columnFamilyName = params.get(1);
         Parameter rowKey = params.get(2);
+        Parameter col2Type = params.get(3);
         ((HBaseState) state).addRowKey(tableName.toString(), rowKey.toString());
+        ((HBaseState) state).table2families.get(tableName.toString()).get(columnFamilyName.toString()).addColName2Type(col2Type);
     }
 }

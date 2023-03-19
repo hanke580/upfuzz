@@ -24,29 +24,32 @@ public class PUT_NEW_COLUMN extends HBaseCommand {
         Parameter rowKey = chooseRowKey(state, this, null);
         this.params.add(rowKey); // [2] column family name
 
-        ParameterType.ConcreteType columnsType = new ParameterType.NotInCollectionType(
-                ParameterType.ConcreteGenericType
-                        .constructConcreteGenericType(
-                                HBaseTypes.MapLikeListType.instance,
-                                ParameterType.ConcreteGenericType
-                                        .constructConcreteGenericType(
-                                                PAIRType.instance,
-                                                new ParameterType.NotEmpty(
-                                                        new STRINGType(20)),
-                                                HBaseTypes.TYPEType.instance)),
-                (s, c) -> ((HBaseState) s).getColumnFamily(
-                        tableName.toString(),
-                        columnFamilyName.toString()).colName2Type, null);
-        Parameter columns = columnsType
+        ParameterType.ConcreteType columnsType = // LIST<PAIR<String,TYPEType>>
+                new ParameterType.NotEmpty(
+                        ParameterType.ConcreteGenericType
+                                .constructConcreteGenericType(
+                                        PAIRType.instance,
+                                        new ParameterType.NotEmpty(
+                                                new STRINGType(20)),
+                                        HBaseTypes.TYPEType.instance)
+                );
+        Parameter column = columnsType
                 .generateRandomParameter(state, this);
-        this.params.add(columns); // [3] new columns
+        params.add(column); // [3] column2type
 
-        ParameterType.ConcreteType insertValuesType = new ParameterType.Type2ValueType(
-                null, (s, c) -> (Collection) c.params.get(2).getValue(), // columns
-                p -> ((Pair) ((Parameter) p).value).right);
-        Parameter insertValues = insertValuesType
+        ParameterType.ConcreteType valueType = // LIST<PAIR<String,TYPEType>>
+                new ParameterType.NotEmpty(
+                        ParameterType.ConcreteGenericType
+                                .constructConcreteGenericType(
+                                        PAIRType.instance,
+                                        new ParameterType.NotEmpty(
+                                                new STRINGType(30)),
+                                        HBaseTypes.TYPEType.instance)
+                );
+        Parameter value = valueType
                 .generateRandomParameter(state, this);
-        this.params.add(insertValues); // [4] insert value
+        params.add(value); // [4] value2type
+
     }
 
     @Override
@@ -54,31 +57,32 @@ public class PUT_NEW_COLUMN extends HBaseCommand {
         Parameter tableName = params.get(0);
         Parameter columnFamilyName = params.get(1);
         Parameter rowKey = params.get(2);
-        ParameterType.ConcreteType columnNameType = new ParameterType.StreamMapType(
-                null, (s, c) -> (Collection) c.params.get(3).getValue(),
-                p -> ((Pair) ((Parameter) p).getValue()).left);
-        Parameter columnName = columnNameType.generateRandomParameter(null,
-                this);
+        Parameter columnName = params.get(3);
+        String colNameStr = columnName.toString();
+        colNameStr = colNameStr.substring(0, colNameStr.indexOf(" "));
         Parameter insertValues = params.get(4);
+        String valueStr = insertValues.toString();
+        valueStr = valueStr.substring(0, valueStr.indexOf(" "));
 
+        //String columnString = columnFamilies.toString();
+        //for (String colFamiStr: columnFamiliesString.split(",")){
+        //    String colFamiName = colFamiStr.substring(0, colFamiStr.indexOf(" "));
+        //    commandStr.append(", '"+colFamiName+"'");
+        //}
 
         return "PUT "
                 + "'" + tableName.toString() + "', "
                 + "'" + rowKey.toString() + "', "
-                + "'" + columnFamilyName.toString() + ":"
-                + columnName.toString() + "', "
-                + "'" + insertValues.toString() + "'";
+                + "'" + columnFamilyName.toString() + "':'"
+                + colNameStr + "', "
+                + "'" + valueStr + "'";
     }
 
     @Override
     public void updateState(State state) {
         Parameter tableName = params.get(0);
         Parameter columnFamilyName = params.get(1);
-        ParameterType.ConcreteType columnNameType = new ParameterType.StreamMapType(
-                null, (s, c) -> (Collection) c.params.get(2).getValue(),
-                p -> ((Pair) ((Parameter) p).getValue()).left);
-        Parameter columnName = columnNameType.generateRandomParameter(null,
-                this);
-        ((HBaseState)state).getColumnFamily(tableName.toString(), columnFamilyName.toString()).addColName2Type(columnName);
+        Parameter col2Type = params.get(3);
+        ((HBaseState) state).table2families.get(tableName.toString()).get(columnFamilyName.toString()).addColName2Type(col2Type);
     }
 }
