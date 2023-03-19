@@ -7,6 +7,10 @@ import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.Utilities;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+
 public abstract class HBaseCommand extends Command {
     public static final boolean DEBUG = false;
 
@@ -45,6 +49,25 @@ public abstract class HBaseCommand extends Command {
                                 .get(c.params.get(0).toString()).get(columnFamilyName).colName2Type,
                 null);
         return columnNameType.generateRandomParameter(state, command, init);
+    }
+
+    public static Parameter chooseNotNullColumnFamily(State state, Command command,
+                                               Object init) {
+        List<String> columnFamilies = new ArrayList<>(((HBaseState) state).table2families
+                .get(command.params.get(0).toString())
+                .keySet());
+        HashSet<String> notNullColumnFamilies = new HashSet<>();
+        for (String columnFamily:columnFamilies){
+            if(((HBaseState) state).getColumnFamily(command.params.get(0).toString(), columnFamily).colName2Type != null){
+                notNullColumnFamilies.add(columnFamily);
+            }
+        }
+        ParameterType.ConcreteType columnFamilyNameType = new ParameterType.InCollectionType(
+                CONSTANTSTRINGType.instance,
+                (s, c) -> Utilities
+                        .strings2Parameters(notNullColumnFamilies),
+                null);
+        return columnFamilyNameType.generateRandomParameter(state, command, init);
     }
 
     public static Parameter chooseColumnFamily(State state, Command command,

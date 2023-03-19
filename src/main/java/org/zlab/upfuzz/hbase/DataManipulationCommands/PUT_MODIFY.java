@@ -18,7 +18,7 @@ public class PUT_MODIFY extends HBaseCommand {
         Parameter tableName = chooseTable(state, this, null);
         this.params.add(tableName); // [0] table name
 
-        Parameter columnFamilyName = chooseColumnFamily(state, this, null);
+        Parameter columnFamilyName = chooseNotNullColumnFamily(state, this, null);
         this.params.add(columnFamilyName); // [1] column family name
 
         Parameter rowKey = chooseRowKey(state, this, null);

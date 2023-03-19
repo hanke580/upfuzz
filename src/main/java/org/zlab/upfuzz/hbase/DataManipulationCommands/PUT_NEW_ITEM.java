@@ -16,7 +16,7 @@ public class PUT_NEW_ITEM extends HBaseCommand {
         Parameter tableName = chooseTable(state, this, null);
         this.params.add(tableName); // [0] table name
 
-        Parameter columnFamilyName = chooseColumnFamily(state, this, null);
+        Parameter columnFamilyName = chooseNotNullColumnFamily(state, this, null);
         this.params.add(columnFamilyName); // [1] column family name
 
         ParameterType.ConcreteType rowKeyType = new ParameterType.NotInCollectionType(
