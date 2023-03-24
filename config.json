@@ -16,5 +16,5 @@
   "startUpClusterForDebugging": false,
   "debug": false,
   "collUpFeedBack": true,
-  "exportComposeOnly": true
+  "exportComposeOnly": false
 }

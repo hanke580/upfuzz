@@ -123,7 +123,7 @@ public class HBaseDocker extends Docker {
                 + "=append=false"
                 + ",includes=" + includes + ",excludes=" + excludes +
                 ",output=dfe,address=" + hostIP + ",port=" + agentPort +
-                ",weights=" + HBaseHome + "/diff_func.txt" +
+                /*",weights=" + HBaseHome + "/diff_func.txt" +*/
                 ",sessionid=" + system + "-" + executorID + "_"
                 + type + "-" + index +
                 "\"";
@@ -143,7 +143,7 @@ public class HBaseDocker extends Docker {
 
         env = new String[] {
                 "HBASE_HOME=\"" + HBaseHome + "\"",
-                "HBASE_CONF=\"" + HBaseConf + "\"", /*javaToolOpts,*/
+                "HBASE_CONF=\"" + HBaseConf + "\"", javaToolOpts,
                 "JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/",
                 "HBASE_SHELL_DAEMON_PORT=\"" + HBaseDaemonPort + "\"",
                 "PYTHON=" + pythonVersion };
@@ -203,7 +203,7 @@ public class HBaseDocker extends Docker {
                 + "=append=false"
                 + ",includes=" + includes + ",excludes=" + excludes +
                 ",output=dfe,address=" + hostIP + ",port=" + agentPort +
-                ",weights=" + hbaseHome + "/diff_func.txt" +
+                /*",weights=" + HBaseHome + "/diff_func.txt" +*/
                 ",sessionid=" + system + "-" + executorID + "_" + type +
                 "-" + index +
                 "\"";
@@ -221,7 +221,7 @@ public class HBaseDocker extends Docker {
         }
         env = new String[] {
                 "HBASE_HOME=\"" + hbaseHome + "\"",
-                "HBASE_CONF=\"" + hbaseConf + "\"", /*javaToolOpts,*/
+                "HBASE_CONF=\"" + hbaseConf + "\"", javaToolOpts,
                 "JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/",
                 "HBASE_SHELL_DAEMON_PORT=\"" + HBaseDaemonPort + "\"",
                 "PYTHON=" + pythonVersion };
@@ -238,7 +238,7 @@ public class HBaseDocker extends Docker {
                 + "=append=false"
                 + ",includes=" + includes + ",excludes=" + excludes +
                 ",output=dfe,address=" + hostIP + ",port=" + agentPort +
-                ",weights=" + hbaseHome + "/diff_func.txt" +
+                /*",weights=" + HBaseHome + "/diff_func.txt" +*/
                 ",sessionid=" + system + "-" + executorID + "_"
                 + type + "-" + index +
                 "\"";
@@ -258,7 +258,7 @@ public class HBaseDocker extends Docker {
 
         env = new String[] {
                 "HBASE_HOME=\"" + hbaseHome + "\"",
-                "HBASE_CONF=\"" + hbaseConf + "\"", /*javaToolOpts,*/
+                "HBASE_CONF=\"" + hbaseConf + "\"", javaToolOpts,
                 "JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/",
                 "HBASE_SHELL_DAEMON_PORT=\"" + HBaseDaemonPort + "\"",
                 "PYTHON=" + pythonVersion };

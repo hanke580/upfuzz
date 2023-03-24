@@ -34,6 +34,15 @@ public class HBaseExecutor extends Executor {
         agentHandler = new HashMap<>();
         sessionGroup = new ConcurrentHashMap<>();
 
+        try {
+            agentSocket = new AgentServerSocket(this);
+            agentSocket.setDaemon(true);
+            agentSocket.start();
+            agentPort = agentSocket.getPort();
+        } catch (Exception e) {
+            logger.error(e);
+        }
+
         dockerCluster = new HBaseDockerCluster(this,
                 Config.getConf().originalVersion,
                 nodeNum, null, configPath, exportComposeOnly);
@@ -54,6 +63,15 @@ public class HBaseExecutor extends Executor {
         agentHandler = new HashMap<>();
         sessionGroup = new ConcurrentHashMap<>();
 
+        try {
+            agentSocket = new AgentServerSocket(this);
+            agentSocket.setDaemon(true);
+            agentSocket.start();
+            agentPort = agentSocket.getPort();
+        } catch (Exception e) {
+            logger.error(e);
+        }
+
         dockerCluster = new HBaseDockerCluster(this,
                 Config.getConf().originalVersion,
                 nodeNum, null, configPath, exportComposeOnly);
@@ -65,7 +83,8 @@ public class HBaseExecutor extends Executor {
         int ret = 0;
         try {
             isReady = Utilities.exec(
-                    new String[] { "bin/hbase", "dfsadmin", "-report" },
+                    new String[] { "echo", "\"version\"", "|", "bin/hbase",
+                            "shell", "-n" },
                     HBasePath);
             BufferedReader in = new BufferedReader(
                     new InputStreamReader(isReady.getInputStream()));
@@ -83,16 +102,6 @@ public class HBaseExecutor extends Executor {
 
     @Override
     public boolean startup() {
-        try {
-            agentSocket = new AgentServerSocket(this);
-            agentSocket.setDaemon(true);
-            agentSocket.start();
-            agentPort = agentSocket.getPort();
-        } catch (Exception e) {
-            logger.error(e);
-            return false;
-        }
-
         try {
             dockerCluster.build();
         } catch (Exception e) {

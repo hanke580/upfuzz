@@ -38,6 +38,9 @@ import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.UpgradeOp;
 import org.zlab.upfuzz.hdfs.HdfsCommandPool;
 import org.zlab.upfuzz.hdfs.HdfsExecutor;
 import org.zlab.upfuzz.hdfs.HdfsState;
+import org.zlab.upfuzz.hbase.HBaseCommandPool;
+import org.zlab.upfuzz.hbase.HBaseExecutor;
+import org.zlab.upfuzz.hbase.HBaseState;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
@@ -153,6 +156,21 @@ public class FuzzingServer {
                     e.printStackTrace();
                 }
             }));
+        } else if (Config.getConf().system.equals("hbase")) {
+            executor = new HBaseExecutor();
+            commandPool = new HBaseCommandPool();
+            stateClass = HBaseState.class;
+
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try {
+                    Utilities.exec(new String[] { "bin/stop-hbase.sh" },
+                            Config.getConf().oldSystemPath);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }));
+            configGen.SetConfig(executor.dockerCluster.nodeNum,
+                    executor.dockerCluster.hostIP);
         }
 
         Path targetSystemStatesPath = Paths.get(System.getProperty("user.dir"),
@@ -202,9 +220,9 @@ public class FuzzingServer {
                 packet = testPlanPackets.poll();
                 // TestPlanPacket tp = (TestPlanPacket) packet;
                 // logger.info("val cmd size = "
-                //         + tp.testPlan.validationCommands.size());
+                // + tp.testPlan.validationCommands.size());
                 // logger.info("val oracle size = "
-                //         + tp.testPlan.validationReadResultsOracle.size());
+                // + tp.testPlan.validationReadResultsOracle.size());
             }
             isFullStopUpgrade = !isFullStopUpgrade;
             return packet;
