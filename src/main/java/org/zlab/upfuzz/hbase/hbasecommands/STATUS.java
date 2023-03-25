@@ -10,7 +10,7 @@ public class STATUS extends HBaseCommand {
 
     @Override
     public String constructCommandString() {
-        return "STATUS";
+        return "status";
     }
 
     @Override

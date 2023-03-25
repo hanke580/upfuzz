@@ -45,7 +45,7 @@ public class DELETE extends HBaseCommand {
         Parameter columnName = columnNameType.generateRandomParameter(null,
                 this);
 
-        return "DELETE "
+        return "delete "
                 + "'" + tableName.toString() + "', "
                 + "'" + rowKey.toString() + "', "
                 + "'" + columnFamilyName.toString() + ":"

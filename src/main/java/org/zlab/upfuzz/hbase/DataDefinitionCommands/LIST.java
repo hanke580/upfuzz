@@ -11,7 +11,7 @@ public class LIST extends HBaseCommand {
 
     @Override
     public String constructCommandString() {
-        return "LIST";
+        return "list";
     }
 
     @Override

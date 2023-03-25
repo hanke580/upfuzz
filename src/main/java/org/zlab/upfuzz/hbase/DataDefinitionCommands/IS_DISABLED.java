@@ -13,7 +13,7 @@ public class IS_DISABLED extends HBaseCommand {
 
     @Override
     public String constructCommandString() {
-        return "IS_DISABLED " + "'" + params.get(0) + "'";
+        return "is_disabled " + "'" + params.get(0) + "'";
     }
 
     @Override

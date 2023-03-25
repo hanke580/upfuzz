@@ -15,7 +15,7 @@ public class DISABLE extends HBaseCommand {
 
     @Override
     public String constructCommandString() {
-        return "DISABLE " + "'" + params.get(0) + "'";
+        return "disable " + "'" + params.get(0) + "'";
     }
 
     @Override

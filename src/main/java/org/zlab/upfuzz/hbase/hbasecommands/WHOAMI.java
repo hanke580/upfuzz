@@ -10,7 +10,7 @@ public class WHOAMI extends HBaseCommand {
 
     @Override
     public String constructCommandString() {
-        return "WHOAMI";
+        return "whoami";
     }
 
     @Override

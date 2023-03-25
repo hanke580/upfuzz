@@ -10,7 +10,7 @@ public class VERSION extends HBaseCommand {
 
     @Override
     public String constructCommandString() {
-        return "VERSION";
+        return "version";
     }
 
     @Override

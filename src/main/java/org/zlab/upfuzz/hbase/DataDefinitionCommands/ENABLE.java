@@ -13,7 +13,7 @@ public class ENABLE extends HBaseCommand {
 
     @Override
     public String constructCommandString() {
-        return "ENABLE " + "'" + params.get(0) + "'";
+        return "enable " + "'" + params.get(0) + "'";
     }
 
     @Override

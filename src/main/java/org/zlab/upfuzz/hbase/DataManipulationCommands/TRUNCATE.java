@@ -13,7 +13,7 @@ public class TRUNCATE extends HBaseCommand {
 
     @Override
     public String constructCommandString() {
-        return "TRUNCATE " + "'" + params.get(0) + "'";
+        return "truncate " + "'" + params.get(0) + "'";
     }
 
     @Override

@@ -13,7 +13,7 @@ public class EXISTS extends HBaseCommand {
 
     @Override
     public String constructCommandString() {
-        return "EXISTS " + "'" + params.get(0) + "'";
+        return "exists " + "'" + params.get(0) + "'";
     }
 
     @Override

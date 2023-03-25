@@ -16,7 +16,7 @@ public class GET extends HBaseCommand {
 
     @Override
     public String constructCommandString() {
-        return "GET " + "'" + params.get(0) + "', " + "'" + params.get(1) + "'";
+        return "get " + "'" + params.get(0) + "', " + "'" + params.get(1) + "'";
     }
 
     @Override

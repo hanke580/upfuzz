@@ -17,7 +17,7 @@ public class DELETEALL extends HBaseCommand {
 
     @Override
     public String constructCommandString() {
-        return "DELETEALL " + "'" + params.get(0) + "'"
+        return "deleteall " + "'" + params.get(0) + "'"
                 + ", " + "'" + params.get(1) + "'";
     }
 

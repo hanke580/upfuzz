@@ -13,7 +13,7 @@ public class SCAN extends HBaseCommand {
 
     @Override
     public String constructCommandString() {
-        return "SCAN " + "'" + params.get(0) + "'";
+        return "scan " + "'" + params.get(0) + "'";
     }
 
     @Override

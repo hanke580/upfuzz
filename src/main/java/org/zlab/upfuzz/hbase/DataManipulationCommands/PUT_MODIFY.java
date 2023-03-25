@@ -61,7 +61,7 @@ public class PUT_MODIFY extends HBaseCommand {
         // commandStr.append(", '"+colFamiName+"'");
         // }
 
-        return "PUT "
+        return "put "
                 + "'" + tableName.toString() + "', "
                 + "'" + rowKey.toString() + "', "
                 + "'" + columnFamilyName.toString() + "':'"

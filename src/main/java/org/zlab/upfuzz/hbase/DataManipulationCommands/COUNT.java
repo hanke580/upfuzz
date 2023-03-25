@@ -13,7 +13,7 @@ public class COUNT extends HBaseCommand {
 
     @Override
     public String constructCommandString() {
-        return "COUNT " + "'" + params.get(0) + "'";
+        return "count " + "'" + params.get(0) + "'";
     }
 
     @Override

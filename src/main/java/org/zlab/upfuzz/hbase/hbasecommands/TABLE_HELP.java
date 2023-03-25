@@ -10,7 +10,7 @@ public class TABLE_HELP extends HBaseCommand {
 
     @Override
     public String constructCommandString() {
-        return "TABLE_HELP";
+        return "table_help";
     }
 
     @Override

@@ -13,7 +13,7 @@ public class COMPACT extends HBaseCommand {
 
     @Override
     public String constructCommandString() {
-        return "COMPACT " + "'" + params.get(0) + "'";
+        return "compact " + "'" + params.get(0) + "'";
     }
 
     @Override

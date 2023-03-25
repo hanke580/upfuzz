@@ -20,7 +20,7 @@ public class ALTER_DELETE_FAMILY extends HBaseCommand {
         Parameter tableName = params.get(0);
         Parameter columnFamilyName = params.get(1);
 
-        return "ALTER "
+        return "alter "
                 + "'" + tableName.toString() + "', 'delete' => "
                 + "'" + columnFamilyName.toString() + "'";
     }

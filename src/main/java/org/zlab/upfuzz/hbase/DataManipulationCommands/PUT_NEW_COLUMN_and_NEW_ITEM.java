@@ -76,7 +76,7 @@ public class PUT_NEW_COLUMN_and_NEW_ITEM extends HBaseCommand {
         // commandStr.append(", '"+colFamiName+"'");
         // }
 
-        return "PUT "
+        return "put "
                 + "'" + tableName.toString() + "', "
                 + "'" + rowKey.toString() + "', "
                 + "'" + columnFamilyName.toString() + "':'"

@@ -15,7 +15,7 @@ public class DROP extends HBaseCommand {
 
     @Override
     public String constructCommandString() {
-        return "DROP " + "'" + params.get(0) + "'";
+        return "drop " + "'" + params.get(0) + "'";
     }
 
     @Override

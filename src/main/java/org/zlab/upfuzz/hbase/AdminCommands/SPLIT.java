@@ -13,7 +13,7 @@ public class SPLIT extends HBaseCommand {
 
     @Override
     public String constructCommandString() {
-        return "SPLIT " + "'" + params.get(0) + "'";
+        return "split " + "'" + params.get(0) + "'";
     }
 
     @Override

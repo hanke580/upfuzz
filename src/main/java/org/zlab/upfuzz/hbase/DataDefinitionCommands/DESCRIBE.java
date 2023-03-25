@@ -13,7 +13,7 @@ public class DESCRIBE extends HBaseCommand {
 
     @Override
     public String constructCommandString() {
-        return "DESCRIBE " + "'" + params.get(0) + "'";
+        return "describe " + "'" + params.get(0) + "'";
     }
 
     @Override
