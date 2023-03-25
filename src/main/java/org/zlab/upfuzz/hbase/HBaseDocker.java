@@ -90,9 +90,11 @@ public class HBaseDocker extends Docker {
 
     @Override
     public int start() throws Exception {
-        HBaseShell = new HBaseShellDaemon(getNetworkIP(), HBaseDaemonPort,
-                this.executorID,
-                this);
+        if (index == 0) {
+            HBaseShell = new HBaseShellDaemon(getNetworkIP(), HBaseDaemonPort,
+                    this.executorID,
+                    this);
+        }
         return 0;
     }
 
@@ -158,34 +160,23 @@ public class HBaseDocker extends Docker {
 
     @Override
     public void flush() throws Exception {
-        if (Config.getConf().originalVersion.contains("2.1.0")) {
-            Process flushCass = this.runInContainer(new String[] {
-                    "/" + system + "/" + originalVersion + "/"
-                            + "bin/nodetool",
-                    "-h", "::FFFF:127.0.0.1",
-                    "drain" });
-            flushCass.waitFor();
-        } else {
-            Process flushCass = this.runInContainer(new String[] {
-                    "/" + system + "/" + originalVersion + "/"
-                            + "bin/nodetool",
-                    "drain" });
-            flushCass.waitFor();
-        }
+        // no idea what to do
     }
 
     @Override
     public void upgrade() throws Exception {
-        prepareUpgradeEnv();
-        String restartCommand = "supervisorctl restart upfuzz_hbase:";
-        Process restart = runInContainer(
-                new String[] { "/bin/bash", "-c", restartCommand }, env);
-        int ret = restart.waitFor();
-        String message = Utilities.readProcess(restart);
-        logger.debug("upgrade version start: " + ret + "\n" + message);
-        HBaseShell = new HBaseShellDaemon(getNetworkIP(), HBaseDaemonPort,
-                this.executorID,
-                this);
+        if (index == 0) {
+            prepareUpgradeEnv();
+            String restartCommand = "supervisorctl restart hbase";
+            Process restart = runInContainer(
+                    new String[] { "/bin/bash", "-c", restartCommand }, env);
+            int ret = restart.waitFor();
+            String message = Utilities.readProcess(restart);
+            logger.debug("upgrade version start: " + ret + "\n" + message);
+            HBaseShell = new HBaseShellDaemon(getNetworkIP(), HBaseDaemonPort,
+                    this.executorID,
+                    this);
+        }
     }
 
     @Override
@@ -265,16 +256,18 @@ public class HBaseDocker extends Docker {
 
         setEnvironment();
 
-        String restartCommand = "supervisorctl restart upfuzz_hbase:";
-        // TODO remove the env arguments, we already have /usr/bin/set_env
-        Process restart = runInContainer(
-                new String[] { "/bin/bash", "-c", restartCommand }, env);
-        int ret = restart.waitFor();
-        String message = Utilities.readProcess(restart);
-        logger.debug("downgrade version start: " + ret + "\n" + message);
-        HBaseShell = new HBaseShellDaemon(getNetworkIP(), HBaseDaemonPort,
-                this.executorID,
-                this);
+        if (index == 0) {
+            String restartCommand = "supervisorctl restart hbase";
+            // TODO remove the env arguments, we already have /usr/bin/set_env
+            Process restart = runInContainer(
+                    new String[] { "/bin/bash", "-c", restartCommand }, env);
+            int ret = restart.waitFor();
+            String message = Utilities.readProcess(restart);
+            logger.debug("downgrade version start: " + ret + "\n" + message);
+            HBaseShell = new HBaseShellDaemon(getNetworkIP(), HBaseDaemonPort,
+                    this.executorID,
+                    this);
+        }
     }
 
     @Override
@@ -282,8 +275,7 @@ public class HBaseDocker extends Docker {
     public void shutdown() {
         String[] stopNode = new String[] {
                 "/" + system + "/" + originalVersion + "/"
-                        + "bin/nodetool",
-                "stopdaemon" };
+                        + "bin/stop-hbase.sh" };
         int ret = runProcessInContainer(stopNode);
         logger.debug("hbase shutdown ret = " + ret);
     }

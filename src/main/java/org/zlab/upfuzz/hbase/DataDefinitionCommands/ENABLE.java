@@ -5,7 +5,7 @@ import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hbase.HBaseCommand;
 import org.zlab.upfuzz.hbase.HBaseState;
 
-public class ENABLE  extends HBaseCommand {
+public class ENABLE extends HBaseCommand {
     public ENABLE(HBaseState state) {
         Parameter tableName = chooseTable(state, this, null);
         this.params.add(tableName); // 0 tableName
@@ -18,6 +18,6 @@ public class ENABLE  extends HBaseCommand {
 
     @Override
     public void updateState(State state) {
-        ((HBaseState)state).enableTable(params.get(0).toString());
+        ((HBaseState) state).enableTable(params.get(0).toString());
     }
 }

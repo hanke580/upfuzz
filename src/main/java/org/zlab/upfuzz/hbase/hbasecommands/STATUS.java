@@ -4,7 +4,7 @@ import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hbase.HBaseCommand;
 import org.zlab.upfuzz.hbase.HBaseState;
 
-public class STATUS  extends HBaseCommand {
+public class STATUS extends HBaseCommand {
     public STATUS(HBaseState state) {
     }
 

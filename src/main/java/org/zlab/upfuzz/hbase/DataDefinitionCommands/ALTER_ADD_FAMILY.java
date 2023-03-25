@@ -14,13 +14,15 @@ import java.util.Collection;
 
 public class ALTER_ADD_FAMILY extends HBaseCommand {
 
-    public ALTER_ADD_FAMILY(HBaseState state){
+    public ALTER_ADD_FAMILY(HBaseState state) {
         Parameter tableName = chooseTable(state, this, null);
         this.params.add(tableName); // [0] table name
 
         ParameterType.ConcreteType columnFamilyType = new ParameterType.NotInCollectionType(
                 new ParameterType.NotEmpty(new STRINGType(10)),
-                (s, c) -> ((HBaseState) s).getColumnFamiliesInTable(tableName.toString()), null);
+                (s, c) -> ((HBaseState) s)
+                        .getColumnFamiliesInTable(tableName.toString()),
+                null);
         Parameter columnFamily = columnFamilyType
                 .generateRandomParameter(state, this);
         this.params.add(columnFamily); // [1] column family
@@ -46,8 +48,6 @@ public class ALTER_ADD_FAMILY extends HBaseCommand {
                 columnFamilyName.toString(),
                 new HBaseColumnFamily(
                         columnFamilyName.toString(),
-                        null
-                )
-        );
+                        null));
     }
 }

@@ -20,12 +20,16 @@ public class HBaseTypes {
     // ArrayList<>();
 
     static {
-        type2String.put(org.zlab.upfuzz.cassandra.CassandraTypes.TEXTType.instance, "TEXT");
+        type2String.put(
+                org.zlab.upfuzz.cassandra.CassandraTypes.TEXTType.instance,
+                "TEXT");
         type2String.put(new INTType(), "INT");
 
         // types.add(LISTType.instance);
         // types.add(PAIRType.instance);
-        genericType2String.put(org.zlab.upfuzz.cassandra.CassandraTypes.LISTType.instance, "LIST");
+        genericType2String.put(
+                org.zlab.upfuzz.cassandra.CassandraTypes.LISTType.instance,
+                "LIST");
 
         // Because of templated types - template types are dynamically generated
         // -
@@ -66,7 +70,7 @@ public class HBaseTypes {
 
         @Override
         public Parameter generateRandomParameter(State s, Command c,
-                                                 Object init) {
+                Object init) {
             if (init == null) {
                 return generateRandomParameter(s, c);
             }
@@ -113,7 +117,7 @@ public class HBaseTypes {
 
         @Override
         public Parameter generateRandomParameter(State s, Command c,
-                                                 List<ConcreteType> types) {
+                List<ConcreteType> types) {
             // (Pair<TEXT,TYPE>)
             List<Parameter> value = new ArrayList<>();
 
@@ -134,8 +138,8 @@ public class HBaseTypes {
 
         @Override
         public Parameter generateRandomParameter(State s, Command c,
-                                                 List<ConcreteType> types,
-                                                 Object init) {
+                List<ConcreteType> types,
+                Object init) {
             assert init instanceof List;
             List<Object> initValues = (List<Object>) init;
 
@@ -158,7 +162,7 @@ public class HBaseTypes {
 
         @Override
         public String generateStringValue(Parameter p,
-                                          List<ConcreteType> types) {
+                List<ConcreteType> types) {
             StringBuilder sb = new StringBuilder();
 
             List<Parameter> value = (List<Parameter>) p.value;
@@ -172,21 +176,21 @@ public class HBaseTypes {
 
         @Override
         public boolean isEmpty(State s, Command c, Parameter p,
-                               List<ConcreteType> types) {
+                List<ConcreteType> types) {
             // Maybe add a isValid() here
             return ((List<Parameter>) p.value).isEmpty();
         }
 
         @Override
         public boolean mutate(State s, Command c, Parameter p,
-                              List<ConcreteType> types) {
+                List<ConcreteType> types) {
             p.value = generateRandomParameter(s, c, types).value;
             return true;
         }
 
         @Override
         public boolean isValid(State s, Command c, Parameter p,
-                               List<ConcreteType> types) {
+                List<ConcreteType> types) {
             // TODO: Make isValid also check the type, now is using the assert,
             // this is bad.
             assert p.value instanceof List;
@@ -228,7 +232,8 @@ public class HBaseTypes {
      * Type will be List<Pair<Parameter, Parameter>>, but it requires the
      * Pair.first must be unique
      */
-    public static class MapLikeListType extends org.zlab.upfuzz.cassandra.CassandraTypes.LISTType {
+    public static class MapLikeListType
+            extends org.zlab.upfuzz.cassandra.CassandraTypes.LISTType {
         // Example of mapFunc:
         // Parameter p -> p.value.left // p's ParameterType is Pair<TEXT,
         // TEXTType>
@@ -240,7 +245,7 @@ public class HBaseTypes {
 
         @Override
         public Parameter generateRandomParameter(State s, Command c,
-                                                 List<ConcreteType> typesInTemplate) {
+                List<ConcreteType> typesInTemplate) {
 
             ConcreteType t = typesInTemplate.get(0);
             List<Parameter> value = new ArrayList<>();
@@ -366,7 +371,7 @@ public class HBaseTypes {
 
         @Override
         public Parameter generateRandomParameter(State s, Command c,
-                                                 Object init) {
+                Object init) {
             if (init == null) {
                 return generateRandomParameter(s, c);
             }
@@ -393,4 +398,3 @@ public class HBaseTypes {
         }
     }
 }
-

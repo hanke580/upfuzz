@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
@@ -14,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Scanner;
 
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.text.StringSubstitutor;
@@ -51,8 +53,24 @@ public class HBaseDockerCluster extends DockerCluster {
 
         this.dockers = new HBaseDocker[nodeNum];
         this.extranodes = new HBaseHDFSDocker[1];
-        this.seedIP = DockerCluster.getKthIP(hostIP, 0);
         this.configpath = configPath;
+        if (configPath != null) {
+            Path regionserverPath = Paths.get(configPath.toString(),
+                    "oriconfig/regionservers");
+            try {
+                File regionserverFile = new File(regionserverPath.toString());
+                Scanner regionserverScanner = new Scanner(regionserverFile);
+                this.hostIP = DockerCluster.getKthIP(
+                        regionserverScanner.nextLine(),
+                        -1);
+                regionserverScanner.close();
+            } catch (FileNotFoundException e) {
+                logger.error("[HKLOG] can not find regionserver file.");
+            }
+            this.subnet = hostIP + "/24";
+        }
+
+        this.seedIP = DockerCluster.getKthIP(hostIP, 0);
     }
 
     public boolean build() throws Exception {

@@ -12,12 +12,12 @@ import org.zlab.upfuzz.utils.*;
 
 import java.util.Collection;
 
-public class PUT_NEW_COLUMN_and_NEW_ITEM  extends HBaseCommand {
+public class PUT_NEW_COLUMN_and_NEW_ITEM extends HBaseCommand {
     // Table->ColumnFamily->Column
     // CREATE TABLE+ColumnFamily
     // PUT TABLE rowKey ColumnFamily:Column value
     // Table->RowKey:primaryKey
-    public PUT_NEW_COLUMN_and_NEW_ITEM(HBaseState state){
+    public PUT_NEW_COLUMN_and_NEW_ITEM(HBaseState state) {
         Parameter tableName = chooseTable(state, this, null);
         this.params.add(tableName); // [0] table name
 
@@ -26,7 +26,8 @@ public class PUT_NEW_COLUMN_and_NEW_ITEM  extends HBaseCommand {
 
         ParameterType.ConcreteType rowKeyType = new ParameterType.NotInCollectionType(
                 new ParameterType.NotEmpty(UUIDType.instance),
-                (s, c) -> ((HBaseState) s).getRowKey(tableName.toString()), null);
+                (s, c) -> ((HBaseState) s).getRowKey(tableName.toString()),
+                null);
         Parameter rowKeyName = rowKeyType
                 .generateRandomParameter(state, this);
         this.params.add(rowKeyName); // [2] row key
@@ -38,8 +39,7 @@ public class PUT_NEW_COLUMN_and_NEW_ITEM  extends HBaseCommand {
                                         PAIRType.instance,
                                         new ParameterType.NotEmpty(
                                                 new STRINGType(20)),
-                                        HBaseTypes.TYPEType.instance)
-                );
+                                        HBaseTypes.TYPEType.instance));
         Parameter column = columnsType
                 .generateRandomParameter(state, this);
         params.add(column); // [3] column2type
@@ -51,8 +51,7 @@ public class PUT_NEW_COLUMN_and_NEW_ITEM  extends HBaseCommand {
                                         PAIRType.instance,
                                         new ParameterType.NotEmpty(
                                                 new STRINGType(30)),
-                                        HBaseTypes.TYPEType.instance)
-                );
+                                        HBaseTypes.TYPEType.instance));
         Parameter value = valueType
                 .generateRandomParameter(state, this);
         params.add(value); // [4] column2type
@@ -70,11 +69,12 @@ public class PUT_NEW_COLUMN_and_NEW_ITEM  extends HBaseCommand {
         String valueStr = insertValues.toString();
         valueStr = valueStr.substring(0, valueStr.indexOf(" "));
 
-        //String columnString = columnFamilies.toString();
-        //for (String colFamiStr: columnFamiliesString.split(",")){
-        //    String colFamiName = colFamiStr.substring(0, colFamiStr.indexOf(" "));
-        //    commandStr.append(", '"+colFamiName+"'");
-        //}
+        // String columnString = columnFamilies.toString();
+        // for (String colFamiStr: columnFamiliesString.split(",")){
+        // String colFamiName = colFamiStr.substring(0, colFamiStr.indexOf("
+        // "));
+        // commandStr.append(", '"+colFamiName+"'");
+        // }
 
         return "PUT "
                 + "'" + tableName.toString() + "', "
@@ -91,6 +91,7 @@ public class PUT_NEW_COLUMN_and_NEW_ITEM  extends HBaseCommand {
         Parameter rowKey = params.get(2);
         Parameter col2Type = params.get(3);
         ((HBaseState) state).addRowKey(tableName.toString(), rowKey.toString());
-        ((HBaseState) state).table2families.get(tableName.toString()).get(columnFamilyName.toString()).addColName2Type(col2Type);
+        ((HBaseState) state).table2families.get(tableName.toString())
+                .get(columnFamilyName.toString()).addColName2Type(col2Type);
     }
 }

@@ -20,6 +20,6 @@ public class DISABLE extends HBaseCommand {
 
     @Override
     public void updateState(State state) {
-        ((HBaseState)state).disableTable(params.get(0).toString());
+        ((HBaseState) state).disableTable(params.get(0).toString());
     }
 }

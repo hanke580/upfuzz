@@ -11,7 +11,7 @@ import java.util.Collection;
 
 public class DELETE extends HBaseCommand {
 
-    public DELETE(HBaseState state){
+    public DELETE(HBaseState state) {
         Parameter tableName = chooseTable(state, this, null);
         this.params.add(tableName); // [0] table name
 
@@ -44,7 +44,6 @@ public class DELETE extends HBaseCommand {
                 p -> ((Pair) ((Parameter) p).getValue()).left);
         Parameter columnName = columnNameType.generateRandomParameter(null,
                 this);
-
 
         return "DELETE "
                 + "'" + tableName.toString() + "', "

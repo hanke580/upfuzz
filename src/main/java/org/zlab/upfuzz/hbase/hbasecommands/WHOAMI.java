@@ -4,7 +4,7 @@ import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hbase.HBaseCommand;
 import org.zlab.upfuzz.hbase.HBaseState;
 
-public class WHOAMI  extends HBaseCommand {
+public class WHOAMI extends HBaseCommand {
     public WHOAMI(HBaseState state) {
     }
 

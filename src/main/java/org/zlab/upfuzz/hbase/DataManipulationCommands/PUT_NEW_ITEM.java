@@ -12,21 +12,24 @@ import java.util.Collection;
 
 public class PUT_NEW_ITEM extends HBaseCommand {
 
-    public PUT_NEW_ITEM(HBaseState state){
+    public PUT_NEW_ITEM(HBaseState state) {
         Parameter tableName = chooseTable(state, this, null);
         this.params.add(tableName); // [0] table name
 
-        Parameter columnFamilyName = chooseNotNullColumnFamily(state, this, null);
+        Parameter columnFamilyName = chooseNotNullColumnFamily(state, this,
+                null);
         this.params.add(columnFamilyName); // [1] column family name
 
         ParameterType.ConcreteType rowKeyType = new ParameterType.NotInCollectionType(
                 new ParameterType.NotEmpty(UUIDType.instance),
-                (s, c) -> ((HBaseState) s).getRowKey(tableName.toString()), null);
+                (s, c) -> ((HBaseState) s).getRowKey(tableName.toString()),
+                null);
         Parameter rowKeyName = rowKeyType
                 .generateRandomParameter(state, this);
         this.params.add(rowKeyName); // [2] row key
 
-        Parameter column = chooseColumnName(state, this, columnFamilyName.toString(), null);
+        Parameter column = chooseColumnName(state, this,
+                columnFamilyName.toString(), null);
         params.add(column); // [3] column2type
 
         ParameterType.ConcreteType valueType = // LIST<PAIR<String,TYPEType>>
@@ -36,8 +39,7 @@ public class PUT_NEW_ITEM extends HBaseCommand {
                                         PAIRType.instance,
                                         new ParameterType.NotEmpty(
                                                 new STRINGType(30)),
-                                        HBaseTypes.TYPEType.instance)
-                );
+                                        HBaseTypes.TYPEType.instance));
         Parameter value = valueType
                 .generateRandomParameter(state, this);
         params.add(value); // [4] column2type
@@ -55,11 +57,12 @@ public class PUT_NEW_ITEM extends HBaseCommand {
         String valueStr = insertValues.toString();
         valueStr = valueStr.substring(0, valueStr.indexOf(" "));
 
-        //String columnString = columnFamilies.toString();
-        //for (String colFamiStr: columnFamiliesString.split(",")){
-        //    String colFamiName = colFamiStr.substring(0, colFamiStr.indexOf(" "));
-        //    commandStr.append(", '"+colFamiName+"'");
-        //}
+        // String columnString = columnFamilies.toString();
+        // for (String colFamiStr: columnFamiliesString.split(",")){
+        // String colFamiName = colFamiStr.substring(0, colFamiStr.indexOf("
+        // "));
+        // commandStr.append(", '"+colFamiName+"'");
+        // }
 
         return "PUT "
                 + "'" + tableName.toString() + "', "

@@ -4,7 +4,7 @@ import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hbase.HBaseCommand;
 import org.zlab.upfuzz.hbase.HBaseState;
 
-public class TABLE_HELP  extends HBaseCommand {
+public class TABLE_HELP extends HBaseCommand {
     public TABLE_HELP(HBaseState state) {
     }
 

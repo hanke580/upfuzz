@@ -7,7 +7,7 @@ import org.zlab.upfuzz.hbase.HBaseState;
 
 public class ALTER_DELETE_FAMILY extends HBaseCommand {
 
-    public ALTER_DELETE_FAMILY(HBaseState state){
+    public ALTER_DELETE_FAMILY(HBaseState state) {
         Parameter tableName = chooseTable(state, this, null);
         this.params.add(tableName); // [0] table name
 
@@ -31,7 +31,6 @@ public class ALTER_DELETE_FAMILY extends HBaseCommand {
         Parameter columnFamilyName = params.get(1);
         ((HBaseState) state).deleteColumnFamily(
                 tableName.toString(),
-                columnFamilyName.toString()
-        );
+                columnFamilyName.toString());
     }
 }

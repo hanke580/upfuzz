@@ -7,14 +7,14 @@ import org.zlab.upfuzz.Parameter;
 
 public class HBaseColumnFamily implements Serializable {
     public String name;
-    public List<Parameter> colName2Type=new ArrayList<>();
+    public List<Parameter> colName2Type = new ArrayList<>();
     // Doesn't support composite key now
 
     public Set<String> indexes;
 
-    //public void addColumn(Parameter colName2Type){
-    //    this.colName2Type.add(SerializationUtils.clone(colName2Type));
-    //}
+    // public void addColumn(Parameter colName2Type){
+    // this.colName2Type.add(SerializationUtils.clone(colName2Type));
+    // }
     // Because the column within the column family is created dynamically
 
     public HBaseColumnFamily(String name, Parameter colName2Type) {
@@ -29,7 +29,7 @@ public class HBaseColumnFamily implements Serializable {
         indexes = new HashSet<>();
     }
 
-    public void addColName2Type(Parameter colName2Type){
+    public void addColName2Type(Parameter colName2Type) {
         this.colName2Type.add(colName2Type);
     }
 }

@@ -31,8 +31,7 @@ public class PUT_NEW_COLUMN extends HBaseCommand {
                                         PAIRType.instance,
                                         new ParameterType.NotEmpty(
                                                 new STRINGType(20)),
-                                        HBaseTypes.TYPEType.instance)
-                );
+                                        HBaseTypes.TYPEType.instance));
         Parameter column = columnsType
                 .generateRandomParameter(state, this);
         params.add(column); // [3] column2type
@@ -44,8 +43,7 @@ public class PUT_NEW_COLUMN extends HBaseCommand {
                                         PAIRType.instance,
                                         new ParameterType.NotEmpty(
                                                 new STRINGType(30)),
-                                        HBaseTypes.TYPEType.instance)
-                );
+                                        HBaseTypes.TYPEType.instance));
         Parameter value = valueType
                 .generateRandomParameter(state, this);
         params.add(value); // [4] value2type
@@ -64,11 +62,12 @@ public class PUT_NEW_COLUMN extends HBaseCommand {
         String valueStr = insertValues.toString();
         valueStr = valueStr.substring(0, valueStr.indexOf(" "));
 
-        //String columnString = columnFamilies.toString();
-        //for (String colFamiStr: columnFamiliesString.split(",")){
-        //    String colFamiName = colFamiStr.substring(0, colFamiStr.indexOf(" "));
-        //    commandStr.append(", '"+colFamiName+"'");
-        //}
+        // String columnString = columnFamilies.toString();
+        // for (String colFamiStr: columnFamiliesString.split(",")){
+        // String colFamiName = colFamiStr.substring(0, colFamiStr.indexOf("
+        // "));
+        // commandStr.append(", '"+colFamiName+"'");
+        // }
 
         return "PUT "
                 + "'" + tableName.toString() + "', "
@@ -83,6 +82,7 @@ public class PUT_NEW_COLUMN extends HBaseCommand {
         Parameter tableName = params.get(0);
         Parameter columnFamilyName = params.get(1);
         Parameter col2Type = params.get(3);
-        ((HBaseState) state).table2families.get(tableName.toString()).get(columnFamilyName.toString()).addColName2Type(col2Type);
+        ((HBaseState) state).table2families.get(tableName.toString())
+                .get(columnFamilyName.toString()).addColName2Type(col2Type);
     }
 }

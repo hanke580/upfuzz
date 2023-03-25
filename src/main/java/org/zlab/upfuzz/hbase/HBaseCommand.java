@@ -16,9 +16,8 @@ public abstract class HBaseCommand extends Command {
 
     public static HBaseCommandPool hBaseCommandPool = new HBaseCommandPool();
 
-
     public static Parameter chooseTable(State state, Command command,
-                                           Object init) {
+            Object init) {
 
         ParameterType.ConcreteType tableNameType = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
@@ -29,7 +28,7 @@ public abstract class HBaseCommand extends Command {
     }
 
     public static Parameter chooseRowKey(State state, Command command,
-                                               Object init) {
+            Object init) {
 
         ParameterType.ConcreteType columnFamilyNameType = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
@@ -37,28 +36,35 @@ public abstract class HBaseCommand extends Command {
                         .strings2Parameters(((HBaseState) s).table2rowKeys
                                 .get(c.params.get(0).toString())),
                 null);
-        return columnFamilyNameType.generateRandomParameter(state, command, init);
+        return columnFamilyNameType.generateRandomParameter(state, command,
+                init);
     }
 
-    public static Parameter chooseColumnName(State state, Command command, String columnFamilyName,
-                                               Object init) {
+    public static Parameter chooseColumnName(State state, Command command,
+            String columnFamilyName,
+            Object init) {
 
         ParameterType.ConcreteType columnNameType = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
                 (s, c) -> ((HBaseState) s).table2families
-                                .get(c.params.get(0).toString()).get(columnFamilyName).colName2Type,
+                        .get(c.params.get(0).toString())
+                        .get(columnFamilyName).colName2Type,
                 null);
         return columnNameType.generateRandomParameter(state, command, init);
     }
 
-    public static Parameter chooseNotNullColumnFamily(State state, Command command,
-                                               Object init) {
-        List<String> columnFamilies = new ArrayList<>(((HBaseState) state).table2families
-                .get(command.params.get(0).toString())
-                .keySet());
+    public static Parameter chooseNotNullColumnFamily(State state,
+            Command command,
+            Object init) {
+        List<String> columnFamilies = new ArrayList<>(
+                ((HBaseState) state).table2families
+                        .get(command.params.get(0).toString())
+                        .keySet());
         HashSet<String> notNullColumnFamilies = new HashSet<>();
-        for (String columnFamily:columnFamilies){
-            if(((HBaseState) state).getColumnFamily(command.params.get(0).toString(), columnFamily).colName2Type != null){
+        for (String columnFamily : columnFamilies) {
+            if (((HBaseState) state).getColumnFamily(
+                    command.params.get(0).toString(),
+                    columnFamily).colName2Type != null) {
                 notNullColumnFamilies.add(columnFamily);
             }
         }
@@ -67,11 +73,12 @@ public abstract class HBaseCommand extends Command {
                 (s, c) -> Utilities
                         .strings2Parameters(notNullColumnFamilies),
                 null);
-        return columnFamilyNameType.generateRandomParameter(state, command, init);
+        return columnFamilyNameType.generateRandomParameter(state, command,
+                init);
     }
 
     public static Parameter chooseColumnFamily(State state, Command command,
-                                        Object init) {
+            Object init) {
 
         ParameterType.ConcreteType columnFamilyNameType = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
@@ -80,7 +87,8 @@ public abstract class HBaseCommand extends Command {
                                 .get(c.params.get(0).toString())
                                 .keySet()),
                 null);
-        return columnFamilyNameType.generateRandomParameter(state, command, init);
+        return columnFamilyNameType.generateRandomParameter(state, command,
+                init);
     }
 
     @Override

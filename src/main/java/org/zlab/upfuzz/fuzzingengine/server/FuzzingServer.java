@@ -142,7 +142,6 @@ public class FuzzingServer {
                     e.printStackTrace();
                 }
             }));
-
         } else if (Config.getConf().system.equals("hdfs")) {
             executor = new HdfsExecutor();
             commandPool = new HdfsCommandPool();
@@ -169,9 +168,9 @@ public class FuzzingServer {
                     e.printStackTrace();
                 }
             }));
-            configGen.SetConfig(executor.dockerCluster.nodeNum,
-                    executor.dockerCluster.hostIP);
         }
+        configGen.SetConfig(executor.dockerCluster.nodeNum,
+                executor.dockerCluster.hostIP);
 
         Path targetSystemStatesPath = Paths.get(System.getProperty("user.dir"),
                 Config.getConf().targetSystemStateFile);

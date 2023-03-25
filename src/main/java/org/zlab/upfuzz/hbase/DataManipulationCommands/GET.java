@@ -6,7 +6,7 @@ import org.zlab.upfuzz.hbase.HBaseCommand;
 import org.zlab.upfuzz.hbase.HBaseState;
 
 public class GET extends HBaseCommand {
-    public GET(HBaseState state){
+    public GET(HBaseState state) {
         Parameter tableName = chooseTable(state, this, null);
         this.params.add(tableName); // [0] table name
 

@@ -17,37 +17,44 @@ public class HBaseState extends State {
 
     public Map<String, Set<String>> table2rowKeys = new HashMap<>();
 
-    public void addRowKeyTable(String tableName){
+    public void addRowKeyTable(String tableName) {
         table2rowKeys.put(tableName, new HashSet<>());
     }
-    public void removeRowKeyTable(String tableName){
+
+    public void removeRowKeyTable(String tableName) {
         table2rowKeys.remove(tableName);
     }
-    public Set<Parameter> getRowKey(String tableName){
+
+    public Set<Parameter> getRowKey(String tableName) {
         return Utilities.strings2Parameters(table2rowKeys.get(tableName));
     }
-    public void addRowKey(String tableName, String rowKey){
+
+    public void addRowKey(String tableName, String rowKey) {
         table2rowKeys.get(tableName).add(rowKey);
     }
-    public void deleteRowKey(String tableName, String rowKey){
+
+    public void deleteRowKey(String tableName, String rowKey) {
         table2rowKeys.get(tableName).remove(rowKey);
     }
 
-    public void enableTable(String tableName){
+    public void enableTable(String tableName) {
         table2enable.put(tableName, Boolean.TRUE);
     }
-    public void disableTable(String tableName){
+
+    public void disableTable(String tableName) {
         table2enable.put(tableName, Boolean.FALSE);
     }
+
     public Map<String, Boolean> getTable2enable() {
         return table2enable;
     }
 
     public void addColumnFamily(String tableName, String columnFamilyName,
-                                HBaseColumnFamily columnFamily) {
+            HBaseColumnFamily columnFamily) {
         table2families.get(tableName).put(columnFamilyName, columnFamily);
     }
-    public void deleteColumnFamily(String tableName, String columnFamilyName){
+
+    public void deleteColumnFamily(String tableName, String columnFamilyName) {
         table2families.get(tableName).remove(columnFamilyName);
     }
 
@@ -66,7 +73,7 @@ public class HBaseState extends State {
         }
     }
 
-    public void deleteTable(String tableName){
+    public void deleteTable(String tableName) {
         table2families.remove(tableName);
         table2UDTs.remove(tableName);
         table2enable.remove(tableName);
@@ -82,7 +89,8 @@ public class HBaseState extends State {
                 .strings2Parameters(table2families.get(tableName).keySet());
     }
 
-    public HBaseColumnFamily getColumnFamily(String tableName, String columnFamilyName) {
+    public HBaseColumnFamily getColumnFamily(String tableName,
+            String columnFamilyName) {
         return table2families.get(tableName).get(columnFamilyName);
     }
 
@@ -93,9 +101,9 @@ public class HBaseState extends State {
         table2enable.clear();
     }
 
-    //public HBaseState() {
-    //}
+    // public HBaseState() {
+    // }
 
-    //public void clearState() {
-    //}
+    // public void clearState() {
+    // }
 }

@@ -46,12 +46,14 @@ public class CREATE extends HBaseCommand {
         // TODO: Need a helper function, add space between all strings
         Parameter tableName = params.get(0);
         Parameter columnFamilies = params.get(1); // LIST<PAIR<TEXTType,TYPE>>
-        StringBuilder commandStr = new StringBuilder("CREATE " + "'" + tableName.toString() + "'");
+        StringBuilder commandStr = new StringBuilder(
+                "CREATE " + "'" + tableName.toString() + "'");
 
         String columnFamiliesString = columnFamilies.toString();
-        for (String colFamiStr: columnFamiliesString.split(",")){
-            String colFamiName = colFamiStr.substring(0, colFamiStr.indexOf(" "));
-            commandStr.append(", '"+colFamiName+"'");
+        for (String colFamiStr : columnFamiliesString.split(",")) {
+            String colFamiName = colFamiStr.substring(0,
+                    colFamiStr.indexOf(" "));
+            commandStr.append(", '" + colFamiName + "'");
         }
         return commandStr.toString();
     }
@@ -64,10 +66,13 @@ public class CREATE extends HBaseCommand {
         Parameter columnFamilies = params.get(1); // LIST<PAIR<TEXTType,TYPE>>
 
         String columnFamiliesString = columnFamilies.toString();
-        for (String colFamiStr: columnFamiliesString.split(",")){
-            String columnFamilyName = colFamiStr.substring(0, colFamiStr.indexOf(" "));
-            HBaseColumnFamily hBaseColumnFamily = new HBaseColumnFamily(columnFamilyName.toString(), null);
-            ((HBaseState) state).addColumnFamily(tableName.toString(), columnFamilyName.toString(), hBaseColumnFamily);
+        for (String colFamiStr : columnFamiliesString.split(",")) {
+            String columnFamilyName = colFamiStr.substring(0,
+                    colFamiStr.indexOf(" "));
+            HBaseColumnFamily hBaseColumnFamily = new HBaseColumnFamily(
+                    columnFamilyName.toString(), null);
+            ((HBaseState) state).addColumnFamily(tableName.toString(),
+                    columnFamilyName.toString(), hBaseColumnFamily);
         }
     }
 }

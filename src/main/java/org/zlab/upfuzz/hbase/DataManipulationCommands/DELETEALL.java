@@ -7,7 +7,7 @@ import org.zlab.upfuzz.hbase.HBaseState;
 
 public class DELETEALL extends HBaseCommand {
 
-    public DELETEALL(HBaseState state){
+    public DELETEALL(HBaseState state) {
         Parameter TableName = chooseTable(state, this, null);
         this.params.add(TableName); // Param0
 
@@ -18,11 +18,12 @@ public class DELETEALL extends HBaseCommand {
     @Override
     public String constructCommandString() {
         return "DELETEALL " + "'" + params.get(0) + "'"
-                +", " + "'"+params.get(1)+"'";
+                + ", " + "'" + params.get(1) + "'";
     }
 
     @Override
     public void updateState(State state) {
-        ((HBaseState) state).deleteRowKey(params.get(0).toString(), params.get(1).toString());
+        ((HBaseState) state).deleteRowKey(params.get(0).toString(),
+                params.get(1).toString());
     }
 }

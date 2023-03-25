@@ -14,17 +14,19 @@ import org.zlab.upfuzz.utils.UUIDType;
 import java.util.Collection;
 
 public class PUT_MODIFY extends HBaseCommand {
-    public PUT_MODIFY(HBaseState state){
+    public PUT_MODIFY(HBaseState state) {
         Parameter tableName = chooseTable(state, this, null);
         this.params.add(tableName); // [0] table name
 
-        Parameter columnFamilyName = chooseNotNullColumnFamily(state, this, null);
+        Parameter columnFamilyName = chooseNotNullColumnFamily(state, this,
+                null);
         this.params.add(columnFamilyName); // [1] column family name
 
         Parameter rowKey = chooseRowKey(state, this, null);
         this.params.add(rowKey); // [2] column family name
 
-        Parameter column = chooseColumnName(state, this, columnFamilyName.toString(), null);
+        Parameter column = chooseColumnName(state, this,
+                columnFamilyName.toString(), null);
         params.add(column); // [3] column2type
 
         ParameterType.ConcreteType valueType = // LIST<PAIR<String,TYPEType>>
@@ -34,8 +36,7 @@ public class PUT_MODIFY extends HBaseCommand {
                                         PAIRType.instance,
                                         new ParameterType.NotEmpty(
                                                 new STRINGType(30)),
-                                        HBaseTypes.TYPEType.instance)
-                );
+                                        HBaseTypes.TYPEType.instance));
         Parameter value = valueType
                 .generateRandomParameter(state, this);
         params.add(value); // [4] column2type
@@ -53,11 +54,12 @@ public class PUT_MODIFY extends HBaseCommand {
         String valueStr = insertValues.toString();
         valueStr = valueStr.substring(0, valueStr.indexOf(" "));
 
-        //String columnString = columnFamilies.toString();
-        //for (String colFamiStr: columnFamiliesString.split(",")){
-        //    String colFamiName = colFamiStr.substring(0, colFamiStr.indexOf(" "));
-        //    commandStr.append(", '"+colFamiName+"'");
-        //}
+        // String columnString = columnFamilies.toString();
+        // for (String colFamiStr: columnFamiliesString.split(",")){
+        // String colFamiName = colFamiStr.substring(0, colFamiStr.indexOf("
+        // "));
+        // commandStr.append(", '"+colFamiName+"'");
+        // }
 
         return "PUT "
                 + "'" + tableName.toString() + "', "
