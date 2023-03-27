@@ -41,7 +41,6 @@ user/admin level commands with constraints. It tries to make the fuzzer generate
 the syntax valid commands so that we can test the deep logic of the stateful
 systems.
 
-
 ### Example: Cassandra
 
 The client process runs in the physical machine. Inside the docker, there is a
@@ -61,64 +60,51 @@ will use `docker exec` to issue a supervisorctl restart command to the docker
 for the upgrade process.
 
 
+## Minimal Set up for Cassandra (Try upfuzz quickly!)
+Requirement: java11, docker, docker compose.
+> - Not test configurations.
+> - single Cassandra node upgrade: 3.11.14 => 4.1.0
+
+Clone the repo
+```bash
+git clone --recursive git@github.com:zlab-purdue/upfuzz.git
+cd upfuzz
+export UPFUZZ_DIR=$PWD
+
+mkdir prebuild
+mkdir prebuild/cassandra
+cd prebuild/cassandra
+wget https://archive.apache.org/dist/cassandra/4.1.0/apache-cassandra-4.1.0-bin.tar.gz ; tar -xzvf apache-cassandra-4.1.0-bin.tar.gz
+wget https://archive.apache.org/dist/cassandra/3.11.14/apache-cassandra-3.11.14-bin.tar.gz ; tar -xzvf apache-cassandra-3.11.14-bin.tar.gz
+
+sed -i 's/num_tokens: 16/num_tokens: 256/' apache-cassandra-4.1.0/conf/cassandra.yaml
+
+cd $UPFUZZ_DIR
+cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-3.11.14/bin/cqlsh_daemon.py
+cp src/main/resources/cqlsh_daemon3_4.0.5_4.1.0.py  prebuild/cassandra/apache-cassandra-4.1.0/bin/cqlsh_daemon.py
+
+cd src/main/resources/cassandra/normal/compile-src/
+docker build . -t upfuzz_cassandra:apache-cassandra-3.11.14_apache-cassandra-4.1.0
+
+cd $UPFUZZ_DIR
+./gradlew copyDependencies
+./gradlew :spotlessApply build
+
+# open terminal1: start server
+./start_server.sh config.json
+
+# open terminal2: start one client
+./start_clients.sh 1 config.json
+
+# stop testing: 
+./cass_cl.sh
+```
+
 ## Usage
 
-
-### Prerequisite: If you want to test configurations
-> You don't to this step if (1) the config info has been generated in `configInfo` folder or (2) opt not to test config temporarily.
->
-> The config for example upgrade has been generated already.
-
-We implemented a static analysis tool [diffchecker](https://github.com/hanke580/diffchecker) to detect configurations that are likely to induce upgrade failures.
-
-We need to use diffchecker to find all such configurations and then feed them to upfuzz so that upfuzz can generate them at runtime.
-
-#### Get configurations
-
-In diffchecker repo
-
-1. Clone and build diffchecker, this requires JDK11
-```bash
-mvn -T 2C -e clean package
-```
-
-2. Create a folder called `symbolic_link`
-```bash
-mkdir src/main/resources/symbolic_link
-```
-
-3. Clone the source code of the target system by git, create a symbolic link in the folder we just created.
-
-Example
-```bash
-# clone the system source code somewhere and make a sym link
-cd ~
-git clone --recursive https://github.com/apache/cassandra.git ~/cassandra_old
-git clone --recursive https://github.com/apache/cassandra.git ~/cassandra_new
-
-cd ${DIFFCHECKER}/src/main/resources/symbolic_link
-ln -s ~/cassandra_old
-ln -s ~/cassandra_new
-```
-
-4. Run the diffcheck to get the target configurations
-Example (Cassandra)
-```bash
-# collect newly added configurations
-java -jar target/diffchecker-1.0-SNAPSHOT-shaded.jar -p cassandra_old -np cassandra_new --type config --action modified
-# collect common configurations (deprecated or contain size)
-java -jar target/diffchecker-1.0-SNAPSHOT-shaded.jar -p cassandra_old -np cassandra_new --type config --action common --configpath conf
-```
-
-This will generate configurations and their type in json (the above two commands generate different json files and do not overwrite each other's result). **Later we will move these files to the upfuzz repo, under upfuzz/configInfo/OLDSYSTEM_NEWSYSTEM/**
-
-```bash
-➜  diffchecker git:(main) ✗ ls configInfo
-addedClassConfig2Init.json  addedClassConfig.json         addedSysConfig.json     commonConfig2Type.json  commonEnum2Constant.json
-addedClassConfig2Type.json  addedClassEnum2Constant.json  commonConfig2Init.json  commonConfig.json
-```
-
-> We support testing cassandra and hdfs.
+> Config test is disabled by default.
+> 
+> If you want to test configuration, checkout **TEST_CONFIG.md**.
 
 ### Deploy Cassandra
 
@@ -138,7 +124,6 @@ Make sure `docker` and `docker compose` is correctly installed.
   "system" : "cassandra",
   "serverPort" : "6399",
   "clientPort" : "6400",
-  "initSeedDir" : "/path/to/upfuzz/initSeedDir",
   "STACKED_TESTS_NUM" : "2",
   "nodeNum": 3,
   "useFeedBack": true,
@@ -152,16 +137,7 @@ Make sure `docker` and `docker compose` is correctly installed.
 
 ```
 
-Note that you need to create the initSeedDir directory under upfuzz/ and the initSeedDir needs to be an absolute path.
-
-3. Create a configInfo directory,
-```bash
-mkdir configInfo
-mkdir configInfo/${originalVersion}_${upgradedVersion}
-# In the example it would be
-mkdir configInfo/apache-cassandra-3.11.14_apache-cassandra-4.1.0
-mv ${diffchecker}/configInfo/* configInfo/apache-cassandra-3.11.14_apache-cassandra-4.1.0/
-```
+More configurations please refer to `Config.java` file.
 
 
 3. Create a `prebuild` folder. Then inside `prebuild` folder, create a directory
@@ -221,15 +197,15 @@ cp src/main/resources/cqlsh_daemon3_4.0.5_4.1.0.py  prebuild/cassandra/apache-ca
 > Cassandra document notification: If you are upgrading from 3.x to 4.x, you also need to modify the `conf/cassandra.yaml` to make sure the `num_tokens` matches. Since the default `num_tokens` for the 3.x is 256, while for 4.0 it's 16.
 
 ```bash
-vim prebuild/cassandra/apache-cassandra-4.1.0/conf/cassandra.yaml
 # Change configuration:
 # num_tokens: 256 => num_tokens: 16
-```
+sed -i 's/num_tokens: 16/num_tokens: 256/' prebuild/cassandra/apache-cassandra-4.1.0/conf/cassandra.yaml
 
+```
 
 6. Build the docker image.
 
-First, modify the first few lines in `src/main/resources/cassandra/cassandra-3.11.13/compile-src/cassandra-clusternode.sh` file. You should change the `ORG_VERSION` and `UPG_VERSION` to the name of the target system. In this example,
+First, modify the first few lines in `src/main/resources/cassandra/normal/compile-src/cassandra-clusternode.sh` file. You should change the `ORG_VERSION` and `UPG_VERSION` to the name of the target system. In this example,
 ```bash
 vim src/main/resources/cassandra/normal/compile-src/cassandra-clusternode.sh
 ORG_VERSION=apache-cassandra-3.11.14
@@ -338,11 +314,18 @@ docker build . -t upfuzz_hdfs:hadoop-2.10.2_hadoop-3.3.0
 8. Start testing (Same as the command in Cassandra set up)
 
 
-
-
 ### Debug related
 
 If the tool runs into problems, you can enter the container to check the log.
+
+```bash
+➜  upfuzz git:(main) ✗ docker ps   # get container id
+➜  upfuzz git:(main) ✗ ./en.sh CONTAINERID
+root@1c8e314a12a9:/# supervisorctl 
+sshd                             RUNNING   pid 8, uptime 0:01:03
+upfuzz_cassandra:cassandra       RUNNING   pid 9, uptime 0:01:03
+upfuzz_cassandra:cqlsh           RUNNING   pid 10, uptime 0:01:03
+```
 
 There could be several reasons (1) System starts up but the daemon in container cannot start up (2) The target system cannot start up due to configuration problem or jacoco agent instrumentation problem.
 
