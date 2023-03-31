@@ -1,6 +1,6 @@
 {
   "originalVersion" : "hadoop-2.10.2",
-  "upgradedVersion" : "hadoop-3.4.0_trunk",
+  "upgradedVersion" : "hadoop-3.3.4",
   "system" : "hdfs",
   "serverPort" : "6499",
   "clientPort" : "6500",
@@ -9,15 +9,15 @@
   "keepDir": true,
   "nodeNum": 4,
   "useFeedBack": true,
-  "faultMaxNum": 3,
+  "faultMaxNum": 0,
   "useExampleTestPlan": false,
   "testingMode": 4,
   "startUpClusterForDebugging": false,
   "debug": false,
   "testDowngrade": false,
-  "verifyConfig": true,
-  "testAddedConfig": true,
-  "testCommonConfig": true,
+  "verifyConfig": false,
+  "testAddedConfig": false,
+  "testCommonConfig": false,
   "enableLogCheck": true,
   "collUpFeedBack": true 
 }

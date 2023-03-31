@@ -60,8 +60,30 @@ will use `docker exec` to issue a supervisorctl restart command to the docker
 for the upgrade process.
 
 
+## Prerequsite
+```bash
+# jdk
+sudo apt-get install openjdk-11-jdk openjdk-8-jdk
+
+# docker
+sudo apt-get update
+sudo apt-get install \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release -y
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
+```
+
+
 ## Minimal Set up for Cassandra (Try upfuzz quickly!)
-Requirement: java11, docker, docker compose.
+Requirement: java11, docker (Docker version 23.0.1, build a5ee5b1)
 > - Not test configurations.
 > - single Cassandra node upgrade: 3.11.14 => 4.1.0
 
@@ -71,8 +93,7 @@ git clone --recursive git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
 export UPFUZZ_DIR=$PWD
 
-mkdir prebuild
-mkdir prebuild/cassandra
+mkdir -p $UPFUZZ_DIR/prebuild/cassandra
 cd prebuild/cassandra
 wget https://archive.apache.org/dist/cassandra/4.1.0/apache-cassandra-4.1.0-bin.tar.gz ; tar -xzvf apache-cassandra-4.1.0-bin.tar.gz
 wget https://archive.apache.org/dist/cassandra/3.11.14/apache-cassandra-3.11.14-bin.tar.gz ; tar -xzvf apache-cassandra-3.11.14-bin.tar.gz
@@ -96,21 +117,28 @@ cd $UPFUZZ_DIR
 # open terminal2: start one client
 ./start_clients.sh 1 config.json
 
-# stop testing: 
+# stop testing:
 ./cass_cl.sh
 ```
 
 ## Usage
 
 > Config test is disabled by default.
-> 
+>
 > If you want to test configuration, checkout **TEST_CONFIG.md**.
 
 ### Deploy Cassandra
 
 1. Clone upfuzz repo.
 
-Make sure `docker` and `docker compose` is correctly installed.
+Make sure `docker` is correctly installed. (the latest docker has `docker compose` installed already)
+```bash
+git clone --recursive git@github.com:zlab-purdue/upfuzz.git
+cd upfuzz
+
+➜  upfuzz git:(main) docker -v
+Docker version 23.0.1, build a5ee5b1
+```
 
 2. Create a `config.json` file, a sample config file is provided in
    config.json. You need to modify the value for the target system.
@@ -255,6 +283,61 @@ start up N clients (replace N with a number)
 
 Checkout `cass_cl.sh`, this file contains how to kill the server/client process and all the containers.
 
+
+## Minimal Set up for HDFS (Try upfuzz quickly!)
+Requirement: jdk8, jdk11, docker (Docker version 23.0.1, build a5ee5b1)
+> - Not test configurations.
+> - 4 Nodes upgrade (NN, SNN, 2DN): 2.10.2 => 3.3.4
+
+```bash
+git clone --recursive git@github.com:zlab-purdue/upfuzz.git
+cd upfuzz
+export UPFUZZ_DIR=$PWD
+export ORI_VERSION=2.10.2
+export UP_VERSION=3.3.4
+
+mkdir -p $UPFUZZ_DIR/prebuild/hdfs
+cd $UPFUZZ_DIR/prebuild/hdfs
+wget https://archive.apache.org/dist/hadoop/common/hadoop-"$ORI_VERSION"/hadoop-"$ORI_VERSION".tar.gz ; tar -xzvf hadoop-"$ORI_VERSION".tar.gz
+wget https://archive.apache.org/dist/hadoop/common/hadoop-"$UP_VERSION"/hadoop-"$UP_VERSION".tar.gz ; tar -xzvf hadoop-"$UP_VERSION".tar.gz
+
+# Switch java/javac to jdk8
+sudo update-alternatives --config java
+sudo update-alternatives --config javac
+
+# old version hdfs daemon
+cp $UPFUZZ_DIR/src/main/resources/FsShellDaemon2.java $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$ORI_VERSION"/FsShellDaemon.java
+cd $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$ORI_VERSION"/
+javac -d . -cp "share/hadoop/hdfs/hadoop-hdfs-"$ORI_VERSION".jar:share/hadoop/common/hadoop-common-"$ORI_VERSION".jar:share/hadoop/common/lib/*" FsShellDaemon.java
+sed -i "s/elif \[ \"\$COMMAND\" = \"dfs\" \] ; then/elif [ \"\$COMMAND\" = \"dfsdaemon\" ] ; then\n  CLASS=org.apache.hadoop.fs.FsShellDaemon\n  HADOOP_OPTS=\"\$HADOOP_OPTS \$HADOOP_CLIENT_OPTS\"\n&/" bin/hdfs
+
+# new version hdfs daemon
+cp $UPFUZZ_DIR/src/main/resources/FsShellDaemon_trunk.java $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$UP_VERSION"/FsShellDaemon.java
+cd $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$UP_VERSION"/
+javac -d . -cp "share/hadoop/hdfs/hadoop-hdfs-"$UP_VERSION".jar:share/hadoop/common/hadoop-common-"$UP_VERSION".jar:share/hadoop/common/lib/*" FsShellDaemon.java
+sed -i "s/  case \${subcmd} in/&\n    dfsdaemon)\n      HADOOP_CLASSNAME=\"org.apache.hadoop.fs.FsShellDaemon\"\n    ;;/" bin/hdfs
+
+cd $UPFUZZ_DIR/src/main/resources/hdfs/compile-src/
+docker build . -t upfuzz_hdfs:hadoop-"$ORI_VERSION"_hadoop-"$UP_VERSION"
+
+# Switch java/javac to jdk11
+sudo update-alternatives --config java
+sudo update-alternatives --config javac
+
+cd $UPFUZZ_DIR
+./gradlew copyDependencies
+./gradlew :spotlessApply build
+
+# open terminal1: start server
+./start_server.sh hdfs_config.json
+
+# open terminal2: start one client
+./start_clients.sh 1 hdfs_config.json
+
+# stop testing:
+./hdfs_cl.sh
+```
+
 ### Deploy HDFS
 The first 3 steps are the same. We can start from the fourth step.
 
@@ -271,7 +354,7 @@ Upgrade from hadoop-2.10.2 to hadoop-3.3.0. You should replace them with the ver
 
 4. Compile the daemon file
 
-> FsShellDaemon_trunk.java is for Hadoop trunk version
+> FsShellDaemon_trunk.java is for Hadoop trunk version (>= 3.3.4)
 >
 > FsShellDaemon3.java is for Hadoop > 3.x
 >
@@ -288,8 +371,6 @@ sed -i "s/  case \${subcmd} in/&\n    dfsdaemon)\n      HADOOP_CLASSNAME=\"org.a
 hdfs 2.x
 sed -i "s/elif \[ \"\$COMMAND\" = \"dfs\" \] ; then/elif [ \"\$COMMAND\" = \"dfsdaemon\" ] ; then\n  CLASS=org.apache.hadoop.fs.FsShellDaemon\n  HADOOP_OPTS=\"\$HADOOP_OPTS \$HADOOP_CLIENT_OPTS\"\n&/" bin/hdfs
 ```
-
-
 
 5. Modify `bin/main/hdfs/compile-src/hdfs-clusternode.sh` file. Change the version.
 ```shell
@@ -321,7 +402,7 @@ If the tool runs into problems, you can enter the container to check the log.
 ```bash
 ➜  upfuzz git:(main) ✗ docker ps   # get container id
 ➜  upfuzz git:(main) ✗ ./en.sh CONTAINERID
-root@1c8e314a12a9:/# supervisorctl 
+root@1c8e314a12a9:/# supervisorctl
 sshd                             RUNNING   pid 8, uptime 0:01:03
 upfuzz_cassandra:cassandra       RUNNING   pid 9, uptime 0:01:03
 upfuzz_cassandra:cqlsh           RUNNING   pid 10, uptime 0:01:03
