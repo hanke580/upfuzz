@@ -124,9 +124,16 @@ public class FuzzingClient {
         Map<Integer, List<String>> testID2oriResults = new HashMap<>();
         Map<Integer, List<String>> testID2upResults = new HashMap<>();
 
+        logger.info("start executing tests");
+        int commandNum = 0;
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
-            executor.executeCommands(tp.originalCommandSequenceList);
 
+            logger.info("[hklog] executing "
+                    + tp.originalCommandSequenceList.size()
+                    + " write commands");
+            commandNum += tp.originalCommandSequenceList.size();
+            executor.executeCommands(tp.originalCommandSequenceList);
+            logger.info("[hklog] finish executing");
             FeedBack[] feedBacks = new FeedBack[stackedTestPacket.nodeNum];
             for (int i = 0; i < stackedTestPacket.nodeNum; i++) {
                 feedBacks[i] = new FeedBack();
@@ -148,8 +155,10 @@ public class FuzzingClient {
                     .executeCommands(tp.validationCommandSequenceList);
 
             testID2oriResults.put(tp.testPacketID, oriResult);
+            commandNum += tp.validationCommandSequenceList.size();
         }
 
+        logger.info("finish executing tests, total command: " + commandNum);
         StackedFeedbackPacket stackedFeedbackPacket = new StackedFeedbackPacket(
                 stackedTestPacket.configFileName);
         stackedFeedbackPacket.fullSequence = recordStackedTestPacket(
@@ -162,7 +171,24 @@ public class FuzzingClient {
             logInfoBeforeUpgrade = executor.grepLogInfo();
         }
 
-        boolean ret = executor.fullStopUpgrade();
+        if (Config.instance.useLikelyInv) {
+            boolean hasBrokenInv = executor.hasBrokenInv();
+            logger.info("checking inv!");
+            if (!hasBrokenInv) {
+                // skip current upgrade process
+                stackedFeedbackPacket.skipped = true;
+                new Thread(this::tearDownExecutor).start();
+                logger.info("client skip upgrade process!");
+                // also skip the tear down process, we force shutdown the
+                // cluster!
+                // open a thread to shutdown it
+                return stackedFeedbackPacket;
+            }
+        }
+
+        executor.fullStopCluster();
+
+        boolean ret = executor.upgradeCluster();
 
         if (!ret) {
             // upgrade failed

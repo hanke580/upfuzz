@@ -1,0 +1,2 @@
+org.apache.cassandra.db.rows.AbstractCell.isExpiring
+org.apache.cassandra.db.ColumnIndex.add

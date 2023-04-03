@@ -12,6 +12,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.docker.Docker;
 import org.zlab.upfuzz.docker.DockerCluster;
+import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.LogInfo;
 import org.zlab.upfuzz.utils.Utilities;
 
@@ -69,6 +70,8 @@ public class HdfsDocker extends Docker {
         formatMap.put("namenodeIP", namenodeIP);
         formatMap.put("networkIP", networkIP);
         formatMap.put("agentPort", Integer.toString(agentPort));
+        formatMap.put("runtimeMonitorPort",
+                Integer.toString(Config.instance.runtimeMonitorPort));
         formatMap.put("executorID", executorID);
         StringSubstitutor sub = new StringSubstitutor(formatMap);
         this.composeYaml = sub.replace(template);
@@ -117,6 +120,7 @@ public class HdfsDocker extends Docker {
                 "\"";
 
         env = new String[] {
+                "EXTRA_CLASSPATH=$EXTRA_CLASSPATH:/dinv-monitor-shadow.jar",
                 "HADOOP_HOME=" + hdfsHome,
                 "HADOOP_CONF_DIR=" + hdfsConf, javaToolOpts,
                 "HDFS_SHELL_DAEMON_PORT=\"" + hdfsDaemonPort + "\"",
@@ -318,6 +322,7 @@ public class HdfsDocker extends Docker {
             + "            - HDFS_LOG_DIR=/var/log/hadoop\n"
             + "        expose:\n"
             + "            - ${agentPort}\n"
+            + "            - ${runtimeMonitorPort}\n"
             + "            - 50020\n"
             + "            - 50010\n"
             + "            - 50075\n"

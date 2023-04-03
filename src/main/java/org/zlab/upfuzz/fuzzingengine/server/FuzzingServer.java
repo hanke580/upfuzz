@@ -202,9 +202,9 @@ public class FuzzingServer {
                 packet = testPlanPackets.poll();
                 // TestPlanPacket tp = (TestPlanPacket) packet;
                 // logger.info("val cmd size = "
-                //         + tp.testPlan.validationCommands.size());
+                // + tp.testPlan.validationCommands.size());
                 // logger.info("val oracle size = "
-                //         + tp.testPlan.validationReadResultsOracle.size());
+                // + tp.testPlan.validationReadResultsOracle.size());
             }
             isFullStopUpgrade = !isFullStopUpgrade;
             return packet;
@@ -892,6 +892,12 @@ public class FuzzingServer {
 
     public synchronized void updateStatus(
             StackedFeedbackPacket stackedFeedbackPacket) {
+
+        if (stackedFeedbackPacket.skipped) {
+            // upgrade process is skipped
+            logger.info("upgrade process is skipped");
+        }
+
         Path failureDir = null;
 
         if (stackedFeedbackPacket.isUpgradeProcessFailed) {

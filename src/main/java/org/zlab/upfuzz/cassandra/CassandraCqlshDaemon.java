@@ -17,8 +17,6 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.docker.Docker;
-import org.zlab.upfuzz.fuzzingengine.LogInfo;
-import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.utils.Utilities;
 
 public class CassandraCqlshDaemon {
@@ -56,44 +54,56 @@ public class CassandraCqlshDaemon {
     }
 
     public CassandraCqlshDaemon(String ipAddress, int port, Docker docker) {
-        int retry = 30;
+        int SLEEP_INTERVAL = 1;
+        int retry = 300 / SLEEP_INTERVAL;
         logger.info("[HKLOG] executor ID = " + docker.executorID + "  "
-                + "Connect to cqlsh:" + ipAddress + "...");
+                + "Connect to cqlsh:" + ipAddress + "..."
+                + "\t this normally takes"
+                + " 6 seconds for single node or 50s for 3-node cluster node");
         for (int i = 0; i < retry; ++i) {
             try {
-                logger.debug("[HKLOG] executor ID = " + docker.executorID + "  "
-                        + "Connect to cqlsh:" + ipAddress + "..." + i);
-                socket = new Socket();
-                socket.connect(new InetSocketAddress(ipAddress, port),
-                        3 * 1000);
-                logger.info("[HKLOG] executor ID = " + docker.executorID + "  "
-                        + "Cqlsh connected: " + ipAddress);
-                return;
+                if (i % 5 == 0) {
+                    logger.debug("[HKLOG] executor ID = " + docker.executorID
+                            + "  "
+                            + "Connect to cqlsh:" + ipAddress + "..." + i);
+                    socket = new Socket();
+                    socket.connect(new InetSocketAddress(ipAddress, port),
+                            3 * 1000);
+                    logger.info(
+                            "[HKLOG] executor ID = " + docker.executorID + "  "
+                                    + "Cqlsh connected: " + ipAddress);
+                    return;
+                }
             } catch (Exception ignored) {
             }
             try {
-                Thread.sleep(10 * 1000);
+                Thread.sleep(SLEEP_INTERVAL * 1000);
             } catch (InterruptedException ignored) {
             }
 
-            try {
-                Process grepProc = docker.runInContainer(new String[] {
-                        "/bin/sh", "-c",
-                        "ps -ef | grep org.apache.cassandra.service.CassandraDaemon | wc -l"
-                });
-                String result = new String(
-                        grepProc.getInputStream().readAllBytes()).strip();
-                int processNum = Integer.parseInt(result);
-                logger.debug("[HKLOG] processNum = " + processNum);
-                if (Integer.parseInt(result) <= 2) {
-                    // Process has died
-                    logger.debug("system process died");
-                    break;
-                }
+            // if it's already 5s, the process should have started!
+            if (i * SLEEP_INTERVAL >= 3) {
+                try {
+                    Process grepProc = docker.runInContainer(new String[] {
+                            "/bin/sh", "-c",
+                            "ps -ef | grep org.apache.cassandra.service.CassandraDaemon | wc -l"
+                    });
+                    String result = new String(
+                            grepProc.getInputStream().readAllBytes()).strip();
+                    int processNum = Integer.parseInt(result);
+                    if (Integer.parseInt(result) <= 2) {
+                        // Process has died
+                        logger.debug("[HKLOG] processNum = " + processNum
+                                + " smaller than 2, "
+                                + "system process died");
+                        break;
+                    }
 
-            } catch (Exception e) {
-                e.printStackTrace();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
+
         }
         throw new RuntimeException("[HKLOG] executor ID = " + docker.executorID
                 + "  " + "cannot connect to cqlsh at " + ipAddress);

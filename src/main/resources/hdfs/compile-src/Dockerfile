@@ -25,6 +25,11 @@ COPY org.jacoco.agent.rt.jar /org.jacoco.agent.rt.jar
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # 2. System setup.
+
+# likely invariants
+# Runtime Monitor
+COPY dinv-monitor-shadow.jar /dinv-monitor-shadow.jar
+
 RUN mkdir /hadoop-config
 COPY hadoop_config/* /hadoop-config/
 

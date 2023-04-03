@@ -1,15 +1,18 @@
 package org.zlab.upfuzz.cassandra;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.net.Socket;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.zlab.dinv.runtimechecker.Runtime;
 import org.zlab.upfuzz.docker.Docker;
 import org.zlab.upfuzz.docker.DockerCluster;
 import org.zlab.upfuzz.fuzzingengine.Config;
@@ -71,6 +74,8 @@ public class CassandraDocker extends Docker {
         formatMap.put("seedIP", seedIP);
         formatMap.put("networkIP", networkIP);
         formatMap.put("agentPort", Integer.toString(agentPort));
+        formatMap.put("runtimeMonitorPort",
+                Integer.toString(Config.instance.runtimeMonitorPort));
         formatMap.put("executorID", executorID);
         formatMap.put("serviceName", serviceName);
 
@@ -131,6 +136,7 @@ public class CassandraDocker extends Docker {
         }
 
         env = new String[] {
+                "EXTRA_CLASSPATH=$EXTRA_CLASSPATH:/dinv-monitor-shadow.jar",
                 "CASSANDRA_HOME=\"" + cassandraHome + "\"",
                 "CASSANDRA_CONF=\"" + cassandraConf + "\"", javaToolOpts,
                 "CQLSH_DAEMON_PORT=\"" + cqlshDaemonPort + "\"",
@@ -260,6 +266,33 @@ public class CassandraDocker extends Docker {
         cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort, this);
     }
 
+    public boolean invChecker() throws IOException, InterruptedException {
+        // use daikon checker to monitor invariants
+        String checkInvCmd = "java -cp /daikon.jar daikon.tools.InvariantChecker --verbose --output /broken_inv /targetInv.inv.gz /CassandraDaemon.dtrace.gz";
+        Process checkInvProcess = runInContainer(
+                new String[] { "/bin/bash", "-c", checkInvCmd });
+        checkInvProcess.waitFor();
+        String message = Utilities.readProcess(checkInvProcess);
+
+        String regexPattern = "(\\d+)\\s+errors";
+
+        Pattern pattern = Pattern.compile(regexPattern);
+        Matcher matcher = pattern.matcher(message);
+
+        if (matcher.find()) {
+            String res = matcher.group();
+            logger.info("find res = " + res);
+            String[] strs = res.split(" ");
+            if (strs.length == 2) {
+                int errorNum = Integer.valueOf(strs[0]);
+                logger.info("error num = " + res);
+                if (errorNum > 0)
+                    return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public void shutdown() {
         // Use the target version's script to shutdown the node
@@ -329,6 +362,7 @@ public class CassandraDocker extends Docker {
             + "            - CASSANDRA_LOG_DIR=/var/log/cassandra\n"
             + "        expose:\n"
             + "            - ${agentPort}\n"
+            + "            - ${runtimeMonitorPort}\n"
             + "            - 7000\n"
             + "            - 7001\n"
             + "            - 7199\n"
