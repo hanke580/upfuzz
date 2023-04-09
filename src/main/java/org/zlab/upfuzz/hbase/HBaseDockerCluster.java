@@ -34,7 +34,7 @@ public class HBaseDockerCluster extends DockerCluster {
     String seedIP;
 
     static final String includes = "org.apache.hadoop.hbase.*";
-    static final String excludes = "";
+    static final String excludes = "org.jruby.*";
 
     HBaseDockerCluster(HBaseExecutor executor, String version,
             int nodeNum) {

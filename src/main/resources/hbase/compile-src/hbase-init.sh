@@ -12,7 +12,13 @@ mkdir -p ${HBASE_CONF}
 bin=${HBASE_HOME}
 
 cp ${bin}/conf/* ${HBASE_CONF}/
-cp -f /test_config/oriconfig/* ${HBASE_CONF}/
+if [ ${CUR_STATUS} = "ORI" ]
+then
+    cp -f /test_config/oriconfig/* ${HBASE_CONF}/
+else
+    cp -f /test_config/upconfig/* ${HBASE_CONF}/
+fi
+
 export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
 
 if [ ${IS_HMASTER} = "false" ]

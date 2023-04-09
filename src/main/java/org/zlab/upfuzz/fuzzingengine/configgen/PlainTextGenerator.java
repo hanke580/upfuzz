@@ -46,9 +46,12 @@ public class PlainTextGenerator extends ConfigFileGenerator {
                         DockerCluster.getKthIP(hostIP, i + 1));
             }
             String RegionServerIPs = String.join("\n", RegionIPs) + "\n";
-            try (FileOutputStream output = new FileOutputStream(
-                    oriSavePath.toFile())) {
-                output.write(RegionServerIPs.getBytes());
+            try (FileOutputStream output1 = new FileOutputStream(
+                    oriSavePath.toFile());
+                    FileOutputStream output2 = new FileOutputStream(
+                            upSavePath.toFile())) {
+                output1.write(RegionServerIPs.getBytes());
+                output2.write(RegionServerIPs.getBytes());
             } catch (IOException e) {
                 e.printStackTrace();
             }

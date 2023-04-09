@@ -146,8 +146,8 @@ public class HBaseDocker extends Docker {
         env = new String[] {
                 "HBASE_HOME=\"" + HBaseHome + "\"",
                 "HBASE_CONF=\"" + HBaseConf + "\"", javaToolOpts,
-                "JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/",
                 "HBASE_SHELL_DAEMON_PORT=\"" + HBaseDaemonPort + "\"",
+                "CUR_STATUS=ORI",
                 "PYTHON=" + pythonVersion };
 
         setEnvironment();
@@ -165,14 +165,15 @@ public class HBaseDocker extends Docker {
 
     @Override
     public void upgrade() throws Exception {
+        prepareUpgradeEnv();
+        String restartCommand = "supervisorctl restart hbase";
+        Process restart = runInContainer(
+                new String[] { "/bin/bash", "-c", restartCommand }, env);
+        int ret = restart.waitFor();
+        String message = Utilities.readProcess(restart);
+        logger.debug("upgrade version start: " + ret + "\n" + message);
+
         if (index == 0) {
-            prepareUpgradeEnv();
-            String restartCommand = "supervisorctl restart hbase";
-            Process restart = runInContainer(
-                    new String[] { "/bin/bash", "-c", restartCommand }, env);
-            int ret = restart.waitFor();
-            String message = Utilities.readProcess(restart);
-            logger.debug("upgrade version start: " + ret + "\n" + message);
             HBaseShell = new HBaseShellDaemon(getNetworkIP(), HBaseDaemonPort,
                     this.executorID,
                     this);
@@ -187,8 +188,8 @@ public class HBaseDocker extends Docker {
 
     public void prepareUpgradeEnv() throws IOException {
         type = "upgraded";
-        String hbaseHome = "/hbase/" + upgradedVersion;
-        String hbaseConf = "/etc/" + upgradedVersion;
+        String HBaseHome = "/hbase/" + upgradedVersion;
+        String HBaseConf = "/etc/" + upgradedVersion;
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
                 + "/org.jacoco.agent.rt.jar"
                 + "=append=false"
@@ -211,10 +212,10 @@ public class HBaseDocker extends Docker {
             e.printStackTrace();
         }
         env = new String[] {
-                "HBASE_HOME=\"" + hbaseHome + "\"",
-                "HBASE_CONF=\"" + hbaseConf + "\"", javaToolOpts,
-                "JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/",
+                "HBASE_HOME=\"" + HBaseHome + "\"",
+                "HBASE_CONF=\"" + HBaseConf + "\"", javaToolOpts,
                 "HBASE_SHELL_DAEMON_PORT=\"" + HBaseDaemonPort + "\"",
+                "CUR_STATUS=UP",
                 "PYTHON=" + pythonVersion };
         setEnvironment();
     }
@@ -222,8 +223,8 @@ public class HBaseDocker extends Docker {
     @Override
     public void downgrade() throws Exception {
         type = "original";
-        String hbaseHome = "/hbase/" + originalVersion;
-        String hbaseConf = "/etc/" + originalVersion;
+        String HBaseHome = "/hbase/" + originalVersion;
+        String HBaseConf = "/etc/" + originalVersion;
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
                 + "/org.jacoco.agent.rt.jar"
                 + "=append=false"
@@ -248,22 +249,23 @@ public class HBaseDocker extends Docker {
         }
 
         env = new String[] {
-                "HBASE_HOME=\"" + hbaseHome + "\"",
-                "HBASE_CONF=\"" + hbaseConf + "\"", javaToolOpts,
-                "JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/",
+                "HBASE_HOME=\"" + HBaseHome + "\"",
+                "HBASE_CONF=\"" + HBaseConf + "\"", javaToolOpts,
                 "HBASE_SHELL_DAEMON_PORT=\"" + HBaseDaemonPort + "\"",
+                "CUR_STATUS=ORI",
                 "PYTHON=" + pythonVersion };
 
         setEnvironment();
 
+        String restartCommand = "supervisorctl restart hbase";
+        // TODO remove the env arguments, we already have /usr/bin/set_env
+        Process restart = runInContainer(
+                new String[] { "/bin/bash", "-c", restartCommand }, env);
+        int ret = restart.waitFor();
+        String message = Utilities.readProcess(restart);
+        logger.debug("downgrade version start: " + ret + "\n" + message);
+
         if (index == 0) {
-            String restartCommand = "supervisorctl restart hbase";
-            // TODO remove the env arguments, we already have /usr/bin/set_env
-            Process restart = runInContainer(
-                    new String[] { "/bin/bash", "-c", restartCommand }, env);
-            int ret = restart.waitFor();
-            String message = Utilities.readProcess(restart);
-            logger.debug("downgrade version start: " + ret + "\n" + message);
             HBaseShell = new HBaseShellDaemon(getNetworkIP(), HBaseDaemonPort,
                     this.executorID,
                     this);
@@ -331,11 +333,8 @@ public class HBaseDocker extends Docker {
             + "            - ./persistent/config:/test_config\n"
             + "            - ${projectRoot}/prebuild/${system}/${originalVersion}:/${system}/${originalVersion}\n"
             + "            - ${projectRoot}/prebuild/${system}/${upgradedVersion}:/${system}/${upgradedVersion}\n"
-            + "            - ${projectRoot}/prebuild/hadoop/hadoop-2.10.2:/hadoop/hadoop-2.10.2\n" // TODO:
-                                                                                                   // depend
-                                                                                                   // system
-                                                                                                   // &
-                                                                                                   // version
+            + "            - ${projectRoot}/prebuild/hadoop/hadoop-2.10.2:/hadoop/hadoop-2.10.2\n"
+            // TODO: depend system & version in configuration
             + "        environment:\n"
             + "            - HADOOP_IP=${HadoopIP}\n"
             + "            - IS_HMASTER=${HBaseMaster}\n"
@@ -343,7 +342,7 @@ public class HBaseDocker extends Docker {
             + "            - HBASE_SEEDS=${seedIP},\n"
             + "            - HBASE_LOGGING_LEVEL=DEBUG\n"
             + "            - HBASE_SHELL_HOST=${networkIP}\n"
-            + "            - HBASE_SHELL_DAEMON_PORT=${daemonPort}\n"
+            + "            - JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/\n"
             // + " - HBASE_LOG_DIR=/var/log/cassandra\n"
             + "        expose:\n"
             + "            - ${agentPort}\n"
