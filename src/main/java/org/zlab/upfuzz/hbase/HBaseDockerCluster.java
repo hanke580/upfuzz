@@ -229,6 +229,21 @@ public class HBaseDockerCluster extends DockerCluster {
     }
 
     @Override
+    public boolean fullStopUpgrade() throws Exception {
+        logger.info("Cluster full-stop upgrading...");
+        prepareUpgrade();
+        for (int i = 0; i < dockers.length; i++) {
+            dockers[i].flush();
+            dockers[i].shutdown();
+        }
+        for (int i = dockers.length - 1; i >= 0; i--) {
+            dockers[i].upgrade();
+        }
+        logger.info("Cluster upgraded");
+        return true;
+    }
+
+    @Override
     public void finalizeUpgrade() {
         logger.debug("HBase upgrade finalized");
     }

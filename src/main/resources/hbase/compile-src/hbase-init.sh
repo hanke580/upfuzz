@@ -11,7 +11,7 @@ mkdir -p ${HBASE_CONF}
 
 bin=${HBASE_HOME}
 
-cp ${bin}/conf/* ${HBASE_CONF}/
+cp -f ${bin}/conf/* ${HBASE_CONF}/
 if [ ${CUR_STATUS} = "ORI" ]
 then
     cp -f /test_config/oriconfig/* ${HBASE_CONF}/
@@ -19,7 +19,9 @@ else
     cp -f /test_config/upconfig/* ${HBASE_CONF}/
 fi
 
+export HBASE_ENV_INIT=
 export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
+export HBASE_CONF_DIR=${HBASE_CONF}
 
 if [ ${IS_HMASTER} = "false" ]
 then
@@ -39,7 +41,6 @@ done
 # /bin/bash -c "/hbase/hbase-2.4.15/bin/start-hbase.sh"
 
 # . "$bin"/bin/hbase-config.sh --config ${HBASE_CONF}
-export HBASE_CONF_DIR=${HBASE_CONF}
 
 # HBASE-6504 - only take the first line of the output in case verbose gc is on
 # distMode=`$bin/bin/hbase --config "$HBASE_CONF" org.apache.hadoop.hbase.util.HBaseConfTool hbase.cluster.distributed | head -n 1`

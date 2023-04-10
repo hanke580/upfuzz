@@ -166,7 +166,12 @@ public class HBaseDocker extends Docker {
     @Override
     public void upgrade() throws Exception {
         prepareUpgradeEnv();
-        String restartCommand = "supervisorctl restart hbase";
+        String restartCommand;
+        if (index == 0) {
+            restartCommand = "supervisorctl restart hbase";
+        } else {
+            restartCommand = "source /usr/bin/set_env && /usr/local/bin/hbase-init.sh";
+        }
         Process restart = runInContainer(
                 new String[] { "/bin/bash", "-c", restartCommand }, env);
         int ret = restart.waitFor();
@@ -342,8 +347,8 @@ public class HBaseDocker extends Docker {
             + "            - HBASE_SEEDS=${seedIP},\n"
             + "            - HBASE_LOGGING_LEVEL=DEBUG\n"
             + "            - HBASE_SHELL_HOST=${networkIP}\n"
+            + "            - HBASE_LOG_DIR=/var/log/hbase\n"
             + "            - JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/\n"
-            // + " - HBASE_LOG_DIR=/var/log/cassandra\n"
             + "        expose:\n"
             + "            - ${agentPort}\n"
             + "            - ${daemonPort}\n"
@@ -373,7 +378,7 @@ public class HBaseDocker extends Docker {
         // Cassandra do not distinguish nodes
         // HDFS might get state from different nodes
         for (String stateName : targetSystemStates) {
-            Path filePath = Paths.get("/var/log/cassandra/system.log");
+            Path filePath = Paths.get("/var/log/hbase/system.log");
             String target = String.format("\\[InconsistencyDetector\\]\\[%s\\]",
                     stateName);
             String[] grepStateCmd = new String[] {
@@ -408,7 +413,7 @@ public class HBaseDocker extends Docker {
     @Override
     public LogInfo grepLogInfo() {
         LogInfo logInfo = new LogInfo();
-        Path filePath = Paths.get("/var/log/cassandra/system.log");
+        Path filePath = Paths.get("/var/log/hbase/system.log");
 
         constructLogInfo(logInfo, filePath);
         return logInfo;
