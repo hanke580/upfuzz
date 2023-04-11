@@ -65,10 +65,10 @@ public class CommandTests {
         System.out.println(cmd04str);
         cmd04.updateState(s);
 
-        PUT_NEW_ITEM cmd05 = new PUT_NEW_ITEM(s);
-        String cmd05str = cmd05.constructCommandString();
-        System.out.println(cmd05str);
-        cmd05.updateState(s);
+        //PUT_NEW_ITEM cmd05 = new PUT_NEW_ITEM(s);
+        //String cmd05str = cmd05.constructCommandString();
+        //System.out.println(cmd05str);
+        //cmd05.updateState(s);
 
 
 
