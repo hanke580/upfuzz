@@ -3,6 +3,7 @@ package org.zlab.upfuzz.fuzzingengine.packet;
 import com.google.gson.Gson;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
@@ -14,7 +15,7 @@ import org.zlab.upfuzz.fuzzingengine.server.Seed;
 // system instance. Like separating 60 tests with
 // keyspace for cassandra to avoid the conflict
 // between them for acceleration
-public class StackedTestPacket extends Packet {
+public class StackedTestPacket extends Packet implements Serializable {
     static Logger logger = LogManager.getLogger(StackedTestPacket.class);
 
     public int nodeNum;

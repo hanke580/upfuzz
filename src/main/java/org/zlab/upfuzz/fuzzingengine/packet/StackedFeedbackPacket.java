@@ -3,6 +3,7 @@ package org.zlab.upfuzz.fuzzingengine.packet;
 import com.google.gson.Gson;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
@@ -12,7 +13,7 @@ import org.apache.logging.log4j.Logger;
  * Client: Execute and reply the execute information
  */
 
-public class StackedFeedbackPacket extends Packet {
+public class StackedFeedbackPacket extends Packet implements Serializable {
     static Logger logger = LogManager.getLogger(StackedFeedbackPacket.class);
 
     public final List<FeedbackPacket> fpList;
