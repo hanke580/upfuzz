@@ -129,8 +129,8 @@ else
     fi
 fi
 
-echo "[*] Copying libnyx.so"
-if ! cp "libnyx/libnyx/target/release/liblibnyx.so" "libnyx.so"; then
+echo "[*] Copying libnyx.a"
+if ! cp "libnyx/libnyx/target/release/liblibnyx.a" "libnyx.a"; then
     echo "[!] Error: cp failed"
     exit 1
 fi

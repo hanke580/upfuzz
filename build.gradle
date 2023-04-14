@@ -1,5 +1,6 @@
 plugins {
 	id 'java'
+	id 'c'
 	id "com.diffplug.spotless" version "6.6.1"
 }
 
@@ -83,12 +84,44 @@ task copyDependencies(type: Copy) {
 
 sourceSets {
 	main {
+		java {
+			srcDirs 'src/main/java'
+			include '**/*.java'
+		}
+		// c {
+		// 	source {
+		// 		srcDirs 'src/main/c'
+		// 		include '**/*.c'
+		// 	}
+		// 	exportedHeaders {
+		// 		srcDirs 'src/main/c'
+		// 		include '**/*.h'
+		// 	}
+		// }
 		resources {
 			exclude 'cassandra/**/cassandra'
 			exclude 'hadoop/**/hadoop'
 		}
 	}
 }
+
+// task copyNativeLibs(type: Copy) {
+//     from 'src/main/resources'
+//     into "$buildDir/libs"
+//     include '**/*.so'
+// }
+
+// run the build script during a gradle build
+task runJNIbuildScript(type: Exec) {
+	commandLine 'sh', 'compile_JNI_c.sh', "$buildDir/libs"
+}
+
+tasks.build.dependsOn(runJNIbuildScript)
+
+// task compileJni(type: Exec) {
+//     commandLine 'gcc', '-shared', '-fPIC', sourceSets.main.c.files.collect{it.absolutePath}, '-o', 'build/libs/libnyxJNI.so'
+// }
+
 
 task compileMavenProject() {
 	// exec {
