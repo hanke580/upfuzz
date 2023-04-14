@@ -12,6 +12,7 @@ import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.fuzzingengine.packet.*;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.hdfs.HdfsExecutor;
+import org.zlab.upfuzz.nyx.LibnyxInterface;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
@@ -22,6 +23,7 @@ public class FuzzingClient {
 
     public Executor executor;
     public Path configDirPath;
+    private LibnyxInterface libnyx = null;
 
     // If the cluster cannot start up for 3 times, it's serious
     int CLUSTER_START_RETRY = 3; // stop retry for now
@@ -36,6 +38,9 @@ public class FuzzingClient {
             executor.teardown();
             executor.upgradeTeardown();
         }));
+        if (Config.getConf().nyxMode) { //TODO figure out what to put in for args
+            this.libnyx = new LibnyxInterface(null, null, 0);
+        }
     }
 
     public void start() throws InterruptedException {
@@ -78,13 +83,68 @@ public class FuzzingClient {
         executor.teardown();
     }
 
+    public StackedFeedbackPacket executeStackedTestPacket(StackedTestPacket stackedTestPacket) {
+        if (Config.getConf().nyxMode) {
+            return executeStackedTestPacketNyx(stackedTestPacket);
+        } else {
+            return executeStackedTestPacketRegular(stackedTestPacket);
+        }
+    }
+
+    private StackedTestPacket previousStackedTest = null;
+
+    public StackedFeedbackPacket executeStackedTestPacketNyx(StackedTestPacket stackedTestPacket) { // TODO ALESSANDRO
+        Path configPath = Paths.get(configDirPath.toString(),
+        stackedTestPacket.configFileName);
+        logger.info("[HKLOG] configPath = " + configPath);
+
+        // config verification - do we really want this?, maybe just skip config verification TODO
+        if (Config.getConf().verifyConfig) {
+            boolean validConfig = verifyConfig(configPath);
+            if (!validConfig) {
+                logger.error(
+                        "problem with configuration! system cannot start up");
+                return null;
+            }
+        }
+
+        //TODO was figuring out how docker can be built without initializing the entire Cassandra executor <- work on this first
+        dockerCluster = new CassandraDockerCluster(
+                this, Config.getConf().originalVersion,
+                nodeNum, targetSystemStates, configPath);
+
+        //executor = initExecutor(stackedTestPacket.nodeNum, null, configPath); // is this needed?
+
+
+        if (this.previousStackedTest == null) {
+            // TODO move docker compose file into shared dir
+            this.libnyx.nyxNew();
+        } else if (!this.previousStackedTest.configFileName.equals(stackedTestPacket.configFileName)) { // TODO write config compare method
+            // TODO move docker compose files into shared dir
+            this.libnyx.nyxShutdown();
+            this.libnyx.nyxNew();
+        }
+        this.previousStackedTest = stackedTestPacket; // save this test packet
+
+        //convert stackedTestPacket to file and place in shared dir
+        this.libnyx.setInput("filename"); // TODO change to correct filename
+
+        this.libnyx.nyxExec();
+
+        //get feedback file from hpush dir (in workdir)
+        // convert it to StackedFeedbackPacket
+        StackedFeedbackPacket stackedFeedbackPacket = null;
+
+        return stackedFeedbackPacket;
+    }
+
     /**
      * start the old version system, execute and count the coverage of all
      * test cases of stackedFeedbackPacket, perform an upgrade process, check
      * the (1) upgrade process failed (2) result inconsistency
      * @param stackedTestPacket the stacked test packets from server
      */
-    public StackedFeedbackPacket executeStackedTestPacket(
+    public StackedFeedbackPacket executeStackedTestPacketRegular(
             StackedTestPacket stackedTestPacket) {
         Path configPath = Paths.get(configDirPath.toString(),
                 stackedTestPacket.configFileName);

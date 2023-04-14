@@ -12,5 +12,6 @@
   "testingMode": 4,
   "startUpClusterForDebugging": false,
   "debug": false,
-  "collUpFeedBack": true
+  "collUpFeedBack": true,
+  "nyxMode": true
 }
