@@ -87,6 +87,8 @@ sourceSets {
 		java {
 			srcDirs 'src/main/java'
 			include '**/*.java'
+			exclude 'src/main/java/nyx'
+			include 'src/main/java/nyx/LibnyxInterface.java'
 		}
 		// c {
 		// 	source {
@@ -103,6 +105,25 @@ sourceSets {
 			exclude 'hadoop/**/hadoop'
 		}
 	}
+	miniClient {
+		java {
+			srcDirs 'src/main/java'
+			include '**/*.java'
+			exclude 'src/main/java/fuzzingengine/Main.java'
+		}
+		resources {
+			exclude 'cassandra/**/cassandra'
+			exclude 'hadoop/**/hadoop'
+		}
+	}
+}
+
+jar {
+    //from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    manifest {
+		archiveName = "MiniClient.jar"
+        attributes 'Main-Class': 'org.zlab.upfuzz.nyx.MiniClientMain'
+    }
 }
 
 // task copyNativeLibs(type: Copy) {
