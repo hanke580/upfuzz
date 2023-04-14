@@ -109,9 +109,9 @@ public class FuzzingClient {
         }
 
         //TODO was figuring out how docker can be built without initializing the entire Cassandra executor <- work on this first
-        dockerCluster = new CassandraDockerCluster(
-                this, Config.getConf().originalVersion,
-                nodeNum, targetSystemStates, configPath);
+        // dockerCluster = new CassandraDockerCluster(
+        //         this, Config.getConf().originalVersion,
+        //         nodeNum, targetSystemStates, configPath);
 
         //executor = initExecutor(stackedTestPacket.nodeNum, null, configPath); // is this needed?
 
@@ -125,6 +125,8 @@ public class FuzzingClient {
             this.libnyx.nyxNew();
         }
         this.previousStackedTest = stackedTestPacket; // save this test packet
+
+        
 
         //convert stackedTestPacket to file and place in shared dir
         this.libnyx.setInput("filename"); // TODO change to correct filename
