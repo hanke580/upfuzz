@@ -3,12 +3,8 @@ package org.zlab.upfuzz.nyx;
 import java.util.Scanner;
 
 public class LibnyxInterface {
-    static {
-        // System.loadLibrary("libnyxJNI");
-        System.load(
-                System.getProperty("user.dir") + "/build/libs/libnyxJNI.so");
-        // TODO revert back to loadLibrary once gradle is fixed
-    }
+    // only load nyx if this interface is called
+    static boolean isNyxLoaded = false;
 
     // Note each char is 16 bit = 64 bits total
     private long nyx_process_ptr; // 64 bit pointer stored in
@@ -22,6 +18,11 @@ public class LibnyxInterface {
     private final boolean inputBufferWriteProtection = true;
 
     public LibnyxInterface(String sharedir, String workdir, int cpuID) {
+        if (isNyxLoaded == false) {
+            System.load(System.getProperty("user.dir")
+                    + "/build/libs/libnyxJNI.so");
+            isNyxLoaded = true;
+        }
         this.sharedir = sharedir;
         this.workdir = workdir;
         this.cpuID = cpuID;
