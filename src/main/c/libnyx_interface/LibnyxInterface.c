@@ -20,6 +20,13 @@ void set_nyx_ptr(JNIEnv *env, jobject thisObj, NyxProcess* nyx_runner) {
     (*env)->SetLongField(env, thisObj, ptrField, (jlong) nyx_runner);
 }
 
+void throwErrorOrPrint(JNIEnv *env, jclass exception_class, const char* err_message) {
+    if (exception_class == NULL) {
+        printf("%s\n", err_message);
+    } else {
+        (*env)->ThrowNew(env, exception_class, err_message);
+    }
+}
 
 /*
  * Class:     org_zlab_upfuzz_nyx_LibnyxInterface
@@ -38,6 +45,12 @@ JNIEXPORT void JNICALL Java_org_zlab_upfuzz_nyx_LibnyxInterface_nyxNew(
 
     NyxProcess* nyx_runner = nyx_new(shared_dir, work_dir, cpu_id, input_buf_size, input_buf_write_protection);
     
+    if (nyx_runner == NULL) {
+        jclass exceptionClass = (*env)->FindClass(env, "java/lang/RuntimeException");
+        throwErrorOrPrint(env, exceptionClass, "Error: nyx instance was null");
+        return;
+    }
+
     //save the pointer in the field of the class
     set_nyx_ptr(env, thisObj, nyx_runner);
 
@@ -55,17 +68,15 @@ JNIEXPORT void JNICALL Java_org_zlab_upfuzz_nyx_LibnyxInterface_nyxShutdown(
     JNIEnv *env, jobject thisObj
 ) {
     NyxProcess* nyx_runner = get_nyx_ptr(env, thisObj);
+
+    if (nyx_runner == NULL) {
+        jclass exceptionClass = (*env)->FindClass(env, "java/lang/RuntimeException");
+        throwErrorOrPrint(env, exceptionClass, "Error: nyx instance was null");
+        return;
+    }
+
     nyx_shutdown(nyx_runner);
     set_nyx_ptr(env, thisObj, (NyxProcess*) 0 ); // set it to 0
-}
-
-
-void throwErrorOrPrint(JNIEnv *env, jclass exception_class, const char* err_message) {
-    if (exception_class == NULL) {
-        printf("%s\n", err_message);
-    } else {
-        (*env)->ThrowNew(env, exception_class, err_message);
-    }
 }
 
 /*
@@ -77,9 +88,13 @@ JNIEXPORT void JNICALL Java_org_zlab_upfuzz_nyx_LibnyxInterface_nyxExec(
     JNIEnv *env, jobject thisObj
 ) {
     NyxProcess* nyx_runner = get_nyx_ptr(env, thisObj);
-    
-    jclass exceptionClass = (*env)->FindClass(env, "java/lang/RuntimeException");
 
+    jclass exceptionClass = (*env)->FindClass(env, "java/lang/RuntimeException");
+    if (nyx_runner == NULL) {
+        throwErrorOrPrint(env, exceptionClass, "Error: nyx instance was null");
+        return;
+    }
+        
     switch (nyx_exec(nyx_runner)) {
     case Normal:
         printf("Normal!!!\n");
@@ -108,6 +123,12 @@ JNIEXPORT void JNICALL Java_org_zlab_upfuzz_nyx_LibnyxInterface_setInput(
 
     
     NyxProcess* nyx_runner = get_nyx_ptr(env, thisObj);
+
+    if (nyx_runner == NULL) {
+        jclass exceptionClass = (*env)->FindClass(env, "java/lang/RuntimeException");
+        throwErrorOrPrint(env, exceptionClass, "Error: nyx instance was null");
+        return;
+    }
 
     const char* input_c = (*env)->GetStringUTFChars(env, input, NULL);
     const uint32_t input_length = (uint32_t) (*env)->GetStringLength(env, input) + 1;

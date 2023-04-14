@@ -39,7 +39,7 @@ public class LibnyxInterface {
         return this.inputBufferSize;
     }
 
-    public void nyxNew() {
+    public void nyxNew() throws RuntimeException {
         this.nyxNew(this.sharedir, this.workdir, this.cpuID,
                 this.inputBufferSize, this.inputBufferWriteProtection);
     }
@@ -49,20 +49,21 @@ public class LibnyxInterface {
     // sharedir
     // sets the nyx_process to be used for all other functions
     private native void nyxNew(String sharedir, String workdir, int cpu_id,
-            int input_buffer_size, boolean input_buffer_write_protection);
+            int input_buffer_size, boolean input_buffer_write_protection)
+            throws RuntimeException;
 
     // Calls nyx_shutdown on the nyx-vm instance
     // This kills the VM
-    public native void nyxShutdown();
+    public native void nyxShutdown() throws RuntimeException;
 
     // Calls nyx_exec on the nyx-vm
     // Lets the nyx-vm start the fuzzing loop, doesnt return until after
     // checkpoint is reverted.
-    public native void nyxExec();
+    public native void nyxExec() throws RuntimeException;
 
     // Calls nyx_set_afl_input on the nyx-vm
     // Sets input to be read in the fuzzing loop
-    public native void setInput(String input);
+    public native void setInput(String input) throws RuntimeException;
 
     // Test Driver
     public static void testRun() {
