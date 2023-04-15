@@ -13,5 +13,5 @@
   "startUpClusterForDebugging": false,
   "debug": false,
   "collUpFeedBack": true,
-  "nyxMode": true
+  "nyxMode": false
 }

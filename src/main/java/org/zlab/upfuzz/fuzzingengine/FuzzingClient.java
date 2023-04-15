@@ -1,5 +1,6 @@
 package org.zlab.upfuzz.fuzzingengine;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -38,7 +39,8 @@ public class FuzzingClient {
             executor.teardown();
             executor.upgradeTeardown();
         }));
-        if (Config.getConf().nyxMode) { //TODO figure out what to put in for args
+        if (Config.getConf().nyxMode) { // TODO figure out what to put in for
+                                        // args
             this.libnyx = new LibnyxInterface(null, null, 0);
         }
     }
@@ -83,7 +85,8 @@ public class FuzzingClient {
         executor.teardown();
     }
 
-    public StackedFeedbackPacket executeStackedTestPacket(StackedTestPacket stackedTestPacket) {
+    public StackedFeedbackPacket executeStackedTestPacket(
+            StackedTestPacket stackedTestPacket) {
         if (Config.getConf().nyxMode) {
             return executeStackedTestPacketNyx(stackedTestPacket);
         } else {
@@ -93,12 +96,14 @@ public class FuzzingClient {
 
     private StackedTestPacket previousStackedTest = null;
 
-    public StackedFeedbackPacket executeStackedTestPacketNyx(StackedTestPacket stackedTestPacket) { // TODO ALESSANDRO
+    public StackedFeedbackPacket executeStackedTestPacketNyx(
+            StackedTestPacket stackedTestPacket) { // TODO ALESSANDRO
         Path configPath = Paths.get(configDirPath.toString(),
-        stackedTestPacket.configFileName);
+                stackedTestPacket.configFileName);
         logger.info("[HKLOG] configPath = " + configPath);
 
-        // config verification - do we really want this?, maybe just skip config verification TODO
+        // config verification - do we really want this?, maybe just skip config
+        // verification TODO
         if (Config.getConf().verifyConfig) {
             boolean validConfig = verifyConfig(configPath);
             if (!validConfig) {
@@ -108,32 +113,46 @@ public class FuzzingClient {
             }
         }
 
-        //TODO was figuring out how docker can be built without initializing the entire Cassandra executor <- work on this first
+        executor = initExecutor(stackedTestPacket.nodeNum, null, configPath);
+
+        // executor.dockerCluster TODO
+        // new CassandraDockerCluster(
+        // executor, Config.getConf().originalVersion,
+        // executor.nodeNum, executor.targetSystemStates, configPath);
+
+        // File workdir = new File("fuzzing_storage/" + executor.systemID + "/"
+        // +
+        // originalVersion + "/" + upgradedVersion + "/" +
+        // executorTimestamp + "-" + executor.executorID);
+
+        // TODO was figuring out how docker can be built without initializing
+        // the entire Cassandra executor <- work on this first
         // dockerCluster = new CassandraDockerCluster(
-        //         this, Config.getConf().originalVersion,
-        //         nodeNum, targetSystemStates, configPath);
+        // this, Config.getConf().originalVersion,
+        // nodeNum, targetSystemStates, configPath);
 
-        //executor = initExecutor(stackedTestPacket.nodeNum, null, configPath); // is this needed?
-
+        // executor = initExecutor(stackedTestPacket.nodeNum, null, configPath);
+        // // is this needed?
 
         if (this.previousStackedTest == null) {
             // TODO move docker compose file into shared dir
             this.libnyx.nyxNew();
-        } else if (!this.previousStackedTest.configFileName.equals(stackedTestPacket.configFileName)) { // TODO write config compare method
+        } else if (!this.previousStackedTest.configFileName
+                .equals(stackedTestPacket.configFileName)) { // TODO write
+                                                             // config compare
+                                                             // method
             // TODO move docker compose files into shared dir
             this.libnyx.nyxShutdown();
             this.libnyx.nyxNew();
         }
         this.previousStackedTest = stackedTestPacket; // save this test packet
 
-        
-
-        //convert stackedTestPacket to file and place in shared dir
+        // convert stackedTestPacket to file and place in shared dir
         this.libnyx.setInput("filename"); // TODO change to correct filename
 
         this.libnyx.nyxExec();
 
-        //get feedback file from hpush dir (in workdir)
+        // get feedback file from hpush dir (in workdir)
         // convert it to StackedFeedbackPacket
         StackedFeedbackPacket stackedFeedbackPacket = null;
 
