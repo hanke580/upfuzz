@@ -42,6 +42,7 @@ public class Config {
         public String corpusDir = null;
 
         public boolean nyxMode = false;
+        public String nyxFuzzSH = null;
 
         public int mutationEpoch = 120;
         public int testPlanMutationEpoch = 20;
