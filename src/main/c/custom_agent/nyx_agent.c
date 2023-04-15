@@ -13,6 +13,7 @@
 #include <inttypes.h>
 #include "nyx.h"
 #include <sys/syscall.h>
+#include <string.h>
 
 #define TRACE_BUFFER_SIZE (64)
 
@@ -71,11 +72,6 @@ int push_to_host(char* stream_source){
     printf("Error: NYX vCPU not found!\n");
     return 0;
   }
-
-  // if(argc != 2){
-  //   hprintf("Usage: <hpush> <file>\n");
-  //   return 1;
-  // }
 
   uint64_t size = 0;
   void* ptr = mapfile(stream_source, &size);
@@ -152,21 +148,15 @@ int get_from_host(char* input_file, char* output_file){
 
 int main(int argc, char **argv) {
 
-  /* if you want to debug code running in Nyx, hprintf() is the way to go.
-   *  Long story short -- it's just a guest-to-hypervisor printf. Hence the name
-   * "hprintf"
-   */
-  hprintf("Agent test\n");
-
   /* Request information on available (host) capabilites (optional) */
   host_config_t host_config;
   kAFL_hypercall(HYPERCALL_KAFL_GET_HOST_CONFIG, (uintptr_t)&host_config);
-  hprintf("[capablities] host_config.bitmap_size: 0x%" PRIx64 "\n",
-          host_config.bitmap_size);
-  hprintf("[capablities] host_config.ijon_bitmap_size: 0x%" PRIx64 "\n",
-          host_config.ijon_bitmap_size);
-  hprintf("[capablities] host_config.payload_buffer_size: 0x%" PRIx64 "x\n",
-          host_config.payload_buffer_size);
+  // hprintf("[capablities] host_config.bitmap_size: 0x%" PRIx64 "\n",
+  //         host_config.bitmap_size);
+  // hprintf("[capablities] host_config.ijon_bitmap_size: 0x%" PRIx64 "\n",
+  //         host_config.ijon_bitmap_size);
+  // hprintf("[capablities] host_config.payload_buffer_size: 0x%" PRIx64 "x\n",
+  //         host_config.payload_buffer_size);
 
   /* this is our "bitmap" that is later shared with the fuzzer (you can also
    * pass the pointer of the bitmap used by compile-time instrumentations in
@@ -210,104 +200,99 @@ int main(int argc, char **argv) {
   mlock(payload_buffer, (size_t)host_config.payload_buffer_size);
   memset(payload_buffer, 0, host_config.payload_buffer_size);
   kAFL_hypercall(HYPERCALL_KAFL_GET_PAYLOAD, (uintptr_t)payload_buffer);
-  hprintf("[init] payload buffer is mapped at %p\n", payload_buffer);
+  // hprintf("[init] payload buffer is mapped at %p\n", payload_buffer);
 
   /* the main fuzzing loop */
   while (1) {
+    //get_from_host("docker-compose.yaml", "docker-compose.yaml");
+  
+    //creating pipes
+    int fds_input[2];
+    int fds_output[2];
+    
+    // agent writes into this input pipe                      
+    pipe(fds_input);
+    
+    // agent reads output from this output pipe                        
+    pipe(fds_output);                       
 
-    /* Creates a root snapshot on first execution. Also we requested the next
-     * input with this hypercall */
-    hprintf("BEFore USE_FAST AQUIRE for loop\n");
-    for(int m=0; m < 10; m++) {
-        if (payload_buffer->size > 0) {
-            hprintf("BEFORE DATA=%s\n", payload_buffer->data);
-        } else {
-            hprintf("NO DATA!!\n");
-        }
-        sleep(1);
-    }
-
-    get_from_host("docker-compose.yaml", "docker-compose.yaml");
-    //get_from_host("fuzz_config.txt");
-
-    int p_id = fork();
+    pid_t p_id = fork();
+    
+    // operations in child process
     if(p_id == 0) {
-      // int docker_compose_run = system("docker-compose up");
-      int docker_compose_run = system("echo hello");
-      if (docker_compose_run == -1) {
-        abort_operation("ERROR! Failed to run docker-compose.");
-      } 
+      // as agent reads from fds_input, duplicate the stdin file descriptor to the read end of input pipe
+      dup2(fds_input[0], STDIN_FILENO);
+
+      // as agent writes to fds_output, duplicate the stdout file descriptor to the write end of output pipe
+      dup2(fds_output[1], STDOUT_FILENO);
+
+      // the other ends of the input pipe and the output pipe should remain closed
+      close(fds_input[1]); 
+      close(fds_output[0]); 
+
+      // run the miniclient java program located at "/home/nyx/upfuzz/build/libs/Miniclient.jar" 
+      char *argv[] = {"-jar", "/home/nyx/upfuzz/build/libs/Miniclient.jar", NULL};
+      execv("/usr/bin/java", argv);
     }
     else {
+        // the read end of the input pipe and the write end of the output pipe should remain closed
+        close(fds_input[0]);
+        close(fds_output[1]);
+
+        // these specific messages are configured in the miniclient.java program
+        // when the miniclient receives the packet "START_TESTING", it will execute the test packets
+        char *test_start_msg = "START_TESTING\n";
         
+        // when the agent receives the packet 'R', it will know that the client is ready for testing
+        char ready_state_msg = 'R';
+        
+        /*------------------------------------------------------------------------------------*/
+        //-------------WAIT FOR EACH NODE TO BE CONNECTED VIA TCP-----------------------------//
+        /*------------------------------------------------------------------------------------*/
+        char output_pkt_ready = '\0';
+        if (read(fds_output[0], &output_pkt_ready, 1) == -1)
+          abort_operation("Read operation failed");
+
+        if(output_pkt_ready != ready_state_msg) {
+          abort_operation("Unable to startup the target system.");
+          exit(1);
+        }
+
+        // the nodes are connected via tcp, need the test packet file name
+        uint32_t len = payload_buffer->size;
+        char* file_name = payload_buffer -> data;
+
+        // before taking the snapshot, need to transfer the test packet file from the host to the client VM
+        int get_file_status = get_from_host(file_name, "/miniClientWorkdir/mainStackedTestPacket.ser");
+        if (get_file_status == -1)
+          abort_operation("ERROR! Failed to transfer file from host to guest."); 
+        
+        /* Creates a root snapshot on first execution. Also we requested the next input with this hypercall */
         kAFL_hypercall(HYPERCALL_KAFL_USER_FAST_ACQUIRE, 0);  // root snapshot <--
-        hprintf("---AFTER USER FAST ACQUIRE\n");
-#ifdef DEBUG
-        hprintf("Size: %ld Data: %x %x %x %x\n", payload_buffer->size,
-            payload_buffer->data[4], payload_buffer->data[5],
-            payload_buffer->data[6], payload_buffer->data[7]);
-#endif
 
-      /*---------------------------------TODO-----------------------------------------------*/
-      /*------------------------------------------------------------------------------------*/
-      //-------------CONNECT TCP TO EACH NODE IN THE SYSTEM---------------------------------//
-      /*------------------------------------------------------------------------------------*/
-      uint32_t len = payload_buffer->size;
-      char* file_name = payload_buffer -> data;
+        // First snapshot created, now need to start testing, send the command "START_TESTING\n" to the client
+        int send_test_status = write(fds_input[1], test_start_msg, strlen(test_start_msg));
+        if (send_test_status == -1)
+          abort_operation("Sending command to start testing failed.");
+        
+        //Read the input pipe from java client to c agent (output pipe fds_output)
+        char output_pkt = '\0';
+        if (read(fds_output[0], &output_pkt, 1) == -1)
+          abort_operation("Read operation failed");
+        
+        if (output_pkt != '2')
+        {
+          abort_operation("Feedback packets could not be generated.");
+        }
+        
+        //Push the test feedback file from client to host
+        get_file_status = push_to_host("/miniClientWorkdir/stackedFeedbackPacket.ser");    
+        if (get_file_status == -1)
+          abort_operation("ERROR! Failed to transfer feedback test file to host.");
 
-      int get_file_status = get_from_host(file_name, file_name);
-      if (get_file_status == -1)
-        abort_operation("ERROR! Failed to transfer file from host to guest.");
-      
-      /*---------------------------------TODO-----------------------------------------------*/
-      /*------------------------------------------------------------------------------------*/
-      //Convert the test file to whatever format to be sent off through the tcp connections//
-      //----Write a code in Java to serialize the test file and call that Java program------/
-      /*------------------------------------------------------------------------------------*/
-
-      /*---------------------------------TODO-----------------------------------------------*/
-      /*------------------------------------------------------------------------------------*/
-      //-----------Convert the feedback into a file format feedback_[test name].txt---------//
-      //----Write a code in Java to serialize the test file and call that Java program------/
-      /*------------------------------------------------------------------------------------*/
-
-      get_file_status = push_to_host("feedback_test.txt");    //not sure about the filename, should we include direct too
-      if (get_file_status == -1)
-        abort_operation("ERROR! Failed to transfer feedback test file to host.");
-
-      /* set a byte to make AFL++ happy (otherwise the fuzzer might refuse to
-      * start fuzzing at all) */
-
-      // ((uint8_t *)trace_buffer)[0] = 0x1;
-    } 
-
-    uint32_t len = payload_buffer->size;
-
-    /* set a byte to make AFL++ happy (otherwise the fuzzer might refuse to
-     * start fuzzing at all) */
-    ((uint8_t *)trace_buffer)[0] = 0x1;
-
-    if (len >= 4) {
-    hprintf("LENGTH ==== %d\n", len);
-    hprintf("DATA=%s\n", payload_buffer->data);
-
-    ((uint8_t *)trace_buffer)[10] = 0;
-    hprintf("TMP SNAPSHOT BEFORE\n");
-    kAFL_hypercall(HYPERCALL_KAFL_CREATE_TMP_SNAPSHOT, 0);
-    //kAFL_hypercall(HYPERCALL_KAFL_NESTED_ACQUIRE, 0);
-    hprintf("TMP SNAPSHOT AFTER\n");
-
-    /* this hypercall is used to notify the hypervisor and the fuzzer that a
-     * single fuzzing "execution" has finished. If the reload-mode is enabled,
-     * we will jump back to our root snapshot. Otherwise, the hypervisor passes
-     * control back to the guest once the bitmap buffer has been "processed" by
-     * the fuzzer.
-     */
-    kAFL_hypercall(HYPERCALL_KAFL_RELEASE, 0);
-
-    /* This shouldn't happen if you have enabled the reload mode */
-    hprintf("This should never happen :)\n");
-  }
-}
-return 0;
+        //Reverting the checkpoint  
+        kAFL_hypercall(HYPERCALL_KAFL_RELEASE, 0);
+      } 
+    }
+  return 0; 
 }
