@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -53,9 +54,13 @@ public class MiniClientMain {
         // setup our input scanner
         Scanner stdin = new Scanner(System.in);
 
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        // ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        PrintStream nullStream = new PrintStream(new OutputStream() {
+            public void write(int b) throws IOException {
+            }
+        });
         PrintStream cAgent = System.out;
-        System.setOut(new PrintStream(buffer));
+        System.setOut(nullStream);
 
         // there should be a defaultStackedTestPacket.ser in whatever working
         // dir this was started up in

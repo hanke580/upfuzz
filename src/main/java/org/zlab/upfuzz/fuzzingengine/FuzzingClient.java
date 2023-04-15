@@ -68,6 +68,66 @@ public class FuzzingClient {
                 logger.info("[NyxMode] Disabling Nyx Mode");
                 Config.getConf().nyxMode = false; // disable nyx
             }
+            try {
+                FileUtils.copyFile(
+                        Paths.get("./", "nyx_mode", "config.ron").toFile(),
+                        Paths.get(this.libnyx.getSharedir(), "config.ron")
+                                .toFile(),
+                        false);
+            } catch (IOException e) {
+                // e.printStackTrace();
+                logger.info(
+                        "[NyxMode] config.ron unable to copy into sharedir");
+                logger.info("[NyxMode] Disabling Nyx Mode");
+                Config.getConf().nyxMode = false; // disable nyx
+            }
+            try {
+                FileUtils.copyFile(
+                        Paths.get("./", "nyx_mode", "packer", "packer",
+                                "linux_x86_64-userspace", "bin64", "hget_no_pt")
+                                .toFile(),
+                        Paths.get(this.libnyx.getSharedir(), "hget_no_pt")
+                                .toFile(),
+                        false);
+            } catch (IOException e) {
+                // e.printStackTrace();
+                logger.info(
+                        "[NyxMode] hget_no_pt unable to copy into sharedir");
+                logger.info("[NyxMode] Disabling Nyx Mode");
+                Config.getConf().nyxMode = false; // disable nyx
+            }
+            try {
+                FileUtils.copyFile(
+                        Paths.get("./", "nyx_mode", "packer", "packer",
+                                "linux_x86_64-userspace", "bin64", "hcat_no_pt")
+                                .toFile(),
+                        Paths.get(this.libnyx.getSharedir(), "hcat_no_pt")
+                                .toFile(),
+                        false);
+            } catch (IOException e) {
+                // e.printStackTrace();
+                logger.info(
+                        "[NyxMode] hget_no_pt unable to copy into sharedir");
+                logger.info("[NyxMode] Disabling Nyx Mode");
+                Config.getConf().nyxMode = false; // disable nyx
+            }
+            // DEBUG COPIES, DELETE LATER TODO
+            try {
+                FileUtils.copyFile(
+                        new File("/home/alessandro/upfuzz/build/libs/c_agent"),
+                        Paths.get(this.libnyx.getSharedir(), "c_agent")
+                                .toFile(),
+                        false);
+                FileUtils.copyFile(
+                        new File(
+                                "/home/alessandro/upfuzz/build/libs/MiniClient.jar"),
+                        Paths.get(this.libnyx.getSharedir(), "MiniClient.jar")
+                                .toFile(),
+                        false);
+            } catch (IOException e) {
+                e.printStackTrace();
+                Config.getConf().nyxMode = false; // disable nyx
+            }
         }
     }
 
@@ -142,8 +202,11 @@ public class FuzzingClient {
             }
         }
         // TODO write a compare method
-        boolean sameConfigAsLastTime = this.previousStackedTest.configFileName
-                .equals(stackedTestPacket.configFileName);
+        boolean sameConfigAsLastTime = false;
+        if (this.previousStackedTest != null) {
+            this.previousStackedTest.configFileName
+                    .equals(stackedTestPacket.configFileName);
+        }
         if (this.previousStackedTest == null || !sameConfigAsLastTime) {
             // the miniClient will setup the distributed system according to the
             // defaultStackedTestPacket and the config
@@ -151,17 +214,36 @@ public class FuzzingClient {
                     "stackedTestPackets",
                     "defaultStackedPacket.ser");
             Path sharedConfigPath = Paths.get(this.libnyx.getSharedir(),
-                    "sharedConfigFile");
+                    "archive.tar.gz");
             try {
+                // Created sharedir/stackedTestPackets directory
+                Paths.get(this.libnyx.getSharedir(), "stackedTestPackets")
+                        .toFile().mkdir();
                 // Copy the default stacked packet
                 Utilities.writeObjectToFile(defaultStackedTestPath.toFile(),
                         stackedTestPacket);
 
                 // Copy the config file to the sharedir
-                FileUtils.copyFile(configPath.toFile(),
+                // Zip the config into a zip file
+                Process tar = Utilities.exec(
+                        new String[] { "tar",
+                                "-czf", "archive.tar.gz",
+                                "./", },
+                        configPath.toFile());
+                tar.waitFor();
+
+                System.out.println(configPath
+                        .resolve("archive.tar.gz").toAbsolutePath().toString());
+                FileUtils.copyFile(
+                        configPath.resolve("archive.tar.gz")
+                                .toFile(),
                         sharedConfigPath.toFile(), true);
 
             } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            } catch (InterruptedException e) {
+                // zip failed
                 e.printStackTrace();
                 return null;
             }

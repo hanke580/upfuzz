@@ -1,9 +1,10 @@
 package org.zlab.upfuzz.fuzzingengine.packet;
 
+import java.io.Serializable;
 import java.util.Comparator;
 import java.util.List;
 
-public class TestPacket {
+public class TestPacket implements Serializable {
 
     public String systemID;
     public int testPacketID;
