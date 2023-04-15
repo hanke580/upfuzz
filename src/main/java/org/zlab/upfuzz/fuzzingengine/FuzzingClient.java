@@ -1,11 +1,17 @@
 package org.zlab.upfuzz.fuzzingengine;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionDataStore;
@@ -41,7 +47,27 @@ public class FuzzingClient {
         }));
         if (Config.getConf().nyxMode) { // TODO figure out what to put in for
                                         // args
-            this.libnyx = new LibnyxInterface(null, null, 0);
+            this.libnyx = new LibnyxInterface(
+                    Paths.get("/tmp", RandomStringUtils.randomAlphanumeric(8))
+                            .toAbsolutePath().toString(),
+                    Paths.get("/tmp", RandomStringUtils.randomAlphanumeric(8))
+                            .toAbsolutePath().toString(),
+                    0);
+            try {
+                FileUtils.copyFile(
+                        Paths.get("./", Config.getConf().nyxFuzzSH).toFile(), // fuzz_no_pt.sh
+                                                                              // script
+                                                                              // location
+                        Paths.get(this.libnyx.getSharedir(), "fuzz_no_pt.sh")
+                                .toFile(),
+                        false);
+            } catch (IOException e) {
+                // e.printStackTrace();
+                logger.info(
+                        "[NyxMode] fuzz_no_pt.sh unable to copy into sharedir");
+                logger.info("[NyxMode] Disabling Nyx Mode");
+                Config.getConf().nyxMode = false; // disable nyx
+            }
         }
     }
 
@@ -51,7 +77,8 @@ public class FuzzingClient {
         clientThread.join();
     }
 
-    public Executor initExecutor(int nodeNum, Set<String> targetSystemStates,
+    public static Executor initExecutor(int nodeNum,
+            Set<String> targetSystemStates,
             Path configPath) {
         if (Config.getConf().system.equals("cassandra")) {
             return new CassandraExecutor(nodeNum, targetSystemStates,
@@ -96,6 +123,8 @@ public class FuzzingClient {
 
     private StackedTestPacket previousStackedTest = null;
 
+    // Helpers move them into utils later
+
     public StackedFeedbackPacket executeStackedTestPacketNyx(
             StackedTestPacket stackedTestPacket) { // TODO ALESSANDRO
         Path configPath = Paths.get(configDirPath.toString(),
@@ -112,49 +141,81 @@ public class FuzzingClient {
                 return null;
             }
         }
+        // TODO write a compare method
+        boolean sameConfigAsLastTime = this.previousStackedTest.configFileName
+                .equals(stackedTestPacket.configFileName);
+        if (this.previousStackedTest == null || !sameConfigAsLastTime) {
+            // the miniClient will setup the distributed system according to the
+            // defaultStackedTestPacket and the config
+            Path defaultStackedTestPath = Paths.get(this.libnyx.getSharedir(),
+                    "stackedTestPackets",
+                    "defaultStackedPacket.ser");
+            Path sharedConfigPath = Paths.get(this.libnyx.getSharedir(),
+                    "sharedConfigFile");
+            try {
+                // Copy the default stacked packet
+                Utilities.writeObjectToFile(defaultStackedTestPath.toFile(),
+                        stackedTestPacket);
 
-        executor = initExecutor(stackedTestPacket.nodeNum, null, configPath);
+                // Copy the config file to the sharedir
+                FileUtils.copyFile(configPath.toFile(),
+                        sharedConfigPath.toFile(), true);
 
-        // executor.dockerCluster TODO
-        // new CassandraDockerCluster(
-        // executor, Config.getConf().originalVersion,
-        // executor.nodeNum, executor.targetSystemStates, configPath);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
 
-        // File workdir = new File("fuzzing_storage/" + executor.systemID + "/"
-        // +
-        // originalVersion + "/" + upgradedVersion + "/" +
-        // executorTimestamp + "-" + executor.executorID);
-
-        // TODO was figuring out how docker can be built without initializing
-        // the entire Cassandra executor <- work on this first
-        // dockerCluster = new CassandraDockerCluster(
-        // this, Config.getConf().originalVersion,
-        // nodeNum, targetSystemStates, configPath);
-
-        // executor = initExecutor(stackedTestPacket.nodeNum, null, configPath);
-        // // is this needed?
-
+        }
         if (this.previousStackedTest == null) {
-            // TODO move docker compose file into shared dir
             this.libnyx.nyxNew();
-        } else if (!this.previousStackedTest.configFileName
-                .equals(stackedTestPacket.configFileName)) { // TODO write
-                                                             // config compare
-                                                             // method
-            // TODO move docker compose files into shared dir
+        } else if (!sameConfigAsLastTime) {
             this.libnyx.nyxShutdown();
             this.libnyx.nyxNew();
         }
-        this.previousStackedTest = stackedTestPacket; // save this test packet
+        this.previousStackedTest = stackedTestPacket;
 
-        // convert stackedTestPacket to file and place in shared dir
-        this.libnyx.setInput("filename"); // TODO change to correct filename
+        // Now write the stackedTestPacket to be used for actual tests
+        String stackedTestFileLocation = "stackedTestPackets/"
+                + RandomStringUtils.randomAlphanumeric(8) + ".ser";
+        Path stackedTestPath = Paths.get(this.libnyx.getSharedir(),
+                stackedTestFileLocation);
+
+        try {
+            Utilities.writeObjectToFile(stackedTestPath.toFile(),
+                    stackedTestPacket);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        // tell the nyx agent where to find the stackedTestPacket
+        this.libnyx.setInput(stackedTestFileLocation);
 
         this.libnyx.nyxExec();
 
         // get feedback file from hpush dir (in workdir)
+        Path stackedFeedbackPath = Paths.get(
+                this.libnyx.getWorkdir(),
+                "dump",
+                "stackedFeedbackPacket.ser");
+
         // convert it to StackedFeedbackPacket
-        StackedFeedbackPacket stackedFeedbackPacket = null;
+        StackedFeedbackPacket stackedFeedbackPacket;
+        try {
+            stackedFeedbackPacket = (StackedFeedbackPacket) Utilities
+                    .readObjectFromFile(
+                            stackedFeedbackPath.toFile());
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        } catch (ClassCastException e) {
+            e.printStackTrace();
+            return null;
+        }
 
         return stackedFeedbackPacket;
     }
@@ -889,7 +950,7 @@ public class FuzzingClient {
                 testPlanPacket + "\n";
     }
 
-    private String genInconsistencyReport(String executorID,
+    public static String genInconsistencyReport(String executorID,
             String configFileName, String inconsistencyRecord,
             String singleTestPacket) {
         return "[Results inconsistency between two versions]\n" +
@@ -910,14 +971,14 @@ public class FuzzingClient {
                 singleTestPacket + "\n";
     }
 
-    private String genUpgradeFailureReport(String executorID,
+    public static String genUpgradeFailureReport(String executorID,
             String configFileName) {
         return "[Upgrade Failed]\n" +
                 "executionId = " + executorID + "\n" +
                 "ConfigIdx = " + configFileName + "\n";
     }
 
-    private String genDowngradeFailureReport(String executorID,
+    public static String genDowngradeFailureReport(String executorID,
             String configFileName) {
         return "[Downgrade Failed]\n" +
                 "executionId = " + executorID + "\n" +
@@ -940,7 +1001,8 @@ public class FuzzingClient {
                 singleTestPacket + "\n";
     }
 
-    private String genErrorLogReport(String executorID, String configFileName,
+    public static String genErrorLogReport(String executorID,
+            String configFileName,
             Map<Integer, LogInfo> logInfo) {
         StringBuilder ret = new StringBuilder("[ERROR LOG]\n");
         ret.append("executionId = ").append(executorID).append("\n");
@@ -957,7 +1019,7 @@ public class FuzzingClient {
         return ret.toString();
     }
 
-    private String recordStackedTestPacket(
+    public static String recordStackedTestPacket(
             StackedTestPacket stackedTestPacket) {
         StringBuilder sb = new StringBuilder();
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
@@ -989,7 +1051,7 @@ public class FuzzingClient {
                 recordStackedTestPacket(mixedTestPacket.stackedTestPacket);
     }
 
-    private String recordSingleTestPacket(TestPacket tp) {
+    public static String recordSingleTestPacket(TestPacket tp) {
         StringBuilder sb = new StringBuilder();
         sb.append("[Original Command Sequence]\n");
         for (String commandStr : tp.originalCommandSequenceList) {
@@ -1003,7 +1065,7 @@ public class FuzzingClient {
         return sb.toString();
     }
 
-    private Map<Integer, LogInfo> filterErrorLog(
+    public static Map<Integer, LogInfo> filterErrorLog(
             Map<Integer, LogInfo> logInfoBeforeUpgrade,
             Map<Integer, LogInfo> logInfoAfterUpgrade) {
         Map<Integer, LogInfo> filteredLogInfo = new HashMap<>();
@@ -1027,7 +1089,7 @@ public class FuzzingClient {
         return filteredLogInfo;
     }
 
-    private boolean hasERRORLOG(Map<Integer, LogInfo> logInfo) {
+    public static boolean hasERRORLOG(Map<Integer, LogInfo> logInfo) {
         boolean hasErrorLog = false;
         for (int i : logInfo.keySet()) {
             if (logInfo.get(i).ERRORMsg.size() > 0) {

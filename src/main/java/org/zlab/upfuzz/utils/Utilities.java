@@ -166,6 +166,25 @@ public class Utilities {
         }
     }
 
+    public static void writeObjectToFile(File file, Object obj)
+            throws IOException {
+        FileOutputStream fos = new FileOutputStream(file);
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        oos.writeObject(obj);
+        oos.close();
+        fos.close();
+    }
+
+    public static Object readObjectFromFile(File file)
+            throws IOException, ClassNotFoundException {
+        FileInputStream fis = new FileInputStream(file);
+        ObjectInputStream ois = new ObjectInputStream(fis);
+        Object result = ois.readObject();
+        ois.close();
+        fis.close();
+        return result;
+    }
+
     public static boolean hasNewBitsAccum(ExecutionDataStore curCoverage,
             ExecutionDataStore testSequenceCoverage) {
 
