@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.FeedBack;
@@ -47,9 +49,13 @@ public class MiniClientMain {
     }
 
     public static void main(String[] args) {
-        //System.out.println("Starting up MiniClient!");
+        // System.out.println("Starting up MiniClient!");
         // setup our input scanner
         Scanner stdin = new Scanner(System.in);
+
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        PrintStream cAgent = System.out;
+        System.setOut(new PrintStream(buffer));
 
         // there should be a defaultStackedTestPacket.ser in whatever working
         // dir this was started up in
@@ -77,10 +83,10 @@ public class MiniClientMain {
 
         if (!startUpExecutor(executor)) {
             // was unable to startup the docker system
-            System.out.print("F"); // F for failed
+            cAgent.print("F"); // F for failed
             return;
         } else {
-            System.out.print("R"); // READY_FOR_TESTS
+            cAgent.print("R"); // READY_FOR_TESTS
         }
         // c agent should checkpoint the vm here
         // wait for c agent to tell us to start testing
@@ -123,9 +129,9 @@ public class MiniClientMain {
             e.printStackTrace();
             return;
         }
-        
+
         // lets c agent know that the stackedFeedbackFile is ready
-        System.out.print("2");
+        cAgent.print("2");
 
         // sit here, if any communication desync happened
         // this should be passed and system will crash
