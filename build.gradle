@@ -126,6 +126,13 @@ jar {
     }
 }
 
+task compileCAgent(type: Exec) {
+    workingDir 'src/main/c/custom_agent'
+    commandLine 'gcc', '-DNO_PT_NYX', '-static', "-I$rootDir/nyx_mode", "nyx_agent.c", '-o', "$buildDir/libs/c_agent"
+}
+
+tasks.build.dependsOn(compileCAgent)
+
 // task copyNativeLibs(type: Copy) {
 //     from 'src/main/resources'
 //     into "$buildDir/libs"
