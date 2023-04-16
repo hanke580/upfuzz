@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Assign command line arguments to variables
+file=$1
+start_line=$2
+end_line=$3
+
+# Check if the file exists and is a regular file
+if [ ! -f "$file" ]; then
+    echo "Please check the directory of $file"
+    exit 1
+fi
+
+# Check if the lines are already commented out
+if grep -qE "^[[:space:]]*//.*" <(sed -n "$start_line","$end_line"p "$file"); then
+    echo "The specified lines in $file are already commented out"
+    exit 0
+fi
+
+# Comment out the specified lines
+if sed -i "$start_line","$end_line"s/^/"\/\/ "/ "$file" 2>/dev/null; then
+    echo "Commented out lines in file $file"
+else
+    echo "Error commenting out the specified lines. Please check file permissions on $file."
+    exit 1
+fi
+
+exit 0

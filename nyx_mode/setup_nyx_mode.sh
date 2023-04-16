@@ -65,6 +65,11 @@ else
     exit 1
 fi
 
+#create the compiled hget_no_pt, hcat_no_pt, etc
+cd packer/packer/linux_x86_64-userspace/
+chmod +x compile_64.sh 
+./compile_64.sh
+cd -
 
 #need to build required components
 echo "[*] Building QEMU-Nyx"
@@ -75,7 +80,12 @@ else
         echo "[-] Disabling GTK because gtk3-devel is not installed."
         sed -i 's/--enable-gtk//g' QEMU-Nyx/compile_qemu_nyx.sh
     fi
+    
+    #comment out lines (to call hget from inside a snapshot) in handle_hypercall_kafl_req_stream_data method inside nyx_mode/QEMU-Nyx/nyx/hypercall/hypercall.c
+    chmod +x comment_code
+    ./comment_code QEMU-Nyx/nyx/hypercall/hypercall.c 213 215
     (cd QEMU-Nyx && ./compile_qemu_nyx.sh static)
+    
     if [ -f "QEMU-Nyx/x86_64-softmmu/qemu-system-x86_64" ]; then
         echo "[+] QEMU-Nyx successfully built."
     else
