@@ -67,7 +67,8 @@ fi
 
 #create the compiled hget_no_pt, hcat_no_pt, etc
 cd packer/packer/linux_x86_64-userspace/
-chmod +x compile_64.sh 
+chmod +x compile_64.sh
+echo "[*] Creating the necessary binary files" 
 ./compile_64.sh
 cd -
 
@@ -82,8 +83,23 @@ else
     fi
     
     #comment out lines (to call hget from inside a snapshot) in handle_hypercall_kafl_req_stream_data method inside nyx_mode/QEMU-Nyx/nyx/hypercall/hypercall.c
-    chmod +x comment_code
-    ./comment_code QEMU-Nyx/nyx/hypercall/hypercall.c 213 215
+    start_line=213
+    end_line=215
+    hypercall_file="QEMU-Nyx/nyx/hypercall/hypercall.c"
+    
+    #check if the lines are already commented out
+    if grep -qE "^[[:space:]]*//.*" <(sed -n "$start_line","$end_line"p "$hypercall_file"); then
+        echo "[-] The specified lines in $hypercall_file are already commented out"
+    else
+    #comment out the lines from start_line to end_line
+        if sed -i "$start_line","$end_line"s/^/"\/\/ "/ "$hypercall_file" 2>/dev/null; then
+            echo "[+] Commented out lines in $hypercall_file"
+        else
+            echo "[!] Error: Unable to comment out the specified lines. Check file permissions on $hypercall_file"
+            exit 1
+        fi
+    fi
+
     (cd QEMU-Nyx && ./compile_qemu_nyx.sh static)
     
     if [ -f "QEMU-Nyx/x86_64-softmmu/qemu-system-x86_64" ]; then
