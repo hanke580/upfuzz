@@ -239,9 +239,9 @@ public class FuzzingClient {
 
         return true;
     }
-    
+
     public StackedFeedbackPacket executeStackedTestPacketNyx(
-            StackedTestPacket stackedTestPacket) { // TODO ALESSANDRO
+            StackedTestPacket stackedTestPacket) {
         Path configPath = Paths.get(configDirPath.toString(),
                 stackedTestPacket.configFileName);
         logger.info("[HKLOG] configPath = " + configPath);

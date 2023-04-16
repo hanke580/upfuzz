@@ -68,7 +68,7 @@ fi
 #create the compiled hget_no_pt, hcat_no_pt, etc
 cd packer/packer/linux_x86_64-userspace/
 chmod +x compile_64.sh
-echo "[*] Creating the necessary binary files" 
+echo "[*] Creating the necessary binary files"
 ./compile_64.sh
 cd -
 

@@ -1,7 +1,7 @@
 
 #![enable(implicit_some)]
 (
-    include_default_config_path: "/home/alessandro/upfuzz/nyx_mode/packer/packer/fuzzer_configs/default_config_vm.ron",
+    include_default_config_path: "<ADD_HERE>/upfuzz/nyx_mode/packer/packer/fuzzer_configs/default_config_vm.ron",
     runner: QemuSnapshot((
         debug: false,
     )
