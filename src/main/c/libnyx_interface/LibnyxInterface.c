@@ -101,7 +101,7 @@ JNIEXPORT void JNICALL Java_org_zlab_upfuzz_nyx_LibnyxInterface_nyxExec(
         
     switch (nyx_exec(nyx_runner)) {
     case Normal:
-        printf("Normal!!!\n");
+        //printf("Normal!!!\n");
         break;
     case Abort:
         throwErrorOrPrint(env, exceptionClass, "Error: Nyx abort occured");
