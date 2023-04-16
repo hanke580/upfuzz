@@ -15,7 +15,7 @@ public class LibnyxInterface {
     private String workdir;
     private int cpuID;
     private final int inputBufferSize = 1024 * 1024;
-    private final boolean inputBufferWriteProtection = true;
+    private final boolean inputBufferWriteProtection = false;
 
     public LibnyxInterface(String sharedir, String workdir, int cpuID) {
         if (isNyxLoaded == false) {

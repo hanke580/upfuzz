@@ -89,6 +89,10 @@ JNIEXPORT void JNICALL Java_org_zlab_upfuzz_nyx_LibnyxInterface_nyxExec(
 ) {
     NyxProcess* nyx_runner = get_nyx_ptr(env, thisObj);
 
+    // Hardcoded no timeout
+    nyx_option_set_timeout(nyx_runner, 0, 0);
+    nyx_option_apply(nyx_runner);
+
     jclass exceptionClass = (*env)->FindClass(env, "java/lang/RuntimeException");
     if (nyx_runner == NULL) {
         throwErrorOrPrint(env, exceptionClass, "Error: nyx instance was null");
@@ -98,18 +102,21 @@ JNIEXPORT void JNICALL Java_org_zlab_upfuzz_nyx_LibnyxInterface_nyxExec(
     switch (nyx_exec(nyx_runner)) {
     case Normal:
         printf("Normal!!!\n");
-    break;
+        break;
     case Abort:
         throwErrorOrPrint(env, exceptionClass, "Error: Nyx abort occured");
         break;
     case IoError:
-      throwErrorOrPrint(env, exceptionClass, "Error: QEMU-Nyx has died");
-      break;
+        throwErrorOrPrint(env, exceptionClass, "Error: QEMU-Nyx has died");
+        break;
     case Error:
-      throwErrorOrPrint(env, exceptionClass, "Error: Nyx runtime error has occured");
-      break;
+        throwErrorOrPrint(env, exceptionClass, "Error: Nyx runtime error has occured");
+        break;
+    case Timeout:
+        throwErrorOrPrint(env, exceptionClass, "Error: Nyx exec timed out");
+        break;
     default:
-      break;
+        break;
   }
 }
 
