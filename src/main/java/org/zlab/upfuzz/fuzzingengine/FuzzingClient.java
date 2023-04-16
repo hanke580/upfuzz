@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Path;
@@ -12,6 +13,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -47,8 +49,7 @@ public class FuzzingClient {
             executor.teardown();
             executor.upgradeTeardown();
         }));
-        if (Config.getConf().nyxMode) { // TODO figure out what to put in for
-                                        // args
+        if (Config.getConf().nyxMode) {
             this.libnyx = new LibnyxInterface(
                     Paths.get("/tmp", RandomStringUtils.randomAlphanumeric(8))
                             .toAbsolutePath().toString(),
@@ -185,10 +186,60 @@ public class FuzzingClient {
         }
     }
 
-    private StackedTestPacket previousStackedTest = null;
+    private Path previousConfigPath = null;
 
-    // Helpers move them into utils later
+    // Helper move it into utils later
+    private static boolean isSameConfig(Path configPath1, Path configPath2) {
 
+        Path oriConfigPath1 = configPath1.resolve("oriconfig");
+        Path upConfigPath1 = configPath1.resolve("upconfig");
+
+        assert oriConfigPath1.toFile().isDirectory();
+        assert upConfigPath1.toFile().isDirectory();
+
+        Path oriConfigPath2 = configPath2.resolve("oriconfig");
+        Path upConfigPath2 = configPath2.resolve("upconfig");
+
+        assert oriConfigPath2.toFile().isDirectory();
+        assert upConfigPath2.toFile().isDirectory();
+
+        for (File file : oriConfigPath1.toFile().listFiles()) {
+            File file2 = oriConfigPath2.resolve(file.getName()).toFile();
+            if (file2.exists()) {
+                try (
+                        InputStream s1 = new FileInputStream(file);
+                        InputStream s2 = new FileInputStream(file2)) {
+                    if (!IOUtils.contentEquals(s1, s2)) {
+                        return false;
+                    }
+                } catch (IOException e) {
+                    return false;
+                }
+            } else {
+                return false; // mismatch in names, config is different
+            }
+        }
+
+        for (File file : upConfigPath1.toFile().listFiles()) {
+            File file2 = upConfigPath2.resolve(file.getName()).toFile();
+            if (file2.exists()) {
+                try (
+                        InputStream s1 = new FileInputStream(file);
+                        InputStream s2 = new FileInputStream(file2)) {
+                    if (!IOUtils.contentEquals(s1, s2)) {
+                        return false;
+                    }
+                } catch (IOException e) {
+                    return false;
+                }
+            } else {
+                return false; // mismatch in names, config is different
+            }
+        }
+
+        return true;
+    }
+    
     public StackedFeedbackPacket executeStackedTestPacketNyx(
             StackedTestPacket stackedTestPacket) { // TODO ALESSANDRO
         Path configPath = Paths.get(configDirPath.toString(),
@@ -207,11 +258,11 @@ public class FuzzingClient {
         // }
         // TODO write a compare method
         boolean sameConfigAsLastTime = false;
-        if (this.previousStackedTest != null) {
-            this.previousStackedTest.configFileName
-                    .equals(stackedTestPacket.configFileName);
+        if (this.previousConfigPath != null) {
+            sameConfigAsLastTime = isSameConfig(this.previousConfigPath,
+                    configPath);
         }
-        if (this.previousStackedTest == null || !sameConfigAsLastTime) {
+        if (this.previousConfigPath == null || !sameConfigAsLastTime) {
             // the miniClient will setup the distributed system according to the
             // defaultStackedTestPacket and the config
             Path defaultStackedTestPath = Paths.get(this.libnyx.getSharedir(),
@@ -253,13 +304,13 @@ public class FuzzingClient {
             }
 
         }
-        if (this.previousStackedTest == null) {
+        if (this.previousConfigPath == null) {
             this.libnyx.nyxNew();
         } else if (!sameConfigAsLastTime) {
             this.libnyx.nyxShutdown();
             this.libnyx.nyxNew();
         }
-        this.previousStackedTest = stackedTestPacket;
+        this.previousConfigPath = configPath;
 
         // Now write the stackedTestPacket to be used for actual tests
         String stackedTestFileLocation = "stackedTestPackets/"

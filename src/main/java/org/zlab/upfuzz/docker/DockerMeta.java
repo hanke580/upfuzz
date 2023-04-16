@@ -109,6 +109,8 @@ public abstract class DockerMeta {
         return Utilities.exec(dockerCMD, workdir);
     }
 
+    // NOTE If copyConfig modified then
+    // FuzzingClient NyxMode configCheck may need to be modifed
     public boolean copyConfig(Path configPath) throws IOException {
 
         Path oriConfigPath = configPath.resolve("oriconfig");
