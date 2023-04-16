@@ -72,7 +72,7 @@ public class CassandraCqlshDaemon {
             } catch (Exception ignored) {
             }
             try {
-                Thread.sleep(10 * 1000);
+                Thread.sleep(5 * 1000);
             } catch (InterruptedException ignored) {
             }
 
@@ -88,7 +88,8 @@ public class CassandraCqlshDaemon {
                 if (Integer.parseInt(result) <= 2) {
                     // Process has died
                     logger.debug("system process died");
-                    break;
+                    // break; // bug fix: sometimes cassandra takes a while
+                    // startup
                 }
 
             } catch (Exception e) {

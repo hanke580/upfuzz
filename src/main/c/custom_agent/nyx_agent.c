@@ -227,17 +227,20 @@ int main(int argc, char **argv) {
       dup2(fds_output[1], STDOUT_FILENO);
 
       // the other ends of the input pipe and the output pipe should remain closed
-      close(fds_input[1]); 
-      close(fds_output[0]); 
+      //close(fds_input[1]); 
+      //close(fds_output[0]); 
 
-      // run the miniclient java program located at "/home/nyx/upfuzz/build/libs/Miniclient.jar" 
-      char *argv[] = {"-jar", "/home/nyx/upfuzz/build/libs/Miniclient.jar", NULL};
-      execv("/usr/bin/java", argv);
+      // run the miniclient java program located at "/home/nyx/upfuzz/Miniclient.jar" 
+      // char *argv[] = {"/bin/bash", "-c", "cd /home/nyx/upfuzz/build/libs/; java -jar MiniClient.jar", NULL};
+      // execv("/bin/bash", argv);
+      char *argv[] = {"/bin/bash", "-c", "cd /home/nyx/upfuzz; java -jar MiniClient.jar", NULL};
+      execv("/bin/bash", argv);
+      exit(0);
     }
     else {
         // the read end of the input pipe and the write end of the output pipe should remain closed
-        close(fds_input[0]);
-        close(fds_output[1]);
+        //close(fds_input[0]);
+        //close(fds_output[1]);
 
         // these specific messages are configured in the miniclient.java program
         // when the miniclient receives the packet "START_TESTING", it will execute the test packets
@@ -249,26 +252,30 @@ int main(int argc, char **argv) {
         /*------------------------------------------------------------------------------------*/
         //-------------WAIT FOR EACH NODE TO BE CONNECTED VIA TCP-----------------------------//
         /*------------------------------------------------------------------------------------*/
-        char output_pkt_ready = '\0';
-        if (read(fds_output[0], &output_pkt_ready, 1) == -1)
+        char output_pkt_ready = '~';
+        if (read(fds_output[0], &output_pkt_ready, 1) != 1) {
           abort_operation("Read operation failed");
+        }
+          
+
+        //hprintf("PACKET:::%c\n", output_pkt_ready);
 
         if(output_pkt_ready != ready_state_msg) {
           abort_operation("Unable to startup the target system.");
           exit(1);
         }
+        
+        /* Creates a root snapshot on first execution. Also we requested the next input with this hypercall */
+        kAFL_hypercall(HYPERCALL_KAFL_USER_FAST_ACQUIRE, 0);  // root snapshot <--
 
         // the nodes are connected via tcp, need the test packet file name
         uint32_t len = payload_buffer->size;
         char* file_name = payload_buffer -> data;
 
-        // before taking the snapshot, need to transfer the test packet file from the host to the client VM
+        // transfer the test packet file from the host to the client VM
         int get_file_status = get_from_host(file_name, "/miniClientWorkdir/mainStackedTestPacket.ser");
         if (get_file_status == -1)
           abort_operation("ERROR! Failed to transfer file from host to guest."); 
-        
-        /* Creates a root snapshot on first execution. Also we requested the next input with this hypercall */
-        kAFL_hypercall(HYPERCALL_KAFL_USER_FAST_ACQUIRE, 0);  // root snapshot <--
 
         // First snapshot created, now need to start testing, send the command "START_TESTING\n" to the client
         int send_test_status = write(fds_input[1], test_start_msg, strlen(test_start_msg));
@@ -284,12 +291,14 @@ int main(int argc, char **argv) {
         {
           abort_operation("Feedback packets could not be generated.");
         }
+        //hprintf("WE GOT THIS FOR 2 ::: %c\n",output_pkt );
         
         //Push the test feedback file from client to host
         get_file_status = push_to_host("/miniClientWorkdir/stackedFeedbackPacket.ser");    
         if (get_file_status == -1)
           abort_operation("ERROR! Failed to transfer feedback test file to host.");
 
+        //hprintf("WA ABLE TO SEND BACK FEEDBACK FILE");
         //Reverting the checkpoint  
         kAFL_hypercall(HYPERCALL_KAFL_RELEASE, 0);
       } 

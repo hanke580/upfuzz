@@ -1,10 +1,11 @@
 package org.zlab.upfuzz.nyx;
 
+import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.file.Path;
@@ -14,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.zlab.upfuzz.fuzzingengine.Config.Configuration;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.FeedBack;
@@ -27,6 +28,10 @@ import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPacket;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 
 public class MiniClientMain {
 
@@ -62,6 +67,16 @@ public class MiniClientMain {
         PrintStream cAgent = System.out;
         System.setOut(nullStream);
 
+        try {
+            File configFile = new File("/home/nyx/upfuzz/config.json");
+            Configuration cfg = new Gson().fromJson(
+                    new FileReader(configFile), Configuration.class);
+            Config.setInstance(cfg);
+        } catch (JsonSyntaxException | JsonIOException
+                | FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
         // there should be a defaultStackedTestPacket.ser in whatever working
         // dir this was started up in
         // there also should be a config file
@@ -94,9 +109,11 @@ public class MiniClientMain {
             cAgent.print("R"); // READY_FOR_TESTS
         }
         // c agent should checkpoint the vm here
+        System.err.println("Waiting to start TESTING");
         // wait for c agent to tell us to start testing
         if (!stdin.nextLine().equals("START_TESTING")) {
             // possible sync issue
+            System.err.println("POSSIBLE SYNC ERROR OCCURED IN MINICLIENT");
             return;
         }
 
@@ -126,12 +143,11 @@ public class MiniClientMain {
             return;
         }
 
-        try {
-            Utilities.writeObjectToFile(stackedFeedbackPath.toFile(),
-                    stackedFeedbackPacket);
+        try (DataOutputStream out = new DataOutputStream(new FileOutputStream(
+                stackedFeedbackPath.toAbsolutePath().toString()))) {
+            stackedFeedbackPacket.write(out);
         } catch (IOException e) {
-            // write error
-            e.printStackTrace();
+            e.printStackTrace(System.err);
             return;
         }
 

@@ -1,5 +1,6 @@
 package org.zlab.upfuzz.fuzzingengine;
 
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -17,6 +18,7 @@ import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.fuzzingengine.packet.*;
+import org.zlab.upfuzz.fuzzingengine.packet.Packet.PacketType;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.hdfs.HdfsExecutor;
 import org.zlab.upfuzz.nyx.LibnyxInterface;
@@ -111,21 +113,23 @@ public class FuzzingClient {
                 logger.info("[NyxMode] Disabling Nyx Mode");
                 Config.getConf().nyxMode = false; // disable nyx
             }
-            // DEBUG COPIES, DELETE LATER TODO
+            // Copy over C Agent and MiniClient.jar
             try {
                 FileUtils.copyFile(
-                        new File("/home/alessandro/upfuzz/build/libs/c_agent"),
+                        new File("build/libs/c_agent"),
                         Paths.get(this.libnyx.getSharedir(), "c_agent")
                                 .toFile(),
                         false);
                 FileUtils.copyFile(
                         new File(
-                                "/home/alessandro/upfuzz/build/libs/MiniClient.jar"),
+                                "build/libs/MiniClient.jar"),
                         Paths.get(this.libnyx.getSharedir(), "MiniClient.jar")
                                 .toFile(),
                         false);
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.info(
+                        "[NyxMode] unable to copy agent or MiniClient.jar into sharedir");
+                logger.info("[NyxMode] Disabling Nyx Mode");
                 Config.getConf().nyxMode = false; // disable nyx
             }
         }
@@ -193,14 +197,14 @@ public class FuzzingClient {
 
         // config verification - do we really want this?, maybe just skip config
         // verification TODO
-        if (Config.getConf().verifyConfig) {
-            boolean validConfig = verifyConfig(configPath);
-            if (!validConfig) {
-                logger.error(
-                        "problem with configuration! system cannot start up");
-                return null;
-            }
-        }
+        // if (Config.getConf().verifyConfig) {
+        // boolean validConfig = verifyConfig(configPath);
+        // if (!validConfig) {
+        // logger.error(
+        // "problem with configuration! system cannot start up");
+        // return null;
+        // }
+        // }
         // TODO write a compare method
         boolean sameConfigAsLastTime = false;
         if (this.previousStackedTest != null) {
@@ -284,17 +288,15 @@ public class FuzzingClient {
 
         // convert it to StackedFeedbackPacket
         StackedFeedbackPacket stackedFeedbackPacket;
-        try {
-            stackedFeedbackPacket = (StackedFeedbackPacket) Utilities
-                    .readObjectFromFile(
-                            stackedFeedbackPath.toFile());
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            return null;
+        try (DataInputStream in = new DataInputStream(new FileInputStream(
+                stackedFeedbackPath.toAbsolutePath().toString()))) {
+            int intType = in.readInt();
+            if (intType != PacketType.StackedFeedbackPacket.value) {
+                logger.info("Incorrect packet type hit");
+                return null;
+            }
+            stackedFeedbackPacket = StackedFeedbackPacket.read(in);
         } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        } catch (ClassCastException e) {
             e.printStackTrace();
             return null;
         }

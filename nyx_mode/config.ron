@@ -1,0 +1,36 @@
+
+#![enable(implicit_some)]
+(
+    include_default_config_path: "/home/alessandro/upfuzz/nyx_mode/packer/packer/fuzzer_configs/default_config_vm.ron",
+    runner: QemuSnapshot((
+        debug: false,
+    )
+  ),
+  fuzz: (
+    workdir_path: "/tmp/workdir",
+          mem_limit: 4096,          //snapshot_placement: none,
+          time_limit: (
+              secs: 100,
+              nanos: 10,
+          ),
+            dict: [
+            ],
+      ip0: (
+        a: 0,
+        b: 0,
+      ),
+      ip1: (
+        a: 0,
+        b: 0,
+      ),
+      ip2: (
+        a: 0,
+        b: 0,
+      ),
+      ip3: (
+        a: 0,
+        b: 0,
+      ),
+  ),
+)
+  
