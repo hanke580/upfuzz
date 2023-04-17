@@ -47,7 +47,23 @@ source $HOME/.cargo/env
 4. Run the nyx environment setup script to setup build dependencies 
 
     *Warning: This may take a few minutes*
+
+```java
+// FIXME!
+// There's some problem with this script. We need to manually comment out certain lines
+// upfuzz/nyx_mode/QEMU-Nyx/nyx/hypercall/hypercall.c: comment out lines: 211-213
+static void handle_hypercall_kafl_req_stream_data(struct kvm_run *run,
+                                                  CPUState       *cpu,
+                                                  uint64_t        hypercall_arg)
+{
+    static uint8_t req_stream_buffer[0x1000];
+    // if (is_called_in_fuzzing_mode("HYPERCALL_KAFL_REQ_STREAM_DATA")) {
+    //     return;
+    // }
+```
+
 ```bash
+
 ./setup_nyx_mode.sh
 ```
 
