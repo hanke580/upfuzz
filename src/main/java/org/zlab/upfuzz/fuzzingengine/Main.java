@@ -24,6 +24,8 @@ public class Main {
 
     static Logger logger = LogManager.getLogger(Main.class);
 
+    public static Path upfuzzConfigFilePath = null;
+
     public static void main(String[] args)
             throws ParseException, InterruptedException {
         final Options options = new Options();
@@ -50,6 +52,8 @@ public class Main {
 
         if (cmd.hasOption(configFileOption)) {
             try {
+                upfuzzConfigFilePath = Paths
+                        .get(cmd.getOptionValue(configFileOption));
                 File configFile = new File(
                         cmd.getOptionValue(configFileOption));
                 Configuration cfg = new Gson().fromJson(

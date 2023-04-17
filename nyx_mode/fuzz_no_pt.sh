@@ -14,6 +14,9 @@ chmod +x ./hget
 ./hget "hcat_no_pt" "hcat"
 chmod +x ./hcat
 
+# get config.json
+./hget "config.json" "/home/nyx/upfuzz/config.json"
+
 # get c_agent + chmod
 ./hget "c_agent" "/home/nyx/upfuzz/build/libs/c_agent"
 chmod +x /home/nyx/upfuzz/build/libs/c_agent

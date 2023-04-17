@@ -58,6 +58,19 @@ public class FuzzingClient {
                     0);
             try {
                 FileUtils.copyFile(
+                        Main.upfuzzConfigFilePath.toFile(),
+                        Paths.get(this.libnyx.getSharedir(), "config.json")
+                                .toFile(),
+                        false);
+            } catch (IOException e) {
+                // e.printStackTrace();
+                logger.info(
+                        "[NyxMode] config.json unable to copy into sharedir");
+                logger.info("[NyxMode] Disabling Nyx Mode");
+                Config.getConf().nyxMode = false; // disable nyx
+            }
+            try {
+                FileUtils.copyFile(
                         Paths.get("./", Config.getConf().nyxFuzzSH).toFile(), // fuzz_no_pt.sh
                                                                               // script
                                                                               // location

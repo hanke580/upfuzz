@@ -11,7 +11,7 @@
   "useFeedBack": true,
   "faultMaxNum": 0,
   "useExampleTestPlan": false,
-  "testingMode": 4,
+  "testingMode": 0,
   "startUpClusterForDebugging": false,
   "debug": false,
   "testDowngrade": false,
@@ -19,5 +19,7 @@
   "testAddedConfig": false,
   "testCommonConfig": false,
   "enableLogCheck": true,
-  "collUpFeedBack": true 
+  "collUpFeedBack": true,
+  "nyxMode": false,
+  "nyxFuzzSH": "nyx_mode/fuzz_no_pt.sh"
 }
