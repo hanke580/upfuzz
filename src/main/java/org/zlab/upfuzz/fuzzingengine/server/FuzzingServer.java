@@ -50,6 +50,7 @@ public class FuzzingServer {
     public TestPlanCorpus testPlanCorpus = new TestPlanCorpus();
     public FullStopCorpus fullStopCorpus = new FullStopCorpus();
 
+    private int configIdx = 0;
     private int testID = 0;
     private int finishedTestID = 0;
 
@@ -202,9 +203,9 @@ public class FuzzingServer {
                 packet = testPlanPackets.poll();
                 // TestPlanPacket tp = (TestPlanPacket) packet;
                 // logger.info("val cmd size = "
-                //         + tp.testPlan.validationCommands.size());
+                // + tp.testPlan.validationCommands.size());
                 // logger.info("val oracle size = "
-                //         + tp.testPlan.validationReadResultsOracle.size());
+                // + tp.testPlan.validationReadResultsOracle.size());
             }
             isFullStopUpgrade = !isFullStopUpgrade;
             return packet;
@@ -238,7 +239,10 @@ public class FuzzingServer {
         round++;
         StackedTestPacket stackedTestPacket;
 
-        int configIdx = configGen.generateConfig();
+        // generate a new config every MUTATE_CONFIG_INTERVAL tests
+        if (testID % Config.instance.MUTATE_CONFIG_INTERVAL == 0) {
+            configIdx = configGen.generateConfig();
+        }
         String configFileName = "test" + configIdx;
         logger.info("configFileName = " + configFileName);
 
@@ -464,11 +468,14 @@ public class FuzzingServer {
 
         Set<String> targetSystemStates = new HashSet<>();
         Map<Integer, Map<String, String>> oracle = new HashMap<>();
-        List<String> validationCommands = new LinkedList<>();
+        Path commandPath = Paths.get(System.getProperty("user.dir"),
+                "examplecase");
+        List<String> validcommands = readcommands(
+                commandPath.resolve("validcommands.txt"));
         List<String> validationReadResultsOracle = new LinkedList<>();
 
         return new TestPlan(nodeNum, events, targetSystemStates,
-                oracle, validationCommands, validationReadResultsOracle);
+                oracle, validcommands, validationReadResultsOracle);
     }
 
     public TestPlan generateTestPlan(FullStopSeed fullStopSeed) {

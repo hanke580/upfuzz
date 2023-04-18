@@ -75,8 +75,14 @@ public class Config {
         public String configDir = "configtests";
         public Boolean testAddedConfig = false;
         public Boolean testCommonConfig = false;
-        public double testConfigRatio = 0.4; // We mutate 60% configuration each
-                                             // test
+        public double testConfigRatio = 0.4; // We mutate testConfigRatio
+                                             // configuration each
+                                             // test, default is 40
+
+        // Now we have the checkpoint, we mutate the configuration value every
+        // CHANGE_CONFIG
+        // TODO: tune this value for performance
+        public Integer MUTATE_CONFIG_INTERVAL = 1000;
 
         // ------------Test Plan-------------
         public boolean testDowngrade = false;
