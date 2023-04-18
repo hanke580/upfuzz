@@ -344,4 +344,22 @@ public class HdfsDocker extends Docker {
     @Override
     public void flush() throws Exception {
     }
+
+    @Override
+    public void restart() throws Exception {
+        String[] containerRecoverCMD = new String[] {
+                "docker", "compose", "restart", serviceName
+        };
+        Process containerRecoverProcess = Utilities.exec(
+                containerRecoverCMD,
+                workdir);
+        containerRecoverProcess.waitFor();
+
+        // recreate connection
+        start();
+
+        waitSafeModeInterval();
+        logger.info(
+                String.format("Node%d restart successfully!", index));
+    }
 }
