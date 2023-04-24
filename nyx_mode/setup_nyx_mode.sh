@@ -83,12 +83,13 @@ else
     fi
     
     #comment out lines (to call hget from inside a snapshot) in handle_hypercall_kafl_req_stream_data method inside nyx_mode/QEMU-Nyx/nyx/hypercall/hypercall.c
-    start_line=213
-    end_line=215
+    start_line=211
+    end_line=213
     hypercall_file="QEMU-Nyx/nyx/hypercall/hypercall.c"
     
     #check if the lines are already commented out
-    if grep -qE "^[[:space:]]*//.*" <(sed -n "$start_line","$end_line"p "$hypercall_file"); then
+    sed -n "$start_line","$end_line"p "$hypercall_file" > tmpfile
+    if grep -qE "^[[:space:]]*//.*" tmpfile; then
         echo "[-] The specified lines in $hypercall_file are already commented out"
     else
     #comment out the lines from start_line to end_line
@@ -99,6 +100,7 @@ else
             exit 1
         fi
     fi
+    rm tmpfile
 
     (cd QEMU-Nyx && ./compile_qemu_nyx.sh static)
     
