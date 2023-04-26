@@ -200,6 +200,39 @@ public abstract class DockerCluster implements IDockerCluster {
         return ret;
     }
 
+    public boolean hasbrokenInv() throws Exception {
+        logger.info("Check any broken invariant...");
+        // if any of the node has a broken inv, we return true;
+        boolean ret = false;
+        for (int i = 0; i < dockers.length; i++) {
+            if (dockers[i].hasBrokenInv()) {
+                ret = true;
+                break;
+            }
+        }
+        return ret;
+    }
+
+    public boolean fullStopCluster() throws Exception {
+        logger.info("Full stop cluster...");
+        prepareUpgrade();
+        for (int i = 0; i < dockers.length; i++) {
+            dockers[i].flush();
+            dockers[i].shutdown();
+        }
+        logger.info("Cluster full stopped");
+        return true;
+    }
+
+    public boolean upgradeCluster() throws Exception {
+        logger.info("upgrade full stopped cluster...");
+        for (int i = 0; i < dockers.length; i++) {
+            dockers[i].upgrade();
+        }
+        logger.info("Full stopped cluster upgraded");
+        return true;
+    }
+
     @Override
     public boolean fullStopUpgrade() throws Exception {
         logger.info("Cluster full-stop upgrading...");

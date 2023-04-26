@@ -899,6 +899,12 @@ public class FuzzingServer {
 
     public synchronized void updateStatus(
             StackedFeedbackPacket stackedFeedbackPacket) {
+
+        if (stackedFeedbackPacket.skipped) {
+            // upgrade process is skipped
+            logger.info("upgrade process is skipped");
+        }
+
         Path failureDir = null;
 
         if (stackedFeedbackPacket.isUpgradeProcessFailed) {

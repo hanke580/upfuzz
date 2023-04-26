@@ -415,3 +415,12 @@ There could be several reasons (1) System starts up but the daemon in container 
 ### Notes
 - If jacoco jar is modified, make sure put the runtime jar into the compile/ so that it can be put into the container.
 - If we want to test with functions with weight, use diffchecker to generate a diff_func.txt and put it in the cassandra folder, like `Cassandra-2.2.8/diff_func.txt`.
+
+### Speed up Cassandra start up
+
+Cassandra by default performs ring delay and gossip wait, but we can skip them if we
+only test single node
+```bash
+# Modify bin/cassandra, add the following code
+cassandra_parms="$cassandra_parms -Dcassandra.ring_delay_ms=1 -Dcassandra.skip_wait_for_gossip_to_settle=0"
+```

@@ -111,6 +111,10 @@ public class Config {
         public boolean usePriorityCov = false;
         public double oldCovRatio = 0.4;
 
+        // ------------Likely Inv-------------
+        public boolean useLikelyInv = false;
+        public int runtimeMonitorPort = 62000;
+
         @Override
         public String toString() {
             return new GsonBuilder()

@@ -36,6 +36,11 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 # WORKDIR /cassandra
 # RUN ant
 # COPY cqlsh_daemon.py /cassandra/bin/cqlsh_daemon.py
+
+# likely invariants
+# Runtime Monitor
+COPY dinv-monitor-shadow.jar /dinv-monitor-shadow.jar
+
 COPY cqlsh_init.sh /cassandra/cqlsh_init.sh
 
 RUN pip3 install cassandra-driver

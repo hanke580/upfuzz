@@ -95,6 +95,37 @@ public abstract class Executor implements IExecutor {
         }
     }
 
+    public boolean hasBrokenInv() {
+        try {
+            return dockerCluster.hasbrokenInv();
+        } catch (Exception e) {
+            logger.info(
+                    "Problem occurs when retrieving invariant violations"
+                            + e
+                            + "assume no inv is broken");
+            return false;
+        }
+    }
+
+    // likely invariant support
+    public boolean fullStopCluster() {
+        try {
+            return dockerCluster.fullStopCluster();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean upgradeCluster() {
+        try {
+            return dockerCluster.upgradeCluster();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public boolean fullStopUpgrade() {
         try {
             return dockerCluster.fullStopUpgrade();

@@ -15,7 +15,7 @@ while true; do
     if [[ "$?" -eq 0 ]]; then
         break
     fi
-    sleep 5
+    sleep 1
 done
 
 ${PYTHON} ${CASSANDRA_HOME}/bin/cqlsh_daemon.py

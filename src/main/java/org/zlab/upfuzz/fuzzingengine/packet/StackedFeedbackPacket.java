@@ -21,6 +21,8 @@ public class StackedFeedbackPacket extends Packet implements Serializable {
     public String fullSequence = ""; // for reproducing
     public String configFileName;
 
+    public boolean skipped = false; // skipped since no invariant
+
     public boolean isUpgradeProcessFailed = false;
     public String upgradeFailureReport;
 
