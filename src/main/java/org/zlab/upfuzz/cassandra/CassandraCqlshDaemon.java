@@ -90,6 +90,15 @@ public class CassandraCqlshDaemon {
                     });
                     String result = new String(
                             grepProc.getInputStream().readAllBytes()).strip();
+
+                    // Process grepProc2 = docker.runInContainer(new String[] {
+                    // "/bin/sh", "-c",
+                    // "cat /var/log/supervisor/cassandra-stderr*"
+                    // });
+                    // String result2 = new String(
+                    // grepProc2.getInputStream().readAllBytes()).strip();
+                    // System.err.println("grep check result2 = " + result2);
+
                     int processNum = Integer.parseInt(result);
                     if (Integer.parseInt(result) <= 2) {
                         // Process has died

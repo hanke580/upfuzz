@@ -206,6 +206,28 @@ public class MiniClientMain {
             logInfoBeforeUpgrade = executor.grepLogInfo();
         }
 
+        if (Config.instance.useLikelyInv) {
+            boolean hasBrokenInv = executor.hasBrokenInv();
+            System.err.println("checking inv!");
+            if (!hasBrokenInv) {
+                // skip current upgrade process
+                stackedFeedbackPacket.skipped = true;
+                new Thread(new Runnable() {
+                    public void run() {
+                        executor.upgradeTeardown();
+                        executor.clearState();
+                        executor.teardown();
+                    }
+                }).start();
+                System.err.println("client skip upgrade process!");
+                // also skip the tear down process, we force shutdown the
+                // cluster!
+                // open a thread to shutdown it
+                return stackedFeedbackPacket;
+            }
+            System.err.println("client not skip upgrade process!");
+        }
+
         boolean ret = executor.fullStopUpgrade();
 
         if (!ret) {
