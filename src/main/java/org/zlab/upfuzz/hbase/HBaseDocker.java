@@ -168,7 +168,7 @@ public class HBaseDocker extends Docker {
         prepareUpgradeEnv();
         String restartCommand;
         if (index == 0) {
-            restartCommand = "supervisorctl restart hbase";
+            restartCommand = "supervisorctl restart upfuzz_hbase:";
         } else {
             restartCommand = "source /usr/bin/set_env && /usr/local/bin/hbase-init.sh";
         }
@@ -333,7 +333,7 @@ public class HBaseDocker extends Docker {
             // + " - ./persistent/node_${index}/data:/var/lib/cassandra\n"
             + "            - ./persistent/node_${index}/log:/var/log/hbase\n"
             + "            - ./persistent/node_${index}/env.sh:/usr/bin/set_env\n"
-            + "            - ./persistent/node_${index}/zookeeper:/usr/local/zookeeper\n"
+            // + " - ./persistent/node_${index}/zookeeper:/usr/local/zookeeper\n"
             + "            - ./persistent/node_${index}/consolelog:/var/log/supervisor\n"
             + "            - ./persistent/config:/test_config\n"
             + "            - ${projectRoot}/prebuild/${system}/${originalVersion}:/${system}/${originalVersion}\n"
@@ -413,7 +413,7 @@ public class HBaseDocker extends Docker {
     @Override
     public LogInfo grepLogInfo() {
         LogInfo logInfo = new LogInfo();
-        Path filePath = Paths.get("/var/log/hbase/system.log");
+        Path filePath = Paths.get("/var/log/hbase/*.log");
 
         constructLogInfo(logInfo, filePath);
         return logInfo;

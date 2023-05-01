@@ -18,6 +18,9 @@ import os
 from subprocess import Popen, PIPE
 
 
+output_file = open('/var/log/supervisor/hbase_daemon.log', 'w', encoding='utf-8')
+output_file.write("test\n")
+
 def get_shell_within_docker():
     return os
 
@@ -54,9 +57,11 @@ class TCPHandler(socketserver.BaseRequestHandler):
                 self.data = self.request.recv(51200).strip()
                 if not self.data:
                     print("stop current TCP")
+                    output_file.write("stop current TCP\n")
                     break
                 
                 print(self.data)
+                # output_file.write(self.data + "\n")
                 cmd = self.data.decode("ascii")+'\n'
                 start_time = time.time()
 
@@ -76,6 +81,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
                     next_shell_out = 'hbase:' + \
                         '{:0>3d}'.format(command_count) + ':0> '
                     print('next_out:', next_shell_out)
+                    output_file.write(next_shell_out + '\n')
                     command_count += 1
 
                     while True:
@@ -85,12 +91,14 @@ class TCPHandler(socketserver.BaseRequestHandler):
                         newline = newline.decode("utf-8")
                         ret_out += newline
                         print(newline, end='')
+                        output_file.write(newline)
                         err_out = process.stderr.read()
                         if err_out is not None and len(err_out) != 0:
                             ret_err += err_out.decode("utf-8")
                         if ret_out.endswith(next_shell_out) or ret_out.endswith(next_shell_out+'\n'):
                             break
                     print("stdout of process: " + ret_out)
+                    output_file.write("stdout of process: " + ret_out + '\n')
                     ret_out = '\n'.join(ret_out.split('\n')[1:-1])
                     # ret_out = process.stdout.read()
                     # ret_out, ret_err = process.communicate(input=cmd.encode(), timeout=5)
@@ -176,6 +184,7 @@ if __name__ == "__main__":
     if not isinstance(port, int):
         raise TypeError("port must be an integer")
     print("use " + host + ":" + str(port))
+    output_file.write("use " + host + ":" + str(port) + '\n')
 
     global process
     global command_count
@@ -239,7 +248,9 @@ if __name__ == "__main__":
     # process.stdin.write(b'version\n')
     # process.stdin.write(b'version\n')
     print(output)
+    output_file.write(output + '\n')
     print(errout)
+    output_file.write(errout + '\n')
     command_count += 1
 
     while True:
@@ -250,6 +261,7 @@ if __name__ == "__main__":
             print('test')
             server = socketserver.TCPServer((host, port), TCPHandler)
             print('hbase server created')
+            output_file.write('hbase server created\n')
             server.serve_forever()
             print('hbase server end')
 

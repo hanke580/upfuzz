@@ -46,21 +46,22 @@ public class HBaseShellDaemon {
 
     public HBasePacket execute(String cmd)
             throws IOException {
-        DataInputStream in = new DataInputStream(socket.getInputStream());
-        DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-        out.writeInt(cmd.getBytes().length);
-        out.write(cmd.getBytes());
+        BufferedWriter bw = new BufferedWriter(
+                new OutputStreamWriter(socket.getOutputStream()));
 
-        int packetLength = in.readInt();
-        logger.info("ret len = " + packetLength);
-        byte[] bytes = new byte[packetLength];
-        int len = 0;
-        len = in.read(bytes, len, packetLength - len);
-        while (len < packetLength) {
-            int size = in.read(bytes, len, packetLength - len);
-            len += size;
+        bw.write(cmd);
+        bw.flush();
+        // System.out.println("executor write " + cmd);
+        BufferedReader br = new BufferedReader(
+                new InputStreamReader(socket.getInputStream()));
+
+        char[] chars = new char[51200];
+        int cnt = br.read(chars);
+        if (cnt == -1) {
+            throw new IllegalStateException("cqlsh daemon crashed");
         }
-        String hbaseMessage = new String(bytes);
+        logger.info("ret len = " + cnt);
+        String hbaseMessage = new String(chars, 0, cnt);
 
         Gson gson = new GsonBuilder()
                 .setLenient()
@@ -71,8 +72,6 @@ public class HBaseShellDaemon {
         try {
             hbasePacket = gson.fromJson(hbaseMessage,
                     HBasePacket.class);
-            hbasePacket.message = Utilities.decodeString(hbasePacket.message)
-                    .replace("\0", "");
         } catch (Exception e) {
             e.printStackTrace();
             logger.error("ERROR: Cannot read from json\n WRONG_HBase MESSAGE: "
@@ -90,16 +89,16 @@ public class HBaseShellDaemon {
     public static class HBasePacket {
         public String cmd;
         public int exitValue;
+        public double timeUsage;
         public String message;
         public String error;
-        public double timeUsage;
 
         public HBasePacket() {
             cmd = "";
             exitValue = 0;
+            timeUsage = -1;
             message = "";
             error = "";
-            timeUsage = -1;
         }
     }
 }
