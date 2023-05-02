@@ -37,7 +37,7 @@ public class CommandTests {
     }
 
     @Test
-    public void test01(){
+    public void test01() {
         HBaseState s = new HBaseState();
 
         CREATE cmd01 = new CREATE(s);
@@ -65,17 +65,15 @@ public class CommandTests {
         System.out.println(cmd04str);
         cmd04.updateState(s);
 
-        //PUT_NEW_ITEM cmd05 = new PUT_NEW_ITEM(s);
-        //String cmd05str = cmd05.constructCommandString();
-        //System.out.println(cmd05str);
-        //cmd05.updateState(s);
-
-
+        // PUT_NEW_ITEM cmd05 = new PUT_NEW_ITEM(s);
+        // String cmd05str = cmd05.constructCommandString();
+        // System.out.println(cmd05str);
+        // cmd05.updateState(s);
 
     }
 
     @Test
-    public void CommandTests()throws Exception{
+    public void CommandTests() throws Exception {
         test01();
     }
 

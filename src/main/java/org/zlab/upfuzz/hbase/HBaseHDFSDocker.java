@@ -296,8 +296,8 @@ public class HBaseHDFSDocker extends Docker {
     static String template = ""
             + "    DEPN${index}:\n"
             + "        container_name: hdfs-${originalVersion}_${upgradedVersion}_${executorID}_N${index}\n"
-            + "        image: upfuzz_hdfs:hadoop-2.10.2\n" // TODO: depend
-                                                           // system & version
+            // TODO: depend system & version
+            + "        image: upfuzz_hdfs:hadoop-2.10.2\n" 
             + "        command: bash -c 'sleep 0 && source /usr/bin/set_env && /usr/bin/supervisord'\n"
             + "        networks:\n"
             + "            ${networkName}:\n"
@@ -317,7 +317,7 @@ public class HBaseHDFSDocker extends Docker {
             + "            - namenodeIP=${namenodeIP},\n"
             + "            - HDFS_LOGGING_LEVEL=DEBUG\n"
             + "            - HDFS_SHELL_HOST=${networkIP}\n"
-            + "            - HDFS_LOG_DIR=/var/log/hadoop\n"
+            + "            - HDFS_LOG_DIR=/var/log/hdfs\n"
             + "        expose:\n"
             + "             - 22\n"
             + "             - 7000\n"
