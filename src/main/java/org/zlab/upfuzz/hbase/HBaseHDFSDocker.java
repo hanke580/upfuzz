@@ -297,7 +297,7 @@ public class HBaseHDFSDocker extends Docker {
             + "    DEPN${index}:\n"
             + "        container_name: hdfs-${originalVersion}_${upgradedVersion}_${executorID}_N${index}\n"
             // TODO: depend system & version
-            + "        image: upfuzz_hdfs:hadoop-2.10.2\n" 
+            + "        image: upfuzz_hdfs:hadoop-2.10.2\n"
             + "        command: bash -c 'sleep 0 && source /usr/bin/set_env && /usr/bin/supervisord'\n"
             + "        networks:\n"
             + "            ${networkName}:\n"

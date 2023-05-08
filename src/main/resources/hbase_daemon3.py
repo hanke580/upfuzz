@@ -18,7 +18,7 @@ import os
 from subprocess import Popen, PIPE
 
 
-output_file = open('/var/log/supervisor/hbase_daemon.log', 'w', encoding='utf-8')
+output_file = open('/var/log/supervisor/hbase_daemon.log', 'a', encoding='utf-8')
 output_file.write("test\n")
 
 def get_shell_within_docker():
