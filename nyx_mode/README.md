@@ -310,3 +310,17 @@ To debug, we need to
 - In c agent place a sleep before the abort is called so that we can view the VM with vncviewer
 - Make sure **config.Ron** ($UPFUZZ_DIR/nyx_mode/config.ron) has debug enabled
 - And use system.err prints in miniclient
+
+
+# TODOs
+- A small refactor that combines the c agent + mini agent -> mini agent by using JNI. 
+- Or at least creating a JNI interface for the hprintf command (so error logging can be placed outside of the VM more easily)
+- Use jni inside the vm for miniclient
+- Hprintf is those yellow messages in the host
+- It’s the easiest way to print text to host
+- So you can write debug statements and immediately see them outside the vm 
+
+
+
+
+
