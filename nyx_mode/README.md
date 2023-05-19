@@ -4,7 +4,8 @@ This guide decribes how to quickly setup upfuzz with Nyx Mode. If you are instea
 
 ## System Requirements
 
-* To use nyxnet a linux system is needed and with a supported processor and kernel version. 
+To use nyxnet a linux system is needed and with a supported processor and kernel version.
+* ubuntu 22.04+ (glibc 2.35)
 
 ### Processor
 
@@ -24,6 +25,10 @@ This guide decribes how to quickly setup upfuzz with Nyx Mode. If you are instea
 # How to install
 
 1. Insure you are added to the following groups: `kvm, docker`
+```bash
+sudo adduser $USER docker
+sudo adduser $USER kvm
+```
 2. Follow the nyx build setup
 3. Create your nyx VM
 
@@ -50,7 +55,7 @@ cd $UPFUZZ_DIR/nyx_mode
 
 4. Run the nyx environment setup script to setup build dependencies 
 
-    *Warning: This may take a few minutes*
+    * Warning: This may take a few minutes*
 
 ```bash
 ./setup_nyx_mode.sh
@@ -88,6 +93,23 @@ wget https://releases.ubuntu.com/22.04.2/ubuntu-22.04.2-live-server-amd64.iso
 ../packer/qemu_tool.sh install ubuntu.img ubuntu-22.04.2-live-server-amd64.iso
 ```
 *If you are asked to setup a VM backdoor, follow the commands given by the qemu_tool*
+```bash
+POST_INSTALL
+[QEMU-NYX] Warning: Nyx block COW layer disabled for ubuntu.img (write operations are not cached!)
+[QEMU-Nyx] Could not access KVM-PT kernel module!
+[QEMU-Nyx] Trying vanilla KVM...
+
+[QEMU-Nyx] ERROR: vmware backdoor is not enabled...
+
+	Run the following commands to fix the issue:
+	-----------------------------------------
+	sudo modprobe -r kvm-intel
+	sudo modprobe -r kvm
+	sudo modprobe  kvm enable_vmware_backdoor=y
+	sudo modprobe  kvm-intel
+	cat /sys/module/kvm/parameters/enable_vmware_backdoor
+	-----------------------------------------
+```
 
 5. In a new terminal connect to the VM using vnc @ `localhost:5900`. 
 
@@ -113,7 +135,7 @@ sudo ../packer/qemu_tool.sh post_install ubuntu.img
 
 7. In another terminal window, navigate to the `upfuzz/nyx_mode/ubuntu` directory and use scp to transfer the nyx pre-snapshot loader. *(Replace your username used in setup below)*
 ```bash
-mkdir $UPFUZZ_DIR/nyx_mode/ubuntu
+cd $UPFUZZ_DIR/nyx_mode/ubuntu
 scp -P 2222 ../packer/packer/linux_x86_64-userspace/bin64/loader nyx@localhost:/home/nyx/ # password: nyx
 ```
 
@@ -194,10 +216,97 @@ vim config.ron
 # replace the path with real path <ADD_HERE>
 ```
 
-17. Ensure the `upfuzz/config.json` is set to 
+17. Generate default configurations
+
+```bash
+cd $UPFUZZ_DIR/nyx_mode/packer/packer/fuzzer_configs
+mkdir tmp
+python3 ../nyx_config_gen.py tmp Snapshot -m 4096 # generate default configurations
+```
+
+```
+➜  fuzzer_configs git:(ef990c6) ✗ tree
+.
+├── default_config_vm.ron
+└── tmp
+    └── config.ron
+
+1 directory, 2 files
+```
+
+18. Ensure the `$UPFUZZ_DIR/config.json` is set to 
 ```bash
 "nyxMode": true,
 "testingMode": 0,
 ```
 
 19. Nyx Mode should now be ready. Go on to now complete the `Minimal Set up for Cassandra` in this host environment!
+
+## Problem Shooting
+
+GLIBC version: The tested GLIBC version is 2.35 (UBUNTU 22.04). 
+If you encounter the following problems when running testing framework, check your glibc version. 
+You better upgrade to ubuntu **22.04** which comes with glibc 2.35.
+
+```
+Exception in thread "main" java.lang.UnsatisfiedLinkError: /users/Tingjia/project/upfuzz/build/libs/libnyxJNI.so: /users/Tingjia/project/upfuzz/build/libs/libnyxJNI.so: undefined symbol: mq_setattr
+	at java.base/java.lang.ClassLoader$NativeLibrary.load0(Native Method)
+	at java.base/java.lang.ClassLoader$NativeLibrary.load(ClassLoader.java:2445)
+	at java.base/java.lang.ClassLoader$NativeLibrary.loadLibrary(ClassLoader.java:2501)
+	at java.base/java.lang.ClassLoader.loadLibrary0(ClassLoader.java:2700)
+	at java.base/java.lang.ClassLoader.loadLibrary(ClassLoader.java:2630)
+	at java.base/java.lang.Runtime.load0(Runtime.java:768)
+	at java.base/java.lang.System.load(System.java:1837)
+	at org.zlab.upfuzz.nyx.LibnyxInterface.<init>(LibnyxInterface.java:22)
+	at org.zlab.upfuzz.fuzzingengine.FuzzingClient.<init>(FuzzingClient.java:57)
+	at org.zlab.upfuzz.fuzzingengine.Main.main(Main.java:101)
+Exception in thread "Thread-0" java.lang.NullPointerException
+	at org.zlab.upfuzz.fuzzingengine.FuzzingClient.lambda$new$0(FuzzingClient.java:49)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+```
+
+Upgrade GLIBC from 2.31
+```bash
+# Check GLIBC version
+ldd --version
+# download GLIBC from https://ftp.gnu.org/gnu/libc/
+cd glibc-2.35
+mkdir build
+cd build
+../configure --prefix='/usr'
+make
+sudo make install
+```
+
+## Debug
+
+The most common exception is `nyx instance was null` since the exception in the vm is not exposed to
+user directly. (TODO: expose error message to user directly for better debugging)
+
+```bash
+java.lang.RuntimeException: Error: nyx instance was null
+	at org.zlab.upfuzz.nyx.LibnyxInterface.nyxNew(Native Method)
+	at org.zlab.upfuzz.nyx.LibnyxInterface.nyxNew(LibnyxInterface.java:44)
+	at org.zlab.upfuzz.fuzzingengine.FuzzingClient.executeStackedTestPacketNyx(FuzzingClient.java:321)
+	at org.zlab.upfuzz.fuzzingengine.FuzzingClient.executeStackedTestPacket(FuzzingClient.java:196)
+	at org.zlab.upfuzz.fuzzingengine.FuzzingClientSocket.run(FuzzingClientSocket.java:62)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+Exception in thread "Thread-1" java.lang.RuntimeException: java.lang.RuntimeException: Error: nyx instance was null
+	at org.zlab.upfuzz.fuzzingengine.FuzzingClientSocket.run(FuzzingClientSocket.java:98)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+Caused by: java.lang.RuntimeException: Error: nyx instance was null
+	at org.zlab.upfuzz.nyx.LibnyxInterface.nyxNew(Native Method)
+	at org.zlab.upfuzz.nyx.LibnyxInterface.nyxNew(LibnyxInterface.java:44)
+	at org.zlab.upfuzz.fuzzingengine.FuzzingClient.executeStackedTestPacketNyx(FuzzingClient.java:321)
+	at org.zlab.upfuzz.fuzzingengine.FuzzingClient.executeStackedTestPacket(FuzzingClient.java:196)
+	at org.zlab.upfuzz.fuzzingengine.FuzzingClientSocket.run(FuzzingClientSocket.java:62)
+	... 1 more
+Exception in thread "Thread-0" java.lang.NullPointerException
+	at org.zlab.upfuzz.fuzzingengine.FuzzingClient.lambda$new$0(FuzzingClient.java:49)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+```
+
+To debug, we need to
+- In c agent place a sleep before the abort is called so that we can view the VM with vncviewer
+- Make sure **config.Ron** ($UPFUZZ_DIR/nyx_mode/config.ron) has debug enabled
+- And use system.err prints in miniclient
