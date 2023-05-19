@@ -43,27 +43,16 @@ source $HOME/.cargo/env
 ```
 
 3. Navigate into the `upfuzz/nyx_mode` working directory
+```bash
+export UPFUZZ_DIR=$PWD
+cd $UPFUZZ_DIR/nyx_mode 
+```
 
 4. Run the nyx environment setup script to setup build dependencies 
 
     *Warning: This may take a few minutes*
 
-```java
-// FIXME!
-// There's some problem with this script. We need to manually comment out certain lines
-// upfuzz/nyx_mode/QEMU-Nyx/nyx/hypercall/hypercall.c: comment out lines: 211-213
-static void handle_hypercall_kafl_req_stream_data(struct kvm_run *run,
-                                                  CPUState       *cpu,
-                                                  uint64_t        hypercall_arg)
-{
-    static uint8_t req_stream_buffer[0x1000];
-    // if (is_called_in_fuzzing_mode("HYPERCALL_KAFL_REQ_STREAM_DATA")) {
-    //     return;
-    // }
-```
-
 ```bash
-
 ./setup_nyx_mode.sh
 ```
 
@@ -73,10 +62,14 @@ static void handle_hypercall_kafl_req_stream_data(struct kvm_run *run,
 
 1. Navigate into the `upfuzz/nyx_mode` working directory
 
+```bash
+cd $UPFUZZ_DIR/nyx_mode 
+```
+
 2. Create a new folder where the VM image will be stored
 ```bash
-mkdir ubuntu
-cd ubuntu
+mkdir $UPFUZZ_DIR/nyx_mode/ubuntu
+cd $UPFUZZ_DIR/nyx_mode/ubuntu
 ```
 
 2. Here, we will create a new VM image file (which represents the virtual hard disk of our fuzzing VM)
@@ -96,39 +89,58 @@ wget https://releases.ubuntu.com/22.04.2/ubuntu-22.04.2-live-server-amd64.iso
 ```
 *If you are asked to setup a VM backdoor, follow the commands given by the qemu_tool*
 
-5. In a new terminal connect to the VM using vnc @ `localhost:5900`. Follow the entire ubuntu OS install process, make sure to install SSH when asked. **[!] Make sure to set your ubuntu username and home directory to `nyx`.** Feel free to set the password to anything you like, however we suggest `nyx` as well.
+5. In a new terminal connect to the VM using vnc @ `localhost:5900`. 
 
-    **This step will be done after ubuntu install restarts.** *After the restart the ubuntu system may error, this is normal, `ctrl+C` the `qemu_tool.sh` script and move on to post_install mode*.
+```bash
+# port forwarding
+ssh USER_NAME@IP_ADDRESS -L 9901:localhost:5900
+# open vnc viewer, connect to localhost:9901
+```
+
+When connected with GUI, follow the entire ubuntu OS install process.
+- Install **SSH** when asked. 
+- ubuntu username (home dir): nyx
+- password: nyx (Feel free to set the password to anything you like, however we suggest `nyx`).
+- When the installation is finished, it prompts `cancel update and reboot`, select it.
+
+This step will be done after ubuntu install restarts. 
+- *After the restart the ubuntu system may error (`Failed unmounting /cdrom`), this is normal, `ctrl+C` the `qemu_tool.sh` script and move on to post_install mode*.
 
 6. Now startup the VM in post install mode.
 ```bash
-../packer/qemu_tool.sh post_install ubuntu.img
+sudo ../packer/qemu_tool.sh post_install ubuntu.img
 ```
 
 7. In another terminal window, navigate to the `upfuzz/nyx_mode/ubuntu` directory and use scp to transfer the nyx pre-snapshot loader. *(Replace your username used in setup below)*
 ```bash
-scp -P 2222 ../packer/packer/linux_x86_64-userspace/bin64/loader nyx@localhost:/home/nyx/
+mkdir $UPFUZZ_DIR/nyx_mode/ubuntu
+scp -P 2222 ../packer/packer/linux_x86_64-userspace/bin64/loader nyx@localhost:/home/nyx/ # password: nyx
 ```
 
 8. Now connect to the VM while it is still in `post_install` mode
 ```bash
-ssh -p 2222 nyx@localhost
+ssh -p 2222 nyx@localhost # password: nyx
 ```
 
 9. Inside the nyx VM's terminal install vmtouch
 ```bash
 # Run this inside Nyx VM
-sudo apt-get install -y vmtouch
+sudo apt-get install -y vmtouch # password: nyx
 ```
 
 10. Still while inside the nyx VM's terminal clone another upfuzz repo into `/home/nyx/upfuzz`. *(This is needed for docker references inside the VM)*
 ```bash
 # Run this inside Nyx VM
 cd /home/nyx
-git clone https://github.com/zlab-purdue/upfuzz.git
+
+# set up ssh
+ssh-keygen -t ed25519 -C "kehan5800@gmail.com"
+cat ~/.ssh/id_ed25519.pub
+git clone git@github.com:zlab-purdue/upfuzz.git
 ```
 
-11. Inside the nyx VM follow the `Prerequsite` and `Minimal Set up for Cassandra`  that normally done for upfuzz. However do **NOT** startup the upfuzz server and client inside the VM.
+11. Inside the nyx VM follow the `Prerequsite` and `Minimal Set up for Cassandra` in README.md of upfuzz. However do **NOT** startup the upfuzz server and client inside the VM.
+This is only used for setting up the folder structure. We shouldn't start up testing here.
 
 12. After following the setup for cassandra, gracefully shutdown the nyx VM.
 ```bash
@@ -140,21 +152,27 @@ sudo shutdown now
 
     Navigate to the `upfuzz/nyx_mode/ubuntu` directory and start the tool in snapshot mode with 4096 MB of memory. *(This may take a minute to startup)*
 ```bash
-../packer/qemu_tool.sh create_snapshot ubuntu.img 4096 ./nyx_snapshot/
+cd $UPFUZZ_DIR/nyx_mode/ubuntu
+sudo ../packer/qemu_tool.sh create_snapshot ubuntu.img 4096 ./nyx_snapshot/
 ```
 
 14. In another terminal window, connect to the nyx VM using VNC @ `localhost:5900`
 
-While inside the VNC, log in and allow nyx user access to docker.
+While inside the VNC, log in and allow nyx user access to docker. It shows `nyx login:[ xxx]`.
 ```bash
+# VNC viewer
+# type: nyx
+# type: nyx again, (this is the password)
+
 # Inside Nyx VM (VNC)
 sudo chmod 666 /var/run/docker.sock
 ```
 Now we can create the root snapshot. Wait until the docker daemon has fully started (i.e. when no more messages are placed in the terminal). Then we can go ahead and create the snapshot.
 ```bash
 # Inside Nyx VM (VNC)
-chmod +x ./loader
+chmod 777 ./loader # or chmod +x 777 ./loader
 sudo ./loader
+# it shows `kernel panic` and exist, this is normal
 ```
 The nyx VM and qemu_tool.sh should close and your `./nyx_snapshot/` will contain the root snapshot.
 
@@ -163,11 +181,18 @@ The nyx VM and qemu_tool.sh should close and your `./nyx_snapshot/` will contain
 Open the `../packer/packer/nyx.ini` file and point it to absolute paths of the image file and snapshot folder you just created.
 ```bash
 # Example
-default_vm_hda = .../upfuzz/nyx_mode/ubuntu/ubuntu.img
+cd $UPFUZZ_DIR/nyx_mode/ubuntu
+vim ../packer/packer/nyx.ini
+default_vm_hda = PATH_TO_FOLDER/upfuzz/nyx_mode/ubuntu/ubuntu.img
 default_vm_presnapshot = .../upfuzz/nyx_mode/ubuntu/nyx_snapshot
 ```
 
-16. Modify the config.ron file's `include_default_config_path` to be an absolute path by changing `<ADD_HERE>` to your respective path.
+16. Modify the config.ron (_upfuzz/nyx_mode/config.ron_) file's `include_default_config_path` to be an absolute path by changing `<ADD_HERE>` to your respective path.
+```bash
+cd $UPFUZZ_DIR/nyx_mode
+vim config.ron
+# replace the path with real path <ADD_HERE>
+```
 
 17. Ensure the `upfuzz/config.json` is set to 
 ```bash
@@ -175,4 +200,4 @@ default_vm_presnapshot = .../upfuzz/nyx_mode/ubuntu/nyx_snapshot
 "testingMode": 0,
 ```
 
-18. Nyx Mode should now be ready. Go on to now complete the `Minimal Set up for Cassandra` in this host environment!
+19. Nyx Mode should now be ready. Go on to now complete the `Minimal Set up for Cassandra` in this host environment!
