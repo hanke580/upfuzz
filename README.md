@@ -85,29 +85,31 @@ sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 ## Minimal Set up for Cassandra (Try upfuzz quickly!)
 Requirement: java11, docker (Docker version 23.0.1, build a5ee5b1)
 > - Not test configurations.
-> - single Cassandra node upgrade: 3.11.14 => 4.1.0
+> - single Cassandra node upgrade: 3.11.15 => 4.1.2
 
 Clone the repo
 ```bash
 git clone --recursive git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
 export UPFUZZ_DIR=$PWD
+export ORI_VERSION=3.11.15
+export UP_VERSION=4.1.2
 
-mkdir -p $UPFUZZ_DIR/prebuild/cassandra
+mkdir -p ${UPFUZZ_DIR}/prebuild/cassandra
 cd prebuild/cassandra
-wget https://archive.apache.org/dist/cassandra/4.1.0/apache-cassandra-4.1.0-bin.tar.gz ; tar -xzvf apache-cassandra-4.1.0-bin.tar.gz
-wget https://archive.apache.org/dist/cassandra/3.11.14/apache-cassandra-3.11.14-bin.tar.gz ; tar -xzvf apache-cassandra-3.11.14-bin.tar.gz
+wget https://archive.apache.org/dist/cassandra/${ORI_VERSION}/apache-cassandra-${ORI_VERSION}-bin.tar.gz ; tar -xzvf apache-cassandra-${ORI_VERSION}-bin.tar.gz
+wget https://archive.apache.org/dist/cassandra/${UP_VERSION}/apache-cassandra-${UP_VERSION}-bin.tar.gz ; tar -xzvf apache-cassandra-${UP_VERSION}-bin.tar.gz
 
-sed -i 's/num_tokens: 16/num_tokens: 256/' apache-cassandra-4.1.0/conf/cassandra.yaml
+sed -i 's/num_tokens: 16/num_tokens: 256/' apache-cassandra-${UP_VERSION}/conf/cassandra.yaml
 
-cd $UPFUZZ_DIR
-cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-3.11.14/bin/cqlsh_daemon.py
-cp src/main/resources/cqlsh_daemon3_4.0.5_4.1.0.py  prebuild/cassandra/apache-cassandra-4.1.0/bin/cqlsh_daemon.py
+cd ${UPFUZZ_DIR}
+cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-${ORI_VERSION}/bin/cqlsh_daemon.py
+cp src/main/resources/cqlsh_daemon3_4.0.5_4.1.0.py  prebuild/cassandra/apache-cassandra-${UP_VERSION}/bin/cqlsh_daemon.py
 
 cd src/main/resources/cassandra/normal/compile-src/
-docker build . -t upfuzz_cassandra:apache-cassandra-3.11.14_apache-cassandra-4.1.0
+docker build . -t upfuzz_cassandra:apache-cassandra-${ORI_VERSION}_apache-cassandra-${UP_VERSION}
 
-cd $UPFUZZ_DIR
+cd ${UPFUZZ_DIR}
 ./gradlew copyDependencies
 ./gradlew :spotlessApply build
 
@@ -122,6 +124,12 @@ cd $UPFUZZ_DIR
 ```
 
 ## Usage
+
+Important configurations
+- **testingMode**
+  - 0: Full-Stop testing
+  - 1: Rolling upgrade testing
+  - 4: Mixed full-stop&Rolling upgrade testing
 
 > Config test is disabled by default.
 >
@@ -141,30 +149,7 @@ Docker version 23.0.1, build a5ee5b1
 ```
 
 2. Create a `config.json` file, a sample config file is provided in
-   config.json. You need to modify the value for the target system.
-
-   Refer to Config.java for more comments about the configurations.
-
-```json
-{
-  "originalVersion" : "apache-cassandra-3.11.14",
-  "upgradedVersion" : "apache-cassandra-4.1.0",
-  "system" : "cassandra",
-  "serverPort" : "6399",
-  "clientPort" : "6400",
-  "STACKED_TESTS_NUM" : "2",
-  "nodeNum": 3,
-  "useFeedBack": true,
-  "faultMaxNum": 2,
-  "useExampleTestPlan": false,
-  "testingMode": 4,
-  "startUpClusterForDebugging": false,
-  "debug": false,
-  "collUpFeedBack": true
-}
-
-```
-
+   config.json. You need to modify the value for the target system. 
 More configurations please refer to `Config.java` file.
 
 
@@ -287,38 +272,38 @@ Checkout `cass_cl.sh`, this file contains how to kill the server/client process 
 ## Minimal Set up for HDFS (Try upfuzz quickly!)
 Requirement: jdk8, jdk11, docker (Docker version 23.0.1, build a5ee5b1)
 > - Not test configurations.
-> - 4 Nodes upgrade (NN, SNN, 2DN): 2.10.2 => 3.3.4
+> - 4 Nodes upgrade (NN, SNN, 2DN): 2.10.2 => 3.3.5
 
 ```bash
 git clone --recursive git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
 export UPFUZZ_DIR=$PWD
 export ORI_VERSION=2.10.2
-export UP_VERSION=3.3.4
+export UP_VERSION=3.3.5
 
 mkdir -p $UPFUZZ_DIR/prebuild/hdfs
 cd $UPFUZZ_DIR/prebuild/hdfs
-wget https://archive.apache.org/dist/hadoop/common/hadoop-"$ORI_VERSION"/hadoop-"$ORI_VERSION".tar.gz ; tar -xzvf hadoop-"$ORI_VERSION".tar.gz
-wget https://archive.apache.org/dist/hadoop/common/hadoop-"$UP_VERSION"/hadoop-"$UP_VERSION".tar.gz ; tar -xzvf hadoop-"$UP_VERSION".tar.gz
+wget https://archive.apache.org/dist/hadoop/common/hadoop-${ORI_VERSION}/hadoop-${ORI_VERSION}.tar.gz ; tar -xzvf hadoop-$ORI_VERSION.tar.gz
+wget https://archive.apache.org/dist/hadoop/common/hadoop-${UP_VERSION}/hadoop-${UP_VERSION}.tar.gz ; tar -xzvf hadoop-${UP_VERSION}.tar.gz
 
 # Switch java/javac to jdk8
 sudo update-alternatives --config java
 sudo update-alternatives --config javac
 
 # old version hdfs daemon
-cp $UPFUZZ_DIR/src/main/resources/FsShellDaemon2.java $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$ORI_VERSION"/FsShellDaemon.java
-cd $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$ORI_VERSION"/
-javac -d . -cp "share/hadoop/hdfs/hadoop-hdfs-"$ORI_VERSION".jar:share/hadoop/common/hadoop-common-"$ORI_VERSION".jar:share/hadoop/common/lib/*" FsShellDaemon.java
+cp $UPFUZZ_DIR/src/main/resources/FsShellDaemon2.java $UPFUZZ_DIR/prebuild/hdfs/hadoop-${ORI_VERSION}/FsShellDaemon.java
+cd $UPFUZZ_DIR/prebuild/hdfs/hadoop-${ORI_VERSION}/
+javac -d . -cp "share/hadoop/hdfs/hadoop-hdfs-${ORI_VERSION}.jar:share/hadoop/common/hadoop-common-${ORI_VERSION}.jar:share/hadoop/common/lib/*" FsShellDaemon.java
 sed -i "s/elif \[ \"\$COMMAND\" = \"dfs\" \] ; then/elif [ \"\$COMMAND\" = \"dfsdaemon\" ] ; then\n  CLASS=org.apache.hadoop.fs.FsShellDaemon\n  HADOOP_OPTS=\"\$HADOOP_OPTS \$HADOOP_CLIENT_OPTS\"\n&/" bin/hdfs
 
 # new version hdfs daemon
-cp $UPFUZZ_DIR/src/main/resources/FsShellDaemon_trunk.java $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$UP_VERSION"/FsShellDaemon.java
-cd $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$UP_VERSION"/
-javac -d . -cp "share/hadoop/hdfs/hadoop-hdfs-"$UP_VERSION".jar:share/hadoop/common/hadoop-common-"$UP_VERSION".jar:share/hadoop/common/lib/*" FsShellDaemon.java
+cp $UPFUZZ_DIR/src/main/resources/FsShellDaemon_trunk.java $UPFUZZ_DIR/prebuild/hdfs/hadoop-${UP_VERSION}/FsShellDaemon.java
+cd $UPFUZZ_DIR/prebuild/hdfs/hadoop-${UP_VERSION}/
+javac -d . -cp "share/hadoop/hdfs/hadoop-hdfs-${UP_VERSION}.jar:share/hadoop/common/hadoop-common-${UP_VERSION}.jar:share/hadoop/common/lib/*" FsShellDaemon.java
 sed -i "s/  case \${subcmd} in/&\n    dfsdaemon)\n      HADOOP_CLASSNAME=\"org.apache.hadoop.fs.FsShellDaemon\"\n    ;;/" bin/hdfs
 
 cd $UPFUZZ_DIR/src/main/resources/hdfs/compile-src/
-docker build . -t upfuzz_hdfs:hadoop-"$ORI_VERSION"_hadoop-"$UP_VERSION"
+docker build . -t upfuzz_hdfs:hadoop-${ORI_VERSION}_hadoop-${UP_VERSION}
 
 # Switch java/javac to jdk11
 sudo update-alternatives --config java
@@ -343,14 +328,7 @@ The first 3 steps are the same. We can start from the fourth step.
 
 Upgrade from hadoop-2.10.2 to hadoop-3.3.0. You should replace them with the version you want to test.
 
-3. create the `config.json` file
-```json
-{
-  "originalVersion" : "hadoop-2.10.2",
-  "upgradedVersion" : "hadoop-3.3.0",
-  "system" : "hdfs",
-}
-```
+3. Modify the `config.json` file.
 
 4. Compile the daemon file
 

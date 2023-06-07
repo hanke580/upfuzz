@@ -9,7 +9,7 @@ else NAMENODE="$IP"; fi
 
 # Change it to the target systems
 ORG_VERSION=hadoop-2.10.2
-UPG_VERSION=hadoop-3.3.4
+UPG_VERSION=hadoop-3.3.5
 
 # create necessary dirs (some version of cassandra cannot create these)
 mkdir -p /var/log/hdfs

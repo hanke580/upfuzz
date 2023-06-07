@@ -1,6 +1,6 @@
 {
-  "originalVersion" : "apache-cassandra-3.11.14",
-  "upgradedVersion" : "apache-cassandra-4.1.0",
+  "originalVersion" : "apache-cassandra-3.11.15",
+  "upgradedVersion" : "apache-cassandra-4.1.2",
   "system" : "cassandra",
   "serverPort" : "6399",
   "clientPort" : "6400",
