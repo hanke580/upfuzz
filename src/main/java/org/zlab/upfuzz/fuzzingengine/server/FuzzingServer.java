@@ -454,7 +454,7 @@ public class FuzzingServer {
     }
 
     public TestPlan generateExampleTestPlan() {
-        int nodeNum = 3;
+        int nodeNum = Config.getConf().nodeNum;
         if (Config.getConf().system.equals("hdfs"))
             nodeNum = 4;
 

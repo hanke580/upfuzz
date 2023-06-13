@@ -95,19 +95,19 @@ export UPFUZZ_DIR=$PWD
 export ORI_VERSION=3.11.15
 export UP_VERSION=4.1.2
 
-mkdir -p ${UPFUZZ_DIR}/prebuild/cassandra
+mkdir -p "$UPFUZZ_DIR"/prebuild/cassandra
 cd prebuild/cassandra
-wget https://archive.apache.org/dist/cassandra/${ORI_VERSION}/apache-cassandra-${ORI_VERSION}-bin.tar.gz ; tar -xzvf apache-cassandra-${ORI_VERSION}-bin.tar.gz
-wget https://archive.apache.org/dist/cassandra/${UP_VERSION}/apache-cassandra-${UP_VERSION}-bin.tar.gz ; tar -xzvf apache-cassandra-${UP_VERSION}-bin.tar.gz
+wget https://archive.apache.org/dist/cassandra/"$ORI_VERSION"/apache-cassandra-"$ORI_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$ORI_VERSION"-bin.tar.gz
+wget https://archive.apache.org/dist/cassandra/"$UP_VERSION"/apache-cassandra-"$UP_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$UP_VERSION"-bin.tar.gz
 
-sed -i 's/num_tokens: 16/num_tokens: 256/' apache-cassandra-${UP_VERSION}/conf/cassandra.yaml
+sed -i 's/num_tokens: 16/num_tokens: 256/' apache-cassandra-"$UP_VERSION"/conf/cassandra.yaml
 
 cd ${UPFUZZ_DIR}
-cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-${ORI_VERSION}/bin/cqlsh_daemon.py
-cp src/main/resources/cqlsh_daemon3_4.0.5_4.1.0.py  prebuild/cassandra/apache-cassandra-${UP_VERSION}/bin/cqlsh_daemon.py
+cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
+cp src/main/resources/cqlsh_daemon3_4.0.5_4.1.0.py  prebuild/cassandra/apache-cassandra-"$UP_VERSION"/bin/cqlsh_daemon.py
 
 cd src/main/resources/cassandra/normal/compile-src/
-docker build . -t upfuzz_cassandra:apache-cassandra-${ORI_VERSION}_apache-cassandra-${UP_VERSION}
+docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"_apache-cassandra-"$UP_VERSION"
 
 cd ${UPFUZZ_DIR}
 ./gradlew copyDependencies
@@ -283,27 +283,27 @@ export UP_VERSION=3.3.5
 
 mkdir -p $UPFUZZ_DIR/prebuild/hdfs
 cd $UPFUZZ_DIR/prebuild/hdfs
-wget https://archive.apache.org/dist/hadoop/common/hadoop-${ORI_VERSION}/hadoop-${ORI_VERSION}.tar.gz ; tar -xzvf hadoop-$ORI_VERSION.tar.gz
-wget https://archive.apache.org/dist/hadoop/common/hadoop-${UP_VERSION}/hadoop-${UP_VERSION}.tar.gz ; tar -xzvf hadoop-${UP_VERSION}.tar.gz
+wget https://archive.apache.org/dist/hadoop/common/hadoop-"$ORI_VERSION"/hadoop-"$ORI_VERSION".tar.gz ; tar -xzvf hadoop-$ORI_VERSION.tar.gz
+wget https://archive.apache.org/dist/hadoop/common/hadoop-"$UP_VERSION"/hadoop-"$UP_VERSION".tar.gz ; tar -xzvf hadoop-"$UP_VERSION".tar.gz
 
 # Switch java/javac to jdk8
 sudo update-alternatives --config java
 sudo update-alternatives --config javac
 
 # old version hdfs daemon
-cp $UPFUZZ_DIR/src/main/resources/FsShellDaemon2.java $UPFUZZ_DIR/prebuild/hdfs/hadoop-${ORI_VERSION}/FsShellDaemon.java
-cd $UPFUZZ_DIR/prebuild/hdfs/hadoop-${ORI_VERSION}/
-javac -d . -cp "share/hadoop/hdfs/hadoop-hdfs-${ORI_VERSION}.jar:share/hadoop/common/hadoop-common-${ORI_VERSION}.jar:share/hadoop/common/lib/*" FsShellDaemon.java
+cp $UPFUZZ_DIR/src/main/resources/FsShellDaemon2.java $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$ORI_VERSION"/FsShellDaemon.java
+cd $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$ORI_VERSION"/
+javac -d . -cp "share/hadoop/hdfs/hadoop-hdfs-"$ORI_VERSION".jar:share/hadoop/common/hadoop-common-"$ORI_VERSION".jar:share/hadoop/common/lib/*" FsShellDaemon.java
 sed -i "s/elif \[ \"\$COMMAND\" = \"dfs\" \] ; then/elif [ \"\$COMMAND\" = \"dfsdaemon\" ] ; then\n  CLASS=org.apache.hadoop.fs.FsShellDaemon\n  HADOOP_OPTS=\"\$HADOOP_OPTS \$HADOOP_CLIENT_OPTS\"\n&/" bin/hdfs
 
 # new version hdfs daemon
-cp $UPFUZZ_DIR/src/main/resources/FsShellDaemon_trunk.java $UPFUZZ_DIR/prebuild/hdfs/hadoop-${UP_VERSION}/FsShellDaemon.java
-cd $UPFUZZ_DIR/prebuild/hdfs/hadoop-${UP_VERSION}/
-javac -d . -cp "share/hadoop/hdfs/hadoop-hdfs-${UP_VERSION}.jar:share/hadoop/common/hadoop-common-${UP_VERSION}.jar:share/hadoop/common/lib/*" FsShellDaemon.java
+cp $UPFUZZ_DIR/src/main/resources/FsShellDaemon_trunk.java $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$UP_VERSION"/FsShellDaemon.java
+cd $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$UP_VERSION"/
+javac -d . -cp "share/hadoop/hdfs/hadoop-hdfs-"$UP_VERSION".jar:share/hadoop/common/hadoop-common-"$UP_VERSION".jar:share/hadoop/common/lib/*" FsShellDaemon.java
 sed -i "s/  case \${subcmd} in/&\n    dfsdaemon)\n      HADOOP_CLASSNAME=\"org.apache.hadoop.fs.FsShellDaemon\"\n    ;;/" bin/hdfs
 
 cd $UPFUZZ_DIR/src/main/resources/hdfs/compile-src/
-docker build . -t upfuzz_hdfs:hadoop-${ORI_VERSION}_hadoop-${UP_VERSION}
+docker build . -t upfuzz_hdfs:hadoop-"$ORI_VERSION"_hadoop-"$UP_VERSION"
 
 # Switch java/javac to jdk11
 sudo update-alternatives --config java
