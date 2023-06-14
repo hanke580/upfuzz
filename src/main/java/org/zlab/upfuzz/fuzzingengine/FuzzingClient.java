@@ -840,10 +840,10 @@ public class FuzzingClient {
                 List<String> testPlanReadResults = executor
                         .executeCommands(
                                 testPlanPacket.testPlan.validationCommands);
-                logger.debug("[HKLOG] full-stop results = \n"
-                        + testPlanPacket.testPlan.validationReadResultsOracle);
-                logger.debug("[HKLOG] rolling upgrade results = \n"
-                        + testPlanReadResults);
+                // logger.debug("[HKLOG] full-stop results = \n"
+                // + testPlanPacket.testPlan.validationReadResultsOracle);
+                // logger.debug("[HKLOG] rolling upgrade results = \n"
+                // + testPlanReadResults);
                 compareRes = executor
                         .checkResultConsistency(
                                 testPlanPacket.testPlan.validationReadResultsOracle,

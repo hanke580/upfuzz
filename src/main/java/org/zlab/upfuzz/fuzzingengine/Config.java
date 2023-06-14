@@ -86,11 +86,14 @@ public class Config {
 
         // ------------Test Plan-------------
         public boolean testDowngrade = false;
+        // failureOver = true: if the seed node in the distributed is dead
+        // another node can keep executing commands
+        public boolean failureOver = false;
 
         // 0: only full-stop test using StackedTestPacket
-        // 1: only test plan test using TestPlanPacket
+        // 1: Bug Reproduction: Full-Stop Test
         // 2: mixed test using MixedTestPlan
-        // 3: debugging purpose: execute an example test plan
+        // 3: Bug Reproduction: Rolling upgrade (given a test plan)
         // 4: full-stop upgrade + mixed Test Plan iteratively (Final Version)
         public int testingMode = 0;
 

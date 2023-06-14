@@ -458,7 +458,7 @@ public class FuzzingServer {
     }
 
     public TestPlan generateExampleTestPlan() {
-        int nodeNum = 3;
+        int nodeNum = Config.getConf().nodeNum;
         if (Config.getConf().system.equals("hdfs"))
             nodeNum = 4;
 
@@ -638,7 +638,9 @@ public class FuzzingServer {
         }
 
         boolean isSeedAlive = true;
-        // check upgrade while seed node is down
+        // Cannot upgrade if seed node is down
+        // Cannot execute commands if seed node is down
+        // TODO: If we have failure mechanism, we can remove this check
         for (Event event : events) {
             if (event instanceof NodeFailure) {
                 int nodeIdx = ((NodeFailure) event).nodeIndex;
@@ -660,6 +662,11 @@ public class FuzzingServer {
                     isSeedAlive = true;
                 } else if (!isSeedAlive) {
                     return false;
+                }
+            } else if (event instanceof ShellCommand) {
+                if (!Config.getConf().failureOver) {
+                    if (!isSeedAlive)
+                        return false;
                 }
             }
         }
