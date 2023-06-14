@@ -83,6 +83,10 @@ cd $UPFUZZ_DIR/nyx_mode/ubuntu
 ../packer/qemu_tool.sh create_image ubuntu.img $((1024*30))
 ```
 
+> PS: 
+> Step 3-10 could be saved by directly using the ubuntu.image we created before
+> mufasa server: /home/khan/ubuntu_install/ubuntu.img
+
 3. Download the ubuntu server installation iso
 ```bash
 wget https://releases.ubuntu.com/22.04.2/ubuntu-22.04.2-live-server-amd64.iso

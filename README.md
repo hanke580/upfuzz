@@ -150,7 +150,7 @@ Docker version 23.0.1, build a5ee5b1
 ```
 
 2. Create a `config.json` file, a sample config file is provided in
-   config.json. You need to modify the value for the target system. 
+   config.json. You need to modify the value for the target system.
 More configurations please refer to `Config.java` file.
 
 
