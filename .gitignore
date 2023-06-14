@@ -9,6 +9,8 @@ bu.sh
 prebuild/
 fuzzing_storage
 upfuzz.log
+upfuzz_client.log
+upfuzz_server.log
 hdfs-cl-*
 cass-cl*
 configtests
