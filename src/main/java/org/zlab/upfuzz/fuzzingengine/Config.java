@@ -77,6 +77,9 @@ public class Config {
 
         // ------------Test Plan-------------
         public boolean testDowngrade = false;
+        // failureOver = true: if the seed node in the distributed is dead
+        // another node can keep executing commands
+        public boolean failureOver = false;
 
         // 0: only full-stop test using StackedTestPacket
         // 1: Bug Reproduction: Full-Stop Test

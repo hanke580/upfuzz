@@ -202,9 +202,9 @@ public class FuzzingServer {
                 packet = testPlanPackets.poll();
                 // TestPlanPacket tp = (TestPlanPacket) packet;
                 // logger.info("val cmd size = "
-                //         + tp.testPlan.validationCommands.size());
+                // + tp.testPlan.validationCommands.size());
                 // logger.info("val oracle size = "
-                //         + tp.testPlan.validationReadResultsOracle.size());
+                // + tp.testPlan.validationReadResultsOracle.size());
             }
             isFullStopUpgrade = !isFullStopUpgrade;
             return packet;
@@ -631,7 +631,9 @@ public class FuzzingServer {
         }
 
         boolean isSeedAlive = true;
-        // check upgrade while seed node is down
+        // Cannot upgrade if seed node is down
+        // Cannot execute commands if seed node is down
+        // TODO: If we have failure mechanism, we can remove this check
         for (Event event : events) {
             if (event instanceof NodeFailure) {
                 int nodeIdx = ((NodeFailure) event).nodeIndex;
@@ -653,6 +655,11 @@ public class FuzzingServer {
                     isSeedAlive = true;
                 } else if (!isSeedAlive) {
                     return false;
+                }
+            } else if (event instanceof ShellCommand) {
+                if (!Config.getConf().failureOver) {
+                    if (!isSeedAlive)
+                        return false;
                 }
             }
         }
