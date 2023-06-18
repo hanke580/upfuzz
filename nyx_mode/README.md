@@ -192,6 +192,10 @@ While inside the VNC, log in and allow nyx user access to docker. It shows `nyx 
 
 # Inside Nyx VM (VNC)
 sudo chmod 666 /var/run/docker.sock
+
+# The keyboard is messy in vm:
+# - => \
+# z => y
 ```
 Now we can create the root snapshot. Wait until the docker daemon has fully started (i.e. when no more messages are placed in the terminal). Then we can go ahead and create the snapshot.
 ```bash
@@ -311,9 +315,12 @@ Exception in thread "Thread-0" java.lang.NullPointerException
 ```
 
 To debug, we need to
-- In c agent place a sleep before the abort is called so that we can view the VM with vncviewer
+- In c agent (`src/main/c/custom_agent/nyx_agent.c`) place a sleep before the abort is called so that we can view the VM with vncviewer
+  - In abort function: `int abort_operation(char* message)`
 - Make sure **config.Ron** ($UPFUZZ_DIR/nyx_mode/config.ron) has debug enabled
 - And use system.err prints in miniclient
+- Then we can use vnc to check the snapshot of the vm. 
+  - It's snapshot since once we connect to it via vnc, the vm will stop running. 
 
 
 # TODOs
