@@ -116,6 +116,8 @@ public class Config {
 
         // ------------Likely Inv-------------
         public boolean useLikelyInv = false;
+        // if an invariant is broken for 80% times, ignore it
+        public double ignoreInvRatio = 0.8;
         public int runtimeMonitorPort = 62000;
 
         @Override

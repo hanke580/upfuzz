@@ -54,6 +54,8 @@ public class FuzzingServer {
     private int testID = 0;
     private int finishedTestID = 0;
 
+    private final Map<Integer, Integer> inv2BrokenNum = new HashMap<>();
+
     public CommandPool commandPool;
     public Executor executor;
     public Class<? extends State> stateClass;
@@ -250,6 +252,9 @@ public class FuzzingServer {
             // corpus is empty, random generate one test packet and wait
             stackedTestPacket = new StackedTestPacket(Config.getConf().nodeNum,
                     configFileName);
+            if (Config.getConf().useLikelyInv) {
+                stackedTestPacket.ignoredInvs = computeIgnoredInvs();
+            }
             for (int i = 0; i < Config.getConf().STACKED_TESTS_NUM; i++) {
                 seed = Executor.generateSeed(commandPool, stateClass);
                 if (seed != null) {
@@ -266,6 +271,9 @@ public class FuzzingServer {
             // get a seed from corpus, now fuzz it for an epoch
             stackedTestPacket = new StackedTestPacket(Config.getConf().nodeNum,
                     configFileName);
+            if (Config.getConf().useLikelyInv) {
+                stackedTestPacket.ignoredInvs = computeIgnoredInvs();
+            }
             for (int i = 0; i < Config.getConf().mutationEpoch; i++) {
                 // logger.info("Generating " + i + " packet");
                 if (i != 0 && i % Config.getConf().STACKED_TESTS_NUM == 0) {
@@ -912,6 +920,10 @@ public class FuzzingServer {
             logger.info("upgrade process is skipped");
         }
 
+        if (stackedFeedbackPacket.breakNewInv) {
+            logger.info("new inv is broken");
+        }
+
         Path failureDir = null;
 
         if (stackedFeedbackPacket.isUpgradeProcessFailed) {
@@ -924,7 +936,17 @@ public class FuzzingServer {
         FuzzingServerHandler.printClientNum();
         for (FeedbackPacket feedbackPacket : stackedFeedbackPacket
                 .getFpList()) {
+            // handle invariant
             finishedTestID++;
+            if (Config.getConf().useLikelyInv) {
+                for (int invId : feedbackPacket.brokenInvs) {
+                    if (inv2BrokenNum.containsKey(invId)) {
+                        inv2BrokenNum.put(invId, inv2BrokenNum.get(invId) + 1);
+                    } else {
+                        inv2BrokenNum.put(invId, 1);
+                    }
+                }
+            }
             if (Config.getConf().useFeedBack) {
                 boolean addToCorpus = false;
                 // Merge all the feedbacks
@@ -1335,5 +1357,17 @@ public class FuzzingServer {
             }
         }
         return states;
+    }
+
+    public Set<Integer> computeIgnoredInvs() {
+        Set<Integer> ignoredInvs = new HashSet<>();
+        for (Integer invId : inv2BrokenNum.keySet()) {
+            double brokenRatio = (double) inv2BrokenNum.get(invId)
+                    / finishedTestID;
+            if (brokenRatio >= Config.getConf().ignoreInvRatio) {
+                ignoredInvs.add(invId);
+            }
+        }
+        return ignoredInvs;
     }
 }

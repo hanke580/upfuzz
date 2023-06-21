@@ -4,8 +4,11 @@ import com.google.gson.Gson;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.Config;
@@ -22,11 +25,14 @@ public class StackedTestPacket extends Packet implements Serializable {
     public String configFileName;
     private List<TestPacket> tpList;
 
+    public Set<Integer> ignoredInvs; // inv which are broken all the time
+
     public StackedTestPacket(int nodeNum, String configFileName) {
         this.nodeNum = nodeNum;
         this.configFileName = configFileName;
         this.type = PacketType.StackedTestPacket;
         tpList = new LinkedList<>();
+        ignoredInvs = new HashSet<>();
     }
 
     public void addTestPacket(Seed seed, int testID) {

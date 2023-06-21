@@ -10,10 +10,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 import org.zlab.upfuzz.fuzzingengine.Config.Configuration;
 import org.jacoco.core.data.ExecutionDataStore;
@@ -166,6 +163,15 @@ public class MiniClientMain {
         Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();
         Map<Integer, List<String>> testID2oriResults = new HashMap<>();
         Map<Integer, List<String>> testID2upResults = new HashMap<>();
+        // if the middle of test has already broken an invariant
+        // we stop executing.
+        int executedTestNum = 0;
+        boolean breakNewInv = false;
+
+        Map<Integer, Integer> lastBrokenInv = null;
+        if (Config.getConf().useLikelyInv) {
+            lastBrokenInv = executor.getBrokenInv();
+        }
 
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             executor.executeCommands(tp.originalCommandSequenceList);
@@ -191,6 +197,42 @@ public class MiniClientMain {
                     .executeCommands(tp.validationCommandSequenceList);
 
             testID2oriResults.put(tp.testPacketID, oriResult);
+
+            // check invariants!
+            // calculate the diff between the current inv vs last inv
+            if (Config.getConf().useLikelyInv) {
+                // calculate the startup invariant, this should give credit
+                // to configuration file
+                Map<Integer, Integer> curBrokenInv = executor.getBrokenInv();
+                Set<Integer> brokenInvs = new HashSet<>();
+                for (int invId : curBrokenInv.keySet()) {
+                    assert lastBrokenInv != null;
+                    if (lastBrokenInv.containsKey(invId)) {
+                        // this is violated between tests
+                        if (curBrokenInv.get(invId)
+                                - lastBrokenInv.get(invId) > 0)
+                            brokenInvs.add(invId);
+                    } else {
+                        if (curBrokenInv.get(invId) > 0)
+                            brokenInvs.add(invId);
+                    }
+                }
+                testID2FeedbackPacket
+                        .get(tp.testPacketID).brokenInvs = brokenInvs;
+
+                // check whether any new invariant is broken
+                for (Integer invID : brokenInvs) {
+                    if (!stackedTestPacket.ignoredInvs.contains(invID)) {
+                        // this means a new broken inv!
+                        breakNewInv = true;
+                        break;
+                    }
+                }
+                if (breakNewInv)
+                    break;
+                lastBrokenInv = curBrokenInv;
+            }
+            executedTestNum++;
         }
 
         StackedFeedbackPacket stackedFeedbackPacket = new StackedFeedbackPacket(
@@ -198,6 +240,7 @@ public class MiniClientMain {
         stackedFeedbackPacket.fullSequence = FuzzingClient
                 .recordStackedTestPacket(
                         stackedTestPacket);
+        stackedFeedbackPacket.breakNewInv = breakNewInv;
 
         // LOG checking1
         Map<Integer, LogInfo> logInfoBeforeUpgrade = null;
@@ -206,27 +249,28 @@ public class MiniClientMain {
             logInfoBeforeUpgrade = executor.grepLogInfo();
         }
 
-        if (Config.instance.useLikelyInv) {
-            boolean hasBrokenInv = executor.hasBrokenInv();
-            System.err.println("checking inv!");
-            if (!hasBrokenInv) {
-                // skip current upgrade process
-                stackedFeedbackPacket.skipped = true;
-                new Thread(new Runnable() {
-                    public void run() {
-                        executor.upgradeTeardown();
-                        executor.clearState();
-                        executor.teardown();
-                    }
-                }).start();
-                System.err.println("client skip upgrade process!");
-                // also skip the tear down process, we force shutdown the
-                // cluster!
-                // open a thread to shutdown it
-                return stackedFeedbackPacket;
-            }
-            System.err.println("client not skip upgrade process!");
-        }
+        // if (Config.instance.useLikelyInv) {
+        // // boolean hasBrokenInv = executor.hasBrokenInv();
+        // Map<Integer, Integer> brokenInvMap = executor.getBrokenInv();
+        // System.err.println("checking inv!");
+        // if (brokenInvMap.keySet().size() <= 1) {
+        // // No broken inv: skip current upgrade process
+        // stackedFeedbackPacket.skipped = true;
+        // new Thread(new Runnable() {
+        // public void run() {
+        // executor.upgradeTeardown();
+        // executor.clearState();
+        // executor.teardown();
+        // }
+        // }).start();
+        // System.err.println("client skip upgrade process!");
+        // // also skip the tear down process, we force shutdown the
+        // // cluster!
+        // // open a thread to shutdown it
+        // return stackedFeedbackPacket;
+        // }
+        // System.err.println("client not skip upgrade process!");
+        // }
 
         boolean ret = executor.fullStopUpgrade();
 
@@ -243,7 +287,9 @@ public class MiniClientMain {
         // logger.info("upgrade succeed");
         stackedFeedbackPacket.isUpgradeProcessFailed = false;
 
-        for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
+        for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
+            TestPacket tp = stackedTestPacket.getTestPacketList()
+                    .get(testPacketIdx);
             List<String> upResult = executor
                     .executeCommands(tp.validationCommandSequenceList);
             testID2upResults.put(tp.testPacketID, upResult);
@@ -260,7 +306,9 @@ public class MiniClientMain {
         }
 
         // Check read results consistency
-        for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
+        for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
+            TestPacket tp = stackedTestPacket.getTestPacketList()
+                    .get(testPacketIdx);
             Pair<Boolean, String> compareRes = executor
                     .checkResultConsistency(
                             testID2oriResults.get(tp.testPacketID),

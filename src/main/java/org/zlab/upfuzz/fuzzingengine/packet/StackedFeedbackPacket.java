@@ -4,8 +4,8 @@ import com.google.gson.Gson;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -17,6 +17,9 @@ public class StackedFeedbackPacket extends Packet implements Serializable {
     static Logger logger = LogManager.getLogger(StackedFeedbackPacket.class);
 
     public final List<FeedbackPacket> fpList;
+
+    // TODO: Handle brokenInv for configurations (start up)
+    // public Set<Integer> brokenInv; // configuration broken invariants!
 
     public String fullSequence = ""; // for reproducing
     public String configFileName;
@@ -31,6 +34,8 @@ public class StackedFeedbackPacket extends Packet implements Serializable {
 
     public boolean hasERRORLog = false;
     public String errorLogReport = "";
+
+    public boolean breakNewInv = false;
 
     // public int nodeNum;
     // (1) Failed Upgrade Process: Report all command sequences

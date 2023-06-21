@@ -4,8 +4,9 @@ import com.google.gson.Gson;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,6 +28,9 @@ public class FeedbackPacket extends Packet {
 
     public List<String> validationReadResults;
 
+    // inv status
+    public Set<Integer> brokenInvs;
+
     public FeedbackPacket(String systemID, int nodeNum, int testPacketID,
             FeedBack[] feedBacks, List<String> validationReadResults) {
         this.type = PacketType.FeedbackPacket;
@@ -37,6 +41,7 @@ public class FeedbackPacket extends Packet {
         this.feedBacks = feedBacks;
 
         this.validationReadResults = validationReadResults;
+        this.brokenInvs = new HashSet<>();
     }
 
     public static FeedbackPacket read(DataInputStream in) {

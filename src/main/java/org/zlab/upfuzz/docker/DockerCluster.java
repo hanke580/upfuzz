@@ -213,6 +213,23 @@ public abstract class DockerCluster implements IDockerCluster {
         return ret;
     }
 
+    public Map<Integer, Integer> getBrokenInv() throws Exception {
+        Map<Integer, Integer> brokenInvMap = new HashMap<>();
+        for (int i = 0; i < dockers.length; i++) {
+            // merge
+            Map<Integer, Integer> invMap = dockers[i].getBrokenInv();
+            for (int invId : invMap.keySet()) {
+                if (!brokenInvMap.containsKey(invId)) {
+                    brokenInvMap.put(invId, invMap.get(invId));
+                } else {
+                    brokenInvMap.put(invId,
+                            brokenInvMap.get(invId) + invMap.get(invId));
+                }
+            }
+        }
+        return brokenInvMap;
+    }
+
     public boolean fullStopCluster() throws Exception {
         logger.info("Full stop cluster...");
         prepareUpgrade();
