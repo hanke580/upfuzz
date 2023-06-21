@@ -180,7 +180,11 @@ public class FuzzingServer {
             if (stackedTestPackets.isEmpty())
                 fuzzOne();
             assert !stackedTestPackets.isEmpty();
-            return stackedTestPackets.poll();
+            StackedTestPacket stackedTestPacket = stackedTestPackets.poll();
+            if (Config.getConf().useLikelyInv) {
+                stackedTestPacket.ignoredInvs = computeIgnoredInvs();
+            }
+            return stackedTestPacket;
         } else if (Config.getConf().testingMode == 1) {
             // always execute one test case (to verify whether a bug really
             // exists)
@@ -252,9 +256,6 @@ public class FuzzingServer {
             // corpus is empty, random generate one test packet and wait
             stackedTestPacket = new StackedTestPacket(Config.getConf().nodeNum,
                     configFileName);
-            if (Config.getConf().useLikelyInv) {
-                stackedTestPacket.ignoredInvs = computeIgnoredInvs();
-            }
             for (int i = 0; i < Config.getConf().STACKED_TESTS_NUM; i++) {
                 seed = Executor.generateSeed(commandPool, stateClass);
                 if (seed != null) {
@@ -271,9 +272,6 @@ public class FuzzingServer {
             // get a seed from corpus, now fuzz it for an epoch
             stackedTestPacket = new StackedTestPacket(Config.getConf().nodeNum,
                     configFileName);
-            if (Config.getConf().useLikelyInv) {
-                stackedTestPacket.ignoredInvs = computeIgnoredInvs();
-            }
             for (int i = 0; i < Config.getConf().mutationEpoch; i++) {
                 // logger.info("Generating " + i + " packet");
                 if (i != 0 && i % Config.getConf().STACKED_TESTS_NUM == 0) {
@@ -921,7 +919,10 @@ public class FuzzingServer {
         }
 
         if (stackedFeedbackPacket.breakNewInv) {
-            logger.info("new inv is broken");
+            logger.info("new inv is broken!");
+            logger.info("broken inv status = " + inv2BrokenNum);
+        } else {
+            logger.info("inv is not broken!");
         }
 
         Path failureDir = null;

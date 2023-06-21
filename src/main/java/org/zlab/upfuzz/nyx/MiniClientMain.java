@@ -174,6 +174,7 @@ public class MiniClientMain {
         }
 
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
+            executedTestNum++;
             executor.executeCommands(tp.originalCommandSequenceList);
 
             FeedBack[] feedBacks = new FeedBack[stackedTestPacket.nodeNum];
@@ -232,7 +233,6 @@ public class MiniClientMain {
                     break;
                 lastBrokenInv = curBrokenInv;
             }
-            executedTestNum++;
         }
 
         StackedFeedbackPacket stackedFeedbackPacket = new StackedFeedbackPacket(
