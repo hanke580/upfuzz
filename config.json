@@ -13,6 +13,11 @@
   "useLikelyInv": false,
   "startUpClusterForDebugging": false,
   "debug": false,
+  "testDowngrade": false,
+  "verifyConfig": false,
+  "testAddedConfig": false,
+  "testCommonConfig": false,
+  "enableLogCheck": true,
   "collUpFeedBack": true,
   "nyxMode": false,
   "nyxFuzzSH": "nyx_mode/fuzz_no_pt.sh"

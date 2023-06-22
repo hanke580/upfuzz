@@ -20,7 +20,7 @@ public class FuzzingClientTest {
 
     @BeforeAll
     static public void initAll() {
-        String configFile = "./cass_config.json";
+        String configFile = "./config.json";
         Configuration cfg;
         try {
             cfg = new Gson().fromJson(new FileReader(configFile),

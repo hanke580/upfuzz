@@ -14,4 +14,4 @@ else
         CONFIG=$1
 fi
 
-java -Dlogfile="upfuzz_server.log" -cp "build/classes/java/main/:dependencies/*:dependencies/:build/resources/main" org/zlab/upfuzz/fuzzingengine/Main -class server -config $CONFIG
+java -Dlogfile="logs/upfuzz_server.log" -cp "build/classes/java/main/:dependencies/*:dependencies/:build/resources/main" org/zlab/upfuzz/fuzzingengine/Main -class server -config $CONFIG

@@ -8,9 +8,7 @@ bu.sh
 **/compile-src/cassandra
 prebuild/
 fuzzing_storage
-upfuzz.log
-upfuzz_client.log
-upfuzz_server.log
+logs/
 hdfs-cl-*
 cass-cl*
 configtests

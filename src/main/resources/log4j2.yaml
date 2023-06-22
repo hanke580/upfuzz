@@ -3,7 +3,7 @@ Configutation:
     Properties:
         Property:
             name: logfile
-            value: "upfuzz.log"
+            value: "logs/upfuzz.log"
     Appenders:
         Console:
             name: Console_Appender

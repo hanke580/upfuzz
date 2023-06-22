@@ -134,7 +134,7 @@ Important configurations
 
 > Config test is disabled by default.
 >
-> If you want to test configuration, checkout **TEST_CONFIG.md**.
+> If you want to test configuration, checkout **docs/TEST_CONFIG.md**.
 
 ### Deploy Cassandra
 
