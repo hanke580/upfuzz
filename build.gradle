@@ -132,7 +132,7 @@ task compileCAgent(type: Exec) {
     commandLine 'gcc', '-DNO_PT_NYX', '-static', "-I$rootDir/nyx_mode", "nyx_agent.c", '-o', "$buildDir/libs/c_agent"
 }
 
-tasks.build.dependsOn(compileCAgent)
+//tasks.build.dependsOn(compileCAgent)
 
 // task copyNativeLibs(type: Copy) {
 //     from 'src/main/resources'
@@ -145,12 +145,16 @@ task runJNIbuildScript(type: Exec) {
 	commandLine 'sh', 'compile_JNI_c.sh', "$buildDir/libs"
 }
 
-tasks.build.dependsOn(runJNIbuildScript)
+//tasks.build.dependsOn(runJNIbuildScript)
 
 // task compileJni(type: Exec) {
 //     commandLine 'gcc', '-shared', '-fPIC', sourceSets.main.c.files.collect{it.absolutePath}, '-o', 'build/libs/libnyxJNI.so'
 // }
 
+// build for nyx mode
+task nyxBuild {
+	dependsOn compileCAgent, runJNIbuildScript
+}
 
 task compileMavenProject() {
 	// exec {

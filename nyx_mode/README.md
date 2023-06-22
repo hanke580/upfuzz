@@ -248,7 +248,11 @@ python3 ../nyx_config_gen.py tmp Snapshot -m 4096 # generate default configurati
 "testingMode": 0,
 ```
 
-19. Nyx Mode should now be ready. Go on to now complete the `Minimal Set up for Cassandra` in this host environment!
+19. Nyx Mode should now be ready. Go on to now complete the `Minimal Set up for Cassandra` in this host environment.
+When the normal build has finished, execute the following command to build nyx.
+```bash
+./gradlew :spotlessApply nyxBuild
+```
 
 ## Problem Shooting
 
