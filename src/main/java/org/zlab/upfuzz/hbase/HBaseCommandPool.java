@@ -15,9 +15,11 @@ public class HBaseCommandPool extends CommandPool {
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(CREATE.class, 1));
         commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(ALTER_ADD_FAMILY.class, 5));
+                new AbstractMap.SimpleImmutableEntry<>(ALTER_ADD_FAMILY.class,
+                        5));
         commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(ALTER_DELETE_FAMILY.class, 5));
+                new AbstractMap.SimpleImmutableEntry<>(
+                        ALTER_DELETE_FAMILY.class, 5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(DISABLE.class, 1));
         commandClassList.add(
@@ -37,9 +39,11 @@ public class HBaseCommandPool extends CommandPool {
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(PUT_MODIFY.class, 5));
         commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(PUT_NEW_COLUMN.class, 5));
+                new AbstractMap.SimpleImmutableEntry<>(PUT_NEW_COLUMN.class,
+                        5));
         commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(PUT_NEW_COLUMN_and_NEW_ITEM.class, 1));
+                new AbstractMap.SimpleImmutableEntry<>(
+                        PUT_NEW_COLUMN_and_NEW_ITEM.class, 1));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(SCAN.class, 5));
         commandClassList.add(

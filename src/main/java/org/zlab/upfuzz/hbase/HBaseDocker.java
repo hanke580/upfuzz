@@ -333,7 +333,8 @@ public class HBaseDocker extends Docker {
             // + " - ./persistent/node_${index}/data:/var/lib/cassandra\n"
             + "            - ./persistent/node_${index}/log:/var/log/hbase\n"
             + "            - ./persistent/node_${index}/env.sh:/usr/bin/set_env\n"
-            // + " - ./persistent/node_${index}/zookeeper:/usr/local/zookeeper\n"
+            // + " -
+            // ./persistent/node_${index}/zookeeper:/usr/local/zookeeper\n"
             + "            - ./persistent/node_${index}/consolelog:/var/log/supervisor\n"
             + "            - ./persistent/config:/test_config\n"
             + "            - ${projectRoot}/prebuild/${system}/${originalVersion}:/${system}/${originalVersion}\n"
