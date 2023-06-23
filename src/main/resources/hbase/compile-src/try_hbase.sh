@@ -16,8 +16,8 @@ mkdir -p $UPFUZZ_DIR/prebuild/hbase
 cd $UPFUZZ_DIR/prebuild/hbase
 wget https://archive.apache.org/dist/hbase/"$ORI_VERSION"/hbase-"$ORI_VERSION"-bin.tar.gz -O hbase-"$ORI_VERSION".tar.gz ; tar -xzvf hbase-"$ORI_VERSION".tar.gz
 wget https://archive.apache.org/dist/hbase/"$UP_VERSION"/hbase-"$UP_VERSION"-bin.tar.gz -O hbase-"$UP_VERSION".tar.gz ; tar -xzvf hbase-"$UP_VERSION".tar.gz
-cp $UPFUZZ_DIR/src/main/resources/hbase/compile-src/hbase-init.sh $UPFUZZ_DIR/prebuild/hbase/hbase-$ORI_VERSION/conf/ -f
-cp $UPFUZZ_DIR/src/main/resources/hbase/compile-src/hbase-init.sh $UPFUZZ_DIR/prebuild/hbase/hbase-$UP_VERSION/conf/ -f
+cp $UPFUZZ_DIR/src/main/resources/hbase/compile-src/hbase-env.sh $UPFUZZ_DIR/prebuild/hbase/hbase-$ORI_VERSION/conf/ -f
+cp $UPFUZZ_DIR/src/main/resources/hbase/compile-src/hbase-env.sh $UPFUZZ_DIR/prebuild/hbase/hbase-$UP_VERSION/conf/ -f
 
 cd $UPFUZZ_DIR/src/main/resources/hdfs/hbase-pure/
 docker build . -t upfuzz_hdfs:hadoop-2.10.2
