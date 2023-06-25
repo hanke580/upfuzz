@@ -97,7 +97,7 @@ public class ConfigGen {
         Path commonConfigPath = configInfoPath.resolve("commonConfig.json");
         Path addedConfigPath = configInfoPath.resolve("addedClassConfig.json");
         Path deletedConfigPath = configInfoPath
-                .resolve("deletedClassConfig.json.json");
+                .resolve("deletedClassConfig.json");
 
         Path oriConfig2typePath = configInfoPath
                 .resolve("oriConfig2Type.json");
