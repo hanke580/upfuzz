@@ -938,7 +938,6 @@ public abstract class ParameterType implements Serializable {
              * If there is only one in the target collection, it means
              * we cannot pick a different item.
              * - Return false
-             * TODO: Make sure it's not the same one as before?
              */
             predicateCheck(s, c);
 
@@ -956,7 +955,7 @@ public abstract class ParameterType implements Serializable {
                         .map(mapFunc)
                         .collect(Collectors.toList()));
             }
-            if (l.isEmpty() == true) {
+            if (l.isEmpty()) {
                 // Throw an exception, since the input sequence is already not
                 // correct!
                 throw new RuntimeException(
@@ -971,37 +970,21 @@ public abstract class ParameterType implements Serializable {
             for (Object item : l) {
                 collectionStringList.add(item.toString());
             }
+            // pick one that is not the same as the one before
             List<Integer> idxList = new LinkedList<>();
             for (int i = 0; i < l.size(); i++) {
                 idxList.add(i);
             }
-            try {
+            if (collectionStringList.contains(p.value.toString())) {
                 idxList.remove(
                         collectionStringList.indexOf(p.value.toString()));
-            } catch (IndexOutOfBoundsException e) {
-                // FIXME: string mismatch.
-                // The initial value does not exist in the current list.
-                // The type of the value2type is changed, while the given type
-                // is not changed along with it.
-
-                logger.info(e);
-                logger.info("\n\n collectionStringList List: ");
-                for (String str : collectionStringList) {
-                    logger.info("\t\t " + str);
-                }
-                logger.info("target String: " + p.value.toString());
-                logger.info("\n");
-
             }
-
             int idx = rand.nextInt(idxList.size());
-
             if (l.get(idx) instanceof Parameter) {
                 p.value = l.get(idx);
             } else {
                 assert t != null;
-                Parameter tmpParameter = new Parameter(t, l.get(idx));
-                p.value = tmpParameter;
+                p.value = new Parameter(t, l.get(idx));
             }
             return true;
         }
