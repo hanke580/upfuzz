@@ -1,1 +1,0 @@
-{"dfs.namenode.snapshot.capture.openfiles":"false","dfs.webhdfs.acl.provider.permission.pattern":"\"^(default:)?(user|group|mask|other):[[A-Za-z_][A-Za-z0-9._-]]*:([rwx-]{3})?(,(default:)?(user|group|mask|other):[[A-Za-z_][A-Za-z0-9._-]]*:([rwx-]{3})?)*$\""}

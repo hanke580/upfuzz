@@ -1,1 +1,0 @@
-{"dfs.client.mark.slownode.as.badnode.threshold":"int","dfs.client.fsck.read.timeout":"int","dfs.client.fsck.connect.timeout":"int","dfs.client.refresh.read-block-locations.register-automatically":"boolean","dfs.client.refresh.read-block-locations.threads":"int","dfs.client.pipeline.recovery.max-retries":"int"}

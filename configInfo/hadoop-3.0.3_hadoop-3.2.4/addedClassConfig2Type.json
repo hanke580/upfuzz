@@ -1,1 +1,0 @@
-{"dfs.client.refresh.read-block-locations.ms":"long","dfs.client.fsck.read.timeout":"int","dfs.namenode.lease-hard-limit-sec":"long","dfs.client.fsck.connect.timeout":"int","dfs.checksum.ec.socket-timeout":"int","dfs.checksum.combine.mode":"java.lang.String"}
