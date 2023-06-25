@@ -45,7 +45,7 @@ public class FuzzingServerTest {
         Config.getConf().system = "hdfs";
         CommandPool commandPool = new HdfsCommandPool();
         Class<? extends State> stateClass = HdfsState.class;
-        Seed seed = Executor.generateSeed(commandPool, stateClass);
+        Seed seed = Executor.generateSeed(commandPool, stateClass, -1);
         FullStopSeed fullStopSeed = new FullStopSeed(
                 seed, 3, new HashMap<>(), new LinkedList<>());
         FuzzingServer fuzzingServer = new FuzzingServer();
@@ -63,7 +63,7 @@ public class FuzzingServerTest {
     public void testTestPlanSerialization() {
         CassandraCommandPool commandPool = new CassandraCommandPool();
         Class stateClass = CassandraState.class;
-        Seed seed = Executor.generateSeed(commandPool, stateClass);
+        Seed seed = Executor.generateSeed(commandPool, stateClass, -1);
         FullStopSeed fullStopSeed = new FullStopSeed(seed, 3, null, null);
         FuzzingServer fuzzingServer = new FuzzingServer();
         TestPlan testPlan = fuzzingServer.generateTestPlan(fullStopSeed);

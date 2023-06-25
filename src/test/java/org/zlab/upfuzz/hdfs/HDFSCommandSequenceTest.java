@@ -16,7 +16,7 @@ public class HDFSCommandSequenceTest {
         CommandPool hdfsCommandPool = new HdfsCommandPool();
         Class<HdfsState> state = HdfsState.class;
 
-        Seed seed = Executor.generateSeed(hdfsCommandPool, state);
+        Seed seed = Executor.generateSeed(hdfsCommandPool, state, -1);
 
         assert seed != null;
         for (String str : seed.originalCommandSequence.getCommandStringList()) {

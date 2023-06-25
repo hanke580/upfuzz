@@ -24,7 +24,7 @@ public class PriorityCorpus {
                         .deserializeCommandSequence(seedFile.toPath());
                 if (commandSequencePair != null) {
                     Seed seed = new Seed(commandSequencePair.left,
-                            commandSequencePair.right);
+                            commandSequencePair.right, -1);
                     seed.score = 10;
                     queue.add(seed);
                 }

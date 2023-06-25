@@ -245,48 +245,48 @@ public class FuzzingServer {
         round++;
         StackedTestPacket stackedTestPacket;
 
-        // generate a new config every MUTATE_CONFIG_INTERVAL tests
-        if (testID % Config.instance.MUTATE_CONFIG_INTERVAL == 0) {
-            configIdx = configGen.generateConfig();
-        }
-        String configFileName = "test" + configIdx;
-        logger.info("configFileName = " + configFileName);
-
         if (seed == null) {
+            configIdx = configGen.generateConfig();
+            String configFileName = "test" + configIdx;
+            logger.info("configFileName = " + configFileName);
             // corpus is empty, random generate one test packet and wait
             stackedTestPacket = new StackedTestPacket(Config.getConf().nodeNum,
                     configFileName);
             for (int i = 0; i < Config.getConf().STACKED_TESTS_NUM; i++) {
-                seed = Executor.generateSeed(commandPool, stateClass);
+                seed = Executor.generateSeed(commandPool, stateClass,
+                        configIdx);
                 if (seed != null) {
                     testID2Seed.put(testID, seed);
                     stackedTestPacket.addTestPacket(seed, testID++);
                 }
             }
-            if (stackedTestPacket.size() != 0) {
-                stackedTestPackets.add(stackedTestPacket);
-            } else {
-                logger.error("failed to generate any test packet");
+            if (stackedTestPacket.size() == 0) {
+                throw new RuntimeException(
+                        "Fuzzing Server failed to generate and tests");
             }
+            stackedTestPackets.add(stackedTestPacket);
         } else {
-            // get a seed from corpus, now fuzz it for an epoch
+            /**
+             *  Get a seed from corpus, now fuzz it for an epoch
+             *  The seed contains a specific configuration to trigger new coverage
+             *  (1) Only mutate sequence: Maintain the config, mutate for mutationEpoch times
+             *  (2) Only mutate config: Maintain the sequence
+             *  (3) Mutate both (More violent mutation)
+             */
+            // Situation1: Only mutate sequence
+            if (seed.configIdx == -1)
+                configIdx = configGen.generateConfig();
+            else
+                configIdx = seed.configIdx;
+            String configFileName = "test" + configIdx;
             stackedTestPacket = new StackedTestPacket(Config.getConf().nodeNum,
                     configFileName);
-            for (int i = 0; i < Config.getConf().mutationEpoch; i++) {
-                // logger.info("Generating " + i + " packet");
+            for (int i = 0; i < Config.getConf().sequenceMutationEpoch; i++) {
                 if (i != 0 && i % Config.getConf().STACKED_TESTS_NUM == 0) {
                     stackedTestPackets.add(stackedTestPacket);
-
-                    // Each upgrade should execute with different config
-                    configIdx = configGen.generateConfig();
-                    configFileName = "test" + configIdx;
-
                     stackedTestPacket = new StackedTestPacket(
                             Config.getConf().nodeNum, configFileName);
                 }
-                // Mutation
-                // If mutation fails, drop this mutation, so the
-                // testpack size might decrease...
                 Seed mutateSeed = SerializationUtils.clone(seed);
                 if (mutateSeed.mutate(commandPool, stateClass)) {
                     testID2Seed.put(testID, mutateSeed);
@@ -296,8 +296,38 @@ public class FuzzingServer {
                     i--;
                 }
             }
+            // last test packet
             if (stackedTestPacket.size() != 0) {
                 stackedTestPackets.add(stackedTestPacket);
+            }
+
+            // Situation2: Only mutate config + Mutate both (Combined with
+            // stackedTestPackets)
+            // gen a new config
+            for (int configMutationIdx = 0; configMutationIdx < Config
+                    .getConf().configMutationEpoch; configMutationIdx++) {
+                configIdx = configGen.generateConfig();
+                configFileName = "test" + configIdx;
+                stackedTestPacket = new StackedTestPacket(
+                        Config.getConf().nodeNum,
+                        configFileName);
+                // put the seed into it
+                Seed mutateSeed = SerializationUtils.clone(seed);
+                mutateSeed.configIdx = configIdx;
+                testID2Seed.put(testID, mutateSeed);
+                stackedTestPacket.addTestPacket(mutateSeed, testID++);
+                // add mutated seeds (Mutate sequence&config)
+                for (int i = 1; i < Config.getConf().STACKED_TESTS_NUM; i++) {
+                    mutateSeed = SerializationUtils.clone(seed);
+                    mutateSeed.configIdx = configIdx;
+                    if (mutateSeed.mutate(commandPool, stateClass)) {
+                        testID2Seed.put(testID, mutateSeed);
+                        stackedTestPacket.addTestPacket(mutateSeed, testID++);
+                    } else {
+                        logger.debug("Mutation failed");
+                        i--;
+                    }
+                }
             }
         }
     }
@@ -364,11 +394,11 @@ public class FuzzingServer {
         round++;
         if (fullStopSeed == null) {
             // corpus is empty, generate some
-            Seed seed = Executor.generateSeed(commandPool, stateClass);
-
+            int configIdx = configGen.generateConfig();
+            String configFileName = "test" + configIdx;
+            Seed seed = Executor.generateSeed(commandPool, stateClass,
+                    configIdx);
             if (seed != null) {
-                int configIdx = configGen.generateConfig();
-                String configFileName = "test" + configIdx;
 
                 FullStopUpgrade fullStopUpgrade = new FullStopUpgrade(
                         Config.getConf().nodeNum,
@@ -385,7 +415,7 @@ public class FuzzingServer {
             // Get a full-stop seed, mutate it and create some new seeds
             Seed seed = fullStopSeed.seed;
 
-            for (int i = 0; i < Config.getConf().mutationEpoch; i++) {
+            for (int i = 0; i < Config.getConf().sequenceMutationEpoch; i++) {
                 Seed mutateSeed = SerializationUtils.clone(seed);
                 if (mutateSeed.mutate(commandPool, stateClass)) {
                     FullStopUpgrade fullStopUpgrade = new FullStopUpgrade(
@@ -1000,6 +1030,7 @@ public class FuzzingServer {
                             logger.debug("score = " + pqCopy.poll().score);
                         }
                     }
+
                     seed.score = (int) (old_score * Config.getConf().oldCovRatio
                             + new_score * (1 - Config.getConf().oldCovRatio));
 

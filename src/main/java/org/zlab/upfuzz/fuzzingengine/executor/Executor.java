@@ -181,7 +181,7 @@ public abstract class Executor implements IExecutor {
     }
 
     public static Seed generateSeed(CommandPool commandPool,
-            Class<? extends State> stateClass) {
+            Class<? extends State> stateClass, int configIdx) {
         CommandSequence originalCommandSequence;
         CommandSequence validationCommandSequence;
         try {
@@ -195,7 +195,8 @@ public abstract class Executor implements IExecutor {
             if (Config.getConf().system.equals("hdfs")) {
                 validationCommandSequence.commands.remove(0);
             }
-            return new Seed(originalCommandSequence, validationCommandSequence);
+            return new Seed(originalCommandSequence, validationCommandSequence,
+                    configIdx);
         } catch (Exception e) {
             e.printStackTrace();
             return null;

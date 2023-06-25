@@ -44,7 +44,11 @@ public class Config {
         public boolean nyxMode = false;
         public String nyxFuzzSH = null;
 
-        public int mutationEpoch = 120;
+        // Mutation Epoch
+        public int configMutationEpoch = 20;
+        public int sequenceMutationEpoch = 200;
+        // violent mutation, usually fewer
+        public int bothMutationEpoch = 20;
         public int testPlanMutationEpoch = 20;
 
         // Given a full-stop seed, we generate 20
@@ -78,11 +82,6 @@ public class Config {
         public double testConfigRatio = 0.4; // We mutate testConfigRatio
                                              // configuration each
                                              // test, default is 40
-
-        // Now we have the checkpoint, we mutate the configuration value every
-        // CHANGE_CONFIG
-        // TODO: tune this value for performance
-        public Integer MUTATE_CONFIG_INTERVAL = 1000;
 
         // ------------Test Plan-------------
         public boolean testDowngrade = false;

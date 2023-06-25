@@ -168,7 +168,7 @@ public class CommandSequenceTests {
     public void testSeedGeneration() {
         Config.instance.system = "cassandra";
         CassandraCommandPool pool = new CassandraCommandPool();
-        Seed seed = Executor.generateSeed(pool, CassandraState.class);
+        Seed seed = Executor.generateSeed(pool, CassandraState.class, -1);
 
         if (seed != null) {
             for (String str : seed.originalCommandSequence

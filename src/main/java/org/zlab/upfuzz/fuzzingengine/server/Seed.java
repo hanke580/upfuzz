@@ -14,7 +14,6 @@ public class Seed implements Serializable, Comparable<Seed> {
     static Logger logger = LogManager.getLogger(Seed.class);
 
     private final int MAX_STACK_MUTATION = 10;
-    private final Random rand;
 
     public int score = 0;
 
@@ -24,11 +23,14 @@ public class Seed implements Serializable, Comparable<Seed> {
     // Read Commands
     public CommandSequence validationCommandSequence;
 
+    // Configuration filename
+    public int configIdx = -1;
+
     public Seed(CommandSequence originalCommandSequence,
-            CommandSequence validationCommandSequence) {
-        rand = new Random();
+            CommandSequence validationCommandSequence, int configIdx) {
         this.originalCommandSequence = originalCommandSequence;
         this.validationCommandSequence = validationCommandSequence;
+        this.configIdx = configIdx;
     }
 
     public boolean mutate(CommandPool commandPool,
