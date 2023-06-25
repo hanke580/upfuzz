@@ -77,7 +77,9 @@ public class Config {
         // ------------Configuration-------------
         public Boolean verifyConfig = false;
         public String configDir = "configtests";
+
         public Boolean testAddedConfig = false;
+        public Boolean testDeletedConfig = false;
         public Boolean testCommonConfig = false;
         public double testConfigRatio = 0.4; // We mutate testConfigRatio
                                              // configuration each

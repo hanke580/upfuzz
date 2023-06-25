@@ -948,11 +948,13 @@ public class FuzzingServer {
             logger.info("upgrade process is skipped");
         }
 
-        if (stackedFeedbackPacket.breakNewInv) {
-            logger.info("new inv is broken!");
-            logger.info("broken inv status = " + inv2BrokenNum);
-        } else {
-            logger.info("inv is not broken!");
+        if (Config.getConf().useLikelyInv) {
+            if (stackedFeedbackPacket.breakNewInv) {
+                logger.info("new inv is broken!");
+                logger.info("broken inv status = " + inv2BrokenNum);
+            } else {
+                logger.info("inv is not broken!");
+            }
         }
 
         Path failureDir = null;

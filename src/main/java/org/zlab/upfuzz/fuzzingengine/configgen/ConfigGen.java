@@ -11,21 +11,24 @@ import java.nio.file.Paths;
 import java.util.*;
 
 public class ConfigGen {
-    Random rand = new Random();
+    static Random rand = new Random();
     ConfigFileGenerator configFileGenerator;
 
     Set<String> commonConfig;
-    Map<String, String> commonConfigName2Type;
-    Map<String, String> commonConfig2Init;
-    Map<String, List<String>> commonEnumName2ConstantMap;
-
     Set<String> addedConfig;
-    Map<String, String> addedConfigName2Type;
-    Map<String, String> addedConfig2Init;
-    Map<String, List<String>> addedEnumName2ConstantMap;
+    Set<String> deletedConfig;
+
+    Map<String, String> upConfigName2Type;
+    Map<String, String> upConfig2Init;
+    Map<String, List<String>> upEnumName2ConstantMap;
+
+    Map<String, String> oriConfigName2Type;
+    Map<String, String> oriConfig2Init;
+    Map<String, List<String>> oriEnumName2ConstantMap;
 
     ConfigValGenerator commonConfigValGenerator;
     ConfigValGenerator addedConfigValGenerator;
+    ConfigValGenerator deletedConfigValGenerator;
 
     ObjectMapper mapper = new ObjectMapper();
 
@@ -92,41 +95,46 @@ public class ConfigGen {
                         + Config.getConf().upgradedVersion);
 
         Path commonConfigPath = configInfoPath.resolve("commonConfig.json");
-        Path commonConfig2typePath = configInfoPath
-                .resolve("commonConfig2Type.json");
-        Path commonConfig2initPath = configInfoPath
-                .resolve("commonConfig2Init.json");
-        Path commonEnum2constantPath = configInfoPath
-                .resolve("commonEnum2Constant.json");
-
         Path addedConfigPath = configInfoPath.resolve("addedClassConfig.json");
-        Path addedConfig2typePath = configInfoPath
-                .resolve("addedClassConfig2Type.json");
-        Path addedConfig2initPath = configInfoPath
-                .resolve("addedClassConfig2Init.json");
-        Path addedEnum2constantPath = configInfoPath
-                .resolve("addedClassEnum2Constant.json");
+        Path deletedConfigPath = configInfoPath
+                .resolve("deletedClassConfig.json.json");
+
+        Path oriConfig2typePath = configInfoPath
+                .resolve("oriConfig2Type.json");
+        Path oriConfig2initPath = configInfoPath
+                .resolve("oriConfig2Init.json");
+        Path oriEnum2constantPath = configInfoPath
+                .resolve("oriEnum2Constant.json");
+
+        Path upConfig2typePath = configInfoPath
+                .resolve("upConfig2Type.json");
+        Path upConfig2initPath = configInfoPath
+                .resolve("upConfig2Type.json");
+        Path upEnum2constantPath = configInfoPath
+                .resolve("upEnum2Constant.json");
 
         try {
             commonConfig = mapper.readValue(commonConfigPath.toFile(),
                     HashSet.class);
-            commonConfigName2Type = mapper.readValue(
-                    commonConfig2typePath.toFile(),
-                    HashMap.class);
-            commonConfig2Init = mapper.readValue(commonConfig2initPath.toFile(),
-                    HashMap.class);
-            commonEnumName2ConstantMap = mapper
-                    .readValue(commonEnum2constantPath.toFile(), HashMap.class);
-
             addedConfig = mapper.readValue(addedConfigPath.toFile(),
                     HashSet.class);
-            addedConfigName2Type = mapper.readValue(
-                    addedConfig2typePath.toFile(),
+            deletedConfig = mapper.readValue(deletedConfigPath.toFile(),
+                    HashSet.class);
+
+            oriConfigName2Type = mapper.readValue(
+                    oriConfig2typePath.toFile(),
                     HashMap.class);
-            addedConfig2Init = mapper.readValue(addedConfig2initPath.toFile(),
+            oriConfig2Init = mapper.readValue(oriConfig2initPath.toFile(),
                     HashMap.class);
-            addedEnumName2ConstantMap = mapper
-                    .readValue(addedEnum2constantPath.toFile(), HashMap.class);
+            oriEnumName2ConstantMap = mapper
+                    .readValue(oriEnum2constantPath.toFile(), HashMap.class);
+            upConfigName2Type = mapper.readValue(
+                    upConfig2typePath.toFile(),
+                    HashMap.class);
+            upConfig2Init = mapper.readValue(upConfig2initPath.toFile(),
+                    HashMap.class);
+            upEnumName2ConstantMap = mapper
+                    .readValue(upEnum2constantPath.toFile(), HashMap.class);
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException("missing configuration test files!");
@@ -136,28 +144,36 @@ public class ConfigGen {
         case "cassandra": {
             commonConfig = removeBlacklistConfig(commonConfig,
                     cassandraConfigBlackList);
-            commonConfigValGenerator = new ConfigValGenerator(commonConfig,
-                    commonConfigName2Type, commonConfig2Init,
-                    commonEnumName2ConstantMap);
-
             addedConfig = removeBlacklistConfig(addedConfig,
                     cassandraConfigBlackList);
+            deletedConfig = removeBlacklistConfig(deletedConfig,
+                    cassandraConfigBlackList);
+            // TODO: if it's common type, we should use init value that
+            // are changed between versions
+            commonConfigValGenerator = new ConfigValGenerator(commonConfig,
+                    oriConfigName2Type, oriConfig2Init,
+                    oriEnumName2ConstantMap);
             addedConfigValGenerator = new ConfigValGenerator(addedConfig,
-                    addedConfigName2Type, addedConfig2Init,
-                    addedEnumName2ConstantMap);
-
+                    upConfigName2Type, upConfig2Init,
+                    upEnumName2ConstantMap);
+            deletedConfigValGenerator = new ConfigValGenerator(deletedConfig,
+                    oriConfigName2Type, oriConfig2Init,
+                    oriEnumName2ConstantMap);
             addedConfigValGenerator.constructPairConfig();
             commonConfigValGenerator.constructPairConfig();
+            deletedConfigValGenerator.constructPairConfig();
             break;
         }
         case "hdfs": {
             commonConfigValGenerator = new ConfigValGenerator(commonConfig,
-                    commonConfigName2Type, commonConfig2Init,
-                    commonEnumName2ConstantMap);
-
+                    oriConfigName2Type, oriConfig2Init,
+                    oriEnumName2ConstantMap);
             addedConfigValGenerator = new ConfigValGenerator(addedConfig,
-                    addedConfigName2Type, addedConfig2Init,
-                    addedEnumName2ConstantMap);
+                    upConfigName2Type, upConfig2Init,
+                    upEnumName2ConstantMap);
+            deletedConfigValGenerator = new ConfigValGenerator(deletedConfig,
+                    oriConfigName2Type, oriConfig2Init,
+                    oriEnumName2ConstantMap);
             break;
         }
         default: {
@@ -175,67 +191,57 @@ public class ConfigGen {
         Map<String, String> upConfig2Type = new HashMap<>();
 
         if (Config.getConf().testCommonConfig) {
-            Map<String, String> commonConfigTest = commonConfigValGenerator
-                    .generateValues(true);
-            Map<String, String> commonPairConfigTest = commonConfigValGenerator
-                    .generatePairValues(true);
-
-            Map<String, String> filteredCommonConfigTest = new HashMap<>();
-            for (String key : commonConfigTest.keySet()) {
-                if (rand.nextDouble() < Config.getConf().testConfigRatio) {
-                    filteredCommonConfigTest.put(key,
-                            commonConfigTest.get(key));
-                }
-            }
-            for (String key : commonConfigValGenerator.pairConfigs.keySet()) {
-                if (commonPairConfigTest.containsKey(key)) {
-                    if (rand.nextDouble() < Config.getConf().testConfigRatio) {
-                        filteredCommonConfigTest.put(key,
-                                commonPairConfigTest.get(key));
-                        String pConfig = commonConfigValGenerator.pairConfigs
-                                .get(key);
-                        filteredCommonConfigTest.put(pConfig,
-                                commonPairConfigTest.get(pConfig));
-                    }
-                }
-            }
-
-            oriConfigtest.putAll(filteredCommonConfigTest);
-            upConfigtest.putAll(filteredCommonConfigTest);
-            oriConfig2Type.putAll(commonConfigName2Type);
-            upConfig2Type.putAll(commonConfigName2Type);
+            Map<String, String> filteredConfigTest = filteredConfigTestGen(
+                    commonConfigValGenerator, true);
+            oriConfigtest.putAll(filteredConfigTest);
+            upConfigtest.putAll(filteredConfigTest);
         }
 
         if (Config.getConf().testAddedConfig) {
-            Map<String, String> addedConfigTest = addedConfigValGenerator
-                    .generateValues(false);
-            Map<String, String> addedConfigPairTest = addedConfigValGenerator
-                    .generatePairValues(false);
-
-            Map<String, String> filteredCommonConfigTest = new HashMap<>();
-
-            for (String key : addedConfigTest.keySet()) {
-                if (rand.nextDouble() < Config.getConf().testConfigRatio) {
-                    filteredCommonConfigTest.put(key, addedConfigTest.get(key));
-                }
-            }
-            for (String key : addedConfigValGenerator.pairConfigs.keySet()) {
-                if (addedConfigPairTest.containsKey(key)) {
-                    if (rand.nextDouble() < Config.getConf().testConfigRatio) {
-                        filteredCommonConfigTest.put(key,
-                                addedConfigPairTest.get(key));
-                        String pConfig = addedConfigValGenerator.pairConfigs
-                                .get(key);
-                        filteredCommonConfigTest.put(pConfig,
-                                addedConfigPairTest.get(pConfig));
-                    }
-                }
-            }
-            upConfigtest.putAll(filteredCommonConfigTest);
-            upConfig2Type.putAll(addedConfigName2Type);
+            Map<String, String> filteredConfigTest = filteredConfigTestGen(
+                    addedConfigValGenerator, true);
+            upConfigtest.putAll(filteredConfigTest);
         }
+
+        if (Config.getConf().testDeletedConfig) {
+            Map<String, String> filteredConfigTest = filteredConfigTestGen(
+                    deletedConfigValGenerator, true);
+            upConfigtest.putAll(filteredConfigTest);
+        }
+
+        oriConfig2Type.putAll(oriConfigName2Type);
+        upConfig2Type.putAll(upConfigName2Type);
+
         return configFileGenerator.generate(oriConfigtest, oriConfig2Type,
                 upConfigtest, upConfig2Type);
+    }
+
+    static Map<String, String> filteredConfigTestGen(
+            ConfigValGenerator configValGenerator,
+            boolean shrinkSize) {
+        Map<String, String> filteredConfigTest = new HashMap<>();
+        Map<String, String> configTest = configValGenerator
+                .generateValues(shrinkSize);
+        Map<String, String> addedConfigPairTest = configValGenerator
+                .generatePairValues(shrinkSize);
+        for (String key : configTest.keySet()) {
+            if (rand.nextDouble() < Config.getConf().testConfigRatio) {
+                filteredConfigTest.put(key, configTest.get(key));
+            }
+        }
+        for (String key : configValGenerator.pairConfigs.keySet()) {
+            if (addedConfigPairTest.containsKey(key)) {
+                if (rand.nextDouble() < Config.getConf().testConfigRatio) {
+                    filteredConfigTest.put(key,
+                            addedConfigPairTest.get(key));
+                    String pairConfig = configValGenerator.pairConfigs
+                            .get(key);
+                    filteredConfigTest.put(pairConfig,
+                            addedConfigPairTest.get(pairConfig));
+                }
+            }
+        }
+        return filteredConfigTest;
     }
 
     static Set<String> removeBlacklistConfig(Set<String> configs,
