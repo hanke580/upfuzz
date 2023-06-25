@@ -187,8 +187,6 @@ public class ConfigGen {
     public int generateConfig() {
         Map<String, String> oriConfigtest = new HashMap<>();
         Map<String, String> upConfigtest = new HashMap<>();
-        Map<String, String> oriConfig2Type = new HashMap<>();
-        Map<String, String> upConfig2Type = new HashMap<>();
 
         if (Config.getConf().testCommonConfig) {
             Map<String, String> filteredConfigTest = filteredConfigTestGen(
@@ -206,14 +204,11 @@ public class ConfigGen {
         if (Config.getConf().testDeletedConfig) {
             Map<String, String> filteredConfigTest = filteredConfigTestGen(
                     deletedConfigValGenerator, true);
-            upConfigtest.putAll(filteredConfigTest);
+            oriConfigtest.putAll(filteredConfigTest);
         }
 
-        oriConfig2Type.putAll(oriConfigName2Type);
-        upConfig2Type.putAll(upConfigName2Type);
-
-        return configFileGenerator.generate(oriConfigtest, oriConfig2Type,
-                upConfigtest, upConfig2Type);
+        return configFileGenerator.generate(oriConfigtest, oriConfigName2Type,
+                upConfigtest, upConfigName2Type);
     }
 
     static Map<String, String> filteredConfigTestGen(
