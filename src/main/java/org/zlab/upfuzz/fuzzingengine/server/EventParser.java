@@ -25,7 +25,7 @@ public class EventParser {
     public static List<Event> construct() {
         Path commandPath = Paths.get(System.getProperty("user.dir"),
                 "examplecase");
-        List<String> commands = FuzzingServer.readcommands(
+        List<String> commands = FuzzingServer.readCommands(
                 commandPath.resolve("testplan.txt"));
 
         List<Event> events = new LinkedList<>();

@@ -466,10 +466,25 @@ public class FuzzingServer {
     public Packet generateExampleFullStopPacket() {
         Path commandPath = Paths.get(System.getProperty("user.dir"),
                 "examplecase");
-        List<String> commands = readcommands(
+        List<String> commands = readCommands(
                 commandPath.resolve("commands.txt"));
-        List<String> validcommands = readcommands(
+        List<String> validcommands = readCommands(
                 commandPath.resolve("validcommands.txt"));
+        // configuration path
+        String configFileName = readConfigFileName(
+                commandPath.resolve("configFileName.txt"));
+        if (configFileName == null) {
+            System.out.printf(
+                    "File %s is empty or could not be read the config idx%n",
+                    commandPath.resolve("configFileName.txt"));
+            System.out.println("Use new configuration");
+            int configIdx = configGen.generateConfig();
+            configFileName = "test" + configIdx;
+        } else {
+            System.out
+                    .println("Use privided configuration in " + configFileName);
+        }
+
         Set<String> targetSystemStates = new HashSet<>();
 
         logger.info("commands size = " + commands.size());
@@ -481,10 +496,7 @@ public class FuzzingServer {
                 validcommands,
                 targetSystemStates);
         // TODO: Change this to the configIdx you want to test
-        int configIdx = configGen.generateConfig();
-        // int configIdx = 470;
 
-        String configFileName = "test" + configIdx;
         FullStopPacket fullStopPacket = new FullStopPacket(
                 Config.getConf().system,
                 testID++, configFileName, fullStopUpgrade);
@@ -505,7 +517,7 @@ public class FuzzingServer {
         Map<Integer, Map<String, String>> oracle = new HashMap<>();
         Path commandPath = Paths.get(System.getProperty("user.dir"),
                 "examplecase");
-        List<String> validcommands = readcommands(
+        List<String> validcommands = readCommands(
                 commandPath.resolve("validcommands.txt"));
         List<String> validationReadResultsOracle = new LinkedList<>();
 
@@ -769,7 +781,7 @@ public class FuzzingServer {
         return true;
     }
 
-    public static List<String> readcommands(Path path) {
+    public static List<String> readCommands(Path path) {
         List<String> strings = new LinkedList<>();
         try {
             BufferedReader br = new BufferedReader(
@@ -784,6 +796,26 @@ public class FuzzingServer {
             System.exit(1);
         }
         return strings;
+    }
+
+    public static String readConfigFileName(Path path) {
+        String configFileName = readFirstLine(path);
+
+        if (configFileName != null) {
+            return configFileName;
+        } else {
+            return null;
+        }
+    }
+
+    private static String readFirstLine(Path path) {
+        try (BufferedReader br = new BufferedReader(
+                new FileReader(path.toFile()))) {
+            return br.readLine(); // Only read the first line
+        } catch (IOException e) {
+            System.out.println("Error reading file: " + e.getMessage());
+            return null;
+        }
     }
 
     public synchronized void updateStatus(
