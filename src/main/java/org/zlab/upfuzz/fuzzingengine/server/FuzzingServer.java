@@ -822,7 +822,7 @@ public class FuzzingServer {
                     fullStopFeedbackPacket.systemStates, new LinkedList<>()));
 
             // logger.info("[HKLOG] system state = "
-            //         + fullStopFeedbackPacket.systemStates);
+            // + fullStopFeedbackPacket.systemStates);
 
             // Update the coveredBranches to the newest value
             Pair<Integer, Integer> curOriCoverageStatus = Utilities
