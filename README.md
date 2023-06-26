@@ -114,6 +114,9 @@ cd ${UPFUZZ_DIR}
 ./gradlew copyDependencies
 ./gradlew :spotlessApply build
 
+# If running with NYX, execute this **outside** the vm
+# ./gradlew :spotlessApply nyxBuild
+
 # open terminal1: start server
 ./start_server.sh config.json
 
@@ -169,31 +172,7 @@ The binary of new version and the old version should be placed in `prebuild/$SYS
 prebuild
 └── cassandra
     ├── apache-cassandra-3.11.14
-    │   ├── bin
-    │   ├── CASSANDRA-14092.txt
-    │   ├── CHANGES.txt
-    │   ├── conf
-    │   ├── doc
-    │   ├── interface
-    │   ├── lib
-    │   ├── LICENSE.txt
-    │   ├── NEWS.txt
-    │   ├── NOTICE.txt
-    │   ├── pylib
-    │   └── tools
     └── apache-cassandra-4.1.0
-        ├── bin
-        ├── CASSANDRA-14092.txt
-        ├── CHANGES.txt
-        ├── conf
-        ├── doc
-        ├── interface
-        ├── lib
-        ├── LICENSE.txt
-        ├── NEWS.txt
-        ├── NOTICE.txt
-        ├── pylib
-        └── tools
 ```
 
 4. Copy the shell daemon file. For Cassandra, copy
@@ -313,6 +292,9 @@ sudo update-alternatives --config javac
 cd $UPFUZZ_DIR
 ./gradlew copyDependencies
 ./gradlew :spotlessApply build
+
+# If running with NYX, execute this **outside** the vm
+# ./gradlew :spotlessApply nyxBuild
 
 # open terminal1: start server
 ./start_server.sh hdfs_config.json

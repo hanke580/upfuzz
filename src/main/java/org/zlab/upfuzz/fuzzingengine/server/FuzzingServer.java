@@ -248,7 +248,6 @@ public class FuzzingServer {
         if (seed == null) {
             configIdx = configGen.generateConfig();
             String configFileName = "test" + configIdx;
-            logger.info("configFileName = " + configFileName);
             // corpus is empty, random generate one test packet and wait
             stackedTestPacket = new StackedTestPacket(Config.getConf().nodeNum,
                     configFileName);
@@ -822,8 +821,8 @@ public class FuzzingServer {
                     Config.getConf().nodeNum,
                     fullStopFeedbackPacket.systemStates, new LinkedList<>()));
 
-            logger.info("[HKLOG] system state = "
-                    + fullStopFeedbackPacket.systemStates);
+            // logger.info("[HKLOG] system state = "
+            //         + fullStopFeedbackPacket.systemStates);
 
             // Update the coveredBranches to the newest value
             Pair<Integer, Integer> curOriCoverageStatus = Utilities
