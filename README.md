@@ -90,7 +90,7 @@ Requirement: java11, docker (Docker version 23.0.1, build a5ee5b1)
 
 Clone the repo
 ```bash
-git clone --recursive git@github.com:zlab-purdue/upfuzz.git
+git clone git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
 export UPFUZZ_DIR=$PWD
 export ORI_VERSION=3.11.15
@@ -142,7 +142,7 @@ Important configurations
 
 Make sure `docker` is correctly installed. (the latest docker has `docker compose` installed already)
 ```bash
-git clone --recursive git@github.com:zlab-purdue/upfuzz.git
+git clone git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
 
 ➜  upfuzz git:(main) docker -v
@@ -276,7 +276,7 @@ Requirement: jdk8, jdk11, docker (Docker version 23.0.1, build a5ee5b1)
 > - 4 Nodes upgrade (NN, SNN, 2DN): 2.10.2 => 3.3.5
 
 ```bash
-git clone --recursive git@github.com:zlab-purdue/upfuzz.git
+git clone git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
 export UPFUZZ_DIR=$PWD
 export ORI_VERSION=2.10.2
