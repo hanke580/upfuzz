@@ -94,8 +94,10 @@ class FuzzingClientSocket implements Runnable {
                 readHeader();
             } catch (Exception e) {
                 System.out.println("intType = " + intType);
+                logger.error("client break because of exception:");
                 e.printStackTrace();
-                throw new RuntimeException(e);
+                closeResources();
+                break;
             }
         }
     }
@@ -110,5 +112,21 @@ class FuzzingClientSocket implements Runnable {
     }
 
     private void readHeader() {
+    }
+
+    private void closeResources() {
+        try {
+            if (out != null) {
+                out.close();
+            }
+            if (in != null) {
+                in.close();
+            }
+            if (socket != null) {
+                socket.close();
+            }
+        } catch (IOException e) {
+            logger.error("Error while closing resources: " + e.getMessage());
+        }
     }
 }

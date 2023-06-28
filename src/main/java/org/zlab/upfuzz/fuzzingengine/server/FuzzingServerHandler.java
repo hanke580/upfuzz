@@ -48,10 +48,7 @@ public class FuzzingServerHandler implements Runnable {
             while (true) {
                 Packet testPacket = fuzzingServer
                         .getOneTest();
-                if (testPacket == null) {
-                    logger.error("empty test packet!");
-                }
-
+                assert testPacket != null;
                 testPacket.write(out);
                 readFeedbackPacket();
             }
@@ -66,7 +63,12 @@ public class FuzzingServerHandler implements Runnable {
                         "one client crash with exception, current live clients: "
                                 + clientNum);
             }
-
+        } catch (Exception e) {
+            logger.error("FuzzingServerHandler runs into exceptions " + e);
+            logger.error("Close current thread");
+        } finally {
+            // if this thread stops, the client should also stop
+            closeResources();
         }
     }
 
@@ -113,6 +115,22 @@ public class FuzzingServerHandler implements Runnable {
     public static void printClientNum() {
         synchronized (FuzzingServerHandler.class) {
             logger.info("Live clients: " + clientNum);
+        }
+    }
+
+    private void closeResources() {
+        try {
+            if (out != null) {
+                out.close();
+            }
+            if (in != null) {
+                in.close();
+            }
+            if (socket != null) {
+                socket.close();
+            }
+        } catch (IOException e) {
+            logger.error("Error while closing resources: " + e.getMessage());
         }
     }
 
