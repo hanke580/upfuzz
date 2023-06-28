@@ -63,6 +63,8 @@ class TCPHandler(socketserver.BaseRequestHandler):
                 print(self.data)
                 # output_file.write(self.data + "\n")
                 cmd = self.data.decode("ascii")+'\n'
+                output_file.write(cmd)
+                output_file.flush()
                 start_time = time.time()
 
                 ret_out = ""
@@ -81,24 +83,30 @@ class TCPHandler(socketserver.BaseRequestHandler):
                     next_shell_out = 'hbase:' + \
                         '{:0>3d}'.format(command_count) + ':0> '
                     print('next_out:', next_shell_out)
-                    output_file.write(next_shell_out + '\n')
+                    output_file.write('next_out: ' + next_shell_out + '\n')
+                    output_file.flush()
                     command_count += 1
 
                     while True:
                         newline = process.stdout.read()
                         if newline is None or len(newline) == 0:
+                            err_out = process.stderr.read()
+                            if err_out is not None and len(err_out) != 0:
+                                ret_err += err_out.decode("utf-8")
+                                output_file.write('stderr: ' + ret_err)
                             continue
                         newline = newline.decode("utf-8")
                         ret_out += newline
-                        print(newline, end='')
-                        output_file.write(newline)
+                        # print(newline, end='')
+                        output_file.write('stdout: ' + newline)
+                        output_file.flush()
                         err_out = process.stderr.read()
                         if err_out is not None and len(err_out) != 0:
                             ret_err += err_out.decode("utf-8")
+                            output_file.write('stderr: ' + ret_err)
                         if ret_out.endswith(next_shell_out) or ret_out.endswith(next_shell_out+'\n'):
                             break
                     print("stdout of process: " + ret_out)
-                    output_file.write("stdout of process: " + ret_out + '\n')
                     ret_out = '\n'.join(ret_out.split('\n')[1:-1])
                     # ret_out = process.stdout.read()
                     # ret_out, ret_err = process.communicate(input=cmd.encode(), timeout=5)

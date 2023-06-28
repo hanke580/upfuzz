@@ -20,4 +20,5 @@ while true; do
     sleep 5
 done
 
+echo "Starting HBase Daemon"
 python3 /hbase/hbase_daemon.py
