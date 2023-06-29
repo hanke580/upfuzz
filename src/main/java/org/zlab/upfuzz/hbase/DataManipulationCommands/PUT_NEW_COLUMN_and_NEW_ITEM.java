@@ -79,7 +79,7 @@ public class PUT_NEW_COLUMN_and_NEW_ITEM extends HBaseCommand {
         return "put "
                 + "'" + tableName.toString() + "', "
                 + "'" + rowKey.toString() + "', "
-                + "'" + columnFamilyName.toString() + "':'"
+                + "'" + columnFamilyName.toString() + ":"
                 + colNameStr + "', "
                 + "'" + valueStr + "'";
     }
