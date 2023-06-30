@@ -229,6 +229,24 @@ public class HBaseDockerCluster extends DockerCluster {
     }
 
     @Override
+    public void upgrade(int nodeIndex) throws Exception {
+        if (dockerStates[nodeIndex].alive) {
+            logger.info(String.format("Upgrade Node[%d]", nodeIndex));
+            dockers[nodeIndex].flush();
+            dockers[nodeIndex].shutdown();
+            ((HBaseDocker) dockers[nodeIndex]).rollingUpgrade();
+            dockerStates[nodeIndex].dockerVersion = DockerMeta.DockerVersion.upgraded;
+            logger.info(String.format("Node[%d] is upgraded", nodeIndex));
+        } else {
+            // Upgrade from a crashed container
+            logger.info(
+                    String.format("Upgrade Node[%d] from crash", nodeIndex));
+            dockers[nodeIndex].upgradeFromCrash();
+            dockerStates[nodeIndex].alive = true;
+        }
+    }
+
+    @Override
     public boolean fullStopUpgrade() throws Exception {
         logger.info("Cluster full-stop upgrading...");
         prepareUpgrade();
@@ -238,6 +256,18 @@ public class HBaseDockerCluster extends DockerCluster {
         }
         for (int i = dockers.length - 1; i >= 0; i--) {
             dockers[i].upgrade();
+        }
+        logger.info("Cluster upgraded");
+        return true;
+    }
+
+    @Override
+    public boolean rollingUpgrade() throws Exception {
+        logger.info("Cluster upgrading...");
+        prepareUpgrade();
+        for (int i = 0; i < dockers.length; ++i) {
+            dockers[i].flush();
+            ((HBaseDocker) dockers[i]).rollingUpgrade();
         }
         logger.info("Cluster upgraded");
         return true;

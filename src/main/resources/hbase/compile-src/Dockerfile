@@ -26,10 +26,12 @@ COPY org.jacoco.agent.rt.jar /org.jacoco.agent.rt.jar
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY hbase-init.sh /usr/local/bin/hbase-init.sh
 COPY hbase-daemon-init.sh /usr/local/bin/hbase-daemon-init.sh
+COPY rolling-upgrade.sh /usr/local/bin/rolling-upgrade.sh
 
 RUN sh /usr/local/bin/general-setup.sh
 RUN chmod +777 /usr/local/bin/hbase-init.sh
 RUN chmod +777 /usr/local/bin/hbase-daemon-init.sh
+RUN chmod +777 /usr/local/bin/rolling-upgrade.sh
 
 # 2. System setup.
 

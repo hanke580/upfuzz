@@ -163,6 +163,22 @@ public class HBaseDocker extends Docker {
         // no idea what to do
     }
 
+    public void rollingUpgrade() throws Exception {
+        prepareUpgradeEnv();
+        String restartCommand = "source /usr/bin/set_env && /usr/local/bin/rolling-upgrade.sh";
+        Process restart = runInContainer(
+                new String[] { "/bin/bash", "-c", restartCommand }, env);
+        int ret = restart.waitFor();
+        String message = Utilities.readProcess(restart);
+        logger.debug("upgrade version start: " + ret + "\n" + message);
+
+        if (index == 0) {
+            HBaseShell = new HBaseShellDaemon(getNetworkIP(), HBaseDaemonPort,
+                    this.executorID,
+                    this);
+        }
+    }
+
     @Override
     public void upgrade() throws Exception {
         prepareUpgradeEnv();
