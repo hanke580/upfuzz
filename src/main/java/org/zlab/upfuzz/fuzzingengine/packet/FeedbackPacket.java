@@ -29,7 +29,8 @@ public class FeedbackPacket extends Packet {
     public List<String> validationReadResults;
 
     // inv status
-    public Set<Integer> brokenInvs;
+    public boolean breakNewInv = false;
+    public Set<Integer> brokenInvs = new HashSet<>();
 
     public FeedbackPacket(String systemID, int nodeNum, int testPacketID,
             FeedBack[] feedBacks, List<String> validationReadResults) {
@@ -41,7 +42,6 @@ public class FeedbackPacket extends Packet {
         this.feedBacks = feedBacks;
 
         this.validationReadResults = validationReadResults;
-        this.brokenInvs = new HashSet<>();
     }
 
     public static FeedbackPacket read(DataInputStream in) {

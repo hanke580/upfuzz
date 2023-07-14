@@ -28,6 +28,7 @@ import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
 import static org.zlab.upfuzz.fuzzingengine.server.FuzzingServer.readState;
+import static org.zlab.upfuzz.nyx.MiniClientMain.runTheTests;
 
 public class FuzzingClient {
     static Logger logger = LogManager.getLogger(FuzzingClient.class);
@@ -410,157 +411,9 @@ public class FuzzingClient {
 
         }
 
-        Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();
-        Map<Integer, List<String>> testID2oriResults = new HashMap<>();
-        Map<Integer, List<String>> testID2upResults = new HashMap<>();
-
-        logger.info("start executing tests");
-        int commandNum = 0;
-        for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
-
-            logger.info("[hklog] executing "
-                    + tp.originalCommandSequenceList.size()
-                    + " write commands");
-            commandNum += tp.originalCommandSequenceList.size();
-            executor.executeCommands(tp.originalCommandSequenceList);
-            logger.info("[hklog] finish executing");
-            FeedBack[] feedBacks = new FeedBack[stackedTestPacket.nodeNum];
-            for (int i = 0; i < stackedTestPacket.nodeNum; i++) {
-                feedBacks[i] = new FeedBack();
-            }
-            ExecutionDataStore[] oriCoverages = executor
-                    .collectCoverageSeparate("original");
-            if (oriCoverages != null) {
-                for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
-                    feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
-                }
-            }
-
-            testID2FeedbackPacket.put(
-                    tp.testPacketID,
-                    new FeedbackPacket(tp.systemID, stackedTestPacket.nodeNum,
-                            tp.testPacketID, feedBacks, null));
-
-            List<String> oriResult = executor
-                    .executeCommands(tp.validationCommandSequenceList);
-
-            testID2oriResults.put(tp.testPacketID, oriResult);
-            commandNum += tp.validationCommandSequenceList.size();
-        }
-
-        logger.info("finish executing tests, total command: " + commandNum);
-        StackedFeedbackPacket stackedFeedbackPacket = new StackedFeedbackPacket(
-                stackedTestPacket.configFileName);
-        stackedFeedbackPacket.fullSequence = recordStackedTestPacket(
+        StackedFeedbackPacket stackedFeedbackPacket = runTheTests(executor,
                 stackedTestPacket);
 
-        // LOG checking1
-        Map<Integer, LogInfo> logInfoBeforeUpgrade = null;
-        if (Config.getConf().enableLogCheck) {
-            logger.info("[HKLOG] error log checking");
-            logInfoBeforeUpgrade = executor.grepLogInfo();
-        }
-
-        if (Config.instance.useLikelyInv) {
-            boolean hasBrokenInv = executor.hasBrokenInv();
-            logger.info("checking inv!");
-            if (!hasBrokenInv) {
-                // skip current upgrade process
-                stackedFeedbackPacket.skipped = true;
-                new Thread(this::tearDownExecutor).start();
-                logger.info("client skip upgrade process!");
-                // also skip the tear down process, we force shutdown the
-                // cluster!
-                // open a thread to shutdown it
-                return stackedFeedbackPacket;
-            }
-        }
-
-        executor.fullStopCluster();
-
-        boolean ret = executor.upgradeCluster();
-
-        if (!ret) {
-            // upgrade failed
-            String upgradeFailureReport = genUpgradeFailureReport(
-                    executor.executorID, stackedTestPacket.configFileName);
-            stackedFeedbackPacket.isUpgradeProcessFailed = true;
-            stackedFeedbackPacket.upgradeFailureReport = upgradeFailureReport;
-            tearDownExecutor();
-            return stackedFeedbackPacket;
-        }
-
-        logger.info("upgrade succeed");
-        stackedFeedbackPacket.isUpgradeProcessFailed = false;
-
-        for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
-            List<String> upResult = executor
-                    .executeCommands(tp.validationCommandSequenceList);
-            testID2upResults.put(tp.testPacketID, upResult);
-            if (Config.getConf().collUpFeedBack) {
-                ExecutionDataStore[] upCoverages = executor
-                        .collectCoverageSeparate("upgraded");
-                if (upCoverages != null) {
-                    for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
-                        testID2FeedbackPacket.get(
-                                tp.testPacketID).feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
-                    }
-                }
-            }
-        }
-
-        // Check read results consistency
-        for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
-            Pair<Boolean, String> compareRes = executor
-                    .checkResultConsistency(
-                            testID2oriResults.get(tp.testPacketID),
-                            testID2upResults.get(tp.testPacketID), true);
-
-            FeedbackPacket feedbackPacket = testID2FeedbackPacket
-                    .get(tp.testPacketID);
-
-            if (!compareRes.left) {
-                String failureReport = genInconsistencyReport(
-                        executor.executorID, stackedTestPacket.configFileName,
-                        compareRes.right, recordSingleTestPacket(tp));
-                feedbackPacket.isInconsistent = true;
-                feedbackPacket.inconsistencyReport = failureReport;
-            }
-            // logger.debug("testID2upResults = " + testID2upResults
-            // .get(tp.testPacketID));
-            feedbackPacket.validationReadResults = testID2upResults
-                    .get(tp.testPacketID);
-            stackedFeedbackPacket.addFeedbackPacket(feedbackPacket);
-        }
-        logger.info(executor.systemID + " executor: " + executor.executorID
-                + " finished execution");
-
-        // test downgrade
-        if (Config.getConf().testDowngrade) {
-            logger.info("downgrade cluster");
-            boolean downgradeStatus = executor.downgrade();
-            if (!downgradeStatus) {
-                // downgrade failed
-                stackedFeedbackPacket.isDowngradeProcessFailed = true;
-                stackedFeedbackPacket.downgradeFailureReport = genDowngradeFailureReport(
-                        executor.executorID,
-                        stackedFeedbackPacket.configFileName);
-            }
-        }
-
-        // LOG checking2
-        if (Config.getConf().enableLogCheck) {
-            logger.info("[HKLOG] error log checking: merge logs");
-            assert logInfoBeforeUpgrade != null;
-            Map<Integer, LogInfo> logInfo = filterErrorLog(logInfoBeforeUpgrade,
-                    executor.grepLogInfo());
-            if (hasERRORLOG(logInfo)) {
-                stackedFeedbackPacket.hasERRORLog = true;
-                stackedFeedbackPacket.errorLogReport = genErrorLogReport(
-                        executor.executorID, stackedTestPacket.configFileName,
-                        logInfo);
-            }
-        }
         tearDownExecutor();
         return stackedFeedbackPacket;
     }

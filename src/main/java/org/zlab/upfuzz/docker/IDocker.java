@@ -24,8 +24,6 @@ public interface IDocker {
 
     void downgrade() throws Exception;
 
-    boolean hasBrokenInv() throws Exception;
-
     Map<Integer, Integer> getBrokenInv() throws Exception;
 
     // remove all system data (data/ in cassandra)

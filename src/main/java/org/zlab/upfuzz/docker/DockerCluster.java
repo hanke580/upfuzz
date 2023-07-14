@@ -200,19 +200,6 @@ public abstract class DockerCluster implements IDockerCluster {
         return ret;
     }
 
-    public boolean hasbrokenInv() throws Exception {
-        logger.info("Check any broken invariant...");
-        // if any of the node has a broken inv, we return true;
-        boolean ret = false;
-        for (int i = 0; i < dockers.length; i++) {
-            if (dockers[i].hasBrokenInv()) {
-                ret = true;
-                break;
-            }
-        }
-        return ret;
-    }
-
     public Map<Integer, Integer> getBrokenInv() throws Exception {
         Map<Integer, Integer> brokenInvMap = new HashMap<>();
         for (int i = 0; i < dockers.length; i++) {

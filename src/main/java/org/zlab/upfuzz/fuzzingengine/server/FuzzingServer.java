@@ -1051,6 +1051,14 @@ public class FuzzingServer {
                     }
                 }
 
+                // cases that break invariants
+                if (feedbackPacket.breakNewInv) {
+                    logger.info(String.format(
+                            "test%d break new invariants, add to corpus",
+                            feedbackPacket.testPacketID));
+                    addToCorpus = true;
+                }
+
                 if (addToCorpus) {
                     Seed seed = testID2Seed
                             .get(feedbackPacket.testPacketID);

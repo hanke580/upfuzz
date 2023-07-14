@@ -84,13 +84,7 @@ public class MiniClientMain {
         try { // if any of these catches go through we have a big problem
             defaultStackedTestPacket = (StackedTestPacket) Utilities
                     .readObjectFromFile(defaultStackedTestPath.toFile());
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            return;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        } catch (ClassCastException e) {
+        } catch (ClassNotFoundException | IOException | ClassCastException e) {
             e.printStackTrace();
             return;
         }
@@ -120,13 +114,7 @@ public class MiniClientMain {
         try { // if any of these catches go through we have a big problem
             stackedTestPacket = (StackedTestPacket) Utilities
                     .readObjectFromFile(stackedTestPath.toFile());
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            return;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        } catch (ClassCastException e) {
+        } catch (ClassNotFoundException | IOException | ClassCastException e) {
             e.printStackTrace();
             return;
         }
@@ -135,11 +123,6 @@ public class MiniClientMain {
                 stackedTestPacket);
         Path stackedFeedbackPath = Paths.get(workdir,
                 "stackedFeedbackPacket.ser"); // "/miniClientWorkdir/stackedFeedbackPacket.ser"
-        if (stackedFeedbackPacket == null) {
-            // there was some issue in getting feedback
-            return;
-        }
-
         try (DataOutputStream out = new DataOutputStream(new FileOutputStream(
                 stackedFeedbackPath.toAbsolutePath().toString()))) {
             stackedFeedbackPacket.write(out);
@@ -224,6 +207,8 @@ public class MiniClientMain {
                 // check whether any new invariant is broken
                 for (Integer invID : brokenInvs) {
                     if (!stackedTestPacket.ignoredInvs.contains(invID)) {
+                        testID2FeedbackPacket
+                                .get(tp.testPacketID).breakNewInv = true;
                         // this means a new broken inv!
                         breakNewInv = true;
                         break;
@@ -248,29 +233,6 @@ public class MiniClientMain {
             // logger.info("[HKLOG] error log checking");
             logInfoBeforeUpgrade = executor.grepLogInfo();
         }
-
-        // if (Config.instance.useLikelyInv) {
-        // // boolean hasBrokenInv = executor.hasBrokenInv();
-        // Map<Integer, Integer> brokenInvMap = executor.getBrokenInv();
-        // System.err.println("checking inv!");
-        // if (brokenInvMap.keySet().size() <= 1) {
-        // // No broken inv: skip current upgrade process
-        // stackedFeedbackPacket.skipped = true;
-        // new Thread(new Runnable() {
-        // public void run() {
-        // executor.upgradeTeardown();
-        // executor.clearState();
-        // executor.teardown();
-        // }
-        // }).start();
-        // System.err.println("client skip upgrade process!");
-        // // also skip the tear down process, we force shutdown the
-        // // cluster!
-        // // open a thread to shutdown it
-        // return stackedFeedbackPacket;
-        // }
-        // System.err.println("client not skip upgrade process!");
-        // }
 
         boolean ret = executor.fullStopUpgrade();
 
