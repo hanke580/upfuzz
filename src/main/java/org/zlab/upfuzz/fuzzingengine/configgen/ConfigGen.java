@@ -109,7 +109,7 @@ public class ConfigGen {
         Path upConfig2typePath = configInfoPath
                 .resolve("upConfig2Type.json");
         Path upConfig2initPath = configInfoPath
-                .resolve("upConfig2Type.json");
+                .resolve("upConfig2Init.json");
         Path upEnum2constantPath = configInfoPath
                 .resolve("upEnum2Constant.json");
 
