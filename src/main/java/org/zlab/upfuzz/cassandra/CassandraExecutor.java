@@ -140,11 +140,10 @@ public class CassandraExecutor extends Executor {
             CqlshPacket cp = cqlsh.execute(command.getCommand());
             long endTime = System.currentTimeMillis();
 
-            long timeElapsed = TimeUnit.SECONDS.convert(
-                    endTime - startTime, TimeUnit.MILLISECONDS);
+            long timeElapsed = endTime - startTime;
             if (Config.getConf().debug) {
                 logger.debug(String.format(
-                        "Command is sent to node[%d], exec time: %ds",
+                        "Command is sent to node[%d], exec time: %dms",
                         cqlshNodeIndex, timeElapsed));
                 if (cp != null)
                     logger.debug(String.format(
