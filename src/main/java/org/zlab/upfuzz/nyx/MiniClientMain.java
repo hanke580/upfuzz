@@ -154,7 +154,7 @@ public class MiniClientMain {
         int executedTestNum = 0;
         boolean breakNewInv = false;
 
-        Map<Integer, Integer> lastBrokenInv = null;
+        int[] lastBrokenInv = null;
         if (Config.getConf().useLikelyInv) {
             lastBrokenInv = executor.getBrokenInv();
         }
@@ -198,36 +198,25 @@ public class MiniClientMain {
             if (Config.getConf().useLikelyInv) {
                 // calculate the startup invariant, this should give credit
                 // to configuration file
-                Map<Integer, Integer> curBrokenInv = executor.getBrokenInv();
-                Set<Integer> brokenInvs = new HashSet<>();
-                for (int invId : curBrokenInv.keySet()) {
-                    assert lastBrokenInv != null;
-                    if (lastBrokenInv.containsKey(invId)) {
-                        // this is violated between tests
-                        if (curBrokenInv.get(invId)
-                                - lastBrokenInv.get(invId) > 0)
-                            brokenInvs.add(invId);
-                    } else {
-                        if (curBrokenInv.get(invId) > 0)
-                            brokenInvs.add(invId);
-                    }
-                }
+                int[] curBrokenInv = executor.getBrokenInv();
+
+                // if we add the clear op, we don't need to do calculate the
+                // diff
                 testID2FeedbackPacket
-                        .get(tp.testPacketID).brokenInvs = brokenInvs;
+                        .get(tp.testPacketID).brokenInvs = curBrokenInv;
 
                 // check whether any new invariant is broken
-                for (Integer invID : brokenInvs) {
-                    if (!stackedTestPacket.ignoredInvs.contains(invID)) {
+                for (int i = 0; i < curBrokenInv.length; i++) {
+                    if (!stackedTestPacket.ignoredInvs.contains(i)
+                            && curBrokenInv[i] != 0) {
                         testID2FeedbackPacket
                                 .get(tp.testPacketID).breakNewInv = true;
-                        // this means a new broken inv!
                         breakNewInv = true;
                         break;
                     }
                 }
                 if (breakNewInv)
                     break;
-                lastBrokenInv = curBrokenInv;
             }
             logger.debug("single test done");
 

@@ -200,18 +200,15 @@ public abstract class DockerCluster implements IDockerCluster {
         return ret;
     }
 
-    public Map<Integer, Integer> getBrokenInv() throws Exception {
-        Map<Integer, Integer> brokenInvMap = new HashMap<>();
-        for (int i = 0; i < dockers.length; i++) {
+    public int[] getBrokenInv() throws Exception {
+        assert dockers.length > 0;
+        int[] invMap = dockers[0].getBrokenInv();
+        int[] brokenInvMap = Arrays.copyOf(invMap, invMap.length);
+        for (int i = 1; i < dockers.length; i++) {
             // merge
-            Map<Integer, Integer> invMap = dockers[i].getBrokenInv();
-            for (int invId : invMap.keySet()) {
-                if (!brokenInvMap.containsKey(invId)) {
-                    brokenInvMap.put(invId, invMap.get(invId));
-                } else {
-                    brokenInvMap.put(invId,
-                            brokenInvMap.get(invId) + invMap.get(invId));
-                }
+            invMap = dockers[i].getBrokenInv();
+            for (int j = 0; j < brokenInvMap.length; j++) {
+                brokenInvMap[j] += invMap[j];
             }
         }
         return brokenInvMap;

@@ -95,7 +95,7 @@ public abstract class Executor implements IExecutor {
         }
     }
 
-    public Map<Integer, Integer> getBrokenInv() {
+    public int[] getBrokenInv() {
         try {
             return dockerCluster.getBrokenInv();
         } catch (Exception e) {

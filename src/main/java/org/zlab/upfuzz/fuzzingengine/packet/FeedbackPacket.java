@@ -30,7 +30,7 @@ public class FeedbackPacket extends Packet {
 
     // inv status
     public boolean breakNewInv = false;
-    public Set<Integer> brokenInvs = new HashSet<>();
+    public int[] brokenInvs;
 
     public FeedbackPacket(String systemID, int nodeNum, int testPacketID,
             FeedBack[] feedBacks, List<String> validationReadResults) {

@@ -30,7 +30,7 @@ public abstract class Docker extends DockerMeta implements IDocker {
     }
 
     @Override
-    public Map<Integer, Integer> getBrokenInv() throws Exception {
+    public int[] getBrokenInv() throws Exception {
         // execute check inv command
         Socket socket = new Socket(networkIP,
                 Config.instance.runtimeMonitorPort);
@@ -45,12 +45,13 @@ public abstract class Docker extends DockerMeta implements IDocker {
 
         Runtime.ViolationInfo response = (Runtime.ViolationInfo) in
                 .readObject(); // read the server response
-        logger.debug("Received response: " + response.getMap());
+        logger.debug(
+                "Received response length: " + response.getViolations().length);
         // clean up resources
         out.close();
         in.close();
         socket.close();
-        return response.getMap();
+        return response.getViolations();
     }
 
 }

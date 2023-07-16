@@ -1003,11 +1003,13 @@ public class FuzzingServer {
             // handle invariant
             finishedTestID++;
             if (Config.getConf().useLikelyInv) {
-                for (int invId : feedbackPacket.brokenInvs) {
-                    if (inv2BrokenNum.containsKey(invId)) {
-                        inv2BrokenNum.put(invId, inv2BrokenNum.get(invId) + 1);
-                    } else {
-                        inv2BrokenNum.put(invId, 1);
+                for (int i = 0; i < feedbackPacket.brokenInvs.length; i++) {
+                    if (feedbackPacket.brokenInvs[i] != 0) {
+                        if (inv2BrokenNum.containsKey(i)) {
+                            inv2BrokenNum.put(i, inv2BrokenNum.get(i) + 1);
+                        } else {
+                            inv2BrokenNum.put(i, 1);
+                        }
                     }
                 }
             }
