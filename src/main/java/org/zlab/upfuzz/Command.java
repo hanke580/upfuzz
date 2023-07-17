@@ -36,9 +36,7 @@ public abstract class Command implements Serializable {
 
     public abstract void updateState(State state);
 
-    public boolean mutate(State s) throws IllegalAccessException,
-            NoSuchMethodException,
-            InvocationTargetException {
+    public boolean mutate(State s) throws Exception {
         Random rand = new Random();
 
         for (int i = 0; i < RETRY_TIMES; i++) {

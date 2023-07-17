@@ -88,27 +88,28 @@ public class CommandSequence implements Serializable {
 
         Random rand = new Random();
         for (int mutateRetryIdx = 0; mutateRetryIdx < RETRY_MUTATE_TIME; mutateRetryIdx++) {
-            int choice = rand.nextInt(3);
-            // hdfs: only clear dfs state, since we will recompute
-            // cassandra: clear all states
-            state.clearState();
+            try {
+                int choice = rand.nextInt(3);
+                // hdfs: only clear dfs state, since we will recompute
+                // cassandra: clear all states
+                state.clearState();
 
-            int pos;
-            if (choice == 0 || choice == 1) {
-                // Mutate a specific command
-                if (Config.getConf() != null && Config.getConf().system != null
-                        && Config.getConf().system.equals("hdfs")) {
-                    // do not mutate the first command
-                    pos = Utilities.randWithRange(rand, 1, commands.size());
-                } else {
-                    pos = rand.nextInt(commands.size());
-                }
-                logger.trace("\t\tMutate Command Pos " + pos);
-                // Compute the state up to the position
-                for (int i = 0; i < pos; i++) {
-                    commands.get(i).updateState(state);
-                }
-                try {
+                int pos;
+                if (choice == 0 || choice == 1) {
+                    // Mutate a specific command
+                    if (Config.getConf() != null
+                            && Config.getConf().system != null
+                            && Config.getConf().system.equals("hdfs")) {
+                        // do not mutate the first command
+                        pos = Utilities.randWithRange(rand, 1, commands.size());
+                    } else {
+                        pos = rand.nextInt(commands.size());
+                    }
+                    logger.trace("\t\tMutate Command Pos " + pos);
+                    // Compute the state up to the position
+                    for (int i = 0; i < pos; i++) {
+                        commands.get(i).updateState(state);
+                    }
                     boolean mutateStatus = commands.get(pos).mutate(state);
                     if (!mutateStatus)
                         continue;
@@ -121,60 +122,63 @@ public class CommandSequence implements Serializable {
                     } else {
                         updateState(commands.get(pos), state);
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            } else {
-                // Insert a command
-
-                if (Config.getConf() != null && Config.getConf().system != null
-                        && Config.getConf().system.equals("hdfs")) {
-                    // Do not insert before the first special command
-                    pos = org.zlab.upfuzz.utils.Utilities.biasRand(
-                            rand, commands.size(), 5) + 1;
                 } else {
-                    pos = org.zlab.upfuzz.utils.Utilities.biasRand(
-                            rand, commands.size() + 1, 5);
-                }
+                    // Insert a command
+                    if (Config.getConf() != null
+                            && Config.getConf().system != null
+                            && Config.getConf().system.equals("hdfs")) {
+                        // Do not insert before the first special command
+                        pos = org.zlab.upfuzz.utils.Utilities.biasRand(
+                                rand, commands.size(), 5) + 1;
+                    } else {
+                        pos = org.zlab.upfuzz.utils.Utilities.biasRand(
+                                rand, commands.size() + 1, 5);
+                    }
 
-                // pos = rand.nextInt(commands.size() + 1);
-                logger.trace("\t\tMutate Command Pos " + pos);
+                    // pos = rand.nextInt(commands.size() + 1);
+                    logger.trace("\t\tMutate Command Pos " + pos);
 
-                // Compute the state up to the position
-                for (int i = 0; i < pos; i++) {
-                    commands.get(i).updateState(state);
-                }
-                Command command;
+                    // Compute the state up to the position
+                    for (int i = 0; i < pos; i++) {
+                        commands.get(i).updateState(state);
+                    }
+                    Command command;
 
-                command = generateSingleCommand(commandClassList, state);
-                while (command == null) {
-                    command = generateSingleCommand(createCommandClassList,
-                            state);
+                    command = generateSingleCommand(commandClassList, state);
+                    while (command == null) {
+                        command = generateSingleCommand(createCommandClassList,
+                                state);
+                    }
+                    commands.add(pos, command);
+                    commands.get(pos).updateState(state);
                 }
-                commands.add(pos, command);
-                commands.get(pos).updateState(state);
-            }
-            // Check the following commands
-            // There could be some commands that cannot be
-            // fixed. Therefore, remove them to keep the
-            // validity.
-            List<Command> validCommands = new LinkedList<>();
-            for (int i = 0; i < pos + 1; i++) {
-                validCommands.add(commands.get(i));
-            }
-            for (int i = pos + 1; i < commands.size(); i++) {
-                boolean fixable = checkAndUpdateCommand(commands.get(i), state);
-                if (fixable) {
+                // Check the following commands
+                // There could be some commands that cannot be
+                // fixed. Therefore, remove them to keep the
+                // validity.
+                List<Command> validCommands = new LinkedList<>();
+                for (int i = 0; i < pos + 1; i++) {
                     validCommands.add(commands.get(i));
-                    updateState(commands.get(i), state);
                 }
+                for (int i = pos + 1; i < commands.size(); i++) {
+                    boolean fixable = checkAndUpdateCommand(commands.get(i),
+                            state);
+                    if (fixable) {
+                        validCommands.add(commands.get(i));
+                        updateState(commands.get(i), state);
+                    }
+                }
+                commands = validCommands;
+                this.state = state;
+
+                ParameterType.BasicConcreteType.clearPool();
+
+                return true;
+            } catch (Exception e) {
+                logger.error("CommandSequence mutation problem: " + e);
+                e.printStackTrace();
+                // keep retrying!
             }
-            commands = validCommands;
-            this.state = state;
-
-            ParameterType.BasicConcreteType.clearPool();
-
-            return true;
         }
         // The mutation is failed.
         logger.error("Mutation Failed");
