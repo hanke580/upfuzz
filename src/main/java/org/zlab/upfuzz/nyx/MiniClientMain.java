@@ -199,23 +199,22 @@ public class MiniClientMain {
                 // calculate the startup invariant, this should give credit
                 // to configuration file
                 int[] curBrokenInv = executor.getBrokenInv();
-
-                // if we add the clear op, we don't need to do calculate the
-                // diff
+                int[] diffBrokenInv = Utilities
+                        .computeDiffBrokenInv(lastBrokenInv, curBrokenInv);
+                lastBrokenInv = curBrokenInv;
                 testID2FeedbackPacket
-                        .get(tp.testPacketID).brokenInvs = curBrokenInv;
-
+                        .get(tp.testPacketID).brokenInvs = diffBrokenInv;
                 // check whether any new invariant is broken
-                for (int i = 0; i < curBrokenInv.length; i++) {
+                for (int i = 0; i < diffBrokenInv.length; i++) {
                     if (!stackedTestPacket.ignoredInvs.contains(i)
-                            && curBrokenInv[i] != 0) {
+                            && diffBrokenInv[i] != 0) {
                         testID2FeedbackPacket
                                 .get(tp.testPacketID).breakNewInv = true;
                         breakNewInv = true;
                         break;
                     }
                 }
-                if (breakNewInv)
+                if (Config.getConf().skip && breakNewInv)
                     break;
             }
             logger.debug("single test done");

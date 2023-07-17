@@ -703,4 +703,16 @@ public class Utilities {
         return matcher.replaceAll("");
     }
 
+    public static int[] computeDiffBrokenInv(
+            int[] lastBrokenInv,
+            int[] curBrokenInv) {
+        assert lastBrokenInv.length == curBrokenInv.length;
+        int len = lastBrokenInv.length;
+        int[] diffBrokenInv = new int[len];
+        for (int i = 0; i < len; i++) {
+            diffBrokenInv[i] = curBrokenInv[i] - lastBrokenInv[i];
+        }
+        return diffBrokenInv;
+    }
+
 }
