@@ -136,7 +136,6 @@ public class CassandraDocker extends Docker {
         }
 
         env = new String[] {
-                "EXTRA_CLASSPATH=$EXTRA_CLASSPATH:/dinv-monitor-shadow.jar",
                 "CASSANDRA_HOME=\"" + cassandraHome + "\"",
                 "CASSANDRA_CONF=\"" + cassandraConf + "\"", javaToolOpts,
                 "CQLSH_DAEMON_PORT=\"" + cqlshDaemonPort + "\"",

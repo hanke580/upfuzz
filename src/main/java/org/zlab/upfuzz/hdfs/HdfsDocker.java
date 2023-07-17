@@ -120,7 +120,6 @@ public class HdfsDocker extends Docker {
                 "\"";
 
         env = new String[] {
-                "EXTRA_CLASSPATH=$EXTRA_CLASSPATH:/dinv-monitor-shadow.jar",
                 "HADOOP_HOME=" + hdfsHome,
                 "HADOOP_CONF_DIR=" + hdfsConf, javaToolOpts,
                 "HDFS_SHELL_DAEMON_PORT=\"" + hdfsDaemonPort + "\"",
