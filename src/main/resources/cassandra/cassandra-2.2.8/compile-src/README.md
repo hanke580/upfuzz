@@ -2,6 +2,10 @@ For old version cassandra we need to change the `bin/cassandra` script to set up
 E.g. for cassandra-2.2.8 or cassandra-3.0.15
 
 ```bash
+sed -i 's|\$CASSANDRA_HOME/logs|/var/log/cassandra|g' bin/cassandra
+```
+
+```bash
 
 launch_service()
 {
