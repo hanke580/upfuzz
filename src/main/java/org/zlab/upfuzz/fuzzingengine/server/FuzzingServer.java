@@ -331,6 +331,7 @@ public class FuzzingServer {
                         i--;
                     }
                 }
+                stackedTestPackets.add(stackedTestPacket);
             }
             logger.debug("[fuzzOne] mutate done, stackedTestPackets size = "
                     + stackedTestPackets.size());
