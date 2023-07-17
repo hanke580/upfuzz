@@ -7,11 +7,15 @@ import org.zlab.upfuzz.utils.Utilities;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.PriorityQueue;
+import java.util.Queue;
 
 public class PriorityCorpus {
 
-    PriorityQueue<Seed> queue = new PriorityQueue<>(Collections.reverseOrder());
+    // PriorityQueue<Seed> queue = new
+    // PriorityQueue<>(Collections.reverseOrder());
+    Queue<Seed> queue = new LinkedList<>();
 
     public boolean initCorpus(Path initSeedDirPath) {
         if (!initSeedDirPath.toFile().exists())

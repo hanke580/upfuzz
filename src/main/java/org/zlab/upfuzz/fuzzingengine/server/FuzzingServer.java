@@ -301,7 +301,7 @@ public class FuzzingServer {
             }
 
             // Situation2: Only mutate config + Mutate both (Combined with
-            // stackedTestPackets)
+            // stackedTestPackets): 20*50 = 1000 tests
             // gen a new config
             for (int configMutationIdx = 0; configMutationIdx < Config
                     .getConf().configMutationEpoch; configMutationIdx++) {
@@ -1276,6 +1276,9 @@ public class FuzzingServer {
                         + originalProbeNum,
                 "up cov : " + upgradedCoveredBranches + "/"
                         + upgradedProbeNum);
+        System.out.format("|%30s|%30s|\n",
+                "testID2Seed size : " + testID2Seed.size(),
+                "stackedTestPackets size : " + stackedTestPackets.size());
         System.out.println(
                 "------------------------------------------------------------"
                         + "-----------------------------------------------------------------");
