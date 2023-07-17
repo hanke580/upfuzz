@@ -29,6 +29,10 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.fuzzingengine.Config;
+import org.zlab.upfuzz.fuzzingengine.FeedBack;
+import org.zlab.upfuzz.fuzzingengine.packet.FeedbackPacket;
+import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacket;
+import org.zlab.upfuzz.fuzzingengine.packet.TestPacket;
 
 public class Utilities {
     static Logger logger = LogManager.getLogger(Utilities.class);
@@ -715,4 +719,12 @@ public class Utilities {
         return diffBrokenInv;
     }
 
+    public static List<Integer> extractTestIDs(
+            StackedTestPacket stackedTestPacket) {
+        List<Integer> testIDs = new LinkedList<>();
+        for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
+            testIDs.add(tp.testPacketID);
+        }
+        return testIDs;
+    }
 }

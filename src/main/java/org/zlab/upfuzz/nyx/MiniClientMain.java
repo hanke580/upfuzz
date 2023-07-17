@@ -210,7 +210,8 @@ public class MiniClientMain {
         }
 
         StackedFeedbackPacket stackedFeedbackPacket = new StackedFeedbackPacket(
-                stackedTestPacket.configFileName);
+                stackedTestPacket.configFileName,
+                Utilities.extractTestIDs(stackedTestPacket));
         stackedFeedbackPacket.fullSequence = FuzzingClient
                 .recordStackedTestPacket(
                         stackedTestPacket);

@@ -1105,10 +1105,11 @@ public class FuzzingServer {
                         feedbackPacket.testPacketID,
                         feedbackPacket.inconsistencyReport);
             }
-            // Remove the seed from the waiting list
-            testID2Seed.remove(feedbackPacket.testPacketID);
         }
-
+        // update testid2Seed, no use anymore
+        for (int testID : stackedFeedbackPacket.testIDs) {
+            testID2Seed.remove(testID);
+        }
         if (stackedFeedbackPacket.hasERRORLog) {
             if (failureDir == null) {
                 failureDir = createFailureDir(

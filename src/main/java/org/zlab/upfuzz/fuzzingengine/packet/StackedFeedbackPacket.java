@@ -18,6 +18,9 @@ public class StackedFeedbackPacket extends Packet implements Serializable {
 
     public final List<FeedbackPacket> fpList;
 
+    // include all testIDs (either executed or not)
+    // we should remove them from testID2Seed for oom problem
+    public final List<Integer> testIDs;
     // TODO: Handle brokenInv for configurations (start up)
     // public Set<Integer> brokenInv; // configuration broken invariants!
 
@@ -41,8 +44,9 @@ public class StackedFeedbackPacket extends Packet implements Serializable {
     // (1) Failed Upgrade Process: Report all command sequences
     // (2) Result Inconsistency: Report the target seed's inconsistency
 
-    public StackedFeedbackPacket(String configFileName) {
+    public StackedFeedbackPacket(String configFileName, List<Integer> testIDs) {
         this.configFileName = configFileName;
+        this.testIDs = testIDs;
         this.type = PacketType.StackedFeedbackPacket;
         fpList = new LinkedList<>();
     }

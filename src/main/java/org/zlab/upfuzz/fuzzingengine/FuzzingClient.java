@@ -816,7 +816,8 @@ public class FuzzingClient {
         }
 
         StackedFeedbackPacket stackedFeedbackPacket = new StackedFeedbackPacket(
-                stackedTestPacket.configFileName);
+                stackedTestPacket.configFileName,
+                Utilities.extractTestIDs(stackedTestPacket));
         stackedFeedbackPacket.fullSequence = mixedTestPacketStr;
 
         // LOG checking1
