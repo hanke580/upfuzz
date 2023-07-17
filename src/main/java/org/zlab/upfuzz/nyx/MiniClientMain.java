@@ -159,38 +159,27 @@ public class MiniClientMain {
             lastBrokenInv = executor.getBrokenInv();
         }
 
-        logger.debug("start executing test");
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             executedTestNum++;
-            logger.debug("executing command size: "
-                    + tp.originalCommandSequenceList.size());
             executor.executeCommands(tp.originalCommandSequenceList);
 
-            logger.debug("finish execution");
             FeedBack[] feedBacks = new FeedBack[stackedTestPacket.nodeNum];
             for (int i = 0; i < stackedTestPacket.nodeNum; i++) {
                 feedBacks[i] = new FeedBack();
             }
-            logger.debug("collect feedback");
             ExecutionDataStore[] oriCoverages = executor
                     .collectCoverageSeparate("original");
-            logger.debug("collect feedback done");
             if (oriCoverages != null) {
                 for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
                     feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
                 }
             }
-
             testID2FeedbackPacket.put(
                     tp.testPacketID,
                     new FeedbackPacket(tp.systemID, stackedTestPacket.nodeNum,
                             tp.testPacketID, feedBacks, null));
-
-            logger.debug("exec read");
             List<String> oriResult = executor
                     .executeCommands(tp.validationCommandSequenceList);
-
-            logger.debug("exec read done");
             testID2oriResults.put(tp.testPacketID, oriResult);
 
             // check invariants!
@@ -217,7 +206,6 @@ public class MiniClientMain {
                 if (Config.getConf().skip && breakNewInv)
                     break;
             }
-            logger.debug("single test done");
 
         }
 

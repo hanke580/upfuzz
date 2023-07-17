@@ -246,6 +246,7 @@ public class FuzzingServer {
         StackedTestPacket stackedTestPacket;
 
         if (seed == null) {
+            logger.debug("[fuzzOne] generate a random seed");
             configIdx = configGen.generateConfig();
             String configFileName = "test" + configIdx;
             // corpus is empty, random generate one test packet and wait
@@ -265,6 +266,9 @@ public class FuzzingServer {
             }
             stackedTestPackets.add(stackedTestPacket);
         } else {
+            logger.debug(
+                    "[fuzzOne] fuzz a seed from corpus, stackedTestPackets size = "
+                            + stackedTestPackets.size());
             /**
              *  Get a seed from corpus, now fuzz it for an epoch
              *  The seed contains a specific configuration to trigger new coverage
@@ -328,6 +332,8 @@ public class FuzzingServer {
                     }
                 }
             }
+            logger.debug("[fuzzOne] mutate done, stackedTestPackets size = "
+                    + stackedTestPackets.size());
         }
     }
 
