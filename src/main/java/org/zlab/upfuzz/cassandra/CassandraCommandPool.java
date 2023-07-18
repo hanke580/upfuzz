@@ -9,27 +9,24 @@ public class CassandraCommandPool extends CommandPool {
     // public static CommandPool instance = new CassandraCommandPool();
 
     public CassandraCommandPool() {
-        commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
-                CREATE_KEYSPACE.class, 1));
-
-        commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(ALTER_KEYSPACE.class,
-                        5));
-        commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(ALTER_ROLE.class,
-                        5));
+        // commandClassList.add(
+        // new AbstractMap.SimpleImmutableEntry<>(ALTER_KEYSPACE.class,
+        // 5));
+        // commandClassList.add(
+        // new AbstractMap.SimpleImmutableEntry<>(ALTER_ROLE.class,
+        // 5));
         // commandClassList.add(
         // new AbstractMap.SimpleImmutableEntry<>(ALTER_TABLE.class,
         // 2));
-        commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(ALTER_TABLE_ADD.class,
-                        5));
+        // commandClassList.add(
+        // new AbstractMap.SimpleImmutableEntry<>(ALTER_TABLE_ADD.class,
+        // 5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(ALTER_TABLE_DROP.class,
                         5));
-        commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(ALTER_TABLE_RENAME.class,
-                        5));
+        // commandClassList.add(
+        // new AbstractMap.SimpleImmutableEntry<>(ALTER_TABLE_RENAME.class,
+        // 5));
         // commandClassList.add(
         // new AbstractMap.SimpleImmutableEntry<>(ALTER_TABLE_TYPE.class,
         // 5));
@@ -41,13 +38,12 @@ public class CassandraCommandPool extends CommandPool {
         // 5));
         // commandClassList.add(
         // new AbstractMap.SimpleImmutableEntry<>(CREATE_INDEX.class, 1));
-        commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(CREATE_KEYSPACE.class,
-                        1));
+        commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
+                CREATE_KEYSPACE.class, 1));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(CREATE_TABLE.class, 1));
-        commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(CREATE_TYPE.class, 1));
+        // commandClassList.add(
+        // new AbstractMap.SimpleImmutableEntry<>(CREATE_TYPE.class, 1));
 
         // commandClassList.add(
         // new AbstractMap.SimpleImmutableEntry<>(DELETE.class, 6));
@@ -60,7 +56,7 @@ public class CassandraCommandPool extends CommandPool {
         // commandClassList.add(
         // new AbstractMap.SimpleImmutableEntry<>(DROP_TYPE.class, 2));
         commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(INSERT.class, 8));
+                new AbstractMap.SimpleImmutableEntry<>(INSERT.class, 20));
         // commandClassList.add(
         // new AbstractMap.SimpleImmutableEntry<>(TRUNCATE.class, 8));
         // commandClassList.add(
@@ -72,8 +68,8 @@ public class CassandraCommandPool extends CommandPool {
                 CREATE_KEYSPACE.class, 2));
         createCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(CREATE_TABLE.class, 3));
-        createCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(CREATE_TYPE.class, 1));
+        // createCommandClassList.add(
+        // new AbstractMap.SimpleImmutableEntry<>(CREATE_TYPE.class, 1));
 
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(SELECT.class, 10));
