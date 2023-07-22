@@ -224,6 +224,27 @@ public class MiniClientMain {
             logInfoBeforeUpgrade = executor.grepLogInfo();
         }
 
+        if (Config.getConf().testSingleVersion) {
+            // return feedback packet
+            if (Config.getConf().enableLogCheck
+                    && FuzzingClient.hasERRORLOG(logInfoBeforeUpgrade)) {
+                stackedFeedbackPacket.hasERRORLog = true;
+                stackedFeedbackPacket.errorLogReport = FuzzingClient
+                        .genErrorLogReport(
+                                executor.executorID,
+                                stackedTestPacket.configFileName,
+                                logInfoBeforeUpgrade);
+            }
+            for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
+                TestPacket tp = stackedTestPacket.getTestPacketList()
+                        .get(testPacketIdx);
+                FeedbackPacket feedbackPacket = testID2FeedbackPacket
+                        .get(tp.testPacketID);
+                stackedFeedbackPacket.addFeedbackPacket(feedbackPacket);
+            }
+            return stackedFeedbackPacket;
+        }
+
         boolean ret = executor.fullStopUpgrade();
 
         if (!ret) {

@@ -75,15 +75,19 @@ public class Config {
         public int rebuildConnectionSecs = 5;
 
         // ------------Configuration-------------
-        public Boolean verifyConfig = false;
+        public boolean verifyConfig = false;
         public String configDir = "configtests";
 
-        public Boolean testAddedConfig = false;
-        public Boolean testDeletedConfig = false;
-        public Boolean testCommonConfig = false;
-        public double testConfigRatio = 0.4; // We mutate testConfigRatio
-                                             // configuration each
-                                             // test, default is 40
+        // single version
+        public boolean testConfig = false;
+        public double testSingleVersionConfigRatio = 0.1;
+
+        public boolean testAddedConfig = false;
+        public boolean testDeletedConfig = false;
+        public boolean testCommonConfig = false;
+        public double testUpgradeConfigRatio = 0.4; // We mutate testConfigRatio
+        // configuration each
+        // test, default is 40
 
         // ------------Test Plan-------------
         public boolean testDowngrade = false;
@@ -97,6 +101,7 @@ public class Config {
         // 3: Bug Reproduction: Rolling upgrade (given a test plan)
         // 4: full-stop upgrade + mixed Test Plan iteratively (Final Version)
         public int testingMode = 0;
+        public boolean testSingleVersion = false;
 
         // ------------State Comparison-------------
         public boolean enableStateComp = false;

@@ -31,4 +31,7 @@ public abstract class ConfigFileGenerator {
             Map<String, String> newkey2vals,
             Map<String, String> newkey2type);
 
+    public abstract int generate(Map<String, String> key2vals,
+            Map<String, String> key2type);
+
 }

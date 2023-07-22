@@ -102,6 +102,7 @@ public class CassandraCqlshDaemon {
                     int processNum = Integer.parseInt(result);
                     if (Integer.parseInt(result) <= 2) {
                         // Process has died
+                        logger.debug("result = " + result);
                         logger.debug("[HKLOG] processNum = " + processNum
                                 + " smaller than 2, "
                                 + "system process died");

@@ -36,7 +36,7 @@ public abstract class DockerMeta {
 
     public File workdir;
     public String[] env;
-    public String name;
+    public String containerName;
     public String type;
     public String system;
     public String originalVersion;
@@ -50,7 +50,6 @@ public abstract class DockerMeta {
     public String excludes;
     public int index;
     public String executorID;
-    public String containerName;
     public String serviceName;
     public Path configPath;
 
@@ -132,10 +131,12 @@ public abstract class DockerMeta {
                     oriConfigPathDocker.resolve(file.getName()),
                     StandardCopyOption.REPLACE_EXISTING);
         }
-        for (File file : upConfigPath.toFile().listFiles()) {
-            Files.copy(file.toPath(),
-                    upConfigPathDocker.resolve(file.getName()),
-                    StandardCopyOption.REPLACE_EXISTING);
+        if (!Config.getConf().testSingleVersion) {
+            for (File file : upConfigPath.toFile().listFiles()) {
+                Files.copy(file.toPath(),
+                        upConfigPathDocker.resolve(file.getName()),
+                        StandardCopyOption.REPLACE_EXISTING);
+            }
         }
         return true;
     }

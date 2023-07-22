@@ -29,6 +29,20 @@ public class XmlGenerator extends ConfigFileGenerator {
     public Path defaultNewXMLPath;
 
     public XmlGenerator(
+            Path defaultXMLPath,
+            Path generateFolderPath) {
+        super(generateFolderPath);
+        this.defaultXMLPath = defaultXMLPath;
+        configurations = parseXmlFile(defaultXMLPath);
+        if (Config.getConf().system.equals("hdfs")
+                && defaultXMLPath.getFileName().toString()
+                        .equals("hdfs-site.xml")) {
+            logger.info("set hdfs basic cluster config");
+            hdfsClusterSetting(configurations);
+        }
+    }
+
+    public XmlGenerator(
             Path defaultXMLPath, Path defaultNewXMLPath,
             Path generateFolderPath) {
         super(generateFolderPath);
@@ -158,6 +172,19 @@ public class XmlGenerator extends ConfigFileGenerator {
         generateXmlFile(key2vals, oriSavePath);
         generateXmlFile(newkey2vals, upSavePath);
 
+        return fileNameIdx++;
+    }
+
+    @Override
+    public int generate(Map<String, String> key2vals,
+            Map<String, String> key2type) {
+        Path savePath = generateFolderPath
+                .resolve(String.format("test%d", fileNameIdx));
+        Path oriConfig = savePath.resolve("oriconfig");
+        oriConfig.toFile().mkdirs();
+        Path oriSavePath = oriConfig.resolve(defaultXMLPath.getFileName());
+        key2vals.putAll(configurations);
+        generateXmlFile(key2vals, oriSavePath);
         return fileNameIdx++;
     }
 

@@ -43,10 +43,14 @@ public class HdfsDocker extends Docker {
         includes = dockerCluster.includes;
         excludes = dockerCluster.excludes;
         executorID = dockerCluster.executorID;
-        name = "hdfs-" + originalVersion + "_" + upgradedVersion + "_" +
-                executorID + "_N" + index;
         serviceName = "DC3N" + index; // Remember update the service name
         configPath = dockerCluster.configpath;
+        if (Config.getConf().testSingleVersion)
+            containerName = "hdfs-" + originalVersion + "_" + executorID + "_N"
+                    + index;
+        else
+            containerName = "hdfs-" + originalVersion + "_" + upgradedVersion +
+                    "_" + executorID + "_N" + index;
     }
 
     @Override
@@ -56,9 +60,6 @@ public class HdfsDocker extends Docker {
 
     public String formatComposeYaml() {
         Map<String, String> formatMap = new HashMap<>();
-
-        containerName = "hdfs-" + originalVersion + "_" + upgradedVersion +
-                "_" + executorID + "_N" + index;
         formatMap.put("projectRoot", System.getProperty("user.dir"));
         formatMap.put("system", system);
         formatMap.put("originalVersion", originalVersion);

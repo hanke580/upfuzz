@@ -1278,15 +1278,24 @@ public class FuzzingServer {
                 "event crash : " + eventCrashNum,
                 "inconsistency : " + inconsistencyNum,
                 "error log : " + errorLogNum);
-        System.out.format("|%30s|%30s|%30s|\n",
-                "run time : " + timeElapsed + "s",
-                "ori cov : " + originalCoveredBranches + "/"
-                        + originalProbeNum,
-                "up cov : " + upgradedCoveredBranches + "/"
-                        + upgradedProbeNum);
-        System.out.format("|%30s|%30s|\n",
-                "testID2Seed size : " + testID2Seed.size(),
-                "stackedTestPackets size : " + stackedTestPackets.size());
+        if (Config.getConf().testSingleVersion) {
+            System.out.format("|%30s|%30s|\n",
+                    "run time : " + timeElapsed + "s",
+                    "Cov : " + originalCoveredBranches + "/"
+                            + originalProbeNum);
+        } else {
+            System.out.format("|%30s|%30s|%30s|\n",
+                    "run time : " + timeElapsed + "s",
+                    "ori cov : " + originalCoveredBranches + "/"
+                            + originalProbeNum,
+                    "up cov : " + upgradedCoveredBranches + "/"
+                            + upgradedProbeNum);
+        }
+
+        if (Config.getConf().debug)
+            System.out.format("|%30s|%30s|\n",
+                    "testID2Seed size : " + testID2Seed.size(),
+                    "stackedTestPackets size : " + stackedTestPackets.size());
         System.out.println(
                 "------------------------------------------------------------"
                         + "-----------------------------------------------------------------");

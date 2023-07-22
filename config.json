@@ -7,6 +7,7 @@
   "STACKED_TESTS_NUM" : "1",
   "nodeNum": 1,
   "faultMaxNum": 2,
+  "testSingleVersion": false,
   "testingMode": 0,
   "useLikelyInv": false,
   "verifyConfig": false,

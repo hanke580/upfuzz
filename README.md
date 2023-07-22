@@ -88,7 +88,42 @@ Requirement: java11, docker (Docker version 23.0.1, build a5ee5b1)
 > - single Cassandra node upgrade: 3.11.15 => 4.1.2
 > - If using Nyx Mode, please follow clone the upfuzz repo and then follow the guide at `nyx_mode/README.md` before continuing.
 
-Clone the repo
+### Test single version mode (1 version system)
+
+```bash
+git clone git@github.com:zlab-purdue/upfuzz.git
+cd upfuzz
+export UPFUZZ_DIR=$PWD
+export ORI_VERSION=3.11.15
+
+mkdir -p "$UPFUZZ_DIR"/prebuild/cassandra
+cd prebuild/cassandra
+wget https://archive.apache.org/dist/cassandra/"$ORI_VERSION"/apache-cassandra-"$ORI_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$ORI_VERSION"-bin.tar.gz
+
+cd ${UPFUZZ_DIR}
+cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
+
+cd src/main/resources/cassandra/single-version-testing
+docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"
+
+cd ${UPFUZZ_DIR}
+./gradlew copyDependencies
+./gradlew :spotlessApply build
+
+# If running with NYX, execute this **outside** the vm
+# ./gradlew :spotlessApply nyxBuild
+
+# open terminal1: start server
+./start_server.sh config.json
+
+# open terminal2: start one client
+./start_clients.sh 1 config.json
+
+# stop testing:
+./cass_cl.sh
+```
+
+### Test upgrade mode (2 version of systems)
 ```bash
 git clone git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz

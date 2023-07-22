@@ -45,11 +45,15 @@ public class CassandraDocker extends Docker {
         includes = CassandraDockerCluster.includes;
         excludes = CassandraDockerCluster.excludes;
         executorID = dockerCluster.executorID;
-        name = "cassandra-" + originalVersion + "_" + upgradedVersion + "_" +
-                executorID + "_N" + index;
         serviceName = "DC3N" + index;
         targetSystemStates = dockerCluster.targetSystemStates;
         configPath = dockerCluster.configpath;
+        if (Config.getConf().testSingleVersion)
+            containerName = "cassandra-" + originalVersion + "_" + executorID
+                    + "_N" + index;
+        else
+            containerName = "cassandra-" + originalVersion + "_"
+                    + upgradedVersion + "_" + executorID + "_N" + index;
     }
 
     @Override
@@ -61,8 +65,6 @@ public class CassandraDocker extends Docker {
     public String formatComposeYaml() {
         Map<String, String> formatMap = new HashMap<>();
 
-        containerName = "cassandra-" + originalVersion + "_" + upgradedVersion +
-                "_" + executorID + "_N" + index;
         formatMap.put("projectRoot", System.getProperty("user.dir"));
         formatMap.put("system", system);
         formatMap.put("originalVersion", originalVersion);
@@ -80,7 +82,10 @@ public class CassandraDocker extends Docker {
         formatMap.put("serviceName", serviceName);
 
         StringSubstitutor sub = new StringSubstitutor(formatMap);
-        this.composeYaml = sub.replace(template);
+        if (Config.getConf().testSingleVersion)
+            this.composeYaml = sub.replace(singleVersionTemplate);
+        else
+            this.composeYaml = sub.replace(template);
         return composeYaml;
     }
 
@@ -336,6 +341,41 @@ public class CassandraDocker extends Docker {
     }
 
     // add the configuration test files
+
+    static String singleVersionTemplate = ""
+            + "    ${serviceName}:\n"
+            + "        container_name: cassandra-${originalVersion}_${executorID}_N${index}\n"
+            + "        image: upfuzz_${system}:${originalVersion}\n"
+            + "        command: bash -c 'sleep 0 && /usr/bin/supervisord'\n"
+            + "        networks:\n"
+            + "            ${networkName}:\n"
+            + "                ipv4_address: ${networkIP}\n"
+            + "        volumes:\n"
+            // + " - ./persistent/node_${index}/data:/var/lib/cassandra\n"
+            + "            - ./persistent/node_${index}/log:/var/log/cassandra\n"
+            + "            - ./persistent/node_${index}/env.sh:/usr/bin/set_env\n"
+            + "            - ./persistent/node_${index}/consolelog:/var/log/supervisor\n"
+            + "            - ./persistent/config:/test_config\n"
+            + "            - ${projectRoot}/prebuild/${system}/${originalVersion}:/${system}/${originalVersion}\n"
+            + "        environment:\n"
+            + "            - CASSANDRA_CLUSTER_NAME=dev_cluster\n"
+            + "            - CASSANDRA_SEEDS=${seedIP},\n"
+            + "            - CASSANDRA_LOGGING_LEVEL=DEBUG\n"
+            + "            - CQLSH_HOST=${networkIP}\n"
+            + "            - CASSANDRA_LOG_DIR=/var/log/cassandra\n"
+            + "        expose:\n"
+            + "            - ${agentPort}\n"
+            + "            - ${runtimeMonitorPort}\n"
+            + "            - 7000\n"
+            + "            - 7001\n"
+            + "            - 7199\n"
+            + "            - 9042\n"
+            + "            - 9160\n"
+            + "            - 18251\n"
+            + "        ulimits:\n"
+            + "            memlock: -1\n"
+            + "            nproc: 32768\n"
+            + "            nofile: 100000\n";
 
     static String template = ""
             + "    ${serviceName}:\n"

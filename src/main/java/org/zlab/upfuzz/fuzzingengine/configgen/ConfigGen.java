@@ -18,6 +18,8 @@ public class ConfigGen {
     Set<String> addedConfig;
     Set<String> deletedConfig;
 
+    Set<String> testConfig; // For single version
+
     Map<String, String> upConfigName2Type;
     Map<String, String> upConfig2Init;
     Map<String, List<String>> upEnumName2ConstantMap;
@@ -29,6 +31,8 @@ public class ConfigGen {
     ConfigValGenerator commonConfigValGenerator;
     ConfigValGenerator addedConfigValGenerator;
     ConfigValGenerator deletedConfigValGenerator;
+
+    ConfigValGenerator testConfigValGenerator; // For single version
 
     ObjectMapper mapper = new ObjectMapper();
 
@@ -47,7 +51,80 @@ public class ConfigGen {
 
     }
 
-    void init() {
+    public void initSingleVersion() {
+        Path oldVersionPath = Paths.get(System.getProperty("user.dir"),
+                "prebuild", Config.getConf().system,
+                Config.getConf().originalVersion);
+
+        Path generateFolderPath = Paths.get(System.getProperty("user.dir"),
+                Config.getConf().configDir,
+                Config.getConf().originalVersion);
+
+        switch (Config.getConf().system) {
+        case "cassandra": {
+            Path defaultConfigPath = Paths.get(oldVersionPath.toString(),
+                    "conf/cassandra.yaml");
+            configFileGenerator = new YamlGenerator(defaultConfigPath,
+                    generateFolderPath);
+            break;
+        }
+        case "hdfs": {
+            Path defaultConfigPath = Paths.get(oldVersionPath.toString(),
+                    "etc/hadoop/hdfs-site.xml");
+            configFileGenerator = new XmlGenerator(defaultConfigPath,
+                    generateFolderPath);
+            break;
+        }
+        }
+
+        Path configInfoPath = Paths.get(System.getProperty("user.dir"),
+                "configInfo", Config.getConf().originalVersion);
+        Path config2typePath = configInfoPath
+                .resolve("config2Type.json");
+        Path config2initPath = configInfoPath
+                .resolve("config2Init.json");
+        Path enum2constantPath = configInfoPath
+                .resolve("enum2Constant.json");
+
+        try {
+            oriConfigName2Type = mapper.readValue(
+                    config2typePath.toFile(),
+                    HashMap.class);
+            oriConfig2Init = mapper.readValue(config2initPath.toFile(),
+                    HashMap.class);
+            oriEnumName2ConstantMap = mapper
+                    .readValue(enum2constantPath.toFile(), HashMap.class);
+            testConfig = oriConfig2Init.keySet();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("missing configuration test files!");
+        }
+
+        switch (Config.getConf().system) {
+        case "cassandra": {
+            testConfig = removeBlacklistConfig(testConfig,
+                    cassandraConfigBlackList);
+            testConfigValGenerator = new ConfigValGenerator(testConfig,
+                    oriConfigName2Type, oriConfig2Init,
+                    oriEnumName2ConstantMap);
+            testConfigValGenerator.constructPairConfig();
+            break;
+        }
+        case "hdfs": {
+            testConfigValGenerator = new ConfigValGenerator(testConfig,
+                    oriConfigName2Type, oriConfig2Init,
+                    oriEnumName2ConstantMap);
+            break;
+        }
+        default: {
+            throw new RuntimeException(
+                    "configuration is not support yet for system "
+                            + Config.getConf().system);
+        }
+        }
+    }
+
+    public void initUpgradeVersion() {
         Path oldVersionPath = Paths.get(System.getProperty("user.dir"),
                 "prebuild", Config.getConf().system,
                 Config.getConf().originalVersion);
@@ -80,10 +157,6 @@ public class ConfigGen {
             break;
         }
         }
-    }
-
-    public ConfigGen() {
-        init();
 
         if (!Config.getConf().testCommonConfig
                 && !Config.getConf().testAddedConfig) {
@@ -184,26 +257,56 @@ public class ConfigGen {
         }
     }
 
+    public ConfigGen() {
+        if (Config.getConf().testSingleVersion) {
+            initSingleVersion();
+        } else {
+            initUpgradeVersion();
+        }
+    }
+
     public int generateConfig() {
+        if (Config.getConf().testSingleVersion) {
+            return generateSingleVersionConfig();
+        } else {
+            return generateUpgradeVersionConfig();
+        }
+    }
+
+    public int generateSingleVersionConfig() {
+        Map<String, String> oriConfigtest = new HashMap<>();
+        if (Config.getConf().testConfig) {
+            Map<String, String> filteredConfigTest = filteredConfigTestGen(
+                    testConfigValGenerator, true,
+                    Config.getConf().testSingleVersionConfigRatio);
+            oriConfigtest.putAll(filteredConfigTest);
+        }
+        return configFileGenerator.generate(oriConfigtest, oriConfigName2Type);
+    }
+
+    public int generateUpgradeVersionConfig() {
         Map<String, String> oriConfigtest = new HashMap<>();
         Map<String, String> upConfigtest = new HashMap<>();
 
         if (Config.getConf().testCommonConfig) {
             Map<String, String> filteredConfigTest = filteredConfigTestGen(
-                    commonConfigValGenerator, true);
+                    commonConfigValGenerator, true,
+                    Config.getConf().testUpgradeConfigRatio);
             oriConfigtest.putAll(filteredConfigTest);
             upConfigtest.putAll(filteredConfigTest);
         }
 
         if (Config.getConf().testAddedConfig) {
             Map<String, String> filteredConfigTest = filteredConfigTestGen(
-                    addedConfigValGenerator, true);
+                    addedConfigValGenerator, true,
+                    Config.getConf().testUpgradeConfigRatio);
             upConfigtest.putAll(filteredConfigTest);
         }
 
         if (Config.getConf().testDeletedConfig) {
             Map<String, String> filteredConfigTest = filteredConfigTestGen(
-                    deletedConfigValGenerator, true);
+                    deletedConfigValGenerator, true,
+                    Config.getConf().testUpgradeConfigRatio);
             oriConfigtest.putAll(filteredConfigTest);
         }
 
@@ -213,20 +316,20 @@ public class ConfigGen {
 
     static Map<String, String> filteredConfigTestGen(
             ConfigValGenerator configValGenerator,
-            boolean shrinkSize) {
+            boolean shrinkSize, double filterRatio) {
         Map<String, String> filteredConfigTest = new HashMap<>();
         Map<String, String> configTest = configValGenerator
                 .generateValues(shrinkSize);
         Map<String, String> addedConfigPairTest = configValGenerator
                 .generatePairValues(shrinkSize);
         for (String key : configTest.keySet()) {
-            if (rand.nextDouble() < Config.getConf().testConfigRatio) {
+            if (rand.nextDouble() < filterRatio) {
                 filteredConfigTest.put(key, configTest.get(key));
             }
         }
         for (String key : configValGenerator.pairConfigs.keySet()) {
             if (addedConfigPairTest.containsKey(key)) {
-                if (rand.nextDouble() < Config.getConf().testConfigRatio) {
+                if (rand.nextDouble() < filterRatio) {
                     filteredConfigTest.put(key,
                             addedConfigPairTest.get(key));
                     String pairConfig = configValGenerator.pairConfigs
