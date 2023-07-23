@@ -25,6 +25,10 @@ public class CassandraCqlshDaemon {
     public static String cqlshPython2Script;
     public static String cqlshPython3Script;
 
+    // Check the process num after WAIT_INTERVAL time to
+    // reduce the FP since the process might not start yet
+    public static final int WAIT_INTERVAL = 8;
+
     public static List<String> noiseErrors = new LinkedList<>();
     static {
         noiseErrors.add("Bootstrap Token collision");
@@ -81,8 +85,8 @@ public class CassandraCqlshDaemon {
             } catch (InterruptedException ignored) {
             }
 
-            // if it's already 5s, the process should have started!
-            if (i * SLEEP_INTERVAL >= 3) {
+            // After WAIT_INTERVAL, the process should have started
+            if (i * SLEEP_INTERVAL >= WAIT_INTERVAL) {
                 try {
                     Process grepProc = docker.runInContainer(new String[] {
                             "/bin/sh", "-c",

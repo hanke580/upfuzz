@@ -1,19 +1,9 @@
 package org.zlab.upfuzz.cassandra;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.text.StringSubstitutor;
@@ -40,6 +30,7 @@ public class CassandraDockerCluster extends DockerCluster {
 
         this.dockers = new CassandraDocker[nodeNum];
         this.seedIP = DockerCluster.getKthIP(hostIP, 0);
+        initBlackListErrorLog();
     }
 
     CassandraDockerCluster(CassandraExecutor executor, String version,
@@ -49,6 +40,12 @@ public class CassandraDockerCluster extends DockerCluster {
         this.dockers = new CassandraDocker[nodeNum];
         this.seedIP = DockerCluster.getKthIP(hostIP, 0);
         this.configpath = configPath;
+        initBlackListErrorLog();
+    }
+
+    public void initBlackListErrorLog() {
+        blackListErrorLog.add("Error response from daemon: Container");
+        blackListErrorLog.add("Unable to gossip with any peers");
     }
 
     public boolean build() throws Exception {

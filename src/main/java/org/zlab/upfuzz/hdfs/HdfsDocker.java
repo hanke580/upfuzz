@@ -7,6 +7,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,6 +21,7 @@ import org.zlab.upfuzz.utils.Utilities;
 public class HdfsDocker extends Docker {
     protected final Logger logger = LogManager.getLogger(getClass());
 
+    public static final int SAFEMODE_WAIT_INTERVAL = 30; // s
     String composeYaml;
     String javaToolOpts;
     int hdfsDaemonPort = 11116;
@@ -192,7 +195,7 @@ public class HdfsDocker extends Docker {
         if (index == 0) {
             logger.info("NN waiting for safemode interval for 30s");
             try {
-                Thread.sleep(30 * 1000);
+                Thread.sleep(SAFEMODE_WAIT_INTERVAL * 1000);
             } catch (InterruptedException ignored) {
             }
         }
@@ -276,11 +279,11 @@ public class HdfsDocker extends Docker {
     }
 
     @Override
-    public LogInfo grepLogInfo() {
+    public LogInfo grepLogInfo(Set<String> blackListErrorLog) {
         LogInfo logInfo = new LogInfo();
         Path filePath = Paths.get("/var/log/hdfs/*.log");
 
-        constructLogInfo(logInfo, filePath);
+        constructLogInfo(logInfo, filePath, blackListErrorLog);
         return logInfo;
     }
 

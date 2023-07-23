@@ -43,6 +43,7 @@ public abstract class DockerCluster implements IDockerCluster {
     public Path configpath;
 
     public Set<String> targetSystemStates;
+    public Set<String> blackListErrorLog = new HashSet<>();
 
     // This function do the shifting
     // .1 runs the client
@@ -77,9 +78,17 @@ public abstract class DockerCluster implements IDockerCluster {
         this.nodeNum = nodeNum;
         DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
         String executorTimestamp = formatter.format(System.currentTimeMillis());
-        this.workdir = new File("fuzzing_storage/" + executor.systemID + "/" +
-                originalVersion + "/" + upgradedVersion + "/" +
-                executorTimestamp + "-" + executor.executorID);
+
+        if (Config.getConf().testSingleVersion)
+            this.workdir = new File(
+                    "fuzzing_storage/" + executor.systemID + "/" +
+                            originalVersion + "/" + executorTimestamp + "-"
+                            + executor.executorID);
+        else
+            this.workdir = new File(
+                    "fuzzing_storage/" + executor.systemID + "/" +
+                            originalVersion + "/" + upgradedVersion + "/" +
+                            executorTimestamp + "-" + executor.executorID);
         this.network = new Network();
         this.targetSystemStates = targetSystemStates;
 
@@ -311,7 +320,7 @@ public abstract class DockerCluster implements IDockerCluster {
         // nodeId -> {class.state -> value}
         Map<Integer, LogInfo> states = new HashMap<>();
         for (int i = 0; i < nodeNum; i++) {
-            states.put(i, dockers[i].grepLogInfo());
+            states.put(i, dockers[i].grepLogInfo(blackListErrorLog));
         }
         return states;
     }

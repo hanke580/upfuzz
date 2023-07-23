@@ -149,33 +149,18 @@ public abstract class DockerMeta {
         };
     }
 
-    static final String[] hdfsErrorBlackList = new String[] {
-            "RECEIVED SIGNAL",
-            "Error response from daemon: Container"
-    };
-
-    static final String[] cassErrorBlackList = new String[] {
-            "Error response from daemon: Container"
-    };
-
-    public boolean isBlackListed(String errorMsg) {
-        if (Config.getConf().system.equals("hdfs")) {
-            for (String str : hdfsErrorBlackList) {
-                if (errorMsg.contains(str)) {
-                    return true;
-                }
-            }
-        } else if (Config.getConf().system.equals("cassandra")) {
-            for (String str : cassErrorBlackList) {
-                if (errorMsg.contains(str)) {
-                    return true;
-                }
+    public boolean isBlackListed(String errorMsg,
+            Set<String> blackListErrorLog) {
+        for (String str : blackListErrorLog) {
+            if (errorMsg.contains(str)) {
+                return true;
             }
         }
         return false;
     }
 
-    public void constructLogInfo(LogInfo logInfo, Path filePath) {
+    public void constructLogInfo(LogInfo logInfo, Path filePath,
+            Set<String> blackListErrorLog) {
         // grep ERROR/WARN from log file
         // ERROR
         String[] cmd = constructGrepCommand(filePath, "ERROR",
@@ -186,7 +171,7 @@ public abstract class DockerMeta {
                     grepProc.getInputStream().readAllBytes());
             if (!result.isEmpty()) {
                 for (String msg : result.split("--")) {
-                    if (!isBlackListed(msg))
+                    if (!isBlackListed(msg, blackListErrorLog))
                         logInfo.addErrorMsg(msg);
                 }
             }

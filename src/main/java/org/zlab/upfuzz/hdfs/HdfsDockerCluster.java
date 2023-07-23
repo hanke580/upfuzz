@@ -35,6 +35,13 @@ public class HdfsDockerCluster extends DockerCluster {
         this.dockers = new HdfsDocker[nodeNum];
         this.namenodeIP = DockerCluster.getKthIP(hostIP, 0); // 2 means the
         this.configpath = configPath;
+
+        initBlackListErrorLog();
+    }
+
+    public void initBlackListErrorLog() {
+        blackListErrorLog.add("Error response from daemon: Container");
+        blackListErrorLog.add("RECEIVED SIGNAL");
     }
 
     public boolean build() throws Exception {

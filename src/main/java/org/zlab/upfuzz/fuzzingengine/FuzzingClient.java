@@ -690,64 +690,100 @@ public class FuzzingClient {
             testPlanFeedbackPacket.isInconsistent = false;
             testPlanFeedbackPacket.inconsistencyReport = "";
         } else {
-            Pair<Boolean, String> compareRes;
-            // read comparison between full-stop and rolling
-            if (!testPlanPacket.testPlan.validationReadResultsOracle
-                    .isEmpty()) {
 
-                List<String> testPlanReadResults = executor
-                        .executeCommands(
-                                testPlanPacket.testPlan.validationCommands);
-                // logger.debug("[HKLOG] full-stop results = \n"
-                // + testPlanPacket.testPlan.validationReadResultsOracle);
-                // logger.debug("[HKLOG] rolling upgrade results = \n"
-                // + testPlanReadResults);
-                compareRes = executor
-                        .checkResultConsistency(
-                                testPlanPacket.testPlan.validationReadResultsOracle,
-                                testPlanReadResults, false);
-                if (!compareRes.left) {
-                    testPlanFeedbackPacket.isInconsistent = true;
-                    testPlanFeedbackPacket.inconsistencyReport = genTestPlanInconsistencyReport(
-                            executor.executorID,
-                            testPlanPacket.configFileName,
-                            compareRes.right, testPlanPacketStr);
-                }
-            } else {
-                logger.debug("validationReadResultsOracle is empty!");
-            }
-
-            try {
-                ExecutionDataStore[] upCoverages = executor
-                        .collectCoverageSeparate("upgraded");
-                if (upCoverages != null) {
-                    for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
-                        testPlanFeedbackPacket.feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+            // Test single version
+            if (Config.getConf().testSingleVersion) {
+                try {
+                    ExecutionDataStore[] oriCoverages = executor
+                            .collectCoverageSeparate("original");
+                    if (oriCoverages != null) {
+                        for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
+                            testPlanFeedbackPacket.feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
+                        }
                     }
+                } catch (Exception e) {
+                    // Cannot collect code coverage in the upgraded version
+                    testPlanFeedbackPacket.isEventFailed = true;
+                    testPlanFeedbackPacket.eventFailedReport = genOriCoverageCollFailureReport(
+                            executor.executorID, testPlanPacket.configFileName,
+                            recordTestPlanPacket(testPlanPacket)) + "Exception:"
+                            + e;
+                    tearDownExecutor();
+                    return testPlanFeedbackPacket;
                 }
-            } catch (Exception e) {
-                // Cannot collect code coverage in the upgraded version
-                testPlanFeedbackPacket.isEventFailed = true;
-                testPlanFeedbackPacket.eventFailedReport = genUpCoverageCollFailureReport(
-                        executor.executorID, testPlanPacket.configFileName,
-                        recordTestPlanPacket(testPlanPacket)) + "Exception:"
-                        + e;
-                tearDownExecutor();
-                return testPlanFeedbackPacket;
+
+            } else {
+                Pair<Boolean, String> compareRes;
+                // read comparison between full-stop and rolling
+                if (!testPlanPacket.testPlan.validationReadResultsOracle
+                        .isEmpty()) {
+
+                    List<String> testPlanReadResults = executor
+                            .executeCommands(
+                                    testPlanPacket.testPlan.validationCommands);
+                    // logger.debug("[HKLOG] full-stop results = \n"
+                    // + testPlanPacket.testPlan.validationReadResultsOracle);
+                    // logger.debug("[HKLOG] rolling upgrade results = \n"
+                    // + testPlanReadResults);
+                    compareRes = executor
+                            .checkResultConsistency(
+                                    testPlanPacket.testPlan.validationReadResultsOracle,
+                                    testPlanReadResults, false);
+                    if (!compareRes.left) {
+                        testPlanFeedbackPacket.isInconsistent = true;
+                        testPlanFeedbackPacket.inconsistencyReport = genTestPlanInconsistencyReport(
+                                executor.executorID,
+                                testPlanPacket.configFileName,
+                                compareRes.right, testPlanPacketStr);
+                    }
+                } else {
+                    logger.debug("validationReadResultsOracle is empty!");
+                }
+
+                try {
+                    ExecutionDataStore[] upCoverages = executor
+                            .collectCoverageSeparate("upgraded");
+                    if (upCoverages != null) {
+                        for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
+                            testPlanFeedbackPacket.feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+                        }
+                    }
+                } catch (Exception e) {
+                    // Cannot collect code coverage in the upgraded version
+                    testPlanFeedbackPacket.isEventFailed = true;
+                    testPlanFeedbackPacket.eventFailedReport = genUpCoverageCollFailureReport(
+                            executor.executorID, testPlanPacket.configFileName,
+                            recordTestPlanPacket(testPlanPacket)) + "Exception:"
+                            + e;
+                    tearDownExecutor();
+                    return testPlanFeedbackPacket;
+                }
             }
         }
 
         // LOG checking2
         if (Config.getConf().enableLogCheck) {
-            logger.info("[HKLOG] error log checking");
-            assert logInfoBeforeUpgrade != null;
-            Map<Integer, LogInfo> logInfo = filterErrorLog(logInfoBeforeUpgrade,
-                    executor.grepLogInfo());
-            if (hasERRORLOG(logInfo)) {
-                testPlanFeedbackPacket.hasERRORLog = true;
-                testPlanFeedbackPacket.errorLogReport = genErrorLogReport(
-                        executor.executorID, testPlanPacket.configFileName,
-                        logInfo);
+            if (Config.getConf().testSingleVersion) {
+                logger.info("[HKLOG] error log checking");
+                Map<Integer, LogInfo> logInfo = executor.grepLogInfo();
+                if (hasERRORLOG(logInfo)) {
+                    testPlanFeedbackPacket.hasERRORLog = true;
+                    testPlanFeedbackPacket.errorLogReport = genErrorLogReport(
+                            executor.executorID, testPlanPacket.configFileName,
+                            logInfo);
+                }
+            } else {
+                logger.info("[HKLOG] error log checking");
+                assert logInfoBeforeUpgrade != null;
+                Map<Integer, LogInfo> logInfo = filterErrorLog(
+                        logInfoBeforeUpgrade,
+                        executor.grepLogInfo());
+                if (hasERRORLOG(logInfo)) {
+                    testPlanFeedbackPacket.hasERRORLog = true;
+                    testPlanFeedbackPacket.errorLogReport = genErrorLogReport(
+                            executor.executorID, testPlanPacket.configFileName,
+                            logInfo);
+                }
             }
         }
 

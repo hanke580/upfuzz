@@ -111,9 +111,15 @@ public class FuzzingServer {
         curOriCoverage = new ExecutionDataStore();
         curUpCoverage = new ExecutionDataStore();
 
-        configDirPath = Paths.get(System.getProperty("user.dir"),
-                Config.getConf().configDir, Config.getConf().originalVersion
-                        + "_" + Config.getConf().upgradedVersion);
+        if (Config.getConf().testSingleVersion) {
+            configDirPath = Paths.get(System.getProperty("user.dir"),
+                    Config.getConf().configDir,
+                    Config.getConf().originalVersion);
+        } else {
+            configDirPath = Paths.get(System.getProperty("user.dir"),
+                    Config.getConf().configDir, Config.getConf().originalVersion
+                            + "_" + Config.getConf().upgradedVersion);
+        }
 
         startTime = TimeUnit.SECONDS.convert(System.nanoTime(),
                 TimeUnit.NANOSECONDS);
@@ -186,8 +192,8 @@ public class FuzzingServer {
             }
             return stackedTestPacket;
         } else if (Config.getConf().testingMode == 1) {
-            // always execute one test case (to verify whether a bug really
-            // exists)
+            // always execute one test case
+            // to verify whether a bug exists
             return generateExampleFullStopPacket();
         } else if (Config.getConf().testingMode == 2) {
             return generateMixedTestPacket();
@@ -558,6 +564,10 @@ public class FuzzingServer {
         int faultNum = rand.nextInt(Config.getConf().faultMaxNum + 1);
         List<Pair<Fault, FaultRecover>> faultPairs = Fault
                 .randomGenerateFaults(nodeNum, faultNum);
+
+        if (Config.getConf().testSingleVersion) {
+            upgradeOps.clear();
+        }
         List<Event> upgradeOpAndFaults = interleaveFaultAndUpgradeOp(faultPairs,
                 upgradeOps);
 
@@ -608,7 +618,8 @@ public class FuzzingServer {
         List<Event> events = interleaveWithOrder(upgradeOpAndFaults,
                 shellCommands);
 
-        events.add(events.size(), new FinalizeUpgrade());
+        if (!Config.getConf().testSingleVersion)
+            events.add(events.size(), new FinalizeUpgrade());
 
         return new TestPlan(nodeNum, events, targetSystemStates,
                 fullStopSeed.targetSystemStateResults,
@@ -672,7 +683,10 @@ public class FuzzingServer {
                     nodeIdx = ((NodeFailureRecover) event).nodeIndex;
                 if (nodeIdx == 0)
                     continue;
-                if (Config.getConf().system.equals("hdfs")) {
+
+                if (Config.getConf().system.equals("hdfs")
+                        || Config.getConf().system.equals("cassandra")) {
+                    // This could be removed if failover is implemented
                     if (!connection[nodeIdx][0])
                         return false;
                 } else {
@@ -1262,9 +1276,15 @@ public class FuzzingServer {
         System.out.println("--------------------------------------------------"
                 +
                 " TestStatus ---------------------------------------------------------------");
-        System.out.println("System: " + Config.getConf().system + "\n"
-                + "Upgrade: " + Config.getConf().originalVersion + "=>"
-                + Config.getConf().upgradedVersion);
+        System.out.println("System: " + Config.getConf().system);
+        if (Config.getConf().testSingleVersion) {
+            System.out.println(
+                    "Test single version: " + Config.getConf().originalVersion);
+        } else {
+            System.out.println("Upgrade Testing: "
+                    + Config.getConf().originalVersion + "=>"
+                    + Config.getConf().upgradedVersion);
+        }
         System.out.println(
                 "============================================================"
                         + "=================================================================");

@@ -1,11 +1,11 @@
 package org.zlab.upfuzz.cassandra;
 
 import java.io.*;
-import java.net.Socket;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -452,11 +452,10 @@ public class CassandraDocker extends Docker {
     }
 
     @Override
-    public LogInfo grepLogInfo() {
+    public LogInfo grepLogInfo(Set<String> blackListErrorLog) {
         LogInfo logInfo = new LogInfo();
         Path filePath = Paths.get("/var/log/cassandra/system.log");
-
-        constructLogInfo(logInfo, filePath);
+        constructLogInfo(logInfo, filePath, blackListErrorLog);
         return logInfo;
     }
 

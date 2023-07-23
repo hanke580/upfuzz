@@ -4,6 +4,7 @@ import org.zlab.upfuzz.fuzzingengine.LogInfo;
 
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Set;
 
 public interface IDocker {
     String getNetworkIP();
@@ -31,7 +32,7 @@ public interface IDocker {
 
     Map<String, String> readSystemState();
 
-    LogInfo grepLogInfo();
+    LogInfo grepLogInfo(Set<String> blackListErrorLog);
 
     Path getDataPath();
 
