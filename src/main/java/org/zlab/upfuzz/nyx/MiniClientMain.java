@@ -55,7 +55,7 @@ public class MiniClientMain {
     }
 
     public static void main(String[] args) {
-        // System.out.println("Starting up MiniClient!");
+        System.err.println("Starting up MiniClient!");
         // setup our input scanner
         Scanner stdin = new Scanner(System.in);
 
@@ -92,6 +92,7 @@ public class MiniClientMain {
             return;
         }
 
+        System.err.println("Init executor");
         Executor executor = FuzzingClient.initExecutor(
                 defaultStackedTestPacket.nodeNum, null, defaultConfigPath);
 

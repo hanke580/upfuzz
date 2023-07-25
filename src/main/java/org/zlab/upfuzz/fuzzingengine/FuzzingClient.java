@@ -209,19 +209,10 @@ public class FuzzingClient {
 
     // Helper move it into utils later
     private static boolean isSameConfig(Path configPath1, Path configPath2) {
-
         Path oriConfigPath1 = configPath1.resolve("oriconfig");
-        Path upConfigPath1 = configPath1.resolve("upconfig");
-
         assert oriConfigPath1.toFile().isDirectory();
-        assert upConfigPath1.toFile().isDirectory();
-
         Path oriConfigPath2 = configPath2.resolve("oriconfig");
-        Path upConfigPath2 = configPath2.resolve("upconfig");
-
         assert oriConfigPath2.toFile().isDirectory();
-        assert upConfigPath2.toFile().isDirectory();
-
         for (File file : oriConfigPath1.toFile().listFiles()) {
             File file2 = oriConfigPath2.resolve(file.getName()).toFile();
             if (file2.exists()) {
@@ -239,20 +230,26 @@ public class FuzzingClient {
             }
         }
 
-        for (File file : upConfigPath1.toFile().listFiles()) {
-            File file2 = upConfigPath2.resolve(file.getName()).toFile();
-            if (file2.exists()) {
-                try (
-                        InputStream s1 = new FileInputStream(file);
-                        InputStream s2 = new FileInputStream(file2)) {
-                    if (!IOUtils.contentEquals(s1, s2)) {
+        if (!Config.getConf().testSingleVersion) {
+            Path upConfigPath1 = configPath1.resolve("upconfig");
+            assert upConfigPath1.toFile().isDirectory();
+            Path upConfigPath2 = configPath2.resolve("upconfig");
+            assert upConfigPath2.toFile().isDirectory();
+            for (File file : upConfigPath1.toFile().listFiles()) {
+                File file2 = upConfigPath2.resolve(file.getName()).toFile();
+                if (file2.exists()) {
+                    try (
+                            InputStream s1 = new FileInputStream(file);
+                            InputStream s2 = new FileInputStream(file2)) {
+                        if (!IOUtils.contentEquals(s1, s2)) {
+                            return false;
+                        }
+                    } catch (IOException e) {
                         return false;
                     }
-                } catch (IOException e) {
-                    return false;
+                } else {
+                    return false; // mismatch in names, config is different
                 }
-            } else {
-                return false; // mismatch in names, config is different
             }
         }
 
