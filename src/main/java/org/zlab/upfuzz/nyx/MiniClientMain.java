@@ -33,7 +33,10 @@ import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 
 public class MiniClientMain {
-    static Logger logger = LogManager.getLogger(MiniClientMain.class);
+    // WARNING: This must be disabled otherwise it can
+    // log to output and corrupt the process
+    // INFO => cClient output
+    // static Logger logger = LogManager.getLogger(MiniClientMain.class);
 
     // Where all files are searched for
     static final String workdir = "/miniClientWorkdir";
