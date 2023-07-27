@@ -127,6 +127,8 @@ public class Config {
         public int runtimeMonitorPort = 62000;
         // if a inv is broken, we immediate skip it!
         public boolean skip = false;
+        // Prioritize likely invariants in the priority queue
+        public int INVARIANT_PRIORITY_SCORE = 20;
 
         @Override
         public String toString() {

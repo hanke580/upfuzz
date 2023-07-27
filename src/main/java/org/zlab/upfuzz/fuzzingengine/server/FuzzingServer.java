@@ -1039,10 +1039,11 @@ public class FuzzingServer {
                 // Merge all the feedbacks
                 FeedBack fb = mergeCoverage(feedbackPacket.feedBacks);
 
-                int old_score = 0;
-                int new_score = 0;
-
+                int score = 0;
+                // priority feature is disabled
                 if (Config.getConf().usePriorityCov) {
+                    int old_score = 0;
+                    int new_score = 0;
                     if (Utilities.hasNewBitsAccum(
                             curOriCoverage,
                             fb.originalCodeCoverage)) {
@@ -1057,6 +1058,8 @@ public class FuzzingServer {
                                 fb.upgradedCodeCoverage);
                         addToCorpus = true;
                     }
+                    score = (int) (old_score * Config.getConf().oldCovRatio
+                            + new_score * (1 - Config.getConf().oldCovRatio));
                 } else {
                     if (Utilities.hasNewBits(
                             curOriCoverage,
@@ -1079,6 +1082,8 @@ public class FuzzingServer {
                     logger.info(String.format(
                             "test%d break new invariants, add to corpus",
                             feedbackPacket.testPacketID));
+                    // we simply prioritize seeds that break likely invariants
+                    score = Config.getConf().INVARIANT_PRIORITY_SCORE;
                     addToCorpus = true;
                 }
 
@@ -1095,9 +1100,7 @@ public class FuzzingServer {
                         }
                     }
 
-                    seed.score = (int) (old_score * Config.getConf().oldCovRatio
-                            + new_score * (1 - Config.getConf().oldCovRatio));
-
+                    seed.score = score;
                     Fuzzer.saveSeed(seed.originalCommandSequence,
                             seed.validationCommandSequence);
                     // logger.debug("valid res = "

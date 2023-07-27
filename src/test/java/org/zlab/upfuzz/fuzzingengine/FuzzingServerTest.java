@@ -14,6 +14,7 @@ import org.zlab.upfuzz.docker.DockerCluster;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPlanPacket;
 import org.zlab.upfuzz.fuzzingengine.server.FullStopSeed;
 import org.zlab.upfuzz.fuzzingengine.server.FuzzingServer;
+import org.zlab.upfuzz.fuzzingengine.server.PriorityCorpus;
 import org.zlab.upfuzz.fuzzingengine.server.Seed;
 import org.zlab.upfuzz.fuzzingengine.configgen.ConfigGen;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
@@ -137,6 +138,19 @@ public class FuzzingServerTest {
         events.add(new NodeFailureRecover(2));
 
         assert !FuzzingServer.testPlanVerifier(events, 4);
+    }
+
+    @Test
+    public void testCorpus() {
+        PriorityCorpus corpus = new PriorityCorpus();
+        Seed seed1 = new Seed(null, null, 0);
+        Seed seed2 = new Seed(null, null, 1);
+        seed1.score = 0;
+        seed2.score = 1;
+        corpus.addSeed(seed1);
+        corpus.addSeed(seed2);
+        Seed testSeed = corpus.getSeed();
+        assert testSeed.configIdx == 1;
     }
 
 //    @Test

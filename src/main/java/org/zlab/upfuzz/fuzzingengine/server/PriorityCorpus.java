@@ -13,9 +13,8 @@ import java.util.Queue;
 
 public class PriorityCorpus {
 
-    // PriorityQueue<Seed> queue = new
-    // PriorityQueue<>(Collections.reverseOrder());
-    Queue<Seed> queue = new LinkedList<>();
+    PriorityQueue<Seed> queue = new PriorityQueue<>(Collections.reverseOrder());
+    // Queue<Seed> queue = new LinkedList<>();
 
     public boolean initCorpus(Path initSeedDirPath) {
         if (!initSeedDirPath.toFile().exists())
