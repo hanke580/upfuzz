@@ -91,6 +91,9 @@ Requirement: java11, docker (Docker version 23.0.1, build a5ee5b1)
 ### Test single version
 
 ```bash
+# ssh-keygen -t ed25519 -C "kehan5800@gmail.com"
+# cat ~/.ssh/id_ed25519.pub
+ssh-keyscan github.com >> ~/.ssh/known_hosts
 git clone git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
 git checkout implement_nyx
@@ -103,6 +106,7 @@ wget https://archive.apache.org/dist/cassandra/"$ORI_VERSION"/apache-cassandra-"
 cd ${UPFUZZ_DIR}
 cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
 cd src/main/resources/cassandra/single-version-testing
+sudo chmod 666 /var/run/docker.sock
 docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"
 cd ${UPFUZZ_DIR}
 ./gradlew copyDependencies
