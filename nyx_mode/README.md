@@ -116,7 +116,10 @@ cd ~
 ssh-keyscan github.com >> ~/.ssh/known_hosts
 git clone git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
-./minimal_setup_cassandra_nyx.sh
+// test single version
+./cass_nyx_single_test.sh
+// test upgrade version
+./cass_nyx_upgrade_test.sh
 ```
 </details>
 
@@ -200,8 +203,34 @@ python3 ../nyx_config_gen.py tmp Snapshot -m 4096 # generate default configurati
 
 9. Nyx Mode should now be ready. Go on to now complete the `Minimal Set up for Cassandra` in this host environment.
 When the normal build has finished, remember execute the following command to build nyx.
+
+**Test Single Version**
 ```bash
-cd $UPFUZZ_DIR
+cd ${UPFUZZ_DIR}
+export ORI_VERSION=3.11.15
+mkdir -p ${UPFUZZ_DIR}/prebuild/cassandra
+cd prebuild/cassandra
+wget https://archive.apache.org/dist/cassandra/"$ORI_VERSION"/apache-cassandra-"$ORI_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$ORI_VERSION"-bin.tar.gz
+
+cd ${UPFUZZ_DIR}
+cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
+
+cd ${UPFUZZ_DIR}
+./gradlew copyDependencies
+./gradlew :spotlessApply build
+
+sed -i 's/"testSingleVersion": false,/"testSingleVersion": true,/g' config.json
+sed -i 's/"nyxMode": false,/"nyxMode": true,/g' config.json
+
+# open terminal1: start server
+./start_server.sh config.json
+# open terminal2: start one client
+./start_clients.sh 1 config.json
+```
+
+**Test Upgrade**
+```bash
+cd ${UPFUZZ_DIR}
 export UPFUZZ_DIR=$PWD
 export ORI_VERSION=3.11.15
 export UP_VERSION=4.1.2
@@ -215,10 +244,9 @@ cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI
 cp src/main/resources/cqlsh_daemon3_4.0.5_4.1.0.py  prebuild/cassandra/apache-cassandra-"$UP_VERSION"/bin/cqlsh_daemon.py
 ./gradlew copyDependencies
 ./gradlew :spotlessApply build
-
 ./gradlew :spotlessApply nyxBuild
 # Ensure the `$UPFUZZ_DIR/config.json` or `$UPFUZZ_DIR/hdfs_config.json` is set to "nyxMode": true,
-# "testingMode": 0
+sed -i 's/"testSingleVersion": true,/"testSingleVersion": false,/g' config.json
 sed -i 's/"nyxMode": false,/"nyxMode": true,/g' config.json
 
 # Terminal1
