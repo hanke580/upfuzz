@@ -86,7 +86,7 @@ sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 Requirement: java11, docker (Docker version 23.0.1, build a5ee5b1)
 > - Not test configurations.
 > - single Cassandra node upgrade: 3.11.15 => 4.1.2
-> - If using Nyx Mode, please follow clone the upfuzz repo and then follow the guide at `nyx_mode/README.md` before continuing.
+> - If using Nyx Mode, please clone the upfuzz repo at first and then follow the guide at `nyx_mode/README.md` before continuing.
 
 ### Test single version
 
