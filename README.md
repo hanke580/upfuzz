@@ -85,7 +85,7 @@ sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 ## Minimal Set up for Cassandra (Try upfuzz quickly!)
 Requirement: java11, docker (Docker version 23.0.1, build a5ee5b1)
 > - Not test configurations.
-> - single Cassandra node upgrade: 3.11.15 => 4.1.2
+> - single Cassandra node upgrade: 3.11.15 => 4.1.3
 > - If using Nyx Mode, please clone the upfuzz repo at first and then follow the guide at `nyx_mode/README.md` before continuing.
 
 ### Test single version
@@ -115,13 +115,13 @@ cd ${UPFUZZ_DIR}
 sed -i 's/"testSingleVersion": false,/"testSingleVersion": true,/g' config.json
 
 # open terminal1: start server
-./start_server.sh config.json
+scripts/start_server.sh config.json
 
 # open terminal2: start one client
-./start_clients.sh 1 config.json
+scripts/start_clients.sh 1 config.json
 
 # stop testing:
-./cass_cl.sh
+scripts/cass_cl.sh
 ```
 
 ### Test upgrade process
@@ -130,7 +130,7 @@ git clone git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
 export UPFUZZ_DIR=$PWD
 export ORI_VERSION=3.11.15
-export UP_VERSION=4.1.2
+export UP_VERSION=4.1.3
 
 mkdir -p "$UPFUZZ_DIR"/prebuild/cassandra
 cd prebuild/cassandra
@@ -154,13 +154,13 @@ cd ${UPFUZZ_DIR}
 # ./gradlew :spotlessApply nyxBuild
 
 # open terminal1: start server
-./start_server.sh config.json
+scripts/start_server.sh config.json
 
 # open terminal2: start one client
-./start_clients.sh 1 config.json
+scripts/start_clients.sh 1 config.json
 
 # stop testing:
-./cass_cl.sh
+scripts/cass_cl.sh
 ```
 
 ## Usage
@@ -272,17 +272,17 @@ There are two scripts `start_server.sh` and `start_client.sh`. You can start up 
 
 start up a server
 ```bash
-./start_server.sh config.json
+scripts/start_server.sh config.json
 ```
 
 start up N clients (replace N with a number)
 ```bash
-./start_clients.sh N config.json
+scripts/start_clients.sh N config.json
 ```
 
 9. Stop testing
 
-Checkout `cass_cl.sh`, this file contains how to kill the server/client process and all the containers.
+Checkout `scripts/cl.sh`, this file contains how to kill the server/client process and all the containers.
 
 
 ## Minimal Set up for HDFS (Try upfuzz quickly!)
@@ -333,13 +333,13 @@ cd $UPFUZZ_DIR
 # ./gradlew :spotlessApply nyxBuild
 
 # open terminal1: start server
-./start_server.sh hdfs_config.json
+scripts/start_server.sh hdfs_config.json
 
 # open terminal2: start one client
-./start_clients.sh 1 hdfs_config.json
+scripts/start_clients.sh 1 hdfs_config.json
 
 # stop testing:
-./hdfs_cl.sh
+scripts/hdfs_cl.sh
 ```
 
 ### Deploy HDFS
