@@ -49,10 +49,6 @@ public class CassandraExecutor extends Executor {
         agentStore = new HashMap<>();
         agentHandler = new HashMap<>();
         sessionGroup = new ConcurrentHashMap<>();
-
-        dockerCluster = new CassandraDockerCluster(
-                this, Config.getConf().originalVersion,
-                nodeNum, targetSystemStates, configPath, exportComposeOnly);
     }
 
     public CassandraExecutor(int nodeNum,
@@ -80,6 +76,10 @@ public class CassandraExecutor extends Executor {
             logger.error(e);
             return false;
         }
+
+        dockerCluster = new CassandraDockerCluster(
+                this, Config.getConf().originalVersion,
+                nodeNum, targetSystemStates, configPath, exportComposeOnly);
 
         try {
             dockerCluster.build();

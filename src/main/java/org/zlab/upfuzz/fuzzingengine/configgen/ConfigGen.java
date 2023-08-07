@@ -139,9 +139,12 @@ public class ConfigGen {
         Path newVersionPath = Paths.get(System.getProperty("user.dir"),
                 "prebuild", Config.getConf().system,
                 Config.getConf().upgradedVersion);
-        Path depSystemPath = Paths.get(System.getProperty("user.dir"),
-                "prebuild", Config.getConf().depSystem,
-                Config.getConf().depVersion);
+        Path depSystemPath = null;
+        if (Config.getConf().depSystem != null) {
+            depSystemPath = Paths.get(System.getProperty("user.dir"),
+                    "prebuild", Config.getConf().depSystem,
+                    Config.getConf().depVersion);
+        }
 
         Path generateFolderPath = Paths.get(System.getProperty("user.dir"),
                 Config.getConf().configDir,
@@ -157,6 +160,7 @@ public class ConfigGen {
             configFileGenerator = new YamlGenerator[1];
             configFileGenerator[0] = new YamlGenerator(defaultConfigPath,
                     defaultNewConfigPath, generateFolderPath);
+            extraGenerator = new PlainTextGenerator[0];
             break;
         }
         case "hdfs": {
@@ -167,6 +171,7 @@ public class ConfigGen {
             configFileGenerator = new XmlGenerator[1];
             configFileGenerator[0] = new XmlGenerator(defaultConfigPath,
                     defaultNewConfigPath, generateFolderPath);
+            extraGenerator = new PlainTextGenerator[0];
             break;
         }
         case "hbase": {
@@ -174,6 +179,7 @@ public class ConfigGen {
                     "conf/hbase-site.xml");
             Path defaultNewConfigPath = Paths.get(newVersionPath.toString(),
                     "conf/hbase-site.xml");
+            assert depSystemPath != null : "Please provide depSystemPath";
             Path defaultHdfsConfigPath = Paths.get(depSystemPath.toString(),
                     "etc/hadoop/hdfs-site.xml");
             Path defaultHdfsNamenodeConfigPath = Paths.get(
