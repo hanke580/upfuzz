@@ -11,7 +11,7 @@ services:
             network_hbase-2.4.15_to_hbase-2.5.2_dc1ring:
                 ipv4_address: 252.11.1.10
         volumes:
-            - ./persistent/hdfs/data:/var/hadoop/data
+            # - ./persistent/hdfs/data:/var/hadoop/data
             - ./persistent/hdfs/log:/var/log/hadoop
             - ./persistent/hdfs/consolelog:/var/log/supervisor
             - /vagrant/workdir/upfuzz/prebuild/hadoop/hadoop-2.10.2:/hadoop/hadoop-2.10.2
@@ -38,7 +38,7 @@ services:
     DC3N1:
         container_name: container_hbase_hbase-2.4.15_executor_uuid_N1
         image: upfuzz_hbase:hbase-2.4.15
-        command: bash -c 'sleep 0 && /usr/bin/supervisord'
+        command: bash -c 'sleep 5s && /usr/bin/supervisord'
         networks:
             network_hbase-2.4.15_to_hbase-2.5.2_dc1ring:
                 ipv4_address: 252.11.1.2
@@ -49,6 +49,7 @@ services:
             - ./supervisord.conf:/etc/supervisor/conf.d/supervisord.conf
             - /vagrant/workdir/upfuzz/prebuild/hbase/hbase-2.4.15:/hbase/hbase-2.4.15
             - /vagrant/workdir/upfuzz/prebuild/hbase/hbase-2.5.2:/hbase/hbase-2.5.2
+            - /vagrant/workdir/upfuzz/prebuild/hadoop/hadoop-2.10.2:/hadoop/hadoop-2.10.2
         environment:
             - hbase_CONFIG=/hbase/conf
             - hbase_CLUSTER_NAME=dev_cluster
@@ -59,6 +60,8 @@ services:
         expose:
             - 22
             - 2181
+            - 2888
+            - 3888
             - 7000
             - 7001
             - 7199
@@ -97,6 +100,8 @@ services:
         expose:
             - 22
             - 2181
+            - 2888
+            - 3888
             - 7000
             - 7001
             - 7199
@@ -135,6 +140,8 @@ services:
         expose:
             - 22
             - 2181
+            - 2888
+            - 3888
             - 7000
             - 7001
             - 7199

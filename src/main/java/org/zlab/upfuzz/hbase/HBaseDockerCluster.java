@@ -1,9 +1,21 @@
-package org.zlab.upfuzz.cassandra;
+package org.zlab.upfuzz.hbase;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Scanner;
 
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.text.StringSubstitutor;
@@ -16,45 +28,58 @@ import org.zlab.upfuzz.docker.IDocker;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.utils.Utilities;
 
-public class CassandraDockerCluster extends DockerCluster {
-    static Logger logger = LogManager.getLogger(CassandraDockerCluster.class);
+public class HBaseDockerCluster extends DockerCluster {
+    static Logger logger = LogManager.getLogger(HBaseDockerCluster.class);
 
     String seedIP;
 
-    static final String includes = "org.apache.cassandra.*";
-    static final String excludes = "org.apache.cassandra.metrics.*:org.apache.cassandra.net.*:org.apache.cassandra.io.sstable.format.SSTableReader.*:org.apache.cassandra.service.*";
+    static final String includes = "org.apache.hadoop.hbase.*";
+    static final String excludes = "org.jruby.*";
 
-    CassandraDockerCluster(CassandraExecutor executor, String version,
+    HBaseDockerCluster(HBaseExecutor executor, String version,
             int nodeNum) {
         super(executor, version, nodeNum, null);
 
-        this.dockers = new CassandraDocker[nodeNum];
+        this.dockers = new HBaseDocker[nodeNum];
+        this.extranodes = new HBaseHDFSDocker[1];
         this.seedIP = DockerCluster.getKthIP(hostIP, 0);
-        initBlackListErrorLog();
     }
 
-    CassandraDockerCluster(CassandraExecutor executor, String version,
+    HBaseDockerCluster(HBaseExecutor executor, String version,
             int nodeNum, Set<String> targetSystemStates, Path configPath,
             Boolean exportComposeOnly) {
         super(executor, version, nodeNum, targetSystemStates,
                 exportComposeOnly);
 
-        this.dockers = new CassandraDocker[nodeNum];
-        this.seedIP = DockerCluster.getKthIP(hostIP, 0);
+        this.dockers = new HBaseDocker[nodeNum];
+        this.extranodes = new HBaseHDFSDocker[1];
         this.configpath = configPath;
-        initBlackListErrorLog();
-    }
+        if (configPath != null) {
+            Path regionserverPath = Paths.get(configPath.toString(),
+                    "oriconfig/regionservers");
+            try {
+                File regionserverFile = new File(regionserverPath.toString());
+                Scanner regionserverScanner = new Scanner(regionserverFile);
+                this.hostIP = DockerCluster.getKthIP(
+                        regionserverScanner.nextLine(),
+                        -1);
+                regionserverScanner.close();
+            } catch (FileNotFoundException e) {
+                logger.error("[HKLOG] can not find regionserver file.");
+            }
+            this.subnet = hostIP + "/24";
+        }
 
-    public void initBlackListErrorLog() {
-        blackListErrorLog.add("Error response from daemon: Container");
-        blackListErrorLog.add("Unable to gossip with any peers");
+        this.seedIP = DockerCluster.getKthIP(hostIP, 0);
     }
 
     public boolean build() throws Exception {
         for (int i = 0; i < dockers.length; ++i) {
-            dockers[i] = new CassandraDocker(this, i);
+            dockers[i] = new HBaseDocker(this, i);
             dockers[i].build();
         }
+        extranodes[0] = new HBaseHDFSDocker(this, 100);
+        extranodes[0].build();
         return true;
     }
 
@@ -136,6 +161,7 @@ public class CassandraDockerCluster extends DockerCluster {
         Map<String, String> formatMap = new HashMap<>();
 
         StringBuilder sb = new StringBuilder();
+        sb.append(extranodes[0].formatComposeYaml());
         for (Docker docker : dockers) {
             sb.append(docker.formatComposeYaml());
         }
@@ -203,7 +229,52 @@ public class CassandraDockerCluster extends DockerCluster {
     }
 
     @Override
+    public void upgrade(int nodeIndex) throws Exception {
+        if (dockerStates[nodeIndex].alive) {
+            logger.info(String.format("Upgrade Node[%d]", nodeIndex));
+            dockers[nodeIndex].flush();
+            dockers[nodeIndex].shutdown();
+            ((HBaseDocker) dockers[nodeIndex]).rollingUpgrade();
+            dockerStates[nodeIndex].dockerVersion = DockerMeta.DockerVersion.upgraded;
+            logger.info(String.format("Node[%d] is upgraded", nodeIndex));
+        } else {
+            // Upgrade from a crashed container
+            logger.info(
+                    String.format("Upgrade Node[%d] from crash", nodeIndex));
+            dockers[nodeIndex].upgradeFromCrash();
+            dockerStates[nodeIndex].alive = true;
+        }
+    }
+
+    @Override
+    public boolean fullStopUpgrade() throws Exception {
+        logger.info("Cluster full-stop upgrading...");
+        prepareUpgrade();
+        for (int i = 0; i < dockers.length; i++) {
+            dockers[i].flush();
+            dockers[i].shutdown();
+        }
+        for (int i = dockers.length - 1; i >= 0; i--) {
+            dockers[i].upgrade();
+        }
+        logger.info("Cluster upgraded");
+        return true;
+    }
+
+    @Override
+    public boolean rollingUpgrade() throws Exception {
+        logger.info("Cluster upgrading...");
+        prepareUpgrade();
+        for (int i = 0; i < dockers.length; ++i) {
+            dockers[i].flush();
+            ((HBaseDocker) dockers[i]).rollingUpgrade();
+        }
+        logger.info("Cluster upgraded");
+        return true;
+    }
+
+    @Override
     public void finalizeUpgrade() {
-        logger.debug("cassandra upgrade finalized");
+        logger.debug("HBase upgrade finalized");
     }
 }

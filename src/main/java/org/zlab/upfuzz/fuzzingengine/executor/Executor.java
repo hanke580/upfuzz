@@ -31,6 +31,7 @@ import org.zlab.upfuzz.utils.Pair;
 public abstract class Executor implements IExecutor {
     protected static final Logger logger = LogManager.getLogger(Executor.class);
 
+    public Boolean exportComposeOnly;
     public int agentPort;
     public Long timestamp = 0L;
     public int eventIdx;
@@ -70,6 +71,13 @@ public abstract class Executor implements IExecutor {
         this.systemID = systemID;
         this.nodeNum = nodeNum;
         this.oriCoverage = new ExecutionDataStore[nodeNum];
+    }
+
+    public void setConfigPath(Path ConfigPath) {
+        this.configPath = ConfigPath;
+        if (this.dockerCluster != null) {
+            this.dockerCluster.configpath = ConfigPath;
+        }
     }
 
     public void clearState() {

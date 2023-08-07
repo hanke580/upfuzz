@@ -33,20 +33,30 @@ public class HdfsExecutor extends Executor {
         agentStore = new HashMap<>();
         agentHandler = new HashMap<>();
         sessionGroup = new ConcurrentHashMap<>();
+
+        dockerCluster = new HdfsDockerCluster(this,
+                Config.getConf().originalVersion,
+                nodeNum, null, configPath, exportComposeOnly);
     }
 
     public HdfsExecutor(int nodeNum,
-            Set<String> targetSystemStates, Path configPath) {
+            Set<String> targetSystemStates, Path configPath,
+            Boolean exportComposeOnly) {
         super("hdfs", nodeNum);
 
         timestamp = System.currentTimeMillis();
 
         this.targetSystemStates = targetSystemStates;
         this.configPath = configPath;
+        this.exportComposeOnly = exportComposeOnly;
 
         agentStore = new HashMap<>();
         agentHandler = new HashMap<>();
         sessionGroup = new ConcurrentHashMap<>();
+
+        dockerCluster = new HdfsDockerCluster(this,
+                Config.getConf().originalVersion,
+                nodeNum, null, configPath, exportComposeOnly);
     }
 
     public boolean isHdfsReady(String hdfsPath) {
@@ -83,15 +93,16 @@ public class HdfsExecutor extends Executor {
             return false;
         }
 
-        dockerCluster = new HdfsDockerCluster(this,
-                Config.getConf().originalVersion,
-                nodeNum, null, configPath);
-
         try {
             dockerCluster.build();
         } catch (Exception e) {
             logger.error("docker cluster cannot build with exception: ", e);
             return false;
+        }
+
+        if (exportComposeOnly) {
+            dockerCluster.start();
+            return true;
         }
 
         logger.info("[Old Version] HDFS Start...");

@@ -28,11 +28,13 @@ public class Config {
 
         public String originalVersion = null;
         public String upgradedVersion = null;
+        public String depVersion = null;
 
         public String oldSystemPath = null;
         public String newSystemPath = null;
         public String jacocoAgentPath = null;
         public String system = null;
+        public String depSystem = null;
         public String dataDir = null;
         public String logFile = null;
         public String initSeedDir = null;
@@ -76,6 +78,7 @@ public class Config {
 
         // ------------Configuration-------------
         public boolean verifyConfig = false;
+        public boolean exportComposeOnly = false;
         public String configDir = "configtests";
 
         // single version

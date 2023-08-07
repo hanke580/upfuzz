@@ -19,11 +19,12 @@ RUN apt-get install iptables -y
 RUN apt-get install openjdk-8-jdk -y
 
 ADD general-setup.sh /usr/local/bin/general-setup.sh
-RUN sh /usr/local/bin/general-setup.sh
 COPY org.jacoco.agent.rt.jar /org.jacoco.agent.rt.jar
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY hdfs-init.sh /hdfs-init.sh
-RUN chmod +x /hdfs-init.sh
+COPY hdfs-init.sh /usr/local/bin/hdfs-init.sh
+
+RUN sh /usr/local/bin/general-setup.sh
+RUN chmod +777 /usr/local/bin/hdfs-init.sh
 
 # 2. System setup.
 # RUN mkdir /hadoop-config

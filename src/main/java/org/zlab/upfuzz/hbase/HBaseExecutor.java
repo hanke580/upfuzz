@@ -1,35 +1,32 @@
-package org.zlab.upfuzz.cassandra;
+package org.zlab.upfuzz.hbase;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-import org.zlab.upfuzz.cassandra.CassandraCqlshDaemon.CqlshPacket;
 import org.zlab.upfuzz.fuzzingengine.AgentServerSocket;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
+import org.zlab.upfuzz.hbase.HBaseShellDaemon.HBasePacket;
 import org.zlab.upfuzz.utils.Pair;
+import org.zlab.upfuzz.utils.Utilities;
 
-/**
- * validity procedure
- *
- * 1. execute original command sequence
- * 2. execute validation command sequence
- * 3. upgrade
- * 4. execute upgraded command sequence(NOT NOW)
- * 5. execute validation command sequence
- */
-public class CassandraExecutor extends Executor {
+public class HBaseExecutor extends Executor {
 
-    CassandraCqlshDaemon cqlsh = null;
-    static final String jacocoOptions = "=append=false";
-    static final String classToIns = Config.getConf().instClassFilePath;
-    static final String excludes = "org.apache.cassandra.metrics.*:org.apache.cassandra.net.*:org.apache.cassandra.io.sstable.format.SSTableReader.*:org.apache.cassandra.service.*";
+    // static final String jacocoOptions =
+    // "=append=false,includes=org.apache.hadoop.*,output=dfe,address=localhost,port=6300,sessionid=";
 
-    public CassandraExecutor() {
-        super("cassandra", Config.getConf().nodeNum);
+    HBaseShellDaemon HBaseShell = null;
+
+    public HBaseExecutor() {
+        super("hbase", Config.getConf().nodeNum);
 
         timestamp = System.currentTimeMillis();
 
@@ -37,40 +34,6 @@ public class CassandraExecutor extends Executor {
         agentHandler = new HashMap<>();
         sessionGroup = new ConcurrentHashMap<>();
 
-        dockerCluster = new CassandraDockerCluster(
-                this, Config.getConf().originalVersion,
-                nodeNum, targetSystemStates, configPath, exportComposeOnly);
-    }
-
-    public CassandraExecutor(int nodeNum) {
-        super("cassandra", nodeNum);
-
-        timestamp = System.currentTimeMillis();
-        agentStore = new HashMap<>();
-        agentHandler = new HashMap<>();
-        sessionGroup = new ConcurrentHashMap<>();
-
-        dockerCluster = new CassandraDockerCluster(
-                this, Config.getConf().originalVersion,
-                nodeNum, targetSystemStates, configPath, exportComposeOnly);
-    }
-
-    public CassandraExecutor(int nodeNum,
-            Set<String> targetSystemStates, Path configPath,
-            Boolean exportComposeOnly) {
-        super("cassandra", nodeNum);
-
-        timestamp = System.currentTimeMillis();
-        this.targetSystemStates = targetSystemStates;
-        this.configPath = configPath;
-        this.exportComposeOnly = exportComposeOnly;
-        agentStore = new HashMap<>();
-        agentHandler = new HashMap<>();
-        sessionGroup = new ConcurrentHashMap<>();
-    }
-
-    @Override
-    public boolean startup() {
         try {
             agentSocket = new AgentServerSocket(this);
             agentSocket.setDaemon(true);
@@ -78,9 +41,67 @@ public class CassandraExecutor extends Executor {
             agentPort = agentSocket.getPort();
         } catch (Exception e) {
             logger.error(e);
-            return false;
         }
 
+        dockerCluster = new HBaseDockerCluster(this,
+                Config.getConf().originalVersion,
+                nodeNum, null, configPath, exportComposeOnly);
+    }
+
+    public HBaseExecutor(int nodeNum,
+            Set<String> targetSystemStates, Path configPath,
+            Boolean exportComposeOnly) {
+        super("hbase", nodeNum);
+
+        timestamp = System.currentTimeMillis();
+
+        this.targetSystemStates = targetSystemStates;
+        this.configPath = configPath;
+        this.exportComposeOnly = exportComposeOnly;
+
+        agentStore = new HashMap<>();
+        agentHandler = new HashMap<>();
+        sessionGroup = new ConcurrentHashMap<>();
+
+        try {
+            agentSocket = new AgentServerSocket(this);
+            agentSocket.setDaemon(true);
+            agentSocket.start();
+            agentPort = agentSocket.getPort();
+        } catch (Exception e) {
+            logger.error(e);
+        }
+
+        dockerCluster = new HBaseDockerCluster(this,
+                Config.getConf().originalVersion,
+                nodeNum, null, configPath, exportComposeOnly);
+    }
+
+    public boolean isHBaseReady(String HBasePath) {
+        ProcessBuilder isReadyBuilder = new ProcessBuilder();
+        Process isReady;
+        int ret = 0;
+        try {
+            isReady = Utilities.exec(
+                    new String[] { "echo", "\"version\"", "|", "bin/hbase",
+                            "shell", "-n" },
+                    HBasePath);
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(isReady.getInputStream()));
+            String line;
+            while ((line = in.readLine()) != null) {
+            }
+            isReady.waitFor();
+            in.close();
+            ret = isReady.exitValue();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        return ret == 0;
+    }
+
+    @Override
+    public boolean startup() {
         try {
             dockerCluster.build();
         } catch (Exception e) {
@@ -93,23 +114,19 @@ public class CassandraExecutor extends Executor {
             return true;
         }
 
-        // May change classToIns according to the system...
-        logger.info("[Old Version] Cassandra Start...");
+        logger.info("[Old Version] HBase Start...");
 
-        // What should we do if the docker cluster start up throws an exception?
         try {
             int ret = dockerCluster.start();
             if (ret != 0) {
-                logger.error("cassandra " + executorID + " failed to started");
+                logger.error("HBase " + executorID + " failed to started");
                 return false;
             }
         } catch (Exception e) {
             logger.error("docker cluster start up failed", e);
-            return false;
         }
-        logger.info("cassandra " + executorID + " started");
-        cqlsh = ((CassandraDocker) dockerCluster.getDocker(0)).cqlsh;
-        logger.info("cqlsh daemon connected");
+
+        logger.info("HBase " + executorID + " started");
         return true;
     }
 
@@ -124,48 +141,36 @@ public class CassandraExecutor extends Executor {
 
     @Override
     public String execShellCommand(ShellCommand command) {
+        // execute with HBase
         String ret = "null cp message";
         if (command.getCommand().isEmpty())
             return ret;
         try {
-            // We update the cqlsh each time
-            // (1) Try to find a working cqlsh
-            // (2) When the cqlsh daemon crash, we catch this
-            // exception, log it's test plan, report to the
-            // server, and keep testing
-            // TODO: If the cqlsh daemon crash
-            int cqlshNodeIndex = 0;
-            for (int i = 0; i < dockerCluster.nodeNum; i++) {
-                if (dockerCluster.dockerStates[i].alive) {
-                    cqlsh = ((CassandraDocker) dockerCluster
-                            .getDocker(i)).cqlsh;
-                    cqlshNodeIndex = i;
-                    break;
-                }
-            }
-            // cqlsh = ((CassandraDocker) dockerCluster.getDocker(0)).cqlsh;
-            logger.trace("cqlsh execute: " + command);
+            // Cannot perform test plan
+            // We shouldn't crash nn
+            int nodeIndex = 0; // NN
+
+            assert dockerCluster.dockerStates[nodeIndex].alive;
+            HBaseShell = ((HBaseDocker) dockerCluster
+                    .getDocker(nodeIndex)).HBaseShell;
+
+            logger.trace("HBase shell execute: " + command);
             long startTime = System.currentTimeMillis();
-            CqlshPacket cp = cqlsh.execute(command.getCommand());
+            HBasePacket cp = HBaseShell
+                    .execute(command.getCommand());
             long endTime = System.currentTimeMillis();
 
-            long timeElapsed = endTime - startTime;
+            long timeElapsed = TimeUnit.SECONDS.convert(
+                    endTime - startTime, TimeUnit.MILLISECONDS);
+
             if (Config.getConf().debug) {
                 logger.debug(String.format(
-                        "Command is sent to node[%d], exec time: %dms",
-                        cqlshNodeIndex, timeElapsed));
-                if (cp != null)
-                    logger.debug(String.format(
-                            "command = {%s}, result = {%s}, error = {%s}, exitValue = {%d}",
-                            command.getCommand(), cp.message, cp.error,
-                            cp.exitValue));
+                        "command = {%s}, result = {%s}, error = {%s}, exitValue = {%d}",
+                        command.getCommand(), cp.message, cp.error,
+                        cp.exitValue));
             }
-
             if (cp != null) {
-                if (cp.message.isEmpty())
-                    ret = cp.error;
-                else
-                    ret = cp.message;
+                ret = cp.message;
             }
         } catch (Exception e) {
             logger.error(e);
@@ -193,26 +198,12 @@ public class CassandraExecutor extends Executor {
         } else {
             boolean ret = true;
             for (int i = 0; i < oriResult.size(); i++) {
-                // What should we do if
-                if (oriResult.get(i).compareTo(upResult.get(i)) != 0) {
-
-                    // SyntaxException
-                    if (oriResult.get(i).contains("SyntaxException") &&
-                            upResult.get(i).contains("SyntaxException")) {
-                        continue;
-                    }
-
-                    // InvalidRequest
-                    if (oriResult.get(i).contains("InvalidRequest") &&
-                            upResult.get(i).contains("InvalidRequest")) {
-                        continue;
-                    }
-
-                    if (oriResult.get(i).contains("0 rows") &&
-                            upResult.get(i).contains("0 rows")) {
-                        continue;
-                    }
-
+                // Mask timestamp
+                String str1 = Utilities.maskTimeStampYYYYMMDD(
+                        Utilities.maskTimeStampHHSS(oriResult.get(i)));
+                String str2 = Utilities.maskTimeStampYYYYMMDD(
+                        Utilities.maskTimeStampHHSS(upResult.get(i)));
+                if (str1.compareTo(str2) != 0) {
                     String errorMsg = "Result inconsistency at read id: " + i
                             + "\n";
                     if (compareOldAndNew) {

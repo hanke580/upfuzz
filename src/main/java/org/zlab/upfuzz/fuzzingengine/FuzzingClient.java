@@ -22,10 +22,12 @@ import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.fuzzingengine.packet.*;
 import org.zlab.upfuzz.fuzzingengine.packet.Packet.PacketType;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
+import org.zlab.upfuzz.fuzzingengine.configgen.ConfigGen;
 import org.zlab.upfuzz.hdfs.HdfsExecutor;
-import org.zlab.upfuzz.nyx.LibnyxInterface;
+import org.zlab.upfuzz.hbase.HBaseExecutor;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
+import org.zlab.upfuzz.nyx.LibnyxInterface;
 
 import static org.zlab.upfuzz.fuzzingengine.server.FuzzingServer.readState;
 import static org.zlab.upfuzz.nyx.MiniClientMain.runTheTests;
@@ -156,6 +158,10 @@ public class FuzzingClient {
     }
 
     public void start() throws InterruptedException {
+        if (Config.getConf().exportComposeOnly) {
+            ComposeExport();
+            return;
+        }
         Thread clientThread = new Thread(new FuzzingClientSocket(this));
         clientThread.start();
         clientThread.join();
@@ -164,15 +170,20 @@ public class FuzzingClient {
     public static Executor initExecutor(int nodeNum,
             Set<String> targetSystemStates,
             Path configPath) {
-        if (Config.getConf().system.equals("cassandra")) {
+        Boolean exportComposeOnly = Config.getConf().exportComposeOnly;
+        String system = Config.getConf().system;
+        if (system.equals("cassandra")) {
             return new CassandraExecutor(nodeNum, targetSystemStates,
-                    configPath);
-        } else if (Config.getConf().system.equals("hdfs")) {
+                    configPath, exportComposeOnly);
+        } else if (system.equals("hdfs")) {
             return new HdfsExecutor(nodeNum, targetSystemStates,
-                    configPath);
+                    configPath, exportComposeOnly);
+        } else if (system.equals("hbase")) {
+            return new HBaseExecutor(nodeNum, targetSystemStates,
+                    configPath, exportComposeOnly);
         }
         throw new RuntimeException(String.format(
-                "System %s is not supported yet, supported system: cassandra, hdfs",
+                "System %s is not supported yet, supported system: cassandra, hdfs, hbase",
                 Config.getConf().system));
     }
 
@@ -369,6 +380,40 @@ public class FuzzingClient {
         }
 
         return stackedFeedbackPacket;
+    }
+
+    public void ComposeExport() {
+        logger.info("[HKLOG] export compose file");
+
+        executor = initExecutor(Config.getConf().nodeNum, null, null);
+
+        ConfigGen configGen = new ConfigGen(executor.nodeNum,
+                executor.getSubnet());
+        int configIdx = configGen.generateConfig();
+        String configFileName = "test" + configIdx;
+        Path configPath = Paths.get(configDirPath.toString(),
+                configFileName);
+        logger.info("[HKLOG] configPath = " + configPath);
+
+        // config verification
+        if (Config.getConf().verifyConfig) {
+            boolean validConfig = verifyConfig(configPath);
+            if (!validConfig) {
+                logger.error(
+                        "problem with configuration! system cannot start up");
+                return;
+            }
+        }
+
+        executor.setConfigPath(configPath);
+        boolean startUpStatus = startUpExecutor();
+        if (!startUpStatus) {
+            // old version **cluster** start up problem, this won't be upgrade
+            // bugs
+            return;
+        }
+
+        logger.info("[HKLOG] export finished");
     }
 
     /**
