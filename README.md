@@ -4,22 +4,212 @@
 
 ## Feature
 * Coverage-guided structural fuzz testing
-    * upfuzz collect the code coverage of the cluster to guide the testing
-    process
-    * upfuzz implements a type system for mutation. Users only need to
+  * upfuzz collects the code coverage of the cluster to guide the testing
+  process.
+  * upfuzz implements a type system for mutation. Users only need to
       implement their command via the given types, and upfuzz can
       generate/mutate valid command sequence.
-
 * Fault Injection
-    * upfuzz also inject faults during the upgrade process.
-
 * Inconsistency Detector
     * upfuzz use inconsistency detector to extract a list of system states and
     compare the value between (1) rolling upgrade and (2) full-stop upgrade to
-      detect transient bugs
-
+    detect transient bugs.
 * Configuration Generator
-    * upfuzz utilizes static analysis to focus on testing a set of configurations
+    * upfuzz utilizes static analysis to focus on testing a set of configurations.
+* Data format likely invariants
+* Nyx-snapshot to avoid the startup time
+
+## Prerequsite
+```bash
+# jdk
+sudo apt-get install openjdk-11-jdk openjdk-8-jdk
+
+# docker
+sudo apt-get update
+sudo apt-get install \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release -y
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
+```
+
+## Minimal Set up for Cassandra (Try upfuzz quickly!)
+Requirement: java11, docker (Docker version 23.0.1, build a5ee5b1)
+> - Not test configurations.
+> - single Cassandra node upgrade: 3.11.15 => 4.1.3
+> - If using Nyx Mode, please clone the upfuzz repo at first and then follow the guide at `nyx_mode/README.md` before continuing.
+
+### Test single version
+
+```bash
+# ssh-keygen -t ed25519 -C "kehan5800@gmail.com"
+# cat ~/.ssh/id_ed25519.pub
+ssh-keyscan github.com >> ~/.ssh/known_hosts
+git clone git@github.com:zlab-purdue/upfuzz.git
+cd upfuzz
+git checkout implement_nyx
+
+export UPFUZZ_DIR=$PWD
+export ORI_VERSION=3.11.15
+mkdir -p ${UPFUZZ_DIR}/prebuild/cassandra
+cd ${UPFUZZ_DIR}/prebuild/cassandra
+wget https://archive.apache.org/dist/cassandra/"$ORI_VERSION"/apache-cassandra-"$ORI_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$ORI_VERSION"-bin.tar.gz
+cd ${UPFUZZ_DIR}
+cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
+cd src/main/resources/cassandra/single-version-testing
+sudo chmod 666 /var/run/docker.sock
+docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"
+cd ${UPFUZZ_DIR}
+./gradlew copyDependencies
+./gradlew :spotlessApply build
+
+sed -i 's/"testSingleVersion": false,/"testSingleVersion": true,/g' config.json
+
+# open terminal1: start server
+scripts/start_server.sh config.json
+# open terminal2: start one client
+scripts/start_clients.sh 1 config.json
+
+# stop testing:
+scripts/cass_cl.sh
+```
+
+### Test upgrade process
+```bash
+git clone git@github.com:zlab-purdue/upfuzz.git
+cd upfuzz
+export UPFUZZ_DIR=$PWD
+export ORI_VERSION=3.11.15
+export UP_VERSION=4.1.3
+
+mkdir -p "$UPFUZZ_DIR"/prebuild/cassandra
+cd prebuild/cassandra
+wget https://archive.apache.org/dist/cassandra/"$ORI_VERSION"/apache-cassandra-"$ORI_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$ORI_VERSION"-bin.tar.gz
+wget https://archive.apache.org/dist/cassandra/"$UP_VERSION"/apache-cassandra-"$UP_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$UP_VERSION"-bin.tar.gz
+sed -i 's/num_tokens: 16/num_tokens: 256/' apache-cassandra-"$UP_VERSION"/conf/cassandra.yaml
+
+cd ${UPFUZZ_DIR}
+cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
+cp src/main/resources/cqlsh_daemon3_4.0.5_4.1.0.py  prebuild/cassandra/apache-cassandra-"$UP_VERSION"/bin/cqlsh_daemon.py
+
+cd src/main/resources/cassandra/normal/compile-src/
+docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"_apache-cassandra-"$UP_VERSION"
+
+cd ${UPFUZZ_DIR}
+./gradlew copyDependencies
+./gradlew :spotlessApply build
+
+# open terminal1: start server
+scripts/start_server.sh config.json
+# open terminal2: start one client
+scripts/start_clients.sh 1 config.json
+
+# stop testing:
+scripts/cass_cl.sh
+```
+
+## Minimal Set up for HDFS (Try upfuzz quickly!)
+Requirement: jdk8, jdk11, docker (Docker version 23.0.1, build a5ee5b1)
+> - Not test configurations.
+> - 4 Nodes upgrade (NN, SNN, 2DN): 2.10.2 => 3.3.5
+
+```bash
+git clone git@github.com:zlab-purdue/upfuzz.git
+cd upfuzz
+export UPFUZZ_DIR=$PWD
+export ORI_VERSION=2.10.2
+export UP_VERSION=3.3.5
+
+mkdir -p $UPFUZZ_DIR/prebuild/hdfs
+cd $UPFUZZ_DIR/prebuild/hdfs
+wget https://archive.apache.org/dist/hadoop/common/hadoop-"$ORI_VERSION"/hadoop-"$ORI_VERSION".tar.gz ; tar -xzvf hadoop-$ORI_VERSION.tar.gz
+wget https://archive.apache.org/dist/hadoop/common/hadoop-"$UP_VERSION"/hadoop-"$UP_VERSION".tar.gz ; tar -xzvf hadoop-"$UP_VERSION".tar.gz
+
+# Switch java/javac to jdk8
+sudo update-alternatives --config java
+sudo update-alternatives --config javac
+
+# old version hdfs daemon
+cp $UPFUZZ_DIR/src/main/resources/FsShellDaemon2.java $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$ORI_VERSION"/FsShellDaemon.java
+cd $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$ORI_VERSION"/
+javac -d . -cp "share/hadoop/hdfs/hadoop-hdfs-"$ORI_VERSION".jar:share/hadoop/common/hadoop-common-"$ORI_VERSION".jar:share/hadoop/common/lib/*" FsShellDaemon.java
+sed -i "s/elif \[ \"\$COMMAND\" = \"dfs\" \] ; then/elif [ \"\$COMMAND\" = \"dfsdaemon\" ] ; then\n  CLASS=org.apache.hadoop.fs.FsShellDaemon\n  HADOOP_OPTS=\"\$HADOOP_OPTS \$HADOOP_CLIENT_OPTS\"\n&/" bin/hdfs
+
+# new version hdfs daemon
+cp $UPFUZZ_DIR/src/main/resources/FsShellDaemon_trunk.java $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$UP_VERSION"/FsShellDaemon.java
+cd $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$UP_VERSION"/
+javac -d . -cp "share/hadoop/hdfs/hadoop-hdfs-"$UP_VERSION".jar:share/hadoop/common/hadoop-common-"$UP_VERSION".jar:share/hadoop/common/lib/*" FsShellDaemon.java
+sed -i "s/  case \${subcmd} in/&\n    dfsdaemon)\n      HADOOP_CLASSNAME=\"org.apache.hadoop.fs.FsShellDaemon\"\n    ;;/" bin/hdfs
+
+cd $UPFUZZ_DIR/src/main/resources/hdfs/compile-src/
+docker build . -t upfuzz_hdfs:hadoop-"$ORI_VERSION"_hadoop-"$UP_VERSION"
+
+# Switch java/javac to jdk11
+sudo update-alternatives --config java
+sudo update-alternatives --config javac
+
+cd $UPFUZZ_DIR
+./gradlew copyDependencies
+./gradlew :spotlessApply build
+
+# open terminal1: start server
+scripts/start_server.sh hdfs_config.json
+# open terminal2: start one client
+scripts/start_clients.sh 1 hdfs_config.json
+
+# stop testing:
+scripts/hdfs_cl.sh
+```
+
+## Minimal Set up for HBase (Try upfuzz quickly!)
+
+```bash
+git clone git@github.com:zlab-purdue/upfuzz.git
+cd upfuzz
+export UPFUZZ_DIR=$PWD
+export ORI_VERSION=2.4.15
+export UP_VERSION=2.5.2
+
+mkdir -p $UPFUZZ_DIR/prebuild/hadoop
+cd $UPFUZZ_DIR/prebuild/hadoop
+wget https://archive.apache.org/dist/hadoop/common/hadoop-2.10.2/hadoop-2.10.2.tar.gz ; tar -xzvf hadoop-2.10.2.tar.gz
+cp $UPFUZZ_DIR/src/main/resources/hdfs/hbase-pure/core-site.xml $UPFUZZ_DIR/prebuild/hadoop/hadoop-2.10.2/etc/hadoop/ -f
+cp $UPFUZZ_DIR/src/main/resources/hdfs/hbase-pure/hdfs-site.xml $UPFUZZ_DIR/prebuild/hadoop/hadoop-2.10.2/etc/hadoop/ -f
+cp $UPFUZZ_DIR/src/main/resources/hdfs/hbase-pure/hadoop-env.sh $UPFUZZ_DIR/prebuild/hadoop/hadoop-2.10.2/etc/hadoop/ -f
+
+mkdir -p $UPFUZZ_DIR/prebuild/hbase
+cd $UPFUZZ_DIR/prebuild/hbase
+wget https://archive.apache.org/dist/hbase/"$ORI_VERSION"/hbase-"$ORI_VERSION"-bin.tar.gz -O hbase-"$ORI_VERSION".tar.gz ; tar -xzvf hbase-"$ORI_VERSION".tar.gz
+wget https://archive.apache.org/dist/hbase/"$UP_VERSION"/hbase-"$UP_VERSION"-bin.tar.gz -O hbase-"$UP_VERSION".tar.gz ; tar -xzvf hbase-"$UP_VERSION".tar.gz
+cp $UPFUZZ_DIR/src/main/resources/hbase/compile-src/hbase-env.sh $UPFUZZ_DIR/prebuild/hbase/hbase-$ORI_VERSION/conf/ -f
+cp $UPFUZZ_DIR/src/main/resources/hbase/compile-src/hbase-env.sh $UPFUZZ_DIR/prebuild/hbase/hbase-$UP_VERSION/conf/ -f
+
+cd $UPFUZZ_DIR/src/main/resources/hdfs/hbase-pure/
+docker build . -t upfuzz_hdfs:hadoop-2.10.2
+
+cd $UPFUZZ_DIR/src/main/resources/hbase/compile-src/
+docker build . -t upfuzz_hbase:hbase-"$ORI_VERSION"_hbase-"$UP_VERSION"
+
+cd $UPFUZZ_DIR
+./gradlew copyDependencies
+./gradlew :spotlessApply build
+
+# open terminal1: start server
+./scripts/start_server.sh hbase_config.json
+
+# open terminal2: start one client
+./scripts/start_clients.sh 1 hbase_config.json
+
+# stop testing:
+./scripts/hbase_cl.sh
+```
 
 ## Architecture
 
@@ -58,110 +248,6 @@ Multiple processes are started and controlled by `supervisord`. When the
 Cassandra instance in the container needs to do an upgrade, `FuzzingClient`
 will use `docker exec` to issue a supervisorctl restart command to the docker
 for the upgrade process.
-
-
-## Prerequsite
-```bash
-# jdk
-sudo apt-get install openjdk-11-jdk openjdk-8-jdk
-
-# docker
-sudo apt-get update
-sudo apt-get install \
-    ca-certificates \
-    curl \
-    gnupg \
-    lsb-release -y
-sudo mkdir -p /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get update
-sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
-```
-
-
-## Minimal Set up for Cassandra (Try upfuzz quickly!)
-Requirement: java11, docker (Docker version 23.0.1, build a5ee5b1)
-> - Not test configurations.
-> - single Cassandra node upgrade: 3.11.15 => 4.1.3
-> - If using Nyx Mode, please clone the upfuzz repo at first and then follow the guide at `nyx_mode/README.md` before continuing.
-
-### Test single version
-
-```bash
-# ssh-keygen -t ed25519 -C "kehan5800@gmail.com"
-# cat ~/.ssh/id_ed25519.pub
-ssh-keyscan github.com >> ~/.ssh/known_hosts
-git clone git@github.com:zlab-purdue/upfuzz.git
-cd upfuzz
-git checkout implement_nyx
-
-export UPFUZZ_DIR=$PWD
-export ORI_VERSION=3.11.15
-mkdir -p ${UPFUZZ_DIR}/prebuild/cassandra
-cd ${UPFUZZ_DIR}/prebuild/cassandra
-wget https://archive.apache.org/dist/cassandra/"$ORI_VERSION"/apache-cassandra-"$ORI_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$ORI_VERSION"-bin.tar.gz
-cd ${UPFUZZ_DIR}
-cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
-cd src/main/resources/cassandra/single-version-testing
-sudo chmod 666 /var/run/docker.sock
-docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"
-cd ${UPFUZZ_DIR}
-./gradlew copyDependencies
-./gradlew :spotlessApply build
-
-sed -i 's/"testSingleVersion": false,/"testSingleVersion": true,/g' config.json
-
-# open terminal1: start server
-scripts/start_server.sh config.json
-
-# open terminal2: start one client
-scripts/start_clients.sh 1 config.json
-
-# stop testing:
-scripts/cass_cl.sh
-```
-
-### Test upgrade process
-```bash
-git clone git@github.com:zlab-purdue/upfuzz.git
-cd upfuzz
-export UPFUZZ_DIR=$PWD
-export ORI_VERSION=3.11.15
-export UP_VERSION=4.1.3
-
-mkdir -p "$UPFUZZ_DIR"/prebuild/cassandra
-cd prebuild/cassandra
-wget https://archive.apache.org/dist/cassandra/"$ORI_VERSION"/apache-cassandra-"$ORI_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$ORI_VERSION"-bin.tar.gz
-wget https://archive.apache.org/dist/cassandra/"$UP_VERSION"/apache-cassandra-"$UP_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$UP_VERSION"-bin.tar.gz
-
-sed -i 's/num_tokens: 16/num_tokens: 256/' apache-cassandra-"$UP_VERSION"/conf/cassandra.yaml
-
-cd ${UPFUZZ_DIR}
-cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
-cp src/main/resources/cqlsh_daemon3_4.0.5_4.1.0.py  prebuild/cassandra/apache-cassandra-"$UP_VERSION"/bin/cqlsh_daemon.py
-
-cd src/main/resources/cassandra/normal/compile-src/
-docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"_apache-cassandra-"$UP_VERSION"
-
-cd ${UPFUZZ_DIR}
-./gradlew copyDependencies
-./gradlew :spotlessApply build
-
-# If running with NYX, execute this **outside** the vm
-# ./gradlew :spotlessApply nyxBuild
-
-# open terminal1: start server
-scripts/start_server.sh config.json
-
-# open terminal2: start one client
-scripts/start_clients.sh 1 config.json
-
-# stop testing:
-scripts/cass_cl.sh
-```
 
 ## Usage
 
@@ -284,63 +370,6 @@ scripts/start_clients.sh N config.json
 
 Checkout `scripts/cl.sh`, this file contains how to kill the server/client process and all the containers.
 
-
-## Minimal Set up for HDFS (Try upfuzz quickly!)
-Requirement: jdk8, jdk11, docker (Docker version 23.0.1, build a5ee5b1)
-> - Not test configurations.
-> - 4 Nodes upgrade (NN, SNN, 2DN): 2.10.2 => 3.3.5
-
-```bash
-git clone git@github.com:zlab-purdue/upfuzz.git
-cd upfuzz
-export UPFUZZ_DIR=$PWD
-export ORI_VERSION=2.10.2
-export UP_VERSION=3.3.5
-
-mkdir -p $UPFUZZ_DIR/prebuild/hdfs
-cd $UPFUZZ_DIR/prebuild/hdfs
-wget https://archive.apache.org/dist/hadoop/common/hadoop-"$ORI_VERSION"/hadoop-"$ORI_VERSION".tar.gz ; tar -xzvf hadoop-$ORI_VERSION.tar.gz
-wget https://archive.apache.org/dist/hadoop/common/hadoop-"$UP_VERSION"/hadoop-"$UP_VERSION".tar.gz ; tar -xzvf hadoop-"$UP_VERSION".tar.gz
-
-# Switch java/javac to jdk8
-sudo update-alternatives --config java
-sudo update-alternatives --config javac
-
-# old version hdfs daemon
-cp $UPFUZZ_DIR/src/main/resources/FsShellDaemon2.java $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$ORI_VERSION"/FsShellDaemon.java
-cd $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$ORI_VERSION"/
-javac -d . -cp "share/hadoop/hdfs/hadoop-hdfs-"$ORI_VERSION".jar:share/hadoop/common/hadoop-common-"$ORI_VERSION".jar:share/hadoop/common/lib/*" FsShellDaemon.java
-sed -i "s/elif \[ \"\$COMMAND\" = \"dfs\" \] ; then/elif [ \"\$COMMAND\" = \"dfsdaemon\" ] ; then\n  CLASS=org.apache.hadoop.fs.FsShellDaemon\n  HADOOP_OPTS=\"\$HADOOP_OPTS \$HADOOP_CLIENT_OPTS\"\n&/" bin/hdfs
-
-# new version hdfs daemon
-cp $UPFUZZ_DIR/src/main/resources/FsShellDaemon_trunk.java $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$UP_VERSION"/FsShellDaemon.java
-cd $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$UP_VERSION"/
-javac -d . -cp "share/hadoop/hdfs/hadoop-hdfs-"$UP_VERSION".jar:share/hadoop/common/hadoop-common-"$UP_VERSION".jar:share/hadoop/common/lib/*" FsShellDaemon.java
-sed -i "s/  case \${subcmd} in/&\n    dfsdaemon)\n      HADOOP_CLASSNAME=\"org.apache.hadoop.fs.FsShellDaemon\"\n    ;;/" bin/hdfs
-
-cd $UPFUZZ_DIR/src/main/resources/hdfs/compile-src/
-docker build . -t upfuzz_hdfs:hadoop-"$ORI_VERSION"_hadoop-"$UP_VERSION"
-
-# Switch java/javac to jdk11
-sudo update-alternatives --config java
-sudo update-alternatives --config javac
-
-cd $UPFUZZ_DIR
-./gradlew copyDependencies
-./gradlew :spotlessApply build
-
-# If running with NYX, execute this **outside** the vm
-# ./gradlew :spotlessApply nyxBuild
-
-# open terminal1: start server
-scripts/start_server.sh hdfs_config.json
-
-# open terminal2: start one client
-scripts/start_clients.sh 1 hdfs_config.json
-
-# stop testing:
-scripts/hdfs_cl.sh
-```
 
 ### Deploy HDFS
 The first 3 steps are the same. We can start from the fourth step.
