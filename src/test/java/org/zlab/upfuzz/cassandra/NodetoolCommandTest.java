@@ -1,14 +1,14 @@
 package org.zlab.upfuzz.cassandra;
 
 import org.junit.jupiter.api.Test;
+import org.zlab.upfuzz.AbstractTest;
 import org.zlab.upfuzz.cassandra.cqlcommands.*;
 import org.zlab.upfuzz.cassandra.nodetool.*;
 
 import java.math.BigInteger;
 import java.util.Random;
 
-public class NodetoolCommandTest {
-
+public class NodetoolCommandTest extends AbstractTest {
     @Test
     public void testINSERTCommandGeneration() {
 

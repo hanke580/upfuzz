@@ -6,6 +6,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.zlab.upfuzz.AbstractTest;
 import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.cassandra.CassandraCommandPool;
@@ -33,13 +34,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class FuzzingServerTest {
+public class FuzzingServerTest extends AbstractTest {
     static Logger logger = LogManager.getLogger(FuzzingServerTest.class);
-
-    @BeforeAll
-    public static void prepare() {
-        new Config();
-    }
 
     @Test
     public void testTestPlanGeneration() {

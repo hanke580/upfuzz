@@ -13,13 +13,8 @@ import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.server.Seed;
 
-public class CommandSequenceTests {
+public class CommandSequenceTests extends AbstractTest {
     protected final Logger logger = LogManager.getLogger(getClass());
-
-    @BeforeAll
-    public static void prepare() {
-        new Config();
-    }
 
     @Test
     public void testSequenceGeneration()

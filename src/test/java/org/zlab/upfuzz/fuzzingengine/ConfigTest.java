@@ -17,9 +17,6 @@ import java.io.FileReader;
 public class ConfigTest extends TestCase {
     private static final Logger logger = LogManager.getLogger(ConfigTest.class);
 
-    protected void setUp() {
-    }
-
     @BeforeAll
     static public void initAll() {
         String configFile = "./config.json";
@@ -51,5 +48,4 @@ public class ConfigTest extends TestCase {
         ConfigGen configGen = new ConfigGen();
         configGen.generateConfig();
     }
-
 }

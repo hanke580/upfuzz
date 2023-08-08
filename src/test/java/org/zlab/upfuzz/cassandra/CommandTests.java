@@ -6,27 +6,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.zlab.upfuzz.Command;
-import org.zlab.upfuzz.CommandPool;
-import org.zlab.upfuzz.CommandSequence;
-import org.zlab.upfuzz.Parameter;
-import org.zlab.upfuzz.ParameterType;
+import org.zlab.upfuzz.*;
 import org.zlab.upfuzz.cassandra.cqlcommands.*;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.utils.INTType;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
-public class CommandTests {
-
-    @BeforeAll
-    public static void setUp() {
-        Config config = new Config();
-        Config.instance.system = "cassandra";
-    }
-
+public class CommandTests extends AbstractTest {
     @Test
     public void testSerializable() {
         CassandraState s = new CassandraState();
