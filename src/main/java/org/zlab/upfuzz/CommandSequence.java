@@ -146,6 +146,8 @@ public class CommandSequence implements Serializable {
 
                     command = generateSingleCommand(commandClassList, state);
                     while (command == null) {
+                        assert !createCommandClassList.isEmpty();
+                        ;
                         command = generateSingleCommand(createCommandClassList,
                                 state);
                     }

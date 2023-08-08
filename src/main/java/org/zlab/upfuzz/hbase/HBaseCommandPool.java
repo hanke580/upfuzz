@@ -9,8 +9,14 @@ import org.zlab.upfuzz.hbase.hbasecommands.*;
 
 public class HBaseCommandPool extends CommandPool {
 
-    public HBaseCommandPool() {
+    @Override
+    public void registerReadCommands() {
+        readCommandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(SCAN.class, 5));
+    }
 
+    @Override
+    public void registerWriteCommands() {
         // Data Definition Commands
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(CREATE.class, 1));
@@ -55,4 +61,11 @@ public class HBaseCommandPool extends CommandPool {
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(SPLIT.class, 1));
     }
+
+    @Override
+    public void registerCreateCommands() {
+        createCommandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(CREATE.class, 1));
+    }
+
 }

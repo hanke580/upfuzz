@@ -114,7 +114,7 @@ public class Config {
         public boolean useExampleTestPlan = false;
         public boolean debug = false;
 
-        // ------------Log Check-------------
+        // ---------------Log Check------------------
         // check ERROR/WARN in log
         public boolean enableLogCheck = true;
         public int grepLineNum = 4;
@@ -123,7 +123,7 @@ public class Config {
         public boolean usePriorityCov = false;
         public double oldCovRatio = 0.4;
 
-        // ------------Likely Inv-------------
+        // ---------------Likely Inv-----------------
         public boolean useLikelyInv = false;
         // if an invariant is broken over 20% test cases, ignore it
         public double ignoreInvRatio = 0.2;
@@ -132,6 +132,10 @@ public class Config {
         public boolean skip = false;
         // Prioritize likely invariants in the priority queue
         public int INVARIANT_PRIORITY_SCORE = 20;
+
+        // ---------------Evaluation-----------------
+        public boolean eval_CASSANDRA13939 = false;
+        public boolean eval_ec_hdfs = false;
 
         @Override
         public String toString() {

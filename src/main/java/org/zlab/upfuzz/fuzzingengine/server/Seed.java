@@ -37,7 +37,6 @@ public class Seed implements Serializable, Comparable<Seed> {
             Class<? extends State> stateClass) {
         try {
             if (mutateImpl(originalCommandSequence)) {
-
                 originalCommandSequence.initializeTypePool();
                 validationCommandSequence = CommandSequence.generateSequence(
                         commandPool.readCommandClassList,
@@ -62,7 +61,6 @@ public class Seed implements Serializable, Comparable<Seed> {
                 // At least one mutation succeeds
                 if (commandSequence.mutate())
                     ret = true;
-
                 break;
                 // FIXME: Enable the stacked mutation
                 // 1/3 prob stop mutation, 2/3 prob keep stacking mutations
