@@ -60,7 +60,7 @@ public class HBaseShellDaemon {
         if (cnt == -1) {
             throw new IllegalStateException("cqlsh daemon crashed");
         }
-        logger.info("ret len = " + cnt);
+        // logger.debug("ret len = " + cnt);
         String hbaseMessage = new String(chars, 0, cnt);
 
         Gson gson = new GsonBuilder()

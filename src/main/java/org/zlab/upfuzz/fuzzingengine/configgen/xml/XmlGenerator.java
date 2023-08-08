@@ -38,7 +38,7 @@ public class XmlGenerator extends ConfigFileGenerator {
         if (Config.getConf().system.equals("hdfs")
                 && defaultXMLPath.getFileName().toString()
                         .equals("hdfs-site.xml")) {
-            logger.info("set hdfs basic cluster config");
+            // logger.debug("set hdfs basic cluster config");
             hdfsClusterSetting(configurations);
         }
     }
@@ -62,25 +62,25 @@ public class XmlGenerator extends ConfigFileGenerator {
         if (Config.getConf().system.equals("hdfs")
                 && defaultXMLPath.getFileName().toString()
                         .equals("hdfs-site.xml")) {
-            logger.info("set hdfs basic cluster config");
+            // logger.info("set hdfs basic cluster config");
             hdfsClusterSetting(configurations);
             hdfsClusterSetting(newConfigurations);
         } else if (Config.getConf().system.equals("hbase")
                 && defaultXMLPath.getFileName().toString()
                         .equals("hdfs-site.xml")) {
-            logger.info("set hbase hdfs basic cluster config");
+            // logger.debug("set hbase hdfs basic cluster config");
             HBasehdfsClusterSetting(configurations);
             HBasehdfsClusterSetting(newConfigurations);
         } else if (Config.getConf().system.equals("hbase")
                 && defaultXMLPath.getFileName().toString()
                         .equals("core-site.xml")) {
-            logger.info("set hbase hdfs namenode cluster config");
+            // logger.debug("set hbase hdfs namenode cluster config");
             HBasehdfsNameClusterSetting(configurations);
             HBasehdfsNameClusterSetting(newConfigurations);
         } else if (Config.getConf().system.equals("hbase")
                 && defaultXMLPath.getFileName().toString()
                         .equals("hbase-site.xml")) {
-            logger.info("set hbase cluster config");
+            // logger.debug("set hbase cluster config");
             HBaseClusterSetting(configurations);
             HBaseClusterSetting(newConfigurations);
         }
