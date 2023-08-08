@@ -73,12 +73,12 @@ cd ${UPFUZZ_DIR}
 sed -i 's/"testSingleVersion": false,/"testSingleVersion": true,/g' config.json
 
 # open terminal1: start server
-scripts/start_server.sh config.json
+bin/start_server.sh config.json
 # open terminal2: start one client
-scripts/start_clients.sh 1 config.json
+bin/start_clients.sh 1 config.json
 
 # stop testing:
-scripts/cass_cl.sh
+bin/cass_cl.sh
 ```
 
 ### Test upgrade process
@@ -107,12 +107,12 @@ cd ${UPFUZZ_DIR}
 ./gradlew :spotlessApply build
 
 # open terminal1: start server
-scripts/start_server.sh config.json
+bin/start_server.sh config.json
 # open terminal2: start one client
-scripts/start_clients.sh 1 config.json
+bin/start_clients.sh 1 config.json
 
 # stop testing:
-scripts/cass_cl.sh
+bin/cass_cl.sh
 ```
 
 ## Minimal Set up for HDFS (Try upfuzz quickly!)
@@ -160,12 +160,12 @@ cd $UPFUZZ_DIR
 ./gradlew :spotlessApply build
 
 # open terminal1: start server
-scripts/start_server.sh hdfs_config.json
+bin/start_server.sh hdfs_config.json
 # open terminal2: start one client
-scripts/start_clients.sh 1 hdfs_config.json
+bin/start_clients.sh 1 hdfs_config.json
 
 # stop testing:
-scripts/hdfs_cl.sh
+bin/hdfs_cl.sh
 ```
 
 ## Minimal Set up for HBase (Try upfuzz quickly!)
@@ -202,13 +202,13 @@ cd $UPFUZZ_DIR
 ./gradlew :spotlessApply build
 
 # open terminal1: start server
-./scripts/start_server.sh hbase_config.json
+bin/start_server.sh hbase_config.json
 
 # open terminal2: start one client
-./scripts/start_clients.sh 1 hbase_config.json
+bin/start_clients.sh 1 hbase_config.json
 
 # stop testing:
-./scripts/hbase_cl.sh
+bin/hbase_cl.sh
 ```
 
 ## Architecture
@@ -358,17 +358,17 @@ There are two scripts `start_server.sh` and `start_client.sh`. You can start up 
 
 start up a server
 ```bash
-scripts/start_server.sh config.json
+bin/start_server.sh config.json
 ```
 
 start up N clients (replace N with a number)
 ```bash
-scripts/start_clients.sh N config.json
+bin/start_clients.sh N config.json
 ```
 
 9. Stop testing
 
-Checkout `scripts/cl.sh`, this file contains how to kill the server/client process and all the containers.
+Checkout `bin/cl.sh`, this file contains how to kill the server/client process and all the containers.
 
 
 ### Deploy HDFS

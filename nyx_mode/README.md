@@ -117,9 +117,9 @@ ssh-keyscan github.com >> ~/.ssh/known_hosts
 git clone git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
 // test single version
-scripts/cass_nyx_single_test.sh
+bin/cass_nyx_single_test.sh
 // test upgrade version
-scripts/cass_nyx_upgrade_test.sh
+bin/cass_nyx_upgrade_test.sh
 ```
 </details>
 
@@ -223,9 +223,9 @@ sed -i 's/"testSingleVersion": false,/"testSingleVersion": true,/g' config.json
 sed -i 's/"nyxMode": false,/"nyxMode": true,/g' config.json
 
 # open terminal1: start server
-scripts/start_server.sh config.json
+bin/start_server.sh config.json
 # open terminal2: start one client
-scripts/start_clients.sh 1 config.json
+bin/start_clients.sh 1 config.json
 ```
 
 **Test Upgrade**
@@ -250,9 +250,9 @@ sed -i 's/"testSingleVersion": true,/"testSingleVersion": false,/g' config.json
 sed -i 's/"nyxMode": false,/"nyxMode": true,/g' config.json
 
 # Terminal1
-scripts/start_server.sh config.json 
+bin/start_server.sh config.json 
 # Terminal2
-scripts/start_clients.sh 1 config.json 
+bin/start_clients.sh 1 config.json 
 ```
 
 ## Problem Shooting

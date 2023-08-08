@@ -56,7 +56,6 @@ buildNumber.properties
 ##############################
 ## Gradle
 ##############################
-bin/
 build/
 .gradle
 .gradletasknamecache
@@ -77,7 +76,6 @@ out/
 ## Eclipse
 ##############################
 .settings/
-bin/
 tmp/
 .metadata
 .classpath
