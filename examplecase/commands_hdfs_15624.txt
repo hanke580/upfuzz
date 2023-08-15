@@ -1,0 +1,3 @@
+dfs -mkdir /tmp
+dfsadmin -setSpaceQuota 5 -storageType ARCHIVE /tmp
+
