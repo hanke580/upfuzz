@@ -30,13 +30,9 @@ public class Config {
         public String upgradedVersion = null;
         public String depVersion = null;
 
-        public String oldSystemPath = null;
-        public String newSystemPath = null;
         public String jacocoAgentPath = null;
         public String system = null;
         public String depSystem = null;
-        public String dataDir = null;
-        public String logFile = null;
         public String initSeedDir = null;
 
         public String failureDir = null;

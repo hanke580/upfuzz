@@ -141,42 +141,14 @@ public class FuzzingServer {
             executor = new CassandraExecutor();
             commandPool = new CassandraCommandPool();
             stateClass = CassandraState.class;
-
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                try {
-                    Utilities.exec(
-                            new String[] { "bin/nodetool", "stopdaemon" },
-                            Config.getConf().oldSystemPath);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }));
         } else if (Config.getConf().system.equals("hdfs")) {
             executor = new HdfsExecutor();
             commandPool = new HdfsCommandPool();
             stateClass = HdfsState.class;
-
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                try {
-                    Utilities.exec(new String[] { "sbin/stop-dfs.sh" },
-                            Config.getConf().oldSystemPath);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }));
         } else if (Config.getConf().system.equals("hbase")) {
             executor = new HBaseExecutor();
             commandPool = new HBaseCommandPool();
             stateClass = HBaseState.class;
-
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                try {
-                    Utilities.exec(new String[] { "bin/stop-hbase.sh" },
-                            Config.getConf().oldSystemPath);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }));
         }
         configGen.SetConfig(executor.dockerCluster.nodeNum,
                 executor.dockerCluster.hostIP);
