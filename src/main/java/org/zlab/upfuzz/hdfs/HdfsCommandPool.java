@@ -21,20 +21,20 @@ public class HdfsCommandPool extends CommandPool {
             readCommandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
                             GetPolicyCommand.class,
-                            10));
+                            2));
             readCommandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(HelpCommand.class,
-                            10));
+                            2));
             readCommandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
                             ListCodecsCommand.class,
-                            10));
+                            2));
             readCommandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
-                            ListPoliciesCommand.class, 10));
+                            ListPoliciesCommand.class, 2));
             readCommandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(HelpCommand.class,
-                            10));
+                            2));
         }
     }
 
@@ -60,9 +60,10 @@ public class HdfsCommandPool extends CommandPool {
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
                         RmFile.class, 5));
+        // Heuristic: delete command with lower prob
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
-                        RmDir.class, 3));
+                        RmDir.class, 2));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
                         RollEditsCommand.class, 5));
