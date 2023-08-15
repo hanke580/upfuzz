@@ -21,8 +21,27 @@ public class CountCommand extends DfsCommand {
         Parameter countCmd = new CONSTANTSTRINGType("-count")
                 .generateRandomParameter(null, null);
 
-        Parameter countOptCmd = new CONSTANTSTRINGType("-q -h -t")
-                .generateRandomParameter(null, null);
+        Parameter countOptQ = new ParameterType.OptionalType(
+                new CONSTANTSTRINGType("-q"), null)
+                        .generateRandomParameter(null, null);
+        Parameter countOptU = new ParameterType.OptionalType(
+                new CONSTANTSTRINGType("-u"), null)
+                        .generateRandomParameter(null, null);
+        Parameter countOptT = new ParameterType.OptionalType(
+                new CONSTANTSTRINGType("-t"), null)
+                        .generateRandomParameter(null, null);
+        Parameter countOptH = new ParameterType.OptionalType(
+                new CONSTANTSTRINGType("-h"), null)
+                        .generateRandomParameter(null, null);
+        Parameter countOptV = new ParameterType.OptionalType(
+                new CONSTANTSTRINGType("-v"), null)
+                        .generateRandomParameter(null, null);
+        Parameter countOptX = new ParameterType.OptionalType(
+                new CONSTANTSTRINGType("-x"), null)
+                        .generateRandomParameter(null, null);
+        Parameter countOptE = new ParameterType.OptionalType(
+                new CONSTANTSTRINGType("-e"), null)
+                        .generateRandomParameter(null, null);
 
         Parameter storageType = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
@@ -34,7 +53,13 @@ public class CountCommand extends DfsCommand {
                 .generateRandomParameter(state, null);
 
         params.add(countCmd);
-        params.add(countOptCmd);
+        params.add(countOptQ);
+        params.add(countOptU);
+        params.add(countOptT);
+        params.add(countOptH);
+        params.add(countOptV);
+        params.add(countOptX);
+        params.add(countOptE);
         params.add(storageType);
         params.add(dir);
     }
