@@ -546,8 +546,10 @@ public class FuzzingServer {
         // -----------prepare----------
         if (Config.getConf().system.equals("hdfs")) {
             upgradeOps.add(0, new HDFSStopSNN());
+        } else {
+            // FIXME: Move prepare to the start up stage
+            upgradeOps.add(0, new PrepareUpgrade());
         }
-        upgradeOps.add(0, new PrepareUpgrade());
 
         // -----------fault----------
         int faultNum = rand.nextInt(Config.getConf().faultMaxNum + 1);

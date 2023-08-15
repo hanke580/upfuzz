@@ -14,6 +14,7 @@ import org.zlab.upfuzz.fuzzingengine.LogInfo;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.zlab.upfuzz.hdfs.HdfsDockerCluster;
 import org.zlab.upfuzz.utils.Utilities;
 
 public abstract class DockerCluster implements IDockerCluster {
@@ -231,6 +232,14 @@ public abstract class DockerCluster implements IDockerCluster {
                 ret = -1;
                 break;
             }
+        }
+        // FIXME: special for hdfs, we move "create image" behind
+        try {
+            if (this instanceof HdfsDockerCluster) {
+                this.prepareUpgrade();
+            }
+        } catch (Exception e) {
+            logger.error("problem with hdfs preparation!");
         }
         return ret;
     }
