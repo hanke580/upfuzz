@@ -131,7 +131,7 @@ public class Config {
 
         // ---------------Evaluation-----------------
         public boolean eval_CASSANDRA13939 = false;
-        public boolean eval_ec_hdfs = false;
+        public boolean eval_ec_hdfs = true;
 
         @Override
         public String toString() {

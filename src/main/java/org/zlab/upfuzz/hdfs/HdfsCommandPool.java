@@ -13,9 +13,9 @@ public class HdfsCommandPool extends CommandPool {
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(CatCommand.class, 2));
         readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(CountCommand.class, 4));
+                new AbstractMap.SimpleImmutableEntry<>(CountCommand.class, 2));
         readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(LsCommand.class, 1));
+                new AbstractMap.SimpleImmutableEntry<>(LsCommand.class, 2));
 
         if (Config.getConf().eval_ec_hdfs) {
             readCommandClassList.add(
@@ -41,7 +41,7 @@ public class HdfsCommandPool extends CommandPool {
     @Override
     public void registerWriteCommands() {
         commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(CpCommand.class, 2));
+                new AbstractMap.SimpleImmutableEntry<>(CpCommand.class, 5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
                         Mkdir.class, 5));
@@ -62,7 +62,7 @@ public class HdfsCommandPool extends CommandPool {
                         RmFile.class, 5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
-                        RmDir.class, 1));
+                        RmDir.class, 3));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
                         RollEditsCommand.class, 5));
@@ -74,29 +74,29 @@ public class HdfsCommandPool extends CommandPool {
                         SetaclCommand.class, 5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
-                        SetSpaceQuotaCommand.class, 8));
+                        SetSpaceQuotaCommand.class, 5));
         commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(Touchz.class, 2));
+                new AbstractMap.SimpleImmutableEntry<>(Touchz.class, 5));
 
         if (Config.getConf().eval_ec_hdfs) {
             commandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
-                            AddPoliciesCommand.class, 2));
+                            AddPoliciesCommand.class, 5));
             commandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
-                            DisablePolicyCommand.class, 2));
+                            DisablePolicyCommand.class, 5));
             commandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
-                            EnablePolicyCommand.class, 2));
+                            EnablePolicyCommand.class, 5));
             commandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
-                            RemovePolicyCommand.class, 2));
+                            RemovePolicyCommand.class, 5));
             commandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
-                            SetPolicyCommand.class, 2));
+                            SetPolicyCommand.class, 5));
             commandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
-                            UnSetPolicyCommand.class, 2));
+                            UnSetPolicyCommand.class, 5));
         }
     }
 

@@ -21,9 +21,12 @@ public class SetSpaceQuotaCommand extends DfsadminCommand {
     public static List<String> storageTypeOptions = new LinkedList<>();
 
     static {
+        storageTypeOptions.add("RAMDISK");
+        storageTypeOptions.add("NVDIMM");
         storageTypeOptions.add("SSD");
         storageTypeOptions.add("DISK");
         storageTypeOptions.add("ARCHIVE");
+        storageTypeOptions.add("PROVIDED");
     }
 
     public SetSpaceQuotaCommand(HdfsState state) {
