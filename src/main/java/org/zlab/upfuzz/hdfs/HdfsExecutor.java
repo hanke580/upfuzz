@@ -34,6 +34,7 @@ public class HdfsExecutor extends Executor {
         agentHandler = new HashMap<>();
         sessionGroup = new ConcurrentHashMap<>();
 
+        // TODO: FIXME multiple init here for HBase
         dockerCluster = new HdfsDockerCluster(this,
                 Config.getConf().originalVersion,
                 nodeNum, null, configPath, exportComposeOnly);
@@ -54,6 +55,7 @@ public class HdfsExecutor extends Executor {
         agentHandler = new HashMap<>();
         sessionGroup = new ConcurrentHashMap<>();
 
+        // TODO: FIXME multiple init here for HBase
         dockerCluster = new HdfsDockerCluster(this,
                 Config.getConf().originalVersion,
                 nodeNum, null, configPath, exportComposeOnly);
@@ -92,6 +94,10 @@ public class HdfsExecutor extends Executor {
             logger.error(e);
             return false;
         }
+
+        dockerCluster = new HdfsDockerCluster(this,
+                Config.getConf().originalVersion,
+                nodeNum, null, configPath, exportComposeOnly);
 
         try {
             dockerCluster.build();
