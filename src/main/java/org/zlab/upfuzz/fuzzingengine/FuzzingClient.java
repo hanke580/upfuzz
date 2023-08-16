@@ -447,15 +447,14 @@ public class FuzzingClient {
         }
 
         if (Config.getConf().startUpClusterForDebugging) {
-            logger.info(
-                    "Start up a cluster and leave it for debugging: This is not testing mode! Please set this startUpClusterForDebugging to false for real testing mode");
+            logger.info("[Debugging Mode] Start up the cluster only");
             try {
-                Thread.sleep(1800 * 1000);
+                Thread.sleep(7200 * 1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            logger.info("[Debugging Mode] System exit");
             System.exit(1);
-
         }
 
         StackedFeedbackPacket stackedFeedbackPacket = runTheTests(executor,
@@ -584,18 +583,6 @@ public class FuzzingClient {
 
                 logger.info("Execution ID = " + executor.executorID
                         + "\ninconsistency: " + compareRes.right);
-                if (Config.getConf().startUpClusterForDebugging) {
-                    logger.info(String.format(
-                            "Start up a cluster %s and leave it for debugging: This is not testing mode! Please set this startUpClusterForDebugging to false for real testing mode",
-                            executor.executorID));
-                    try {
-                        Thread.sleep(3600 * 1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    System.exit(1);
-
-                }
             }
 
             // test downgrade
@@ -683,18 +670,6 @@ public class FuzzingClient {
 
         // execute test plan (rolling upgrade + fault)
         boolean status = executor.execute(testPlanPacket.getTestPlan());
-
-        if (Config.getConf().startUpClusterForDebugging) {
-            logger.info(
-                    "Start up a cluster and leave it for debugging: This is not testing mode! Please set this startUpClusterForDebugging to false for real testing mode");
-            try {
-                Thread.sleep(1800 * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            System.exit(1);
-
-        }
 
         // collect test plan coverage
         FeedBack[] testPlanFeedBacks = new FeedBack[nodeNum];

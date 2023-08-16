@@ -7,7 +7,7 @@
   "serverPort" : "6399",
   "clientPort" : "6400",
   "initSeedDir" : "/vagrant/workdir/upfuzz/initSeedDir",
-  "STACKED_TESTS_NUM" : "2",
+  "STACKED_TESTS_NUM" : "1",
   "nodeNum": 3,
   "useFeedBack": true,
   "faultMaxNum": 2,
@@ -22,5 +22,6 @@
   "nyxFuzzSH": "nyx_mode/fuzz_no_pt.sh",
   "debug": false,
   "collUpFeedBack": true,
-  "exportComposeOnly": false
+  "exportComposeOnly": false,
+  "startUpClusterForDebugging": false 
 }
