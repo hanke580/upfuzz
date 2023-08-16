@@ -167,7 +167,9 @@ public class HdfsExecutor extends Executor {
                         cp.exitValue));
             }
             if (cp != null) {
-                ret = cp.message;
+                // Also show the error message (normally the error message
+                // should be null)
+                ret = cp.message + cp.error;
             }
         } catch (Exception e) {
             logger.error(e);

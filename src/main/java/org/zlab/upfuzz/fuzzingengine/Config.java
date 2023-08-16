@@ -129,9 +129,17 @@ public class Config {
         // Prioritize likely invariants in the priority queue
         public int INVARIANT_PRIORITY_SCORE = 20;
 
-        // ---------------Evaluation-----------------
+        /**
+         * ---------------Version Specific-----------------
+         * To avoid the FP
+         * If a command is supported only in the new/old version,
+         * this can cause FP when comparing the read results.
+         */
+        // cassandra
         public boolean eval_CASSANDRA13939 = false;
-        public boolean eval_ec_hdfs = true;
+        // hdfs
+        public boolean eval_ec_hdfs = false;
+        public boolean support_NVDIMM = true;
 
         @Override
         public String toString() {

@@ -3,8 +3,8 @@ package org.zlab.upfuzz.hdfs.dfscommands;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
+import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.HDFSDirPathType;
-import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomHadoopPathType;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.INTType;
@@ -14,15 +14,15 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class SetSpaceQuotaCommand extends DfsadminCommand {
-
     /**
      * hdfs dfsadmin -setSpaceQuota <N> -storageType <storagetype> <directory>...<directory>
      */
-    public static List<String> storageTypeOptions = new LinkedList<>();
+    public List<String> storageTypeOptions = new LinkedList<>();
 
-    static {
+    public void initStorageTypeOptions() {
         storageTypeOptions.add("RAMDISK");
-        storageTypeOptions.add("NVDIMM");
+        if (Config.getConf().support_NVDIMM)
+            storageTypeOptions.add("NVDIMM");
         storageTypeOptions.add("SSD");
         storageTypeOptions.add("DISK");
         storageTypeOptions.add("ARCHIVE");
@@ -31,6 +31,8 @@ public class SetSpaceQuotaCommand extends DfsadminCommand {
 
     public SetSpaceQuotaCommand(HdfsState state) {
         super(state.subdir);
+
+        initStorageTypeOptions();
 
         Parameter setSpaceQuotaCmd = new CONSTANTSTRINGType("-setSpaceQuota")
                 .generateRandomParameter(null, null);
