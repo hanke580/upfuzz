@@ -476,15 +476,14 @@ public class FuzzingServer {
         String configFileName = readConfigFileName(
                 commandPath.resolve("configFileName.txt"));
         if (configFileName == null) {
-            System.out.printf(
+            logger.info(String.format(
                     "File %s is empty or could not be read the config idx%n",
-                    commandPath.resolve("configFileName.txt"));
+                    commandPath.resolve("configFileName.txt")));
             System.out.println("Use new configuration");
             int configIdx = configGen.generateConfig();
             configFileName = "test" + configIdx;
         } else {
-            System.out
-                    .println("Use privided configuration in " + configFileName);
+            logger.info("Use specified configuration: " + configFileName);
         }
 
         Set<String> targetSystemStates = new HashSet<>();
