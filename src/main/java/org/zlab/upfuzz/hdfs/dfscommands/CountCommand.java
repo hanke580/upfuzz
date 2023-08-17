@@ -58,13 +58,11 @@ public class CountCommand extends DfsCommand {
                 ParameterType.ConcreteGenericType
                         .constructConcreteGenericType(PAIRType.instance,
                                 new CONSTANTSTRINGType("-t"),
-                                new ParameterType.OptionalType(
-                                        new ParameterType.InCollectionType(
-                                                CONSTANTSTRINGType.instance,
-                                                (s, c) -> Utilities
-                                                        .strings2Parameters(
-                                                                storageTypeOptions),
-                                                null),
+                                new ParameterType.InCollectionType(
+                                        CONSTANTSTRINGType.instance,
+                                        (s, c) -> Utilities
+                                                .strings2Parameters(
+                                                        storageTypeOptions),
                                         null)),
                 null).generateRandomParameter(null, null);
         Parameter countOptU = new ParameterType.OptionalType(
