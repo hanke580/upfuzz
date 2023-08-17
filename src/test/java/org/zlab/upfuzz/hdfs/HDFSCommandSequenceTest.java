@@ -19,7 +19,15 @@ public class HDFSCommandSequenceTest {
         Seed seed = Executor.generateSeed(hdfsCommandPool, state, -1);
 
         assert seed != null;
+        System.out.println("write commands");
         for (String str : seed.originalCommandSequence.getCommandStringList()) {
+            System.out.println(str);
+        }
+
+        System.out.println();
+        System.out.println("read commands");
+        for (String str : seed.validationCommandSequence
+                .getCommandStringList()) {
             System.out.println(str);
         }
 

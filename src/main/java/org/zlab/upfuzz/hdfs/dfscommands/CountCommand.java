@@ -81,12 +81,13 @@ public class CountCommand extends DfsCommand {
 
     @Override
     public String constructCommandString() {
-        return "dfs" + " " +
-                params.get(0) + " " +
-                params.get(1) + " " +
-                params.get(2) + " " +
-                subdir +
-                params.get(3);
+        StringBuilder sb = new StringBuilder();
+        sb.append("dfs").append(" ");
+        int i = 0;
+        while (i < params.size() - 1)
+            sb.append(params.get(i++)).append(" ");
+        sb.append(subdir).append(params.get(i));
+        return sb.toString();
     }
 
     @Override
