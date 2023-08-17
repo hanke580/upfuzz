@@ -3,10 +3,13 @@ package org.zlab.upfuzz.hdfs.dfscommands;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
+import org.zlab.upfuzz.cassandra.CassandraTypes;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.HDFSDirPathType;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
+import org.zlab.upfuzz.utils.PAIRType;
+import org.zlab.upfuzz.utils.STRINGType;
 import org.zlab.upfuzz.utils.Utilities;
 
 import java.util.LinkedList;
@@ -32,18 +35,10 @@ public class CountCommand extends DfsCommand {
         super(state.subdir);
 
         initStorageTypeOptions();
-
         Parameter countCmd = new CONSTANTSTRINGType("-count")
                 .generateRandomParameter(null, null);
-
         Parameter countOptQ = new ParameterType.OptionalType(
                 new CONSTANTSTRINGType("-q"), null)
-                        .generateRandomParameter(null, null);
-        Parameter countOptU = new ParameterType.OptionalType(
-                new CONSTANTSTRINGType("-u"), null)
-                        .generateRandomParameter(null, null);
-        Parameter countOptT = new ParameterType.OptionalType(
-                new CONSTANTSTRINGType("-t"), null)
                         .generateRandomParameter(null, null);
         Parameter countOptH = new ParameterType.OptionalType(
                 new CONSTANTSTRINGType("-h"), null)
@@ -58,24 +53,34 @@ public class CountCommand extends DfsCommand {
                 new CONSTANTSTRINGType("-e"), null)
                         .generateRandomParameter(null, null);
 
-        Parameter storageType = new ParameterType.InCollectionType(
-                CONSTANTSTRINGType.instance,
-                (s, c) -> Utilities.strings2Parameters(
-                        storageTypeOptions),
+        // [-t [storageType]]
+        Parameter countStorageType = new ParameterType.OptionalType(
+                ParameterType.ConcreteGenericType
+                        .constructConcreteGenericType(PAIRType.instance,
+                                new CONSTANTSTRINGType("-t"),
+                                new ParameterType.OptionalType(
+                                        new ParameterType.InCollectionType(
+                                                CONSTANTSTRINGType.instance,
+                                                (s, c) -> Utilities
+                                                        .strings2Parameters(
+                                                                storageTypeOptions),
+                                                null),
+                                        null)),
                 null).generateRandomParameter(null, null);
-
+        Parameter countOptU = new ParameterType.OptionalType(
+                new CONSTANTSTRINGType("-u"), null)
+                        .generateRandomParameter(null, null);
         Parameter dir = new HDFSDirPathType()
                 .generateRandomParameter(state, null);
 
         params.add(countCmd);
         params.add(countOptQ);
-        params.add(countOptU);
-        params.add(countOptT);
         params.add(countOptH);
         params.add(countOptV);
         params.add(countOptX);
         params.add(countOptE);
-        params.add(storageType);
+        params.add(countStorageType);
+        params.add(countOptU);
         params.add(dir);
     }
 
@@ -84,8 +89,11 @@ public class CountCommand extends DfsCommand {
         StringBuilder sb = new StringBuilder();
         sb.append("dfs").append(" ");
         int i = 0;
-        while (i < params.size() - 1)
-            sb.append(params.get(i++)).append(" ");
+        while (i < params.size() - 1) {
+            if (!params.get(i).toString().isEmpty())
+                sb.append(params.get(i)).append(" ");
+            i++;
+        }
         sb.append(subdir).append(params.get(i));
         return sb.toString();
     }
