@@ -992,10 +992,9 @@ public class FuzzingServer {
 
         if (Config.getConf().useLikelyInv) {
             if (stackedFeedbackPacket.breakNewInv) {
-                logger.info("new inv is broken!");
-                logger.info("broken inv status = " + inv2BrokenNum);
+                logger.info("== Detected new broken inv ==");
             } else {
-                logger.info("inv is not broken!");
+                logger.info("== No broken inv ==");
             }
         }
 
@@ -1312,6 +1311,10 @@ public class FuzzingServer {
         System.out.println(
                 "------------------------------------------------------------"
                         + "-----------------------------------------------------------------");
+
+        if (Config.getConf().useLikelyInv) {
+            System.out.println("Broken inv status: " + inv2BrokenNum);
+        }
 
         // Print the coverage status
         // for (Pair<Integer, Integer> timeCoveragePair :
