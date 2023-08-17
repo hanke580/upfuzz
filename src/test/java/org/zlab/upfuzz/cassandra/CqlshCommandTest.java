@@ -1,10 +1,11 @@
 package org.zlab.upfuzz.cassandra;
 
 import org.junit.jupiter.api.Test;
+import org.zlab.upfuzz.AbstractTest;
 import org.zlab.upfuzz.CustomExceptions;
 import org.zlab.upfuzz.cassandra.cqlcommands.*;
 
-public class CqlshCommandTest {
+public class CqlshCommandTest extends AbstractTest {
     @Test
     public void testCreateKSCommandGeneration() {
         CassandraState s = new CassandraState();
