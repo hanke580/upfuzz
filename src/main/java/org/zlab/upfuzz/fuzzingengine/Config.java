@@ -128,7 +128,7 @@ public class Config {
         public boolean skip = false;
         // Prioritize likely invariants in the priority queue
         public int INVARIANT_PRIORITY_SCORE = 20;
-
+        public final int INVARIANT_MAP_LENGTH = 1000;
         /**
          * ---------------Version Specific-----------------
          * To avoid the FP

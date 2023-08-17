@@ -244,15 +244,19 @@ public abstract class DockerCluster implements IDockerCluster {
         return ret;
     }
 
-    public int[] getBrokenInv() throws Exception {
+    public int[] getBrokenInv() {
         assert dockers.length > 0;
-        int[] invMap = dockers[0].getBrokenInv();
-        int[] brokenInvMap = Arrays.copyOf(invMap, invMap.length);
-        for (int i = 1; i < dockers.length; i++) {
+        int[] brokenInvMap = new int[Config.getConf().INVARIANT_MAP_LENGTH];
+        for (int i = 0; i < dockers.length; i++) {
             // merge
-            invMap = dockers[i].getBrokenInv();
-            for (int j = 0; j < brokenInvMap.length; j++) {
-                brokenInvMap[j] += invMap[j];
+            try {
+                int[] invMap = dockers[i].getBrokenInv();
+                for (int j = 0; j < brokenInvMap.length; j++) {
+                    brokenInvMap[j] += invMap[j];
+                }
+            } catch (Exception e) {
+                logger.debug("Exception occur when collecting" +
+                        " broken invariant info: " + e);
             }
         }
         return brokenInvMap;

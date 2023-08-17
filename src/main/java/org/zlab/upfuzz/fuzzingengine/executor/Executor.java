@@ -99,15 +99,7 @@ public abstract class Executor implements IExecutor {
     }
 
     public int[] getBrokenInv() {
-        try {
-            return dockerCluster.getBrokenInv();
-        } catch (Exception e) {
-            logger.info(
-                    "Problem occurs when retrieving invariant violations"
-                            + e
-                            + "assume no inv is broken");
-            return null;
-        }
+        return dockerCluster.getBrokenInv();
     }
 
     // likely invariant support
