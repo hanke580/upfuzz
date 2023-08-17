@@ -139,7 +139,7 @@ public class Config {
         public boolean eval_CASSANDRA13939 = false;
         // hdfs
         public boolean eval_ec_hdfs = false;
-        public boolean support_NVDIMM = true;
+        public boolean support_NVDIMM = false;
 
         @Override
         public String toString() {
