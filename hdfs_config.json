@@ -1,6 +1,6 @@
 {
   "originalVersion" : "hadoop-2.10.2",
-  "upgradedVersion" : "hadoop-3.3.5",
+  "upgradedVersion" : "hadoop-3.3.6",
   "system" : "hdfs",
   "serverPort" : "6499",
   "clientPort" : "6500",

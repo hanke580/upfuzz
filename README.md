@@ -125,7 +125,7 @@ git clone git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
 export UPFUZZ_DIR=$PWD
 export ORI_VERSION=2.10.2
-export UP_VERSION=3.3.5
+export UP_VERSION=3.3.6
 
 mkdir -p $UPFUZZ_DIR/prebuild/hdfs
 cd $UPFUZZ_DIR/prebuild/hdfs
