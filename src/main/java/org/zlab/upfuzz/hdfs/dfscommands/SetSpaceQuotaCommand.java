@@ -20,7 +20,7 @@ public class SetSpaceQuotaCommand extends DfsadminCommand {
     public List<String> storageTypeOptions = new LinkedList<>();
 
     public void initStorageTypeOptions() {
-        storageTypeOptions.add("RAMDISK");
+        storageTypeOptions.add("RAM_DISK");
         if (Config.getConf().support_NVDIMM)
             storageTypeOptions.add("NVDIMM");
         storageTypeOptions.add("SSD");
