@@ -142,7 +142,7 @@ task compileCAgent(type: Exec) {
 
 // run the build script during a gradle build
 task runJNIbuildScript(type: Exec) {
-	commandLine 'sh', 'compile_JNI_c.sh', "$buildDir/libs"
+	commandLine 'sh', 'bin/compile_JNI_c.sh', "$buildDir/libs"
 }
 
 //tasks.build.dependsOn(runJNIbuildScript)
