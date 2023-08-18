@@ -71,18 +71,22 @@ public class ConfigGen {
             configFileGenerator = new YamlGenerator[1];
             configFileGenerator[0] = new YamlGenerator(defaultConfigPath,
                     generateFolderPath);
-            ;
-
+            extraGenerator = new PlainTextGenerator[0];
             break;
         }
         case "hdfs": {
+            assert false : "hdfs is not tested for single version mode";
             Path defaultConfigPath = Paths.get(oldVersionPath.toString(),
                     "etc/hadoop/hdfs-site.xml");
             configFileGenerator = new XmlGenerator[1];
             configFileGenerator[0] = new XmlGenerator(defaultConfigPath,
                     generateFolderPath);
+            extraGenerator = new PlainTextGenerator[0];
             break;
         }
+        default:
+            assert false : Config.getConf().system +
+                    " is not tested for single version mode";
         }
 
         Path configInfoPath = Paths.get(System.getProperty("user.dir"),
