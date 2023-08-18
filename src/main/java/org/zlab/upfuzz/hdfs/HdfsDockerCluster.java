@@ -69,6 +69,7 @@ public class HdfsDockerCluster extends DockerCluster {
 
     @Override
     public void prepareUpgrade() {
+        logger.info("hdfs prepared upgrade");
         int idx = getFirstLiveNodeIdx();
         if (idx == -1) {
             logger.error("cannot upgrade, all nodes are down");
