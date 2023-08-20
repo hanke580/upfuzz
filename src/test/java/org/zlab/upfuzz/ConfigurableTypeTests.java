@@ -3,7 +3,7 @@ package org.zlab.upfuzz;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.cassandra.CassandraState;
 
-public class ConfigurableTypeTests {
+public class ConfigurableTypeTests extends AbstractTest {
     @Test
     public void testNotInCollection() {
         CassandraState s = new CassandraState();

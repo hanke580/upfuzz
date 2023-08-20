@@ -8,11 +8,7 @@ import java.util.*;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.zlab.upfuzz.Command;
-import org.zlab.upfuzz.CommandPool;
-import org.zlab.upfuzz.CommandSequence;
-import org.zlab.upfuzz.Parameter;
-import org.zlab.upfuzz.ParameterType;
+import org.zlab.upfuzz.*;
 import org.zlab.upfuzz.hbase.DataDefinitionCommands.ALTER_ADD_FAMILY;
 import org.zlab.upfuzz.hbase.DataDefinitionCommands.ALTER_DELETE_FAMILY;
 import org.zlab.upfuzz.hbase.DataManipulationCommands.PUT_NEW_COLUMN;
@@ -28,7 +24,7 @@ import org.zlab.upfuzz.utils.Utilities;
 
 import javax.swing.plaf.synth.SynthTextAreaUI;
 
-public class CommandTests {
+public class CommandTests extends AbstractTest {
 
     @BeforeAll
     public static void setUp() {

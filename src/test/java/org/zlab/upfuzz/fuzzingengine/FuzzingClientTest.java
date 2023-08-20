@@ -13,10 +13,11 @@ import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.zlab.upfuzz.AbstractTest;
 import org.zlab.upfuzz.fuzzingengine.Config.Configuration;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 
-public class FuzzingClientTest {
+public class FuzzingClientTest extends AbstractTest {
 
     @BeforeAll
     static public void initAll() {
