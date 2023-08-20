@@ -140,7 +140,7 @@ public class Config {
 
         // == hdfs ==
         // erasure coding commands
-        public boolean suppoort_EC = false; // > 2
+        public boolean support_EC = false; // > 2
         // Storage Type
         public boolean support_NVDIMM = false; // >= 3.4.0
         public boolean support_PROVIDED = false; // > 2
