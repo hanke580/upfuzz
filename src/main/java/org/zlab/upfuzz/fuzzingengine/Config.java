@@ -131,15 +131,21 @@ public class Config {
         public final int INVARIANT_MAP_LENGTH = 1000;
         /**
          * ---------------Version Specific-----------------
-         * To avoid the FP
+         * To avoid FPs
          * If a command is supported only in the new/old version,
          * this can cause FP when comparing the read results.
          */
-        // cassandra
+        // == cassandra ==
         public boolean eval_CASSANDRA13939 = false;
-        // hdfs
-        public boolean eval_ec_hdfs = false;
-        public boolean support_NVDIMM = false;
+
+        // == hdfs ==
+        // erasure coding commands
+        public boolean eval_ec_hdfs = false; // > 2
+        // Storage Type
+        public boolean support_NVDIMM = false; // >= 3.4.0
+        public boolean support_PROVIDED = false; // > 2
+        // Count command
+        public boolean support_e_opt = false; // > 2
 
         @Override
         public String toString() {

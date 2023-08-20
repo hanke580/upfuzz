@@ -19,20 +19,10 @@ public class SetSpaceQuotaCommand extends DfsadminCommand {
      */
     public List<String> storageTypeOptions = new LinkedList<>();
 
-    public void initStorageTypeOptions() {
-        storageTypeOptions.add("RAM_DISK");
-        if (Config.getConf().support_NVDIMM)
-            storageTypeOptions.add("NVDIMM");
-        storageTypeOptions.add("SSD");
-        storageTypeOptions.add("DISK");
-        storageTypeOptions.add("ARCHIVE");
-        storageTypeOptions.add("PROVIDED");
-    }
-
     public SetSpaceQuotaCommand(HdfsState state) {
         super(state.subdir);
 
-        initStorageTypeOptions();
+        initStorageTypeOptions(storageTypeOptions);
 
         Parameter setSpaceQuotaCmd = new CONSTANTSTRINGType("-setSpaceQuota")
                 .generateRandomParameter(null, null);

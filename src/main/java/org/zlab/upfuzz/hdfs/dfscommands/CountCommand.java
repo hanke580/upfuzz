@@ -16,25 +16,15 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class CountCommand extends DfsCommand {
-    public List<String> storageTypeOptions = new LinkedList<>();
-
-    public void initStorageTypeOptions() {
-        storageTypeOptions.add("RAM_DISK");
-        if (Config.getConf().support_NVDIMM)
-            storageTypeOptions.add("NVDIMM");
-        storageTypeOptions.add("SSD");
-        storageTypeOptions.add("DISK");
-        storageTypeOptions.add("ARCHIVE");
-        storageTypeOptions.add("PROVIDED");
-    }
-
     /**
      * bin/hdfs dfs -count -q -h -t ARCHIVE /dir
      */
+    public List<String> storageTypeOptions = new LinkedList<>();
+
     public CountCommand(HdfsState state) {
         super(state.subdir);
 
-        initStorageTypeOptions();
+        initStorageTypeOptions(storageTypeOptions);
         Parameter countCmd = new CONSTANTSTRINGType("-count")
                 .generateRandomParameter(null, null);
         Parameter countOptQ = new ParameterType.OptionalType(
@@ -76,7 +66,8 @@ public class CountCommand extends DfsCommand {
         params.add(countOptH);
         params.add(countOptV);
         params.add(countOptX);
-        params.add(countOptE);
+        if (Config.getConf().support_e_opt)
+            params.add(countOptE);
         params.add(countStorageType);
         params.add(countOptU);
         params.add(dir);
