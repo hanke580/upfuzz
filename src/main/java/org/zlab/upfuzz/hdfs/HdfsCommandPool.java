@@ -7,7 +7,7 @@ import org.zlab.upfuzz.hdfs.dfscommands.*;
 import org.zlab.upfuzz.hdfs.eccommands.*;
 
 public class HdfsCommandPool extends CommandPool {
-    // Enable eval_ec_hdfs
+    // Enable suppoort_EC
     @Override
     public void registerReadCommands() {
         readCommandClassList.add(
@@ -17,7 +17,7 @@ public class HdfsCommandPool extends CommandPool {
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(LsCommand.class, 2));
 
-        if (Config.getConf().eval_ec_hdfs) {
+        if (Config.getConf().suppoort_EC) {
             readCommandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
                             GetPolicyCommand.class,
@@ -79,7 +79,7 @@ public class HdfsCommandPool extends CommandPool {
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(Touchz.class, 5));
 
-        if (Config.getConf().eval_ec_hdfs) {
+        if (Config.getConf().suppoort_EC) {
             commandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
                             AddPoliciesCommand.class, 5));

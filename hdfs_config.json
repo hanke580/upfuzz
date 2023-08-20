@@ -18,7 +18,9 @@
   "nyxFuzzSH": "nyx_mode/fuzz_no_pt.sh",
   "debug": false,
   "useExampleTestPlan": false,
-  "eval_ec_hdfs": false,
+  "suppoort_EC": false,
   "support_NVDIMM": false,
+  "support_PROVIDED": false,
+  "support_e_opt": false,
   "startUpClusterForDebugging": false
 }
