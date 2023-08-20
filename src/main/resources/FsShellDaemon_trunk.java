@@ -45,6 +45,7 @@ import org.apache.hadoop.fs.shell.Command;
 import org.apache.hadoop.fs.shell.CommandFactory;
 import org.apache.hadoop.fs.shell.FsCommand;
 import org.apache.hadoop.hdfs.tools.DFSAdmin;
+import org.apache.hadoop.hdfs.tools.ECAdmin;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.tools.TableListing;
 import org.apache.hadoop.tracing.TraceUtils;
@@ -379,11 +380,15 @@ public class FsShellDaemon extends Configured implements Tool {
                 // }
                 HdfsPacket hdfsPacket = new HdfsPacket();
 
-                // dfsadmin command
-                if( cmdType.equals("dfsadmin") ){
+                if(cmdType.equals("dfsadmin") || cmdType.equals("ec")){
                     hdfsPacket.cmd = commandString;
                     try{
-                        int res = ToolRunner.run(new DFSAdmin(), commands);
+                        int res;
+                        if (cmdType.equals("ec")) {
+                            res = ToolRunner.run(new ECAdmin(new Configuration()), commands);
+                        } else {
+                            res = ToolRunner.run(new DFSAdmin(), commands);
+                        }
                         hdfsPacket.exitValue = res;
                         hdfsPacket.message = "";
                         hdfsPacket.error = "";
@@ -397,65 +402,61 @@ public class FsShellDaemon extends Configured implements Tool {
                         hdfsPacket.error = sw.toString();
                         hdfsPacket.timeUsage = (System.currentTimeMillis() - st) / 1000.;
                     }
-                    String data = gson.toJson(hdfsPacket, HdfsPacket.class);
-                    out.writeInt(data.length());
-                    out.write(data.getBytes());
-                    continue;
-                }
-
-                // dfs command
-                String cmd = commands[0];
-                Command instance = null;
-                try {
-                    instance = commandFactory.getInstance( cmd );
-                    if ( instance == null ) {
-                        throw new UnknownCommandException();
-                    }
-                    ByteArrayOutputStream byteOutput = new ByteArrayOutputStream();
-                    ByteArrayOutputStream byteErrput = new ByteArrayOutputStream();
-                    PrintStream cmdOutput = new PrintStream(byteOutput, true);
-                    PrintStream cmdErrput = new PrintStream(byteErrput, true);
-                    instance.out = cmdOutput;
-                    instance.err = cmdOutput;
-
-                    TraceScope scope = tracer.newScope( instance.getCommandName() );
-                    if ( scope.getSpan() != null ) {
-                        String args = StringUtils.join( " ", commands );
-                        if ( args.length() > 2048 ) {
-                            args = args.substring( 0, 2048 );
-                        }
-                        scope.getSpan().addKVAnnotation( "args", args );
-                    }
-
+                } else if (cmdType.equals("dfs")) {
+                    // dfs command
+                    String cmd = commands[0];
+                    Command instance = null;
                     try {
-                        exitCode = instance.run(
-                                                Arrays.copyOfRange( commands, 1, commands.length ) );
-                        String encodedString = Base64.getEncoder().encodeToString(byteOutput.toString().getBytes());
+                        instance = commandFactory.getInstance( cmd );
+                        if ( instance == null ) {
+                            throw new UnknownCommandException();
+                        }
+                        ByteArrayOutputStream byteOutput = new ByteArrayOutputStream();
+                        ByteArrayOutputStream byteErrput = new ByteArrayOutputStream();
+                        PrintStream cmdOutput = new PrintStream(byteOutput, true);
+                        PrintStream cmdErrput = new PrintStream(byteErrput, true);
+                        instance.out = cmdOutput;
+                        instance.err = cmdOutput;
+
+                        TraceScope scope = tracer.newScope( instance.getCommandName() );
+                        if ( scope.getSpan() != null ) {
+                            String args = StringUtils.join( " ", commands );
+                            if ( args.length() > 2048 ) {
+                                args = args.substring( 0, 2048 );
+                            }
+                            scope.getSpan().addKVAnnotation( "args", args );
+                        }
+                        try {
+                            exitCode = instance.run(
+                                    Arrays.copyOfRange( commands, 1, commands.length ) );
+                            String encodedString = Base64.getEncoder().encodeToString(byteOutput.toString().getBytes());
+                            hdfsPacket.cmd = commandString;
+                            hdfsPacket.exitValue = exitCode;
+                            hdfsPacket.message = encodedString;
+                            hdfsPacket.error = byteErrput.toString();
+                            hdfsPacket.timeUsage = (System.currentTimeMillis() - st) / 1000.;
+                        }
+                        finally { scope.close(); }
+                    } catch ( Exception e ) {
                         hdfsPacket.cmd = commandString;
-                        hdfsPacket.exitValue = exitCode;
-                        hdfsPacket.message = encodedString;
-                        hdfsPacket.error = byteErrput.toString();
+                        hdfsPacket.exitValue = -1;
+                        hdfsPacket.message = "";
+                        StringWriter sw = new StringWriter();
+                        e.printStackTrace(new PrintWriter(sw));
+                        hdfsPacket.error = sw.toString();
                         hdfsPacket.timeUsage = (System.currentTimeMillis() - st) / 1000.;
-                        String data = gson.toJson(hdfsPacket, HdfsPacket.class);
-                        // System.out.println(data);
-                        out.writeInt(data.length());
-                        out.write(data.getBytes());
                     }
-                    finally { scope.close(); }
-                }
-                catch ( Exception e ) {
+                } else {
+                    // command is not supported for hdfs-daemon
                     hdfsPacket.cmd = commandString;
                     hdfsPacket.exitValue = -1;
                     hdfsPacket.message = "";
-                    StringWriter sw = new StringWriter();
-                    e.printStackTrace(new PrintWriter(sw));
-                    hdfsPacket.error = sw.toString();
+                    hdfsPacket.error = "Command is not supported for daemon process";
                     hdfsPacket.timeUsage = (System.currentTimeMillis() - st) / 1000.;
-                    String data = gson.toJson(hdfsPacket, HdfsPacket.class);
-                    // System.out.println(data);
-                    out.writeInt(data.length());
-                    out.write(data.getBytes());
                 }
+                String data = gson.toJson(hdfsPacket, HdfsPacket.class);
+                out.writeInt(data.length());
+                out.write(data.getBytes());
             }
         }
         catch ( IOException e ) {
