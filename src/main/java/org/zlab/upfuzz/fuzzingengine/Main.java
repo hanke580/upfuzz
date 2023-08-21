@@ -35,17 +35,12 @@ public class Main {
                 .desc("start a dfe server or client or fuzzer")
                 .required()
                 .build();
-        // Option actionOption =
-        // Option.builder("action").argName("action").hasArg().desc("start a dfe
-        // server or client")
-        // .required().build();
         Option configFileOption = Option.builder("config")
                 .argName("config")
                 .hasArg()
                 .desc("Configuration file location")
                 .build();
         options.addOption(clazzOption);
-        // options.addOption(actionOption);
         options.addOption(configFileOption);
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = parser.parse(options, args);
@@ -85,21 +80,11 @@ public class Main {
 
         String type = cmd.getOptionValue(clazzOption);
         logger.info("start " + type);
-        if (type.toLowerCase().equals("server")) {
+        if (type.equalsIgnoreCase("server")) {
             new FuzzingServer().start();
-            // String act = cmd.getOptionValue(actionOption);
-            // FuzzingServerActions action = FuzzingServerActions.valueOf(act);
-            // switch (action) {
-            // case start: {
-            // new FuzzingClient(conf).start();
-            // break;
-            // }
-            // default:
-            // throw new UnsupportedOperationException(act);
-            // }
-        } else if (type.toLowerCase().equals("client")) {
+        } else if (type.equalsIgnoreCase("client")) {
             new FuzzingClient().start();
-        } else if (type.toLowerCase().equals("fuzzer")) {
+        } else if (type.equalsIgnoreCase("fuzzer")) {
             logger.error("equal fuzzer");
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 public void run() {
@@ -113,10 +98,6 @@ public class Main {
                     }
                 }
             });
-
-            // Start fuzzing process
-            Fuzzer fuzzer = new Fuzzer();
-            // fuzzer.start();
         }
     }
 }

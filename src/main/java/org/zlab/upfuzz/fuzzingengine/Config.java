@@ -36,26 +36,31 @@ public class Config {
         public String initSeedDir = null;
 
         public String failureDir = null;
-
         public String corpusDir = null;
 
         public boolean nyxMode = false;
         public String nyxFuzzSH = null;
 
-        // Mutation Epoch
-        public int configMutationEpoch = 20;
+        // Mutation
+        // for the first 10 seeds added to the corpus,
+        // we only mutate them for relative few times
+        public int firstMutationSeedLimit = 5;
+        public int firstSequenceMutationEpoch = 10;
         public int sequenceMutationEpoch = 200;
+        public int firstConfigMutationEpoch = 3;
+        public int configMutationEpoch = 20;
+
         // violent mutation, usually fewer
         public int bothMutationEpoch = 20;
         public int testPlanMutationEpoch = 20;
-
+        public int testPlanMutationRetry = 50;
         // Given a full-stop seed, we generate 20
         // test plan from it.
         public int testPlanGenerationNum = 20;
 
         public String targetSystemStateFile = "states.json";
 
-        public int STACKED_TESTS_NUM = 60;
+        public int STACKED_TESTS_NUM = 50;
         public long timeInterval = 600; // seconds, record time
         public boolean keepDir = true; // set to false if start a long running
                                        // test
@@ -72,7 +77,7 @@ public class Config {
         public boolean collUpFeedBack = true;
         public int rebuildConnectionSecs = 5;
 
-        // ------------Configuration-------------
+        // ------------Configuration Testing-------------
         public boolean verifyConfig = false;
         public boolean exportComposeOnly = false;
         public String configDir = "configtests";
@@ -88,7 +93,7 @@ public class Config {
         // configuration each
         // test, default is 40
 
-        // ------------Test Plan-------------
+        // ------------Test Mode-------------
         public boolean testDowngrade = false;
         // failureOver = true: if the seed node in the distributed is dead
         // another node can keep executing commands
@@ -104,7 +109,6 @@ public class Config {
 
         // ------------State Comparison-------------
         public boolean enableStateComp = false;
-
         // Debug option
         public boolean startUpClusterForDebugging = false;
         public boolean useExampleTestPlan = false;

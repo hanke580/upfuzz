@@ -1,6 +1,7 @@
 package org.zlab.upfuzz.fuzzingengine.server;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -15,13 +16,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.CommandPool;
+import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.cassandra.CassandraCommandPool;
 import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.FeedBack;
-import org.zlab.upfuzz.fuzzingengine.Fuzzer;
 import org.zlab.upfuzz.fuzzingengine.configgen.ConfigGen;
 import org.zlab.upfuzz.fuzzingengine.packet.*;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
@@ -48,32 +49,48 @@ public class FuzzingServer {
     static Logger logger = LogManager.getLogger(FuzzingServer.class);
     static Random rand = new Random();
 
-    // Seed Corpus (tuple(Seed, Info))
-    public PriorityCorpus corpus = new PriorityCorpus();
-    public TestPlanCorpus testPlanCorpus = new TestPlanCorpus();
-    public FullStopCorpus fullStopCorpus = new FullStopCorpus();
-
-    private int configIdx = 0;
-    private int testID = 0;
-    private int finishedTestID = 0;
-
-    private final Map<Integer, Integer> inv2BrokenNum = new HashMap<>();
-
+    // Target system
     public CommandPool commandPool;
     public Executor executor;
     public Class<? extends State> stateClass;
 
-    // seeds: sent to client and waiting for Feedback
+    // Corpus
+    public PriorityCorpus corpus = new PriorityCorpus();
+    public TestPlanCorpus testPlanCorpus = new TestPlanCorpus();
+    public FullStopCorpus fullStopCorpus = new FullStopCorpus();
     private final Map<Integer, Seed> testID2Seed;
     private final Map<Integer, TestPlan> testID2TestPlan;
 
+    // Next packet for execution
     public final Queue<StackedTestPacket> stackedTestPackets;
     public final Queue<FullStopPacket> fullStopPackets;
     private final Queue<TestPlanPacket> testPlanPackets;
 
+    // Fuzzing Status
+    public int firstMutationSeedNum = 0;
+
+    private static int seedID = 0;
+    private int testID = 0;
+    private int finishedTestID = 0;
+    public static int round = 0;
+    public static int failureId = 0;
+    public static int fullStopCrashNum = 0;
+    public static int eventCrashNum = 0;
+    public static int inconsistencyNum = 0;
+    public static int errorLogNum = 0;
+    boolean isFullStopUpgrade = true;
+
+    // Config mutation
+    ConfigGen configGen;
+    public Path configDirPath;
+
+    // Invariant
+    private final Map<Integer, Integer> inv2BrokenNum = new HashMap<>();
+
+    // System state comparison
     public Set<String> targetSystemStates = new HashSet<>();
 
-    // When merge new branches, increase this number
+    // Coverage
     public static int originalCoveredBranches = 0;
     public static int originalProbeNum = 0;
     public static int upgradedCoveredBranches = 0;
@@ -81,29 +98,11 @@ public class FuzzingServer {
 
     public static List<Pair<Integer, Integer>> originalCoverageAlongTime = new ArrayList<>(); // time:
     public static List<Pair<Integer, Integer>> upgradedCoverageAlongTime = new ArrayList<>(); // time:
-
     public static long lastTimePoint = 0;
     public long startTime;
 
     ExecutionDataStore curOriCoverage;
     ExecutionDataStore curUpCoverage;
-
-    public static int round = 0;
-
-    public static int failureId = 0;
-
-    public static int fullStopCrashNum = 0;
-    public static int eventCrashNum = 0;
-    public static int inconsistencyNum = 0;
-    public static int errorLogNum = 0;
-
-    boolean isFullStopUpgrade = true;
-
-    ConfigGen configGen;
-    public Path configDirPath;
-
-    // ----------test plan----------
-    public int testPlanMutationRetry = 50;
 
     public FuzzingServer() {
         testID2Seed = new HashMap<>();
@@ -240,6 +239,7 @@ public class FuzzingServer {
         round++;
         StackedTestPacket stackedTestPacket;
 
+        int configIdx = 0;
         if (seed == null) {
             logger.debug("[fuzzOne] generate a random seed");
             configIdx = configGen.generateConfig();
@@ -276,10 +276,22 @@ public class FuzzingServer {
                 configIdx = configGen.generateConfig();
             else
                 configIdx = seed.configIdx;
+
+            int mutationEpoch;
+            if (firstMutationSeedNum < Config.getConf().firstMutationSeedLimit)
+                mutationEpoch = Config.getConf().firstSequenceMutationEpoch;
+            else
+                mutationEpoch = Config.getConf().sequenceMutationEpoch;
+
+            if (Config.getConf().debug) {
+                logger.debug(String.format(
+                        "mutationEpoch = %s, firstMutationSeedNum = %s",
+                        mutationEpoch, firstMutationSeedNum));
+            }
             String configFileName = "test" + configIdx;
             stackedTestPacket = new StackedTestPacket(Config.getConf().nodeNum,
                     configFileName);
-            for (int i = 0; i < Config.getConf().sequenceMutationEpoch; i++) {
+            for (int i = 0; i < mutationEpoch; i++) {
                 if (i != 0 && i % Config.getConf().STACKED_TESTS_NUM == 0) {
                     stackedTestPackets.add(stackedTestPacket);
                     stackedTestPacket = new StackedTestPacket(
@@ -300,10 +312,16 @@ public class FuzzingServer {
             }
 
             // Situation2: Only mutate config + Mutate both (Combined with
-            // stackedTestPackets): 20*50 = 1000 tests
-            // gen a new config
-            for (int configMutationIdx = 0; configMutationIdx < Config
-                    .getConf().configMutationEpoch; configMutationIdx++) {
+            // stackedTestPackets)
+            // configMutationEpoch*STACKED_TESTS_NUM = 1000 tests
+
+            int configMutationEpoch;
+            if (firstMutationSeedNum < Config.getConf().firstMutationSeedLimit)
+                configMutationEpoch = Config.getConf().firstConfigMutationEpoch;
+            else
+                configMutationEpoch = Config.getConf().configMutationEpoch;
+
+            for (int configMutationIdx = 0; configMutationIdx < configMutationEpoch; configMutationIdx++) {
                 configIdx = configGen.generateConfig();
                 configFileName = "test" + configIdx;
                 stackedTestPacket = new StackedTestPacket(
@@ -328,6 +346,7 @@ public class FuzzingServer {
                 }
                 stackedTestPackets.add(stackedTestPacket);
             }
+            firstMutationSeedNum++;
             logger.debug("[fuzzOne] mutate done, stackedTestPackets size = "
                     + stackedTestPackets.size());
         }
@@ -343,7 +362,7 @@ public class FuzzingServer {
             for (int i = 0; i < Config.getConf().testPlanMutationEpoch; i++) {
                 TestPlan mutateTestPlan = null;
                 int j = 0;
-                for (; j < testPlanMutationRetry; j++) {
+                for (; j < Config.getConf().testPlanMutationRetry; j++) {
                     mutateTestPlan = SerializationUtils.clone(testPlan);
                     mutateTestPlan.mutate();
                     if (testPlanVerifier(mutateTestPlan.getEvents(),
@@ -352,7 +371,7 @@ public class FuzzingServer {
                     }
                 }
                 // Always failed mutating this test plan
-                if (j == testPlanMutationRetry)
+                if (j == Config.getConf().testPlanMutationRetry)
                     return false;
                 testID2TestPlan.put(testID, mutateTestPlan);
 
@@ -1090,7 +1109,7 @@ public class FuzzingServer {
                     }
 
                     seed.score = score;
-                    Fuzzer.saveSeed(seed.originalCommandSequence,
+                    saveSeed(seed.originalCommandSequence,
                             seed.validationCommandSequence);
                     // logger.debug("valid res = "
                     // + feedbackPacket.validationReadResults);
@@ -1480,5 +1499,35 @@ public class FuzzingServer {
             }
         }
         return ignoredInvs;
+    }
+
+    public void saveSeed(CommandSequence commandSequence,
+            CommandSequence validationCommandSequence) {
+        // Serialize the seed of the queue in to disk
+        if (Config.getConf().corpusDir == null) {
+            logger.debug("corpusDir is not provided, not saving seeds");
+        } else {
+            File corpusDir = new File(Config.getConf().corpusDir);
+            if (!corpusDir.exists()) {
+                corpusDir.mkdirs();
+            }
+            StringBuilder sb = new StringBuilder();
+            sb.append("Seed Id = ").append(seedID).append("\n");
+            sb.append("Command Sequence\n");
+            for (String commandStr : commandSequence.getCommandStringList()) {
+                sb.append(commandStr);
+                sb.append("\n");
+            }
+            sb.append("Read Command Sequence\n");
+            for (String commandStr : validationCommandSequence
+                    .getCommandStringList()) {
+                sb.append(commandStr);
+                sb.append("\n");
+            }
+            Path crashReportPath = Paths.get(Config.getConf().corpusDir,
+                    "seed_" + seedID + ".txt");
+            Utilities.write2TXT(crashReportPath.toFile(), sb.toString(), false);
+            seedID++;
+        }
     }
 }
