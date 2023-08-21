@@ -118,6 +118,7 @@ public class Config {
         // check ERROR/WARN in log
         public boolean enableLogCheck = true;
         public int grepLineNum = 4;
+        public boolean filterLogBeforeUpgrade = false;
 
         // ------------Priority Coverage-------------
         public boolean usePriorityCov = false;

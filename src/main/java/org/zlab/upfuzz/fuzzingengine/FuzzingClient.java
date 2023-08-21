@@ -599,10 +599,9 @@ public class FuzzingClient {
 
         // LOG checking2
         if (Config.getConf().enableLogCheck) {
-            logger.info("[HKLOG] error log checking");
             assert logInfoBeforeUpgrade != null;
-            Map<Integer, LogInfo> logInfo = filterErrorLog(logInfoBeforeUpgrade,
-                    executor.grepLogInfo());
+            Map<Integer, LogInfo> logInfo = extractErrorLog(executor,
+                    logInfoBeforeUpgrade);
             if (hasERRORLOG(logInfo)) {
                 fullStopFeedbackPacket.hasERRORLog = true;
                 fullStopFeedbackPacket.errorLogReport = genErrorLogReport(
@@ -782,7 +781,8 @@ public class FuzzingClient {
         if (Config.getConf().enableLogCheck) {
             if (Config.getConf().testSingleVersion) {
                 logger.info("[HKLOG] error log checking");
-                Map<Integer, LogInfo> logInfo = executor.grepLogInfo();
+                Map<Integer, LogInfo> logInfo = extractErrorLog(executor,
+                        logInfoBeforeUpgrade);
                 if (hasERRORLOG(logInfo)) {
                     testPlanFeedbackPacket.hasERRORLog = true;
                     testPlanFeedbackPacket.errorLogReport = genErrorLogReport(
@@ -792,9 +792,8 @@ public class FuzzingClient {
             } else {
                 logger.info("[HKLOG] error log checking");
                 assert logInfoBeforeUpgrade != null;
-                Map<Integer, LogInfo> logInfo = filterErrorLog(
-                        logInfoBeforeUpgrade,
-                        executor.grepLogInfo());
+                Map<Integer, LogInfo> logInfo = extractErrorLog(executor,
+                        logInfoBeforeUpgrade);
                 if (hasERRORLOG(logInfo)) {
                     testPlanFeedbackPacket.hasERRORLog = true;
                     testPlanFeedbackPacket.errorLogReport = genErrorLogReport(
@@ -989,8 +988,8 @@ public class FuzzingClient {
         if (Config.getConf().enableLogCheck) {
             logger.info("[HKLOG] error log checking");
             assert logInfoBeforeUpgrade != null;
-            Map<Integer, LogInfo> logInfo = filterErrorLog(logInfoBeforeUpgrade,
-                    executor.grepLogInfo());
+            Map<Integer, LogInfo> logInfo = extractErrorLog(executor,
+                    logInfoBeforeUpgrade);
             if (hasERRORLOG(logInfo)) {
                 stackedFeedbackPacket.hasERRORLog = true;
                 stackedFeedbackPacket.errorLogReport = genErrorLogReport(
@@ -1215,5 +1214,16 @@ public class FuzzingClient {
             }
         }
         return inconsistentStates;
+    }
+
+    public static Map<Integer, LogInfo> extractErrorLog(Executor executor,
+            Map<Integer, LogInfo> logInfoBeforeUpgrade) {
+        if (Config.getConf().filterLogBeforeUpgrade) {
+            return FuzzingClient.filterErrorLog(
+                    logInfoBeforeUpgrade,
+                    executor.grepLogInfo());
+        } else {
+            return executor.grepLogInfo();
+        }
     }
 }

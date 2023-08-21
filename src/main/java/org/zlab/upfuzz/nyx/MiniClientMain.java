@@ -329,9 +329,8 @@ public class MiniClientMain {
         if (Config.getConf().enableLogCheck) {
             // logger.info("[HKLOG] error log checking: merge logs");
             assert logInfoBeforeUpgrade != null;
-            Map<Integer, LogInfo> logInfo = FuzzingClient.filterErrorLog(
-                    logInfoBeforeUpgrade,
-                    executor.grepLogInfo());
+            Map<Integer, LogInfo> logInfo = FuzzingClient
+                    .extractErrorLog(executor, logInfoBeforeUpgrade);
             if (FuzzingClient.hasERRORLOG(logInfo)) {
                 stackedFeedbackPacket.hasERRORLog = true;
                 stackedFeedbackPacket.errorLogReport = FuzzingClient
