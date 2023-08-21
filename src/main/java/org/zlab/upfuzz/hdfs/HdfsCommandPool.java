@@ -3,6 +3,7 @@ package org.zlab.upfuzz.hdfs;
 import java.util.AbstractMap;
 import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.fuzzingengine.Config;
+import org.zlab.upfuzz.hdfs.dfsadmin.*;
 import org.zlab.upfuzz.hdfs.dfscommands.*;
 import org.zlab.upfuzz.hdfs.eccommands.*;
 

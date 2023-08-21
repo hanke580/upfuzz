@@ -7,7 +7,6 @@ import org.zlab.upfuzz.cassandra.CassandraCommand;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.cassandra.CassandraTable;
 import org.zlab.upfuzz.cassandra.CassandraTypes;
-import org.zlab.upfuzz.hdfs.dfscommands.SetSpaceQuotaCommand;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.PAIRType;
 import org.zlab.upfuzz.utils.Pair;

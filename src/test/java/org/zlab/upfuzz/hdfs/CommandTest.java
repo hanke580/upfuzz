@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.AbstractTest;
 import org.zlab.upfuzz.Command;
+import org.zlab.upfuzz.hdfs.dfsadmin.SetSpaceQuotaCommand;
 import org.zlab.upfuzz.hdfs.dfscommands.*;
 
 public class CommandTest extends AbstractTest {

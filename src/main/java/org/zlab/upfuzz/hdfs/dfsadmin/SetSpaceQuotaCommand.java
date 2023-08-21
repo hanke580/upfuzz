@@ -1,9 +1,8 @@
-package org.zlab.upfuzz.hdfs.dfscommands;
+package org.zlab.upfuzz.hdfs.dfsadmin;
 
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.HDFSDirPathType;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
