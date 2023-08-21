@@ -1,4 +1,4 @@
-package org.zlab.upfuzz.hdfs.eccommands;
+package org.zlab.upfuzz.hdfs.ec;
 
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
@@ -7,9 +7,9 @@ import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.Utilities;
 
-public class RemovePolicyCommand extends ErasureCodingCommand {
+public class RemovePolicy extends ErasureCoding {
 
-    public RemovePolicyCommand(HdfsState state) {
+    public RemovePolicy(HdfsState state) {
         super(state.subdir);
 
         Parameter removePolicyCmd = new CONSTANTSTRINGType("-removePolicy")
@@ -21,7 +21,7 @@ public class RemovePolicyCommand extends ErasureCodingCommand {
         Parameter policy = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
                 (s, c) -> Utilities.strings2Parameters(
-                        (((ErasureCodingCommand) c).policies)),
+                        (((ErasureCoding) c).policies)),
                 null).generateRandomParameter(null, null);
 
         params.add(removePolicyCmd);

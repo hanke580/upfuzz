@@ -2,7 +2,6 @@ package org.zlab.upfuzz;
 
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,7 +13,7 @@ import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.cassandra.CassandraCommand;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.hdfs.HdfsState;
-import org.zlab.upfuzz.hdfs.dfscommands.SpecialMkdir;
+import org.zlab.upfuzz.hdfs.dfs.SpecialMkdir;
 import org.zlab.upfuzz.utils.INTType;
 import org.zlab.upfuzz.utils.STRINGType;
 import org.zlab.upfuzz.utils.Utilities;

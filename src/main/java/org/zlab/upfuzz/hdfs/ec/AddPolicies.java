@@ -1,4 +1,4 @@
-package org.zlab.upfuzz.hdfs.eccommands;
+package org.zlab.upfuzz.hdfs.ec;
 
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.State;
@@ -6,23 +6,24 @@ import org.zlab.upfuzz.hdfs.HDFSParameterType.HDFSDirPathType;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 
-public class UnSetPolicyCommand extends ErasureCodingCommand {
+public class AddPolicies extends ErasureCoding {
 
-    public UnSetPolicyCommand(HdfsState state) {
+    public AddPolicies(HdfsState state) {
         super(state.subdir);
 
-        Parameter unsetPolicyCmd = new CONSTANTSTRINGType("-unsetPolicy")
+        Parameter addPolicyCmd = new CONSTANTSTRINGType("-addPolicies")
                 .generateRandomParameter(null, null);
 
-        Parameter pathOpt = new CONSTANTSTRINGType("-path")
+        Parameter policyFileOpt = new CONSTANTSTRINGType("-policyFile")
                 .generateRandomParameter(null, null);
 
-        Parameter path = new HDFSDirPathType()
+        // TODO: This needs to be a new policy file!
+        Parameter policyFile = new HDFSDirPathType()
                 .generateRandomParameter(state, null);
 
-        params.add(unsetPolicyCmd);
-        params.add(pathOpt);
-        params.add(path);
+        params.add(addPolicyCmd);
+        params.add(policyFileOpt);
+        params.add(policyFile);
     }
 
     @Override

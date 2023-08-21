@@ -1,4 +1,4 @@
-package org.zlab.upfuzz.hdfs.dfscommands;
+package org.zlab.upfuzz.hdfs.dfs;
 
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.State;

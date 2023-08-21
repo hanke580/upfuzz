@@ -1,4 +1,4 @@
-package org.zlab.upfuzz.hdfs.dfscommands;
+package org.zlab.upfuzz.hdfs.dfs;
 
 import java.io.File;
 import java.nio.file.Path;

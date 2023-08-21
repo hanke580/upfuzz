@@ -1,4 +1,4 @@
-package org.zlab.upfuzz.hdfs.eccommands;
+package org.zlab.upfuzz.hdfs.ec;
 
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
@@ -7,12 +7,12 @@ import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.Utilities;
 
-public class EnablePolicyCommand extends ErasureCodingCommand {
+public class DisablePolicy extends ErasureCoding {
 
-    public EnablePolicyCommand(HdfsState state) {
+    public DisablePolicy(HdfsState state) {
         super(state.subdir);
 
-        Parameter enablePolicyCmd = new CONSTANTSTRINGType("-enablePolicy")
+        Parameter disablePolicyCmd = new CONSTANTSTRINGType("-disablePolicy")
                 .generateRandomParameter(null, null);
 
         Parameter policyOpt = new CONSTANTSTRINGType("-policy")
@@ -21,10 +21,10 @@ public class EnablePolicyCommand extends ErasureCodingCommand {
         Parameter policy = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
                 (s, c) -> Utilities.strings2Parameters(
-                        (((ErasureCodingCommand) c).policies)),
+                        (((ErasureCoding) c).policies)),
                 null).generateRandomParameter(null, null);
 
-        params.add(enablePolicyCmd);
+        params.add(disablePolicyCmd);
         params.add(policyOpt);
         params.add(policy);
     }

@@ -4,8 +4,8 @@ import java.util.AbstractMap;
 import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.hdfs.dfsadmin.*;
-import org.zlab.upfuzz.hdfs.dfscommands.*;
-import org.zlab.upfuzz.hdfs.eccommands.*;
+import org.zlab.upfuzz.hdfs.dfs.*;
+import org.zlab.upfuzz.hdfs.ec.*;
 
 public class HdfsCommandPool extends CommandPool {
     // Enable support_EC
@@ -21,20 +21,20 @@ public class HdfsCommandPool extends CommandPool {
         if (Config.getConf().support_EC) {
             readCommandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
-                            GetPolicyCommand.class,
+                            GetPolicy.class,
                             2));
             readCommandClassList.add(
-                    new AbstractMap.SimpleImmutableEntry<>(HelpCommand.class,
-                            2));
-            readCommandClassList.add(
-                    new AbstractMap.SimpleImmutableEntry<>(
-                            ListCodecsCommand.class,
+                    new AbstractMap.SimpleImmutableEntry<>(Help.class,
                             2));
             readCommandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
-                            ListPoliciesCommand.class, 2));
+                            ListCodecs.class,
+                            2));
             readCommandClassList.add(
-                    new AbstractMap.SimpleImmutableEntry<>(HelpCommand.class,
+                    new AbstractMap.SimpleImmutableEntry<>(
+                            ListPolicies.class, 2));
+            readCommandClassList.add(
+                    new AbstractMap.SimpleImmutableEntry<>(Help.class,
                             2));
         }
     }
@@ -83,22 +83,22 @@ public class HdfsCommandPool extends CommandPool {
         if (Config.getConf().support_EC) {
             commandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
-                            AddPoliciesCommand.class, 5));
+                            AddPolicies.class, 5));
             commandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
-                            DisablePolicyCommand.class, 5));
+                            DisablePolicy.class, 5));
             commandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
-                            EnablePolicyCommand.class, 5));
+                            EnablePolicy.class, 5));
             commandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
-                            RemovePolicyCommand.class, 5));
+                            RemovePolicy.class, 5));
             commandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
-                            SetPolicyCommand.class, 5));
+                            SetPolicy.class, 5));
             commandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
-                            UnSetPolicyCommand.class, 5));
+                            UnSetPolicy.class, 5));
         }
     }
 

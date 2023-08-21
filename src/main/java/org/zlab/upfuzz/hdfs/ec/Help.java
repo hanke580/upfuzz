@@ -1,4 +1,4 @@
-package org.zlab.upfuzz.hdfs.eccommands;
+package org.zlab.upfuzz.hdfs.ec;
 
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
@@ -10,7 +10,7 @@ import org.zlab.upfuzz.utils.Utilities;
 import java.util.LinkedList;
 import java.util.List;
 
-public class HelpCommand extends ErasureCodingCommand {
+public class Help extends ErasureCoding {
 
     public static List<String> ecCommands = new LinkedList<>();
 
@@ -26,7 +26,7 @@ public class HelpCommand extends ErasureCodingCommand {
         policies.add("disablePolicy");
     }
 
-    public HelpCommand(HdfsState state) {
+    public Help(HdfsState state) {
         super(state.subdir);
 
         Parameter helpCmd = new CONSTANTSTRINGType("-help")
@@ -35,7 +35,7 @@ public class HelpCommand extends ErasureCodingCommand {
         Parameter cmd = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
                 (s, c) -> Utilities
-                        .strings2Parameters((((HelpCommand) c).ecCommands)),
+                        .strings2Parameters((((Help) c).ecCommands)),
                 null).generateRandomParameter(null, null);
 
         params.add(helpCmd);

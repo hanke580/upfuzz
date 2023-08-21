@@ -1,14 +1,13 @@
-package org.zlab.upfuzz.hdfs.eccommands;
+package org.zlab.upfuzz.hdfs.ec;
 
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomHadoopPathType;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 
-public class ListCodecsCommand extends ErasureCodingCommand {
+public class ListCodecs extends ErasureCoding {
 
-    public ListCodecsCommand(HdfsState state) {
+    public ListCodecs(HdfsState state) {
         super(state.subdir);
 
         Parameter listCodecsCmd = new CONSTANTSTRINGType("-listCodecs")

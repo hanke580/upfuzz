@@ -1,4 +1,4 @@
-package org.zlab.upfuzz.hdfs.dfscommands;
+package org.zlab.upfuzz.hdfs.dfs;
 
 import java.util.Arrays;
 import org.zlab.upfuzz.Parameter;

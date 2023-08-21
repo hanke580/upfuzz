@@ -1,4 +1,4 @@
-package org.zlab.upfuzz.hdfs.dfscommands;
+package org.zlab.upfuzz.hdfs.dfs;
 
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
@@ -9,9 +9,6 @@ import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.PAIRType;
 import org.zlab.upfuzz.utils.Utilities;
-
-import java.util.LinkedList;
-import java.util.List;
 
 public class Count extends Dfs {
     /**
