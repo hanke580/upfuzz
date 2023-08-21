@@ -7,14 +7,13 @@ import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.HDFSDirPathType;
-import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomHadoopPathType;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.hdfs.MockFS.HadoopFileSystem;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.STRINGType;
 import org.zlab.upfuzz.utils.Utilities;
 
-public class Touchz extends DfsCommand {
+public class Touchz extends Dfs {
     public Touchz(HdfsState state) {
         super(state.subdir);
 

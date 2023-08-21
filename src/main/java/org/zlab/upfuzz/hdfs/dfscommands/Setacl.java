@@ -10,9 +10,9 @@ import org.zlab.upfuzz.hdfs.HDFSParameterType.HDFSDirPathType;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 
-public class SetaclCommand extends DfsCommand {
+public class Setacl extends Dfs {
 
-    public SetaclCommand(HdfsState state) {
+    public Setacl(HdfsState state) {
         super(state.subdir);
 
         // -setfacl [-R] [{-b|-k} {-m|-x <acl_spec>} <path>]|[--set <acl_spec>

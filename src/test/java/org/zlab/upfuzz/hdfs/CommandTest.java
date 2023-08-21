@@ -5,7 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.AbstractTest;
 import org.zlab.upfuzz.Command;
-import org.zlab.upfuzz.hdfs.dfsadmin.SetSpaceQuotaCommand;
+import org.zlab.upfuzz.hdfs.dfsadmin.SetSpaceQuota;
 import org.zlab.upfuzz.hdfs.dfscommands.*;
 
 public class CommandTest extends AbstractTest {
@@ -15,14 +15,14 @@ public class CommandTest extends AbstractTest {
     @Test
     public void testSetACL() {
         HdfsState hdfsState = new HdfsState();
-        Command setaclCommand = new SetaclCommand(hdfsState);
+        Command setaclCommand = new Setacl(hdfsState);
         System.out.println(setaclCommand.constructCommandString());
     }
 
     @Test
     public void testPut() {
         HdfsState hdfsState = new HdfsState();
-        Command putCommand = new PutCommand(hdfsState);
+        Command putCommand = new Put(hdfsState);
         putCommand.updateState(hdfsState);
         System.out.println(putCommand.constructCommandString());
     }
@@ -30,14 +30,14 @@ public class CommandTest extends AbstractTest {
     @Test
     public void testSetSpaceQuotaCommand() {
         HdfsState hdfsState = new HdfsState();
-        Command setSpaceQuotaCommand = new SetSpaceQuotaCommand(hdfsState);
+        Command setSpaceQuotaCommand = new SetSpaceQuota(hdfsState);
         System.out.println(setSpaceQuotaCommand.constructCommandString());
     }
 
     @Test
     public void testCountCommandCommand() {
         HdfsState hdfsState = new HdfsState();
-        Command countCommand = new CountCommand(hdfsState);
+        Command countCommand = new Count(hdfsState);
         System.out.println(countCommand.constructCommandString());
     }
 
@@ -54,7 +54,7 @@ public class CommandTest extends AbstractTest {
         HdfsState hdfsState = new HdfsState();
         Command touchCommand = new Touchz(hdfsState);
         touchCommand.updateState(hdfsState);
-        Command catCommand = new CatCommand(hdfsState);
+        Command catCommand = new Cat(hdfsState);
         System.out.println(catCommand.constructCommandString());
     }
 
@@ -64,7 +64,7 @@ public class CommandTest extends AbstractTest {
         Command touchz = new Touchz(hdfsState);
         touchz.updateState(hdfsState);
         logger.info(touchz);
-        Command mvCommand = new MvCommand(hdfsState);
+        Command mvCommand = new Mv(hdfsState);
         mvCommand.updateState(hdfsState);
         logger.info(mvCommand);
     }

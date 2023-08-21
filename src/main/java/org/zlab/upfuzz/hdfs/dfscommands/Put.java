@@ -15,7 +15,7 @@ import org.zlab.upfuzz.hdfs.MockFS.HadoopFileSystem;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.INTType;
 
-public class PutCommand extends DfsCommand {
+public class Put extends Dfs {
 
     /*
      * Copy single src, or multiple srcs from local file system to the
@@ -23,7 +23,7 @@ public class PutCommand extends DfsCommand {
      * destination file system if the source is set to “-” Copying fails if the
      * file already exists, unless the -f flag is given.
      */
-    public PutCommand(HdfsState state) {
+    public Put(HdfsState state) {
         super(state.subdir);
 
         Parameter putcmd = new CONSTANTSTRINGType("-put")

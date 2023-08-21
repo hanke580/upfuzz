@@ -8,7 +8,7 @@ import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomLocalPathType;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 
-public class GetCommand extends DfsCommand {
+public class Get extends Dfs {
 
     /*
      * Copy single src, or multiple srcs from local file system to the
@@ -16,7 +16,7 @@ public class GetCommand extends DfsCommand {
      * destination file system if the source is set to “-” Copying fails if the
      * file already exists, unless the -f flag is given.
      */
-    public GetCommand(HdfsState hdfsState) {
+    public Get(HdfsState hdfsState) {
         super(hdfsState.subdir);
 
         Parameter getCmd = new CONSTANTSTRINGType("-get")

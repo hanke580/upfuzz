@@ -6,7 +6,7 @@ import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 
-public class SaveNamespaceCommand extends DfsadminCommand {
+public class SaveNamespace extends Dfsadmin {
 
     /*
      * Save current namespace into storage directories and reset edits log.
@@ -16,7 +16,7 @@ public class SaveNamespaceCommand extends DfsadminCommand {
      * usually used before shutting down the NameNode to prevent potential
      * fsimage/editlog corruption.
      */
-    public SaveNamespaceCommand(HdfsState hdfsState) {
+    public SaveNamespace(HdfsState hdfsState) {
         super(hdfsState.subdir);
 
         Parameter saveNamespaceCmd = new CONSTANTSTRINGType("-saveNamespace")

@@ -6,7 +6,7 @@ import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 
-public class ReportCommand extends DfsadminCommand {
+public class Report extends Dfsadmin {
 
     /*
      * Save current namespace into storage directories and reset edits log.
@@ -16,7 +16,7 @@ public class ReportCommand extends DfsadminCommand {
      * usually used before shutting down the NameNode to prevent potential
      * fsimage/editlog corruption.
      */
-    public ReportCommand(HdfsState state) {
+    public Report(HdfsState state) {
         super(state.subdir);
 
         Parameter reportCmd = new CONSTANTSTRINGType("-report")

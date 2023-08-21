@@ -12,11 +12,11 @@ public class HdfsCommandPool extends CommandPool {
     @Override
     public void registerReadCommands() {
         readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(CatCommand.class, 2));
+                new AbstractMap.SimpleImmutableEntry<>(Cat.class, 2));
         readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(CountCommand.class, 2));
+                new AbstractMap.SimpleImmutableEntry<>(Count.class, 2));
         readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(LsCommand.class, 2));
+                new AbstractMap.SimpleImmutableEntry<>(Ls.class, 2));
 
         if (Config.getConf().support_EC) {
             readCommandClassList.add(
@@ -42,22 +42,22 @@ public class HdfsCommandPool extends CommandPool {
     @Override
     public void registerWriteCommands() {
         commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(CpCommand.class, 5));
+                new AbstractMap.SimpleImmutableEntry<>(Cp.class, 5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
                         Mkdir.class, 5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
-                        MvCommand.class, 5));
+                        Mv.class, 5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
-                        PutCommand.class, 5));
+                        Put.class, 5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
-                        RefreshNodesCommand.class, 5));
+                        RefreshNodes.class, 5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
-                        ReportCommand.class, 5));
+                        Report.class, 5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
                         RmFile.class, 5));
@@ -67,16 +67,16 @@ public class HdfsCommandPool extends CommandPool {
                         RmDir.class, 2));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
-                        RollEditsCommand.class, 5));
+                        RollEdits.class, 5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
-                        SaveNamespaceCommand.class, 5));
+                        SaveNamespace.class, 5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
-                        SetaclCommand.class, 5));
+                        Setacl.class, 5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
-                        SetSpaceQuotaCommand.class, 5));
+                        SetSpaceQuota.class, 5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(Touchz.class, 5));
 
@@ -108,7 +108,7 @@ public class HdfsCommandPool extends CommandPool {
         createCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(Mkdir.class, 2));
         createCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(PutCommand.class, 2));
+                new AbstractMap.SimpleImmutableEntry<>(Put.class, 2));
         createCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(Touchz.class, 2));
     }

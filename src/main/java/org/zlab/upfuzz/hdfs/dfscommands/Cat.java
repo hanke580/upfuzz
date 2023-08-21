@@ -7,14 +7,14 @@ import org.zlab.upfuzz.hdfs.HDFSParameterType.HDFSFilePathType;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 
-public class CatCommand extends DfsCommand {
+public class Cat extends Dfs {
 
     /*
      * Moves files from source to destination. This command allows multiple
      * sources as well in which case the destination needs to be a directory.
      * Moving files across file systems is not permitted.
      */
-    public CatCommand(HdfsState hdfsState) {
+    public Cat(HdfsState hdfsState) {
         super(hdfsState.subdir);
 
         Parameter catCmd = new CONSTANTSTRINGType("-cat")

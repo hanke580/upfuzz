@@ -2,17 +2,12 @@ package org.zlab.upfuzz.hdfs.dfscommands;
 
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
-import org.zlab.upfuzz.Predicate;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.cassandra.CassandraState;
-import org.zlab.upfuzz.cassandra.CassandraTable;
-import org.zlab.upfuzz.cassandra.cqlcommands.ALTER_TABLE_DROP;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.*;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
-import org.zlab.upfuzz.utils.INTType;
 
-public class RmFile extends DfsCommand {
+public class RmFile extends Dfs {
 
     public RmFile(HdfsState hdfsState) {
         super(hdfsState.subdir);

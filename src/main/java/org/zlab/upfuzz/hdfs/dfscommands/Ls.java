@@ -7,14 +7,14 @@ import org.zlab.upfuzz.hdfs.HDFSParameterType.HDFSDirPathType;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 
-public class LsCommand extends DfsCommand {
+public class Ls extends Dfs {
 
     /*
      * Moves files from source to destination. This command allows multiple
      * sources as well in which case the destination needs to be a directory.
      * Moving files across file systems is not permitted.
      */
-    public LsCommand(HdfsState state) {
+    public Ls(HdfsState state) {
         super(state.subdir);
 
         Parameter lsCmd = new CONSTANTSTRINGType("-ls")

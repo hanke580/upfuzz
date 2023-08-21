@@ -5,12 +5,12 @@ import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 
-public class RollEditsCommand extends DfsadminCommand {
+public class RollEdits extends Dfsadmin {
 
     /**
      * Rolls the edit log on the active NameNode.
      */
-    public RollEditsCommand(HdfsState hdfsState) {
+    public RollEdits(HdfsState hdfsState) {
         super(hdfsState.subdir);
 
         Parameter rollEditsCmd = new CONSTANTSTRINGType("-rollEdits")

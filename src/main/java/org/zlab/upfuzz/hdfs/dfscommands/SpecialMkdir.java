@@ -5,7 +5,7 @@ import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 
-public class SpecialMkdir extends DfsCommand {
+public class SpecialMkdir extends Dfs {
 
     /**
      * THis is a special command, it cannot be mutate, it will always be a

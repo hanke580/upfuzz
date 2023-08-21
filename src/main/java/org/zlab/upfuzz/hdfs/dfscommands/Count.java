@@ -3,25 +3,23 @@ package org.zlab.upfuzz.hdfs.dfscommands;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.cassandra.CassandraTypes;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.HDFSDirPathType;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.PAIRType;
-import org.zlab.upfuzz.utils.STRINGType;
 import org.zlab.upfuzz.utils.Utilities;
 
 import java.util.LinkedList;
 import java.util.List;
 
-public class CountCommand extends DfsCommand {
+public class Count extends Dfs {
     /**
      * bin/hdfs dfs -count -q -h -t ARCHIVE /dir
      */
     public List<String> storageTypeOptions = new LinkedList<>();
 
-    public CountCommand(HdfsState state) {
+    public Count(HdfsState state) {
         super(state.subdir);
 
         initStorageTypeOptions(storageTypeOptions);

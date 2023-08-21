@@ -6,12 +6,11 @@ import java.nio.file.Paths;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.HDFSDirPathType;
-import org.zlab.upfuzz.hdfs.HDFSParameterType.RandomHadoopPathType;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.STRINGType;
 
-public class Mkdir extends DfsCommand {
+public class Mkdir extends Dfs {
 
     public Mkdir(HdfsState state) {
         super(state.subdir);

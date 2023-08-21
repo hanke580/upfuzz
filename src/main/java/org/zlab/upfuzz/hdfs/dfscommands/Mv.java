@@ -1,21 +1,19 @@
 package org.zlab.upfuzz.hdfs.dfscommands;
 
 import org.zlab.upfuzz.Parameter;
-import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.*;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
-import org.zlab.upfuzz.utils.INTType;
 
-public class MvCommand extends DfsCommand {
+public class Mv extends Dfs {
 
     /*
      * Moves files from source to destination. This command allows multiple
      * sources as well in which case the destination needs to be a directory.
      * Moving files across file systems is not permitted.
      */
-    public MvCommand(HdfsState state) {
+    public Mv(HdfsState state) {
         super(state.subdir);
 
         Parameter mvcmd = new CONSTANTSTRINGType("-mv")

@@ -1,13 +1,11 @@
 package org.zlab.upfuzz.hdfs.dfsadmin;
 
-import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
-import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.HdfsCommand;
 
-public abstract class DfsadminCommand extends HdfsCommand {
+public abstract class Dfsadmin extends HdfsCommand {
 
-    public DfsadminCommand(String subdir) {
+    public Dfsadmin(String subdir) {
         super(subdir);
     }
 

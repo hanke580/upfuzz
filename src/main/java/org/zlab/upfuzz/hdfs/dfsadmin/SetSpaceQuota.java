@@ -12,13 +12,13 @@ import org.zlab.upfuzz.utils.Utilities;
 import java.util.LinkedList;
 import java.util.List;
 
-public class SetSpaceQuotaCommand extends DfsadminCommand {
+public class SetSpaceQuota extends Dfsadmin {
     /**
      * hdfs dfsadmin -setSpaceQuota <N> -storageType <storagetype> <directory>...<directory>
      */
     public List<String> storageTypeOptions = new LinkedList<>();
 
-    public SetSpaceQuotaCommand(HdfsState state) {
+    public SetSpaceQuota(HdfsState state) {
         super(state.subdir);
 
         initStorageTypeOptions(storageTypeOptions);

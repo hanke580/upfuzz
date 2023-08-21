@@ -6,15 +6,14 @@ import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.*;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
-import org.zlab.upfuzz.utils.INTType;
 
-public class CpCommand extends DfsCommand {
+public class Cp extends Dfs {
 
     /*
      * Copy files from source to destination. This command allows multiple
      * sources as well in which case the destination must be a directory.
      */
-    public CpCommand(HdfsState state) {
+    public Cp(HdfsState state) {
         super(state.subdir);
 
         Parameter cpcmd = new CONSTANTSTRINGType("-cp")
