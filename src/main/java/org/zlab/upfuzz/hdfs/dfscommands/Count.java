@@ -17,12 +17,8 @@ public class Count extends Dfs {
     /**
      * bin/hdfs dfs -count -q -h -t ARCHIVE /dir
      */
-    public List<String> storageTypeOptions = new LinkedList<>();
-
     public Count(HdfsState state) {
         super(state.subdir);
-
-        initStorageTypeOptions(storageTypeOptions);
         Parameter countCmd = new CONSTANTSTRINGType("-count")
                 .generateRandomParameter(null, null);
         Parameter countOptQ = new ParameterType.OptionalType(

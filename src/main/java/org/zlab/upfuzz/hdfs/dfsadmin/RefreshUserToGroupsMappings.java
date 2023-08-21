@@ -5,13 +5,14 @@ import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 
-public class RefreshNodes extends Dfsadmin {
+public class RefreshUserToGroupsMappings extends Dfsadmin {
 
-    public RefreshNodes(HdfsState state) {
+    public RefreshUserToGroupsMappings(HdfsState state) {
         super(state.subdir);
 
-        Parameter refreshNodesCmd = new CONSTANTSTRINGType("-refreshNodes")
-                .generateRandomParameter(null, null);
+        Parameter refreshNodesCmd = new CONSTANTSTRINGType(
+                "-refreshUserToGroupsMappings")
+                        .generateRandomParameter(null, null);
 
         params.add(refreshNodesCmd);
     }

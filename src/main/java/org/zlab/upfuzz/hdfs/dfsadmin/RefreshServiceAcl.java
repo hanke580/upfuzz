@@ -5,12 +5,12 @@ import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 
-public class RefreshNodes extends Dfsadmin {
+public class RefreshServiceAcl extends Dfsadmin {
 
-    public RefreshNodes(HdfsState state) {
+    public RefreshServiceAcl(HdfsState state) {
         super(state.subdir);
 
-        Parameter refreshNodesCmd = new CONSTANTSTRINGType("-refreshNodes")
+        Parameter refreshNodesCmd = new CONSTANTSTRINGType("-refreshServiceAcl")
                 .generateRandomParameter(null, null);
 
         params.add(refreshNodesCmd);

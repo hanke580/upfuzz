@@ -44,6 +44,10 @@ public class Report extends Dfsadmin {
         Parameter inmaintenanceOption = new ParameterType.OptionalType(
                 new CONSTANTSTRINGType("-inmaintenance"), null)
                         .generateRandomParameter(null, null);
+        // [-inmaintenance]
+        Parameter slownodesOption = new ParameterType.OptionalType(
+                new CONSTANTSTRINGType("-slownodes"), null)
+                        .generateRandomParameter(null, null);
 
         params.add(reportCmd);
         params.add(liveOption);
@@ -51,6 +55,7 @@ public class Report extends Dfsadmin {
         params.add(decommissioningOption);
         params.add(enteringmaintenanceOption);
         params.add(inmaintenanceOption);
+        params.add(slownodesOption);
     }
 
     @Override

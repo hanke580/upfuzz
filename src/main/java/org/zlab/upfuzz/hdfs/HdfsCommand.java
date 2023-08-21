@@ -4,6 +4,7 @@ import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.fuzzingengine.Config;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public abstract class HdfsCommand extends Command {
@@ -11,6 +12,7 @@ public abstract class HdfsCommand extends Command {
 
     public HdfsCommand(String subdir) {
         this.subdir = subdir;
+        initStorageTypeOptions();
     }
 
     @Override
@@ -18,7 +20,9 @@ public abstract class HdfsCommand extends Command {
         subdir = ((HdfsState) state).subdir;
     }
 
-    public void initStorageTypeOptions(List<String> storageTypeOptions) {
+    public List<String> storageTypeOptions = new LinkedList<>();
+
+    public void initStorageTypeOptions() {
         storageTypeOptions.add("RAM_DISK");
         if (Config.getConf().support_NVDIMM)
             storageTypeOptions.add("NVDIMM");

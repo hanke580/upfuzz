@@ -18,6 +18,7 @@ import org.zlab.upfuzz.Parameter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -699,4 +700,9 @@ public class Utilities {
         }
         return testIDs;
     }
+
+    public static long generateRandomLong(long min, long max) {
+        return ThreadLocalRandom.current().nextLong(min, max + 1);
+    }
+
 }
