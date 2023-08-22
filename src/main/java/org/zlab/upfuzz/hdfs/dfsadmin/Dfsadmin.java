@@ -21,19 +21,6 @@ public abstract class Dfsadmin extends HdfsCommand {
         return ret.toString();
     }
 
-    public String constructCommandStringWithDirSeparation() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("dfsadmin").append(" ");
-        int i = 0;
-        while (i < params.size() - 1) {
-            if (!params.get(i).toString().isEmpty())
-                sb.append(params.get(i)).append(" ");
-            i++;
-        }
-        sb.append(subdir).append(params.get(i));
-        return sb.toString();
-    }
-
     @Override
     public String toString() {
         return constructCommandString();

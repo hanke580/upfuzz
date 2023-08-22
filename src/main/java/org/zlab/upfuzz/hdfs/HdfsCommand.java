@@ -32,4 +32,17 @@ public abstract class HdfsCommand extends Command {
         if (Config.getConf().support_PROVIDED)
             storageTypeOptions.add("PROVIDED");
     }
+
+    public String constructCommandStringWithDirSeparation(String type) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(type).append(" ");
+        int i = 0;
+        while (i < params.size() - 1) {
+            if (!params.get(i).toString().isEmpty())
+                sb.append(params.get(i)).append(" ");
+            i++;
+        }
+        sb.append(subdir).append(params.get(i));
+        return sb.toString();
+    }
 }

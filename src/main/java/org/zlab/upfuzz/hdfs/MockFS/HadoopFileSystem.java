@@ -18,6 +18,8 @@ public class HadoopFileSystem implements Serializable {
     Set<String> files = new HashSet<>();
     Set<String> dirs = new HashSet<>();
 
+    Map<String, Set<String>> snapshotDir2Filename = new HashMap<>();
+
     public HadoopFileSystem() {
         dirs.add("/");
     }
@@ -92,15 +94,30 @@ public class HadoopFileSystem implements Serializable {
     }
 
     public void removeDir(String path) {
-        dirs.remove(path);
-
-        Set<String> updateFiles = new HashSet<>();
-        for (String file : files) {
-            if (!file.startsWith(path)) {
-                updateFiles.add(file);
+        Map<String, Set<String>> updatedSnapshotDir2Filename = new HashMap<>();
+        for (String dir : snapshotDir2Filename.keySet()) {
+            if (!dir.startsWith(path)) {
+                updatedSnapshotDir2Filename.put(dir,
+                        snapshotDir2Filename.get(dir));
             }
         }
-        files = updateFiles;
+        snapshotDir2Filename = updatedSnapshotDir2Filename;
+
+        Set<String> updatedDirs = new HashSet<>();
+        for (String dir : dirs) {
+            if (!dir.startsWith(path)) {
+                updatedDirs.add(dir);
+            }
+        }
+        dirs = updatedDirs;
+
+        Set<String> updatedFiles = new HashSet<>();
+        for (String file : files) {
+            if (!file.startsWith(path)) {
+                updatedFiles.add(file);
+            }
+        }
+        files = updatedFiles;
     }
 
     public boolean containsDir(String path) {
@@ -130,6 +147,20 @@ public class HadoopFileSystem implements Serializable {
         }
         return retDirs;
     }
+
+    public void createSnapShotFile(String dir, String filename) {
+        if (!snapshotDir2Filename.containsKey(dir)) {
+            snapshotDir2Filename.put(dir, new HashSet<>());
+        }
+        snapshotDir2Filename.get(dir).add(filename);
+    }
+
+    public void rmSnapShotFile(String dir, String filename) {
+        if (snapshotDir2Filename.containsKey(dir)) {
+            snapshotDir2Filename.get(dir).remove(filename);
+        }
+    }
+
     // --------Simple FS End--------
 
     public Integer remixHash(int x) {

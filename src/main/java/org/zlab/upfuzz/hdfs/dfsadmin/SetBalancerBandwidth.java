@@ -28,7 +28,7 @@ public class SetBalancerBandwidth extends Dfsadmin {
 
     @Override
     public String constructCommandString() {
-        return constructCommandStringWithDirSeparation();
+        return constructCommandStringWithDirSeparation("dfsadmin");
     }
 
     @Override
