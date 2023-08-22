@@ -66,6 +66,12 @@ public class Config {
                                        // test
         public int nodeNum = 3;
 
+        // ------------FeedBack------------
+        public boolean useCodeCoverage = true;
+        public boolean useLikelyInv = false;
+        public boolean collUpFeedBack = true;
+        public boolean userInvariant = true;
+
         // ------------Fault Injection-------------
         public boolean shuffleUpgradeOrder = false; // Whether shuffle the
                                                     // upgrade order
@@ -73,8 +79,6 @@ public class Config {
         public boolean alwaysRecoverFault = false;
         public float noRecoverProb = 0.5f;
 
-        public boolean useFeedBack = true;
-        public boolean collUpFeedBack = true;
         public int rebuildConnectionSecs = 5;
 
         // ------------Configuration Testing-------------
@@ -125,7 +129,6 @@ public class Config {
         public double oldCovRatio = 0.4;
 
         // ---------------Likely Inv-----------------
-        public boolean useLikelyInv = false;
         // if an invariant is broken over 20% test cases, ignore it
         public double ignoreInvRatio = 0.2;
         public int runtimeMonitorPort = 62000;

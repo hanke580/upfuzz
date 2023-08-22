@@ -865,14 +865,16 @@ public class FuzzingServer {
         }
 
         boolean addToCorpus = false;
-        if (Config.getConf().useFeedBack && Utilities.hasNewBits(curOriCoverage,
-                fb.originalCodeCoverage)) {
+        if (Config.getConf().useCodeCoverage
+                && Utilities.hasNewBits(curOriCoverage,
+                        fb.originalCodeCoverage)) {
             addToCorpus = true;
             curOriCoverage.merge(fb.originalCodeCoverage);
         }
 
-        if (Config.getConf().useFeedBack && Utilities.hasNewBits(curUpCoverage,
-                fb.upgradedCodeCoverage)) {
+        if (Config.getConf().useCodeCoverage
+                && Utilities.hasNewBits(curUpCoverage,
+                        fb.upgradedCodeCoverage)) {
             addToCorpus = true;
             curUpCoverage.merge(fb.upgradedCodeCoverage);
         }
@@ -943,7 +945,7 @@ public class FuzzingServer {
 
         FeedBack fb = mergeCoverage(testPlanFeedbackPacket.feedBacks);
         boolean addToCorpus = false;
-        if (Config.getConf().useFeedBack) {
+        if (Config.getConf().useCodeCoverage) {
             if (Utilities.hasNewBits(curOriCoverage,
                     fb.originalCodeCoverage)) {
                 addToCorpus = true;
@@ -1042,12 +1044,13 @@ public class FuzzingServer {
                     }
                 }
             }
-            if (Config.getConf().useFeedBack) {
-                boolean addToCorpus = false;
+
+            int score = 0;
+            boolean addToCorpus = false;
+            if (Config.getConf().useCodeCoverage) {
                 // Merge all the feedbacks
                 FeedBack fb = mergeCoverage(feedbackPacket.feedBacks);
 
-                int score = 0;
                 // priority feature is disabled
                 if (Config.getConf().usePriorityCov) {
                     int old_score = 0;
@@ -1084,7 +1087,8 @@ public class FuzzingServer {
                         addToCorpus = true;
                     }
                 }
-
+            }
+            if (Config.getConf().useLikelyInv) {
                 // cases that break invariants
                 if (feedbackPacket.breakNewInv) {
                     logger.info(String.format(
@@ -1094,32 +1098,32 @@ public class FuzzingServer {
                     score = Config.getConf().INVARIANT_PRIORITY_SCORE;
                     addToCorpus = true;
                 }
-
-                if (addToCorpus) {
-                    Seed seed = testID2Seed
-                            .get(feedbackPacket.testPacketID);
-
-                    if (Config.getConf().debug) {
-                        PriorityQueue<Seed> pqCopy = new PriorityQueue<>(
-                                corpus.queue);
-                        logger.debug("print queue info");
-                        while (!pqCopy.isEmpty()) {
-                            logger.debug("score = " + pqCopy.poll().score);
-                        }
-                    }
-
-                    seed.score = score;
-                    saveSeed(seed.originalCommandSequence,
-                            seed.validationCommandSequence);
-                    // logger.debug("valid res = "
-                    // + feedbackPacket.validationReadResults);
-                    fullStopCorpus.addSeed(
-                            new FullStopSeed(seed, feedbackPacket.nodeNum,
-                                    new HashMap<>(),
-                                    feedbackPacket.validationReadResults));
-                    corpus.addSeed(seed);
-                }
             }
+
+            if (addToCorpus) {
+                Seed seed = testID2Seed
+                        .get(feedbackPacket.testPacketID);
+
+                if (Config.getConf().debug) {
+                    PriorityQueue<Seed> pqCopy = new PriorityQueue<>(
+                            corpus.queue);
+                    logger.debug("print queue info");
+                    while (!pqCopy.isEmpty()) {
+                        logger.debug("score = " + pqCopy.poll().score);
+                    }
+                }
+                seed.score = score;
+                saveSeed(seed.originalCommandSequence,
+                        seed.validationCommandSequence);
+                // logger.debug("valid res = "
+                // + feedbackPacket.validationReadResults);
+                fullStopCorpus.addSeed(
+                        new FullStopSeed(seed, feedbackPacket.nodeNum,
+                                new HashMap<>(),
+                                feedbackPacket.validationReadResults));
+                corpus.addSeed(seed);
+            }
+
             if (feedbackPacket.isInconsistent) {
                 if (failureDir == null) {
                     failureDir = createFailureDir(
