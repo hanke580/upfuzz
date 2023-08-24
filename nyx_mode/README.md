@@ -56,7 +56,8 @@ cd $UPFUZZ_DIR/nyx_mode/ubuntu
 2. Download our predefined ubuntu image into `$UPFUZZ_DIR/nyx_mode/ubuntu`
 
 ```bash
-rsync --progress -e ssh /home/khan/ubuntu_install/ubuntu.img Tingjia@c220g5-110915.wisc.cloudlab.us:/users/Tingjia/project/upfuzz/nyx_mode/
+# The prebuild image is put inside mufasa server: /home/khan/ubuntu_install, there's clean state one and also a cassandra prebuild one.
+rsync --progress -e ssh /home/khan/ubuntu_install/cassandra_build/ubuntu.img Tingjia@c220g5-110915.wisc.cloudlab.us:/users/Tingjia/project/upfuzz/nyx_mode/
 ```
 > If you do not have the pre-defined image, unfold the following instructions.
 > Image location: mufasa server: /home/khan/ubuntu_install/ubuntu.img
@@ -238,7 +239,7 @@ bin/start_clients.sh 1 config.json
 cd ${UPFUZZ_DIR}
 export UPFUZZ_DIR=$PWD
 export ORI_VERSION=3.11.15
-export UP_VERSION=4.1.2
+export UP_VERSION=4.1.3
 mkdir -p "$UPFUZZ_DIR"/prebuild/cassandra
 cd prebuild/cassandra
 wget https://archive.apache.org/dist/cassandra/"$ORI_VERSION"/apache-cassandra-"$ORI_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$ORI_VERSION"-bin.tar.gz
