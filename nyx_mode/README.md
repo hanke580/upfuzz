@@ -1,6 +1,6 @@
 # Upfuzz Nyx Mode Install Guide
 
-This guide decribes how to quickly setup upfuzz with Nyx Mode. If you are instead looking for general information about nyx, read `nyx_knowledge_transfer.md`.
+This guide describes how to quickly setup upfuzz with Nyx Mode. If you are instead looking for general information about nyx, read `nyx_knowledge_transfer.md`.
 
 ## System Requirements
 
@@ -55,6 +55,9 @@ cd $UPFUZZ_DIR/nyx_mode/ubuntu
 
 2. Download our predefined ubuntu image into `$UPFUZZ_DIR/nyx_mode/ubuntu`
 
+```bash
+rsync --progress -e ssh /home/khan/ubuntu_install/ubuntu.img Tingjia@c220g5-110915.wisc.cloudlab.us:/users/Tingjia/project/upfuzz/nyx_mode/
+```
 > If you do not have the pre-defined image, unfold the following instructions.
 > Image location: mufasa server: /home/khan/ubuntu_install/ubuntu.img
 
@@ -116,9 +119,11 @@ cd ~
 ssh-keyscan github.com >> ~/.ssh/known_hosts
 git clone git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
-// test single version
+bin/setup_dependency.sh
+ 
+# test single version
 bin/cass_nyx_single_test.sh
-// test upgrade version
+# test upgrade version
 bin/cass_nyx_upgrade_test.sh
 ```
 </details>
