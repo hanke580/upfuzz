@@ -154,6 +154,8 @@ public class Config {
         // Count command
         public boolean support_e_opt = false; // > 2
         public double new_fs_state_prob = 0.005;
+        // Checksum
+        public boolean support_v_opt = false; // > 3.3.x
 
         @Override
         public String toString() {
