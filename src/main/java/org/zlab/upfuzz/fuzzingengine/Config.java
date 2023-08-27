@@ -70,7 +70,6 @@ public class Config {
         public boolean useCodeCoverage = true;
         public boolean useLikelyInv = false;
         public boolean collUpFeedBack = true;
-        public boolean userInvariant = true;
 
         // ------------Fault Injection-------------
         public boolean shuffleUpgradeOrder = false; // Whether shuffle the
@@ -154,6 +153,7 @@ public class Config {
         public boolean support_PROVIDED = false; // > 2
         // Count command
         public boolean support_e_opt = false; // > 2
+        public double new_fs_state_prob = 0.005;
 
         @Override
         public String toString() {
