@@ -156,6 +156,8 @@ public class Config {
         public double new_fs_state_prob = 0.005;
         // Checksum
         public boolean support_v_opt = false; // > 3.3.x
+        // Du
+        public boolean support_du_v_opt = false; // > 2
 
         @Override
         public String toString() {

@@ -3,6 +3,7 @@ package org.zlab.upfuzz.hdfs.dfs;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
+import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.HDFSDirPathType;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.HDFSFilePathType;
 import org.zlab.upfuzz.hdfs.HdfsState;
@@ -32,7 +33,8 @@ public class Du extends Dfs {
         params.add(cmd);
         params.add(opt1);
         params.add(opt2);
-        params.add(opt3);
+        if (Config.getConf().support_du_v_opt)
+            params.add(opt3);
         params.add(opt4);
         params.add(param);
     }
