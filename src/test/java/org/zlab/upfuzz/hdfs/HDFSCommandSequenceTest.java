@@ -15,30 +15,33 @@ public class HDFSCommandSequenceTest extends AbstractTest {
         Config.getConf().system = "hdfs";
 
         CommandPool hdfsCommandPool = new HdfsCommandPool();
-        Class<HdfsState> state = HdfsState.class;
+        Class<HdfsState> stateClass = HdfsState.class;
 
-        Seed seed = Executor.generateSeed(hdfsCommandPool, state, -1);
+        for (int i = 0; i < 2; i++) {
+            Seed seed = Executor.generateSeed(hdfsCommandPool, stateClass, -1);
+            assert seed != null;
+            System.out.println("write commands");
+            for (String str : seed.originalCommandSequence
+                    .getCommandStringList()) {
+                System.out.println(str);
+            }
 
-        assert seed != null;
-        System.out.println("write commands");
-        for (String str : seed.originalCommandSequence.getCommandStringList()) {
-            System.out.println(str);
-        }
+            System.out.println();
+            System.out.println("read commands");
+            for (String str : seed.validationCommandSequence
+                    .getCommandStringList()) {
+                System.out.println(str);
+            }
 
-        System.out.println();
-        System.out.println("read commands");
-        for (String str : seed.validationCommandSequence
-                .getCommandStringList()) {
-            System.out.println(str);
-        }
+            System.out.println("\n\n");
 
-        System.out.println("\n\n");
+            boolean status = seed.mutate(hdfsCommandPool, stateClass);
+            System.out.println("state = " + status);
 
-        boolean status = seed.mutate(hdfsCommandPool, state);
-        System.out.println("state = " + status);
-
-        for (String str : seed.originalCommandSequence.getCommandStringList()) {
-            System.out.println(str);
+            for (String str : seed.originalCommandSequence
+                    .getCommandStringList()) {
+                System.out.println(str);
+            }
         }
 
     }
