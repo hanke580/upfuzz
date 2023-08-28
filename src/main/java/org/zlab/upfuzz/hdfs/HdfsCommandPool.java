@@ -65,8 +65,10 @@ public class HdfsCommandPool extends CommandPool {
                         5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(Expunge.class, 5));
-        commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(Get.class, 5));
+        // Disable get for now, since this could cause problem when
+        // multiple tests are using the same Local FS => FP
+        // commandClassList.add(
+        // new AbstractMap.SimpleImmutableEntry<>(Get.class, 5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
                         Mkdir.class, 5));

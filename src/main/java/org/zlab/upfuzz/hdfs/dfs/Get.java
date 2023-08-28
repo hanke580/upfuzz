@@ -59,6 +59,19 @@ public class Get extends Dfs {
     }
 
     @Override
+    public String constructCommandString() {
+        return "dfs" + " " +
+                params.get(0) + " " +
+                params.get(1) + " " +
+                params.get(2) + " " +
+                params.get(3) + " " +
+                params.get(4) + " " +
+                subdir +
+                params.get(5) + " " +
+                params.get(6);
+    }
+
+    @Override
     public void updateState(State state) {
         HdfsState hdfsState = (HdfsState) state;
         Parameter srcParameter = params.get(5), dstParameter = params.get(6);
