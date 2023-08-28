@@ -158,6 +158,7 @@ public class Config {
         public boolean support_v_opt = false; // > 3.3.x
         // Du
         public boolean support_du_v_opt = false; // > 2
+        public boolean enable_du = false; // du can be tested for version > 2
 
         @Override
         public String toString() {

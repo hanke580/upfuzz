@@ -24,8 +24,9 @@ public class HdfsCommandPool extends CommandPool {
         // Df shows the used size, which might not be the same between versions.
         // readCommandClassList.add(
         // new AbstractMap.SimpleImmutableEntry<>(Df.class, 2));
-        readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(Du.class, 2));
+        if (Config.getConf().enable_du)
+            readCommandClassList.add(
+                    new AbstractMap.SimpleImmutableEntry<>(Du.class, 2));
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(Ls.class, 2));
         // dfs admin
