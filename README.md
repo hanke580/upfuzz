@@ -133,27 +133,27 @@ wget https://archive.apache.org/dist/hadoop/common/hadoop-"$ORI_VERSION"/hadoop-
 wget https://archive.apache.org/dist/hadoop/common/hadoop-"$UP_VERSION"/hadoop-"$UP_VERSION".tar.gz ; tar -xzvf hadoop-"$UP_VERSION".tar.gz
 
 # Switch java/javac to jdk8
-sudo update-alternatives --config java
-sudo update-alternatives --config javac
+# sudo update-alternatives --config java
+# sudo update-alternatives --config javac
 
 # old version hdfs daemon
 cp $UPFUZZ_DIR/src/main/resources/FsShellDaemon2.java $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$ORI_VERSION"/FsShellDaemon.java
 cd $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$ORI_VERSION"/
-javac -d . -cp "share/hadoop/hdfs/*:share/hadoop/common/*:share/hadoop/common/lib/*" FsShellDaemon.java
+/usr/lib/jvm/java-8-openjdk-amd64/bin/javac -d . -cp "share/hadoop/hdfs/*:share/hadoop/common/*:share/hadoop/common/lib/*" FsShellDaemon.java
 sed -i "s/elif \[ \"\$COMMAND\" = \"dfs\" \] ; then/elif [ \"\$COMMAND\" = \"dfsdaemon\" ] ; then\n  CLASS=org.apache.hadoop.fs.FsShellDaemon\n  HADOOP_OPTS=\"\$HADOOP_OPTS \$HADOOP_CLIENT_OPTS\"\n&/" bin/hdfs
 
 # new version hdfs daemon
 cp $UPFUZZ_DIR/src/main/resources/FsShellDaemon_trunk.java $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$UP_VERSION"/FsShellDaemon.java
 cd $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$UP_VERSION"/
-javac -d . -cp "share/hadoop/hdfs/*:share/hadoop/common/*:share/hadoop/common/lib/*" FsShellDaemon.java
+/usr/lib/jvm/java-8-openjdk-amd64/bin/javac -d . -cp "share/hadoop/hdfs/*:share/hadoop/common/*:share/hadoop/common/lib/*" FsShellDaemon.java
 sed -i "s/  case \${subcmd} in/&\n    dfsdaemon)\n      HADOOP_CLASSNAME=\"org.apache.hadoop.fs.FsShellDaemon\"\n    ;;/" bin/hdfs
 
 cd $UPFUZZ_DIR/src/main/resources/hdfs/compile-src/
 docker build . -t upfuzz_hdfs:hadoop-"$ORI_VERSION"_hadoop-"$UP_VERSION"
 
 # Switch java/javac to jdk11
-sudo update-alternatives --config java
-sudo update-alternatives --config javac
+# sudo update-alternatives --config java
+# sudo update-alternatives --config javac
 
 cd $UPFUZZ_DIR
 ./gradlew copyDependencies
