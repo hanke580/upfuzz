@@ -79,6 +79,9 @@ bin/start_clients.sh 1 config.json
 
 # stop testing:
 bin/cass_cl.sh
+
+# Check failures
+# python3 proc_failure.py cassandra &> /dev/null | python3 proc_failure.py read
 ```
 
 ### Test upgrade process
@@ -113,6 +116,9 @@ bin/start_clients.sh 1 config.json
 
 # stop testing:
 bin/cass_cl.sh
+
+# Check failures
+# python3 proc_failure.py cassandra &> /dev/null | python3 proc_failure.py read
 ```
 
 ## Minimal Set up for HDFS (Try upfuzz quickly!)
@@ -166,6 +172,9 @@ bin/start_clients.sh 1 hdfs_config.json
 
 # stop testing:
 bin/hdfs_cl.sh
+
+# Check failures
+# python3 proc_failure.py hdfs &> /dev/null | python3 proc_failure.py read
 ```
 
 ## Minimal Set up for HBase (Try upfuzz quickly!)
@@ -254,7 +263,6 @@ for the upgrade process.
 Important configurations
 - **testingMode**
   - 0: Full-Stop testing
-  - 1: Rolling upgrade testing
   - 4: Mixed full-stop&Rolling upgrade testing
 
 > Config test is disabled by default.
@@ -427,7 +435,7 @@ If the tool runs into problems, you can enter the container to check the log.
 
 ```bash
 ➜  upfuzz git:(main) ✗ docker ps   # get container id
-➜  upfuzz git:(main) ✗ ./en.sh CONTAINERID
+➜  upfuzz git:(main) ✗ bin/en.sh CONTAINERID
 root@1c8e314a12a9:/# supervisorctl
 sshd                             RUNNING   pid 8, uptime 0:01:03
 upfuzz_cassandra:cassandra       RUNNING   pid 9, uptime 0:01:03
