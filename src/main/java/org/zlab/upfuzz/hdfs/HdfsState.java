@@ -11,8 +11,9 @@ import org.zlab.upfuzz.hdfs.MockFS.LocalFileSystem;
 public class HdfsState extends State {
 
     public String subdir;
-    private static String localRoot;
-    public static HadoopFileSystem dfs;
+    public HadoopFileSystem dfs;
+
+    // reuse local fs
     public static LocalFileSystem lfs;
 
     static {
@@ -22,21 +23,23 @@ public class HdfsState extends State {
     public static void newLocalFSState() {
         String local_subdir = "/"
                 + RandomStringUtils.randomAlphabetic(8, 8 + 1);
-        localRoot = "/tmp/upfuzz/hdfs" + local_subdir;
-        dfs = new HadoopFileSystem();
+        // reuse lfs
+        String localRoot = "/tmp/upfuzz/hdfs" + local_subdir;
         lfs = new LocalFileSystem(localRoot);
-        randomize(0.6);
+        lfs.randomize(0.6);
     }
 
     public HdfsState() {
         subdir = "/" + RandomStringUtils.randomAlphabetic(8, 8 + 1);
+        dfs = new HadoopFileSystem();
+        dfs.randomize(0.6);
         // A small chance to use the new fs state
         if (RandomUtils.nextDouble(0, 1) < Config.getConf().new_fs_state_prob) {
             newLocalFSState();
         }
     }
 
-    public static void randomize(double ratio) {
+    public void randomize(double ratio) {
         dfs.randomize(ratio);
         lfs.randomize(ratio);
     }
