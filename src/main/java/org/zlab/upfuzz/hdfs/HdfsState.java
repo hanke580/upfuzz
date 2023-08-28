@@ -10,7 +10,7 @@ import org.zlab.upfuzz.hdfs.MockFS.LocalFileSystem;
 
 public class HdfsState extends State {
 
-    public static String subdir;
+    public String subdir;
     private static String localRoot;
     public static HadoopFileSystem dfs;
     public static LocalFileSystem lfs;
@@ -20,14 +20,16 @@ public class HdfsState extends State {
     }
 
     public static void newLocalFSState() {
-        subdir = "/" + RandomStringUtils.randomAlphabetic(8, 8 + 1);
-        localRoot = "/tmp/upfuzz/hdfs" + subdir;
+        String local_subdir = "/"
+                + RandomStringUtils.randomAlphabetic(8, 8 + 1);
+        localRoot = "/tmp/upfuzz/hdfs" + local_subdir;
         dfs = new HadoopFileSystem();
         lfs = new LocalFileSystem(localRoot);
         randomize(0.6);
     }
 
     public HdfsState() {
+        subdir = "/" + RandomStringUtils.randomAlphabetic(8, 8 + 1);
         // A small chance to use the new fs state
         if (RandomUtils.nextDouble(0, 1) < Config.getConf().new_fs_state_prob) {
             newLocalFSState();
