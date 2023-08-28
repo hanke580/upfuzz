@@ -24,12 +24,12 @@ public abstract class HdfsCommand extends Command {
 
     public void initStorageTypeOptions() {
         storageTypeOptions.add("RAM_DISK");
-        if (Config.getConf().support_NVDIMM)
+        if (Config.getConf().support_StorageType_NVDIMM)
             storageTypeOptions.add("NVDIMM");
         storageTypeOptions.add("SSD");
         storageTypeOptions.add("DISK");
         storageTypeOptions.add("ARCHIVE");
-        if (Config.getConf().support_PROVIDED)
+        if (Config.getConf().support_StorageType_PROVIDED)
             storageTypeOptions.add("PROVIDED");
     }
 

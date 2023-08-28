@@ -57,7 +57,7 @@ public class Count extends Dfs {
         params.add(countOptH);
         params.add(countOptV);
         params.add(countOptX);
-        if (Config.getConf().support_e_opt)
+        if (Config.getConf().support_count_e_opt)
             params.add(countOptE);
         params.add(countStorageType);
         params.add(countOptU);

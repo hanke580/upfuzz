@@ -25,7 +25,7 @@ public class Checksum extends Dfs {
                 .generateRandomParameter(state, null);
 
         params.add(catCmd);
-        if (Config.getConf().support_v_opt)
+        if (Config.getConf().support_checksum_v_opt)
             params.add(opt);
         params.add(destParameter);
     }
