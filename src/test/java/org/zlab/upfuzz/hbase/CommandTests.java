@@ -28,7 +28,6 @@ public class CommandTests extends AbstractTest {
 
     @BeforeAll
     public static void setUp() {
-        Config config = new Config();
         Config.instance.system = "hbase";
     }
 
