@@ -73,4 +73,15 @@ public class CommandTests extends AbstractTest {
         test01();
     }
 
+    @Test
+    public void testScanTimeMask() {
+        String a = "ROW  COLUMN+CELL\n" +
+                "0 row(s)\n" +
+                "Took 0.0116 seconds";
+        // If a string matches Took 0.0116 seconds, remove it
+        String b = Utilities.maskScanTime(a);
+        // System.out.println(b);
+        assert !b.contains("Took 0.0116 seconds");
+    }
+
 }

@@ -203,6 +203,10 @@ public class HBaseExecutor extends Executor {
                         Utilities.maskTimeStampHHSS(oriResult.get(i)));
                 String str2 = Utilities.maskTimeStampYYYYMMDD(
                         Utilities.maskTimeStampHHSS(upResult.get(i)));
+                // HBase unique: Mask Took 0.0052 seconds
+                str1 = Utilities.maskScanTime(str1);
+                str2 = Utilities.maskScanTime(str2);
+
                 if (str1.compareTo(str2) != 0) {
                     String errorMsg = "Result inconsistency at read id: " + i
                             + "\n";

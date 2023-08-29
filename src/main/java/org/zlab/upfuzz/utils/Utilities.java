@@ -705,4 +705,8 @@ public class Utilities {
         return ThreadLocalRandom.current().nextLong(min, max + 1);
     }
 
+    public static String maskScanTime(String s) {
+        return s.replaceAll("Took [0-9]+.[0-9]+ seconds", "");
+    }
+
 }
