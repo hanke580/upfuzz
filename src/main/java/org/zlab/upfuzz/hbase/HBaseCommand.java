@@ -14,7 +14,7 @@ import java.util.List;
 public abstract class HBaseCommand extends Command {
     public static final boolean DEBUG = false;
 
-    public static HBaseCommandPool hBaseCommandPool = new HBaseCommandPool();
+    public static HBaseCommandPool hbaseCommandPool = new HBaseCommandPool();
 
     public static Parameter chooseTable(State state, Command command,
             Object init) {

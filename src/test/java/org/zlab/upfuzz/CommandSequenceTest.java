@@ -1,19 +1,18 @@
 package org.zlab.upfuzz;
 
 import info.debatty.java.stringsimilarity.QGram;
-import java.lang.reflect.InvocationTargetException;
+
 import java.util.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.cassandra.*;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.server.Seed;
 
-public class CommandSequenceTests extends AbstractTest {
+public class CommandSequenceTest extends AbstractTest {
     protected final Logger logger = LogManager.getLogger(getClass());
 
     @Test

@@ -7,7 +7,7 @@ import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.server.Seed;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 
-public class HDFSCommandSequenceTest extends AbstractTest {
+public class CommandSequenceTest extends AbstractTest {
 
     @Test
     public void test() {
