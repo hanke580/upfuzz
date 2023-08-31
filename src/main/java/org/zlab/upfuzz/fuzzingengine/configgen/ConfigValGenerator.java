@@ -171,10 +171,10 @@ public class ConfigValGenerator {
             // vals.add("0");
             vals.add("1");
             boolean useDefault = false;
-            if (init != null) {
+            if (init != null && !init.equals("null")) {
                 int initVal;
                 try {
-                    initVal = Integer.parseInt(init);
+                    initVal = Utilities.parseInt(init);
                     if (initVal > 0) {
                         useDefault = true;
                         // can generate values using default

@@ -709,4 +709,11 @@ public class Utilities {
         return s.replaceAll("Took [0-9]+.[0-9]+ seconds", "");
     }
 
+    public static int parseInt(String str) {
+        if (str.equals("Integer.MAX_VALUE"))
+            return Integer.MAX_VALUE;
+        if (str.equals("Integer.MIN_VALUE"))
+            return Integer.MIN_VALUE;
+        return Integer.parseInt(str);
+    }
 }

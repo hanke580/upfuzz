@@ -288,6 +288,7 @@ public class FuzzingClient {
         if (this.previousConfigPath != null) {
             sameConfigAsLastTime = isSameConfig(this.previousConfigPath,
                     configPath);
+            logger.debug("Same config as last time: " + sameConfigAsLastTime);
         }
         if (this.previousConfigPath == null || !sameConfigAsLastTime) {
             // the miniClient will setup the distributed system according to the
