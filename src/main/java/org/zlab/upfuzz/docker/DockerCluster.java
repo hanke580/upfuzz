@@ -234,12 +234,14 @@ public abstract class DockerCluster implements IDockerCluster {
             }
         }
         // FIXME: special for hdfs, we move "create image" behind
-        try {
-            if (this instanceof HdfsDockerCluster) {
-                this.prepareUpgrade();
+        if (Config.getConf().prepareImageFirst) {
+            try {
+                if (this instanceof HdfsDockerCluster) {
+                    this.prepareUpgrade();
+                }
+            } catch (Exception e) {
+                logger.error("problem with hdfs preparation!");
             }
-        } catch (Exception e) {
-            logger.error("problem with hdfs preparation!");
         }
         return ret;
     }

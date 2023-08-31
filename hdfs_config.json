@@ -18,6 +18,7 @@
   "nyxFuzzSH": "nyx_mode/fuzz_no_pt.sh",
   "debug": false,
   "useExampleTestPlan": false,
+  "prepareImageFirst": true,
   "support_EC": false,
   "support_StorageType_PROVIDED": false,
   "support_count_e_opt": false,

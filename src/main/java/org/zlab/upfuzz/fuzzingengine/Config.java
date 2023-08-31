@@ -146,6 +146,10 @@ public class Config {
         public boolean eval_CASSANDRA13939 = false;
 
         // == hdfs ==
+        // If true: first create fsimage, then execute some commands
+        // to test the edits log replay. If false, no edits log will
+        // be replayed in the new version.
+        public boolean prepareImageFirst = true;
         public double new_fs_state_prob = 0.005;
 
         public boolean support_EC = false; // > 2
