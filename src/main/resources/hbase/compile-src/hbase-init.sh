@@ -5,6 +5,14 @@ if [[ -z $(grep -F "master" "/etc/hosts") ]];
 then
         echo ${HADOOP_IP}"   master" >> /etc/hosts
         echo "master written to host"
+        IP=$(hostname --ip-address | cut -f 1 -d ' ')
+        IP_MASK=$(echo $IP | cut -d "." -f -3)
+        HMaster_IP=$IP_MASK.2
+        HRegion1_IP=$IP_MASK.3
+        HRegion2_IP=$IP_MASK.4
+        echo ${HMaster_IP}"   hmaster" >> /etc/hosts
+        echo ${HRegion1_IP}"   hregion1" >> /etc/hosts
+        echo ${HRegion2_IP}"   hregion2" >> /etc/hosts
 fi
 
 mkdir -p ${HBASE_CONF}
