@@ -124,8 +124,10 @@ public class XmlGenerator extends ConfigFileGenerator {
         for (int i = 0; i < nodeNum; i++) {
             totalIP[i] = DockerCluster.getKthIP(hostIP, i);
         }
+        // curConfigurations.put("hbase.zookeeper.quorum",
+        // String.join(",", totalIP));
         curConfigurations.put("hbase.zookeeper.quorum",
-                String.join(",", totalIP));
+                "hmaster,hregion1,hregion2");
     }
 
     public static Map<String, String> parseXmlFile(Path filePath) {
