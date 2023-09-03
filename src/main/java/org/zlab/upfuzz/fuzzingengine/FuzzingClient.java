@@ -288,7 +288,6 @@ public class FuzzingClient {
         if (this.previousConfigPath != null) {
             sameConfigAsLastTime = isSameConfig(this.previousConfigPath,
                     configPath);
-            logger.debug("Same config as last time: " + sameConfigAsLastTime);
         }
         if (this.previousConfigPath == null || !sameConfigAsLastTime) {
             // the miniClient will setup the distributed system according to the
@@ -330,7 +329,6 @@ public class FuzzingClient {
                 e.printStackTrace();
                 return null;
             }
-
         }
         if (this.previousConfigPath == null) {
             this.libnyx.nyxNew();
@@ -370,6 +368,10 @@ public class FuzzingClient {
         try (DataInputStream in = new DataInputStream(new FileInputStream(
                 stackedFeedbackPath.toAbsolutePath().toString()))) {
             int intType = in.readInt();
+            if (intType == -1) {
+                logger.info("Executor startup error!");
+                return null;
+            }
             if (intType != PacketType.StackedFeedbackPacket.value) {
                 logger.info("Incorrect packet type hit");
                 return null;

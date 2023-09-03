@@ -261,6 +261,17 @@ int main(int argc, char **argv) {
         //hprintf("PACKET:::%c\n", output_pkt_ready);
 
         if(output_pkt_ready != ready_state_msg) {
+          if (output_pkt_ready == 'F')                                       // executor might have failed to start
+          {
+            hprintf("cAgent: got signal of failure from MiniClient \n");
+            kAFL_hypercall(HYPERCALL_KAFL_USER_FAST_ACQUIRE, 0);
+            int get_file_status_fdback = push_to_host("/miniClientWorkdir/stackedFeedbackPacket.ser");    
+            if (get_file_status_fdback == -1)
+              abort_operation("ERROR! Failed to transfer feedback test file to host.");
+            hprintf("cAgent: transferred the feedback file to the host \n");
+            kAFL_hypercall(HYPERCALL_KAFL_RELEASE, 0);
+            exit(0);
+          }
           abort_operation("Unable to startup the target system.");
           exit(1);
         }

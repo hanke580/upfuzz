@@ -96,11 +96,49 @@ public class MiniClientMain {
         }
 
         System.err.println("Init executor");
+        if (Config.getConf().verifyConfig) {
+            System.err.println("verifying configuration");
+            Executor executor = FuzzingClient.initExecutor(
+                    1, null, defaultConfigPath);
+            boolean startUpStatus = executor.startup();
+
+            if (!startUpStatus) {
+                System.err.println("config cannot start up old version");
+                executor.teardown();
+                return;
+            }
+            startUpStatus = executor.freshStartNewVersion();
+            executor.teardown();
+            if (!startUpStatus) {
+                System.err.println("config cannot start up new version");
+                return;
+            }
+        }
         Executor executor = FuzzingClient.initExecutor(
                 defaultStackedTestPacket.nodeNum, null, defaultConfigPath);
+        StackedFeedbackPacket stackedFeedbackPacket;
+        Path stackedFeedbackPath;
 
         if (!startUpExecutor(executor)) {
             // was unable to startup the docker system
+            List<Integer> list = new ArrayList<>();
+            list.add(-1);
+            System.err.println("Nyx MiniClient: Executor failed to start up!");
+            stackedFeedbackPacket = new StackedFeedbackPacket(
+                    "/home/nyx/upfuzz/config.json", list);
+            stackedFeedbackPath = Paths.get(workdir,
+                    "stackedFeedbackPacket.ser"); // "/miniClientWorkdir/stackedFeedbackPacket.ser"
+            try (DataOutputStream out = new DataOutputStream(
+                    new FileOutputStream(
+                            stackedFeedbackPath.toAbsolutePath().toString()))) {
+                String text = "-1";
+                byte[] bytes = text.getBytes("UTF-8");
+                out.write(bytes);
+                stackedFeedbackPacket.write(out);
+            } catch (IOException e) {
+                e.printStackTrace(System.err);
+                return;
+            }
             cAgent.print("F"); // F for failed
             return;
         } else {
@@ -126,10 +164,13 @@ public class MiniClientMain {
             return;
         }
 
-        StackedFeedbackPacket stackedFeedbackPacket = runTheTests(executor,
-                stackedTestPacket);
-        Path stackedFeedbackPath = Paths.get(workdir,
-                "stackedFeedbackPacket.ser"); // "/miniClientWorkdir/stackedFeedbackPacket.ser"
+        // StackedFeedbackPacket stackedFeedbackPacket = runTheTests(executor,
+        // stackedTestPacket);
+        stackedFeedbackPacket = runTheTests(executor, stackedTestPacket);
+        // Path stackedFeedbackPath = Paths.get(workdir,
+        // "stackedFeedbackPacket.ser"); //
+        // "/miniClientWorkdir/stackedFeedbackPacket.ser"
+        stackedFeedbackPath = Paths.get(workdir, "stackedFeedbackPacket.ser");
         try (DataOutputStream out = new DataOutputStream(new FileOutputStream(
                 stackedFeedbackPath.toAbsolutePath().toString()))) {
             stackedFeedbackPacket.write(out);
