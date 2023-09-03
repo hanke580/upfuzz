@@ -10,6 +10,7 @@ import org.zlab.upfuzz.AbstractTest;
 import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.cassandra.CassandraCommandPool;
+import org.zlab.upfuzz.cassandra.CassandraConfigGen;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.docker.DockerCluster;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPlanPacket;
@@ -69,7 +70,7 @@ public class FuzzingServerTest extends AbstractTest {
         try {
             DataOutputStream os = new DataOutputStream(
                     new FileOutputStream("tmp.txt"));
-            ConfigGen configGen = new ConfigGen();
+            ConfigGen configGen = new CassandraConfigGen();
 
             int configIdx = configGen.generateConfig();
             String configFileName = "test" + configIdx;

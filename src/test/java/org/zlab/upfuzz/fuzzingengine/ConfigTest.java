@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.zlab.upfuzz.cassandra.CassandraConfigGen;
 import org.zlab.upfuzz.fuzzingengine.Config.Configuration;
 import org.zlab.upfuzz.fuzzingengine.configgen.ConfigGen;
 
@@ -45,7 +46,7 @@ public class ConfigTest extends TestCase {
         if (true)
             return;
         logger.info(Config.getConf().upgradedVersion);
-        ConfigGen configGen = new ConfigGen();
+        ConfigGen configGen = new CassandraConfigGen();
         configGen.generateConfig();
     }
 }

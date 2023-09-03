@@ -22,20 +22,11 @@ public class ConfigValGenerator {
     // Input: configName, configName2Type, configName2Init,
     // Enum: enumName2Constants
 
-    // Output: configName: Set of values we want to test
-    // Since the type varies, we need to generate string? or for different
-    // types?
-    // try string first
     public Set<String> configs;
-    public Map<String, String> configName2Type;
-    public Map<String, String> config2Init;
-    public Map<String, List<String>> enumName2ConstantMap;
+    ConfigInfo configInfo;
 
     // (config1, config2) pair configurations
-    // implement some relation, smaller?
-    // for boolean, it should be conflict/same
-    // start from simple, int & smaller relationship
-
+    // Relation: val1 < val2
     public Map<String, String> pairConfigs = new HashMap<>();
 
     public static final int MAX_INT = 10000;
@@ -45,51 +36,32 @@ public class ConfigValGenerator {
 
     public ConfigValGenerator(
             Set<String> configs,
-            Map<String, String> configName2Type,
-            Map<String, String> config2Init,
-            Map<String, List<String>> enumName2ConstantMap) {
+            ConfigInfo configInfo) {
         // Generate values according to type
         this.configs = configs;
-        this.configName2Type = configName2Type;
-        this.config2Init = config2Init;
-        this.enumName2ConstantMap = enumName2ConstantMap;
+        this.configInfo = configInfo;
+        // override this function if pair configs are needed
+        constructPairs();
     }
 
-    public void constructPairConfig() {
-        // support int type configuration with smaller relation
-        // only for cassandra
-        Set<String> configs = new HashSet<>();
-        for (String config : this.configs) {
-            if (config.contains("warn_threshold")) {
-                String pConfig = config.replace("warn_threshold",
-                        "fail_threshold");
-                if (this.configs.contains(pConfig)) {
-                    pairConfigs.put(config, pConfig);
-                } else {
-                    configs.add(config);
-                }
-            } else {
-                configs.add(config);
-            }
-        }
-        this.configs = configs;
+    public void constructPairs() {
     }
 
     /**
-     * If config name contains size, we shrink it, othersize,
+     * If config name contains size, we shrink it, or
      * we generate them as usual
      */
     public Map<String, String> generateValues(boolean shrinkSize) {
         Map<String, String> config2Value = new HashMap<>();
 
         for (String config : configs) {
-            if (configName2Type.containsKey(config)) {
+            if (configInfo.config2type.containsKey(config)) {
                 String val;
-                String type = configName2Type.get(config);
-                String initValue = config2Init.get(config);
-                if (enumName2ConstantMap != null
-                        && enumName2ConstantMap.containsKey(type)) {
-                    val = generateValue(enumName2ConstantMap.get(type));
+                String type = configInfo.config2type.get(config);
+                String initValue = configInfo.config2init.get(config);
+                if (configInfo.enum2constants != null
+                        && configInfo.enum2constants.containsKey(type)) {
+                    val = generateValue(configInfo.enum2constants.get(type));
                 } else {
                     if (config.toLowerCase().contains("size"))
                         val = generateValue(config, type, initValue,
@@ -106,20 +78,23 @@ public class ConfigValGenerator {
         return config2Value;
     }
 
+    /**
+     * Relation between pair configs: val1 < val2
+     */
     public Map<String, String> generatePairValues(boolean shrinkSize) {
         Map<String, String> config2Value = new HashMap<>();
         for (String config : pairConfigs.keySet()) {
-            if (configName2Type.containsKey(config)) {
+            if (configInfo.config2type.containsKey(config)) {
                 // generate 2 values, assign them
                 String val1;
                 String val2;
 
-                String type = configName2Type.get(config);
-                String initValue = config2Init.get(config);
-                if (enumName2ConstantMap != null
-                        && enumName2ConstantMap.containsKey(type)) {
-                    val1 = generateValue(enumName2ConstantMap.get(type));
-                    val2 = generateValue(enumName2ConstantMap.get(type));
+                String type = configInfo.config2type.get(config);
+                String initValue = configInfo.config2init.get(config);
+                if (configInfo.enum2constants != null
+                        && configInfo.enum2constants.containsKey(type)) {
+                    val1 = generateValue(configInfo.enum2constants.get(type));
+                    val2 = generateValue(configInfo.enum2constants.get(type));
                 } else {
                     Pair<String, String> pairVal;
                     if (shrinkSize)
@@ -142,6 +117,10 @@ public class ConfigValGenerator {
         return config2Value;
     }
 
+    /**
+     * Core function to generate value according
+     * to config type
+     */
     public String generateValue(String config, String configType, String init,
             boolean shrinkSize) {
         if (configType == null) {

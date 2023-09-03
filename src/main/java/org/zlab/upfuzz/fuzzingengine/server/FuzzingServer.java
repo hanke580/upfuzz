@@ -19,6 +19,7 @@ import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.cassandra.CassandraCommandPool;
+import org.zlab.upfuzz.cassandra.CassandraConfigGen;
 import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.fuzzingengine.Config;
@@ -36,7 +37,9 @@ import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.FinalizeUpgrade;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.HDFSStopSNN;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.PrepareUpgrade;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.UpgradeOp;
+import org.zlab.upfuzz.hbase.HBaseConfigGen;
 import org.zlab.upfuzz.hdfs.HdfsCommandPool;
+import org.zlab.upfuzz.hdfs.HdfsConfigGen;
 import org.zlab.upfuzz.hdfs.HdfsExecutor;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.hbase.HBaseCommandPool;
@@ -134,20 +137,21 @@ public class FuzzingServer {
 
         // maintain the num of configuration files
         // read all configurations file name in a list
-        configGen = new ConfigGen();
-
         if (Config.getConf().system.equals("cassandra")) {
             executor = new CassandraExecutor();
             commandPool = new CassandraCommandPool();
             stateClass = CassandraState.class;
+            configGen = new CassandraConfigGen();
         } else if (Config.getConf().system.equals("hdfs")) {
             executor = new HdfsExecutor();
             commandPool = new HdfsCommandPool();
             stateClass = HdfsState.class;
+            configGen = new HdfsConfigGen();
         } else if (Config.getConf().system.equals("hbase")) {
             executor = new HBaseExecutor();
             commandPool = new HBaseCommandPool();
             stateClass = HBaseState.class;
+            configGen = new HBaseConfigGen();
         }
         Path targetSystemStatesPath = Paths.get(System.getProperty("user.dir"),
                 Config.getConf().targetSystemStateFile);

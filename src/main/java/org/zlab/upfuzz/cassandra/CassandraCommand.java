@@ -1,8 +1,6 @@
 package org.zlab.upfuzz.cassandra;
 
-import java.util.*;
 import org.zlab.upfuzz.*;
-import org.zlab.upfuzz.ParameterType.FrontSubsetType;
 import org.zlab.upfuzz.utils.*;
 
 /**
