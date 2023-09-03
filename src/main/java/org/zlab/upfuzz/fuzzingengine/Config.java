@@ -82,7 +82,6 @@ public class Config {
 
         // ------------Configuration Testing-------------
         public boolean verifyConfig = false;
-        public boolean exportComposeOnly = false;
         public String configDir = "configtests";
 
         // single version

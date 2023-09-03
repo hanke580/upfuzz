@@ -45,19 +45,17 @@ public class HBaseExecutor extends Executor {
 
         dockerCluster = new HBaseDockerCluster(this,
                 Config.getConf().originalVersion,
-                nodeNum, null, configPath, exportComposeOnly);
+                nodeNum, null, configPath);
     }
 
     public HBaseExecutor(int nodeNum,
-            Set<String> targetSystemStates, Path configPath,
-            Boolean exportComposeOnly) {
+            Set<String> targetSystemStates, Path configPath) {
         super("hbase", nodeNum);
 
         timestamp = System.currentTimeMillis();
 
         this.targetSystemStates = targetSystemStates;
         this.configPath = configPath;
-        this.exportComposeOnly = exportComposeOnly;
 
         agentStore = new HashMap<>();
         agentHandler = new HashMap<>();
@@ -74,7 +72,7 @@ public class HBaseExecutor extends Executor {
 
         dockerCluster = new HBaseDockerCluster(this,
                 Config.getConf().originalVersion,
-                nodeNum, null, configPath, exportComposeOnly);
+                nodeNum, null, configPath);
     }
 
     public boolean isHBaseReady(String HBasePath) {
@@ -107,11 +105,6 @@ public class HBaseExecutor extends Executor {
         } catch (Exception e) {
             logger.error("docker cluster cannot build with exception: ", e);
             return false;
-        }
-
-        if (exportComposeOnly) {
-            dockerCluster.start();
-            return true;
         }
 
         logger.info("[Old Version] HBase Start...");

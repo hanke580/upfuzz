@@ -22,6 +22,5 @@
   "nyxFuzzSH": "nyx_mode/fuzz_no_pt.sh",
   "debug": false,
   "collUpFeedBack": true,
-  "exportComposeOnly": false,
-  "startUpClusterForDebugging": false 
+  "startUpClusterForDebugging": false
 }

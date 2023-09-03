@@ -29,10 +29,8 @@ public class HdfsDockerCluster extends DockerCluster {
     };
 
     HdfsDockerCluster(HdfsExecutor executor, String version,
-            int nodeNum, Set<String> targetSystemStates, Path configPath,
-            Boolean exportComposeOnly) {
-        super(executor, version, nodeNum, targetSystemStates,
-                exportComposeOnly);
+            int nodeNum, Set<String> targetSystemStates, Path configPath) {
+        super(executor, version, nodeNum, targetSystemStates);
 
         this.dockers = new HdfsDocker[nodeNum];
         this.namenodeIP = DockerCluster.getKthIP(hostIP, 0); // 2 means the
@@ -136,10 +134,6 @@ public class HdfsDockerCluster extends DockerCluster {
     }
 
     public void teardown() {
-        if (exportComposeOnly) {
-            return;
-        }
-
         // Chmod so that we can read/write them on the host machine
         try {
             for (int i = 0; i < dockers.length; ++i) {

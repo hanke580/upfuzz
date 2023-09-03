@@ -35,9 +35,6 @@ public class ConfigGen {
 
     ConfigValGenerator testConfigValGenerator; // For single version
 
-    String hostIP;
-    int nodeNum;
-
     ObjectMapper mapper = new ObjectMapper();
 
     static Set<String> cassandraConfigBlackList = new HashSet<>();
@@ -49,10 +46,8 @@ public class ConfigGen {
                 .add("minimum_replication_factor_fail_threshold");
         cassandraConfigBlackList
                 .add("user_defined_functions_threads_enabled");
-
         cassandraConfigBlackList
                 .add("concurrent_validations");
-
     }
 
     public void initSingleVersion() {
@@ -318,22 +313,6 @@ public class ConfigGen {
             initSingleVersion();
         } else {
             initUpgradeVersion();
-        }
-    }
-
-    public ConfigGen(int nodeNum, String IP) {
-        this();
-        SetConfig(nodeNum, IP);
-    }
-
-    public void SetConfig(int nodeNum, String IP) {
-        this.nodeNum = nodeNum;
-        this.hostIP = IP;
-        for (int i = 0; i < configFileGenerator.length; i++) {
-            configFileGenerator[i].SetConfig(nodeNum, IP);
-        }
-        for (int i = 0; i < extraGenerator.length; i++) {
-            extraGenerator[i].SetConfig(nodeNum, IP);
         }
     }
 

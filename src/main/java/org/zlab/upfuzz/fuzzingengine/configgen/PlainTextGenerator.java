@@ -1,10 +1,7 @@
 package org.zlab.upfuzz.fuzzingengine.configgen;
 
-import java.io.File;
+import java.io.*;
 import java.nio.file.Path;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Map;
 import org.zlab.upfuzz.docker.DockerCluster;
 import org.apache.logging.log4j.LogManager;
@@ -40,23 +37,20 @@ public class PlainTextGenerator extends ConfigFileGenerator {
         Path oriSavePath = oriConfig.resolve(defaultFilePath.getFileName());
         Path upSavePath = upConfig.resolve(defaultNewFilePath.getFileName());
         if (generationType.equals("regionservers") && nodeNum > 0) {
-            String[] RegionIPs = new String[nodeNum - 1];
-            for (int i = 0; i < nodeNum - 1; i++) {
-                RegionIPs[i] = new String(
-                        DockerCluster.getKthIP(hostIP, i + 1));
-            }
-            String RegionServerIPs = String.join("\n", RegionIPs) + "\n";
-            try (FileOutputStream output1 = new FileOutputStream(
-                    oriSavePath.toFile());
-                    FileOutputStream output2 = new FileOutputStream(
-                            upSavePath.toFile())) {
-                output1.write(RegionServerIPs.getBytes());
-                output2.write(RegionServerIPs.getBytes());
+            try {
+                FileWriter writerOri = new FileWriter(oriSavePath.toFile());
+                writerOri.write("hregion1\n");
+                writerOri.write("hregion2\n");
+                writerOri.close();
+
+                FileWriter writerUp = new FileWriter(oriSavePath.toFile());
+                writerUp.write("hregion1\n");
+                writerUp.write("hregion2\n");
+                writerUp.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
-
         return fileNameIdx++;
     }
 

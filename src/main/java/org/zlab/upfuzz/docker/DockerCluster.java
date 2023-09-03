@@ -30,7 +30,6 @@ public abstract class DockerCluster implements IDockerCluster {
     public String originalVersion;
     public String upgradedVersion;
 
-    public Boolean exportComposeOnly;
     public int nodeNum;
     public String networkID;
     public Executor executor;
@@ -68,7 +67,6 @@ public abstract class DockerCluster implements IDockerCluster {
                 Config.getConf().originalVersion,
                 Config.getConf().upgradedVersion,
                 UUID.randomUUID());
-        this.exportComposeOnly = false;
         this.subnetID = RandomUtils.nextInt(1, 256);
         this.subnet = "192.168." + subnetID + ".1/24";
         this.hostIP = "192.168." + subnetID + ".1";
@@ -104,13 +102,6 @@ public abstract class DockerCluster implements IDockerCluster {
         }
     }
 
-    public DockerCluster(Executor executor, String version,
-            int nodeNum, Set<String> targetSystemStates,
-            Boolean exportComposeOnly) {
-        this(executor, version, nodeNum, targetSystemStates);
-        this.exportComposeOnly = exportComposeOnly;
-    }
-
     public int getFirstLiveNodeIdx() {
         int idx = -1;
         for (int i = 0; i < nodeNum; i++) {
@@ -131,22 +122,6 @@ public abstract class DockerCluster implements IDockerCluster {
         File composeFile = new File(workdir, "docker-compose.yaml");
         if (!workdir.exists()) {
             workdir.mkdirs();
-        }
-
-        if (exportComposeOnly) {
-            try {
-                BufferedWriter writer = new BufferedWriter(
-                        new FileWriter(composeFile));
-
-                formatComposeYaml();
-                composeFile.createNewFile();
-                writer.write(composeYaml);
-                writer.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-                throw new RuntimeException(e.toString());
-            }
-            return 0;
         }
 
         Process buildProcess = null;

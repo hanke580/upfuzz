@@ -120,12 +120,8 @@ public class XmlGenerator extends ConfigFileGenerator {
                 "hdfs://master:8020/hbase");
         curConfigurations.put("hbase.zookeeper.property.dataDir",
                 "/usr/local/zookeeper");
-        String[] totalIP = new String[nodeNum];
-        for (int i = 0; i < nodeNum; i++) {
-            totalIP[i] = DockerCluster.getKthIP(hostIP, i);
-        }
         curConfigurations.put("hbase.zookeeper.quorum",
-                String.join(",", totalIP));
+                "hmaster,hregion1,hregion2");
     }
 
     public static Map<String, String> parseXmlFile(Path filePath) {
