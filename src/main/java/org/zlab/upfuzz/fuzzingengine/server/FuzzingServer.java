@@ -149,9 +149,6 @@ public class FuzzingServer {
             commandPool = new HBaseCommandPool();
             stateClass = HBaseState.class;
         }
-        configGen.SetConfig(executor.dockerCluster.nodeNum,
-                executor.dockerCluster.hostIP);
-
         Path targetSystemStatesPath = Paths.get(System.getProperty("user.dir"),
                 Config.getConf().targetSystemStateFile);
         try {

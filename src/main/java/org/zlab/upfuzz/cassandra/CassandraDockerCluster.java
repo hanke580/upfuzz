@@ -25,19 +25,8 @@ public class CassandraDockerCluster extends DockerCluster {
     static final String excludes = "org.apache.cassandra.metrics.*:org.apache.cassandra.net.*:org.apache.cassandra.io.sstable.format.SSTableReader.*:org.apache.cassandra.service.*";
 
     CassandraDockerCluster(CassandraExecutor executor, String version,
-            int nodeNum) {
-        super(executor, version, nodeNum, null);
-
-        this.dockers = new CassandraDocker[nodeNum];
-        this.seedIP = DockerCluster.getKthIP(hostIP, 0);
-        initBlackListErrorLog();
-    }
-
-    CassandraDockerCluster(CassandraExecutor executor, String version,
-            int nodeNum, Set<String> targetSystemStates, Path configPath,
-            Boolean exportComposeOnly) {
-        super(executor, version, nodeNum, targetSystemStates,
-                exportComposeOnly);
+            int nodeNum, Set<String> targetSystemStates, Path configPath) {
+        super(executor, version, nodeNum, targetSystemStates);
 
         this.dockers = new CassandraDocker[nodeNum];
         this.seedIP = DockerCluster.getKthIP(hostIP, 0);
@@ -72,10 +61,6 @@ public class CassandraDockerCluster extends DockerCluster {
     }
 
     public void teardown() {
-        if (exportComposeOnly) {
-            return;
-        }
-
         // Chmod so that we can read/write them on the host machine
         try {
             for (Docker docker : dockers) {

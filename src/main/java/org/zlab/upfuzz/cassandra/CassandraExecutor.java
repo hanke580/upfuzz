@@ -37,18 +37,16 @@ public class CassandraExecutor extends Executor {
 
         dockerCluster = new CassandraDockerCluster(
                 this, Config.getConf().originalVersion,
-                nodeNum, targetSystemStates, configPath, exportComposeOnly);
+                nodeNum, targetSystemStates, configPath);
     }
 
     public CassandraExecutor(int nodeNum,
-            Set<String> targetSystemStates, Path configPath,
-            Boolean exportComposeOnly) {
+            Set<String> targetSystemStates, Path configPath) {
         super("cassandra", nodeNum);
 
         timestamp = System.currentTimeMillis();
         this.targetSystemStates = targetSystemStates;
         this.configPath = configPath;
-        this.exportComposeOnly = exportComposeOnly;
         agentStore = new HashMap<>();
         agentHandler = new HashMap<>();
         sessionGroup = new ConcurrentHashMap<>();
@@ -68,18 +66,13 @@ public class CassandraExecutor extends Executor {
 
         dockerCluster = new CassandraDockerCluster(
                 this, Config.getConf().originalVersion,
-                nodeNum, targetSystemStates, configPath, exportComposeOnly);
+                nodeNum, targetSystemStates, configPath);
 
         try {
             dockerCluster.build();
         } catch (Exception e) {
             logger.error("docker cluster cannot build with exception: ", e);
             return false;
-        }
-
-        if (exportComposeOnly) {
-            dockerCluster.start();
-            return true;
         }
 
         // May change classToIns according to the system...

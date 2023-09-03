@@ -46,10 +46,8 @@ public class HBaseDockerCluster extends DockerCluster {
     }
 
     HBaseDockerCluster(HBaseExecutor executor, String version,
-            int nodeNum, Set<String> targetSystemStates, Path configPath,
-            Boolean exportComposeOnly) {
-        super(executor, version, nodeNum, targetSystemStates,
-                exportComposeOnly);
+            int nodeNum, Set<String> targetSystemStates, Path configPath) {
+        super(executor, version, nodeNum, targetSystemStates);
 
         this.dockers = new HBaseDocker[nodeNum];
         this.extranodes = new HBaseHDFSDocker[1];
@@ -81,10 +79,6 @@ public class HBaseDockerCluster extends DockerCluster {
     }
 
     public void teardown() {
-        if (exportComposeOnly) {
-            return;
-        }
-
         // Chmod so that we can read/write them on the host machine
         try {
             for (Docker docker : dockers) {
