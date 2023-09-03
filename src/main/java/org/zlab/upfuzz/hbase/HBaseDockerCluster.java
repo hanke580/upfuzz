@@ -54,22 +54,6 @@ public class HBaseDockerCluster extends DockerCluster {
         this.dockers = new HBaseDocker[nodeNum];
         this.extranodes = new HBaseHDFSDocker[1];
         this.configpath = configPath;
-        if (configPath != null) {
-            Path regionserverPath = Paths.get(configPath.toString(),
-                    "oriconfig/regionservers");
-            try {
-                File regionserverFile = new File(regionserverPath.toString());
-                Scanner regionserverScanner = new Scanner(regionserverFile);
-                this.hostIP = DockerCluster.getKthIP(
-                        regionserverScanner.nextLine(),
-                        -1);
-                regionserverScanner.close();
-            } catch (FileNotFoundException e) {
-                logger.error("[HKLOG] can not find regionserver file.");
-            }
-            this.subnet = hostIP + "/24";
-        }
-
         this.seedIP = DockerCluster.getKthIP(hostIP, 0);
     }
 
