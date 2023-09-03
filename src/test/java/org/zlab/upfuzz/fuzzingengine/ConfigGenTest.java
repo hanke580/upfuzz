@@ -27,8 +27,9 @@ public class ConfigGenTest {
         Config.instance.testDeletedConfig = true;
     }
 
-    // @Test
+    @Test
     public void test() {
+        Config.instance.testSingleVersion = true;
         ConfigGen configGen = new CassandraConfigGen();
         configGen.generateConfig();
     }

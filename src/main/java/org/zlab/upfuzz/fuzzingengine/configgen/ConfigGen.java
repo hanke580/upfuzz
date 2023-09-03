@@ -33,101 +33,29 @@ public abstract class ConfigGen {
     public ConfigInfo upConfigInfo;
 
     // single version testing
-    public Set<String> testConfig;
-    public ConfigValGenerator testConfigValGenerator;
+    public Set<String> singleConfig;
+    public ConfigValGenerator singleConfigValGenerator;
 
     public ConfigGen() {
-        initConfigInfo();
-        initFileGenerator();
-        initValGenerator();
+        if (Config.getConf().testSingleVersion)
+            initSingleTesting();
+        else
+            initUpgradeTesting();
     }
 
-    public abstract void updateConfigBlackList();
-
-    public abstract void initFileGenerator();
-
-    public void initValGenerator() {
-        commonConfigValGenerator = new ConfigValGenerator(commonConfig,
-                oriConfigInfo);
-        addedConfigValGenerator = new ConfigValGenerator(addedConfig,
-                upConfigInfo);
-        deletedConfigValGenerator = new ConfigValGenerator(
-                deletedConfig,
-                oriConfigInfo);
+    public void initUpgradeTesting() {
+        initUpgradeConfigInfo();
+        initUpgradeFileGenerator();
+        initUpgradeValGenerator();
     }
 
-    // public void initSingleVersion() {
-    // Path oldVersionPath = Paths.get(System.getProperty("user.dir"),
-    // "prebuild", Config.getConf().system,
-    // Config.getConf().originalVersion);
-    //
-    // Path generateFolderPath = Paths.get(System.getProperty("user.dir"),
-    // Config.getConf().configDir,
-    // Config.getConf().originalVersion);
-    //
-    // switch (Config.getConf().system) {
-    // case "cassandra": {
-    // Path defaultConfigPath = Paths.get(oldVersionPath.toString(),
-    // "conf/cassandra.yaml");
-    // configFileGenerator = new YamlGenerator[1];
-    // configFileGenerator[0] = new YamlGenerator(defaultConfigPath,
-    // generateFolderPath);
-    // extraGenerator = new PlainTextGenerator[0];
-    // break;
-    // }
-    // default:
-    // assert false : Config.getConf().system +
-    // " is not tested for single version mode";
-    // }
-    //
-    // Path configInfoPath = Paths.get(System.getProperty("user.dir"),
-    // "configInfo", Config.getConf().originalVersion);
-    // Path config2typePath = configInfoPath
-    // .resolve("config2Type.json");
-    // Path config2initPath = configInfoPath
-    // .resolve("config2Init.json");
-    // Path enum2constantPath = configInfoPath
-    // .resolve("enum2Constant.json");
-    //
-    // try {
-    // oriConfigName2Type = mapper.readValue(
-    // config2typePath.toFile(),
-    // HashMap.class);
-    // oriConfig2Init = mapper.readValue(config2initPath.toFile(),
-    // HashMap.class);
-    // oriEnumName2ConstantMap = mapper
-    // .readValue(enum2constantPath.toFile(), HashMap.class);
-    // testConfig = oriConfig2Init.keySet();
-    // } catch (IOException e) {
-    // e.printStackTrace();
-    // throw new RuntimeException("missing configuration test files!");
-    // }
-    //
-    // switch (Config.getConf().system) {
-    // case "cassandra": {
-    // testConfig = removeBlacklistConfig(testConfig,
-    // cassandraConfigBlackList);
-    // testConfigValGenerator = new ConfigValGenerator(testConfig,
-    // oriConfigName2Type, oriConfig2Init,
-    // oriEnumName2ConstantMap);
-    // testConfigValGenerator.constructPairConfig();
-    // break;
-    // }
-    // case "hdfs": {
-    // testConfigValGenerator = new ConfigValGenerator(testConfig,
-    // oriConfigName2Type, oriConfig2Init,
-    // oriEnumName2ConstantMap);
-    // break;
-    // }
-    // default: {
-    // throw new RuntimeException(
-    // "configuration is not support yet for system "
-    // + Config.getConf().system);
-    // }
-    // }
-    // }
+    public void initSingleTesting() {
+        initSingleConfigInfo();
+        initSingleFileGenerator();
+        initSingleValGenerator();
+    }
 
-    public void initConfigInfo() {
+    public void initUpgradeConfigInfo() {
         oldVersionPath = Paths.get(System.getProperty("user.dir"),
                 "prebuild", Config.getConf().system,
                 Config.getConf().originalVersion);
@@ -170,15 +98,71 @@ public abstract class ConfigGen {
             throw new RuntimeException("missing configuration test files!" + e);
         }
         // update config black list
-        removeBlackListConfigs();
+        removeUpgradeBlackListConfigs();
     }
 
-    public void removeBlackListConfigs() {
+    public void initSingleConfigInfo() {
+        oldVersionPath = Paths.get(System.getProperty("user.dir"),
+                "prebuild", Config.getConf().system,
+                Config.getConf().originalVersion);
+        depSystemPath = null;
+        if (Config.getConf().depSystem != null) {
+            depSystemPath = Paths.get(System.getProperty("user.dir"),
+                    "prebuild", Config.getConf().depSystem,
+                    Config.getConf().depVersion);
+        }
+        generateFolderPath = Paths.get(System.getProperty("user.dir"),
+                Config.getConf().configDir,
+                Config.getConf().originalVersion);
+        Path configInfoPath = Paths.get(System.getProperty("user.dir"),
+                "configInfo", Config.getConf().originalVersion);
+
+        try {
+            oriConfigInfo = ConfigInfo.constructConfigInfo(
+                    configInfoPath.resolve("config2Type.json"),
+                    configInfoPath.resolve("config2Init.json"),
+                    configInfoPath.resolve("enum2Constant.json"));
+        } catch (IOException e) {
+            throw new RuntimeException("missing configuration test files!" + e);
+        }
+        // update config black list
+
+        singleConfig = new HashSet<>(oriConfigInfo.config2type.keySet());
+        removeSingleBlackListConfigs();
+    }
+
+    public abstract void updateConfigBlackList();
+
+    public abstract void initUpgradeFileGenerator();
+
+    public abstract void initSingleFileGenerator();
+
+    public void initUpgradeValGenerator() {
+        commonConfigValGenerator = new ConfigValGenerator(commonConfig,
+                oriConfigInfo);
+        addedConfigValGenerator = new ConfigValGenerator(addedConfig,
+                upConfigInfo);
+        deletedConfigValGenerator = new ConfigValGenerator(
+                deletedConfig,
+                oriConfigInfo);
+    }
+
+    public void initSingleValGenerator() {
+        singleConfigValGenerator = new ConfigValGenerator(singleConfig,
+                oriConfigInfo);
+    };
+
+    public void removeUpgradeBlackListConfigs() {
         commonConfig = removeBlacklistConfig(commonConfig,
                 configBlackList);
         addedConfig = removeBlacklistConfig(addedConfig,
                 configBlackList);
         deletedConfig = removeBlacklistConfig(deletedConfig,
+                configBlackList);
+    }
+
+    public void removeSingleBlackListConfigs() {
+        singleConfig = removeBlacklistConfig(singleConfig,
                 configBlackList);
     }
 
@@ -205,7 +189,7 @@ public abstract class ConfigGen {
         Map<String, String> oriConfigtest = new HashMap<>();
         if (Config.getConf().testConfig) {
             Map<String, String> filteredConfigTest = filteredConfigTestGen(
-                    testConfigValGenerator, true,
+                    singleConfigValGenerator, true,
                     Config.getConf().testSingleVersionConfigRatio);
             oriConfigtest.putAll(filteredConfigTest);
         }

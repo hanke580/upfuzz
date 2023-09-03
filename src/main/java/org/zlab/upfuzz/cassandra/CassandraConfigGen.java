@@ -8,7 +8,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class CassandraConfigGen extends ConfigGen {
-
     @Override
     public void updateConfigBlackList() {
         configBlackList
@@ -22,7 +21,7 @@ public class CassandraConfigGen extends ConfigGen {
     }
 
     @Override
-    public void initFileGenerator() {
+    public void initUpgradeFileGenerator() {
         Path defaultConfigPath = Paths.get(oldVersionPath.toString(),
                 "conf/cassandra.yaml");
         Path defaultNewConfigPath = Paths.get(newVersionPath.toString(),
@@ -34,7 +33,17 @@ public class CassandraConfigGen extends ConfigGen {
     }
 
     @Override
-    public void initValGenerator() {
+    public void initSingleFileGenerator() {
+        Path defaultConfigPath = Paths.get(oldVersionPath.toString(),
+                "conf/cassandra.yaml");
+        configFileGenerator = new YamlGenerator[1];
+        configFileGenerator[0] = new YamlGenerator(defaultConfigPath,
+                generateFolderPath);
+        extraGenerator = new PlainTextGenerator[0];
+    }
+
+    @Override
+    public void initUpgradeValGenerator() {
         // specialize ConfigValGenerator for Cassandra
         commonConfigValGenerator = new CassandraConfigValGenerator(commonConfig,
                 oriConfigInfo);
@@ -42,6 +51,13 @@ public class CassandraConfigGen extends ConfigGen {
                 upConfigInfo);
         deletedConfigValGenerator = new CassandraConfigValGenerator(
                 deletedConfig,
+                oriConfigInfo);
+    }
+
+    @Override
+    public void initSingleValGenerator() {
+        // specialize ConfigValGenerator for Cassandra
+        singleConfigValGenerator = new CassandraConfigValGenerator(singleConfig,
                 oriConfigInfo);
     }
 }

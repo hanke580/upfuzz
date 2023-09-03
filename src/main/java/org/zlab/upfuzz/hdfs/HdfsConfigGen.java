@@ -14,7 +14,7 @@ public class HdfsConfigGen extends ConfigGen {
     }
 
     @Override
-    public void initFileGenerator() {
+    public void initUpgradeFileGenerator() {
         Path defaultConfigPath = Paths.get(oldVersionPath.toString(),
                 "etc/hadoop/hdfs-site.xml");
         Path defaultNewConfigPath = Paths.get(newVersionPath.toString(),
@@ -22,6 +22,16 @@ public class HdfsConfigGen extends ConfigGen {
         configFileGenerator = new XmlGenerator[1];
         configFileGenerator[0] = new XmlGenerator(defaultConfigPath,
                 defaultNewConfigPath, generateFolderPath);
+        extraGenerator = new PlainTextGenerator[0];
+    }
+
+    @Override
+    public void initSingleFileGenerator() {
+        Path defaultConfigPath = Paths.get(oldVersionPath.toString(),
+                "etc/hadoop/hdfs-site.xml");
+        configFileGenerator = new XmlGenerator[1];
+        configFileGenerator[0] = new XmlGenerator(defaultConfigPath,
+                generateFolderPath);
         extraGenerator = new PlainTextGenerator[0];
     }
 }

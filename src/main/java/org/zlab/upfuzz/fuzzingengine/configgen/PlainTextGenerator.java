@@ -24,6 +24,13 @@ public class PlainTextGenerator extends ConfigFileGenerator {
         this.generationType = generationType;
     }
 
+    public PlainTextGenerator(Path defaultFilePath, String generationType,
+            Path generateFolderPath) {
+        super(generateFolderPath);
+        this.defaultFilePath = defaultFilePath;
+        this.generationType = generationType;
+    }
+
     public int generate(Map<String, String> key2vals,
             Map<String, String> key2type,
             Map<String, String> newkey2vals,
