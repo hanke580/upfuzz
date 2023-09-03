@@ -3,16 +3,22 @@ set -euo pipefail
 
 if [[ -z $(grep -F "master" "/etc/hosts") ]];
 then
-        echo ${HADOOP_IP}"   master" >> /etc/hosts
+        if [ -e "/etc/tmp_hosts" ]; then
+          rm "/etc/tmp_hosts"
+        fi
+        touch /etc/tmp_hosts
+        echo ${HADOOP_IP}"   master" >> /etc/tmp_hosts
         echo "master written to host"
         IP=$(hostname --ip-address | cut -f 1 -d ' ')
         IP_MASK=$(echo $IP | cut -d "." -f -3)
         HMaster_IP=$IP_MASK.2
         HRegion1_IP=$IP_MASK.3
         HRegion2_IP=$IP_MASK.4
-        echo ${HMaster_IP}"   hmaster" >> /etc/hosts
-        echo ${HRegion1_IP}"   hregion1" >> /etc/hosts
-        echo ${HRegion2_IP}"   hregion2" >> /etc/hosts
+        echo ${HMaster_IP}"   hmaster" >> /etc/tmp_hosts
+        echo ${HRegion1_IP}"   hregion1" >> /etc/tmp_hosts
+        echo ${HRegion2_IP}"   hregion2" >> /etc/tmp_hosts
+        cat /etc/hosts >> /etc/tmp_hosts
+        cat /etc/tmp_hosts | tee /etc/hosts > /dev/null
 fi
 
 mkdir -p ${HBASE_CONF}
