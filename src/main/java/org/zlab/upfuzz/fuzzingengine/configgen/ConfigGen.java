@@ -1,7 +1,6 @@
 package org.zlab.upfuzz.fuzzingengine.configgen;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.zlab.upfuzz.cassandra.CassandraConfigValGenerator;
 import org.zlab.upfuzz.fuzzingengine.Config;
 
 import java.io.IOException;

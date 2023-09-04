@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.cassandra.CassandraConfigGen;
 import org.zlab.upfuzz.fuzzingengine.configgen.ConfigGen;
+import org.zlab.upfuzz.hbase.HBaseConfigGen;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -16,7 +17,7 @@ public class ConfigGenTest {
 
     @BeforeAll
     public static void setUp() throws FileNotFoundException {
-        Path configPath = Paths.get("config.json");
+        Path configPath = Paths.get("hbase_config.json");
         File configFile = configPath.toFile();
         Config.Configuration cfg = new Gson().fromJson(
                 new FileReader(configFile), Config.Configuration.class);
@@ -27,10 +28,18 @@ public class ConfigGenTest {
         Config.instance.testDeletedConfig = true;
     }
 
-    @Test
-    public void test() {
+    // Enable if cassandra is set up in prebuild folder
+    // @Test
+    public void testCassandraConfigGen() {
         Config.instance.testSingleVersion = true;
         ConfigGen configGen = new CassandraConfigGen();
+        configGen.generateConfig();
+    }
+
+    // Enable if HBase is set up in prebuild folder
+    // @Test
+    public void testHBaseConfigGen() {
+        ConfigGen configGen = new HBaseConfigGen();
         configGen.generateConfig();
     }
 }
