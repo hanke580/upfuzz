@@ -183,8 +183,8 @@ bin/hdfs_cl.sh
 git clone git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
 export UPFUZZ_DIR=$PWD
-export ORI_VERSION=2.4.15
-export UP_VERSION=2.5.2
+export ORI_VERSION=2.4.17
+export UP_VERSION=2.5.5
 
 mkdir -p $UPFUZZ_DIR/prebuild/hadoop
 cd $UPFUZZ_DIR/prebuild/hadoop
