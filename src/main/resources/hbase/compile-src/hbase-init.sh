@@ -37,11 +37,6 @@ export HBASE_ENV_INIT=
 export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
 export HBASE_CONF_DIR=${HBASE_CONF}
 
-if [ ${IS_HMASTER} = "false" ]
-then
-    exit 0
-fi
-
 # Connection to NN
 while true; do
     /hadoop/hadoop-2.10.2/bin/hadoop fs -ls hdfs://master:8020/
