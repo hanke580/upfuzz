@@ -398,40 +398,7 @@ public class HBaseDocker extends Docker {
 
     @Override
     public Map<String, String> readSystemState() {
-        Map<String, String> stateValues = new HashMap<>();
-        // Cassandra do not distinguish nodes
-        // HDFS might get state from different nodes
-        for (String stateName : targetSystemStates) {
-            Path filePath = Paths.get("/var/log/hbase/system.log");
-            String target = String.format("\\[InconsistencyDetector\\]\\[%s\\]",
-                    stateName);
-            String[] grepStateCmd = new String[] {
-                    "/bin/sh", "-c",
-                    "grep -a \"" + target + "\" " + filePath
-                            + " | tail -n 1"
-            };
-            try {
-                System.out.println("\n\n");
-                Process grepProc = runInContainer(grepStateCmd);
-                String result = new String(
-                        grepProc.getInputStream().readAllBytes());
-                String stateValue = "";
-                if (!result.isEmpty()) {
-                    int index = result.indexOf("=");
-                    if (index != -1) {
-                        stateValue = result.substring(index + 1);
-                    }
-                }
-                logger.info(String.format("State [%s] =  %s", stateName,
-                        stateValue));
-                stateValues.put(stateName, Utilities.encodeString(stateValue));
-            } catch (IOException e) {
-                logger.error(String.format(
-                        "Problem when reading state in docker[%d]", index));
-                e.printStackTrace();
-            }
-        }
-        return stateValues;
+        return null;
     }
 
     @Override
