@@ -1,15 +1,22 @@
 #!/usr/bin/env bash
 
-if [ ${IS_HMASTER} = "false" ]
+#if [ ${IS_HMASTER} = "false" ]
+#then
+#    exit 0
+#fi
+
+if [ ${IS_HMASTER} = "true" ]
 then
-    exit 0
+    JPS_PROCESS="HMaster"
+else
+    JPS_PROCESS="HRegionServer"
 fi
 
 time=0
 while true; do
     proc=`jps`
     echo "processes = $proc"
-    if [[ $proc == *"HMaster"* || $proc == *"HQuorumPeer"* ]]; then
+    if [[ $proc == *${JPS_PROCESS}* || $proc == *"HQuorumPeer"* ]]; then
       echo "It's there!"
       time=$((time+1))
       echo "time = $time"

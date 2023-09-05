@@ -72,7 +72,23 @@ done
 # fi
 
 HBASE_REGIONSERVERS="${HBASE_REGIONSERVERS:-$HBASE_CONF/regionservers}"
-"$bin"/bin/hbase-daemons.sh --config "${HBASE_CONF}" start zookeeper
-"$bin"/bin/hbase-daemon.sh --config "${HBASE_CONF}" start master
-"$bin"/bin/hbase-daemons.sh --config "${HBASE_CONF}" \
-    --hosts "${HBASE_REGIONSERVERS}" start regionserver
+
+
+if [ ${IS_HMASTER} = "true" ]
+then
+    "$bin"/bin/hbase-daemons.sh --config "${HBASE_CONF}" start zookeeper
+    "$bin"/bin/hbase-daemon.sh --config "${HBASE_CONF}" start master
+else
+    ${HBASE_HOME}/bin/hbase-daemon.sh --config ${HBASE_CONF} foreground_start regionserver
+fi
+
+
+#"$bin"/bin/hbase-daemons.sh --config "${HBASE_CONF}" start zookeeper
+#"$bin"/bin/hbase-daemon.sh --config "${HBASE_CONF}" start master
+#
+#
+#"$bin"/bin/hbase-daemons.sh --config "${HBASE_CONF}" \
+#    --hosts "${HBASE_REGIONSERVERS}" start regionserver
+
+# "$bin"/bin/hbase-daemons.sh --config "${HBASE_CONF}" \
+  #    --hosts "${HBASE_REGIONSERVERS}" stop regionserver

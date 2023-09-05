@@ -97,11 +97,14 @@ public class HBaseDocker extends Docker {
 
     @Override
     public int start() throws Exception {
-        if (index == 0) {
-            HBaseShell = new HBaseShellDaemon(getNetworkIP(), HBaseDaemonPort,
-                    this.executorID,
-                    this);
-        }
+        HBaseShell = new HBaseShellDaemon(getNetworkIP(), HBaseDaemonPort,
+                this.executorID,
+                this);
+        // if (index == 0) {
+        // HBaseShell = new HBaseShellDaemon(getNetworkIP(), HBaseDaemonPort,
+        // this.executorID,
+        // this);
+        // }
         return 0;
     }
 
