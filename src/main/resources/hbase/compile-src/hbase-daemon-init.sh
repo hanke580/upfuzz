@@ -16,7 +16,7 @@ time=0
 while true; do
     proc=`jps`
     echo "processes = $proc"
-    if [[ $proc == *${JPS_PROCESS}* || $proc == *"HQuorumPeer"* ]]; then
+    if [[ $proc == *${JPS_PROCESS}* ]]; then
       echo "It's there!"
       time=$((time+1))
       echo "time = $time"
