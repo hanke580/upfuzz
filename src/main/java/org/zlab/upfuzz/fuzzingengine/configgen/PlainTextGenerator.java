@@ -43,14 +43,14 @@ public class PlainTextGenerator extends ConfigFileGenerator {
         upConfig.toFile().mkdirs();
         Path oriSavePath = oriConfig.resolve(defaultFilePath.getFileName());
         Path upSavePath = upConfig.resolve(defaultNewFilePath.getFileName());
-        if (generationType.equals("regionservers") && nodeNum > 0) {
+        if (generationType.equals("regionservers")) {
             try {
                 FileWriter writerOri = new FileWriter(oriSavePath.toFile());
                 writerOri.write("hregion1\n");
                 writerOri.write("hregion2\n");
                 writerOri.close();
 
-                FileWriter writerUp = new FileWriter(oriSavePath.toFile());
+                FileWriter writerUp = new FileWriter(upSavePath.toFile());
                 writerUp.write("hregion1\n");
                 writerUp.write("hregion2\n");
                 writerUp.close();

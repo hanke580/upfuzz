@@ -8,9 +8,6 @@ public abstract class ConfigFileGenerator {
     public Path generateFolderPath;
     public int fileNameIdx;
 
-    public int nodeNum;
-    public String hostIP;
-
     public ConfigFileGenerator(Path generateFolderPath) {
         this.generateFolderPath = generateFolderPath;
 
@@ -27,11 +24,6 @@ public abstract class ConfigFileGenerator {
                 max = idx;
         }
         fileNameIdx = max + 1;
-    }
-
-    public void SetConfig(int nodeNum, String IP) {
-        this.nodeNum = nodeNum;
-        this.hostIP = IP;
     }
 
     public abstract int generate(Map<String, String> key2vals,

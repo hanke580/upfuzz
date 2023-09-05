@@ -37,7 +37,7 @@ public class ConfigGenTest {
     }
 
     // Enable if HBase is set up in prebuild folder
-    // @Test
+    @Test
     public void testHBaseConfigGen() {
         ConfigGen configGen = new HBaseConfigGen();
         configGen.generateConfig();
