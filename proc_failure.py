@@ -23,6 +23,7 @@ event_crash = "event_crash"
 inconsistency = "inconsistency"
 
 HDFS_BLACK_LIST = ["RECEIVED SIGNAL"]
+HBASE_BLACK_LIST = []
 
 # subprocess.run(["grep", "-r", "-A", "4", "ERROR", "/Users/hanke/Desktop/Project/upfuzz/system.log"])
 
@@ -71,7 +72,7 @@ def cass_grepUniqueError():
 more_match = 3
 
 
-def hdfs_grepUniqueError():
+def hadoop_grepUniqueError(black_list):
     proc = subprocess.Popen(["grep", "-hr", "ERROR", failure_dir],stdout=subprocess.PIPE)
     error_arr = []
     for line in proc.stdout:
@@ -80,7 +81,7 @@ def hdfs_grepUniqueError():
         if "ERROR LOG" in line_str:
             continue
         blacklisted = False
-        for blacklist_error in HDFS_BLACK_LIST:
+        for blacklist_error in black_list:
             if blacklist_error in line_str:
                 blacklisted = True
                 break
@@ -112,7 +113,7 @@ this time, how do we perform the grep? By class:line, there is a problem where t
 
 return the map [unique_failure -> cases]
 """
-def hdfs_construct_map(unique_errors):
+def hadoop_construct_map(unique_errors):
     """
     for each arr, grep failure folder again
     """
@@ -122,7 +123,9 @@ def hdfs_construct_map(unique_errors):
         target = unique_error
         error2failure[target] = set()
 
-        proc = subprocess.Popen(["grep", "-lr", target, failure_dir],stdout=subprocess.PIPE)
+        # For [ or ], add a '\' before them
+
+        proc = subprocess.Popen(["grep", "-Flr", target, failure_dir],stdout=subprocess.PIPE)
         for line in proc.stdout:
             line_str = line.decode().rstrip()
             path_arr = line_str.split("/")
@@ -163,8 +166,16 @@ def cass_construct_map(unique_errors):
 
 
 def processHDFS():
-    unique_errors = hdfs_grepUniqueError()
-    error2failure = hdfs_construct_map(unique_errors)
+    unique_errors = hadoop_grepUniqueError(HDFS_BLACK_LIST)
+    error2failure = hadoop_construct_map(unique_errors)
+
+    for error_msg in error2failure:
+        print("error: ", error_msg, "\t size = ", len(error2failure[error_msg]))
+    save_failureinfo(error2failure)
+
+def processHBase():
+    unique_errors = hadoop_grepUniqueError(HBASE_BLACK_LIST)
+    error2failure = hadoop_construct_map(unique_errors)
 
     for error_msg in error2failure:
         print("error: ", error_msg, "\t size = ", len(error2failure[error_msg]))
@@ -246,6 +257,7 @@ if __name__ == "__main__":
         print("usage: python3 proc_failure.py SYSTEM")
         print("usage: python3 proc_failure.py read")
         exit(1)
+    # args = ["hdfs"]
     
     if args[0] == "read":
         read_failureInfo()
@@ -254,6 +266,8 @@ if __name__ == "__main__":
         processCassandra()
     elif args[0] == "hdfs":
         processHDFS()
+    elif args[0] == "hbase":
+        processHBase()
     else:
         print("unknow input", args[0])
         print("please try hdfs or cassandra")
