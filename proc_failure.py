@@ -270,7 +270,7 @@ if __name__ == "__main__":
         processHBase()
     else:
         print("unknow input", args[0])
-        print("please try hdfs or cassandra")
+        print("please try hdfs, hbase or cassandra")
     getFailure("event_crash")
     getFailure("fullstop_crash")
     getFailure("inconsistency")
