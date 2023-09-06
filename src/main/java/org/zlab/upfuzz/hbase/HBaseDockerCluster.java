@@ -36,6 +36,12 @@ public class HBaseDockerCluster extends DockerCluster {
     static final String includes = "org.apache.hadoop.hbase.*";
     static final String excludes = "org.jruby.*";
 
+    public static String[] includeJacocoHandlers = {
+            "org.apache.hadoop.hbase.master.HMaster",
+            "org.apache.hadoop.hbase.regionserver.HRegionServer",
+            "org.apache.hadoop.hbase.zookeeper.HQuorumPeer"
+    };
+
     HBaseDockerCluster(HBaseExecutor executor, String version,
             int nodeNum) {
         super(executor, version, nodeNum, null);

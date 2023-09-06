@@ -17,6 +17,7 @@ import org.jacoco.core.data.SessionInfo;
 import org.jacoco.core.runtime.RemoteControlReader;
 import org.jacoco.core.runtime.RemoteControlWriter;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
+import org.zlab.upfuzz.hbase.HBaseDockerCluster;
 import org.zlab.upfuzz.hdfs.HdfsDockerCluster;
 import org.zlab.upfuzz.utils.Utilities;
 
@@ -93,9 +94,22 @@ public class AgentServerHandler
             return;
         }
 
+        // hdfs filter: only collecting nn, snn and dn
         if (sessionSplit[0].equals("hdfs")
                 && !Utilities.contains(sessionSplit[3],
                         HdfsDockerCluster.includeJacocoHandlers)) {
+            // if (Config.getConf().debug) {
+            // logger.info("Skip register: "
+            // + socket.getRemoteSocketAddress().toString() + " " +
+            // sessionId + ": not in target hdfs process");
+            // }
+            return;
+        }
+
+        // hbase filter: master, regionserver, zookeeper
+        if (sessionSplit[0].equals("hbase")
+                && !Utilities.contains(sessionSplit[3],
+                        HBaseDockerCluster.includeJacocoHandlers)) {
             // if (Config.getConf().debug) {
             // logger.info("Skip register: "
             // + socket.getRemoteSocketAddress().toString() + " " +
