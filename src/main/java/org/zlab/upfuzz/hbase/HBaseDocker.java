@@ -319,12 +319,6 @@ public class HBaseDocker extends Docker {
                     "stop", "master" };
             int ret = runProcessInContainer(stopHMaster, env);
             logger.debug("shutdown " + "hmaster" + " ret = " + ret);
-
-            String[] stopZK = new String[] {
-                    hbaseDaemonPath, "--config", "/etc/" + curVersion,
-                    "stop", "zookeeper" };
-            ret = runProcessInContainer(stopZK, env);
-            logger.debug("shutdown " + "zookeeper" + " ret = " + ret);
         } else {
             // N1, N2: regionserver
             String[] stopNode = new String[] {
@@ -334,11 +328,11 @@ public class HBaseDocker extends Docker {
             logger.debug("shutdown " + "regionserver" + " ret = " + ret);
         }
 
-        String[] stopNode = new String[] {
-                "/" + system + "/" + originalVersion + "/"
-                        + "bin/stop-hbase.sh" };
-        int ret = runProcessInContainer(stopNode);
-        logger.debug("hbase shutdown ret = " + ret);
+        String[] stopZK = new String[] {
+                hbaseDaemonPath, "--config", "/etc/" + curVersion,
+                "stop", "zookeeper" };
+        int ret = runProcessInContainer(stopZK, env);
+        logger.debug("shutdown " + "zookeeper" + index + " ret = " + ret);
     }
 
     @Override
