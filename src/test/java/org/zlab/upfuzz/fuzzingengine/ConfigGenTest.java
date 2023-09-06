@@ -15,7 +15,7 @@ import java.nio.file.Paths;
 
 public class ConfigGenTest {
 
-    @BeforeAll
+    // @BeforeAll
     public static void setUp() throws FileNotFoundException {
         Path configPath = Paths.get("hbase_config.json");
         File configFile = configPath.toFile();
@@ -37,7 +37,7 @@ public class ConfigGenTest {
     }
 
     // Enable if HBase is set up in prebuild folder
-    @Test
+    // @Test
     public void testHBaseConfigGen() {
         ConfigGen configGen = new HBaseConfigGen();
         configGen.generateConfig();
