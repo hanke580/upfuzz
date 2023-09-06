@@ -304,8 +304,36 @@ public class HBaseDocker extends Docker {
     }
 
     @Override
-    // TODO
     public void shutdown() {
+        // ${HBASE_HOME}/bin/hbase-daemon.sh --config ${HBASE_CONF}
+        // foreground_start regionserver
+        String curVersion = type.equals("upgraded") ? upgradedVersion
+                : originalVersion;
+        String hbaseDaemonPath = "/" + system + "/" + curVersion + "/"
+                + "bin/hbase-daemon.sh";
+
+        if (index == 0) {
+            // N0: hbase master, zookeeper
+            String[] stopHMaster = new String[] {
+                    hbaseDaemonPath, "--config", "/etc/" + curVersion,
+                    "stop", "master" };
+            int ret = runProcessInContainer(stopHMaster, env);
+            logger.debug("shutdown " + "hmaster" + " ret = " + ret);
+
+            String[] stopZK = new String[] {
+                    hbaseDaemonPath, "--config", "/etc/" + curVersion,
+                    "stop", "zookeeper" };
+            ret = runProcessInContainer(stopZK, env);
+            logger.debug("shutdown " + "zookeeper" + " ret = " + ret);
+        } else {
+            // N1, N2: regionserver
+            String[] stopNode = new String[] {
+                    hbaseDaemonPath, "--config", "/etc/" + curVersion,
+                    "stop", "regionserver" };
+            int ret = runProcessInContainer(stopNode, env);
+            logger.debug("shutdown " + "regionserver" + " ret = " + ret);
+        }
+
         String[] stopNode = new String[] {
                 "/" + system + "/" + originalVersion + "/"
                         + "bin/stop-hbase.sh" };

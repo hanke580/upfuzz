@@ -71,7 +71,7 @@ HBASE_REGIONSERVERS="${HBASE_REGIONSERVERS:-$HBASE_CONF/regionservers}"
 
 if [ ${IS_HMASTER} = "true" ]
 then
-    "$bin"/bin/hbase-daemons.sh --config "${HBASE_CONF}" start zookeeper
+    "$bin"/bin/hbase-daemon.sh --config "${HBASE_CONF}" start zookeeper
     "$bin"/bin/hbase-daemon.sh --config "${HBASE_CONF}" start master
 else
     ${HBASE_HOME}/bin/hbase-daemon.sh --config ${HBASE_CONF} foreground_start regionserver
