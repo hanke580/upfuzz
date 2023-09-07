@@ -59,6 +59,18 @@ public class HBaseDockerCluster extends DockerCluster {
         this.extranodes = new HBaseHDFSDocker[1];
         this.configpath = configPath;
         this.seedIP = DockerCluster.getKthIP(hostIP, 0);
+
+        initBlackListErrorLog();
+    }
+
+    public void initBlackListErrorLog() {
+        blackListErrorLog
+                .add("zookeeper.ClientCnxn: Error while calling watcher \n" +
+                        "java.util.concurrent.RejectedExecutionException: Task java.util.concurrent.FutureTask");
+        blackListErrorLog.add(
+                "quorum.LearnerHandler: Unexpected exception causing shutdown while sock still open");
+        blackListErrorLog.add(
+                "jmx.ManagedUtil: Problems while registering log4j jmx beans!");
     }
 
     public boolean build() throws Exception {
