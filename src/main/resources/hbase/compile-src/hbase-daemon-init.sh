@@ -12,6 +12,9 @@ else
     JPS_PROCESS="HRegionServer"
 fi
 
+# Wait for 40 seconds for HBase to start
+# jps: target process should exist for at least 40 seconds
+
 time=0
 while true; do
     proc=`jps`
@@ -21,7 +24,7 @@ while true; do
       time=$((time+1))
       echo "time = $time"
     fi
-    if [[ $time -eq 3 ]]; then
+    if [[ $time -eq 8 ]]; then
       break
     fi
     sleep 5
