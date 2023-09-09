@@ -13,6 +13,8 @@ public class HBaseCommandPool extends CommandPool {
     public void registerReadCommands() {
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(SCAN.class, 5));
+        readCommandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(GET.class, 5));
     }
 
     @Override
@@ -40,8 +42,6 @@ public class HBaseCommandPool extends CommandPool {
                 new AbstractMap.SimpleImmutableEntry<>(DELETEALL.class, 5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(PUT_NEW_ITEM.class, 5));
-        commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(GET.class, 5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(PUT_MODIFY.class, 5));
         commandClassList.add(
