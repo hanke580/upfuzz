@@ -83,4 +83,13 @@ public class CommandTests extends AbstractTest {
         assert !b.contains("Took 0.0116 seconds");
     }
 
+    @Test
+    public void testCREATE() {
+        HBaseState s = new HBaseState();
+
+        CREATE cmd01 = new CREATE(s);
+        String cmd01str = cmd01.constructCommandString();
+        System.out.println(cmd01str);
+        cmd01.updateState(s);
+    }
 }

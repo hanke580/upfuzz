@@ -50,10 +50,10 @@ public class CREATE extends HBaseCommand {
                 "create " + "'" + tableName.toString() + "'");
 
         String columnFamiliesString = columnFamilies.toString();
-        for (String colFamiStr : columnFamiliesString.split(",")) {
-            String colFamiName = colFamiStr.substring(0,
-                    colFamiStr.indexOf(" "));
-            commandStr.append(", '" + colFamiName + "'");
+        for (String cfStr : columnFamiliesString.split(",")) {
+            String cfName = cfStr.substring(0,
+                    cfStr.indexOf(" "));
+            commandStr.append(", '" + cfName + "'");
         }
         return commandStr.toString();
     }

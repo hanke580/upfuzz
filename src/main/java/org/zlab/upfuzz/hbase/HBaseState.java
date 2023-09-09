@@ -101,9 +101,4 @@ public class HBaseState extends State {
         table2enable.clear();
     }
 
-    // public HBaseState() {
-    // }
-
-    // public void clearState() {
-    // }
 }
