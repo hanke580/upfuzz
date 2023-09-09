@@ -6,9 +6,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.*;
+import org.zlab.upfuzz.fuzzingengine.server.FuzzingServer;
 import org.zlab.upfuzz.hbase.DataDefinitionCommands.ALTER_ADD_FAMILY;
 import org.zlab.upfuzz.hbase.DataDefinitionCommands.ALTER_DELETE_FAMILY;
 import org.zlab.upfuzz.hbase.DataManipulationCommands.PUT_NEW_COLUMN;
@@ -25,6 +28,7 @@ import org.zlab.upfuzz.utils.Utilities;
 import javax.swing.plaf.synth.SynthTextAreaUI;
 
 public class CommandTests extends AbstractTest {
+    static Logger logger = LogManager.getLogger(CommandTests.class);
 
     @BeforeAll
     public static void setUp() {
@@ -92,4 +96,27 @@ public class CommandTests extends AbstractTest {
         System.out.println(cmd01str);
         cmd01.updateState(s);
     }
+
+    @Test
+    public void testGET() {
+        HBaseState s = new HBaseState();
+
+        Command c1 = new CREATE(s);
+        c1.updateState(s);
+        logger.info(c1.constructCommandString());
+        Command c2 = new PUT_NEW_COLUMN_and_NEW_ITEM(s);
+        c2.updateState(s);
+        logger.info(c2.constructCommandString());
+        Command c3 = new PUT_NEW_COLUMN_and_NEW_ITEM(s);
+        c3.updateState(s);
+        logger.info(c3.constructCommandString());
+        Command c4 = new PUT_NEW_COLUMN_and_NEW_ITEM(s);
+        c4.updateState(s);
+        logger.info(c4.constructCommandString());
+
+        Command get = new GET(s);
+        get.updateState(s);
+        logger.info(get.constructCommandString());
+    }
+
 }
