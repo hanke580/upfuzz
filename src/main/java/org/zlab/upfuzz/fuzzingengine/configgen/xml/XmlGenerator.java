@@ -122,6 +122,10 @@ public class XmlGenerator extends ConfigFileGenerator {
                 "/usr/local/zookeeper");
         curConfigurations.put("hbase.zookeeper.quorum",
                 "hmaster,hregion1,hregion2");
+        // Enable quota setting
+        if (Config.getConf().enableQuota)
+            curConfigurations.put("hbase.quota.enabled",
+                    "true");
     }
 
     public static Map<String, String> parseXmlFile(Path filePath) {

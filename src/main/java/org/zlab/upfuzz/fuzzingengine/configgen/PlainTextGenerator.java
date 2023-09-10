@@ -6,6 +6,7 @@ import java.util.Map;
 import org.zlab.upfuzz.docker.DockerCluster;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.zlab.upfuzz.fuzzingengine.Config;
 
 public class PlainTextGenerator extends ConfigFileGenerator {
     private static final Logger logger = LogManager
@@ -46,13 +47,15 @@ public class PlainTextGenerator extends ConfigFileGenerator {
         if (generationType.equals("regionservers")) {
             try {
                 FileWriter writerOri = new FileWriter(oriSavePath.toFile());
-                writerOri.write("hregion1\n");
-                writerOri.write("hregion2\n");
+                for (String regionName : Config.getConf().REGIONSERVERS) {
+                    writerOri.write(regionName + "\n");
+                }
                 writerOri.close();
 
                 FileWriter writerUp = new FileWriter(upSavePath.toFile());
-                writerUp.write("hregion1\n");
-                writerUp.write("hregion2\n");
+                for (String regionName : Config.getConf().REGIONSERVERS) {
+                    writerUp.write(regionName + "\n");
+                }
                 writerUp.close();
             } catch (IOException e) {
                 throw new RuntimeException(e);

@@ -159,6 +159,13 @@ public class Config {
         public boolean support_StorageType_NVDIMM = false; // >= 3.4.0
         public boolean support_checksum_v_opt = false; // > 3.3.x
 
+        // == hbase ==
+        public boolean enableQuota = true;
+        public int MAX_CF_NUM = 7;
+        public final String[] REGIONSERVERS = { "hregion1", "hregion2" };
+        public final String[] SERVERS = { "hmaster", "hregion1", "hregion2" };
+        public int REGIONSERVER_PORT = 16020;
+
         @Override
         public String toString() {
             return new GsonBuilder()

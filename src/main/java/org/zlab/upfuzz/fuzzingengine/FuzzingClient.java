@@ -462,7 +462,7 @@ public class FuzzingClient {
         if (Config.getConf().startUpClusterForDebugging) {
             logger.info("[Debugging Mode] Start up the cluster only");
             try {
-                Thread.sleep(7200 * 1000);
+                Thread.sleep(36000 * 1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

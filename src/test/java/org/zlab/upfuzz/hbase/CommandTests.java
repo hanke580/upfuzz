@@ -1,31 +1,18 @@
 package org.zlab.upfuzz.hbase;
 
-import java.io.*;
-import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.*;
-import org.zlab.upfuzz.fuzzingengine.server.FuzzingServer;
-import org.zlab.upfuzz.hbase.DataDefinitionCommands.ALTER_ADD_FAMILY;
-import org.zlab.upfuzz.hbase.DataDefinitionCommands.ALTER_DELETE_FAMILY;
-import org.zlab.upfuzz.hbase.DataManipulationCommands.PUT_NEW_COLUMN;
-import org.zlab.upfuzz.hbase.DataManipulationCommands.*;
-import org.zlab.upfuzz.hbase.HBaseState;
-import org.zlab.upfuzz.hbase.DataDefinitionCommands.CREATE;
-import org.zlab.upfuzz.hbase.DataDefinitionCommands.LIST;
-import org.zlab.upfuzz.hbase.hbasecommands.*;
+import org.zlab.upfuzz.hbase.ddl.*;
+import org.zlab.upfuzz.hbase.dml.*;
 import org.zlab.upfuzz.fuzzingengine.Config;
-import org.zlab.upfuzz.utils.INTType;
-import org.zlab.upfuzz.utils.Pair;
+import org.zlab.upfuzz.hbase.rsgroup.ADD_RSGROUP;
+import org.zlab.upfuzz.hbase.rsgroup.GET_TABLE_RSGROUP;
+import org.zlab.upfuzz.hbase.snapshot.*;
+import org.zlab.upfuzz.hbase.tools.*;
 import org.zlab.upfuzz.utils.Utilities;
-
-import javax.swing.plaf.synth.SynthTextAreaUI;
 
 public class CommandTests extends AbstractTest {
     static Logger logger = LogManager.getLogger(CommandTests.class);
@@ -54,12 +41,12 @@ public class CommandTests extends AbstractTest {
         System.out.println(cmd03str);
         cmd03.updateState(s);
 
-        PUT_NEW_COLUMN_and_NEW_ITEM cmd07 = new PUT_NEW_COLUMN_and_NEW_ITEM(s);
+        PUT_NEW cmd07 = new PUT_NEW(s);
         String cmd07str = cmd07.constructCommandString();
         System.out.println(cmd07str);
         cmd07.updateState(s);
 
-        PUT_NEW_COLUMN cmd04 = new PUT_NEW_COLUMN(s);
+        PUT_NEW cmd04 = new PUT_NEW(s);
         String cmd04str = cmd04.constructCommandString();
         System.out.println(cmd04str);
         cmd04.updateState(s);
@@ -98,25 +85,123 @@ public class CommandTests extends AbstractTest {
     }
 
     @Test
-    public void testGET() {
+    public void testAlter() {
+        try {
+            HBaseState s = execInitCommands();
+            Command cmd = new ALTER_CF_OPTION(s);
+            cmd.updateState(s);
+            System.out.println(cmd.constructCommandString());
+        } catch (CustomExceptions.EmptyCollectionException e) {
+            // Exception is normal, but could be avoided
+        }
+    }
+
+    @Test
+    public void testAlterStatus() {
+        HBaseState s = execInitCommands();
+        Command cmd = new ALTER_STATUS(s);
+        cmd.updateState(s);
+        System.out.println(cmd.constructCommandString());
+    }
+
+    @Test
+    public void testCloneTableSchema() {
+        HBaseState s = execInitCommands();
+        Command cmd = new CLONE_TABLE_SCHEMA(s);
+        cmd.updateState(s);
+        System.out.println(cmd.constructCommandString());
+    }
+
+    @Test
+    public void testPutModify() {
+        try {
+            HBaseState s = execInitCommands();
+            Command cmd = new PUT_MODIFY(s);
+            cmd.updateState(s);
+            System.out.println(cmd.constructCommandString());
+        } catch (CustomExceptions.EmptyCollectionException e) {
+            // Exception is normal, but could be avoided
+        }
+    }
+
+    @Test
+    public void test() {
+        try {
+            HBaseState s = execInitCommands();
+
+            Command cmd = new FLUSH(s);
+            cmd.updateState(s);
+            System.out.println(cmd.constructCommandString());
+
+            // cmd = new ALTER_NAMESPACE(s);
+            // cmd.updateState(s);
+            // System.out.println(cmd.constructCommandString());
+        } catch (CustomExceptions.EmptyCollectionException e) {
+            // Exception is normal, but could be avoided
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testPut() {
+        HBaseState s = new HBaseState();
+        Command c = new CREATE(s);
+        c.updateState(s);
+        System.out.println(c.constructCommandString());
+
+        Command c2 = new COMPACT_RS(s);
+        c2.updateState(s);
+        System.out.println(c2.constructCommandString());
+    }
+
+    public static HBaseState execInitCommands() {
         HBaseState s = new HBaseState();
 
-        Command c1 = new CREATE(s);
-        c1.updateState(s);
-        logger.info(c1.constructCommandString());
-        Command c2 = new PUT_NEW_COLUMN_and_NEW_ITEM(s);
-        c2.updateState(s);
-        logger.info(c2.constructCommandString());
-        Command c3 = new PUT_NEW_COLUMN_and_NEW_ITEM(s);
-        c3.updateState(s);
-        logger.info(c3.constructCommandString());
-        Command c4 = new PUT_NEW_COLUMN_and_NEW_ITEM(s);
-        c4.updateState(s);
-        logger.info(c4.constructCommandString());
+        Command c = new CREATE(s);
+        c.updateState(s);
+        System.out.println(c.constructCommandString());
 
-        Command get = new GET(s);
-        get.updateState(s);
-        logger.info(get.constructCommandString());
+        c = new CREATE(s);
+        c.updateState(s);
+        System.out.println(c.constructCommandString());
+
+        Command c2 = new PUT_NEW(s);
+        c2.updateState(s);
+        System.out.println(c2.constructCommandString());
+        Command c3 = new PUT_NEW(s);
+        c3.updateState(s);
+        System.out.println(c3.constructCommandString());
+        Command c4 = new PUT_NEW(s);
+        c4.updateState(s);
+        System.out.println(c4.constructCommandString());
+        return s;
+    }
+
+    @Test
+    public void testCOMMON() {
+        HBaseState s = execInitCommands();
+        try {
+
+            Command cmd = new SNAPSHOT(s);
+            cmd.updateState(s);
+            System.out.println(cmd.constructCommandString());
+
+            cmd = new GET_TABLE_RSGROUP(s);
+            cmd.updateState(s);
+            System.out.println(cmd.constructCommandString());
+
+        } catch (CustomExceptions.EmptyCollectionException e) {
+            // Exception is normal, but could be avoided
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void test1() {
+        String strs = "disable_exceed_throttle_quota, disable_rpc_throttle, enable_exceed_throttle_quota, enable_rpc_throttle, list_quota_snapshots, list_quota_table_sizes, list_quotas, list_snapshot_sizes, set_quota";
+        for (String str : strs.strip().split(",")) {
+            System.out.println(str + ", " + str.toUpperCase());
+        }
     }
 
 }

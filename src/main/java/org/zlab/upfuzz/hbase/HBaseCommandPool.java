@@ -2,10 +2,9 @@ package org.zlab.upfuzz.hbase;
 
 import java.util.AbstractMap;
 import org.zlab.upfuzz.CommandPool;
-import org.zlab.upfuzz.hbase.AdminCommands.*;
-import org.zlab.upfuzz.hbase.DataDefinitionCommands.*;
-import org.zlab.upfuzz.hbase.DataManipulationCommands.*;
-import org.zlab.upfuzz.hbase.hbasecommands.*;
+import org.zlab.upfuzz.hbase.tools.*;
+import org.zlab.upfuzz.hbase.ddl.*;
+import org.zlab.upfuzz.hbase.dml.*;
 
 public class HBaseCommandPool extends CommandPool {
 
@@ -41,15 +40,13 @@ public class HBaseCommandPool extends CommandPool {
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(DELETEALL.class, 5));
         commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(PUT_NEW_ITEM.class, 5));
-        commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(PUT_MODIFY.class, 5));
         commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(PUT_NEW_COLUMN.class,
+                new AbstractMap.SimpleImmutableEntry<>(PUT_NEW.class,
                         5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
-                        PUT_NEW_COLUMN_and_NEW_ITEM.class, 1));
+                        PUT_NEW.class, 1));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(SCAN.class, 5));
         commandClassList.add(

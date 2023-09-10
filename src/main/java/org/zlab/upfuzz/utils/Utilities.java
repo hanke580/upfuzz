@@ -606,6 +606,15 @@ public class Utilities {
         return ret;
     }
 
+    public static Set<Parameter> strings2Parameters(
+            String[] strings) {
+        Set<Parameter> ret = new HashSet<>();
+        for (String str : strings) {
+            ret.add(new Parameter(CONSTANTSTRINGType.instance, str));
+        }
+        return ret;
+    }
+
     public static void saveSeed(CommandSequence commandSequence,
             CommandSequence validationCommandSequence, Path filePath) {
         try {

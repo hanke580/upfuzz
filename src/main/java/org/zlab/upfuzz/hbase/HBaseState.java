@@ -11,9 +11,12 @@ import java.util.Set;
 
 public class HBaseState extends State {
 
+    public Map<String, Set<String>> namespace2tables = new HashMap<>();
     public Map<String, Map<String, HBaseColumnFamily>> table2families = new HashMap<>();
     public Map<String, Set<String>> table2UDTs = new HashMap<>();
     public Map<String, Boolean> table2enable = new HashMap<>();
+
+    public Map<String, Map<String, HBaseColumnFamily>> snapshots = new HashMap<>();
 
     // stores the row keys of each table
     public Map<String, Set<String>> table2rowKeys = new HashMap<>();
@@ -74,6 +77,11 @@ public class HBaseState extends State {
         }
     }
 
+    public void addTable(String tableName,
+            Map<String, HBaseColumnFamily> table) {
+        table2families.put(tableName, table);
+    }
+
     public void deleteTable(String tableName) {
         table2families.remove(tableName);
         table2UDTs.remove(tableName);
@@ -85,6 +93,21 @@ public class HBaseState extends State {
         return Utilities.strings2Parameters(table2families.keySet());
     }
 
+    // namespace
+    public void addNamespace(String namespace) {
+        if (!namespace2tables.containsKey(namespace)) {
+            namespace2tables.put(namespace, new HashSet<>());
+        }
+    }
+
+    public void dropNamespace(String namespace) {
+        namespace2tables.remove(namespace);
+    }
+
+    public Set<Parameter> getNamespaces() {
+        return Utilities.strings2Parameters(namespace2tables.keySet());
+    }
+
     public Set<Parameter> getColumnFamiliesInTable(String tableName) {
         return Utilities
                 .strings2Parameters(table2families.get(tableName).keySet());
@@ -93,6 +116,10 @@ public class HBaseState extends State {
     public HBaseColumnFamily getColumnFamily(String tableName,
             String columnFamilyName) {
         return table2families.get(tableName).get(columnFamilyName);
+    }
+
+    public void addSnapshot(String name, Map<String, HBaseColumnFamily> table) {
+        snapshots.put(name, table);
     }
 
     @Override
