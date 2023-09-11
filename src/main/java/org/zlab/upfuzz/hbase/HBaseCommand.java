@@ -29,7 +29,6 @@ public abstract class HBaseCommand extends Command {
 
     public static Parameter chooseRowKey(State state, Command command,
             Object init) {
-
         ParameterType.ConcreteType columnFamilyNameType = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
                 (s, c) -> Utilities
@@ -65,6 +64,35 @@ public abstract class HBaseCommand extends Command {
             if (((HBaseState) state).getColumnFamily(
                     command.params.get(0).toString(),
                     columnFamily).colName2Type != null) {
+                notNullColumnFamilies.add(columnFamily);
+            }
+        }
+        ParameterType.ConcreteType columnFamilyNameType = new ParameterType.InCollectionType(
+                CONSTANTSTRINGType.instance,
+                (s, c) -> Utilities
+                        .strings2Parameters(notNullColumnFamilies),
+                null);
+        return columnFamilyNameType.generateRandomParameter(state, command,
+                init);
+    }
+
+    public static Parameter chooseNotEmptyColumnFamily(State state,
+            Command command,
+            Object init) {
+        List<String> columnFamilies = new ArrayList<>(
+                ((HBaseState) state).table2families
+                        .get(command.params.get(0).toString())
+                        .keySet());
+        HashSet<String> notNullColumnFamilies = new HashSet<>();
+        for (String columnFamily : columnFamilies) {
+            List<Parameter> colName2Type = ((HBaseState) state).getColumnFamily(
+                    command.params.get(0).toString(),
+                    columnFamily).colName2Type;
+
+            if (((HBaseState) state).getColumnFamily(
+                    command.params.get(0).toString(),
+                    columnFamily).colName2Type != null
+                    && colName2Type.size() > 0) {
                 notNullColumnFamilies.add(columnFamily);
             }
         }

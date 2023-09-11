@@ -15,6 +15,7 @@ public class HBaseState extends State {
     public Map<String, Set<String>> table2UDTs = new HashMap<>();
     public Map<String, Boolean> table2enable = new HashMap<>();
 
+    // stores the row keys of each table
     public Map<String, Set<String>> table2rowKeys = new HashMap<>();
 
     public void addRowKeyTable(String tableName) {
@@ -101,9 +102,4 @@ public class HBaseState extends State {
         table2enable.clear();
     }
 
-    // public HBaseState() {
-    // }
-
-    // public void clearState() {
-    // }
 }

@@ -65,7 +65,7 @@ public class HBaseDockerCluster extends DockerCluster {
 
     public void initBlackListErrorLog() {
         blackListErrorLog
-                .add("zookeeper.ClientCnxn: Error while calling watcher\n" +
+                .add("zookeeper.ClientCnxn: Error while calling watcher \n" +
                         "java.util.concurrent.RejectedExecutionException: Task java.util.concurrent.FutureTask");
         blackListErrorLog.add(
                 "quorum.LearnerHandler: Unexpected exception causing shutdown while sock still open");

@@ -106,6 +106,48 @@ def hadoop_grepUniqueError(black_list):
     print("unique err size = ", len(unique_errors))
     return unique_errors
 
+def hbase_grepUniqueError(black_list):
+    proc = subprocess.Popen(["grep", "-hr", "ERROR", failure_dir],stdout=subprocess.PIPE)
+    error_arr = []
+    for line in proc.stdout:
+        #the real code does filtering here
+        line_str = line.decode().rstrip()
+        if "ERROR LOG" in line_str:
+            continue
+        blacklisted = False
+        for blacklist_error in black_list:
+            if blacklist_error in line_str:
+                blacklisted = True
+                break
+        if blacklisted:
+            continue
+        arr = line_str.split()
+        if (len(arr) > 3):
+            str = ""
+
+
+            # HBase2.4: start_idx = 2
+            # HBase2.5: start_idx = 1
+            start_idx = 2
+            if (arr[1] == "ERROR"): # HBase 2.5
+                start_idx = 1
+            
+            min = start_idx + 5
+            if (min > len(arr)):
+                min = len(arr)
+
+            for i in range(start_idx, min):
+                str += arr[i]
+                if i != len(arr):
+                    str += " "
+            error_arr.append(str.strip())
+        else:
+            error_arr.append(line_str.strip())
+
+    print("err size = ", len(error_arr))
+    unique_errors = set(error_arr)
+    print("unique err size = ", len(unique_errors))
+    return unique_errors
 
 """
 for all the failures, grep again using the class:line number, get all case ID
@@ -174,7 +216,7 @@ def processHDFS():
     save_failureinfo(error2failure)
 
 def processHBase():
-    unique_errors = hadoop_grepUniqueError(HBASE_BLACK_LIST)
+    unique_errors = hbase_grepUniqueError(HBASE_BLACK_LIST)
     error2failure = hadoop_construct_map(unique_errors)
 
     for error_msg in error2failure:
@@ -257,7 +299,7 @@ if __name__ == "__main__":
         print("usage: python3 proc_failure.py SYSTEM")
         print("usage: python3 proc_failure.py read")
         exit(1)
-    # args = ["hdfs"]
+    # args = ["hbase"]
     
     if args[0] == "read":
         read_failureInfo()
