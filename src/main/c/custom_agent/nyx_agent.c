@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include <sys/mman.h>
 #include <stdbool.h>
@@ -14,12 +15,22 @@
 #include "nyx.h"
 #include <sys/syscall.h>
 #include <string.h>
+#include <dirent.h>
 
 #define TRACE_BUFFER_SIZE (64)
+
+// #define WAIT_FOR_COMPLETION
 
 #define PAGE_SIZE 0x1000
 #define MMAP_SIZE(x) ((x & ~(PAGE_SIZE - 1)) + PAGE_SIZE)
 #define round_up(x, y) (((x) + (y) - 1) & ~((y) - 1))
+
+static volatile int child_completed = 0;
+
+bool prefix(const char *pre, const char *str)
+{
+    return strncmp(pre, str, strlen(pre)) == 0;
+}
 
 void *mapfile(char *fn, uint64_t *size)
 {
@@ -145,6 +156,76 @@ int get_from_host(char* input_file, char* output_file){
   return -1;
 }
 
+void list_files(const char *path) {
+    DIR *dir;
+    struct dirent *entry;
+
+    if (!(dir = opendir(path))) {
+        perror("opendir");
+        return;
+    }
+
+    while ((entry = readdir(dir)) != NULL) {
+        if (entry->d_type == DT_DIR) {
+            if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
+                char new_path[1024];
+                snprintf(new_path, sizeof(new_path), "%s/%s", path, entry->d_name);
+                // hprintf("Directory: %s\n", new_path);
+                list_files(new_path);
+            }
+        } else {
+            char file_address[1024]; // Create a char array to hold the file address
+            snprintf(file_address, sizeof(file_address), "%s/%s", path, entry->d_name);
+            hprintf("File: %s/%s\n", path, entry->d_name);
+
+            // if (!(strstr(file_address, "sshd-stdout") || strstr(file_address, "sshd-stderr"))) {
+            // }
+        }
+    }
+    closedir(dir);
+}
+
+static int exec_prog(const char **argv, char *archive_name)
+{
+    pid_t my_pid;
+    int status, timeout /* unused ifdef WAIT_FOR_COMPLETION */;
+
+    if (0 == (my_pid = fork())) {
+      hprintf("[cAgent child]: Going to archive the fuzzing storage directory \n");
+      if (-1 == execve(argv[0], (char **)argv , NULL)) {
+        perror("child process execve failed [%m]\n");
+        return -1;
+      }
+      int get_file_status_2 = push_to_host(archive_name);    
+      if (get_file_status_2 == -1)
+        abort_operation("cAgent: ERROR! Failed to transfer fuzzing_storage log file to host.");
+      hprintf("cAgent: pushed the fuzzing storage logs successfully");
+      child_completed = 1;
+    }
+
+    hprintf("[cAgent parent]: from the parent process \n");
+
+// #ifdef WAIT_FOR_COMPLETION
+    timeout = 1000;
+
+    while (0 == waitpid(my_pid , &status , WNOHANG)) {
+      if ( --timeout < 0 ) {
+        perror("timeout");
+        return -1;
+      }
+      sleep(1);
+    }
+
+    hprintf("%s WEXITSTATUS %d WIFEXITED %d [status %d]\n", argv[0], WEXITSTATUS(status), WIFEXITED(status), status);
+
+    if (1 != WIFEXITED(status) || 0 != WEXITSTATUS(status)) {
+      perror("%s failed, halt system");
+      return -1;
+    }
+
+// #endif
+    return 0;
+}
 
 int main(int argc, char **argv) {
 
@@ -161,8 +242,7 @@ int main(int argc, char **argv) {
   /* this is our "bitmap" that is later shared with the fuzzer (you can also
    * pass the pointer of the bitmap used by compile-time instrumentations in
    * your target) */
-  uint8_t *trace_buffer =
-      mmap(NULL, MMAP_SIZE(TRACE_BUFFER_SIZE), PROT_READ | PROT_WRITE,
+  uint8_t *trace_buffer = mmap(NULL, MMAP_SIZE(TRACE_BUFFER_SIZE), PROT_READ | PROT_WRITE,
            MAP_SHARED | MAP_ANONYMOUS, -1, 0);
   memset(trace_buffer, 0,
          TRACE_BUFFER_SIZE);  // makes sure that the bitmap buffer is already
@@ -252,30 +332,36 @@ int main(int argc, char **argv) {
         /*------------------------------------------------------------------------------------*/
         //-------------WAIT FOR EACH NODE TO BE CONNECTED VIA TCP-----------------------------//
         /*------------------------------------------------------------------------------------*/
-        char output_pkt_ready = '~';
-        if (read(fds_output[0], &output_pkt_ready, 1) != 1) {
+        // char output_pkt_ready = '~';
+        // if (read(fds_output[0], &output_pkt_ready, 1) != 1) {
+        //   abort_operation("Read operation failed");
+        // }
+        char output_pkt_ready[1];  // Assuming a maximum length of 100 characters (adjust as needed)
+        if (read(fds_output[0], output_pkt_ready, sizeof(output_pkt_ready)) < 0) {
           abort_operation("Read operation failed");
         }
           
-
         //hprintf("PACKET:::%c\n", output_pkt_ready);
+        // hprintf("1. got output_pkt_ready as: %s\n", output_pkt_ready);
 
-        if(output_pkt_ready != ready_state_msg) {
-          if (output_pkt_ready == 'F')                                       // executor might have failed to start
+        // if(output_pkt_ready != ready_state_msg) {
+        if(!(output_pkt_ready[0]=='R')) {
+          // hprintf("2. got output_pkt_ready as: %s\n", output_pkt_ready);
+          if (output_pkt_ready[0] == 'F')                                       // executor might have failed to start
           {
-            hprintf("cAgent: got signal of failure from MiniClient \n");
+            hprintf("[cAgent]: got signal of failure from MiniClient \n");
             kAFL_hypercall(HYPERCALL_KAFL_USER_FAST_ACQUIRE, 0);
             int get_file_status_fdback = push_to_host("/miniClientWorkdir/stackedFeedbackPacket.ser");    
             if (get_file_status_fdback == -1)
               abort_operation("ERROR! Failed to transfer feedback test file to host.");
-            hprintf("cAgent: transferred the feedback file to the host \n");
+            // hprintf("cAgent: transferred the feedback file to the host \n");
             kAFL_hypercall(HYPERCALL_KAFL_RELEASE, 0);
             exit(0);
           }
           abort_operation("Unable to startup the target system.");
           exit(1);
         }
-        
+
         /* Creates a root snapshot on first execution. Also we requested the next input with this hypercall */
         kAFL_hypercall(HYPERCALL_KAFL_USER_FAST_ACQUIRE, 0);  // root snapshot <--
 
@@ -294,23 +380,37 @@ int main(int argc, char **argv) {
           abort_operation("Sending command to start testing failed.");
         
         //Read the input pipe from java client to c agent (output pipe fds_output)
-        char output_pkt = '\0';
-        if (read(fds_output[0], &output_pkt, 1) == -1)
+        char output_pkt[24];
+        if (read(fds_output[0], output_pkt, sizeof(output_pkt)) < 0)
           abort_operation("Read operation failed");
         
-        if (output_pkt != '2')
+        if (output_pkt[0] != '2')
         {
           abort_operation("Feedback packets could not be generated.");
         }
         //hprintf("WE GOT THIS FOR 2 ::: %c\n",output_pkt );
-        
-        //Push the test feedback file from client to host
-        get_file_status = push_to_host("/miniClientWorkdir/stackedFeedbackPacket.ser");    
-        if (get_file_status == -1)
-          abort_operation("ERROR! Failed to transfer feedback test file to host.");
 
+        // sleep(120);
+
+        // list_files("/miniClientWorkdir/");
+        const char *separator = strrchr(output_pkt, ':');
+        char archive_name[16];
+        strncpy(archive_name, separator + 1, 15);
+        archive_name[15] = '\0';
+        char archive_dir[36];
+        snprintf(archive_dir, sizeof(archive_dir), "/miniClientWorkdir/%s", archive_name);
+
+        get_file_status = push_to_host(archive_dir);    
+        if (get_file_status == -1)
+          abort_operation("ERROR! Failed to transfer fuzzing storage archive to host.");
+
+        //Push the test feedback file from client to host
+        // get_file_status = push_to_host("/miniClientWorkdir/stackedFeedbackPacket.ser");    
+        // if (get_file_status == -1)
+        //   abort_operation("ERROR! Failed to transfer feedback test file to host.");
+        
         //hprintf("WA ABLE TO SEND BACK FEEDBACK FILE");
-        //Reverting the checkpoint  
+        //Reverting the checkpoint
         kAFL_hypercall(HYPERCALL_KAFL_RELEASE, 0);
       } 
     }

@@ -11,6 +11,9 @@ import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -142,7 +145,10 @@ public class MiniClientMain {
             cAgent.print("F"); // F for failed
             return;
         } else {
+            // String nyxWorkdir = "R:" +
+            // executor.dockerCluster.workdir.getAbsolutePath();
             cAgent.print("R"); // READY_FOR_TESTS
+            // cAgent.print(nyxWorkdir); // READY_FOR_TESTS
         }
         // c agent should checkpoint the vm here
         System.err.println("Waiting to start TESTING");
@@ -179,8 +185,55 @@ public class MiniClientMain {
             return;
         }
 
+        String storagePath = executor.dockerCluster.workdir.getAbsolutePath()
+                .toString();
+
+        int lastDashIndex = storagePath.lastIndexOf('-');
+        String str1 = storagePath.substring(0, lastDashIndex);
+
+        String str2 = storagePath.substring(lastDashIndex + 1,
+                lastDashIndex + 9); // Extract 8 characters after last dash
+
+        String fuzzing_storage_dir = str1 + '-' + str2 + '/';
+        String archive_name = str2 + ".tar.gz";
+        String fuzzing_archive_command = "cp "
+                + stackedFeedbackPath.toAbsolutePath().toString() + " "
+                + fuzzing_storage_dir + "persistent/ ; "
+                + "cd " + fuzzing_storage_dir + " ; "
+                + "tar -czf " + archive_name + " persistent ; "
+                + "cp " + archive_name + " /miniClientWorkdir/ ;"
+                + "cd - ";
+        try {
+            ProcessBuilder builder = new ProcessBuilder();
+            builder.command("/bin/bash", "-c", fuzzing_archive_command);
+            // builder.directory(new File(System.getProperty("user.home")));
+            builder.redirectErrorStream(true);
+
+            Process process = builder.start();
+
+            // Read the output of the process
+            // BufferedReader reader = new BufferedReader(
+            // new InputStreamReader(process.getInputStream()));
+            // String line;
+            // while ((line = reader.readLine()) != null) {
+            // System.err.println("[miniClientMain] " + line);
+            // }
+
+            int exitCode = process.waitFor();
+            // if (exitCode == 0) {
+            // System.err.println("[miniClientMain] Tarballing successful.");
+            // } else {
+            // System.err.println(
+            // "[miniClientMain] Error tarballing directory.");
+            // }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         // lets c agent know that the stackedFeedbackFile is ready
-        cAgent.print("2");
+        String printMsg = "2:" + archive_name;
+        cAgent.print(printMsg);
+        // cAgent.print("2");
 
         // sit here, if any communication desync happened
         // this should be passed and system will crash

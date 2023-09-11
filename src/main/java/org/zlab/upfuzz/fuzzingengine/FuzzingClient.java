@@ -11,6 +11,8 @@ import java.io.ObjectOutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -352,9 +354,65 @@ public class FuzzingClient {
 
         this.libnyx.nyxExec();
 
+        // String storagePath = executor.dockerCluster.workdir.getAbsolutePath()
+        // .toString();
+        String archive_name = "";
+        String directoryPath = Paths.get(this.libnyx.getWorkdir(),
+                "dump").toAbsolutePath().toString();
+        File directory = new File(directoryPath);
+
+        // Check if the provided path is a directory
+        if (directory.isDirectory()) {
+            File[] files = directory.listFiles();
+
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isFile() && file.getName().endsWith(".tar.gz")) {
+                        archive_name = file.getName();
+                        break;
+                    }
+                }
+            } else {
+                logger.info("[FuzzingClient] No files found in the directory.");
+            }
+        } else {
+            logger.info("[FuzzingClient] Provided path is not a directory.");
+        }
+
+        if (!archive_name.equals("")) {
+            String storagePath = directoryPath + "/" + archive_name;
+            String unzip_archive_command = "cd " + directoryPath + "/ ; "
+                    + "tar -xzf " + archive_name + " ; "
+                    + "cp persistent/stackedFeedbackPacket.ser " + directoryPath
+                    + " ; "
+                    + "cd - ;"
+                    + "mv " + storagePath + " "
+                    + Paths.get(this.libnyx.getSharedir()) + " ; ";
+
+            try {
+                ProcessBuilder builder = new ProcessBuilder();
+                builder.command("/bin/bash", "-c", unzip_archive_command);
+                // builder.directory(new File(System.getProperty("user.home")));
+                builder.redirectErrorStream(true);
+
+                Process process = builder.start();
+
+                // Read the output of the process
+                // BufferedReader reader = new BufferedReader(
+                // new InputStreamReader(process.getInputStream()));
+                // String line;
+                // while ((line = reader.readLine()) != null) {
+                // System.err.println("[Fuzzing Client] " + line);
+                // }
+
+                int exitCode = process.waitFor();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         // get feedback file from hpush dir (in workdir)
-        Path stackedFeedbackPath = Paths.get(
-                this.libnyx.getWorkdir(),
+        Path stackedFeedbackPath = Paths.get(this.libnyx.getWorkdir(),
                 "dump",
                 "stackedFeedbackPacket.ser");
 
