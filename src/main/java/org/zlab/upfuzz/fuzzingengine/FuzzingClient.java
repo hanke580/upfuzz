@@ -396,15 +396,6 @@ public class FuzzingClient {
                 builder.redirectErrorStream(true);
 
                 Process process = builder.start();
-
-                // Read the output of the process
-                // BufferedReader reader = new BufferedReader(
-                // new InputStreamReader(process.getInputStream()));
-                // String line;
-                // while ((line = reader.readLine()) != null) {
-                // System.err.println("[Fuzzing Client] " + line);
-                // }
-
                 int exitCode = process.waitFor();
             } catch (Exception e) {
                 e.printStackTrace();
