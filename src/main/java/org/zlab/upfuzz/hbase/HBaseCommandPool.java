@@ -27,9 +27,9 @@ public class HBaseCommandPool extends CommandPool {
     @Override
     public void registerReadCommands() {
         // ddl
-        readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(DESCRIBE.class,
-                        DDL_WIGHT));
+        // readCommandClassList.add(
+        // new AbstractMap.SimpleImmutableEntry<>(DESCRIBE.class,
+        // DDL_WIGHT));
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(EXISTS.class,
                         DDL_WIGHT));
@@ -44,9 +44,9 @@ public class HBaseCommandPool extends CommandPool {
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(LOCATE_REGIONS.class,
                         DDL_WIGHT));
-        readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(SHOW_FILTERS.class,
-                        DDL_WIGHT));
+        // readCommandClassList.add(
+        // new AbstractMap.SimpleImmutableEntry<>(SHOW_FILTERS.class,
+        // DDL_WIGHT));
         // dml
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(COUNT.class, DML_WIGHT));
