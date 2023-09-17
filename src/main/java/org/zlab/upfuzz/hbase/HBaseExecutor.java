@@ -199,6 +199,9 @@ public class HBaseExecutor extends Executor {
                 // HBase unique: Mask Took 0.0052 seconds
                 str1 = Utilities.maskScanTime(str1);
                 str2 = Utilities.maskScanTime(str2);
+                // HBase unique: Ruby objects
+                str1 = Utilities.maskRubyObject(str1);
+                str2 = Utilities.maskRubyObject(str2);
 
                 if (str1.compareTo(str2) != 0) {
                     String errorMsg = "Result inconsistency at read id: " + i

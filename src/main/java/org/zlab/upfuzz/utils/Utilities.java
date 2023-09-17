@@ -689,6 +689,13 @@ public class Utilities {
         return matcher.replaceAll("");
     }
 
+    // Mask Ruby object (For Hbase)
+    public static String maskRubyObject(String str) {
+        String filteredOutput = str.replaceAll("(?m)^=> #<Java::.*?$", "")
+                .trim();
+        return filteredOutput;
+    }
+
     public static int[] computeDiffBrokenInv(
             int[] lastBrokenInv,
             int[] curBrokenInv) {
