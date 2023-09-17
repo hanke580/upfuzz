@@ -33,9 +33,9 @@ public class HBaseCommandPool extends CommandPool {
                         DDL_WIGHT));
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(LIST.class, DDL_WIGHT));
-        readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(LIST_REGIONS.class,
-                        DDL_WIGHT));
+        // readCommandClassList.add(
+        // new AbstractMap.SimpleImmutableEntry<>(LIST_REGIONS.class,
+        // DDL_WIGHT));
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(LOCATE_REGION.class,
                         DDL_WIGHT));
@@ -77,9 +77,9 @@ public class HBaseCommandPool extends CommandPool {
         // procedures
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(LIST_LOCKS.class, 5));
-        readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(LIST_PROCEDURES.class,
-                        5));
+        // readCommandClassList.add(
+        // new AbstractMap.SimpleImmutableEntry<>(LIST_PROCEDURES.class,
+        // 5));
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
                         LIST_QUOTA_SNAPSHOTS.class, 5));
