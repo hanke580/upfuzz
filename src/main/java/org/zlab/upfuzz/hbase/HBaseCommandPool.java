@@ -4,17 +4,12 @@ import java.util.AbstractMap;
 import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.hbase.configurations.UPDATE_ALL_CONFIG;
 import org.zlab.upfuzz.hbase.configurations.UPDATE_CONFIG;
-import org.zlab.upfuzz.hbase.general.STATUS;
-import org.zlab.upfuzz.hbase.general.TABLE_HELP;
-import org.zlab.upfuzz.hbase.general.VERSION;
-import org.zlab.upfuzz.hbase.general.WHOAMI;
+import org.zlab.upfuzz.hbase.general.*;
 import org.zlab.upfuzz.hbase.namespace.*;
 import org.zlab.upfuzz.hbase.procedures.LIST_LOCKS;
 import org.zlab.upfuzz.hbase.procedures.LIST_PROCEDURES;
 import org.zlab.upfuzz.hbase.quotas.*;
-import org.zlab.upfuzz.hbase.rsgroup.ADD_RSGROUP;
-import org.zlab.upfuzz.hbase.rsgroup.GET_TABLE_RSGROUP;
-import org.zlab.upfuzz.hbase.rsgroup.LIST_GROUPS;
+// import org.zlab.upfuzz.hbase.rsgroup.*;
 import org.zlab.upfuzz.hbase.snapshot.*;
 import org.zlab.upfuzz.hbase.tools.*;
 import org.zlab.upfuzz.hbase.ddl.*;
@@ -42,7 +37,7 @@ public class HBaseCommandPool extends CommandPool {
                 new AbstractMap.SimpleImmutableEntry<>(LIST_REGIONS.class,
                         DDL_WIGHT));
         readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(LOCATE_REGIONS.class,
+                new AbstractMap.SimpleImmutableEntry<>(LOCATE_REGION.class,
                         DDL_WIGHT));
         // readCommandClassList.add(
         // new AbstractMap.SimpleImmutableEntry<>(SHOW_FILTERS.class,
@@ -96,11 +91,11 @@ public class HBaseCommandPool extends CommandPool {
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
                         LIST_SNAPSHOT_SIZES.class, 5));
-        readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(GET_TABLE_RSGROUP.class,
-                        5));
-        readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(LIST_GROUPS.class, 5));
+        // readCommandClassList.add(
+        // new AbstractMap.SimpleImmutableEntry<>(GET_TABLE_RSGROUP.class,
+        // 5));
+        // readCommandClassList.add(
+        // new AbstractMap.SimpleImmutableEntry<>(LIST_GROUPS.class, 5));
         // snapshot
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(LIST_SNAPSHOTS.class,
@@ -212,8 +207,8 @@ public class HBaseCommandPool extends CommandPool {
                 new AbstractMap.SimpleImmutableEntry<>(
                         SET_QUOTA_THROTTLE_RW.class, 5));
         // rsgroup
-        commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(ADD_RSGROUP.class, 5));
+        // commandClassList.add(
+        // new AbstractMap.SimpleImmutableEntry<>(ADD_RSGROUP.class, 5));
         // snaphost
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(CLONE_SNAPSHOT.class,

@@ -5,8 +5,8 @@ import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hbase.HBaseCommand;
 import org.zlab.upfuzz.hbase.HBaseState;
 
-public class LOCATE_REGIONS extends HBaseCommand {
-    public LOCATE_REGIONS(HBaseState state) {
+public class LOCATE_REGION extends HBaseCommand {
+    public LOCATE_REGION(HBaseState state) {
         super(state);
         Parameter tableName = chooseTable(state, this, null);
         this.params.add(tableName); // 0 tableName
@@ -17,7 +17,7 @@ public class LOCATE_REGIONS extends HBaseCommand {
 
     @Override
     public String constructCommandString() {
-        return "locate_regions " + "'" + params.get(0) + "'" + ", " + "'"
+        return "locate_region " + "'" + params.get(0) + "'" + ", " + "'"
                 + params.get(1) + "'";
     }
 
