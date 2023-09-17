@@ -97,6 +97,7 @@ public abstract class ConfigGen {
             throw new RuntimeException("missing configuration test files!" + e);
         }
         // update config black list
+        updateConfigBlackList();
         removeUpgradeBlackListConfigs();
     }
 

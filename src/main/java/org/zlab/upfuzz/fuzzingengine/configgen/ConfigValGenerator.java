@@ -259,7 +259,7 @@ public class ConfigValGenerator {
                         useDefault = true;
                         // can generate values using default
                         for (int i = 0; i < TEST_NUM; i++) {
-                            vals.add(rand.nextInt((int) factor * initVal));
+                            vals.add(rand.nextInt((int) (factor * initVal)));
                         }
                     }
                 } catch (Exception e) {

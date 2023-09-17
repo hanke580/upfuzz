@@ -6,18 +6,33 @@ import org.zlab.upfuzz.fuzzingengine.configgen.yaml.YamlGenerator;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 public class CassandraConfigGen extends ConfigGen {
+
+    public static final String[] cassandraConfigBlacklist = {
+            "minimum_replication_factor_warn_threshold",
+            "minimum_replication_factor_fail_threshold",
+            "user_defined_functions_threads_enabled",
+            "concurrent_validations",
+            "enable_user_defined_functions_threads",
+            // timeout related, better not mutate be mutated
+            "request_timeout_in_ms",
+            "read_request_timeout_in_ms",
+            "range_request_timeout_in_ms",
+            "write_request_timeout_in_ms",
+            "counter_write_request_timeout_in_ms",
+            "cas_contention_timeout_in_ms",
+            // setting this to 1 prevents system from starting up
+            "truncate_request_timeout_in_ms",
+            // new feature: usually not enabled during upgrade
+            "partition_denylist_enabled"
+    };
+
     @Override
     public void updateConfigBlackList() {
-        configBlackList
-                .add("minimum_replication_factor_warn_threshold");
-        configBlackList
-                .add("minimum_replication_factor_fail_threshold");
-        configBlackList
-                .add("user_defined_functions_threads_enabled");
-        configBlackList
-                .add("concurrent_validations");
+        // add all configs in cassandraConfigBlacklist to configBlackList
+        configBlackList.addAll(Arrays.asList(cassandraConfigBlacklist));
     }
 
     @Override
