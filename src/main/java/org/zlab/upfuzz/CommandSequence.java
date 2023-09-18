@@ -21,8 +21,6 @@ import org.zlab.upfuzz.utils.Utilities;
 public class CommandSequence implements Serializable {
     static Logger logger = LogManager.getLogger(CommandSequence.class);
 
-    public static final int MIN_CMD_SEQ_LEN = 10;
-    public static final int MAX_CMD_SEQ_LEN = 30;
     public final static int RETRY_GENERATE_TIME = 50;
     public final static int RETRY_MUTATE_TIME = 20;
 
@@ -239,8 +237,10 @@ public class CommandSequence implements Serializable {
         assert commandClassList != null;
 
         Random rand = new Random();
-        int len = rand.nextInt(MAX_CMD_SEQ_LEN - MIN_CMD_SEQ_LEN)
-                + MIN_CMD_SEQ_LEN;
+        int len = rand
+                .nextInt(Config.getConf().MAX_CMD_SEQ_LEN
+                        - Config.getConf().MIN_CMD_SEQ_LEN)
+                + Config.getConf().MIN_CMD_SEQ_LEN;
 
         Constructor<?> constructor = stateClass.getConstructor();
         if (state == null)

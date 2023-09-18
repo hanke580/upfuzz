@@ -41,6 +41,10 @@ public class Config {
         public boolean nyxMode = false;
         public String nyxFuzzSH = null;
 
+        // Sequence Generation
+        public int MIN_CMD_SEQ_LEN = 15;
+        public int MAX_CMD_SEQ_LEN = 30;
+
         // Mutation
         // for the first 10 seeds added to the corpus,
         // we only mutate them for relative few times

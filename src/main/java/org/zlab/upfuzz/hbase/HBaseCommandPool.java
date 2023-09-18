@@ -271,9 +271,10 @@ public class HBaseCommandPool extends CommandPool {
     public void registerCreateCommands() {
         createCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(CREATE.class, 5));
+        // TODO: Enable ns testing after merging it with table usage
         createCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(CREATE_NAMESPACE.class,
-                        5));
+                        1));
     }
 
 }
