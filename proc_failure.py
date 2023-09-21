@@ -23,7 +23,7 @@ event_crash = "event_crash"
 inconsistency = "inconsistency"
 
 HDFS_BLACK_LIST = ["RECEIVED SIGNAL"]
-HBASE_BLACK_LIST = ["zookeeper.ZKWatcher: regionserver"]
+HBASE_BLACK_LIST = ["zookeeper.ZKWatcher:"]
 
 # subprocess.run(["grep", "-r", "-A", "4", "ERROR", "/Users/hanke/Desktop/Project/upfuzz/system.log"])
 
@@ -235,8 +235,15 @@ def processHBase():
     unique_errors = hbase_grepUniqueError(HBASE_BLACK_LIST)
     error2failure = hadoop_construct_map(unique_errors)
 
-    for error_msg in error2failure:
-        print("error: ", error_msg, "\t size = ", len(error2failure[error_msg]))
+
+
+    # Print with order
+    sorted_items = sorted(error2failure.items(), key=lambda item: len(item[1]))
+    for key, value in sorted_items:
+        print("error: ", key, "\t size = ", len(value))
+
+    # for error_msg in error2failure:
+    #     print("error: ", error_msg, "\t size = ", len(error2failure[error_msg]))
     save_failureinfo(error2failure)
 
 def processCassandra():
