@@ -235,8 +235,6 @@ def processHBase():
     unique_errors = hbase_grepUniqueError(HBASE_BLACK_LIST)
     error2failure = hadoop_construct_map(unique_errors)
 
-
-
     # Print with order
     sorted_items = sorted(error2failure.items(), key=lambda item: len(item[1]))
     for key, value in sorted_items:
@@ -256,12 +254,16 @@ def processCassandra():
 def read_failureInfo():
     with open(os.path.join(failure_stat_dir, "unique_error.json"), 'r') as f:
         error2failure = json.load(f)
-        for error_msg in error2failure:
-            print("error msg: ", error_msg)
-            print("size = ", len(error2failure[error_msg]))
-            for failureIdx in error2failure[error_msg]:
+        
+        # Print with order
+        sorted_items = sorted(error2failure.items(), key=lambda item: len(item[1]))
+        for key, value in sorted_items:
+            print("error: msg: ", key)
+            print("size = ", len(value))
+            for failureIdx in value:
                 print("\t - ", failureIdx)
             print()
+
     read_failure_list(full_stop_crash)
     read_failure_list(event_crash)
     read_failure_list(inconsistency)
