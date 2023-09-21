@@ -23,7 +23,7 @@ event_crash = "event_crash"
 inconsistency = "inconsistency"
 
 HDFS_BLACK_LIST = ["RECEIVED SIGNAL"]
-HBASE_BLACK_LIST = []
+HBASE_BLACK_LIST = ["zookeeper.ZKWatcher: regionserver"]
 
 # subprocess.run(["grep", "-r", "-A", "4", "ERROR", "/Users/hanke/Desktop/Project/upfuzz/system.log"])
 
@@ -155,7 +155,8 @@ def hbase_grepUniqueError(black_list):
             #     str += arr[i]
             #     if i != len(arr):
             #         str += " "
-            error_arr.append(str.strip())
+            if cur_Num > 0:
+                error_arr.append(str.strip())
         else:
             error_arr.append(line_str.strip())
 
