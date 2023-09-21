@@ -131,15 +131,30 @@ def hbase_grepUniqueError(black_list):
             start_idx = 2
             if (arr[1] == "ERROR"): # HBase 2.5
                 start_idx = 1
-            
-            min = start_idx + 5
-            if (min > len(arr)):
-                min = len(arr)
 
-            for i in range(start_idx, min):
-                str += arr[i]
-                if i != len(arr):
-                    str += " "
+            cur_idx = start_idx + 1
+            flag = False
+            GREP_NUM = 5
+            cur_Num = 0
+            while True:
+                if cur_idx >= len(arr) or cur_Num >= GREP_NUM:
+                    break
+                if flag:
+                    str += " " + arr[cur_idx]
+                    cur_Num += 1
+                else:                    
+                    if (arr[cur_idx][-1] == "]"):
+                        flag = True
+                cur_idx += 1
+                
+            # min = start_idx + 5
+            # if (min > len(arr)):
+            #     min = len(arr)
+
+            # for i in range(start_idx, min):
+            #     str += arr[i]
+            #     if i != len(arr):
+            #         str += " "
             error_arr.append(str.strip())
         else:
             error_arr.append(line_str.strip())
