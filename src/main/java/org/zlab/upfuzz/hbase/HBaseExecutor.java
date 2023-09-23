@@ -75,29 +75,6 @@ public class HBaseExecutor extends Executor {
                 nodeNum, null, configPath);
     }
 
-    public boolean isHBaseReady(String HBasePath) {
-        ProcessBuilder isReadyBuilder = new ProcessBuilder();
-        Process isReady;
-        int ret = 0;
-        try {
-            isReady = Utilities.exec(
-                    new String[] { "echo", "\"version\"", "|", "bin/hbase",
-                            "shell", "-n" },
-                    HBasePath);
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(isReady.getInputStream()));
-            String line;
-            while ((line = in.readLine()) != null) {
-            }
-            isReady.waitFor();
-            in.close();
-            ret = isReady.exitValue();
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-        return ret == 0;
-    }
-
     @Override
     public boolean startup() {
         try {
@@ -155,13 +132,6 @@ public class HBaseExecutor extends Executor {
 
             long timeElapsed = TimeUnit.SECONDS.convert(
                     endTime - startTime, TimeUnit.MILLISECONDS);
-
-            if (Config.getConf().debug) {
-                logger.debug(String.format(
-                        "command = {%s}, result = {%s}, error = {%s}, exitValue = {%d}",
-                        command.getCommand(), cp.message, cp.error,
-                        cp.exitValue));
-            }
             if (cp != null) {
                 ret = cp.message;
             }

@@ -516,6 +516,17 @@ public class FuzzingClient {
             return null;
         }
 
+        if (Config.getConf().startUpClusterForDebugging) {
+            logger.info("[Debugging Mode] Start up the cluster only");
+            try {
+                Thread.sleep(36000 * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            logger.info("[Debugging Mode] System exit");
+            System.exit(1);
+        }
+
         // Execute
         executor.executeCommands(fullStopPacket.fullStopUpgrade.commands);
         List<String> oriResult = executor.executeCommands(
@@ -578,12 +589,13 @@ public class FuzzingClient {
             Map<Integer, Map<String, String>> states = executor
                     .readSystemState();
             fullStopFeedbackPacket.systemStates = states;
-            logger.info("collected system states = " + states);
+            // logger.info("collected system states = " + states);
 
             List<String> upResult = executor.executeCommands(
                     fullStopPacket.fullStopUpgrade.validCommands);
 
-            logger.info("upResult = " + upResult);
+            if (Config.getConf().debug)
+                logger.debug("upResult = " + upResult);
 
             // Compare results
             Pair<Boolean, String> compareRes = executor
@@ -594,8 +606,10 @@ public class FuzzingClient {
                         executor.executorID, fullStopPacket.configFileName,
                         compareRes.right, recordFullStopPacket(fullStopPacket));
 
-                logger.info("Execution ID = " + executor.executorID
-                        + "\ninconsistency: " + compareRes.right);
+                if (Config.getConf().debug) {
+                    logger.debug("Execution ID = " + executor.executorID
+                            + "\ninconsistency: " + compareRes.right);
+                }
             }
 
             // test downgrade

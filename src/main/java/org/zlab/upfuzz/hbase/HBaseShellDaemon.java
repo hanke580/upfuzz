@@ -19,13 +19,16 @@ public class HBaseShellDaemon {
 
     public HBaseShellDaemon(String ipAddress, int port, String executorID,
             Docker docker) {
-        int retry = 20;
+        int retry = 30;
         logger.info("[HKLOG] executor ID = " + executorID + "  "
                 + "Connect to hbase shell daemon:" + ipAddress + "...");
         for (int i = 0; i < retry; ++i) {
             try {
-                logger.debug("[HKLOG] executor ID = " + executorID + "  "
-                        + "Connect to hbase shell:" + ipAddress + "..." + i);
+                if (i % 5 == 0) {
+                    logger.debug("[HKLOG] executor ID = " + executorID + "  "
+                            + "Connect to hbase shell:" + ipAddress + "..."
+                            + i);
+                }
                 socket = new Socket();
                 socket.connect(new InetSocketAddress(ipAddress, port),
                         3 * 1000);
@@ -35,10 +38,9 @@ public class HBaseShellDaemon {
             } catch (Exception ignored) {
             }
             try {
-                Thread.sleep(10 * 1000);
+                Thread.sleep(5 * 1000);
             } catch (InterruptedException ignored) {
             }
-
         }
         throw new RuntimeException("[HKLOG] executor ID = " + executorID
                 + "  " + "cannot connect to hbase shell at " + ipAddress);

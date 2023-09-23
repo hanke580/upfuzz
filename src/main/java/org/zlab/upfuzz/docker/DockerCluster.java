@@ -261,6 +261,7 @@ public abstract class DockerCluster implements IDockerCluster {
 
     @Override
     public boolean fullStopUpgrade() throws Exception {
+        // FIXME: prepareUpgrade() might be put after shutdown?
         logger.info("Cluster full-stop upgrading...");
         prepareUpgrade();
         for (int i = 0; i < dockers.length; i++) {

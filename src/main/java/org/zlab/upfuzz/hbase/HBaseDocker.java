@@ -21,6 +21,10 @@ import org.zlab.upfuzz.utils.Utilities;
 public class HBaseDocker extends Docker {
     protected final Logger logger = LogManager.getLogger(getClass());
 
+    public enum NodeType {
+        ZOOKEEPER, MASTER, REGIONSERVER
+    }
+
     String composeYaml;
     String javaToolOpts;
     int HBaseDaemonPort = 36000;
@@ -100,11 +104,6 @@ public class HBaseDocker extends Docker {
         HBaseShell = new HBaseShellDaemon(getNetworkIP(), HBaseDaemonPort,
                 this.executorID,
                 this);
-        // if (index == 0) {
-        // HBaseShell = new HBaseShellDaemon(getNetworkIP(), HBaseDaemonPort,
-        // this.executorID,
-        // this);
-        // }
         return 0;
     }
 
@@ -146,7 +145,8 @@ public class HBaseDocker extends Docker {
         try {
             int main_version = Integer
                     .parseInt(spStrings[spStrings.length - 1].substring(0, 1));
-            logger.debug("[HKLOG] original main version = " + main_version);
+            if (Config.getConf().debug)
+                logger.debug("[HKLOG] original main version = " + main_version);
             if (main_version > 3)
                 pythonVersion = "python3";
         } catch (Exception e) {
@@ -170,45 +170,23 @@ public class HBaseDocker extends Docker {
 
     @Override
     public void flush() throws Exception {
-        // no idea what to do
     }
 
     public void rollingUpgrade() throws Exception {
-        prepareUpgradeEnv();
-        String restartCommand = "source /usr/bin/set_env && /usr/local/bin/rolling-upgrade.sh";
-        Process restart = runInContainer(
-                new String[] { "/bin/bash", "-c", restartCommand }, env);
-        int ret = restart.waitFor();
-        String message = Utilities.readProcess(restart);
-        logger.debug("upgrade version start: " + ret + "\n" + message);
-
-        if (index == 0) {
-            HBaseShell = new HBaseShellDaemon(getNetworkIP(), HBaseDaemonPort,
-                    this.executorID,
-                    this);
-        }
+        // TODO
     }
 
     @Override
     public void upgrade() throws Exception {
         prepareUpgradeEnv();
         String restartCommand;
-        if (index == 0) {
-            restartCommand = "supervisorctl restart upfuzz_hbase:";
-        } else {
-            restartCommand = "source /usr/bin/set_env && /usr/local/bin/hbase-init.sh";
-        }
+        restartCommand = "supervisorctl restart upfuzz_hbase:";
         Process restart = runInContainer(
                 new String[] { "/bin/bash", "-c", restartCommand }, env);
         int ret = restart.waitFor();
         String message = Utilities.readProcess(restart);
-        logger.debug("upgrade version start: " + ret + "\n" + message);
-
-        if (index == 0) {
-            HBaseShell = new HBaseShellDaemon(getNetworkIP(), HBaseDaemonPort,
-                    this.executorID,
-                    this);
-        }
+        logger.debug("Node " + index + " upgrade version start: " + ret + "\n"
+                + message);
     }
 
     @Override
@@ -253,53 +231,42 @@ public class HBaseDocker extends Docker {
 
     @Override
     public void downgrade() throws Exception {
-        type = "original";
-        String HBaseHome = "/hbase/" + originalVersion;
-        String HBaseConf = "/etc/" + originalVersion;
-        javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
-                + "/org.jacoco.agent.rt.jar"
-                + "=append=false"
-                + ",includes=" + includes + ",excludes=" + excludes +
-                ",output=dfe,address=" + hostIP + ",port=" + agentPort +
-                /*",weights=" + HBaseHome + "/diff_func.txt" +*/
-                ",sessionid=" + system + "-" + executorID + "_"
-                + type + "-" + index +
-                "\"";
-        HBaseDaemonPort ^= 1;
+    }
 
-        String pythonVersion = "python2";
-        String[] spStrings = originalVersion.split("-");
-        try {
-            int main_version = Integer
-                    .parseInt(spStrings[spStrings.length - 1].substring(0, 1));
-            logger.debug("[HKLOG] original main version = " + main_version);
-            if (main_version > 3)
-                pythonVersion = "python3";
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        env = new String[] {
-                "HBASE_HOME=\"" + HBaseHome + "\"",
-                "HBASE_CONF=\"" + HBaseConf + "\"", javaToolOpts,
-                "HBASE_SHELL_DAEMON_PORT=\"" + HBaseDaemonPort + "\"",
-                "CUR_STATUS=ORI",
-                "PYTHON=" + pythonVersion };
-
-        setEnvironment();
-
-        String restartCommand = "supervisorctl restart hbase";
-        // TODO remove the env arguments, we already have /usr/bin/set_env
-        Process restart = runInContainer(
-                new String[] { "/bin/bash", "-c", restartCommand }, env);
-        int ret = restart.waitFor();
-        String message = Utilities.readProcess(restart);
-        logger.debug("downgrade version start: " + ret + "\n" + message);
-
-        if (index == 0) {
-            HBaseShell = new HBaseShellDaemon(getNetworkIP(), HBaseDaemonPort,
-                    this.executorID,
-                    this);
+    public void shutdownWithType(NodeType nodeType) {
+        // The reason this code is like this is that
+        // the zk and master/rs are in the same node
+        String curVersion = type.equals("upgraded") ? upgradedVersion
+                : originalVersion;
+        String hbaseDaemonPath = "/" + system + "/" + curVersion + "/"
+                + "bin/hbase-daemon.sh";
+        if (nodeType == NodeType.REGIONSERVER) {
+            if (index == 1 || index == 2) {
+                String[] stopNode = new String[] {
+                        hbaseDaemonPath, "--config", "/etc/" + curVersion,
+                        "stop", "regionserver" };
+                int ret = runProcessInContainer(stopNode, env);
+                logger.debug(String.format(
+                        "shutdown regionserver (index = %d) ret = %d", index,
+                        ret));
+            }
+        } else if (nodeType == NodeType.MASTER) {
+            if (index == 0) {
+                // N0: hbase master, zookeeper
+                String[] stopHMaster = new String[] {
+                        hbaseDaemonPath, "--config", "/etc/" + curVersion,
+                        "stop", "master" };
+                int ret = runProcessInContainer(stopHMaster, env);
+                logger.debug("shutdown " + "hmaster" + " ret = " + ret);
+            }
+        } else if (nodeType == NodeType.ZOOKEEPER) {
+            String[] stopZK = new String[] {
+                    hbaseDaemonPath, "--config", "/etc/" + curVersion,
+                    "stop", "zookeeper" };
+            int ret = runProcessInContainer(stopZK, env);
+            logger.debug("shutdown " + "zookeeper" + index + " ret = " + ret);
+        } else {
+            throw new RuntimeException("Unknown node type");
         }
     }
 
@@ -325,9 +292,9 @@ public class HBaseDocker extends Docker {
                     hbaseDaemonPath, "--config", "/etc/" + curVersion,
                     "stop", "regionserver" };
             int ret = runProcessInContainer(stopNode, env);
-            logger.debug("shutdown " + "regionserver" + " ret = " + ret);
+            logger.debug(String.format(
+                    "shutdown regionserver (index = %d) ret = %d", index, ret));
         }
-
         String[] stopZK = new String[] {
                 hbaseDaemonPath, "--config", "/etc/" + curVersion,
                 "stop", "zookeeper" };

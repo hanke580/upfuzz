@@ -71,6 +71,9 @@ public class HBaseDockerCluster extends DockerCluster {
                 "quorum.LearnerHandler: Unexpected exception causing shutdown while sock still open");
         blackListErrorLog.add(
                 "jmx.ManagedUtil: Problems while registering log4j jmx beans!");
+        blackListErrorLog.add(
+                "zookeeper.RecoverableZooKeeper: ZooKeeper delete failed");
+
     }
 
     public boolean build() throws Exception {
@@ -242,20 +245,34 @@ public class HBaseDockerCluster extends DockerCluster {
         }
     }
 
-    // @Override
-    // public boolean fullStopUpgrade() throws Exception {
-    // logger.info("Cluster full-stop upgrading...");
-    // prepareUpgrade();
-    // for (int i = 0; i < dockers.length; i++) {
-    // dockers[i].flush();
-    // dockers[i].shutdown();
-    // }
-    // for (int i = dockers.length - 1; i >= 0; i--) {
-    // dockers[i].upgrade();
-    // }
-    // logger.info("Cluster upgraded");
-    // return true;
-    // }
+    @Override
+    public boolean fullStopUpgrade() throws Exception {
+        logger.info("Cluster full-stop upgrading...");
+        // Shutdown all rs
+        for (int i = 0; i < dockers.length; i++) {
+            ((HBaseDocker) dockers[i])
+                    .shutdownWithType(HBaseDocker.NodeType.REGIONSERVER);
+        }
+        // Shutdown all masters
+        for (int i = 0; i < dockers.length; i++) {
+            ((HBaseDocker) dockers[i])
+                    .shutdownWithType(HBaseDocker.NodeType.MASTER);
+        }
+        // Shutdown all zk
+        for (int i = 0; i < dockers.length; i++) {
+            ((HBaseDocker) dockers[i])
+                    .shutdownWithType(HBaseDocker.NodeType.ZOOKEEPER);
+        }
+        prepareUpgrade();
+        for (int i = 0; i < dockers.length; i++) {
+            dockers[i].upgrade();
+        }
+        for (int i = 0; i < dockers.length; i++) {
+            dockers[i].start();
+        }
+        logger.info("Cluster upgraded");
+        return true;
+    }
 
     @Override
     public boolean rollingUpgrade() throws Exception {

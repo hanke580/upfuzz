@@ -69,13 +69,23 @@ done
 HBASE_REGIONSERVERS="${HBASE_REGIONSERVERS:-$HBASE_CONF/regionservers}"
 
 
+# Start up ZK first, then after some time, start up HMaster => Other RSs.
+
+ZK_START_TIME=10
+WAIT_FOR_HMASTER=10
+
 if [ ${IS_HMASTER} = "true" ]
 then
     ${HBASE_HOME}/bin/hbase-daemon.sh --config "${HBASE_CONF}" start zookeeper
+    # Wait for ZK to start up
+    sleep $ZK_START_TIME
     ${HBASE_HOME}/bin/hbase-daemon.sh --config "${HBASE_CONF}" start master
 else
     ${HBASE_HOME}/bin/hbase-daemon.sh --config "${HBASE_CONF}" start zookeeper
-    ${HBASE_HOME}/bin/hbase-daemon.sh --config ${HBASE_CONF} foreground_start regionserver
+    # Wait for ZK to start up
+    sleep ${ZK_START_TIME}
+    sleep ${WAIT_FOR_HMASTER}
+    ${HBASE_HOME}/bin/hbase-daemon.sh --config ${HBASE_CONF} start regionserver
 fi
 
 

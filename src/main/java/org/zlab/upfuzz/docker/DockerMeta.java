@@ -66,7 +66,8 @@ public abstract class DockerMeta {
         }
         cmds.add(containerName);
         cmds.addAll(Arrays.asList(cmd));
-        logger.debug(String.join(" ", cmds));
+        if (Config.getConf().debug)
+            logger.debug(String.join(" ", cmds));
         return Utilities.exec(cmds.toArray(new String[] {}), workdir);
     }
 

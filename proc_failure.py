@@ -22,7 +22,7 @@ full_stop_crash = "fullstop_crash"
 event_crash = "event_crash"
 inconsistency = "inconsistency"
 
-HDFS_BLACK_LIST = ["RECEIVED SIGNAL"]
+HDFS_BLACK_LIST = ["RECEIVED SIGNAL", "DataXceiver error processing"]
 HBASE_BLACK_LIST = ["zookeeper.ZKWatcher:"]
 
 # subprocess.run(["grep", "-r", "-A", "4", "ERROR", "/Users/hanke/Desktop/Project/upfuzz/system.log"])
