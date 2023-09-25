@@ -36,9 +36,10 @@ public class HBaseCommandPool extends CommandPool {
         // readCommandClassList.add(
         // new AbstractMap.SimpleImmutableEntry<>(LIST_REGIONS.class,
         // DDL_WIGHT));
-        readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(LOCATE_REGION.class,
-                        DDL_WIGHT));
+        // FP: the region can be changed between versions!
+        // readCommandClassList.add(
+        // new AbstractMap.SimpleImmutableEntry<>(LOCATE_REGION.class,
+        // DDL_WIGHT));
         // readCommandClassList.add(
         // new AbstractMap.SimpleImmutableEntry<>(SHOW_FILTERS.class,
         // DDL_WIGHT));
@@ -107,9 +108,10 @@ public class HBaseCommandPool extends CommandPool {
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(BALANCER_ENABLED.class,
                         5));
-        readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(
-                        CATALOGJANITOR_ENABLED.class, 5));
+        // This causes FP: CATALOGJANITOR is enabled by default
+        // readCommandClassList.add(
+        // new AbstractMap.SimpleImmutableEntry<>(
+        // CATALOGJANITOR_ENABLED.class, 5));
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
                         CLEANER_CHORE_ENABLED.class, 5));
