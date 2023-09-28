@@ -1,18 +1,16 @@
 package org.zlab.upfuzz.cassandra;
 
 import java.util.*;
-import org.zlab.upfuzz.Command;
-import org.zlab.upfuzz.Parameter;
-import org.zlab.upfuzz.ParameterType;
-import org.zlab.upfuzz.State;
-import org.zlab.upfuzz.utils.INTType;
-import org.zlab.upfuzz.utils.PAIRType;
-import org.zlab.upfuzz.utils.Pair;
-import org.zlab.upfuzz.utils.STRINGType;
+import java.util.stream.Collectors;
+
+import org.zlab.upfuzz.*;
+import org.zlab.upfuzz.fuzzingengine.Config;
+import org.zlab.upfuzz.utils.*;
 
 public class CassandraTypes {
 
     public static Map<ParameterType, String> type2String = new HashMap<>();
+    public static Map<ParameterType, String> complexType2String = new HashMap<>();
     public static Map<ParameterType, String> genericType2String = new HashMap<>();
 
     // public static List<ParameterType> types = new ArrayList<>();
@@ -22,6 +20,24 @@ public class CassandraTypes {
     static {
         type2String.put(TEXTType.instance, "TEXT");
         type2String.put(new INTType(), "INT");
+        type2String.put(
+                new ParameterType.ConcreteGenericTypeOne(SETType.instance,
+                        TEXTType.instance),
+                "set<text>");
+        type2String.put(
+                new ParameterType.ConcreteGenericTypeOne(SETType.instance,
+                        new INTType(0, 1000)),
+                "set<int>");
+
+        // complexType2String
+        complexType2String.put(
+                new ParameterType.ConcreteGenericTypeOne(SETType.instance,
+                        TEXTType.instance),
+                "set<text>");
+        complexType2String.put(
+                new ParameterType.ConcreteGenericTypeOne(SETType.instance,
+                        new INTType(0, 1000)),
+                "set<int>");
 
         // types.add(LISTType.instance);
         // types.add(PAIRType.instance);
@@ -32,6 +48,47 @@ public class CassandraTypes {
         // we do not have a fixed list. When generating a TYPEType, we pick
         // among a
         // list of
+    }
+
+    private static ParameterType selectRandomType(boolean isComplexType) {
+        // Can avoid this transform by storing a separate List
+        List<ParameterType> types;
+        if (isComplexType)
+            types = new ArrayList<ParameterType>(
+                    complexType2String.keySet());
+        else
+            types = new ArrayList<ParameterType>(
+                    type2String.keySet());
+        int typeIdx = new Random().nextInt(types.size());
+        return types.get(typeIdx);
+    }
+
+    private static ParameterType.ConcreteType generateRandomType(
+            ParameterType.GenericType g, boolean isComplexType) {
+        if (g instanceof ParameterType.GenericTypeOne) {
+            return new ParameterType.ConcreteGenericTypeOne(g,
+                    generateRandomType(isComplexType));
+        } else if (g instanceof ParameterType.GenericTypeTwo) {
+            return new ParameterType.ConcreteGenericTypeTwo(g,
+                    generateRandomType(isComplexType),
+                    generateRandomType(isComplexType));
+        }
+        assert false;
+        return null; // should not happen.
+    }
+
+    private static ParameterType.ConcreteType generateRandomType(
+            boolean isComplexType) {
+        ParameterType t = selectRandomType(isComplexType);
+        if (t instanceof ParameterType.ConcreteType) {
+            return (ParameterType.ConcreteType) t;
+        } else if (t instanceof ParameterType.GenericType) { // Shouldn't happen
+                                                             // for now.
+            return generateRandomType((ParameterType.GenericType) t,
+                    isComplexType);
+        }
+        assert false;
+        return null; // should not happen.
     }
 
     public static class TEXTType extends STRINGType {
@@ -117,8 +174,8 @@ public class CassandraTypes {
             // (Pair<TEXT,TYPE>)
             List<Parameter> value = new ArrayList<>();
 
-            int bound = 10; // specified by user
-            int len = new Random().nextInt(bound);
+            int len = new Random()
+                    .nextInt(Config.getConf().CASSANDRA_LIST_TYPE_MAX_SIZE);
 
             ConcreteType t = types.get(0);
 
@@ -274,6 +331,64 @@ public class CassandraTypes {
         }
     }
 
+    public static class MapLikeListColumnType extends MapLikeListType {
+        // make sure it generate at least one non-complex type
+        // speical usage for generation of columns
+
+        public static final MapLikeListColumnType instance = new MapLikeListColumnType();
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c,
+                List<ConcreteType> typesInTemplate) {
+
+            ConcreteType t = typesInTemplate.get(0);
+            List<Parameter> value = new ArrayList<>();
+
+            assert t instanceof ConcreteGenericTypeTwo;
+            assert ((ConcreteGenericTypeTwo) t).t instanceof PAIRType;
+
+            // Set<Parameter> leftSet = new HashSet<>();
+
+            Set<String> leftSet = new HashSet<>();
+
+            int bound = 10; // specified by user
+            int len = new Random().nextInt(bound);
+
+            // make sure the first 2 are non-complex type
+
+            for (int i = 0; i < len; i++) {
+                Parameter p = t.generateRandomParameter(s, c);
+                Parameter leftParam = ((Pair<Parameter, Parameter>) p.value).left;
+                Parameter rightParam = ((Pair<Parameter, Parameter>) p.value).right;
+
+                // FIXME: might get stuck here
+                // At least one non-complex type
+                if (i < 1) {
+                    while (leftSet.contains(leftParam.toString())
+                            || rightParam.toString().contains("set")) {
+                        p = t.generateRandomParameter(s, c);
+                        leftParam = ((Pair<Parameter, Parameter>) p.value).left;
+                        rightParam = ((Pair<Parameter, Parameter>) p.value).right;
+                    }
+                } else {
+                    while (leftSet.contains(leftParam.toString())) {
+                        p = t.generateRandomParameter(s, c);
+                        leftParam = ((Pair<Parameter, Parameter>) p.value).left;
+                    }
+                }
+                leftSet.add(leftParam.toString());
+                value.add(p);
+            }
+
+            ConcreteType type = ConcreteGenericType
+                    .constructConcreteGenericType(
+                            this.instance, t); // LIST<WhateverType>
+
+            return new Parameter(type, value);
+        }
+
+    }
+
     /**
      * TODO: This TYPEType should also be able to enumerate user defined types
      * in Cassandra. It is feasible by using the current state: find the user
@@ -334,36 +449,6 @@ public class CassandraTypes {
             return true;
         }
 
-        private ParameterType selectRandomType() {
-            // Can avoid this transform by storing a separate List
-            List<ParameterType> types = new ArrayList<ParameterType>(
-                    type2String.keySet());
-            int typeIdx = new Random().nextInt(types.size());
-            return types.get(typeIdx);
-        }
-
-        private ConcreteType generateRandomType(GenericType g) {
-            if (g instanceof GenericTypeOne) {
-                return new ConcreteGenericTypeOne(g, generateRandomType());
-            } else if (g instanceof GenericTypeTwo) {
-                return new ConcreteGenericTypeTwo(g, generateRandomType(),
-                        generateRandomType());
-            }
-            assert false;
-            return null; // should not happen.
-        }
-
-        private ConcreteType generateRandomType() {
-            ParameterType t = selectRandomType();
-            if (t instanceof ConcreteType) {
-                return (ConcreteType) t;
-            } else if (t instanceof GenericType) { // Shouldn't happen for now.
-                return generateRandomType((GenericType) t);
-            }
-            assert false;
-            return null; // should not happen.
-        }
-
         @Override
         public Parameter generateRandomParameter(State s, Command c,
                 Object init) {
@@ -389,7 +474,85 @@ public class CassandraTypes {
             // Change the recursive method to a iterative loop using stack or
             // queue
             // and limit loop. Or count how deep the recursion is and limit it.
-            return new Parameter(this, generateRandomType());
+            return new Parameter(this, generateRandomType(false));
         }
     }
+
+    public static class COMPLEXTYPEType extends TYPEType {
+        public static final COMPLEXTYPEType instance = new COMPLEXTYPEType();
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c) {
+
+            // Should limit how complicated the type could get...
+            // TODO: Limit the number of recursions/iterations
+            // Change the recursive method to a iterative loop using stack or
+            // queue
+            // and limit loop. Or count how deep the recursion is and limit it.
+            return new Parameter(this, generateRandomType(true));
+        }
+    }
+
+    public static class PartitionSubsetType<T, U>
+            extends ParameterType.SubsetType {
+
+        public PartitionSubsetType(ConcreteType t,
+                FetchCollectionLambda configuration,
+                SerializableFunction mapFunc) {
+            super(t, configuration, mapFunc);
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c) {
+            /**
+             * Current t should be concrete generic type List<xxx>
+             * - Select from collection set
+             */
+
+            Object targetCollection = configuration.operate(s, c);
+
+            if (mapFunc != null) {
+                targetCollection = ((Collection<T>) targetCollection)
+                        .stream()
+                        .map(mapFunc)
+                        .collect(Collectors.toList());
+            }
+
+            /**
+             * Pick a subset from the configuration, it will also be a list of
+             * parameters Return new Parameter(SubsetType, value)
+             */
+
+            // TODO: Make all the collection contain the parameter
+
+            List<Object> targetSet = new ArrayList<Object>(
+                    (Collection<Object>) targetCollection);
+            List<Object> value = new ArrayList<>();
+
+            // FIXME: A HACK! Filter out complex type
+            List<Object> filteredTargetSet = new ArrayList<>();
+            for (Object o : targetSet) {
+                if (!o.toString().contains("set<")) {
+                    filteredTargetSet.add(o);
+                }
+            }
+
+            if (filteredTargetSet.size() > 0) {
+                Random rand = new Random();
+                int setSize = rand.nextInt(filteredTargetSet.size() + 1); // specified
+                // by user
+                List<Integer> indexArray = new ArrayList<>();
+                for (int i = 0; i < filteredTargetSet.size(); i++) {
+                    indexArray.add(i);
+                }
+                Collections.shuffle(indexArray);
+
+                for (int i = 0; i < setSize; i++) {
+                    value.add(filteredTargetSet.get(indexArray.get(i)));
+                }
+            }
+            return new Parameter(this, value);
+        }
+    }
+
 }

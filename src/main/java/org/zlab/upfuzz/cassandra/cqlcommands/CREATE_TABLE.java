@@ -58,20 +58,19 @@ public class CREATE_TABLE extends CassandraCommand {
         ParameterType.ConcreteType columnsType = // LIST<PAIR<String,TYPEType>>
                 new ParameterType.NotEmpty(ParameterType.ConcreteGenericType
                         .constructConcreteGenericType(
-                                CassandraTypes.MapLikeListType.instance,
+                                CassandraTypes.MapLikeListColumnType.instance,
                                 ParameterType.ConcreteGenericType
                                         .constructConcreteGenericType(
                                                 PAIRType.instance,
                                                 new ParameterType.NotEmpty(
                                                         new STRINGType(20)),
                                                 CassandraTypes.TYPEType.instance)));
-
         Parameter columns = columnsType
                 .generateRandomParameter(state, this, init2);
         params.add(columns); // [2]
 
         ParameterType.ConcreteType primaryColumnsType = new ParameterType.NotEmpty(
-                new ParameterType.SubsetType(columnsType,
+                new CassandraTypes.PartitionSubsetType<>(columnsType,
                         (s, c) -> (Collection<Parameter>) c.params.get(2)
                                 .getValue(),
                         null));
@@ -116,7 +115,7 @@ public class CREATE_TABLE extends CassandraCommand {
         ParameterType.ConcreteType columnsType = // LIST<PAIR<String,TYPEType>>
                 new ParameterType.NotEmpty(ParameterType.ConcreteGenericType
                         .constructConcreteGenericType(
-                                CassandraTypes.MapLikeListType.instance,
+                                CassandraTypes.MapLikeListColumnType.instance,
                                 ParameterType.ConcreteGenericType
                                         .constructConcreteGenericType(
                                                 PAIRType.instance,
@@ -143,7 +142,7 @@ public class CREATE_TABLE extends CassandraCommand {
          *
          */
         ParameterType.ConcreteType primaryColumnsType = new ParameterType.NotEmpty(
-                new ParameterType.SubsetType(columnsType,
+                new CassandraTypes.PartitionSubsetType<>(columnsType,
                         (s, c) -> (Collection<Parameter>) c.params.get(2)
                                 .getValue(),
                         null));

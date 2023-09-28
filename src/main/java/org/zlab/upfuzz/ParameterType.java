@@ -308,7 +308,7 @@ public abstract class ParameterType implements Serializable {
 
     public static class SubsetType<T, U> extends ConfigurableType {
 
-        SerializableFunction<T, U> mapFunc;
+        public SerializableFunction<T, U> mapFunc;
 
         public SubsetType(
                 ConcreteType t, FetchCollectionLambda configuration,
@@ -392,6 +392,10 @@ public abstract class ParameterType implements Serializable {
              */
 
             // TODO: Make all the collection contain the parameter
+
+            if (targetCollection == null) {
+                return new Parameter(this, new ArrayList<>());
+            }
 
             List<Object> targetSet = new ArrayList<Object>(
                     (Collection<Object>) targetCollection);

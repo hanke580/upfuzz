@@ -41,9 +41,12 @@ public class Config {
         public boolean nyxMode = false;
         public String nyxFuzzSH = null;
 
+        // ------------Input Generation------------
         // Sequence Generation
         public int MIN_CMD_SEQ_LEN = 15;
         public int MAX_CMD_SEQ_LEN = 30;
+
+        public int SET_TYPE_MAX_SIZE = 10;
 
         // Mutation
         // for the first 10 seeds added to the corpus,
@@ -147,6 +150,7 @@ public class Config {
          */
         // == cassandra ==
         public boolean eval_CASSANDRA13939 = false;
+        public int CASSANDRA_LIST_TYPE_MAX_SIZE = 10;
 
         // == hdfs ==
         // If true: first create fsimage, then execute some commands

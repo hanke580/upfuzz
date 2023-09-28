@@ -2,6 +2,9 @@ package org.zlab.upfuzz.utils;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class UtilitiesTest {
 
     @Test
@@ -15,5 +18,17 @@ public class UtilitiesTest {
                 "=> #<Java::OrgApacheHadoopHbase::HRegionLocation:0x7305191e>";
         String output = Utilities.maskRubyObject(input);
         System.out.println(output);
+    }
+
+    @Test
+    public void testSetRandomDeleteAtLeaseOneItem() {
+        Set<String> set = new HashSet<>();
+        set.add("a");
+        set.add("b");
+        set.add("c");
+        set.add("d");
+        Boolean status = Utilities.setRandomDeleteAtLeaseOneItem(set);
+        System.out.println(set);
+        System.out.println(status);
     }
 }

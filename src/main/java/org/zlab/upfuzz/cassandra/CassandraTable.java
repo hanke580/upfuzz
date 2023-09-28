@@ -32,7 +32,6 @@ public class CassandraTable implements Serializable {
                         SerializationUtils.clone(primaryCol));
             }
         }
-
         indexes = new HashSet<>();
     }
 }

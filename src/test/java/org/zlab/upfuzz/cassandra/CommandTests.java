@@ -579,6 +579,29 @@ public class CommandTests extends AbstractTest {
     }
 
     @Test
+    public void testCREATECommandGeneration() {
+        CassandraState s = new CassandraState();
+
+        CREATE_KEYSPACE cmd0 = new CREATE_KEYSPACE(
+                s);
+        cmd0.updateState(s);
+        System.out.println(cmd0.constructCommandString());
+
+        CREATE_TABLE cmd1 = new CREATE_TABLE(
+                s);
+        cmd1.updateState(s);
+        System.out.println(cmd1.constructCommandString());
+
+        INSERT cmd2 = new INSERT(s);
+        cmd2.updateState(s);
+        System.out.println(cmd2.constructCommandString());
+
+        SELECT cmd3 = new SELECT(s);
+        cmd2.updateState(s);
+        System.out.println(cmd3.constructCommandString());
+    }
+
+    @Test
     public void testSELECTCommandGeneration() {
 
         CassandraState s = new CassandraState();

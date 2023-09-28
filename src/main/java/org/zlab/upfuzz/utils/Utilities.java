@@ -29,14 +29,12 @@ import org.jacoco.core.data.ExecutionDataStore;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.zlab.upfuzz.CommandSequence;
-import org.zlab.upfuzz.fuzzingengine.Config;
-import org.zlab.upfuzz.fuzzingengine.FeedBack;
-import org.zlab.upfuzz.fuzzingengine.packet.FeedbackPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPacket;
 
 public class Utilities {
     static Logger logger = LogManager.getLogger(Utilities.class);
+    static Random rand = new Random();
 
     public static List<Integer> permutation(int size) {
         List<Integer> indexArray = new ArrayList<>();
@@ -731,5 +729,38 @@ public class Utilities {
         if (str.equals("Integer.MIN_VALUE"))
             return Integer.MIN_VALUE;
         return Integer.parseInt(str);
+    }
+
+    public static void setRandomDeleteItems(Set<?> set, int numItemsToDelete) {
+        if (numItemsToDelete > set.size()) {
+            throw new IllegalArgumentException(
+                    "Number of items to delete exceeds set size.");
+        }
+
+        List<?> list = new ArrayList<>(set);
+        Random rand = new Random();
+
+        for (int i = 0; i < numItemsToDelete; i++) {
+            int randomIndex = rand.nextInt(list.size());
+            set.remove(list.get(randomIndex));
+            list.remove(randomIndex);
+        }
+    }
+
+    public static boolean setRandomDeleteAtLeaseOneItem(Set<?> set) {
+        if (set.size() == 0) {
+            return false;
+        }
+        // numItemsToDelete: [1, set.size()]
+        int numItemsToDelete = randWithRange(rand, 1, set.size() + 1);
+        List<?> list = new ArrayList<>(set);
+        Random rand = new Random();
+
+        for (int i = 0; i < numItemsToDelete; i++) {
+            int randomIndex = rand.nextInt(list.size());
+            set.remove(list.get(randomIndex));
+            list.remove(randomIndex);
+        }
+        return true;
     }
 }
