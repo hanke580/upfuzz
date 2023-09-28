@@ -10,8 +10,6 @@ public class CommandSequenceTest extends AbstractTest {
     @Test
     public void testSequenceGeneration() {
 
-        Config.instance.eval_CASSANDRA14912 = true;
-
         CassandraCommandPool cassandraCommandPool = new CassandraCommandPool();
 
         Config.getConf().system = "cassandra";
