@@ -6,10 +6,14 @@ import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.server.Seed;
 
 public class CommandSequenceTest extends AbstractTest {
-    public static CassandraCommandPool cassandraCommandPool = new CassandraCommandPool();
 
     @Test
     public void testSequenceGeneration() {
+
+        Config.instance.eval_CASSANDRA14912 = true;
+
+        CassandraCommandPool cassandraCommandPool = new CassandraCommandPool();
+
         Config.getConf().system = "cassandra";
         Seed seed = generateSeed(cassandraCommandPool, CassandraState.class,
                 -1);

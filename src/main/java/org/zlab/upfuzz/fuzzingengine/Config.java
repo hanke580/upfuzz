@@ -150,6 +150,7 @@ public class Config {
          */
         // == cassandra ==
         public boolean eval_CASSANDRA13939 = false;
+        public boolean eval_CASSANDRA14912 = false;
         public int CASSANDRA_LIST_TYPE_MAX_SIZE = 10;
 
         // == hdfs ==

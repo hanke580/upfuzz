@@ -21,8 +21,26 @@ public class CassandraCommandPool extends CommandPool {
                 CREATE_KEYSPACE.class, 2));
         createCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(CREATE_TABLE.class, 3));
-        readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(SELECT.class, 10));
+    }
+
+    public void eval_CASSANDRA14912() {
+        commandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(ALTER_TABLE_DROP.class,
+                        5));
+        commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
+                CREATE_KEYSPACE.class, 1));
+        commandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(CREATE_TABLE.class, 1));
+        commandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(INSERT.class, 5));
+        commandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(ALTER_TABLE_ADD.class,
+                        5));
+
+        createCommandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
+                CREATE_KEYSPACE.class, 2));
+        createCommandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(CREATE_TABLE.class, 3));
     }
 
     @Override
@@ -35,6 +53,10 @@ public class CassandraCommandPool extends CommandPool {
     public void registerWriteCommands() {
         if (Config.getConf().eval_CASSANDRA13939) {
             eval_CASSANDRA13939();
+            return;
+        }
+        if (Config.getConf().eval_CASSANDRA14912) {
+            eval_CASSANDRA14912();
             return;
         }
         commandClassList.add(
@@ -94,6 +116,11 @@ public class CassandraCommandPool extends CommandPool {
 
     @Override
     public void registerCreateCommands() {
+        if (Config.getConf().eval_CASSANDRA13939
+                || Config.getConf().eval_CASSANDRA14912) {
+            // commands added when registerWriteCommands() is invoked.
+            return;
+        }
         createCommandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
                 CREATE_KEYSPACE.class, 2));
         createCommandClassList.add(
