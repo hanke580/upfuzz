@@ -30,7 +30,7 @@ public class CassandraCommandPool extends CommandPool {
         commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
                 CREATE_KEYSPACE.class, 1));
         commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(CREATE_TABLE.class, 1));
+                new AbstractMap.SimpleImmutableEntry<>(CREATE_TABLE.class, 3));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(INSERT.class, 5));
         commandClassList.add(
