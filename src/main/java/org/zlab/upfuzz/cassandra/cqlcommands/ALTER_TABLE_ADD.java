@@ -16,6 +16,41 @@ import org.zlab.upfuzz.utils.STRINGType;
  */
 public class ALTER_TABLE_ADD extends CassandraCommand {
 
+    public ALTER_TABLE_ADD(State state, Object init0, Object init1,
+            Object init2, Object init3) {
+        super();
+
+        assert state instanceof CassandraState;
+        CassandraState cassandraState = (CassandraState) state;
+
+        Parameter keyspaceName = chooseKeyspace(cassandraState, this, init0);
+        this.params.add(keyspaceName);
+
+        Parameter TableName = chooseTable(cassandraState, this, init1);
+        this.params.add(TableName);
+
+        /**
+         * Add a column
+         * - Must not be in the original column list
+         * - Pair type <String, TYPEType>
+         */
+
+        ParameterType.ConcreteType addColumnNameType = new ParameterType.NotInCollectionType(
+                new ParameterType.NotEmpty(new STRINGType(10)),
+                (s, c) -> ((CassandraState) s).getTable(
+                        c.params.get(0).toString(),
+                        c.params.get(1).toString()).colName2Type,
+                p -> ((Pair) ((Parameter) p).getValue()).left);
+        Parameter addColumnName = addColumnNameType
+                .generateRandomParameter(cassandraState, this, init2);
+        this.params.add(addColumnName);
+
+        ParameterType.ConcreteType addColumnTypeType = CassandraTypes.TYPEType.instance;
+        Parameter addColumnType = addColumnTypeType
+                .generateRandomParameter(cassandraState, this, init3);
+        this.params.add(addColumnType);
+    }
+
     public ALTER_TABLE_ADD(State state) {
         super();
 

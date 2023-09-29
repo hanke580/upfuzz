@@ -36,7 +36,17 @@ public class SETType extends ParameterType.GenericTypeOne {
     @Override
     public Parameter generateRandomParameter(State s, Command c,
             List<ConcreteType> types, Object init) {
-        return null;
+        // it should be a set of specific type, like if it's set<TEXT>
+        ConcreteType t = types.get(0);
+        Set<?> initValue = (Set<?>) init;
+        Set<Parameter> value = new HashSet<>();
+        for (Object item : initValue) {
+            value.add(types.get(0).generateRandomParameter(s, c, item));
+        }
+        ConcreteType type = ConcreteGenericType
+                .constructConcreteGenericType(
+                        instance, t); // LIST<WhateverType>
+        return new Parameter(type, value);
     }
 
     @Override

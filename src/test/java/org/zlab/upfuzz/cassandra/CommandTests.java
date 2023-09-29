@@ -12,6 +12,7 @@ import org.zlab.upfuzz.cassandra.cqlcommands.*;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.utils.INTType;
 import org.zlab.upfuzz.utils.Pair;
+import org.zlab.upfuzz.utils.SETType;
 import org.zlab.upfuzz.utils.Utilities;
 
 public class CommandTests extends AbstractTest {
@@ -576,6 +577,63 @@ public class CommandTests extends AbstractTest {
                 System.out.println(commandStringList.get(i));
         }
         System.out.println("command size = " + commandStringList.size());
+    }
+
+    @Test
+    public void testCASSANDRA14912()
+            throws Exception {
+        // Delete four bytes in two different commands
+        CommandSequence commandSequence = cass14912();
+        CommandSequence validationCommandSequence = commandSequence
+                .generateRelatedReadSequence();
+
+        // Path filePath = Paths
+        // .get("/tmp/seed_cassandra_14912.ser");
+        //
+        // try {
+        // FileOutputStream fileOut = new FileOutputStream(filePath.toFile());
+        // ObjectOutputStream out = new ObjectOutputStream(fileOut);
+        // out.writeObject(
+        // new Pair<>(commandSequence, validationCommandSequence));
+        // out.close();
+        // fileOut.close();
+        // System.out.println("Serialized data is saved in " +
+        // filePath.toString());
+        // } catch (IOException i) {
+        // i.printStackTrace();
+        // return;
+        // }
+        //
+        // Pair<CommandSequence, CommandSequence> e = null;
+        // try {
+        // FileInputStream fileIn = new FileInputStream(filePath.toFile());
+        // ObjectInputStream in = new ObjectInputStream(fileIn);
+        // e = (Pair<CommandSequence, CommandSequence>) in.readObject();
+        // in.close();
+        // fileIn.close();
+        // } catch (IOException i) {
+        // i.printStackTrace();
+        // return;
+        // } catch (ClassNotFoundException c) {
+        // System.out.println("Command class not found");
+        // c.printStackTrace();
+        // return;
+        // }
+        //
+        // boolean mutateStatus = commandSequence.mutate();
+        // System.out.println("mutateStatus = " + mutateStatus);
+        // boolean useIdx = false;
+        //
+        // List<String> commandStringList =
+        // commandSequence.getCommandStringList();
+        // for (int i = 0; i < commandStringList.size(); i++) {
+        // if (useIdx)
+        // System.out.println("[" + i + "]"
+        // + "\t" + commandStringList.get(i));
+        // else
+        // System.out.println(commandStringList.get(i));
+        // }
+        // System.out.println("command size = " + commandStringList.size());
     }
 
     @Test
@@ -1725,6 +1783,82 @@ public class CommandTests extends AbstractTest {
                 s, "myKS", "monkey_species", "population INT");
         cmd11.updateState(s);
         l.add(cmd11);
+
+        for (Command cmd : l) {
+            System.out.println(cmd.constructCommandString());
+        }
+
+        CommandSequence commandSequence = new CommandSequence(l,
+                CassandraCommand.cassandraCommandPool.commandClassList,
+                CassandraCommand.cassandraCommandPool.createCommandClassList,
+                CassandraState.class,
+                s);
+        return commandSequence;
+    }
+
+    public static CommandSequence cass14912() {
+        String ksName = "myKS";
+        String tableName = "legacy_ka_14912";
+
+        List<Command> l = new LinkedList<>();
+
+        CassandraState s = new CassandraState();
+
+        // Command 0
+        CREATE_KEYSPACE cmd0 = new CREATE_KEYSPACE(
+                s, ksName, 2, false);
+        cmd0.updateState(s);
+        l.add(cmd0);
+
+        // Command 1
+        List<Pair<String, ParameterType.ConcreteType>> columns = new ArrayList<>();
+        columns.add(new Pair<>("k", new INTType(0, 10)));
+        columns.add(new Pair<>("v1",
+                new ParameterType.ConcreteGenericTypeOne(SETType.instance,
+                        CassandraTypes.TEXTType.instance)));
+        columns.add(new Pair<>("v2", new CassandraTypes.TEXTType()));
+
+        List<String> primaryColumns = new ArrayList<>();
+        primaryColumns.add("k INT");
+
+        CREATE_TABLE cmd1 = new CREATE_TABLE(
+                s, ksName, tableName, columns, primaryColumns, null);
+        cmd1.updateState(s);
+        l.add(cmd1);
+
+        // Command 2
+        // 'Monkey', 0, 30, 'AAAAAAAAAAAAAAAAAAAAAAAAAAA'
+        List<String> columns_INSERT = new ArrayList<>();
+        columns_INSERT.add("k INT");
+        columns_INSERT.add("v1 set<TEXT>");
+        columns_INSERT.add("v2 TEXT");
+
+        // Pick two commands, delete two bytes in each of them
+
+        // Delete two bytes in the first INSERT
+        List<Object> Values_INSERT = new ArrayList<>();
+        Set<String> setValue = new HashSet<>();
+        setValue.add("a");
+        setValue.add("b");
+        Values_INSERT.add(1);
+        Values_INSERT.add(setValue);
+        Values_INSERT.add("hh");
+        INSERT cmd2 = new INSERT(s, ksName,
+                tableName, columns_INSERT, Values_INSERT);
+        cmd2.updateState(s);
+        l.add(cmd2);
+
+        ALTER_TABLE_DROP cmd11 = new ALTER_TABLE_DROP(
+                s, ksName, tableName, "v1 set<TEXT>");
+        cmd11.updateState(s);
+        l.add(cmd11);
+
+        // Command 11
+        ALTER_TABLE_ADD cmd_add = new ALTER_TABLE_ADD(
+                s, ksName, tableName, "v1",
+                new CassandraTypes.TEXTType());
+        cmd_add.updateState(s);
+        l.add(cmd_add);
 
         for (Command cmd : l) {
             System.out.println(cmd.constructCommandString());
