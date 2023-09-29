@@ -328,67 +328,67 @@ public class MiniClientMain {
             return stackedFeedbackPacket;
         }
 
-        boolean ret = executor.fullStopUpgrade();
+        boolean upgradeStatus = executor.fullStopUpgrade();
 
-        if (!ret) {
+        if (!upgradeStatus) {
             // upgrade failed
             String upgradeFailureReport = FuzzingClient.genUpgradeFailureReport(
                     executor.executorID, stackedTestPacket.configFileName);
             stackedFeedbackPacket.isUpgradeProcessFailed = true;
             stackedFeedbackPacket.upgradeFailureReport = upgradeFailureReport;
-            // tearDownExecutor();
-            return stackedFeedbackPacket;
-        }
+        } else {
+            // logger.info("upgrade succeed");
+            stackedFeedbackPacket.isUpgradeProcessFailed = false;
 
-        // logger.info("upgrade succeed");
-        stackedFeedbackPacket.isUpgradeProcessFailed = false;
-
-        for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
-            TestPacket tp = stackedTestPacket.getTestPacketList()
-                    .get(testPacketIdx);
-            List<String> upResult = executor
-                    .executeCommands(tp.validationCommandSequenceList);
-            testID2upResults.put(tp.testPacketID, upResult);
-            if (Config.getConf().collUpFeedBack) {
-                ExecutionDataStore[] upCoverages = executor
-                        .collectCoverageSeparate("upgraded");
-                if (upCoverages != null) {
-                    for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
-                        testID2FeedbackPacket.get(
-                                tp.testPacketID).feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+            for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
+                TestPacket tp = stackedTestPacket.getTestPacketList()
+                        .get(testPacketIdx);
+                List<String> upResult = executor
+                        .executeCommands(tp.validationCommandSequenceList);
+                testID2upResults.put(tp.testPacketID, upResult);
+                if (Config.getConf().collUpFeedBack) {
+                    ExecutionDataStore[] upCoverages = executor
+                            .collectCoverageSeparate("upgraded");
+                    if (upCoverages != null) {
+                        for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
+                            testID2FeedbackPacket.get(
+                                    tp.testPacketID).feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+                        }
                     }
                 }
             }
-        }
 
-        // Check read results consistency
-        for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
-            TestPacket tp = stackedTestPacket.getTestPacketList()
-                    .get(testPacketIdx);
-            Pair<Boolean, String> compareRes = executor
-                    .checkResultConsistency(
-                            testID2oriResults.get(tp.testPacketID),
-                            testID2upResults.get(tp.testPacketID), true);
+            // Check read results consistency
+            for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
+                TestPacket tp = stackedTestPacket.getTestPacketList()
+                        .get(testPacketIdx);
+                Pair<Boolean, String> compareRes = executor
+                        .checkResultConsistency(
+                                testID2oriResults.get(tp.testPacketID),
+                                testID2upResults.get(tp.testPacketID), true);
 
-            FeedbackPacket feedbackPacket = testID2FeedbackPacket
-                    .get(tp.testPacketID);
+                FeedbackPacket feedbackPacket = testID2FeedbackPacket
+                        .get(tp.testPacketID);
 
-            if (!compareRes.left) {
-                String failureReport = FuzzingClient.genInconsistencyReport(
-                        executor.executorID, stackedTestPacket.configFileName,
-                        compareRes.right,
-                        FuzzingClient.recordSingleTestPacket(tp));
-                feedbackPacket.isInconsistent = true;
-                feedbackPacket.inconsistencyReport = failureReport;
+                if (!compareRes.left) {
+                    String failureReport = FuzzingClient.genInconsistencyReport(
+                            executor.executorID,
+                            stackedTestPacket.configFileName,
+                            compareRes.right,
+                            FuzzingClient.recordSingleTestPacket(tp));
+                    feedbackPacket.isInconsistent = true;
+                    feedbackPacket.inconsistencyReport = failureReport;
+                }
+                // logger.debug("testID2upResults = " + testID2upResults
+                // .get(tp.testPacketID));
+                feedbackPacket.validationReadResults = testID2upResults
+                        .get(tp.testPacketID);
+                stackedFeedbackPacket.addFeedbackPacket(feedbackPacket);
             }
-            // logger.debug("testID2upResults = " + testID2upResults
-            // .get(tp.testPacketID));
-            feedbackPacket.validationReadResults = testID2upResults
-                    .get(tp.testPacketID);
-            stackedFeedbackPacket.addFeedbackPacket(feedbackPacket);
+            // logger.info(executor.systemID + " executor: " +
+            // executor.executorID
+            // + " finished execution");
         }
-        // logger.info(executor.systemID + " executor: " + executor.executorID
-        // + " finished execution");
 
         // test downgrade
         if (Config.getConf().testDowngrade) {
@@ -419,6 +419,7 @@ public class MiniClientMain {
                                 logInfo);
             }
         }
+        // teardown is teardown in a higher loop
         return stackedFeedbackPacket;
     }
 }
