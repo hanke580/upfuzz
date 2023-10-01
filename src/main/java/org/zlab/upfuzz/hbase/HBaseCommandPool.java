@@ -76,8 +76,8 @@ public class HBaseCommandPool extends CommandPool {
                 new AbstractMap.SimpleImmutableEntry<>(
                         LIST_NAMESPACE_TABLES.class, 5));
         // procedures
-        readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(LIST_LOCKS.class, 5));
+        // readCommandClassList.add(
+        // new AbstractMap.SimpleImmutableEntry<>(LIST_LOCKS.class, 5));
         // readCommandClassList.add(
         // new AbstractMap.SimpleImmutableEntry<>(LIST_PROCEDURES.class,
         // 5));
@@ -112,9 +112,9 @@ public class HBaseCommandPool extends CommandPool {
         // readCommandClassList.add(
         // new AbstractMap.SimpleImmutableEntry<>(
         // CATALOGJANITOR_ENABLED.class, 5));
-        readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(
-                        CLEANER_CHORE_ENABLED.class, 5));
+        // readCommandClassList.add(
+        // new AbstractMap.SimpleImmutableEntry<>(
+        // CLEANER_CHORE_ENABLED.class, 5));
     }
 
     @Override
