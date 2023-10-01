@@ -25,6 +25,8 @@ public class CassandraCqlshDaemon {
     public static String cqlshPython2Script;
     public static String cqlshPython3Script;
 
+    public static final int CASSANDRA_RETRY_TIMEOUT = 720; // seconds
+
     // Check the process num after WAIT_INTERVAL time to
     // reduce the FP since the process might not start yet
     public static final int WAIT_INTERVAL = 8;
@@ -59,7 +61,7 @@ public class CassandraCqlshDaemon {
 
     public CassandraCqlshDaemon(String ipAddress, int port, Docker docker) {
         int SLEEP_INTERVAL = 1;
-        int retry = 300 / SLEEP_INTERVAL;
+        int retry = CASSANDRA_RETRY_TIMEOUT / SLEEP_INTERVAL;
         logger.info("[HKLOG] executor ID = " + docker.executorID + "  "
                 + "Connect to cqlsh:" + ipAddress + "..."
                 + "\t this normally takes"
