@@ -109,7 +109,16 @@ public class HBaseDockerCluster extends DockerCluster {
             logger.error("fail to chmod dir");
         }
 
+        logger.debug("kill all containers");
+        for (Docker docker : dockers) {
+            logger.debug("killing container " + docker.containerName);
+            killContainer(docker.index);
+        }
+        logger.debug("finished killing containers");
+
         try {
+            // Sometimes, the container is not fully stopped.
+            // Shutdown it forcefully.
             Process buildProcess = Utilities.exec(
                     new String[] { "docker", "compose", "down" }, workdir);
             buildProcess.waitFor();
