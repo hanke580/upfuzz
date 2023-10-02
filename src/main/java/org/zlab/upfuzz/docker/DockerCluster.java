@@ -479,7 +479,46 @@ public abstract class DockerCluster implements IDockerCluster {
         return network.partitionTwoSetsRecover(dockerSet1, dockerSet2);
     }
 
-    public boolean killContainer(int nodeIndex) {
+    public boolean forceKillContainer(String containerName) {
+        // docker kill container
+        try {
+            String[] killContainerCMD = new String[] {
+                    "docker", "kill", containerName
+            };
+            logger.debug("workdir = " + workdir);
+            Process killContainerProcess = Utilities.exec(killContainerCMD,
+                    workdir);
+
+            // Capture stdout of the process
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(
+                            killContainerProcess.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    logger.debug("Container Force Kill Output: " + line);
+                }
+            }
+
+            // Capture stderr of the process
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(
+                            killContainerProcess.getErrorStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    logger.debug("Container Force Kill ERROR: " + line);
+                }
+            }
+            killContainerProcess.waitFor();
+        } catch (IOException | InterruptedException e) {
+            logger.error("Cannot kill container "
+                    + containerName, e);
+            return false;
+        }
+        return true;
+    }
+
+    public boolean stopContainer(int nodeIndex) {
+        // docker-compose stop container
         if (!checkIndex(nodeIndex))
             return false;
 
@@ -492,7 +531,7 @@ public abstract class DockerCluster implements IDockerCluster {
                     workdir);
             killContainerProcess.waitFor();
         } catch (IOException | InterruptedException e) {
-            logger.error("Cannot delete container index "
+            logger.error("Cannot delete container "
                     + dockers[nodeIndex].containerName, e);
             return false;
         }

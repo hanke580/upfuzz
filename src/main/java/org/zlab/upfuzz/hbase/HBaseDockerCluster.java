@@ -112,7 +112,11 @@ public class HBaseDockerCluster extends DockerCluster {
         logger.debug("kill all containers");
         for (Docker docker : dockers) {
             logger.debug("killing container " + docker.containerName);
-            killContainer(docker.index);
+            forceKillContainer(docker.containerName);
+        }
+        for (Docker docker : extranodes) {
+            logger.debug("killing container " + docker.containerName);
+            forceKillContainer(docker.containerName);
         }
         logger.debug("finished killing containers");
 

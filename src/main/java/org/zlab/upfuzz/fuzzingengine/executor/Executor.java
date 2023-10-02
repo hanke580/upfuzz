@@ -391,7 +391,7 @@ public abstract class Executor implements IExecutor {
         } else if (fault instanceof NodeFailure) {
             // Crash a node
             NodeFailure nodeFailure = (NodeFailure) fault;
-            return dockerCluster.killContainer(nodeFailure.nodeIndex);
+            return dockerCluster.stopContainer(nodeFailure.nodeIndex);
         } else if (fault instanceof IsolateFailure) {
             // Isolate a single node from the rest nodes
             IsolateFailure isolateFailure = (IsolateFailure) fault;
