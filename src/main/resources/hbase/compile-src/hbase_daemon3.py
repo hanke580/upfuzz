@@ -17,6 +17,7 @@ from six import StringIO
 import os
 from subprocess import Popen, PIPE
 
+MESSAGE_SIZE = 51200
 
 output_file = open('/var/log/supervisor/hbase_daemon.log', 'a', encoding='utf-8')
 output_file.write("test\n")
@@ -54,7 +55,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
         # executing using subprocess
         try:
             while True:
-                self.data = self.request.recv(51200).strip()
+                self.data = self.request.recv(MESSAGE_SIZE).strip()
                 if not self.data:
                     print("stop current TCP")
                     output_file.write("stop current TCP\n")
@@ -140,7 +141,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
 
                 # Handle message exceeding limit problem
                 msg = json.dumps(resp).encode("ascii")
-                if len(msg) > 51200:
+                if len(msg) > MESSAGE_SIZE:
                     # Create a error resp
                     print("Message too large to send!")
                     resp = {
