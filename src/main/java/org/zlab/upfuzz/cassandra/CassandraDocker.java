@@ -304,7 +304,6 @@ public class CassandraDocker extends Docker {
                 : originalVersion;
         String[] stopNode;
         if (Config.getConf().originalVersion.contains("cassandra-2.")) {
-            logger.info("[hklog] cassnadra 2.x");
             stopNode = new String[] {
                     "/" + system + "/" + curVersion + "/"
                             + "bin/nodetool",

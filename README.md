@@ -311,6 +311,10 @@ prebuild
    version that the Cassandra supports. Cassandra-3.x still uses python2. You need
    to **change the name** to `cqlsh_daemon.py`.
 
+> cqlsh_daemon2.py: cassandra-2.2.8, cassandra-3.0.16 (Old 3.x version)
+>
+> cqlsh_daemon3.py:
+
 E.g. If you are testing Cassandra 3.11 (pwd=/path/to/upfuzz/)
 ```bash
 cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-3.11.14/bin/cqlsh_daemon.py
