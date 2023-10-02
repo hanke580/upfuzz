@@ -157,7 +157,7 @@ public class CassandraDocker extends Docker {
 
     @Override
     public void flush() throws Exception {
-        if (Config.getConf().originalVersion.contains("2.1.0")) {
+        if (Config.getConf().originalVersion.contains("cassandra-2.")) {
             Process flushCass = this.runInContainer(new String[] {
                     "/" + system + "/" + originalVersion + "/"
                             + "bin/nodetool",
@@ -302,10 +302,21 @@ public class CassandraDocker extends Docker {
         // Use the target version's script to shutdown the node
         String curVersion = type.equals("upgraded") ? upgradedVersion
                 : originalVersion;
-        String[] stopNode = new String[] {
-                "/" + system + "/" + curVersion + "/"
-                        + "bin/nodetool",
-                "stopdaemon" };
+        String[] stopNode;
+        if (Config.getConf().originalVersion.contains("cassandra-2.")) {
+            logger.info("[hklog] cassnadra 2.x");
+            stopNode = new String[] {
+                    "/" + system + "/" + curVersion + "/"
+                            + "bin/nodetool",
+                    "-h", "::FFFF:127.0.0.1",
+                    "stopdaemon" };
+            // in this case, the ret will be 1 or 2, this is normal
+        } else {
+            stopNode = new String[] {
+                    "/" + system + "/" + curVersion + "/"
+                            + "bin/nodetool",
+                    "stopdaemon" };
+        }
         int ret = runProcessInContainer(stopNode);
         logger.debug("cassandra shutdown ret = " + ret);
     }

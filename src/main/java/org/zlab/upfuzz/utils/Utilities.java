@@ -404,6 +404,23 @@ public class Utilities {
         return sb.toString();
     }
 
+    public static String readProcessErrorStream(Process p) {
+        BufferedReader in = new BufferedReader(
+                new InputStreamReader(p.getErrorStream()));
+        StringBuilder sb = new StringBuilder();
+        String line;
+        try {
+            while ((line = in.readLine()) != null) {
+                sb.append(line);
+            }
+            p.waitFor();
+            in.close();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        return sb.toString();
+    }
+
     public static String getGitBranch(String path)
             throws IOException, InterruptedException {
         Process p = exec(
