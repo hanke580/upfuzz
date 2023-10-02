@@ -137,7 +137,21 @@ class TCPHandler(socketserver.BaseRequestHandler):
                 }
                 # self.stdout_buffer.truncate(0)
                 # self.stderr_buffer.truncate(0)
-                self.request.sendall(json.dumps(resp).encode("ascii"))
+
+                # Handle message exceeding limit problem
+                msg = json.dumps(resp).encode("ascii")
+                if len(msg) > 51200:
+                    # Create a error resp
+                    print("Message too large to send!")
+                    resp = {
+                        "cmd": cmd,
+                        "exitValue": exit_code,
+                        "timeUsage": end_time - start_time,
+                        "message": "message too large to send: here's the first 10000 Bytes:\n" + ret_out[:10000] + "\n...",
+                        "error": "message too large to send: here's the first 10000 Bytes:\n" + ret_err[:10000] + "\n..."
+                    }
+                    msg = json.dumps(resp).encode("ascii")
+                self.request.sendall(msg)
         except Exception as e:
             print("exception1 pipe: " + str(e))
 
