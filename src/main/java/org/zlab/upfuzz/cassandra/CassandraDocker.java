@@ -157,18 +157,26 @@ public class CassandraDocker extends Docker {
 
     @Override
     public void flush() throws Exception {
+        // This affects the testing of cassandra significantly
+        // The implementation of drain is different from flush
+        // in the old version => prevents the testing of commit log
+        // reply
+
+        if (!Config.getConf().enableFlushOrDrain)
+            return;
+        String mode = Config.getConf().useFlush ? "flush" : "drain";
         if (Config.getConf().originalVersion.contains("cassandra-2.")) {
             Process flushCass = this.runInContainer(new String[] {
                     "/" + system + "/" + originalVersion + "/"
                             + "bin/nodetool",
                     "-h", "::FFFF:127.0.0.1",
-                    "drain" });
+                    mode });
             flushCass.waitFor();
         } else {
             Process flushCass = this.runInContainer(new String[] {
                     "/" + system + "/" + originalVersion + "/"
                             + "bin/nodetool",
-                    "drain" });
+                    mode });
             flushCass.waitFor();
         }
     }

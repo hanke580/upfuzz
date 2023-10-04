@@ -153,6 +153,10 @@ public class Config {
         public boolean eval_CASSANDRA14912 = false;
         public int CASSANDRA_LIST_TYPE_MAX_SIZE = 10;
 
+        // Three choices: disable, flush or drain
+        public boolean enableFlushOrDrain = true;
+        public boolean useFlush = true; // flush or drain
+
         // == hdfs ==
         // If true: first create fsimage, then execute some commands
         // to test the edits log replay. If false, no edits log will
