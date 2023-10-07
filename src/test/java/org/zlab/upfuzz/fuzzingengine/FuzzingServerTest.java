@@ -43,7 +43,7 @@ public class FuzzingServerTest extends AbstractTest {
         Config.getConf().system = "hdfs";
         CommandPool commandPool = new HdfsCommandPool();
         Class<? extends State> stateClass = HdfsState.class;
-        Seed seed = Executor.generateSeed(commandPool, stateClass, -1);
+        Seed seed = Executor.generateSeed(commandPool, stateClass, -1, -1);
         FullStopSeed fullStopSeed = new FullStopSeed(
                 seed, 3, new HashMap<>(), new LinkedList<>());
         FuzzingServer fuzzingServer = new FuzzingServer();
@@ -61,7 +61,7 @@ public class FuzzingServerTest extends AbstractTest {
     public void testTestPlanSerialization() {
         CassandraCommandPool commandPool = new CassandraCommandPool();
         Class stateClass = CassandraState.class;
-        Seed seed = Executor.generateSeed(commandPool, stateClass, -1);
+        Seed seed = Executor.generateSeed(commandPool, stateClass, -1, -1);
         FullStopSeed fullStopSeed = new FullStopSeed(seed, 3, null, null);
         FuzzingServer fuzzingServer = new FuzzingServer();
         TestPlan testPlan = fuzzingServer.generateTestPlan(fullStopSeed);
@@ -140,8 +140,8 @@ public class FuzzingServerTest extends AbstractTest {
     @Test
     public void testCorpus() {
         PriorityCorpus corpus = new PriorityCorpus();
-        Seed seed1 = new Seed(null, null, 0);
-        Seed seed2 = new Seed(null, null, 1);
+        Seed seed1 = new Seed(null, null, 0, -1);
+        Seed seed2 = new Seed(null, null, 1, -1);
         seed1.score = 0;
         seed2.score = 1;
         corpus.addSeed(seed1);

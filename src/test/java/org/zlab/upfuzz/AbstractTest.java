@@ -13,7 +13,7 @@ public abstract class AbstractTest {
 
     public static Seed generateSeed(CommandPool commandPool,
             Class<? extends State> stateClass, int configIdx) {
-        return Executor.generateSeed(commandPool, stateClass, configIdx);
+        return Executor.generateSeed(commandPool, stateClass, configIdx, -1);
     }
 
     public static void printSeed(Seed seed) {

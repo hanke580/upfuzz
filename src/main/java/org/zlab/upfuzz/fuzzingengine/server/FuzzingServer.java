@@ -27,6 +27,7 @@ import org.zlab.upfuzz.fuzzingengine.FeedBack;
 import org.zlab.upfuzz.fuzzingengine.configgen.ConfigGen;
 import org.zlab.upfuzz.fuzzingengine.packet.*;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
+import org.zlab.upfuzz.fuzzingengine.server.testtracker.TestTrackerGraph;
 import org.zlab.upfuzz.fuzzingengine.testplan.FullStopUpgrade;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
@@ -106,6 +107,8 @@ public class FuzzingServer {
 
     ExecutionDataStore curOriCoverage;
     ExecutionDataStore curUpCoverage;
+
+    TestTrackerGraph graph = new TestTrackerGraph();
 
     public FuzzingServer() {
         testID2Seed = new HashMap<>();
@@ -250,8 +253,9 @@ public class FuzzingServer {
                     configFileName);
             for (int i = 0; i < Config.getConf().STACKED_TESTS_NUM; i++) {
                 seed = Executor.generateSeed(commandPool, stateClass,
-                        configIdx);
+                        configIdx, testID);
                 if (seed != null) {
+                    graph.addNode(-1, seed); // random generate seed
                     testID2Seed.put(testID, seed);
                     stackedTestPacket.addTestPacket(seed, testID++);
                 }
@@ -300,6 +304,8 @@ public class FuzzingServer {
                 }
                 Seed mutateSeed = SerializationUtils.clone(seed);
                 if (mutateSeed.mutate(commandPool, stateClass)) {
+                    mutateSeed.testID = testID; // update testID after mutation
+                    graph.addNode(seed.testID, mutateSeed);
                     testID2Seed.put(testID, mutateSeed);
                     stackedTestPacket.addTestPacket(mutateSeed, testID++);
                 } else {
@@ -331,6 +337,8 @@ public class FuzzingServer {
                 // put the seed into it
                 Seed mutateSeed = SerializationUtils.clone(seed);
                 mutateSeed.configIdx = configIdx;
+                mutateSeed.testID = testID; // update testID after mutation
+                graph.addNode(seed.testID, mutateSeed);
                 testID2Seed.put(testID, mutateSeed);
                 stackedTestPacket.addTestPacket(mutateSeed, testID++);
                 // add mutated seeds (Mutate sequence&config)
@@ -338,6 +346,9 @@ public class FuzzingServer {
                     mutateSeed = SerializationUtils.clone(seed);
                     mutateSeed.configIdx = configIdx;
                     if (mutateSeed.mutate(commandPool, stateClass)) {
+                        mutateSeed.testID = testID; // update testID after
+                                                    // mutation
+                        graph.addNode(seed.testID, mutateSeed);
                         testID2Seed.put(testID, mutateSeed);
                         stackedTestPacket.addTestPacket(mutateSeed, testID++);
                     } else {
@@ -384,7 +395,6 @@ public class FuzzingServer {
                         testID++, configFileName, mutateTestPlan));
             }
         } else {
-            // disable system state comparison
             FullStopSeed fullStopSeed = fullStopCorpus.getSeed();
             if (fullStopSeed == null) {
                 // return false, cannot fuzz test plan
@@ -394,6 +404,7 @@ public class FuzzingServer {
             // Generate several test plan...
             for (int i = 0; i < Config.getConf().testPlanGenerationNum; i++) {
 
+                // FIXME: possible forever loop
                 while ((testPlan = generateTestPlan(fullStopSeed)) == null)
                     ;
 
@@ -418,7 +429,7 @@ public class FuzzingServer {
             int configIdx = configGen.generateConfig();
             String configFileName = "test" + configIdx;
             Seed seed = Executor.generateSeed(commandPool, stateClass,
-                    configIdx);
+                    configIdx, testID);
             if (seed != null) {
 
                 FullStopUpgrade fullStopUpgrade = new FullStopUpgrade(
@@ -550,72 +561,42 @@ public class FuzzingServer {
         // Some systems might have special requirements for
         // upgrade, like HDFS needs to upgrade NN.
         int nodeNum = fullStopSeed.nodeNum;
-        List<Event> upgradeOps = new LinkedList<>();
-        for (int i = 0; i < nodeNum; i++) {
-            upgradeOps.add(new UpgradeOp(i));
-        }
-        if (Config.getConf().shuffleUpgradeOrder) {
-            Collections.shuffle(upgradeOps);
-        }
-        // -----------downgrade----------
-        if (Config.getConf().testDowngrade) {
-            upgradeOps = addDowngrade(upgradeOps);
-        }
 
-        // -----------prepare----------
-        if (Config.getConf().system.equals("hdfs")) {
-            upgradeOps.add(0, new HDFSStopSNN());
-        } else {
-            // FIXME: Move prepare to the start up stage
-            upgradeOps.add(0, new PrepareUpgrade());
-        }
+        if (Config.getConf().useExampleTestPlan)
+            return constructExampleTestPlan(fullStopSeed, nodeNum);
 
         // -----------fault----------
         int faultNum = rand.nextInt(Config.getConf().faultMaxNum + 1);
         List<Pair<Fault, FaultRecover>> faultPairs = Fault
                 .randomGenerateFaults(nodeNum, faultNum);
 
-        if (Config.getConf().testSingleVersion) {
-            upgradeOps.clear();
+        List<Event> upgradeOps = new LinkedList<>();
+        if (!Config.getConf().testSingleVersion) {
+            for (int i = 0; i < nodeNum; i++) {
+                upgradeOps.add(new UpgradeOp(i));
+            }
+            if (Config.getConf().shuffleUpgradeOrder) {
+                Collections.shuffle(upgradeOps);
+            }
+            // -----------downgrade----------
+            if (Config.getConf().testDowngrade) {
+                upgradeOps = addDowngrade(upgradeOps);
+            }
+
+            // -----------prepare----------
+            if (Config.getConf().system.equals("hdfs")) {
+                upgradeOps.add(0, new HDFSStopSNN());
+            } else {
+                // FIXME: Move prepare to the start up stage
+                upgradeOps.add(0, new PrepareUpgrade());
+            }
         }
+
         List<Event> upgradeOpAndFaults = interleaveFaultAndUpgradeOp(faultPairs,
                 upgradeOps);
 
         if (!testPlanVerifier(upgradeOpAndFaults, nodeNum)) {
             return null;
-        }
-
-        if (Config.getConf().useExampleTestPlan) {
-            // DEBUG USE
-            logger.info("use example test plan");
-
-            List<Event> exampleEvents = new LinkedList<>();
-            // nodeNum should be 3
-            assert nodeNum == 3;
-            // for (int i = 0; i < Config.getConf().nodeNum - 1; i++) {
-            // exampleEvents.add(new UpgradeOp(i));
-            // }
-            exampleEvents.add(new PrepareUpgrade());
-            if (Config.getConf().system.equals("hdfs")) {
-                exampleEvents.add(new HDFSStopSNN());
-            }
-            exampleEvents.add(new UpgradeOp(0));
-
-            // exampleEvents.add(new ShellCommand("dfs -touchz /tmp"));
-            // exampleEvents.add(new RestartFailure(0));
-
-            exampleEvents.add(new UpgradeOp(1));
-            exampleEvents.add(new UpgradeOp(2));
-            // exampleEvents.add(new LinkFailure(0, 1));
-
-            // exampleEvents.add(new LinkFailureRecover(0, 1));
-
-            // exampleEvents.add(new UpgradeOp(2));
-            // exampleEvents.add(new UpgradeOp(3));
-            // exampleEvents.add(0, new LinkFailure(1, 2));
-            return new TestPlan(nodeNum, exampleEvents, targetSystemStates,
-                    fullStopSeed.targetSystemStateResults, new LinkedList<>(),
-                    new LinkedList<>());
         }
 
         // Randomly interleave the commands with the upgradeOp&faults
@@ -636,6 +617,40 @@ public class FuzzingServer {
                 fullStopSeed.seed.validationCommandSequence
                         .getCommandStringList(),
                 fullStopSeed.validationReadResults);
+    }
+
+    public TestPlan constructExampleTestPlan(FullStopSeed fullStopSeed,
+            int nodeNum) {
+        // DEBUG USE
+        logger.info("use example test plan");
+
+        List<Event> exampleEvents = new LinkedList<>();
+        // nodeNum should be 3
+        assert nodeNum == 3;
+        // for (int i = 0; i < Config.getConf().nodeNum - 1; i++) {
+        // exampleEvents.add(new UpgradeOp(i));
+        // }
+        exampleEvents.add(new PrepareUpgrade());
+        if (Config.getConf().system.equals("hdfs")) {
+            exampleEvents.add(new HDFSStopSNN());
+        }
+        exampleEvents.add(new UpgradeOp(0));
+
+        // exampleEvents.add(new ShellCommand("dfs -touchz /tmp"));
+        // exampleEvents.add(new RestartFailure(0));
+
+        exampleEvents.add(new UpgradeOp(1));
+        exampleEvents.add(new UpgradeOp(2));
+        // exampleEvents.add(new LinkFailure(0, 1));
+
+        // exampleEvents.add(new LinkFailureRecover(0, 1));
+
+        // exampleEvents.add(new UpgradeOp(2));
+        // exampleEvents.add(new UpgradeOp(3));
+        // exampleEvents.add(0, new LinkFailure(1, 2));
+        return new TestPlan(nodeNum, exampleEvents, targetSystemStates,
+                fullStopSeed.targetSystemStateResults, new LinkedList<>(),
+                new LinkedList<>());
     }
 
     public static boolean testPlanVerifier(List<Event> events, int nodeNum) {
@@ -1088,6 +1103,11 @@ public class FuzzingServer {
                         addToCorpus = true;
                     }
                 }
+
+                // if addToCorpus is true, it means there's a new coverage
+                // update Graph
+                graph.updateNodeCoverage(feedbackPacket.testPacketID,
+                        addToCorpus);
             }
             if (Config.getConf().useLikelyInv) {
                 // cases that break invariants

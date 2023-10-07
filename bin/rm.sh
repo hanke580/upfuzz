@@ -1,2 +1,2 @@
 #!/bin/bash
-sudo rm -rf fuzzing_storage failure configtests
+sudo rm -rf fuzzing_storage failure configtests graph testGraph.txt

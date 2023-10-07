@@ -644,8 +644,10 @@ public class FuzzingClient {
     public TestPlanFeedbackPacket executeTestPlanPacket(
             TestPlanPacket testPlanPacket) {
 
-        logger.debug("test plan: \n");
-        // logger.debug(testPlanPacket.testPlan);
+        if (Config.getConf().debug) {
+            logger.debug("test plan: \n");
+            logger.debug(testPlanPacket.testPlan);
+        }
 
         String testPlanPacketStr = recordTestPlanPacket(testPlanPacket);
         int nodeNum = testPlanPacket.getNodeNum();

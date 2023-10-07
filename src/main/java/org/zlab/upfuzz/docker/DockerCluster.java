@@ -62,11 +62,7 @@ public abstract class DockerCluster implements IDockerCluster {
         // rename services
 
         // 192.168.24.[(0001~1111)|0000] / 28
-        this.networkName = MessageFormat.format(
-                "network_{0}_{1}_to_{2}_{3}", executor.systemID,
-                Config.getConf().originalVersion,
-                Config.getConf().upgradedVersion,
-                UUID.randomUUID());
+
         this.subnetID = RandomUtils.nextInt(1, 256);
         this.subnet = "192.168." + subnetID + ".1/24";
         this.hostIP = "192.168." + subnetID + ".1";
@@ -81,16 +77,28 @@ public abstract class DockerCluster implements IDockerCluster {
         DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
         String executorTimestamp = formatter.format(System.currentTimeMillis());
 
-        if (Config.getConf().testSingleVersion)
+        if (Config.getConf().testSingleVersion) {
+            this.networkName = MessageFormat.format(
+                    "network_{0}_{1}_to_{2}_{3}", executor.systemID,
+                    Config.getConf().originalVersion,
+                    Config.getConf().upgradedVersion,
+                    UUID.randomUUID());
             this.workdir = new File(
                     "fuzzing_storage/" + executor.systemID + "/" +
                             originalVersion + "/" + executorTimestamp + "-"
                             + executor.executorID);
-        else
+        } else {
+            this.networkName = MessageFormat.format(
+                    "network_{0}_{1}_to_{2}_{3}", executor.systemID,
+                    Config.getConf().originalVersion,
+                    Config.getConf().upgradedVersion,
+                    UUID.randomUUID());
             this.workdir = new File(
                     "fuzzing_storage/" + executor.systemID + "/" +
                             originalVersion + "/" + upgradedVersion + "/" +
                             executorTimestamp + "-" + executor.executorID);
+        }
+
         this.network = new Network();
         this.targetSystemStates = targetSystemStates;
 

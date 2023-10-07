@@ -66,6 +66,7 @@ public class FuzzingServerHandler implements Runnable {
         } catch (Exception e) {
             logger.error("FuzzingServerHandler runs into exceptions " + e);
             logger.error("Close current thread");
+            e.printStackTrace();
         } finally {
             // if this thread stops, the client should also stop
             closeResources();

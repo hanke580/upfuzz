@@ -25,12 +25,18 @@ public class Seed implements Serializable, Comparable<Seed> {
 
     // Configuration filename
     public int configIdx = -1;
+    public int testID = -1;
+
+    // timestamp: when the seed is added to the corpus
+    private long timestamp = -1;
 
     public Seed(CommandSequence originalCommandSequence,
-            CommandSequence validationCommandSequence, int configIdx) {
+            CommandSequence validationCommandSequence, int configIdx,
+            int testID) {
         this.originalCommandSequence = originalCommandSequence;
         this.validationCommandSequence = validationCommandSequence;
         this.configIdx = configIdx;
+        this.testID = testID;
     }
 
     public boolean mutate(CommandPool commandPool,
@@ -78,6 +84,10 @@ public class Seed implements Serializable, Comparable<Seed> {
         return null;
     }
 
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
+
     @Override
     public int compareTo(Seed o) {
         if (score < o.score) {
@@ -85,6 +95,13 @@ public class Seed implements Serializable, Comparable<Seed> {
         } else if (score > o.score) {
             return 1;
         } else {
+            // equal, compare the timestamp
+            // If seed is older, return 1
+            if (timestamp < o.timestamp) {
+                return 1;
+            } else if (timestamp > o.timestamp) {
+                return -1;
+            }
             return 0;
         }
     }

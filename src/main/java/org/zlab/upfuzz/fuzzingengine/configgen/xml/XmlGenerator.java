@@ -245,4 +245,23 @@ public class XmlGenerator extends ConfigFileGenerator {
         return fileNameIdx++;
     }
 
+    @Override
+    public int generate(boolean isUpgrade) {
+        ProcessConfig();
+        // clone a configuration map, and dump it
+        Path savePath = generateFolderPath
+                .resolve(String.format("test%d", fileNameIdx));
+        Path oriConfig = savePath.resolve("oriconfig");
+        oriConfig.toFile().mkdirs();
+        Path oriSavePath = oriConfig.resolve(defaultXMLPath.getFileName());
+        generateXmlFile(configurations, oriSavePath);
+        if (isUpgrade) {
+            Path upConfig = savePath.resolve("upconfig");
+            upConfig.toFile().mkdirs();
+            Path upSavePath = upConfig.resolve(defaultNewXMLPath.getFileName());
+            generateXmlFile(newConfigurations, upSavePath);
+        }
+        return fileNameIdx++;
+    }
+
 }

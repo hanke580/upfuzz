@@ -193,3 +193,16 @@ spotless {
 		eclipse().configFile(".settings/org.eclipse.jdt.core.prefs")
 	}
 }
+
+task analyzeTestGraph(type: JavaExec) {
+	mainClass.set('org.zlab.upfuzz.fuzzingengine.server.testanalyzer.TestGraph')
+	classpath = sourceSets.main.runtimeClasspath
+}
+
+task printNode(type: JavaExec) {
+	mainClass.set('org.zlab.upfuzz.fuzzingengine.server.testtracker.TestTrackerNode')
+	classpath = sourceSets.main.runtimeClasspath
+
+	// Use the filename property directly if available
+	args findProperty("filename") ?: ""
+}

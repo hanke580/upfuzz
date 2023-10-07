@@ -19,6 +19,8 @@ failure_stat/
 nyx_mode/libnyx.a
 nyx_mode/libnyx.h
 nyx_mode/nyx.h
+graph
+testGraph.txt
 
 
 ##############################

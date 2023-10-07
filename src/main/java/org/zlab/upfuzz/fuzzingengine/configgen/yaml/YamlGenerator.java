@@ -89,6 +89,25 @@ public class YamlGenerator extends ConfigFileGenerator {
         return fileNameIdx++;
     }
 
+    @Override
+    public int generate(boolean isUpgrade) {
+        Path savePath = generateFolderPath
+                .resolve(String.format("test%d", fileNameIdx));
+        Path oriConfig = savePath.resolve("oriconfig");
+        oriConfig.toFile().mkdirs();
+        Path oriSavePath = oriConfig.resolve(defaultYAMLPath.getFileName());
+        writeYAMLFile(defaultYAMLPath, oriSavePath);
+
+        if (isUpgrade) {
+            Path upConfig = savePath.resolve("upconfig");
+            upConfig.toFile().mkdirs();
+            Path upSavePath = upConfig
+                    .resolve(defaultNewYAMLPath.getFileName());
+            writeYAMLFile(defaultNewYAMLPath, upSavePath);
+        }
+        return fileNameIdx++;
+    }
+
     public void writeYAMLFile(
             Path srcPath, Path savePath, Map<String, Object> key2valObj) {
         // logger.info("parsing yaml file: " + srcPath);
@@ -115,22 +134,11 @@ public class YamlGenerator extends ConfigFileGenerator {
                 data.add(propertyList);
             }
         }
-        FileWriter writer;
-        try {
-            writer = new FileWriter(savePath.toFile());
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException("cannot write new configuration files");
-        }
-        if (data.size() == 1) {
-            yaml.dump(data.get(0), writer);
-        } else {
-            yaml.dump(data, writer);
-        }
+        dumpYAMLFile(savePath, data);
     }
 
     public void writeYAMLFile(Path srcPath, Path savePath) {
-        logger.info("parsing yaml file: " + srcPath);
+        // logger.info("parsing yaml file: " + srcPath);
 
         List<Object> data = new LinkedList<>();
         Iterable<Object> maps = null;
@@ -142,11 +150,13 @@ public class YamlGenerator extends ConfigFileGenerator {
 
         if (maps != null) {
             for (Object o : maps) {
-                LinkedHashMap<Object, Object> propertyList = (LinkedHashMap<Object, Object>) o;
                 data.add(o);
             }
         }
+        dumpYAMLFile(savePath, data);
+    }
 
+    public void dumpYAMLFile(Path savePath, List<Object> data) {
         FileWriter writer;
         try {
             writer = new FileWriter(savePath.toFile());

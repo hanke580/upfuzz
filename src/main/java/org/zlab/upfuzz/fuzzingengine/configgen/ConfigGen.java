@@ -43,18 +43,26 @@ public abstract class ConfigGen {
     }
 
     public void initUpgradeTesting() {
-        initUpgradeConfigInfo();
+        initUpgradeSystemPath();
         initUpgradeFileGenerator();
-        initUpgradeValGenerator();
+        if (Config.getConf().testAddedConfig
+                || Config.getConf().testDeletedConfig
+                || Config.getConf().testCommonConfig) {
+            loadUpgradeConfigInfo();
+            initUpgradeValGenerator();
+        }
     }
 
     public void initSingleTesting() {
-        initSingleConfigInfo();
+        initSingleSystemPath();
         initSingleFileGenerator();
-        initSingleValGenerator();
+        if (Config.getConf().testConfig) {
+            loadSingleConfigInfo();
+            initSingleValGenerator();
+        }
     }
 
-    public void initUpgradeConfigInfo() {
+    public void initUpgradeSystemPath() {
         oldVersionPath = Paths.get(System.getProperty("user.dir"),
                 "prebuild", Config.getConf().system,
                 Config.getConf().originalVersion);
@@ -71,11 +79,22 @@ public abstract class ConfigGen {
                 Config.getConf().configDir,
                 Config.getConf().originalVersion + "_"
                         + Config.getConf().upgradedVersion);
+    }
+
+    public void loadUpgradeConfigInfo() {
         Path configInfoPath = Paths.get(System.getProperty("user.dir"),
                 "configInfo", Config.getConf().originalVersion + "_"
                         + Config.getConf().upgradedVersion);
+
+        // make sure configInfoPath exists
+        if (!configInfoPath.toFile().exists()) {
+            throw new RuntimeException(
+                    "missing configuration test files: " + configInfoPath);
+        }
+
         Path commonConfigPath = configInfoPath.resolve("commonConfig.json");
-        Path addedConfigPath = configInfoPath.resolve("addedClassConfig.json");
+        Path addedConfigPath = configInfoPath
+                .resolve("addedClassConfig.json");
         Path deletedConfigPath = configInfoPath
                 .resolve("deletedClassConfig.json");
         try {
@@ -94,14 +113,15 @@ public abstract class ConfigGen {
                     configInfoPath.resolve("upConfig2Init.json"),
                     configInfoPath.resolve("upEnum2Constant.json"));
         } catch (IOException e) {
-            throw new RuntimeException("missing configuration test files!" + e);
+            throw new RuntimeException(
+                    "missing configuration test files!" + e);
         }
         // update config black list
         updateConfigBlackList();
         removeUpgradeBlackListConfigs();
     }
 
-    public void initSingleConfigInfo() {
+    public void initSingleSystemPath() {
         oldVersionPath = Paths.get(System.getProperty("user.dir"),
                 "prebuild", Config.getConf().system,
                 Config.getConf().originalVersion);
@@ -114,8 +134,17 @@ public abstract class ConfigGen {
         generateFolderPath = Paths.get(System.getProperty("user.dir"),
                 Config.getConf().configDir,
                 Config.getConf().originalVersion);
+    }
+
+    public void loadSingleConfigInfo() {
         Path configInfoPath = Paths.get(System.getProperty("user.dir"),
                 "configInfo", Config.getConf().originalVersion);
+
+        // make sure configInfoPath exists
+        if (!configInfoPath.toFile().exists()) {
+            throw new RuntimeException(
+                    "missing configuration test files: " + configInfoPath);
+        }
 
         try {
             oriConfigInfo = ConfigInfo.constructConfigInfo(
@@ -123,10 +152,10 @@ public abstract class ConfigGen {
                     configInfoPath.resolve("config2Init.json"),
                     configInfoPath.resolve("enum2Constant.json"));
         } catch (IOException e) {
-            throw new RuntimeException("missing configuration test files!" + e);
+            throw new RuntimeException(
+                    "missing configuration test files!" + e);
         }
         // update config black list
-
         singleConfig = new HashSet<>(oriConfigInfo.config2type.keySet());
         removeSingleBlackListConfigs();
     }
@@ -204,8 +233,11 @@ public abstract class ConfigGen {
                     new LinkedHashMap<>(), new LinkedHashMap<>(),
                     new LinkedHashMap<>(), new LinkedHashMap<>());
         }
-        return configFileGenerator[0].generate(oriConfigtest,
-                oriConfigInfo.config2type);
+        if (Config.getConf().testConfig)
+            return configFileGenerator[0].generate(oriConfigtest,
+                    oriConfigInfo.config2type);
+        else
+            return configFileGenerator[0].generate(false);
     }
 
     public int generateUpgradeVersionConfig() {
@@ -244,9 +276,16 @@ public abstract class ConfigGen {
                     new LinkedHashMap<>(), new LinkedHashMap<>(),
                     new LinkedHashMap<>(), new LinkedHashMap<>());
         }
-        return configFileGenerator[0].generate(oriConfigtest,
-                oriConfigInfo.config2type,
-                upConfigtest, upConfigInfo.config2type);
+
+        if (Config.getConf().testAddedConfig
+                || Config.getConf().testDeletedConfig
+                || Config.getConf().testCommonConfig) {
+            return configFileGenerator[0].generate(oriConfigtest,
+                    oriConfigInfo.config2type,
+                    upConfigtest, upConfigInfo.config2type);
+        } else {
+            return configFileGenerator[0].generate(true);
+        }
     }
 
     static Map<String, String> filteredConfigTestGen(

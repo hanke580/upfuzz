@@ -10,8 +10,10 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class PriorityCorpus {
+    AtomicLong timestampGenerator = new AtomicLong(0); // To track enqueue order
 
     PriorityQueue<Seed> queue = new PriorityQueue<>(Collections.reverseOrder());
     // Queue<Seed> queue = new LinkedList<>();
@@ -27,7 +29,7 @@ public class PriorityCorpus {
                         .deserializeCommandSequence(seedFile.toPath());
                 if (commandSequencePair != null) {
                     Seed seed = new Seed(commandSequencePair.left,
-                            commandSequencePair.right, -1);
+                            commandSequencePair.right, -1, -1);
                     seed.score = 10;
                     queue.add(seed);
                 }
@@ -49,6 +51,7 @@ public class PriorityCorpus {
     }
 
     public void addSeed(Seed seed) {
+        seed.setTimestamp(timestampGenerator.getAndIncrement());
         queue.add(seed);
     }
 

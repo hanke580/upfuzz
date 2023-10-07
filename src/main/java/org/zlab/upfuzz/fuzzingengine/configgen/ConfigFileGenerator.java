@@ -26,12 +26,17 @@ public abstract class ConfigFileGenerator {
         fileNameIdx = max + 1;
     }
 
+    // upgrade version
     public abstract int generate(Map<String, String> key2vals,
             Map<String, String> key2type,
             Map<String, String> newkey2vals,
             Map<String, String> newkey2type);
 
+    // single version
     public abstract int generate(Map<String, String> key2vals,
             Map<String, String> key2type);
+
+    // no mutation, just copy the config file
+    public abstract int generate(boolean isUpgrade);
 
 }

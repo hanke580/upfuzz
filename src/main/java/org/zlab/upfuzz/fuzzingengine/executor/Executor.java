@@ -163,7 +163,7 @@ public abstract class Executor implements IExecutor {
     }
 
     public static Seed generateSeed(CommandPool commandPool,
-            Class<? extends State> stateClass, int configIdx) {
+            Class<? extends State> stateClass, int configIdx, int testID) {
         CommandSequence originalCommandSequence;
         CommandSequence validationCommandSequence;
         try {
@@ -178,7 +178,7 @@ public abstract class Executor implements IExecutor {
                 validationCommandSequence.commands.remove(0);
             }
             return new Seed(originalCommandSequence, validationCommandSequence,
-                    configIdx);
+                    configIdx, testID);
         } catch (Exception e) {
             e.printStackTrace();
             return null;

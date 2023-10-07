@@ -36,14 +36,22 @@ public class PlainTextGenerator extends ConfigFileGenerator {
             Map<String, String> key2type,
             Map<String, String> newkey2vals,
             Map<String, String> newkey2type) {
+        return generate(true);
+    }
+
+    @Override
+    public int generate(Map<String, String> key2vals,
+            Map<String, String> key2type) {
+        return generate(false);
+    }
+
+    @Override
+    public int generate(boolean isUpgrade) {
         Path savePath = generateFolderPath
                 .resolve(String.format("test%d", fileNameIdx));
         Path oriConfig = savePath.resolve("oriconfig");
-        Path upConfig = savePath.resolve("upconfig");
         oriConfig.toFile().mkdirs();
-        upConfig.toFile().mkdirs();
         Path oriSavePath = oriConfig.resolve(defaultFilePath.getFileName());
-        Path upSavePath = upConfig.resolve(defaultNewFilePath.getFileName());
         if (generationType.equals("regionservers")) {
             try {
                 FileWriter writerOri = new FileWriter(oriSavePath.toFile());
@@ -51,24 +59,27 @@ public class PlainTextGenerator extends ConfigFileGenerator {
                     writerOri.write(regionName + "\n");
                 }
                 writerOri.close();
-
-                FileWriter writerUp = new FileWriter(upSavePath.toFile());
-                for (String regionName : Config.getConf().REGIONSERVERS) {
-                    writerUp.write(regionName + "\n");
-                }
-                writerUp.close();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
+        if (isUpgrade) {
+            Path upConfig = savePath.resolve("upconfig");
+            upConfig.toFile().mkdirs();
+            Path upSavePath = upConfig
+                    .resolve(defaultNewFilePath.getFileName());
+            if (generationType.equals("regionservers")) {
+                try {
+                    FileWriter writerUp = new FileWriter(upSavePath.toFile());
+                    for (String regionName : Config.getConf().REGIONSERVERS) {
+                        writerUp.write(regionName + "\n");
+                    }
+                    writerUp.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
         return fileNameIdx++;
-    }
-
-    @Override
-    public int generate(Map<String, String> key2vals,
-            Map<String, String> key2type) {
-        // TODO: HBase single version testing
-        assert false : "HBase single version testing is not yet supported";
-        return 0;
     }
 }

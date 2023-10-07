@@ -112,7 +112,7 @@ public class Config {
         // 1: Bug Reproduction: Full-Stop Test
         // 2: mixed test using MixedTestPlan
         // 3: Bug Reproduction: Rolling upgrade (given a test plan)
-        // 4: full-stop upgrade + mixed Test Plan iteratively (Final Version)
+        // 4: full-stop upgrade + rolling upgrade iteratively (Final Version)
         public int testingMode = 0;
         public boolean testSingleVersion = false;
 
@@ -142,6 +142,10 @@ public class Config {
         // Prioritize likely invariants in the priority queue
         public int INVARIANT_PRIORITY_SCORE = 20;
         public final int INVARIANT_MAP_LENGTH = 1000;
+
+        // ---------------Test Graph-----------------
+        public String testGraphDirPath = "graph";
+
         /**
          * ---------------Version Specific-----------------
          * To avoid FPs
