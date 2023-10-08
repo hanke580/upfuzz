@@ -19,7 +19,7 @@
 * Data format likely invariants
 * Nyx-snapshot to avoid the startup time
 
-## Prerequsite
+## Prerequisite
 ```bash
 # jdk
 sudo apt-get install openjdk-11-jdk openjdk-8-jdk
@@ -262,8 +262,8 @@ for the upgrade process.
 
 Important configurations
 - **testingMode**
-  - 0: Full-Stop testing
-  - 4: Mixed full-stop&Rolling upgrade testing
+  - 0: Execute stacked test packets.
+  - 4: Execute stacked test packets and test plan (with fault injection) recursively.
 
 > Config test is disabled by default.
 >
@@ -301,8 +301,8 @@ The binary of new version and the old version should be placed in `prebuild/$SYS
 ```bash
 prebuild
 └── cassandra
-    ├── apache-cassandra-3.11.14
-    └── apache-cassandra-4.1.0
+    ├── apache-cassandra-3.11.15
+    └── apache-cassandra-4.1.3
 ```
 
 4. Copy the shell daemon file. For Cassandra, copy
@@ -317,32 +317,34 @@ prebuild
 
 E.g. If you are testing Cassandra 3.11 (pwd=/path/to/upfuzz/)
 ```bash
-cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-3.11.14/bin/cqlsh_daemon.py
-cp src/main/resources/cqlsh_daemon3_4.0.5_4.1.0.py  prebuild/cassandra/apache-cassandra-4.1.0/bin/cqlsh_daemon.py
+cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-3.11.15/bin/cqlsh_daemon.py
+cp src/main/resources/cqlsh_daemon3_4.0.5_4.1.0.py  prebuild/cassandra/apache-cassandra-4.1.3/bin/cqlsh_daemon.py
 ```
 
-> Cassandra document notification: If you are upgrading from 3.x to 4.x, you also need to modify the `conf/cassandra.yaml` to make sure the `num_tokens` matches. Since the default `num_tokens` for the 3.x is 256, while for 4.0 it's 16.
+> Cassandra document notification: If you are upgrading from 3.x to 4.x, you also need to modify the
+> `conf/cassandra.yaml` to make sure the `num_tokens` matches. Since the default `num_tokens` for the 3.x is 256, while for 4.0 it's 16.
 
 ```bash
 # Change configuration:
 # num_tokens: 256 => num_tokens: 16
-sed -i 's/num_tokens: 16/num_tokens: 256/' prebuild/cassandra/apache-cassandra-4.1.0/conf/cassandra.yaml
+sed -i 's/num_tokens: 16/num_tokens: 256/' prebuild/cassandra/apache-cassandra-4.1.3/conf/cassandra.yaml
 
 ```
 
 6. Build the docker image.
 
-First, modify the first few lines in `src/main/resources/cassandra/normal/compile-src/cassandra-clusternode.sh` file. You should change the `ORG_VERSION` and `UPG_VERSION` to the name of the target system. In this example,
+First, modify the first few lines in `src/main/resources/cassandra/normal/compile-src/cassandra-clusternode.sh`
+file. You should change the `ORG_VERSION` and `UPG_VERSION` to the name of the target system. In this example,
 ```bash
 vim src/main/resources/cassandra/normal/compile-src/cassandra-clusternode.sh
-ORG_VERSION=apache-cassandra-3.11.14
-UPG_VERSION=apache-cassandra-4.1.0
+ORG_VERSION=apache-cassandra-3.11.15
+UPG_VERSION=apache-cassandra-4.1.3
 ```
 
 Then build the docker image (pwd=/path/to/upfuzz/)
 ```bash
 cd src/main/resources/cassandra/normal/compile-src/
-docker build . -t upfuzz_cassandra:apache-cassandra-3.11.14_apache-cassandra-4.1.0
+docker build . -t upfuzz_cassandra:apache-cassandra-3.11.15_apache-cassandra-4.1.3
 ```
 
 7. Compile the project. (pwd=/path/to/upfuzz/)
@@ -368,20 +370,16 @@ may run the spotless Apply to format the code
 
 There are two scripts `start_server.sh` and `start_client.sh`. You can start up clients with this script.
 
-start up a server
 ```bash
+# start up a server
 bin/start_server.sh config.json
-```
-
-start up N clients (replace N with a number)
-```bash
+# start up N clients (replace N with a number)
 bin/start_clients.sh N config.json
 ```
 
 9. Stop testing
 
-Checkout `bin/cl.sh`, this file contains how to kill the server/client process and all the containers.
-
+Checkout `bin/cass_cl.sh`, this file contains how to kill the server/client process and all the containers.
 
 ### Deploy HDFS
 The first 3 steps are the same. We can start from the fourth step.
