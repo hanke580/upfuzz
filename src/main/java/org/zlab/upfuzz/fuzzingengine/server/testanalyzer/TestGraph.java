@@ -109,7 +109,10 @@ public class TestGraph {
 
     private void printNode(TestNode node, String prefix, BufferedWriter writer)
             throws IOException {
-        writer.write(prefix + node.nodeId + "\n");
+        if (node.newCoverage)
+            writer.write(prefix + node.nodeId + ": newcoverage" + "\n");
+        else
+            writer.write(prefix + node.nodeId + "\n");
 
         List<TestNode> children = node.getChildren();
         if (children != null && !children.isEmpty()) {
