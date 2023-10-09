@@ -206,3 +206,11 @@ task printNode(type: JavaExec) {
 	// Use the filename property directly if available
 	args findProperty("filename") ?: ""
 }
+
+task analyze(type: JavaExec) {
+	mainClass.set('org.zlab.upfuzz.fuzzingengine.server.testanalyzer.Analyzer')
+	classpath = sourceSets.main.runtimeClasspath
+
+	// Use the filename property directly if available
+	args findProperty("mode") ?: ""
+}

@@ -5,10 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.server.testtracker.TestTrackerNode;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,7 +15,7 @@ import java.util.*;
 /**
  * Graph for the seed evolution
  */
-public class TestGraph {
+public class TestGraph implements Serializable {
     static Logger logger = LogManager.getLogger(TestGraph.class);
 
     private Map<Integer, TestNode> nodeMap = new HashMap<>();
@@ -80,6 +77,10 @@ public class TestGraph {
         }
     }
 
+    public List<TestNode> getRootNodes() {
+        return rootNodes;
+    }
+
     public void analyze(BufferedWriter writer) {
         try {
             print(writer);
@@ -123,11 +124,36 @@ public class TestGraph {
         }
     }
 
+    public void serializeToDisk(String filename) {
+        try (ObjectOutputStream out = new ObjectOutputStream(
+                new FileOutputStream(filename))) {
+            out.writeObject(this);
+        } catch (IOException e) {
+            logger.error("Error during serialization", e);
+        }
+    }
+
+    public static TestGraph deserializeFromDisk(String filename) {
+        try (ObjectInputStream in = new ObjectInputStream(
+                new FileInputStream(filename))) {
+            return (TestGraph) in.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            logger.error("Error during deserialization", e);
+            e.printStackTrace();
+            System.exit(1);
+        }
+        return null;
+    }
+
     public static void main(String[] args) {
         // runs separately
         new Config();
 
         TestGraph testGraph = new TestGraph();
+
+        // Store testGraph
+        testGraph.serializeToDisk("testGraph.ser");
+
         try (BufferedWriter writer = new BufferedWriter(
                 new FileWriter("testGraph.txt"))) {
             testGraph.analyze(writer);
