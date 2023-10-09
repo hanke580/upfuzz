@@ -110,7 +110,7 @@ public class TestGraph {
     private void printNode(TestNode node, String prefix, BufferedWriter writer)
             throws IOException {
         if (node.newCoverage)
-            writer.write(prefix + node.nodeId + ": newcoverage" + "\n");
+            writer.write(prefix + node.nodeId + ": new coverage" + "\n");
         else
             writer.write(prefix + node.nodeId + "\n");
 
