@@ -21,6 +21,7 @@ nyx_mode/libnyx.h
 nyx_mode/nyx.h
 graph
 testGraph.txt
+testGraph.ser
 
 
 ##############################

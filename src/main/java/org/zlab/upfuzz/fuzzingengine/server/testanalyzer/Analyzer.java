@@ -9,10 +9,10 @@ import java.util.List;
 
 public class Analyzer {
 
-    public boolean isStrict = false;
+    public int state = 0;
 
-    public Analyzer(boolean isStrict) {
-        this.isStrict = isStrict;
+    public Analyzer(int state) {
+        this.state = state;
     }
 
     public void analyze() {
@@ -38,11 +38,18 @@ public class Analyzer {
             throws IOException {
         if (node.newCoverage) {
             // Only print the new coverage nodes
-            boolean check;
-            if (isStrict)
-                check = strictChecker(node);
-            else
-                check = normalChecker(node);
+            boolean check = false;
+            switch (state) {
+            case 0:
+                check = checker0(node);
+                break;
+            case 1:
+                check = checker1(node);
+                break;
+            case 2:
+                check = checker2(node);
+                break;
+            }
             writer.write(prefix + node.nodeId + ": new coverage"
                     + ", checker = " + check + "\n");
         }
@@ -55,30 +62,7 @@ public class Analyzer {
         }
     }
 
-    public boolean strictChecker(TestNode testNode) {
-        List<String> writeCommands = testNode.writeCommands;
-        // It should contain (1) Create table + set (2) INSERT (3) DROP Table
-
-        boolean createTable = false;
-        boolean insert = false;
-        boolean drop = false;
-
-        for (String cmd : writeCommands) {
-            if (cmd.contains("CREATE TABLE")
-                    && cmd.toLowerCase().contains("set<") && !createTable)
-                createTable = true;
-
-            if (createTable && cmd.contains("INSERT") && !insert)
-                insert = true;
-
-            if (insert && cmd.contains(" DROP ") && !drop)
-                drop = true;
-        }
-
-        return drop;
-    }
-
-    public boolean normalChecker(TestNode testNode) {
+    public boolean checker0(TestNode testNode) {
         // create + insert
         List<String> writeCommands = testNode.writeCommands;
         // It should contain (1) Create table + set (2) INSERT (3) DROP Table
@@ -102,28 +86,76 @@ public class Analyzer {
         return insert;
     }
 
+    public boolean checker1(TestNode testNode) {
+        List<String> writeCommands = testNode.writeCommands;
+        // It should contain (1) Create table + set (2) INSERT (3) DROP Table
+
+        boolean createTable = false;
+        boolean insert = false;
+        boolean drop = false;
+
+        for (String cmd : writeCommands) {
+            if (cmd.contains("CREATE TABLE")
+                    && cmd.toLowerCase().contains("set<") && !createTable)
+                createTable = true;
+
+            if (createTable && cmd.contains("INSERT") && !insert)
+                insert = true;
+
+            if (insert && cmd.contains(" DROP ") && !drop)
+                drop = true;
+        }
+
+        return drop;
+    }
+
+    public boolean checker2(TestNode testNode) {
+        List<String> writeCommands = testNode.writeCommands;
+        // It should contain (1) Create table + set (2) INSERT (3) DROP Table
+        // (4) Add another column
+
+        boolean createTable = false;
+        boolean insert = false;
+        boolean drop = false;
+        boolean addColumn = false;
+
+        for (String cmd : writeCommands) {
+            if (cmd.contains("CREATE TABLE")
+                    && cmd.toLowerCase().contains("set<") && !createTable)
+                createTable = true;
+
+            if (createTable && cmd.contains("INSERT") && !insert)
+                insert = true;
+
+            if (insert && cmd.contains("ALTER TABLE") && cmd.contains(" DROP ")
+                    && !drop)
+                drop = true;
+
+            if (drop && cmd.contains("ALTER TABLE") && cmd.contains(" ADD ")
+                    && !addColumn)
+                addColumn = true;
+        }
+
+        return addColumn;
+    }
+
     public static void main(String[] args) {
         new Config();
 
-        boolean isStrict = false;
-
-        if (args.length == 0) {
-            // default
-        } else if (args.length == 1) {
-            if (args[0].equals("strict"))
-                isStrict = true;
-            else if (args[0].equals("normal"))
-                isStrict = false;
-            else {
-                System.out.println("Error: invalid argument");
-                System.exit(1);
-            }
+        assert args.length == 1
+                : "Error: invalid argument, use strict or normal";
+        int state = 0;
+        if (args[0].equals("s0"))
+            state = 0;
+        else if (args[0].equals("s1"))
+            state = 1;
+        else if (args[0].equals("s2")) {
+            state = 2;
         } else {
             System.out.println("Error: invalid argument");
             System.exit(1);
         }
-
-        Analyzer analyzer = new Analyzer(isStrict);
+        Analyzer analyzer = new Analyzer(state);
         analyzer.analyze();
     }
 }

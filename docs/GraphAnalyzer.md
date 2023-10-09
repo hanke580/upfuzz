@@ -1,4 +1,4 @@
-# TestGraphTracker & Analyzer
+# TestGraphTracker
 
 ```bash
 # Print the entire evolution graph
@@ -10,4 +10,11 @@
 
 # Print a single node given a filename (e.g. 1.ser), don't need to add the path
 ./gradlew printNode -Pfilename="1.ser"
+```
+
+
+# Analyzer
+```bash
+./gradlew analyze -Pmode="s1"
+./gradlew analyze -Pmode="s2"
 ```
