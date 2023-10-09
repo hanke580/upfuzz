@@ -177,6 +177,12 @@ bin/hdfs_cl.sh
 # python3 proc_failure.py hdfs &> /dev/null | python3 proc_failure.py read
 ```
 
+**Critical configuration** setting which affects the hdfs upgrade process. Normally `prepareImageFirst` should be false. But to test log replay, we need to set it to true.
+```
+# hdfs_config.json
+prepareImageFirst
+```
+
 ## Minimal Set up for HBase (Try upfuzz quickly!)
 
 ```bash
