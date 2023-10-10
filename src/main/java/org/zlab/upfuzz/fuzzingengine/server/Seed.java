@@ -9,6 +9,7 @@ import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacket;
+import org.zlab.upfuzz.utils.Utilities;
 
 public class Seed implements Serializable, Comparable<Seed> {
     static Logger logger = LogManager.getLogger(Seed.class);
@@ -16,6 +17,8 @@ public class Seed implements Serializable, Comparable<Seed> {
     private final int MAX_STACK_MUTATION = 10;
 
     public int score = 0;
+
+    public Random rand = new Random();
 
     // Write commands
     public CommandSequence originalCommandSequence;
@@ -67,11 +70,12 @@ public class Seed implements Serializable, Comparable<Seed> {
                 // At least one mutation succeeds
                 if (commandSequence.mutate())
                     ret = true;
-                break;
+                else
+                    continue;
                 // FIXME: Enable the stacked mutation
                 // 1/3 prob stop mutation, 2/3 prob keep stacking mutations
-                // if (Utilities.oneOf(rand, 3))
-                // break;
+                if (Utilities.oneOf(rand, 3))
+                    break;
             } catch (Exception e) {
                 logger.error("Mutation error", e);
                 return false;
