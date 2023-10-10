@@ -10,6 +10,7 @@ public class CassandraCommandPool extends CommandPool {
     public static int writeCommandRate = 5;
     public static int createCommandRate = 5;
     public static int readCommandRate = 5;
+    public static int deleteLargeDateRate = 1;
 
     public void eval_CASSANDRA13939() {
         commandClassList.add(
@@ -58,9 +59,9 @@ public class CassandraCommandPool extends CommandPool {
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(ALTER_KEYSPACE.class,
                         writeCommandRate));
-        commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(ALTER_ROLE.class,
-                        writeCommandRate));
+        // commandClassList.add(
+        // new AbstractMap.SimpleImmutableEntry<>(ALTER_ROLE.class,
+        // writeCommandRate));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(ALTER_TABLE.class,
                         writeCommandRate));
@@ -79,9 +80,9 @@ public class CassandraCommandPool extends CommandPool {
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(ALTER_TYPE.class,
                         writeCommandRate));
-        commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(ALTER_USER.class,
-                        writeCommandRate));
+        // commandClassList.add(
+        // new AbstractMap.SimpleImmutableEntry<>(ALTER_USER.class,
+        // writeCommandRate));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(CREATE_INDEX.class,
                         writeCommandRate));
@@ -101,7 +102,7 @@ public class CassandraCommandPool extends CommandPool {
                         writeCommandRate));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(DROP_KEYSPACE.class,
-                        writeCommandRate));
+                        deleteLargeDateRate));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(DROP_TABLE.class,
                         writeCommandRate));
@@ -113,7 +114,7 @@ public class CassandraCommandPool extends CommandPool {
                         writeCommandRate));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(TRUNCATE.class,
-                        writeCommandRate));
+                        deleteLargeDateRate));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(UPDATE.class,
                         writeCommandRate));
