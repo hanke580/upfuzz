@@ -78,7 +78,7 @@ public class STRINGType extends ParameterType.BasicConcreteType {
         Parameter ret;
 
         // Count a possibility for fetching from the pool
-        if (stringPool.isEmpty() == false) {
+        if (!stringPool.isEmpty()) {
             Random rand = new Random();
             int choice = rand.nextInt(5);
             if (choice <= 3) {
@@ -139,33 +139,24 @@ public class STRINGType extends ParameterType.BasicConcreteType {
     @Override
     public boolean mutate(State s, Command c, Parameter p) {
         Random rand = new Random();
-        int choice = rand.nextInt(7);
-
-        // Debug
-        if (CassandraCommand.DEBUG) {
-            // choice = 4; // Only test the mutate method
-        }
-
-        // TODO: Add another choice: related to the current string pool
-        String mutatedString;
-
-        switch (choice) {
-        // Temporally Disable bit level mutation
-        case 0: // Regenerate
-            if (CassandraCommand.DEBUG) {
-                System.out.println("\t[String Mutation]: Regeneration");
-            }
-            // regenerate can make sure the value is valid
+        // 60% for regenerate, 40% for mutation
+        boolean regenerate = rand.nextInt(10) < 6;
+        if (regenerate) {
             regenerate(s, c, p);
             return true;
-        case 1: // Add a Byte
+        }
+        String mutatedString;
+        int choice = rand.nextInt(6);
+        switch (choice) {
+        // Temporally Disable bit level mutation
+        case 0: // Add a Byte
             if (CassandraCommand.DEBUG) {
                 System.out.println("\t[String Mutation]: Add Byte");
             }
             // addByte might cause a string to be in the reserved keyword
             mutatedString = addByte((String) p.value);
             break;
-        case 2: // Delete a Byte
+        case 1: // Delete a Byte
             if (CassandraCommand.DEBUG) {
                 System.out.println("\t[String Mutation]: Delete Byte");
             }
@@ -173,7 +164,7 @@ public class STRINGType extends ParameterType.BasicConcreteType {
                 return false;
             mutatedString = deleteByte((String) p.value);
             break;
-        case 3:
+        case 2:
             // Mutate a byte
             if (CassandraCommand.DEBUG) {
                 System.out.println("\t[String Mutation]: Mutate Byte");
@@ -182,33 +173,33 @@ public class STRINGType extends ParameterType.BasicConcreteType {
                 return false;
             mutatedString = mutateByte((String) p.value);
             break;
-        case 4:
+        case 3:
             // Add a word (2 Bytes)
             mutatedString = addByte((String) p.value);
             mutatedString = addByte(mutatedString);
             break;
-        case 5:
+        case 4:
             // Delete a word
             if (((String) p.value).length() < 2)
                 return false;
             mutatedString = deleteByte((String) p.value);
             mutatedString = deleteByte(mutatedString);
             break;
-        case 6:
+        case 5:
             // Mutate a word
             if (((String) p.value).isEmpty() || ((String) p.value).length() < 2)
                 return false;
             mutatedString = mutateWord((String) p.value);
             break;
-        case 7:
+        case 6:
             // Flip a Bit
             mutatedString = flipBit((String) p.value);
             break;
-        case 8:
+        case 7:
             // Add a Bit
             mutatedString = addBit((String) p.value);
             break;
-        case 9:
+        case 8:
             // Delete a Bit
             mutatedString = deleteBit((String) p.value);
             break;
