@@ -322,41 +322,47 @@ public class FuzzingServer {
             // stackedTestPackets)
             // configMutationEpoch*STACKED_TESTS_NUM = 1000 tests
 
-            int configMutationEpoch;
-            if (firstMutationSeedNum < Config.getConf().firstMutationSeedLimit)
-                configMutationEpoch = Config.getConf().firstConfigMutationEpoch;
-            else
-                configMutationEpoch = Config.getConf().configMutationEpoch;
+            if (configGen.enable) {
+                int configMutationEpoch;
+                if (firstMutationSeedNum < Config
+                        .getConf().firstMutationSeedLimit)
+                    configMutationEpoch = Config
+                            .getConf().firstConfigMutationEpoch;
+                else
+                    configMutationEpoch = Config.getConf().configMutationEpoch;
 
-            for (int configMutationIdx = 0; configMutationIdx < configMutationEpoch; configMutationIdx++) {
-                configIdx = configGen.generateConfig();
-                configFileName = "test" + configIdx;
-                stackedTestPacket = new StackedTestPacket(
-                        Config.getConf().nodeNum,
-                        configFileName);
-                // put the seed into it
-                Seed mutateSeed = SerializationUtils.clone(seed);
-                mutateSeed.configIdx = configIdx;
-                mutateSeed.testID = testID; // update testID after mutation
-                graph.addNode(seed.testID, mutateSeed);
-                testID2Seed.put(testID, mutateSeed);
-                stackedTestPacket.addTestPacket(mutateSeed, testID++);
-                // add mutated seeds (Mutate sequence&config)
-                for (int i = 1; i < Config.getConf().STACKED_TESTS_NUM; i++) {
-                    mutateSeed = SerializationUtils.clone(seed);
+                for (int configMutationIdx = 0; configMutationIdx < configMutationEpoch; configMutationIdx++) {
+                    configIdx = configGen.generateConfig();
+                    configFileName = "test" + configIdx;
+                    stackedTestPacket = new StackedTestPacket(
+                            Config.getConf().nodeNum,
+                            configFileName);
+                    // put the seed into it
+                    Seed mutateSeed = SerializationUtils.clone(seed);
                     mutateSeed.configIdx = configIdx;
-                    if (mutateSeed.mutate(commandPool, stateClass)) {
-                        mutateSeed.testID = testID; // update testID after
-                                                    // mutation
-                        graph.addNode(seed.testID, mutateSeed);
-                        testID2Seed.put(testID, mutateSeed);
-                        stackedTestPacket.addTestPacket(mutateSeed, testID++);
-                    } else {
-                        logger.debug("Mutation failed");
-                        i--;
+                    mutateSeed.testID = testID; // update testID after mutation
+                    graph.addNode(seed.testID, mutateSeed);
+                    testID2Seed.put(testID, mutateSeed);
+                    stackedTestPacket.addTestPacket(mutateSeed, testID++);
+                    // add mutated seeds (Mutate sequence&config)
+                    for (int i = 1; i < Config
+                            .getConf().STACKED_TESTS_NUM; i++) {
+                        mutateSeed = SerializationUtils.clone(seed);
+                        mutateSeed.configIdx = configIdx;
+                        if (mutateSeed.mutate(commandPool, stateClass)) {
+                            mutateSeed.testID = testID; // update testID after
+                            // mutation
+                            graph.addNode(seed.testID, mutateSeed);
+                            testID2Seed.put(testID, mutateSeed);
+                            stackedTestPacket.addTestPacket(mutateSeed,
+                                    testID++);
+                        } else {
+                            logger.debug("Mutation failed");
+                            i--;
+                        }
                     }
+                    stackedTestPackets.add(stackedTestPacket);
                 }
-                stackedTestPackets.add(stackedTestPacket);
             }
             firstMutationSeedNum++;
             logger.debug("[fuzzOne] mutate done, stackedTestPackets size = "

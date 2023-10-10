@@ -12,6 +12,8 @@ public abstract class ConfigGen {
     static Random rand = new Random();
     ObjectMapper mapper = new ObjectMapper();
 
+    public boolean enable = false;
+
     public ConfigFileGenerator[] configFileGenerator;
     public ConfigFileGenerator[] extraGenerator;
 
@@ -48,6 +50,7 @@ public abstract class ConfigGen {
         if (Config.getConf().testAddedConfig
                 || Config.getConf().testDeletedConfig
                 || Config.getConf().testCommonConfig) {
+            enable = true;
             loadUpgradeConfigInfo();
             initUpgradeValGenerator();
         }
@@ -57,6 +60,7 @@ public abstract class ConfigGen {
         initSingleSystemPath();
         initSingleFileGenerator();
         if (Config.getConf().testConfig) {
+            enable = true;
             loadSingleConfigInfo();
             initSingleValGenerator();
         }
