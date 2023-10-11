@@ -370,9 +370,13 @@ int main(int argc, char **argv) {
         char* file_name = payload_buffer -> data;
 
         // transfer the test packet file from the host to the client VM
+        clock_t start_time, end_time;
+        start_time = clock();
         int get_file_status = get_from_host(file_name, "/miniClientWorkdir/mainStackedTestPacket.ser");
         if (get_file_status == -1)
           abort_operation("ERROR! Failed to transfer file from host to guest."); 
+        end_time = clock();
+        hprintf("[cAgent test] 1b: Execution time for transferring test packet from host to nyx: %.5f seconds\n", (double)((end_time - start_time)*1000) / CLOCKS_PER_SEC);
 
         // First snapshot created, now need to start testing, send the command "START_TESTING\n" to the client
         int send_test_status = write(fds_input[1], test_start_msg, strlen(test_start_msg));
@@ -400,9 +404,12 @@ int main(int argc, char **argv) {
         char archive_dir[36];
         snprintf(archive_dir, sizeof(archive_dir), "/miniClientWorkdir/%s", archive_name);
 
+        start_time = clock();
         get_file_status = push_to_host(archive_dir);    
         if (get_file_status == -1)
           abort_operation("ERROR! Failed to transfer fuzzing storage archive to host.");
+        end_time = clock();
+        hprintf("[cAgent test] 4a: Execution time for transferring feedback archive from nyx to host: %.5f milliseconds\n", (double)((end_time - start_time)*1000) / CLOCKS_PER_SEC);
 
         //Push the test feedback file from client to host
         // get_file_status = push_to_host("/miniClientWorkdir/stackedFeedbackPacket.ser");    

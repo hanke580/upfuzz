@@ -328,14 +328,31 @@ public class FuzzingClient {
             }
         }
         if (this.previousConfigPath == null) {
+            long startTime = System.currentTimeMillis();
             this.libnyx.nyxNew();
+            if (Config.getConf().debug) {
+                logger.info(
+                        "[Fuzzing Client] First execution: Time needed to start up a new nyx vm "
+                                + ((System.currentTimeMillis() - startTime)
+                                        / 1000)
+                                + " seconds");
+            }
         } else if (!sameConfigAsLastTime) {
+            long startTime = System.currentTimeMillis();
             this.libnyx.nyxShutdown();
             this.libnyx.nyxNew();
+            if (Config.getConf().debug) {
+                logger.info(
+                        "[Fuzzing Client] New config: Time needed to shutdown old nyx vm and start a new nyx vm "
+                                + ((System.currentTimeMillis() - startTime)
+                                        / 1000)
+                                + " seconds");
+            }
         }
         this.previousConfigPath = configPath;
 
         // Now write the stackedTestPacket to be used for actual tests
+        long startTime3 = System.currentTimeMillis();
         String stackedTestFileLocation = "stackedTestPackets/"
                 + RandomStringUtils.randomAlphanumeric(8) + ".ser";
         Path stackedTestPath = Paths.get(this.libnyx.getSharedir(),
@@ -353,6 +370,11 @@ public class FuzzingClient {
         this.libnyx.setInput(stackedTestFileLocation);
 
         this.libnyx.nyxExec();
+        if (Config.getConf().debug) {
+            logger.info("[Fuzzing Client] Total time for Nyx-UpFuzz execution "
+                    + ((System.currentTimeMillis() - startTime3) / 1000)
+                    + " seconds");
+        }
 
         // String storagePath = executor.dockerCluster.workdir.getAbsolutePath()
         // .toString();
@@ -390,6 +412,7 @@ public class FuzzingClient {
                     + Paths.get(this.libnyx.getSharedir()) + " ; ";
 
             try {
+                long startTime2 = System.currentTimeMillis();
                 ProcessBuilder builder = new ProcessBuilder();
                 builder.command("/bin/bash", "-c", unzip_archive_command);
                 // builder.directory(new File(System.getProperty("user.home")));
@@ -397,6 +420,13 @@ public class FuzzingClient {
 
                 Process process = builder.start();
                 int exitCode = process.waitFor();
+                if (Config.getConf().debug) {
+                    logger.info(
+                            "[Fuzzing Client] First execution: Time needed to unzip the fuzzing storage archive and moving it to the workdir: "
+                                    + ((System.currentTimeMillis() - startTime2)
+                                            / 1000)
+                                    + " seconds");
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
