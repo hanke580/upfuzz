@@ -86,13 +86,14 @@ int push_to_host(char* stream_source){
 
   uint64_t size = 0;
   void* ptr = mapfile(stream_source, &size);
-
+  clock_t start_time_2 = clock();
   if(ptr && size){
     dump_payload(ptr, size, basename(stream_source));
   }
   else{
     hprintf("Error: File not found!\n");
   }
+  hprintf("[cAgent test] transfered feedback archive (%s) from nyx to host: %"PRId64" bytes sent to hypervisor in %.5f ms\n", stream_source, size, ((double)((clock() - start_time_2)*1000) / CLOCKS_PER_SEC));
   return 0;
 }
 
@@ -122,7 +123,7 @@ int get_from_host(char* input_file, char* output_file){
 
   uint64_t bytes = 0;
   uint64_t total = 0;
-
+  clock_t start_time_2 = clock();
   do{
     strcpy(stream_data, input_file);
     bytes = kAFL_hypercall(HYPERCALL_KAFL_REQ_STREAM_DATA, (uintptr_t)stream_data);
@@ -147,7 +148,11 @@ int get_from_host(char* input_file, char* output_file){
 
   } while(bytes);
 
-  hprintf("[hget] %"PRId64" bytes received from hypervisor! (%s)\n", total, input_file);
+  if (strstr(input_file, "mainStackedTestPacket")) {
+    hprintf("[cAgent test] transferring test packet (%s) from host to nyx: %"PRId64" bytes received from hypervisor in %.5f ms\n", total, input_file, ((double)((clock() - start_time_2)*1000) / CLOCKS_PER_SEC));
+  }
+  else 
+    hprintf("[hget] %"PRId64" bytes received from hypervisor! (%s)\n", total, input_file);
 
   if(f){
     fclose(f);
@@ -370,13 +375,13 @@ int main(int argc, char **argv) {
         char* file_name = payload_buffer -> data;
 
         // transfer the test packet file from the host to the client VM
-        clock_t start_time, end_time;
-        start_time = clock();
+        // clock_t start_time, end_time;
+        // start_time = clock();
         int get_file_status = get_from_host(file_name, "/miniClientWorkdir/mainStackedTestPacket.ser");
         if (get_file_status == -1)
           abort_operation("ERROR! Failed to transfer file from host to guest."); 
-        end_time = clock();
-        hprintf("[cAgent test] 1b: Execution time for transferring test packet from host to nyx: %.5f seconds\n", (double)((end_time - start_time)*1000) / CLOCKS_PER_SEC);
+        // end_time = clock();
+        // hprintf("[cAgent test] 1b: Execution time for transferring test packet from host to nyx: %.5f seconds\n", (double)((end_time - start_time)*1000) / CLOCKS_PER_SEC);
 
         // First snapshot created, now need to start testing, send the command "START_TESTING\n" to the client
         int send_test_status = write(fds_input[1], test_start_msg, strlen(test_start_msg));
@@ -404,12 +409,12 @@ int main(int argc, char **argv) {
         char archive_dir[36];
         snprintf(archive_dir, sizeof(archive_dir), "/miniClientWorkdir/%s", archive_name);
 
-        start_time = clock();
+        // start_time = clock();
         get_file_status = push_to_host(archive_dir);    
         if (get_file_status == -1)
           abort_operation("ERROR! Failed to transfer fuzzing storage archive to host.");
-        end_time = clock();
-        hprintf("[cAgent test] 4a: Execution time for transferring feedback archive from nyx to host: %.5f milliseconds\n", (double)((end_time - start_time)*1000) / CLOCKS_PER_SEC);
+        // end_time = clock();
+        // hprintf("[cAgent test] 4a: Execution time for transferring feedback archive from nyx to host: %.5f milliseconds\n", (double)((end_time - start_time)*1000) / CLOCKS_PER_SEC);
 
         //Push the test feedback file from client to host
         // get_file_status = push_to_host("/miniClientWorkdir/stackedFeedbackPacket.ser");    
