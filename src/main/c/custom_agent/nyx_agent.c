@@ -148,7 +148,7 @@ int get_from_host(char* input_file, char* output_file){
 
   } while(bytes);
 
-  if (strstr(input_file, "mainStackedTestPacket")) {
+  if (strstr(input_file, "stackedTestPackets")) {
     hprintf("[cAgent test] transferring test packet (%s) from host to nyx: %"PRId64" bytes received from hypervisor in %.5f ms\n", total, input_file, ((double)((clock() - start_time_2)*1000) / CLOCKS_PER_SEC));
   }
   else 
