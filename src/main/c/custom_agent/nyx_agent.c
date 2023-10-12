@@ -147,12 +147,12 @@ int get_from_host(char* input_file, char* output_file){
     total += bytes;
 
   } while(bytes);
-
-  if (strstr(input_file, "stackedTestPackets")) {
-    hprintf("[cAgent test] transferring test packet (%s) from host to nyx: %"PRId64" bytes received from hypervisor in %.5f ms\n", total, input_file, ((double)((clock() - start_time_2)*1000) / CLOCKS_PER_SEC));
-  }
-  else 
-    hprintf("[hget] %"PRId64" bytes received from hypervisor! (%s)\n", total, input_file);
+  hprintf("[cAgent test] transferring packet (%s) from host to nyx: %"PRId64" bytes received from hypervisor in %.5f ms\n", total, input_file, ((double)((clock() - start_time_2)*1000) / CLOCKS_PER_SEC));
+  // if (strstr(input_file, "stackedTestPackets")) {
+  //   hprintf("[cAgent test] transferring test packet (%s) from host to nyx: %"PRId64" bytes received from hypervisor in %.5f ms\n", total, input_file, ((double)((clock() - start_time_2)*1000) / CLOCKS_PER_SEC));
+  // }
+  // else 
+  //   hprintf("[hget] %"PRId64" bytes received from hypervisor! (%s)\n", total, input_file);
 
   if(f){
     fclose(f);
