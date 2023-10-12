@@ -931,7 +931,8 @@ public class FuzzingServer {
             saveFullSequence(failureDir, fullStopFeedbackPacket.fullSequence);
             if (fullStopFeedbackPacket.isUpgradeProcessFailed) {
                 saveFullStopCrashReport(failureDir,
-                        fullStopFeedbackPacket.upgradeFailureReport);
+                        fullStopFeedbackPacket.upgradeFailureReport,
+                        fullStopFeedbackPacket.testPacketID);
             }
             if (fullStopFeedbackPacket.isInconsistent) {
                 saveInconsistencyReport(failureDir,
@@ -940,7 +941,8 @@ public class FuzzingServer {
             }
             if (fullStopFeedbackPacket.hasERRORLog) {
                 saveErrorReport(failureDir,
-                        fullStopFeedbackPacket.errorLogReport);
+                        fullStopFeedbackPacket.errorLogReport,
+                        fullStopFeedbackPacket.testPacketID);
             }
         }
         testID2Seed.remove(fullStopFeedbackPacket.testPacketID);
@@ -1015,7 +1017,8 @@ public class FuzzingServer {
             }
             if (testPlanFeedbackPacket.hasERRORLog) {
                 saveErrorReport(failureDir,
-                        testPlanFeedbackPacket.errorLogReport);
+                        testPlanFeedbackPacket.errorLogReport,
+                        testPlanFeedbackPacket.testPacketID);
             }
         }
         testID2TestPlan.remove(testPlanFeedbackPacket.testPacketID);
@@ -1043,11 +1046,16 @@ public class FuzzingServer {
 
         Path failureDir = null;
 
+        int startTestID = stackedFeedbackPacket.getFpList().get(0).testPacketID;
+        int endTestID = stackedFeedbackPacket.getFpList()
+                .get(stackedFeedbackPacket.getFpList().size() - 1).testPacketID;
+
         if (stackedFeedbackPacket.isUpgradeProcessFailed) {
             failureDir = createFailureDir(stackedFeedbackPacket.configFileName);
             saveFullSequence(failureDir, stackedFeedbackPacket.fullSequence);
             saveFullStopCrashReport(failureDir,
-                    stackedFeedbackPacket.upgradeFailureReport);
+                    stackedFeedbackPacket.upgradeFailureReport, startTestID,
+                    endTestID);
             finishedTestID++;
         }
         FuzzingServerHandler.printClientNum();
@@ -1175,7 +1183,8 @@ public class FuzzingServer {
                         stackedFeedbackPacket.fullSequence);
             }
             saveErrorReport(failureDir,
-                    stackedFeedbackPacket.errorLogReport);
+                    stackedFeedbackPacket.errorLogReport, startTestID,
+                    endTestID);
         }
 
         // Update the coveredBranches to the newest value
@@ -1273,11 +1282,22 @@ public class FuzzingServer {
     }
 
     private void saveFullStopCrashReport(Path failureDir,
-            String report) {
+            String report, int startTestID) {
         Path subDir = createFullStopCrashSubDir(failureDir);
         Path crashReportPath = Paths.get(
                 subDir.toString(),
-                "fullstop_crash.report");
+                String.format("fullstop_%d_crash.report", startTestID));
+        Utilities.write2TXT(crashReportPath.toFile(), report, false);
+        fullStopCrashNum++;
+    }
+
+    private void saveFullStopCrashReport(Path failureDir,
+            String report, int startTestID, int endTestID) {
+        Path subDir = createFullStopCrashSubDir(failureDir);
+        Path crashReportPath = Paths.get(
+                subDir.toString(),
+                String.format("fullstop_%d_%d_crash.report", startTestID,
+                        endTestID));
         Utilities.write2TXT(crashReportPath.toFile(), report, false);
         fullStopCrashNum++;
     }
@@ -1302,11 +1322,21 @@ public class FuzzingServer {
         inconsistencyNum++;
     }
 
-    private void saveErrorReport(Path failureDir, String report) {
+    private void saveErrorReport(Path failureDir, String report, int testID) {
         Path errorSubDir = createErrorSubDir(failureDir);
         Path reportPath = Paths.get(
                 errorSubDir.toString(),
-                "error.report");
+                String.format("error_%d.report", testID));
+        Utilities.write2TXT(reportPath.toFile(), report, false);
+        errorLogNum++;
+    }
+
+    private void saveErrorReport(Path failureDir, String report,
+            int startTestID, int endTestID) {
+        Path errorSubDir = createErrorSubDir(failureDir);
+        Path reportPath = Paths.get(
+                errorSubDir.toString(),
+                String.format("error_%d_%d.report", startTestID, endTestID));
         Utilities.write2TXT(reportPath.toFile(), report, false);
         errorLogNum++;
     }
