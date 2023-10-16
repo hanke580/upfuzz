@@ -37,6 +37,9 @@ public class CassandraDockerCluster extends DockerCluster {
     public void initBlackListErrorLog() {
         blackListErrorLog.add("Error response from daemon: Container");
         blackListErrorLog.add("Unable to gossip with any peers");
+        blackListErrorLog.add(
+                "java.io.IOError: java.nio.channels.AsynchronousCloseException");
+        blackListErrorLog.add("LEAK DETECTED");
     }
 
     public boolean build() throws Exception {

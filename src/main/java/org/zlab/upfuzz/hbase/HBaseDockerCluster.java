@@ -64,6 +64,7 @@ public class HBaseDockerCluster extends DockerCluster {
     }
 
     public void initBlackListErrorLog() {
+        // zk related
         blackListErrorLog
                 .add("zookeeper.ClientCnxn: Error while calling watcher \n" +
                         "java.util.concurrent.RejectedExecutionException: Task java.util.concurrent.FutureTask");
@@ -73,7 +74,17 @@ public class HBaseDockerCluster extends DockerCluster {
                 "jmx.ManagedUtil: Problems while registering log4j jmx beans!");
         blackListErrorLog.add(
                 "zookeeper.RecoverableZooKeeper: ZooKeeper delete failed");
-
+        // Normal shutdown
+        blackListErrorLog.add(
+                "regionserver.HRegionServer: ***** ABORTING region server");
+        blackListErrorLog.add(
+                "regionserver.HRegionServerCommandLine: Region server exiting");
+        blackListErrorLog.add(
+                "regionserver.HRegionServer: RegionServer abort: loaded coprocessors");
+        blackListErrorLog.add(
+                "snapshot.TakeSnapshotHandler: Couldn't delete snapshot working");
+        blackListErrorLog.add(
+                "regionserver.HRegion: Memstore data size is");
     }
 
     public boolean build() throws Exception {
