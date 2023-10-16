@@ -278,7 +278,10 @@ public abstract class DockerCluster implements IDockerCluster {
             dockers[i].shutdown();
         }
         for (int i = 0; i < dockers.length; i++) {
-            dockers[i].upgrade();
+            if (dockerStates[i].alive)
+                dockers[i].upgrade();
+            else
+                dockers[i].upgradeFromCrash();
         }
         logger.info("Cluster upgraded");
         return true;
