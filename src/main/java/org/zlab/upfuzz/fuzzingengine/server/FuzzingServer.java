@@ -577,7 +577,8 @@ public class FuzzingServer {
                 .randomGenerateFaults(nodeNum, faultNum);
 
         List<Event> upgradeOps = new LinkedList<>();
-        if (!Config.getConf().testSingleVersion) {
+        if (!Config.getConf().testSingleVersion
+                && !Config.getConf().fullStopUpgradeWithFaults) {
             for (int i = 0; i < nodeNum; i++) {
                 upgradeOps.add(new UpgradeOp(i));
             }
@@ -615,7 +616,8 @@ public class FuzzingServer {
         List<Event> events = interleaveWithOrder(upgradeOpAndFaults,
                 shellCommands);
 
-        if (!Config.getConf().testSingleVersion)
+        if (!Config.getConf().testSingleVersion
+                && !Config.getConf().fullStopUpgradeWithFaults)
             events.add(events.size(), new FinalizeUpgrade());
 
         return new TestPlan(nodeNum, events, targetSystemStates,

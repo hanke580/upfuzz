@@ -729,12 +729,30 @@ public class FuzzingClient {
         // execute test plan (rolling upgrade + fault)
         boolean status = executor.execute(testPlanPacket.getTestPlan());
 
-        // collect test plan coverage
         FeedBack[] testPlanFeedBacks = new FeedBack[nodeNum];
-        for (int i = 0; i < nodeNum; i++) {
-            testPlanFeedBacks[i] = new FeedBack();
-            if (executor.oriCoverage[i] != null)
-                testPlanFeedBacks[i].originalCodeCoverage = executor.oriCoverage[i];
+
+        if (status && Config.getConf().fullStopUpgradeWithFaults) {
+            // collect old version coverage
+            ExecutionDataStore[] oriCoverages = executor
+                    .collectCoverageSeparate("original");
+            for (int i = 0; i < nodeNum; i++) {
+                testPlanFeedBacks[i] = new FeedBack();
+                if (oriCoverages != null)
+                    testPlanFeedBacks[i].originalCodeCoverage = oriCoverages[i];
+            }
+            // upgrade
+            status = executor.fullStopUpgrade();
+            if (!status)
+                // update event id
+                executor.eventIdx = -1; // this means full-stop upgrade failed
+        } else {
+            // It contains the new version coverage!
+            // collect test plan coverage
+            for (int i = 0; i < nodeNum; i++) {
+                testPlanFeedBacks[i] = new FeedBack();
+                if (executor.oriCoverage[i] != null)
+                    testPlanFeedBacks[i].originalCodeCoverage = executor.oriCoverage[i];
+            }
         }
 
         TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
@@ -765,7 +783,6 @@ public class FuzzingClient {
             testPlanFeedbackPacket.isInconsistent = false;
             testPlanFeedbackPacket.inconsistencyReport = "";
         } else {
-
             // Test single version
             if (Config.getConf().testSingleVersion) {
                 try {

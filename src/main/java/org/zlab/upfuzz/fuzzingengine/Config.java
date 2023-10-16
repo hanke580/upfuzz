@@ -115,6 +115,9 @@ public class Config {
         // 4: full-stop upgrade + rolling upgrade iteratively (Final Version)
         public int testingMode = 0;
         public boolean testSingleVersion = false;
+        // This make the test plan interleave with
+        // full-stop upgrade
+        public boolean fullStopUpgradeWithFaults = false;
 
         // ------------State Comparison-------------
         public boolean enableStateComp = false;
