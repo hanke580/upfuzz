@@ -109,7 +109,8 @@ public class HdfsDockerCluster extends DockerCluster {
     @Override
     public boolean fullStopUpgrade() throws Exception {
         logger.info("[HDFS] Cluster full-stop upgrading...");
-        if (!Config.getConf().prepareImageFirst) {
+        if (!Config.getConf().prepareImageFirst
+                && Config.getConf().enable_fsimage) {
             prepareUpgrade(); // it will only be invoked once
         }
         stopSNN(); // HDFS is special since it needs to stop SNN first

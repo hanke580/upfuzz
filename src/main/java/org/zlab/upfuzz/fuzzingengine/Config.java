@@ -166,6 +166,8 @@ public class Config {
         // to test the edits log replay. If false, no edits log will
         // be replayed in the new version.
         public boolean prepareImageFirst = true;
+        // If false: it won't create FSImage before upgrade
+        public boolean enable_fsimage = true;
         public double new_fs_state_prob = 0.005;
 
         public boolean support_EC = false; // > 2
