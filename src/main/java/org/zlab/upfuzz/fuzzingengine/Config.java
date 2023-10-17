@@ -53,9 +53,9 @@ public class Config {
         // we only mutate them for relative few times
         public int firstMutationSeedLimit = 5;
         public int firstSequenceMutationEpoch = 10;
-        public int sequenceMutationEpoch = 200;
+        public int sequenceMutationEpoch = 800;
         public int firstConfigMutationEpoch = 3;
-        public int configMutationEpoch = 20;
+        public int configMutationEpoch = 10;
 
         // violent mutation, usually fewer
         public int bothMutationEpoch = 20;
