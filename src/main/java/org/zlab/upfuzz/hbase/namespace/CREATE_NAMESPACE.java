@@ -28,6 +28,11 @@ public class CREATE_NAMESPACE extends HBaseCommand {
     @Override
     public void updateState(State state) {
         ((HBaseState) state).addNamespace(params.get(0).getValue().toString());
-
     }
+
+    @Override
+    public void separate(State state) {
+        this.params.get(0).regenerate(null, this);
+    }
+
 }

@@ -135,4 +135,10 @@ public class CREATE extends HBaseCommand {
                     cfName.toString(), hBaseColumnFamily);
         }
     }
+
+    @Override
+    public void separate(State state) {
+        this.params.get(0).regenerate(null, this);
+    }
+
 }
