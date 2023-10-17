@@ -124,7 +124,7 @@ bin/cass_cl.sh
 ## Minimal Set up for HDFS (Try upfuzz quickly!)
 Requirement: jdk8, jdk11, docker (Docker version 23.0.1, build a5ee5b1)
 > - Not test configurations.
-> - 4 Nodes upgrade (NN, SNN, 2DN): 2.10.2 => 3.3.5
+> - 4 Nodes upgrade (NN, SNN, 2DN) ORI_VERSION => UP_VERSION
 
 ```bash
 git clone git@github.com:zlab-purdue/upfuzz.git

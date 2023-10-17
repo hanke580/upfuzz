@@ -124,9 +124,13 @@ public class HBaseState extends State {
 
     @Override
     public void clearState() {
+        namespace2tables.clear();
         table2families.clear();
         table2UDTs.clear();
         table2enable.clear();
+
+        snapshots.clear();
+        table2rowKeys.clear();
     }
 
 }
