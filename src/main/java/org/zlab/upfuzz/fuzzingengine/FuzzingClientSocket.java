@@ -93,9 +93,8 @@ class FuzzingClientSocket implements Runnable {
                 }
                 readHeader();
             } catch (Exception e) {
-                System.out.println("intType = " + intType);
-                logger.error("client break because of exception:");
-                e.printStackTrace();
+                logger.debug("intType = " + intType);
+                logger.error("client break because of exception: ", e);
                 closeResources();
                 break;
             }

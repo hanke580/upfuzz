@@ -55,19 +55,15 @@ public class FuzzingServerHandler implements Runnable {
             // TestPacket tp = fuzzingServer.getOneTest();
             // Gson gs = new Gson();
             // socket.getOutputStream().write(gs.toJson(tp).getBytes());
-        } catch (IOException e) {
-            logger.error(e);
+        } catch (Exception e) {
+            logger.error("FuzzingServerHandler runs into exceptions ", e);
+        } finally {
             synchronized (FuzzingServerHandler.class) {
                 clientNum--;
                 logger.info(
                         "one client crash with exception, current live clients: "
                                 + clientNum);
             }
-        } catch (Exception e) {
-            logger.error("FuzzingServerHandler runs into exceptions " + e);
-            logger.error("Close current thread");
-            e.printStackTrace();
-        } finally {
             // if this thread stops, the client should also stop
             closeResources();
         }

@@ -190,7 +190,7 @@ public class FuzzingClient {
                 if (executor.startup())
                     return true;
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("An error occurred", e);
             }
             executor.teardown();
         }

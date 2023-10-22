@@ -117,7 +117,7 @@ public class YamlGenerator extends ConfigFileGenerator {
         try {
             maps = yaml.loadAll(new FileInputStream(String.valueOf(srcPath)));
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("writeYAMLFile failed", e);
         }
 
         if (maps != null) {
