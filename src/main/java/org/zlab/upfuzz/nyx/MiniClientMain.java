@@ -339,7 +339,6 @@ public class MiniClientMain {
         } else {
             // logger.info("upgrade succeed");
             stackedFeedbackPacket.isUpgradeProcessFailed = false;
-
             for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
                 TestPacket tp = stackedTestPacket.getTestPacketList()
                         .get(testPacketIdx);
@@ -356,20 +355,13 @@ public class MiniClientMain {
                         }
                     }
                 }
-            }
-
-            // Check read results consistency
-            for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
-                TestPacket tp = stackedTestPacket.getTestPacketList()
-                        .get(testPacketIdx);
                 Pair<Boolean, String> compareRes = executor
                         .checkResultConsistency(
                                 testID2oriResults.get(tp.testPacketID),
                                 testID2upResults.get(tp.testPacketID), true);
-
+                // Update FeedbackPacket
                 FeedbackPacket feedbackPacket = testID2FeedbackPacket
                         .get(tp.testPacketID);
-
                 if (!compareRes.left) {
                     String failureReport = FuzzingClient.genInconsistencyReport(
                             executor.executorID,
@@ -379,15 +371,18 @@ public class MiniClientMain {
                     feedbackPacket.isInconsistent = true;
                     feedbackPacket.inconsistencyReport = failureReport;
                 }
-                // logger.debug("testID2upResults = " + testID2upResults
-                // .get(tp.testPacketID));
                 feedbackPacket.validationReadResults = testID2upResults
                         .get(tp.testPacketID);
-                stackedFeedbackPacket.addFeedbackPacket(feedbackPacket);
             }
-            // logger.info(executor.systemID + " executor: " +
-            // executor.executorID
-            // + " finished execution");
+        }
+
+        // update stackedFeedbackPacket
+        for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
+            TestPacket tp = stackedTestPacket.getTestPacketList()
+                    .get(testPacketIdx);
+            FeedbackPacket feedbackPacket = testID2FeedbackPacket
+                    .get(tp.testPacketID);
+            stackedFeedbackPacket.addFeedbackPacket(feedbackPacket);
         }
 
         // test downgrade
