@@ -333,9 +333,8 @@ public class FuzzingClient {
             if (Config.getConf().debug) {
                 logger.info(
                         "[Fuzzing Client] First execution: Time needed to start up a new nyx vm "
-                                + ((System.currentTimeMillis() - startTime)
-                                        / 1000)
-                                + " seconds");
+                                + (System.currentTimeMillis() - startTime)
+                                + " milliseconds");
             }
         } else if (!sameConfigAsLastTime) {
             long startTime = System.currentTimeMillis();
@@ -344,8 +343,7 @@ public class FuzzingClient {
             if (Config.getConf().debug) {
                 logger.info(
                         "[Fuzzing Client] New config: Time needed to shutdown old nyx vm and start a new nyx vm "
-                                + ((System.currentTimeMillis() - startTime)
-                                        / 1000)
+                                + (System.currentTimeMillis() - startTime)
                                 + " seconds");
             }
         }
@@ -372,8 +370,8 @@ public class FuzzingClient {
         this.libnyx.nyxExec();
         if (Config.getConf().debug) {
             logger.info("[Fuzzing Client] Total time for Nyx-UpFuzz execution "
-                    + ((System.currentTimeMillis() - startTime3) / 1000)
-                    + " seconds");
+                    + (System.currentTimeMillis() - startTime3)
+                    + " milliseconds");
         }
 
         // String storagePath = executor.dockerCluster.workdir.getAbsolutePath()
