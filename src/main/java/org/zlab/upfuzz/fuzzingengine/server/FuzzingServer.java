@@ -1048,9 +1048,14 @@ public class FuzzingServer {
 
         Path failureDir = null;
 
-        int startTestID = stackedFeedbackPacket.getFpList().get(0).testPacketID;
-        int endTestID = stackedFeedbackPacket.getFpList()
-                .get(stackedFeedbackPacket.getFpList().size() - 1).testPacketID;
+        int startTestID = 0;
+        int endTestID = 0;
+        if (stackedFeedbackPacket.getFpList().size() > 0) {
+            startTestID = stackedFeedbackPacket.getFpList().get(0).testPacketID;
+            endTestID = stackedFeedbackPacket.getFpList()
+                    .get(stackedFeedbackPacket.getFpList().size()
+                            - 1).testPacketID;
+        }
 
         if (stackedFeedbackPacket.isUpgradeProcessFailed) {
             failureDir = createFailureDir(stackedFeedbackPacket.configFileName);
