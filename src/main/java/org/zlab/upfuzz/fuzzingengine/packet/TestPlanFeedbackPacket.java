@@ -7,8 +7,9 @@ import org.zlab.upfuzz.fuzzingengine.FeedBack;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.Serializable;
 
-public class TestPlanFeedbackPacket extends Packet {
+public class TestPlanFeedbackPacket extends Packet implements Serializable {
     static Logger logger = LogManager.getLogger(TestPlanFeedbackPacket.class);
 
     public String systemID;

@@ -16,6 +16,8 @@
 #include <sys/syscall.h>
 #include <string.h>
 #include <dirent.h>
+//#include <sys/time.h>
+//#include <ctime>
 
 #define TRACE_BUFFER_SIZE (64)
 
@@ -26,6 +28,23 @@
 #define round_up(x, y) (((x) + (y) - 1) & ~((y) - 1))
 
 static volatile int child_completed = 0;
+
+void printClockRealTime(const char *s) {
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    hprintf("%s: %ld.%06ld\n",s, ts.tv_sec, ts.tv_nsec/1000);
+}
+
+void printCurrentDateTimeWithMillis(const char *s) {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
+    struct tm* now = localtime(&tv.tv_sec);
+
+    char buffer[30];
+    strftime(buffer, 30, "%Y-%m-%d %H:%M:%S", now);
+    hprintf("%s: %s.%03ld\n", s, buffer, tv.tv_usec / 1000);
+}
 
 bool prefix(const char *pre, const char *str)
 {
@@ -237,6 +256,7 @@ int main(int argc, char **argv) {
   /* Request information on available (host) capabilites (optional) */
   host_config_t host_config;
   kAFL_hypercall(HYPERCALL_KAFL_GET_HOST_CONFIG, (uintptr_t)&host_config);
+  clock_t snapshot_revert_time = clock();
   // hprintf("[capablities] host_config.bitmap_size: 0x%" PRIx64 "\n",
   //         host_config.bitmap_size);
   // hprintf("[capablities] host_config.ijon_bitmap_size: 0x%" PRIx64 "\n",
@@ -329,7 +349,8 @@ int main(int argc, char **argv) {
 
         // these specific messages are configured in the miniclient.java program
         // when the miniclient receives the packet "START_TESTING", it will execute the test packets
-        char *test_start_msg = "START_TESTING\n";
+        char *test_start_msg_stacked = "START_TESTING0\n";
+        char *test_start_msg_testPlan = "START_TESTING4\n";
         
         // when the agent receives the packet 'R', it will know that the client is ready for testing
         char ready_state_msg = 'R';
@@ -341,7 +362,7 @@ int main(int argc, char **argv) {
         // if (read(fds_output[0], &output_pkt_ready, 1) != 1) {
         //   abort_operation("Read operation failed");
         // }
-        char output_pkt_ready[1];  // Assuming a maximum length of 100 characters (adjust as needed)
+        char output_pkt_ready[2];  // Assuming a maximum length of 100 characters (adjust as needed)
         if (read(fds_output[0], output_pkt_ready, sizeof(output_pkt_ready)) < 0) {
           abort_operation("Read operation failed");
         }
@@ -356,7 +377,12 @@ int main(int argc, char **argv) {
           {
             hprintf("[cAgent]: got signal of failure from MiniClient \n");
             kAFL_hypercall(HYPERCALL_KAFL_USER_FAST_ACQUIRE, 0);
-            int get_file_status_fdback = push_to_host("/miniClientWorkdir/stackedFeedbackPacket.ser");    
+            int get_file_status_fdback;
+            if (output_pkt_ready[1] == '0') 
+              get_file_status_fdback = push_to_host("/miniClientWorkdir/stackedFeedbackPacket.ser");
+            else
+              get_file_status_fdback = push_to_host("/miniClientWorkdir/testPlanFeedbackPacket.ser");
+            
             if (get_file_status_fdback == -1)
               abort_operation("ERROR! Failed to transfer feedback test file to host.");
             // hprintf("cAgent: transferred the feedback file to the host \n");
@@ -368,8 +394,12 @@ int main(int argc, char **argv) {
         }
 
         /* Creates a root snapshot on first execution. Also we requested the next input with this hypercall */
+	      clock_t start_time_snap = clock();
+	      hprintf("[cAgent]Taking root snapshot!\n");
         kAFL_hypercall(HYPERCALL_KAFL_USER_FAST_ACQUIRE, 0);  // root snapshot <--
+	      //printClockRealTime("[cAgent test] Reverted back to root snapshot at");
 
+	      clock_t start_time_lock = clock();
         // the nodes are connected via tcp, need the test packet file name
         uint32_t len = payload_buffer->size;
         char* file_name = payload_buffer -> data;
@@ -377,19 +407,40 @@ int main(int argc, char **argv) {
         // transfer the test packet file from the host to the client VM
         // clock_t start_time, end_time;
         // start_time = clock();
-        int get_file_status = get_from_host(file_name, "/miniClientWorkdir/mainStackedTestPacket.ser");
-        if (get_file_status == -1)
-          abort_operation("ERROR! Failed to transfer file from host to guest."); 
-        // end_time = clock();
-        // hprintf("[cAgent test] 1b: Execution time for transferring test packet from host to nyx: %.5f seconds\n", (double)((end_time - start_time)*1000) / CLOCKS_PER_SEC);
-
-        // First snapshot created, now need to start testing, send the command "START_TESTING\n" to the client
-        int send_test_status = write(fds_input[1], test_start_msg, strlen(test_start_msg));
-        if (send_test_status == -1)
-          abort_operation("Sending command to start testing failed.");
+	      hprintf("[cAgent test] Execution time for taking root snapshot: %.5f ms\n", (double)((clock() - start_time_snap)*1000) / CLOCKS_PER_SEC);
+	      //hprintf("[cAgent test] Time for reverting to root snapshot: %.5f ms\n", (double)((snapshot_revert_time - start_time_snap)*1000) / CLOCKS_PER_SEC);
         
+        int get_file_status;
+        int test_type;
+        if (file_name[0]=='s' && file_name[1]=='t' && file_name[2]=='a') {
+          get_file_status = get_from_host(file_name, "/miniClientWorkdir/mainStackedTestPacket.ser");
+          test_type = 0;
+          if (get_file_status == -1)
+            abort_operation("ERROR! Failed to transfer file from host to guest.");
+        } else {
+          get_file_status = get_from_host(file_name, "/miniClientWorkdir/mainTestPlanPacket.ser");
+          test_type = 4;
+          if (get_file_status == -1)
+            abort_operation("ERROR! Failed to transfer file from host to guest.");
+        }
+        
+        // hprintf("[cAgent] Stacked File: %d, Test Plan File: %d\n", get_file_status_1, get_file_status_2);
+        if (test_type == 0) {
+            // end_time = clock();
+            // hprintf("[cAgent test] 1b: Execution time for transferring test packet from host to nyx: %.5f seconds\n", (double)((end_time - start_time)*1000) / CLOCKS_PER_SEC);
+
+            // First snapshot created, now need to start testing, send the command "START_TESTING\n" to the client
+            int send_test_status = write(fds_input[1], test_start_msg_stacked, strlen(test_start_msg_stacked));
+            if (send_test_status == -1)
+              abort_operation("Sending command to start testing failed.");
+        } else {
+            int send_test_status = write(fds_input[1], test_start_msg_testPlan, strlen(test_start_msg_testPlan));
+            if (send_test_status == -1)
+              abort_operation("Sending command to start testing failed.");
+        }
+
         //Read the input pipe from java client to c agent (output pipe fds_output)
-        char output_pkt[24];
+        char output_pkt[550];
         if (read(fds_output[0], output_pkt, sizeof(output_pkt)) < 0)
           abort_operation("Read operation failed");
         
@@ -399,10 +450,15 @@ int main(int argc, char **argv) {
         }
         //hprintf("WE GOT THIS FOR 2 ::: %c\n",output_pkt );
 
-        // sleep(120);
+        //hprintf("%s\n", archive_name);
+	      const char *separator2 = strrchr(output_pkt, ';');
+        char messages[500];
+        strncpy(messages, separator2 + 1, 500);
+        messages[500] = '\0';
 
-        // list_files("/miniClientWorkdir/");
-        const char *separator = strrchr(output_pkt, ':');
+	      hprintf("[cAgent] %s\n",messages);
+
+	      const char *separator = strrchr(output_pkt, ':');
         char archive_name[16];
         strncpy(archive_name, separator + 1, 15);
         archive_name[15] = '\0';
@@ -410,20 +466,23 @@ int main(int argc, char **argv) {
         snprintf(archive_dir, sizeof(archive_dir), "/miniClientWorkdir/%s", archive_name);
 
         // start_time = clock();
+        //Push the test feedback file from client to host
         get_file_status = push_to_host(archive_dir);    
         if (get_file_status == -1)
           abort_operation("ERROR! Failed to transfer fuzzing storage archive to host.");
-        // end_time = clock();
-        // hprintf("[cAgent test] 4a: Execution time for transferring feedback archive from nyx to host: %.5f milliseconds\n", (double)((end_time - start_time)*1000) / CLOCKS_PER_SEC);
+        hprintf("[cAgent test] Duration the lock was acquired for: %.5f milliseconds\n", (double)((clock() - start_time_lock)*1000) / CLOCKS_PER_SEC);
+	    
+	      //char dirty_command[] = "dirty=$(cat /proc/meminfo | grep Dirty); value=$(echo \"$dirty\" | awk '{print $2}'); unit=$(echo \"$dirty\" | awk '{print $3}'); pagesize=$(getconf PAGESIZE); result=$(echo \"scale=2; $value*1024 / $pagesize\" | bc); echo \"$result $unit\"";
+        //FILE *fp1 = popen(dirty_command, "r");
 
-        //Push the test feedback file from client to host
-        // get_file_status = push_to_host("/miniClientWorkdir/stackedFeedbackPacket.ser");    
-        // if (get_file_status == -1)
-        //   abort_operation("ERROR! Failed to transfer feedback test file to host.");
-        
-        //hprintf("WA ABLE TO SEND BACK FEEDBACK FILE");
+        //char result1[20];  // Assuming the result is less than 256 characters
+        //fgets(result1, sizeof(result1), fp1);
+
+        //pclose(fp1);
+
+        //hprintf("[cAgent in Nyx] Dirty page count: %s\n", result1);
         //Reverting the checkpoint
-        kAFL_hypercall(HYPERCALL_KAFL_RELEASE, 0);
+	      kAFL_hypercall(HYPERCALL_KAFL_RELEASE, 0);
       } 
     }
   return 0; 

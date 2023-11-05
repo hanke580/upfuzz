@@ -25,8 +25,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.io.Serializable;
 
-public class TestPlanPacket extends Packet {
+public class TestPlanPacket extends Packet implements Serializable {
     static Logger logger = LogManager.getLogger(TestPlanPacket.class);
 
     public String systemID;

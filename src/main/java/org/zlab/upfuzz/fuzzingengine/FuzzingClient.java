@@ -33,6 +33,7 @@ import org.zlab.upfuzz.nyx.LibnyxInterface;
 
 import static org.zlab.upfuzz.fuzzingengine.server.FuzzingServer.readState;
 import static org.zlab.upfuzz.nyx.MiniClientMain.runTheTests;
+import static org.zlab.upfuzz.nyx.MiniClientMain.setTestType;
 
 public class FuzzingClient {
     static Logger logger = LogManager.getLogger(FuzzingClient.class);
@@ -185,10 +186,15 @@ public class FuzzingClient {
     }
 
     public boolean startUpExecutor() {
+        logger.info("[Fuzzing Client] starting up executor");
         for (int i = 0; i < CLUSTER_START_RETRY; i++) {
             try {
-                if (executor.startup())
+                if (executor.startup()) {
+                    logger.info(
+                            "[Fuzzing Client] started up executor after trial "
+                                    + i);
                     return true;
+                }
             } catch (Exception e) {
                 logger.error("An error occurred", e);
             }
@@ -210,6 +216,15 @@ public class FuzzingClient {
             return executeStackedTestPacketNyx(stackedTestPacket);
         } else {
             return executeStackedTestPacketRegular(stackedTestPacket);
+        }
+    }
+
+    public TestPlanFeedbackPacket executeTestPlanPacket(
+            TestPlanPacket testPlanPacket) {
+        if (Config.getConf().nyxMode) {
+            return executeTestPlanPacketNyx(testPlanPacket);
+        } else {
+            return executeTestPlanPacketRegular(testPlanPacket);
         }
     }
 
@@ -292,11 +307,16 @@ public class FuzzingClient {
             Path defaultStackedTestPath = Paths.get(this.libnyx.getSharedir(),
                     "stackedTestPackets",
                     "defaultStackedPacket.ser");
+            Path defaultTestPlanPath = Paths.get(this.libnyx.getSharedir(),
+                    "testPlanPackets",
+                    "defaultTestPlanPacket.ser");
             Path sharedConfigPath = Paths.get(this.libnyx.getSharedir(),
                     "archive.tar.gz");
             try {
                 // Created sharedir/stackedTestPackets directory
                 Paths.get(this.libnyx.getSharedir(), "stackedTestPackets")
+                        .toFile().mkdir();
+                Paths.get(this.libnyx.getSharedir(), "testPlanPackets")
                         .toFile().mkdir();
                 // Copy the default stacked packet
                 Utilities.writeObjectToFile(defaultStackedTestPath.toFile(),
@@ -330,32 +350,37 @@ public class FuzzingClient {
         if (this.previousConfigPath == null) {
             long startTime = System.currentTimeMillis();
             this.libnyx.nyxNew();
-            if (Config.getConf().debug) {
-                logger.info(
-                        "[Fuzzing Client] First execution: Time needed to start up a new nyx vm "
-                                + (System.currentTimeMillis() - startTime)
-                                + " milliseconds");
-            }
+            // if (Config.getConf().debug) {
+            logger.info(
+                    "[Fuzzing Client] First execution: Time needed to start up a new nyx vm "
+                            + (System.currentTimeMillis() - startTime)
+                            + " milliseconds");
+            // }
         } else if (!sameConfigAsLastTime) {
             long startTime = System.currentTimeMillis();
             this.libnyx.nyxShutdown();
             this.libnyx.nyxNew();
-            if (Config.getConf().debug) {
-                logger.info(
-                        "[Fuzzing Client] New config: Time needed to shutdown old nyx vm and start a new nyx vm "
-                                + (System.currentTimeMillis() - startTime)
-                                + " seconds");
-            }
+            // if (Config.getConf().debug) {
+            logger.info(
+                    "[Fuzzing Client] New config: Time needed to shutdown old nyx vm and start a new nyx vm "
+                            + (System.currentTimeMillis() - startTime)
+                            + " seconds");
+            // }
         }
         this.previousConfigPath = configPath;
 
         // Now write the stackedTestPacket to be used for actual tests
+        logger.info("[Fuzzing Client] Starting New Execution");
         long startTime3 = System.currentTimeMillis();
         String stackedTestFileLocation = "stackedTestPackets/"
                 + RandomStringUtils.randomAlphanumeric(8) + ".ser";
         Path stackedTestPath = Paths.get(this.libnyx.getSharedir(),
                 stackedTestFileLocation);
+        logger.info("[Fuzzing Client] time for getting stacked test path "
+                + (System.currentTimeMillis() - startTime3)
+                + " milliseconds");
 
+        long startTime4 = System.currentTimeMillis();
         try {
             Utilities.writeObjectToFile(stackedTestPath.toFile(),
                     stackedTestPacket);
@@ -363,16 +388,29 @@ public class FuzzingClient {
             e.printStackTrace();
             return null;
         }
+        logger.info("[Fuzzing Client] time for writing test packet to file "
+                + (System.currentTimeMillis() - startTime4)
+                + " milliseconds");
 
         // tell the nyx agent where to find the stackedTestPacket
-        this.libnyx.setInput(stackedTestFileLocation);
+        long startTime5 = System.currentTimeMillis();
+        this.libnyx.setInput(stackedTestFileLocation); // set the test file
+                                                       // location as input
+        logger.info("[Fuzzing Client] time for libnyx setInput function "
+                + (System.currentTimeMillis() - startTime5)
+                + " milliseconds");
 
+        setTestType(0);
+        long startTime6 = System.currentTimeMillis();
         this.libnyx.nyxExec();
-        if (Config.getConf().debug) {
-            logger.info("[Fuzzing Client] Total time for Nyx-UpFuzz execution "
-                    + (System.currentTimeMillis() - startTime3)
-                    + " milliseconds");
-        }
+        logger.info("[Fuzzing Client] time for NyxExec() function "
+                + (System.currentTimeMillis() - startTime6)
+                + " milliseconds");
+        // if (Config.getConf().debug) {
+        logger.info("[Fuzzing Client] Total time for Nyx-UpFuzz execution "
+                + (System.currentTimeMillis() - startTime3)
+                + " milliseconds");
+        // }
 
         // String storagePath = executor.dockerCluster.workdir.getAbsolutePath()
         // .toString();
@@ -418,19 +456,17 @@ public class FuzzingClient {
 
                 Process process = builder.start();
                 int exitCode = process.waitFor();
-                if (Config.getConf().debug) {
-                    logger.info(
-                            "[Fuzzing Client] First execution: Time needed to unzip the fuzzing storage archive and moving it to the workdir: "
-                                    + ((System.currentTimeMillis() - startTime2)
-                                            / 1000)
-                                    + " seconds");
-                }
+                logger.info(
+                        "[Fuzzing Client] Time needed to unzip the fuzzing storage archive and moving it to the workdir: "
+                                + (System.currentTimeMillis() - startTime2)
+                                + " milliseconds");
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
         // get feedback file from hpush dir (in workdir)
+        long startTimeFdbk = System.currentTimeMillis();
         Path stackedFeedbackPath = Paths.get(this.libnyx.getWorkdir(),
                 "dump",
                 "stackedFeedbackPacket.ser");
@@ -453,7 +489,9 @@ public class FuzzingClient {
             e.printStackTrace();
             return null;
         }
-
+        logger.info("[Fuzzing Client] Time needed to read the feedback packet: "
+                + (System.currentTimeMillis() - startTimeFdbk)
+                + " milliseconds");
         return stackedFeedbackPacket;
     }
 
@@ -479,13 +517,16 @@ public class FuzzingClient {
             }
         }
 
+        logger.info("[Fuzzing Client] Call to initialize executor");
         executor = initExecutor(stackedTestPacket.nodeNum, null, configPath);
+        logger.info("[Fuzzing Client] Call to start up executor");
         boolean startUpStatus = startUpExecutor();
         if (!startUpStatus) {
             // old version **cluster** start up problem, this won't be upgrade
             // bugs
             return null;
         }
+        logger.info("[Fuzzing Client] started up executor");
 
         if (Config.getConf().startUpClusterForDebugging) {
             logger.info("[Debugging Mode] Start up the cluster only");
@@ -498,10 +539,14 @@ public class FuzzingClient {
             System.exit(1);
         }
 
+        logger.info("[Fuzzing Client] Call to run the tests");
         StackedFeedbackPacket stackedFeedbackPacket = runTheTests(executor,
                 stackedTestPacket);
+        logger.info("[Fuzzing Client] completed the testing");
 
+        logger.info("[Fuzzing Client] Call to teardown executor");
         tearDownExecutor();
+        logger.info("[Fuzzing Client] Executor torn down");
         return stackedFeedbackPacket;
     }
 
@@ -669,9 +714,227 @@ public class FuzzingClient {
         return fullStopFeedbackPacket;
     }
 
-    public TestPlanFeedbackPacket executeTestPlanPacket(
+    public TestPlanFeedbackPacket executeTestPlanPacketNyx(
             TestPlanPacket testPlanPacket) {
 
+        logger.info("[Fuzzing Client] Invoked executeTestPlanPacket");
+        if (Config.getConf().debug) {
+            logger.debug("test plan: \n");
+            logger.debug(testPlanPacket.testPlan);
+        }
+
+        Path configPath = Paths.get(configDirPath.toString(),
+                testPlanPacket.configFileName);
+        logger.info("[HKLOG] configPath = " + configPath);
+
+        // config verification - do we really want this?, maybe just skip config
+        // verification TODO
+        // if (Config.getConf().verifyConfig) {
+        // boolean validConfig = verifyConfig(configPath);
+        // if (!validConfig) {
+        // logger.error(
+        // "problem with configuration! system cannot start up");
+        // return null;
+        // }
+        // }
+        // TODO write a compare method
+        boolean sameConfigAsLastTime = false;
+        if (this.previousConfigPath != null) {
+            sameConfigAsLastTime = isSameConfig(this.previousConfigPath,
+                    configPath);
+        }
+        if (this.previousConfigPath == null || !sameConfigAsLastTime) {
+            // the miniClient will setup the distributed system according to the
+            // defaultStackedTestPacket and the config
+            Path defaultStackedTestPath = Paths.get(this.libnyx.getSharedir(),
+                    "stackedTestPackets",
+                    "defaultStackedPacket.ser");
+            Path defaultTestPlanPath = Paths.get(this.libnyx.getSharedir(),
+                    "testPlanPackets",
+                    "defaultTestPlanPacket.ser");
+            Path sharedConfigPath = Paths.get(this.libnyx.getSharedir(),
+                    "archive.tar.gz");
+            try {
+                // Created sharedir/stackedTestPackets directory
+                Paths.get(this.libnyx.getSharedir(), "testPlanPackets")
+                        .toFile().mkdir();
+                Paths.get(this.libnyx.getSharedir(), "stackedTestPackets")
+                        .toFile().mkdir();
+                // Copy the default stacked packet
+                Utilities.writeObjectToFile(defaultTestPlanPath.toFile(),
+                        testPlanPacket);
+
+                // Copy the config file to the sharedir
+                // Zip the config into a zip file
+                Process tar = Utilities.exec(
+                        new String[] { "tar",
+                                "-czf", "archive.tar.gz",
+                                "./", },
+                        configPath.toFile());
+                tar.waitFor();
+
+                System.out.println(configPath
+                        .resolve("archive.tar.gz").toAbsolutePath().toString());
+                FileUtils.copyFile(
+                        configPath.resolve("archive.tar.gz")
+                                .toFile(),
+                        sharedConfigPath.toFile(), true);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            } catch (InterruptedException e) {
+                // zip failed
+                e.printStackTrace();
+                return null;
+            }
+        }
+        if (this.previousConfigPath == null) {
+            long startTime = System.currentTimeMillis();
+            this.libnyx.nyxNew();
+            // if (Config.getConf().debug) {
+            logger.info(
+                    "[Fuzzing Client] First execution: Time needed to start up a new nyx vm "
+                            + (System.currentTimeMillis() - startTime)
+                            + " milliseconds");
+            // }
+        } else if (!sameConfigAsLastTime) {
+            long startTime = System.currentTimeMillis();
+            this.libnyx.nyxShutdown();
+            this.libnyx.nyxNew();
+            // if (Config.getConf().debug) {
+            logger.info(
+                    "[Fuzzing Client] New config: Time needed to shutdown old nyx vm and start a new nyx vm "
+                            + (System.currentTimeMillis() - startTime)
+                            + " seconds");
+            // }
+        }
+        this.previousConfigPath = configPath;
+
+        // Now write the stackedTestPacket to be used for actual tests
+        logger.info("[Fuzzing Client] Starting New Execution");
+        long startTime3 = System.currentTimeMillis();
+        String testPlanFileLocation = "testPlanPackets/"
+                + RandomStringUtils.randomAlphanumeric(8) + ".ser";
+        Path testPlanPath = Paths.get(this.libnyx.getSharedir(),
+                testPlanFileLocation);
+        logger.info("[Fuzzing Client] time for getting stacked test path "
+                + testPlanPath +
+                +(System.currentTimeMillis() - startTime3)
+                + " milliseconds");
+
+        long startTime4 = System.currentTimeMillis();
+        try {
+            Utilities.writeObjectToFile(testPlanPath.toFile(),
+                    testPlanPacket);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+        logger.info("[Fuzzing Client] time for writing test packet to file "
+                + (System.currentTimeMillis() - startTime4)
+                + " milliseconds");
+
+        // tell the nyx agent where to find the stackedTestPacket
+        long startTime5 = System.currentTimeMillis();
+        this.libnyx.setInput(testPlanFileLocation); // set the test file
+                                                    // location as input
+        logger.info("[Fuzzing Client] time for libnyx setInput function "
+                + (System.currentTimeMillis() - startTime5)
+                + " milliseconds");
+
+        setTestType(4);
+        long startTime6 = System.currentTimeMillis();
+        this.libnyx.nyxExec();
+
+        /////////////////////////////////////////////////////////
+
+        String archive_name = "";
+        String directoryPath = Paths.get(this.libnyx.getWorkdir(),
+                "dump").toAbsolutePath().toString();
+        File directory = new File(directoryPath);
+
+        // Check if the provided path is a directory
+        if (directory.isDirectory()) {
+            File[] files = directory.listFiles();
+
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isFile() && file.getName().endsWith(".tar.gz")) {
+                        archive_name = file.getName();
+                        break;
+                    }
+                }
+            } else {
+                logger.info("[FuzzingClient] No files found in the directory.");
+            }
+        } else {
+            logger.info("[FuzzingClient] Provided path is not a directory.");
+        }
+
+        if (!archive_name.equals("")) {
+            String storagePath = directoryPath + "/" + archive_name;
+            String unzip_archive_command = "cd " + directoryPath + "/ ; "
+                    + "tar -xzf " + archive_name + " ; "
+                    + "cp persistent/testPlanFeedbackPacket.ser "
+                    + directoryPath
+                    + " ; "
+                    + "cd - ;"
+                    + "mv " + storagePath + " "
+                    + Paths.get(this.libnyx.getSharedir()) + " ; ";
+
+            try {
+                long startTime2 = System.currentTimeMillis();
+                ProcessBuilder builder = new ProcessBuilder();
+                builder.command("/bin/bash", "-c", unzip_archive_command);
+                // builder.directory(new File(System.getProperty("user.home")));
+                builder.redirectErrorStream(true);
+
+                Process process = builder.start();
+                int exitCode = process.waitFor();
+                logger.info(
+                        "[Fuzzing Client] Time needed to unzip the fuzzing storage archive and moving it to the workdir: "
+                                + (System.currentTimeMillis() - startTime2)
+                                + " milliseconds");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        // get feedback file from hpush dir (in workdir)
+        long startTimeFdbk = System.currentTimeMillis();
+        Path testPlanFeedbackPath = Paths.get(this.libnyx.getWorkdir(),
+                "dump",
+                "testPlanFeedbackPacket.ser");
+
+        // convert it to StackedFeedbackPacket
+        TestPlanFeedbackPacket testPlanFeedbackPacket;
+        try (DataInputStream in = new DataInputStream(new FileInputStream(
+                testPlanFeedbackPath.toAbsolutePath().toString()))) {
+            int intType = in.readInt();
+            if (intType == -1) {
+                logger.info("Executor startup error!");
+                return null;
+            }
+            if (intType != PacketType.TestPlanFeedbackPacket.value) {
+                logger.info("Incorrect packet type hit");
+                return null;
+            }
+            testPlanFeedbackPacket = TestPlanFeedbackPacket.read(in);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+        logger.info("[Fuzzing Client] Time needed to read the feedback packet: "
+                + (System.currentTimeMillis() - startTimeFdbk)
+                + " milliseconds");
+        return testPlanFeedbackPacket;
+    }
+
+    public TestPlanFeedbackPacket executeTestPlanPacketRegular(
+            TestPlanPacket testPlanPacket) {
+
+        logger.info("[Fuzzing Client] Invoked executeTestPlanPacket");
         if (Config.getConf().debug) {
             logger.debug("test plan: \n");
             logger.debug(testPlanPacket.testPlan);
@@ -710,25 +973,36 @@ public class FuzzingClient {
         }
 
         // start up cluster
+        logger.info("[Fuzzing Client] Call to initialize executor");
         executor = initExecutor(testPlanPacket.getNodeNum(), targetSystemStates,
                 configPath);
+        logger.info("[Fuzzing Client] Call to start up executor");
         boolean startUpStatus = startUpExecutor();
         if (!startUpStatus) {
             return null;
         }
+        logger.info("[Fuzzing Client] started up executor");
 
         // LOG checking1
+        Long curTime2 = System.currentTimeMillis();
         Map<Integer, LogInfo> logInfoBeforeUpgrade = null;
         if (Config.getConf().enableLogCheck) {
             logger.info("[HKLOG] error log checking");
             logInfoBeforeUpgrade = executor.grepLogInfo();
         }
+        logger.info(String.format(
+                "[Fuzzing Client] completed first log checking in %d ms",
+                System.currentTimeMillis() - curTime2));
 
         // execute test plan (rolling upgrade + fault)
+
+        logger.info("[Fuzzing Client] Call to run the tests");
         boolean status = executor.execute(testPlanPacket.getTestPlan());
+        logger.info("[Fuzzing Client] completed the testing");
 
         FeedBack[] testPlanFeedBacks = new FeedBack[nodeNum];
 
+        Long curTime = System.currentTimeMillis();
         if (status && Config.getConf().fullStopUpgradeWithFaults) {
             // collect old version coverage
             ExecutionDataStore[] oriCoverages = executor
@@ -752,6 +1026,9 @@ public class FuzzingClient {
                     testPlanFeedBacks[i].originalCodeCoverage = executor.oriCoverage[i];
             }
         }
+        logger.info(String.format(
+                "[Fuzzing Client] completed collecting code coverages in %d ms",
+                System.currentTimeMillis() - curTime));
 
         TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
                 testPlanPacket.systemID, testPlanPacket.configFileName,
@@ -852,6 +1129,7 @@ public class FuzzingClient {
         }
 
         // LOG checking2
+        curTime = System.currentTimeMillis();
         if (Config.getConf().enableLogCheck) {
             if (Config.getConf().testSingleVersion) {
                 logger.info("[HKLOG] error log checking");
@@ -876,8 +1154,13 @@ public class FuzzingClient {
                 }
             }
         }
+        logger.info(String.format(
+                "[Fuzzing Client] completed second log checking in %d ms",
+                System.currentTimeMillis() - curTime));
 
+        logger.info("[Fuzzing Client] Call to teardown executor");
         tearDownExecutor();
+        logger.info("[Fuzzing Client] Executor torn down");
         return testPlanFeedbackPacket;
     }
 

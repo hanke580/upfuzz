@@ -28,12 +28,16 @@ import org.zlab.upfuzz.fuzzingengine.packet.FeedbackPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.StackedFeedbackPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPacket;
+import org.zlab.upfuzz.fuzzingengine.packet.TestPlanPacket;
+import org.zlab.upfuzz.fuzzingengine.packet.TestPlanFeedbackPacket;
+import org.zlab.upfuzz.fuzzingengine.packet.Packet.PacketType;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
+// import static org.zlab.upfuzz.fuzzingengine.server.FuzzingServer.readState;
 
 public class MiniClientMain {
     // WARNING: This must be disabled otherwise it can
@@ -47,17 +51,24 @@ public class MiniClientMain {
     // If the cluster startup fails 3 times, then give up
     static final int CLUSTER_START_RETRY = 3;
 
-    public static boolean startUpExecutor(Executor executor) {
+    static int testType;
+
+    public static void setTestType(int type) {
+        testType = type;
+    }
+
+    public static String startUpExecutor(Executor executor, int type) {
         for (int i = 0; i < CLUSTER_START_RETRY; i++) {
             try {
-                if (executor.startup())
-                    return true;
+                if (executor.startup()) {
+                    return "success";
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
             executor.teardown();
         }
-        return false;
+        return "fail" + type;
     }
 
     public static void main(String[] args) {
@@ -65,6 +76,7 @@ public class MiniClientMain {
         // setup our input scanner
         Scanner stdin = new Scanner(System.in);
 
+        String s1 = "setting stream, ";
         // ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         PrintStream nullStream = new PrintStream(new OutputStream() {
             public void write(int b) throws IOException {
@@ -73,6 +85,7 @@ public class MiniClientMain {
         PrintStream cAgent = System.out;
         System.setOut(nullStream);
 
+        s1 += "reading config file, ";
         try {
             File configFile = new File("/home/nyx/upfuzz/config.json");
             Configuration cfg = new Gson().fromJson(
@@ -86,54 +99,64 @@ public class MiniClientMain {
         // there should be a defaultStackedTestPacket.ser in whatever working
         // dir this was started up in
         // there also should be a config file
-        Path defaultStackedTestPath = Paths.get(workdir,
-                "defaultStackedTestPacket.ser"); // "/miniClientWorkdir/defaultStackedTestPacket.ser"
-        Path defaultConfigPath = Paths.get(workdir, "stackedTestConfigFile"); // "/miniClientWorkdir/stackedTestConfigFile"
+        Path defaultStackedTestPath, defaultConfigPath, defaultTestPlanPath,
+                stackedTestPath, testPlanPath;
+        Path stackedFeedbackPath, testPlanFeedbackPath;
         StackedTestPacket defaultStackedTestPacket;
+        StackedTestPacket stackedTestPacket; // = new StackedTestPacket();
+        TestPlanPacket defaultTestPlanPacket;
+        TestPlanPacket testPlanPacket;
+        StackedFeedbackPacket stackedFeedbackPacket;
+        TestPlanFeedbackPacket testPlanFeedbackPacket;
+        String archive_name, fuzzing_archive_command;
+        Long start_time_create_archive, start_time_t, startTimeReadTestPkt;
+
+        s1 += "Type " + testType + ", ";
+
+        Path defaultTestPath = (testType == 0)
+                ? Paths.get(workdir, "defaultStackedTestPacket.ser")
+                : Paths.get(workdir, "defaultTestPlanPacket.ser");
+        defaultConfigPath = (testType == 0)
+                ? Paths.get(workdir, "stackedTestConfigFile")
+                : Paths.get(workdir, "testPlanConfigFile");
+        String res1 = "";
+        Executor executor;
         try { // if any of these catches go through we have a big problem
-            defaultStackedTestPacket = (StackedTestPacket) Utilities
-                    .readObjectFromFile(defaultStackedTestPath.toFile());
-        } catch (ClassNotFoundException | IOException | ClassCastException e) {
+            if (testType == 0) {
+                defaultStackedTestPacket = (StackedTestPacket) Utilities
+                        .readObjectFromFile(defaultTestPath.toFile());
+                executor = FuzzingClient.initExecutor(
+                        defaultStackedTestPacket.nodeNum, null,
+                        defaultConfigPath);
+                res1 = startUpExecutor(executor, testType);
+            } else {
+                defaultTestPlanPacket = (TestPlanPacket) Utilities
+                        .readObjectFromFile(defaultTestPath.toFile());
+                executor = FuzzingClient.initExecutor(
+                        defaultTestPlanPacket.getNodeNum(), null,
+                        defaultConfigPath);
+                res1 = startUpExecutor(executor, testType);
+            }
+        } catch (ClassNotFoundException | IOException
+                | ClassCastException e) {
             e.printStackTrace();
             return;
         }
 
-        System.err.println("Init executor");
-        if (Config.getConf().verifyConfig) {
-            System.err.println("verifying configuration");
-            Executor executor = FuzzingClient.initExecutor(
-                    1, null, defaultConfigPath);
-            boolean startUpStatus = executor.startup();
-
-            if (!startUpStatus) {
-                System.err.println("config cannot start up old version");
-                executor.teardown();
-                return;
-            }
-            startUpStatus = executor.freshStartNewVersion();
-            executor.teardown();
-            if (!startUpStatus) {
-                System.err.println("config cannot start up new version");
-                return;
-            }
-        }
-        Executor executor = FuzzingClient.initExecutor(
-                defaultStackedTestPacket.nodeNum, null, defaultConfigPath);
-        StackedFeedbackPacket stackedFeedbackPacket;
-        Path stackedFeedbackPath;
-
-        if (!startUpExecutor(executor)) {
+        if (res1.equals("false0")) {
             // was unable to startup the docker system
             List<Integer> list = new ArrayList<>();
             list.add(-1);
-            System.err.println("Nyx MiniClient: Executor failed to start up!");
+            System.err.println(
+                    "Nyx MiniClient: Executor failed to start up!");
             stackedFeedbackPacket = new StackedFeedbackPacket(
                     "/home/nyx/upfuzz/config.json", list);
             stackedFeedbackPath = Paths.get(workdir,
                     "stackedFeedbackPacket.ser"); // "/miniClientWorkdir/stackedFeedbackPacket.ser"
             try (DataOutputStream out = new DataOutputStream(
                     new FileOutputStream(
-                            stackedFeedbackPath.toAbsolutePath().toString()))) {
+                            stackedFeedbackPath.toAbsolutePath()
+                                    .toString()))) {
                 String text = "-1";
                 byte[] bytes = text.getBytes("UTF-8");
                 out.write(bytes);
@@ -142,67 +165,200 @@ public class MiniClientMain {
                 e.printStackTrace(System.err);
                 return;
             }
-            cAgent.print("F"); // F for failed
+            cAgent.print("F0"); // F for failed
             return;
-        } else {
+        } else if (res1.equals("false4")) {
+            // was unable to startup the docker system
+            // List<Integer> list = new ArrayList<>();
+            // list.add(-1);
+            FeedBack[] feedBacks = new FeedBack[1];
+            System.err.println(
+                    "Nyx MiniClient: Executor failed to start up!");
+            testPlanFeedbackPacket = new TestPlanFeedbackPacket("",
+                    "/home/nyx/upfuzz/config.json", 0, feedBacks);
+            testPlanFeedbackPath = Paths.get(workdir,
+                    "testPlanFeedbackPacket.ser"); // "/miniClientWorkdir/testPlanFeedbackPacket.ser"
+            try (DataOutputStream out = new DataOutputStream(
+                    new FileOutputStream(
+                            testPlanFeedbackPath.toAbsolutePath()
+                                    .toString()))) {
+                String text = "-1";
+                byte[] bytes = text.getBytes("UTF-8");
+                out.write(bytes);
+                testPlanFeedbackPacket.write(out);
+            } catch (IOException e) {
+                e.printStackTrace(System.err);
+                return;
+            }
+            cAgent.print("F4"); // F for failed
+            return;
+        } else if (res1.equals("success")) {
             // String nyxWorkdir = "R:" +
             // executor.dockerCluster.workdir.getAbsolutePath();
+            s1 += "Sending read signal, ";
             cAgent.print("R"); // READY_FOR_TESTS
             // cAgent.print(nyxWorkdir); // READY_FOR_TESTS
+        } else {
+            cAgent.print("F0");
+            return;
         }
+        s1 += res1;
+
         // c agent should checkpoint the vm here
         System.err.println("Waiting to start TESTING");
+        String cAgentMsg = stdin.nextLine();
         // wait for c agent to tell us to start testing
-        if (!stdin.nextLine().equals("START_TESTING")) {
+        if (!(cAgentMsg.equals("START_TESTING0")
+                || (cAgentMsg.equals("START_TESTING4")))) {
             // possible sync issue
             System.err.println("POSSIBLE SYNC ERROR OCCURED IN MINICLIENT");
             return;
         }
-
         // Read the new stackedTestPacket to be used for test case sending
-        Path stackedTestPath = Paths.get(workdir, "mainStackedTestPacket.ser"); // "/miniClientWorkdir/mainStackedTestPacket.ser"
-        StackedTestPacket stackedTestPacket;
-        try { // if any of these catches go through we have a big problem
-            stackedTestPacket = (StackedTestPacket) Utilities
-                    .readObjectFromFile(stackedTestPath.toFile());
-        } catch (ClassNotFoundException | IOException | ClassCastException e) {
-            e.printStackTrace();
-            return;
-        }
 
-        // StackedFeedbackPacket stackedFeedbackPacket = runTheTests(executor,
+        startTimeReadTestPkt = System.currentTimeMillis();
+        if (cAgentMsg.equals("START_TESTING0")) {
+            stackedTestPath = Paths.get(workdir,
+                    "mainStackedTestPacket.ser"); // "/miniClientWorkdir/mainStackedTestPacket.ser"
+            try { // if any of these catches go through we have a big problem
+                stackedTestPacket = (StackedTestPacket) Utilities
+                        .readObjectFromFile(stackedTestPath.toFile());
+            } catch (ClassNotFoundException | IOException
+                    | ClassCastException e) {
+                e.printStackTrace();
+                return;
+            }
+            s1 += "read stacked test file in "
+                    + (System.currentTimeMillis() - startTimeReadTestPkt)
+                    + " ms, ";
+
+            start_time_t = System.currentTimeMillis();
+            stackedFeedbackPacket = runTheTests(executor, stackedTestPacket);
+            s1 += "Testing time " + (System.currentTimeMillis() - start_time_t)
+                    + "ms, ";
+            System.err.println(
+                    "[MiniClient] Completed running stacked test packet");
+            // Path stackedFeedbackPath = Paths.get(workdir,
+            // "stackedFeedbackPacket.ser"); //
+            // "/miniClientWorkdir/stackedFeedbackPacket.ser"
+            start_time_create_archive = System.currentTimeMillis();
+            stackedFeedbackPath = Paths.get(workdir,
+                    "stackedFeedbackPacket.ser");
+            // s1 += "write feedback file, ";
+            try (DataOutputStream out = new DataOutputStream(
+                    new FileOutputStream(
+                            stackedFeedbackPath.toAbsolutePath().toString()))) {
+                stackedFeedbackPacket.write(out);
+            } catch (IOException e) {
+                e.printStackTrace(System.err);
+                return;
+            }
+
+            String storagePath = executor.dockerCluster.workdir
+                    .getAbsolutePath()
+                    .toString();
+            int lastDashIndex = storagePath.lastIndexOf('-');
+            String str1 = storagePath.substring(0, lastDashIndex);
+
+            String str2 = storagePath.substring(lastDashIndex + 1,
+                    lastDashIndex + 9); // Extract 8 characters after last dash
+
+            String fuzzing_storage_dir = str1 + '-' + str2 + '/';
+            archive_name = str2 + ".tar.gz";
+
+            fuzzing_archive_command = "cp "
+                    + stackedFeedbackPath.toAbsolutePath().toString() + " "
+                    + fuzzing_storage_dir + "persistent/ ; "
+                    + "cd " + fuzzing_storage_dir + " ; "
+                    + "tar -czf " + archive_name + " persistent ; "
+                    + "cp " + archive_name + " /miniClientWorkdir/ ;"
+                    + "cd - ";
+        } else {
+            testPlanPath = Paths.get(workdir,
+                    "mainTestPlanPacket.ser"); // "/miniClientWorkdir/mainStackedTestPacket.ser"
+            // TestPlanPacket testPlanPacket;
+            try { // if any of these catches go through we have a big problem
+                testPlanPacket = (TestPlanPacket) Utilities
+                        .readObjectFromFile(testPlanPath.toFile());
+            } catch (ClassNotFoundException | IOException
+                    | ClassCastException e) {
+                e.printStackTrace();
+                return;
+            }
+
+            s1 += "read stacked test file in "
+                    + (System.currentTimeMillis() - startTimeReadTestPkt)
+                    + " ms, ";
+
+            start_time_t = System.currentTimeMillis();
+            testPlanFeedbackPacket = runTestPlanPacket(executor,
+                    testPlanPacket);
+            s1 += "Testing time " + (System.currentTimeMillis() - start_time_t)
+                    + "ms, ";
+
+            // Path stackedFeedbackPath = Paths.get(workdir,
+            // "stackedFeedbackPacket.ser"); //
+            // "/miniClientWorkdir/stackedFeedbackPacket.ser"
+            start_time_create_archive = System.currentTimeMillis();
+            testPlanFeedbackPath = Paths.get(workdir,
+                    "testPlanFeedbackPacket.ser");
+            // s1 += "write feedback file, ";
+            try (DataOutputStream out = new DataOutputStream(
+                    new FileOutputStream(
+                            testPlanFeedbackPath.toAbsolutePath()
+                                    .toString()))) {
+                testPlanFeedbackPacket.write(out);
+            } catch (IOException e) {
+                e.printStackTrace(System.err);
+                return;
+            }
+
+            String storagePath = executor.dockerCluster.workdir
+                    .getAbsolutePath()
+                    .toString();
+            int lastDashIndex = storagePath.lastIndexOf('-');
+            String str1 = storagePath.substring(0, lastDashIndex);
+
+            String str2 = storagePath.substring(lastDashIndex + 1,
+                    lastDashIndex + 9); // Extract 8 characters after last dash
+
+            String fuzzing_storage_dir = str1 + '-' + str2 + '/';
+            archive_name = str2 + ".tar.gz";
+
+            fuzzing_archive_command = "cp "
+                    + testPlanFeedbackPath.toAbsolutePath().toString() + " "
+                    + fuzzing_storage_dir + "persistent/ ; "
+                    + "cd " + fuzzing_storage_dir + " ; "
+                    + "tar -czf " + archive_name + " persistent ; "
+                    + "cp " + archive_name + " /miniClientWorkdir/ ;"
+                    + "cd - ";
+
+        }
+        // System.err.println("Init executor");
+        // if (Config.getConf().verifyConfig) {
+        // System.err.println("verifying configuration");
+        // Executor executor = FuzzingClient.initExecutor(
+        // 1, null, defaultConfigPath);
+        // boolean startUpStatus = executor.startup();
+
+        // if (!startUpStatus) {
+        // System.err.println("config cannot start up old version");
+        // executor.teardown();
+        // return;
+        // }
+        // startUpStatus = executor.freshStartNewVersion();
+        // executor.teardown();
+        // if (!startUpStatus) {
+        // System.err.println("config cannot start up new version");
+        // return;
+        // }
+        // }
+        // Executor executor;
+
+        // StackedFeedbackPacket stackedFeedbackPacket =
+        // runTheTests(executor,
         // stackedTestPacket);
-        stackedFeedbackPacket = runTheTests(executor, stackedTestPacket);
-        // Path stackedFeedbackPath = Paths.get(workdir,
-        // "stackedFeedbackPacket.ser"); //
-        // "/miniClientWorkdir/stackedFeedbackPacket.ser"
-        stackedFeedbackPath = Paths.get(workdir, "stackedFeedbackPacket.ser");
-        try (DataOutputStream out = new DataOutputStream(new FileOutputStream(
-                stackedFeedbackPath.toAbsolutePath().toString()))) {
-            stackedFeedbackPacket.write(out);
-        } catch (IOException e) {
-            e.printStackTrace(System.err);
-            return;
-        }
-
-        String storagePath = executor.dockerCluster.workdir.getAbsolutePath()
-                .toString();
-
-        int lastDashIndex = storagePath.lastIndexOf('-');
-        String str1 = storagePath.substring(0, lastDashIndex);
-
-        String str2 = storagePath.substring(lastDashIndex + 1,
-                lastDashIndex + 9); // Extract 8 characters after last dash
-
-        String fuzzing_storage_dir = str1 + '-' + str2 + '/';
-        String archive_name = str2 + ".tar.gz";
-        String fuzzing_archive_command = "cp "
-                + stackedFeedbackPath.toAbsolutePath().toString() + " "
-                + fuzzing_storage_dir + "persistent/ ; "
-                + "cd " + fuzzing_storage_dir + " ; "
-                + "tar -czf " + archive_name + " persistent ; "
-                + "cp " + archive_name + " /miniClientWorkdir/ ;"
-                + "cd - ";
+        // s1 += "running the tests, ";
         try {
             ProcessBuilder builder = new ProcessBuilder();
             builder.command("/bin/bash", "-c", fuzzing_archive_command);
@@ -214,9 +370,12 @@ public class MiniClientMain {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+        s1 += "Creating feedback archive "
+                + (System.currentTimeMillis() - start_time_create_archive)
+                + "ms, ";
         // lets c agent know that the stackedFeedbackFile is ready
-        String printMsg = "2:" + archive_name;
+        // s1 += "final signal pass to cAgent";
+        String printMsg = "2:" + archive_name + "; " + s1;
         cAgent.print(printMsg);
         // cAgent.print("2");
 
@@ -416,5 +575,246 @@ public class MiniClientMain {
         }
         // teardown is teardown in a higher loop
         return stackedFeedbackPacket;
+    }
+
+    public static TestPlanFeedbackPacket runTestPlanPacket(Executor executor,
+            TestPlanPacket testPlanPacket) {
+
+        String testPlanPacketStr = String.format("nodeNum = %d\n",
+                testPlanPacket.getNodeNum())
+                + testPlanPacket.getTestPlan().toString();
+        ;
+        int nodeNum = testPlanPacket.getNodeNum();
+
+        // read states
+        // Set<String> targetSystemStates = null;
+        // if (Config.getConf().enableStateComp) {
+        // Path targetSystemStatesPath = Paths.get(
+        // System.getProperty("user.dir"),
+        // Config.getConf().targetSystemStateFile);
+        // try {
+        // targetSystemStates = readState(targetSystemStatesPath);
+        // } catch (IOException e) {
+        // // logger.error("Not tracking system state");
+        // e.printStackTrace();
+        // System.exit(1);
+        // }
+        // }
+
+        // Path configPath = Paths.get(configDirPath.toString(),
+        // testPlanPacket.configFileName);
+        // // logger.info("[HKLOG] configPath = " + configPath);
+
+        // // config verification
+        // if (Config.getConf().verifyConfig) {
+        // boolean validConfig = verifyConfig(configPath);
+        // if (!validConfig) {
+        // logger.error(
+        // "problem with configuration! system cannot start up");
+        // return null;
+        // }
+        // }
+
+        // // start up cluster
+        // logger.info("[Fuzzing Client] Call to initialize executor");
+        // executor = initExecutor(testPlanPacket.getNodeNum(),
+        // targetSystemStates,
+        // configPath);
+        // logger.info("[Fuzzing Client] Call to start up executor");
+        // boolean startUpStatus = startUpExecutor();
+        // if (!startUpStatus) {
+        // return null;
+        // }
+        // logger.info("[Fuzzing Client] started up executor");
+
+        // LOG checking1
+        Long curTime2 = System.currentTimeMillis();
+        Map<Integer, LogInfo> logInfoBeforeUpgrade = null;
+        if (Config.getConf().enableLogCheck) {
+            // logger.info("[HKLOG] error log checking");
+            logInfoBeforeUpgrade = executor.grepLogInfo();
+        }
+        // logger.info(String.format(
+        // "[Fuzzing Client] completed first log checking in %d ms",
+        // System.currentTimeMillis() - curTime2));
+
+        // execute test plan (rolling upgrade + fault)
+
+        // logger.info("[Fuzzing Client] Call to run the tests");
+        boolean status = executor.execute(testPlanPacket.getTestPlan());
+        // logger.info("[Fuzzing Client] completed the testing");
+
+        FeedBack[] testPlanFeedBacks = new FeedBack[nodeNum];
+
+        Long curTime = System.currentTimeMillis();
+        if (status && Config.getConf().fullStopUpgradeWithFaults) {
+            // collect old version coverage
+            ExecutionDataStore[] oriCoverages = executor
+                    .collectCoverageSeparate("original");
+            for (int i = 0; i < nodeNum; i++) {
+                testPlanFeedBacks[i] = new FeedBack();
+                if (oriCoverages != null)
+                    testPlanFeedBacks[i].originalCodeCoverage = oriCoverages[i];
+            }
+            // upgrade
+            status = executor.fullStopUpgrade();
+            if (!status)
+                // update event id
+                executor.eventIdx = -1; // this means full-stop upgrade failed
+        } else {
+            // It contains the new version coverage!
+            // collect test plan coverage
+            for (int i = 0; i < nodeNum; i++) {
+                testPlanFeedBacks[i] = new FeedBack();
+                if (executor.oriCoverage[i] != null)
+                    testPlanFeedBacks[i].originalCodeCoverage = executor.oriCoverage[i];
+            }
+        }
+        // logger.info(String.format(
+        // "[Fuzzing Client] completed collecting code coverages in %d ms",
+        // System.currentTimeMillis() - curTime));
+
+        TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
+                testPlanPacket.systemID, testPlanPacket.configFileName,
+                testPlanPacket.testPacketID, testPlanFeedBacks);
+        testPlanFeedbackPacket.fullSequence = testPlanPacketStr;
+
+        // System state comparison
+        // if (Config.getConf().enableStateComp) {
+        // Map<Integer, Map<String, String>> states = executor
+        // .readSystemState();
+        // // logger.info("rolling upgrade system states = " + states);
+        // // logger.info("full stop upgrade system state"
+        // // + testPlanPacket.testPlan.targetSystemStatesOracle);
+        // Map<Integer, Map<String, Pair<String, String>>> inconsistentStates =
+        // stateCompare(
+        // testPlanPacket.testPlan.targetSystemStatesOracle,
+        // states);
+        // // logger.info("inconsistent states = " + inconsistentStates);
+        // }
+
+        if (!status) {
+            testPlanFeedbackPacket.isEventFailed = true;
+
+            testPlanFeedbackPacket.eventFailedReport = "[Test plan execution failed at event"
+                    + executor.eventIdx + "]\n" +
+                    "executionId = " + executor.executorID + "\n" +
+                    "ConfigIdx = " + testPlanPacket.configFileName + "\n" +
+                    testPlanPacketStr + "\n";
+            testPlanFeedbackPacket.isInconsistent = false;
+            testPlanFeedbackPacket.inconsistencyReport = "";
+        } else {
+            // Test single version
+            if (Config.getConf().testSingleVersion) {
+                try {
+                    ExecutionDataStore[] oriCoverages = executor
+                            .collectCoverageSeparate("original");
+                    if (oriCoverages != null) {
+                        for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
+                            testPlanFeedbackPacket.feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
+                        }
+                    }
+                } catch (Exception e) {
+                    // Cannot collect code coverage in the upgraded version
+                    String recordedTestPlanPacket = String.format(
+                            "nodeNum = %d\n", testPlanPacket.getNodeNum())
+                            + testPlanPacket.getTestPlan().toString();
+                    testPlanFeedbackPacket.isEventFailed = true;
+                    testPlanFeedbackPacket.eventFailedReport = "[Original Coverage Collect Failed]\n"
+                            +
+                            "executionId = " + executor.executorID + "\n" +
+                            "ConfigIdx = " + testPlanPacket.configFileName
+                            + "\n" +
+                            recordedTestPlanPacket + "\n" + "Exception:"
+                            + e;
+
+                    // tearDownExecutor();
+                    executor.teardown();
+                    return testPlanFeedbackPacket;
+                }
+
+            } else {
+                Pair<Boolean, String> compareRes;
+                // read comparison between full-stop and rolling
+                if (!testPlanPacket.testPlan.validationReadResultsOracle
+                        .isEmpty()) {
+
+                    List<String> testPlanReadResults = executor
+                            .executeCommands(
+                                    testPlanPacket.testPlan.validationCommands);
+                    // logger.debug("[HKLOG] full-stop results = \n"
+                    // + testPlanPacket.testPlan.validationReadResultsOracle);
+                    // logger.debug("[HKLOG] rolling upgrade results = \n"
+                    // + testPlanReadResults);
+                    compareRes = executor
+                            .checkResultConsistency(
+                                    testPlanPacket.testPlan.validationReadResultsOracle,
+                                    testPlanReadResults, false);
+                    if (!compareRes.left) {
+                        testPlanFeedbackPacket.isInconsistent = true;
+                        testPlanFeedbackPacket.inconsistencyReport = "[Results inconsistency between full-stop and rolling upgrade]\n"
+                                + "executionId = " + executor.executorID + "\n"
+                                +
+                                "ConfigIdx = " + testPlanPacket.configFileName
+                                + "\n" +
+                                compareRes.right + "\n" +
+                                testPlanPacketStr + "\n";
+                    }
+                } else {
+                    // logger.debug("validationReadResultsOracle is empty!");
+                }
+
+                try {
+                    ExecutionDataStore[] upCoverages = executor
+                            .collectCoverageSeparate("upgraded");
+                    if (upCoverages != null) {
+                        for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
+                            testPlanFeedbackPacket.feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+                        }
+                    }
+                } catch (Exception e) {
+                    // Cannot collect code coverage in the upgraded version
+                    String recordedTestPlanPacket = String.format(
+                            "nodeNum = %d\n", testPlanPacket.getNodeNum())
+                            + testPlanPacket.getTestPlan().toString();
+                    testPlanFeedbackPacket.isEventFailed = true;
+                    testPlanFeedbackPacket.eventFailedReport = "[Upgrade Coverage Collect Failed]\n"
+                            +
+                            "executionId = " + executor.executorID + "\n" +
+                            "ConfigIdx = " + testPlanPacket.configFileName
+                            + "\n" +
+                            recordedTestPlanPacket + "\n" + "Exception:" + e;
+                    // tearDownExecutor();
+                    executor.teardown();
+                    return testPlanFeedbackPacket;
+                }
+            }
+        }
+
+        // LOG checking2
+        curTime = System.currentTimeMillis();
+        if (Config.getConf().enableLogCheck) {
+            // logger.info("[HKLOG] error log checking");
+            assert logInfoBeforeUpgrade != null;
+            Map<Integer, LogInfo> logInfo = FuzzingClient
+                    .extractErrorLog(executor, logInfoBeforeUpgrade);
+            if (FuzzingClient.hasERRORLOG(logInfo)) {
+                testPlanFeedbackPacket.hasERRORLog = true;
+                testPlanFeedbackPacket.errorLogReport = FuzzingClient
+                        .genErrorLogReport(
+                                executor.executorID,
+                                testPlanPacket.configFileName,
+                                logInfo);
+            }
+        }
+        // logger.info(String.format(
+        // "[Fuzzing Client] completed second log checking in %d ms",
+        // System.currentTimeMillis() - curTime));
+
+        // logger.info("[Fuzzing Client] Call to teardown executor");
+        // tearDownExecutor();
+        executor.teardown();
+        return testPlanFeedbackPacket;
+        // logger.info("[Fuzzing Client] Executor torn down");
     }
 }
