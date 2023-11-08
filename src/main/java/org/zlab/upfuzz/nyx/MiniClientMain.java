@@ -143,7 +143,7 @@ public class MiniClientMain {
             return;
         }
 
-        if (res1.equals("false0")) {
+        if (res1.equals("fail0")) {
             // was unable to startup the docker system
             List<Integer> list = new ArrayList<>();
             list.add(-1);
@@ -167,7 +167,7 @@ public class MiniClientMain {
             }
             cAgent.print("F0"); // F for failed
             return;
-        } else if (res1.equals("false4")) {
+        } else if (res1.equals("fail4")) {
             // was unable to startup the docker system
             // List<Integer> list = new ArrayList<>();
             // list.add(-1);
