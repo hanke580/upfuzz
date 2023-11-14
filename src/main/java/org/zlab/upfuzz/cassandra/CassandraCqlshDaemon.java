@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.sql.Time;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -18,6 +19,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.docker.Docker;
 import org.zlab.upfuzz.utils.Utilities;
+import org.zlab.upfuzz.fuzzingengine.Config;
 
 public class CassandraCqlshDaemon {
     static Logger logger = LogManager.getLogger(CassandraCqlshDaemon.class);
@@ -66,6 +68,8 @@ public class CassandraCqlshDaemon {
                 + "Connect to cqlsh:" + ipAddress + "..."
                 + "\t this normally takes"
                 + " 6 seconds for single node or 50s for 3-node cluster node");
+        Long totalReadTimeFromProcess = 0L;
+        Long totalProcExecTime = 0L;
         for (int i = 0; i < retry; ++i) {
             try {
                 if (i % 5 == 0) {
@@ -73,11 +77,19 @@ public class CassandraCqlshDaemon {
                             + "  "
                             + "Connect to cqlsh:" + ipAddress + "..." + i);
                     socket = new Socket();
+                    logger.info("[CassandraCqlshDaemon] Created a new socket");
                     socket.connect(new InetSocketAddress(ipAddress, port),
                             3 * 1000);
                     logger.info(
                             "[HKLOG] executor ID = " + docker.executorID + "  "
                                     + "Cqlsh connected: " + ipAddress);
+                    logger.info(
+                            "[CassandraCqlshDaemon] Needed total proc exec time "
+                                    + totalProcExecTime + " ms"
+                                    + " and total read time "
+                                    + totalReadTimeFromProcess + " ms");
+                    totalReadTimeFromProcess = 0L;
+                    totalProcExecTime = 0L;
                     return;
                 }
             } catch (Exception ignored) {
@@ -90,12 +102,27 @@ public class CassandraCqlshDaemon {
             // After WAIT_INTERVAL, the process should have started
             if (i * SLEEP_INTERVAL >= WAIT_INTERVAL) {
                 try {
+                    logger.info(
+                            "[CassandraCqlshDaemon] the process should start now");
+                    Long curTime = System.currentTimeMillis();
                     Process grepProc = docker.runInContainer(new String[] {
                             "/bin/sh", "-c",
                             "ps -ef | grep org.apache.cassandra.service.CassandraDaemon | wc -l"
                     });
+                    totalProcExecTime += System.currentTimeMillis() - curTime;
+                    logger.info(
+                            String.format(
+                                    "[CassandraCqlshDaemon] have searched the daemon process in container for %d ms",
+                                    System.currentTimeMillis() - curTime));
+                    curTime = System.currentTimeMillis();
                     String result = new String(
                             grepProc.getInputStream().readAllBytes()).strip();
+                    totalReadTimeFromProcess += System.currentTimeMillis()
+                            - curTime;
+                    logger.info(
+                            String.format(
+                                    "[CassandraCqlshDaemon] have read the bytes in %d ms",
+                                    System.currentTimeMillis() - curTime));
 
                     // Process grepProc2 = docker.runInContainer(new String[] {
                     // "/bin/sh", "-c",
@@ -104,15 +131,18 @@ public class CassandraCqlshDaemon {
                     // String result2 = new String(
                     // grepProc2.getInputStream().readAllBytes()).strip();
                     // System.err.println("grep check result2 = " + result2);
-
-                    int processNum = Integer.parseInt(result);
-                    if (Integer.parseInt(result) <= 2) {
-                        // Process has died
-                        logger.debug("result = " + result);
-                        logger.debug("[HKLOG] processNum = " + processNum
-                                + " smaller than 2, "
-                                + "system process died");
-                        break;
+                    logger.debug("Timeout check: "
+                            + Config.getConf().cassandraEnableTimeoutCheck);
+                    if (Config.getConf().cassandraEnableTimeoutCheck) {
+                        int processNum = Integer.parseInt(result);
+                        if (Integer.parseInt(result) <= 2) {
+                            // Process has died
+                            logger.debug("result = " + result);
+                            logger.debug("[HKLOG] processNum = " + processNum
+                                    + " smaller than 2, "
+                                    + "system process died");
+                            break;
+                        }
                     }
 
                 } catch (Exception e) {
@@ -126,6 +156,7 @@ public class CassandraCqlshDaemon {
     }
 
     public CqlshPacket execute(String cmd) throws Exception {
+        logger.info("[CqlshPacket] Call to execute ");
         BufferedWriter bw = new BufferedWriter(
                 new OutputStreamWriter(socket.getOutputStream()));
 

@@ -7,7 +7,7 @@
   "STACKED_TESTS_NUM" : "1",
   "nodeNum": 1,
   "faultMaxNum": 2,
-  "testSingleVersion": false,
+  "testSingleVersion": true,
   "testingMode": 0,
   "useLikelyInv": false,
   "verifyConfig": false,
@@ -17,6 +17,7 @@
   "nyxMode": false,
   "nyxFuzzSH": "nyx_mode/fuzz_no_pt.sh",
   "debug": false,
-  "useExampleTestPlan": false,
-  "startUpClusterForDebugging": false
+  "useExampleTestPlan": true,
+  "startUpClusterForDebugging": false,
+  "cassandraEnableTimeoutCheck": true
 }
