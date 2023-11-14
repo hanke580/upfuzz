@@ -14,6 +14,8 @@ import java.util.*;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
+import java.io.StringWriter;
+import java.io.PrintWriter;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -52,6 +54,8 @@ public class MiniClientMain {
     static final int CLUSTER_START_RETRY = 3;
 
     static int testType;
+//     static String executorStartupErrorLog = "";
+    static String testPlanLog = "";
 
     public static void setTestType(int type) {
         testType = type;
@@ -64,7 +68,11 @@ public class MiniClientMain {
                     return "success";
                 }
             } catch (Exception e) {
+                // StringWriter sw = new StringWriter();
+                // PrintWriter pw = new PrintWriter(sw);
+                // e.printStackTrace(pw);
                 e.printStackTrace();
+                // executorStartupErrorLog = sw.toString();
             }
             executor.teardown();
         }
@@ -121,6 +129,24 @@ public class MiniClientMain {
                 : Paths.get(workdir, "testPlanConfigFile");
         String res1 = "";
         Executor executor;
+        if (Config.getConf().verifyConfig) {
+            System.err.println("verifying configuration");
+            executor = FuzzingClient.initExecutor(
+                    1, null, defaultConfigPath);
+            boolean startUpStatus = executor.startup();
+
+            if (!startUpStatus) {
+                System.err.println("config cannot start up old version");
+                executor.teardown();
+                return;
+            }
+            startUpStatus = executor.freshStartNewVersion();
+            executor.teardown();
+            if (!startUpStatus) {
+                System.err.println("config cannot start up new version");
+                return;
+            }
+        }
         try { // if any of these catches go through we have a big problem
             if (testType == 0) {
                 defaultStackedTestPacket = (StackedTestPacket) Utilities
@@ -143,7 +169,7 @@ public class MiniClientMain {
             return;
         }
 
-        if (res1.equals("false0")) {
+        if (res1.equals("fail0")) {
             // was unable to startup the docker system
             List<Integer> list = new ArrayList<>();
             list.add(-1);
@@ -167,7 +193,7 @@ public class MiniClientMain {
             }
             cAgent.print("F0"); // F for failed
             return;
-        } else if (res1.equals("false4")) {
+        } else if (res1.equals("fail4")) {
             // was unable to startup the docker system
             // List<Integer> list = new ArrayList<>();
             // list.add(-1);
@@ -202,7 +228,7 @@ public class MiniClientMain {
             cAgent.print("F0");
             return;
         }
-        s1 += res1;
+        s1 += res1 + ", ";
 
         // c agent should checkpoint the vm here
         System.err.println("Waiting to start TESTING");
@@ -334,31 +360,7 @@ public class MiniClientMain {
                     + "cd - ";
 
         }
-        // System.err.println("Init executor");
-        // if (Config.getConf().verifyConfig) {
-        // System.err.println("verifying configuration");
-        // Executor executor = FuzzingClient.initExecutor(
-        // 1, null, defaultConfigPath);
-        // boolean startUpStatus = executor.startup();
 
-        // if (!startUpStatus) {
-        // System.err.println("config cannot start up old version");
-        // executor.teardown();
-        // return;
-        // }
-        // startUpStatus = executor.freshStartNewVersion();
-        // executor.teardown();
-        // if (!startUpStatus) {
-        // System.err.println("config cannot start up new version");
-        // return;
-        // }
-        // }
-        // Executor executor;
-
-        // StackedFeedbackPacket stackedFeedbackPacket =
-        // runTheTests(executor,
-        // stackedTestPacket);
-        // s1 += "running the tests, ";
         try {
             ProcessBuilder builder = new ProcessBuilder();
             builder.command("/bin/bash", "-c", fuzzing_archive_command);
@@ -375,7 +377,7 @@ public class MiniClientMain {
                 + "ms, ";
         // lets c agent know that the stackedFeedbackFile is ready
         // s1 += "final signal pass to cAgent";
-        String printMsg = "2:" + archive_name + "; " + s1;
+        String printMsg = "2:" + archive_name + "; " + s1 + testPlanLog;
         cAgent.print(printMsg);
         // cAgent.print("2");
 
@@ -403,7 +405,141 @@ public class MiniClientMain {
 
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             executedTestNum++;
+            // String[] commandSequenceList = { //1,2,3,6,7
+            // "CREATE KEYSPACE uuid7bc0babf3a4d4970b4f20f4376046e36 WITH
+            // REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor'
+            // : 2 };",
+            // "CREATE KEYSPACE IF NOT EXISTS
+            // uuid22437341ec0044a397da18834342ac32 WITH REPLICATION = { 'class'
+            // : 'SimpleStrategy', 'replication_factor' : 2 };",
+            // "CREATE TYPE uuid22437341ec0044a397da18834342ac32.y (y
+            // set<TEXT>,zZAspM set<INT>,cAPh TEXT,JJZdN TEXT,QMMI
+            // set<INT>,JptplUFOay TEXT,OZXBDHHAL TEXT);",
+            // "DROP KEYSPACE uuid7bc0babf3a4d4970b4f20f4376046e36;",
+            // "DROP KEYSPACE uuid22437341ec0044a397da18834342ac32;",
+            // "CREATE KEYSPACE IF NOT EXISTS
+            // uuidb0fa2c07e69b4a679dc6725e8697fc91 WITH REPLICATION = { 'class'
+            // : 'SimpleStrategy', 'replication_factor' : 2 };",
+            // "CREATE TABLE uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI (QMMI
+            // INT,OZXBDHHAL set<TEXT>,Zba set<TEXT>,JptplUFOay TEXT,y
+            // TEXT,JJZdN TEXT,UCTCKyMQZwcolZRRsOwT TEXT, PRIMARY KEY
+            // (JptplUFOay, y, UCTCKyMQZwcolZRRsOwT, JJZdN )) WITH
+            // speculative_retry = 'ALWAYS';",
+            // "ALTER TABLE uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI RENAME
+            // cAPh TO cAPh;",
+            // "DELETE FROM uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh
+            // = 'GVbImcbCdFxPGtKYyNQwiIXYVAdmRJBrQageKxhEZZXGujCWjan' AND y =
+            // 'vLIJbZlyHZeVUHuVXbbdBwoPHyidfgxDmRIYeSEkolubnEotnMPPLKKraBnUmyvHVwkWpuzvugVsanfnUOBhIqfybBUAjHYnSxmlovLCcpdkKDgeXDqTuwUKjZERnuWPrHDKGERdqtGT'
+            // AND UCTCKyMQZwcolZRRsOwT =
+            // 'rSmSxYEuESMgCBrGtYWIjkUDcLlLVYKJKlEFtJmsLkLigaFJXhHBMtEzdGftoHvMLJNuHWdjzFdnhEWBPioHcjVyWRKZnwdWkeAxWWrWxQamAuudiBurzaWKmIGIDstuOxNJGiwEVdqfNZWLEAPAVbjwSIPdbrWCxJcaElU'
+            // AND JJZdN = 'hfLBnzt';",
+            // "TRUNCATE TABLE uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI;",
+            // "ALTER TABLE uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI ADD
+            // znIkGzEuT set<TEXT> ;",
+            // "USE uuidb0fa2c07e69b4a679dc6725e8697fc91;",
+            // "ALTER TABLE uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI ADD
+            // JptplUFOay set<INT> ;",
+            // "ALTER TABLE uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI ALTER
+            // JJZdN TYPE set<TEXT> ;",
+            // "USE uuidb0fa2c07e69b4a679dc6725e8697fc91;",
+            // "ALTER TABLE uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI ADD
+            // TKljkanAl set<INT> ;"
+            // };
+
+            // String[] validationCommandsList = {
+            // "SELECT UCTCKyMQZwcolZRRsOwT, y, QMMI, JptplUFOay, TKljkanAl,
+            // cAPh, Zba, JJZdN, znIkGzEuT FROM
+            // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
+            // 'rpoHvlFcAsdcvNElBCpoXMpnOnnBupzTNtArrLEthXKNbDnqMYOQCXPOuozalwfKAdXlOHiaVYrFBPKLVxEBvlquSGOqSApexrdZBUtejrARzXPMqtcOljkPzXQbDxnhDzPkhQvdAczgjhImChKsaEmVAtgKWufWOUxCQhLfDEeLLjLzKQRmUWhQyoPaowwpjJHuTUGcwpFNsiWQZeiFpDogwesfZzKuyhIwiAykwOlLCx'
+            // AND y =
+            // 'cwSKgnEeKGQHIqbJnXGZZVEaGJqbPKkOGyGXWrxwUwwNMRXfmqHGoBIhIGOrUcXwWOvpXIANQFhETriSMpZefgflbwyvKHLhQaxwSfsRaCJCxPvqGSbxjnRLyBqUVmrAfwERnrqhzUGGGGOWnvbUulvPKMqUdpzqvhjihlkFbFpsuaozAlbilrLY'
+            // AND UCTCKyMQZwcolZRRsOwT = 'hDuATCtjOoQcXvPufnZXugTqoPIRsqnuifvp'
+            // ORDER BY y ASC;",
+            // "SELECT JJZdN, UCTCKyMQZwcolZRRsOwT, cAPh, TKljkanAl, JptplUFOay,
+            // Zba, OZXBDHHAL FROM uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI
+            // WHERE cAPh =
+            // 'ONklQQIzEUdtjqFXiiICCFxCgwdHLYTGpXOmrcAJEcQvtHcDePpYNfbGVEQJORSdIUKFWOhNGohrGlvhNbNVtazXBIkvYcHkBKPxMDhjimtoli'
+            // ORDER BY y DESC;",
+            // "SELECT OZXBDHHAL, y, cAPh FROM
+            // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
+            // 'IQokwRsRfWuSQyihOexAkPgicoaSD' AND y =
+            // 'xpgAfIXYJhpGUqgzObWggnUrkrpwUjhBsTbqymZEQluosmrsMtXfvogGVMkAHcAenFFfDUALIrcXPUEGbtiArksOUQtmOYgBEUCgtbilDuuqIMEcUfTJSjYYlHBPaIWfJqHoKOZQTCtlLVnPSSNowocQQpcNvnAMJEvPAiTKbLIJeDNrNgwgmoouVWBTQObQgzmBHGaYShUULLunlcJSEywRVGMKCwu'
+            // AND UCTCKyMQZwcolZRRsOwT =
+            // 'BcceMDyJMMwRbqWplXPeuMlIOkWoTwWNMVFuezCwqkleXJSyibTWVNsIjtbbRqOMxOylbGxsQDwkYioWNtRPOtKJSoooRAiGKmqsrJiWSjLCRXrNkYZVrNKabOjsnwxaFFfDTrOHHvLAuCrOoMgMGBEPaBNuM'
+            // ORDER BY y DESC;",
+            // "SELECT JJZdN FROM uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI
+            // WHERE cAPh =
+            // 'FQlTaZGmRvxWzuccowrrgdtkgJiOCnWxOfOmuukwFJBCBEkZeaXlADZpJpswFQoTCVNNnyj'
+            // AND y = 'wXE' AND UCTCKyMQZwcolZRRsOwT =
+            // 'BeCzSTBXirTVhUgGFNPCsdiloYEahrfQVGClTHJalB';",
+            // "SELECT cAPh, JJZdN, TKljkanAl, UCTCKyMQZwcolZRRsOwT, JptplUFOay,
+            // QMMI, OZXBDHHAL, y, znIkGzEuT FROM
+            // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI;",
+            // "SELECT Zba, UCTCKyMQZwcolZRRsOwT, znIkGzEuT FROM
+            // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI;",
+            // "SELECT cAPh, UCTCKyMQZwcolZRRsOwT, Zba, znIkGzEuT FROM
+            // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI;",
+            // "SELECT y, UCTCKyMQZwcolZRRsOwT FROM
+            // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
+            // 'dLtlNYdbujEXjJylvHENctHRtssfdiFnpvmyVzBKcbUunCKIvlwavHGLEofAgIVkSIjYcoIfRMRGKGXgfSqSvuLOAvxJtIwbmKzHiVjVpDlROHBUEeyloemClOmuAKuhUojrLpn'
+            // AND y =
+            // 'WtGscttHzsnQKvOSfdTYHkGNjMdJCcqZmcrhFUfAZvrBgVSafgnlFnWMkcelUCKPrnmJGIlBntJWLVnvjZmnSdvRyPfIltNxrHOaTOfriAGsrTuRalJvwSzEBOpONbwxHIVGUMCpdAjfZDWR'
+            // AND UCTCKyMQZwcolZRRsOwT =
+            // 'RjsxWeNqwPRNsxJNluSoCgvxnmvtSijaDzsnqjlFJWEEKUXXPJPhRgtfidRyhjRvRTqAheGnLjWRLcCjbzINNamFRsJgFjPQTXwBrVomLZkVXWUHhfaBWLGXvfXfEIdPnELBkZHkYFOvQikOmSBpEjqhoEeSckHPKtySUGAjfOnMZrmvdmVovOAndBqCGsezCeTInjKNDEwbCXiYnRROWLiBmdBiaMUBecnQsGwE'
+            // ORDER BY y DESC;",
+            // "SELECT y, JJZdN, znIkGzEuT, OZXBDHHAL, cAPh FROM
+            // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
+            // 'MyJVcXMGXewQINOhhxqEkscubxvkjDXqgbuBWgxSjdsvmOyHWJiOtgjDnzIBtXEtGOSGuITQPTkTinooCEjKYMiPsiwGrZIhKPNrHdfYLQEKUWcoUfdqvnYnbZVrCfRhuVTigkwIWPoyQgmlGtIQxflpjhAvROWdksIxHBmiNQALLyMpVXAxqPGLVpJfQLgJIdnosYulTMHrnyvHkkwUirSltCgzXMuugkqBBiUeZXDAiRNnclqjiquZmHRXy'
+            // AND y =
+            // 'TOVCaPnaISZjXqsmzjDRdgjBBcNPSSQqioVEJQQPoYUkXviPChjZxtYuPbXPqtdoyDKcEuRBtWFskEyKszyNjfLzNghflVsfDVkhWUKmoGBFtNSVlZoMzZnXzFoPyvKGhQoTEfPsuacWLBzypzKGkTOcZUfkyOjmRex'
+            // ORDER BY y DESC;",
+            // "SELECT * FROM uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE
+            // cAPh =
+            // 'yrMbCQaUVupOeuekzjACCGPJJhBoyuDFjLEBOkFPDppIJKAUrdfScSfhXLIHVfMXaiAzXafdYzXSRCVZfoaTgLvPzXuFkmDwMuecZLXgchehnRTkzAXhYtZsdXXGGTotABflUzb'
+            // ORDER BY y ASC;",
+            // "SELECT QMMI, OZXBDHHAL, JptplUFOay FROM
+            // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
+            // 'jttJKjamrJXgLcXBpzYcceQnrFrLHjkznwtMUKPMrVbSDfexffbXtNSfKMGYaYpxdDsRwbeeWZyDDdhEeGmLehYpjmKiwnGtayZUIekVBCrLqGKMxftDVpCJZTGtXIxelpPiyoEogUYiCPrlpJAjhatMRboVlFVyHYnxQoSciHPcaTkFGCmTJLjSSiqKgRPdLnJHlrSpfHZOmyPejUYAjoyfpkkNSRdxqyJfoElO'
+            // AND y = 'vyWJtHRfyrKpouqfRTDseowSjcGroRzXqpwYyTYgXnVeoGuqM';",
+            // "SELECT UCTCKyMQZwcolZRRsOwT, TKljkanAl, Zba, OZXBDHHAL, y FROM
+            // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
+            // 'knsxgfYJLOgWuXbhkmZZtXtmjkhXzqqMInfxnhgUiPIScqsdUeNhWHydrLmFMNYHYdAPPbXAoeMQFypzuSdhXUwmGaZclrYoOLIWRdQvHLeYjDeJngpcCzJtiCQHGYmFoztOMuACAqELEheJDihyekUCZppWAzJEXvMjcPCtrDQYkvhNOLYEwuzoMleONlSuSJOuugvFbicfdFUaojo'
+            // AND y = 'mVOlqvkSTpTpymWMbKUQNAVULnLV' AND UCTCKyMQZwcolZRRsOwT =
+            // 'XUtpvrFTjCeqbkgzLbsssBQrItwKACuvjpjzXUiGTEWzAHYXyLjzQITnxJyJdHyAOlVTgnuZBaXureAMbcQVTQZugGWZuAkjqUxApIdwjMEIPnCbTnlnAfo';",
+            // "SELECT JptplUFOay, y, cAPh FROM
+            // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
+            // 'kNwjXgHXWjkwDdpQILNMfrNHaZEZkXcmMOfztsGsotShnLwbPdvStBysxB' AND
+            // y =
+            // 'UUvfLVsxCdIbBXOxXGoVMRcmqyWcaumPZCeltQsUrPWFyYbCdipPLHpaEavQpsAQZeHbaErmD'
+            // AND UCTCKyMQZwcolZRRsOwT =
+            // 'DVbTDsFKTYjnmGWyhdOFpRQOfnPxrfQyqZFlEcem' AND JJZdN =
+            // 'ALJkDNqOIpZbdvOnZSYnjsLQCTvgKQiaqlSfRBpFMrTtxcoByXEvpQNWoyOPlhJRweGlcyPYMTKWIHZFtWmdOXKeAvhIhKB';",
+            // "SELECT UCTCKyMQZwcolZRRsOwT, cAPh, OZXBDHHAL, znIkGzEuT, y,
+            // QMMI, JJZdN FROM uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE
+            // cAPh =
+            // 'TKoaMHQVxuhmyqtfYShifSJZlHViNwSGbyikpichHGTCnHeubDiRJvhhWXGdQhDwdAeFkPltviIZwpozGELYLvPUnwGygOmaBsREeLMXmdagwJOWwhFoaOemgSfMpuELfnciSlIiDEsWfPFrayNcUfeqHlWzsCRlustCJHvRMZqkKuMCzPp'
+            // AND y = 'fTAdIEajfapGzxccfsGmOILUwFkhHwNhEgFc';",
+            // "SELECT UCTCKyMQZwcolZRRsOwT, y, JptplUFOay, znIkGzEuT,
+            // OZXBDHHAL, cAPh, QMMI, JJZdN FROM
+            // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI;",
+            // "SELECT cAPh, UCTCKyMQZwcolZRRsOwT, OZXBDHHAL FROM
+            // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
+            // 'ObYEJXGwJdMGxSrCwNREgLUMehxDpXsFVENLsJFzRctUFFtgfkxTDSzhcDstsRANdqhktvIuidgCQrzDlCHhkRWQZYvWkDON'
+            // AND y =
+            // 'BfhuiKpfMufxugRyvPmkpSLTmkDDkablwIrPcyQixwinYxzCjqzXlyrqKdZnEWabuynibgaCMSZQcGdTRKMaPmVnJBaDAjYoMqzGeLJBYxcQJpwkdQXNgOlGTXNbPRVviPmQaYrZJUAHjbEjGQQPMOnAsIWViMRC'
+            // AND UCTCKyMQZwcolZRRsOwT =
+            // 'DQkTMihcijbwPgUkEtWlJDbnNmdkIvmGBbVkGroYtmFydVdGMOFoNQehEIjBwJNURCrCKEIKzUmAuTQXtxcPYkbUGqGcTeMmQOaKfXLfVzkFFFvBjPVWLDlwFPerPIwvuDnVhAxuuLloPwjVyUBpmalsGEBcUSUMDtgupywsoCgzzujJuEFMIobEmlhigQaQeYXMiJKsOyddGdAtbGMPpBOBPGUwmH'
+            // AND JJZdN =
+            // 'wqyKJdHjgczsdFtbyoTEUnhmTfZGWfZpOKUFXNGsIaSGXXaANylWhPqZYmqBAgsjioIfnJpLHyZnSXLITpNMp';",
+            // "SELECT OZXBDHHAL, UCTCKyMQZwcolZRRsOwT FROM
+            // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
+            // 'YvnEUbTIDekDJMJeawGaUgmluZTFXCgQzjSmyDatfPiPNmTDzJQNXYZwtnjNjsMSeqfDHwGZHoghQBWHiItnfWsCsVAicCstW'
+            // AND y = 'SUr';"
+            // };
+            // List<String> originalCommandSequenceList = Arrays
+            // .asList(commandSequenceList);
             executor.executeCommands(tp.originalCommandSequenceList);
+            // executor.executeCommands(originalCommandSequenceList);
 
             FeedBack[] feedBacks = new FeedBack[stackedTestPacket.nodeNum];
             for (int i = 0; i < stackedTestPacket.nodeNum; i++) {
@@ -420,6 +556,9 @@ public class MiniClientMain {
                     tp.testPacketID,
                     new FeedbackPacket(tp.systemID, stackedTestPacket.nodeNum,
                             tp.testPacketID, feedBacks, null));
+
+            // List<String> oriResult = executor
+            // .executeCommands(Arrays.asList(validationCommandsList));
             List<String> oriResult = executor
                     .executeCommands(tp.validationCommandSequenceList);
             testID2oriResults.put(tp.testPacketID, oriResult);
@@ -580,55 +719,15 @@ public class MiniClientMain {
     public static TestPlanFeedbackPacket runTestPlanPacket(Executor executor,
             TestPlanPacket testPlanPacket) {
 
+        Long initTime = System.currentTimeMillis();
         String testPlanPacketStr = String.format("nodeNum = %d\n",
                 testPlanPacket.getNodeNum())
                 + testPlanPacket.getTestPlan().toString();
         ;
         int nodeNum = testPlanPacket.getNodeNum();
 
-        // read states
-        // Set<String> targetSystemStates = null;
-        // if (Config.getConf().enableStateComp) {
-        // Path targetSystemStatesPath = Paths.get(
-        // System.getProperty("user.dir"),
-        // Config.getConf().targetSystemStateFile);
-        // try {
-        // targetSystemStates = readState(targetSystemStatesPath);
-        // } catch (IOException e) {
-        // // logger.error("Not tracking system state");
-        // e.printStackTrace();
-        // System.exit(1);
-        // }
-        // }
-
-        // Path configPath = Paths.get(configDirPath.toString(),
-        // testPlanPacket.configFileName);
-        // // logger.info("[HKLOG] configPath = " + configPath);
-
-        // // config verification
-        // if (Config.getConf().verifyConfig) {
-        // boolean validConfig = verifyConfig(configPath);
-        // if (!validConfig) {
-        // logger.error(
-        // "problem with configuration! system cannot start up");
-        // return null;
-        // }
-        // }
-
-        // // start up cluster
-        // logger.info("[Fuzzing Client] Call to initialize executor");
-        // executor = initExecutor(testPlanPacket.getNodeNum(),
-        // targetSystemStates,
-        // configPath);
-        // logger.info("[Fuzzing Client] Call to start up executor");
-        // boolean startUpStatus = startUpExecutor();
-        // if (!startUpStatus) {
-        // return null;
-        // }
-        // logger.info("[Fuzzing Client] started up executor");
-
         // LOG checking1
-        Long curTime2 = System.currentTimeMillis();
+        // Long curTime2 = System.currentTimeMillis();
         Map<Integer, LogInfo> logInfoBeforeUpgrade = null;
         if (Config.getConf().enableLogCheck) {
             // logger.info("[HKLOG] error log checking");
@@ -643,10 +742,14 @@ public class MiniClientMain {
         // logger.info("[Fuzzing Client] Call to run the tests");
         boolean status = executor.execute(testPlanPacket.getTestPlan());
         // logger.info("[Fuzzing Client] completed the testing");
+        testPlanLog += "testing plan done in "
+                + (System.currentTimeMillis() - initTime) + " ms, status "
+                + status + ", ";
+        testPlanLog += executor.getTestPlanExecutionLog();
 
+        initTime = System.currentTimeMillis();
         FeedBack[] testPlanFeedBacks = new FeedBack[nodeNum];
 
-        Long curTime = System.currentTimeMillis();
         if (status && Config.getConf().fullStopUpgradeWithFaults) {
             // collect old version coverage
             ExecutionDataStore[] oriCoverages = executor
@@ -656,11 +759,19 @@ public class MiniClientMain {
                 if (oriCoverages != null)
                     testPlanFeedBacks[i].originalCodeCoverage = oriCoverages[i];
             }
+            testPlanLog += "(fullstop) coverage collected and processed in "
+                    + (System.currentTimeMillis() - initTime) + " ms, ";
             // upgrade
+
+            initTime = System.currentTimeMillis();
             status = executor.fullStopUpgrade();
             if (!status)
                 // update event id
                 executor.eventIdx = -1; // this means full-stop upgrade failed
+
+            testPlanLog += "fullstop upgrade done in "
+                    + (System.currentTimeMillis() - initTime) + " ms, ";
+
         } else {
             // It contains the new version coverage!
             // collect test plan coverage
@@ -669,11 +780,14 @@ public class MiniClientMain {
                 if (executor.oriCoverage[i] != null)
                     testPlanFeedBacks[i].originalCodeCoverage = executor.oriCoverage[i];
             }
+            testPlanLog += "fullstop upgrade done in "
+                    + (System.currentTimeMillis() - initTime) + " ms, ";
         }
         // logger.info(String.format(
         // "[Fuzzing Client] completed collecting code coverages in %d ms",
         // System.currentTimeMillis() - curTime));
 
+        initTime = System.currentTimeMillis();
         TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
                 testPlanPacket.systemID, testPlanPacket.configFileName,
                 testPlanPacket.testPacketID, testPlanFeedBacks);
@@ -709,11 +823,14 @@ public class MiniClientMain {
                 try {
                     ExecutionDataStore[] oriCoverages = executor
                             .collectCoverageSeparate("original");
+                    testPlanLog += "(single) collected coverage, ";
                     if (oriCoverages != null) {
                         for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
                             testPlanFeedbackPacket.feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
                         }
                     }
+                    testPlanLog += "(single success) coverage collected and processed in "
+                            + (System.currentTimeMillis() - initTime) + " ms, ";
                 } catch (Exception e) {
                     // Cannot collect code coverage in the upgraded version
                     String recordedTestPlanPacket = String.format(
@@ -728,8 +845,14 @@ public class MiniClientMain {
                             recordedTestPlanPacket + "\n" + "Exception:"
                             + e;
 
+                    testPlanLog += "(failed) single version coverage collection in "
+                            + (System.currentTimeMillis() - initTime) + " ms, ";
                     // tearDownExecutor();
-                    executor.teardown();
+                    // initTime = System.currentTimeMillis();
+                    // executor.teardown();
+                    // testPlanLog += "(failed) coverage collection, single
+                    // version teardown in "
+                    // + (System.currentTimeMillis() - initTime) + " ms, ";
                     return testPlanFeedbackPacket;
                 }
 
@@ -785,14 +908,14 @@ public class MiniClientMain {
                             + "\n" +
                             recordedTestPlanPacket + "\n" + "Exception:" + e;
                     // tearDownExecutor();
-                    executor.teardown();
+                    // executor.teardown();
                     return testPlanFeedbackPacket;
                 }
             }
         }
 
         // LOG checking2
-        curTime = System.currentTimeMillis();
+        initTime = System.currentTimeMillis();
         if (Config.getConf().enableLogCheck) {
             // logger.info("[HKLOG] error log checking");
             assert logInfoBeforeUpgrade != null;
@@ -806,6 +929,8 @@ public class MiniClientMain {
                                 testPlanPacket.configFileName,
                                 logInfo);
             }
+            testPlanLog += "(log check) fuzzing client log check in "
+                    + (System.currentTimeMillis() - initTime) + " ms, ";
         }
         // logger.info(String.format(
         // "[Fuzzing Client] completed second log checking in %d ms",
@@ -813,7 +938,10 @@ public class MiniClientMain {
 
         // logger.info("[Fuzzing Client] Call to teardown executor");
         // tearDownExecutor();
-        executor.teardown();
+        // initTime = System.currentTimeMillis();
+        // executor.teardown();
+        // testPlanLog += "(success test plan) executor torn down in "
+        // + (System.currentTimeMillis() - initTime) + " ms, ";
         return testPlanFeedbackPacket;
         // logger.info("[Fuzzing Client] Executor torn down");
     }
