@@ -407,7 +407,7 @@ int main(int argc, char **argv) {
         // transfer the test packet file from the host to the client VM
         // clock_t start_time, end_time;
         // start_time = clock();
-	      hprintf("[cAgent test] Execution time for taking root snapshot: %.5f ms\n", (double)((clock() - start_time_snap)*1000) / CLOCKS_PER_SEC);
+	      // hprintf("[cAgent test] Execution time for taking root snapshot: %.5f ms\n", (double)((clock() - start_time_snap)*1000) / CLOCKS_PER_SEC);
 	      //hprintf("[cAgent test] Time for reverting to root snapshot: %.5f ms\n", (double)((snapshot_revert_time - start_time_snap)*1000) / CLOCKS_PER_SEC);
         
         int get_file_status;
@@ -451,12 +451,15 @@ int main(int argc, char **argv) {
         //hprintf("WE GOT THIS FOR 2 ::: %c\n",output_pkt );
 
         //hprintf("%s\n", archive_name);
-	      const char *separator2 = strrchr(output_pkt, ';');
-        char messages[500];
-        strncpy(messages, separator2 + 1, 500);
-        messages[500] = '\0';
-
-	      hprintf("[cAgent] %s\n",messages);
+	      if(strchr(output_pkt, ';') != NULL)
+        {
+          const char *separator2 = strrchr(output_pkt, ';');
+          char messages[500];
+          strncpy(messages, separator2 + 1, 500);
+          messages[500] = '\0';
+        
+          printf("[cAgent] %s\n",messages);
+        }
 
 	      const char *separator = strrchr(output_pkt, ':');
         char archive_name[16];
@@ -470,7 +473,7 @@ int main(int argc, char **argv) {
         get_file_status = push_to_host(archive_dir);    
         if (get_file_status == -1)
           abort_operation("ERROR! Failed to transfer fuzzing storage archive to host.");
-        hprintf("[cAgent test] Duration the lock was acquired for: %.5f milliseconds\n", (double)((clock() - start_time_lock)*1000) / CLOCKS_PER_SEC);
+        // hprintf("[cAgent test] Duration the lock was acquired for: %.5f milliseconds\n", (double)((clock() - start_time_lock)*1000) / CLOCKS_PER_SEC);
 	    
 	      //char dirty_command[] = "dirty=$(cat /proc/meminfo | grep Dirty); value=$(echo \"$dirty\" | awk '{print $2}'); unit=$(echo \"$dirty\" | awk '{print $3}'); pagesize=$(getconf PAGESIZE); result=$(echo \"scale=2; $value*1024 / $pagesize\" | bc); echo \"$result $unit\"";
         //FILE *fp1 = popen(dirty_command, "r");

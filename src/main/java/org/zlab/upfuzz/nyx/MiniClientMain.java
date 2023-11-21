@@ -377,7 +377,12 @@ public class MiniClientMain {
                 + "ms, ";
         // lets c agent know that the stackedFeedbackFile is ready
         // s1 += "final signal pass to cAgent";
-        String printMsg = "2:" + archive_name + "; " + s1 + testPlanLog;
+        String printMsg;
+        if (Config.getConf().debug) {
+            printMsg = "2:" + archive_name + "; " + s1 + testPlanLog;
+        } else {
+            printMsg = "2:" + archive_name;
+        }
         cAgent.print(printMsg);
         // cAgent.print("2");
 
