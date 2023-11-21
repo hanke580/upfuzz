@@ -131,8 +131,8 @@ public class CassandraCqlshDaemon {
                     // String result2 = new String(
                     // grepProc2.getInputStream().readAllBytes()).strip();
                     // System.err.println("grep check result2 = " + result2);
-                    logger.debug("Timeout check: "
-                            + Config.getConf().cassandraEnableTimeoutCheck);
+                    // logger.debug("Timeout check: "
+                            // + Config.getConf().cassandraEnableTimeoutCheck);
                     if (Config.getConf().cassandraEnableTimeoutCheck) {
                         int processNum = Integer.parseInt(result);
                         if (Integer.parseInt(result) <= 2) {
