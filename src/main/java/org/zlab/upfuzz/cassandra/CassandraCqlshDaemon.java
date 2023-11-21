@@ -83,11 +83,13 @@ public class CassandraCqlshDaemon {
                     logger.info(
                             "[HKLOG] executor ID = " + docker.executorID + "  "
                                     + "Cqlsh connected: " + ipAddress);
-                    logger.info(
-                            "[CassandraCqlshDaemon] Needed total proc exec time "
-                                    + totalProcExecTime + " ms"
-                                    + " and total read time "
-                                    + totalReadTimeFromProcess + " ms");
+                    if (Config.getConf().debug) {
+                        logger.info(
+                                "[CassandraCqlshDaemon] Needed total proc exec time "
+                                        + totalProcExecTime + " ms"
+                                        + " and total read time "
+                                        + totalReadTimeFromProcess + " ms");
+                    }
                     totalReadTimeFromProcess = 0L;
                     totalProcExecTime = 0L;
                     return;
@@ -102,28 +104,33 @@ public class CassandraCqlshDaemon {
             // After WAIT_INTERVAL, the process should have started
             if (i * SLEEP_INTERVAL >= WAIT_INTERVAL) {
                 try {
-                    logger.info(
-                            "[CassandraCqlshDaemon] the process should start now");
+                    if (Config.getConf().debug) {
+                        logger.info(
+                                "[CassandraCqlshDaemon] the process should start now");
+                    }
                     Long curTime = System.currentTimeMillis();
                     Process grepProc = docker.runInContainer(new String[] {
                             "/bin/sh", "-c",
                             "ps -ef | grep org.apache.cassandra.service.CassandraDaemon | wc -l"
                     });
                     totalProcExecTime += System.currentTimeMillis() - curTime;
-                    logger.info(
-                            String.format(
-                                    "[CassandraCqlshDaemon] have searched the daemon process in container for %d ms",
-                                    System.currentTimeMillis() - curTime));
+                    if (Config.getConf().debug) {
+                        logger.info(
+                                String.format(
+                                        "[CassandraCqlshDaemon] have searched the daemon process in container for %d ms",
+                                        System.currentTimeMillis() - curTime));
+                    }
                     curTime = System.currentTimeMillis();
                     String result = new String(
                             grepProc.getInputStream().readAllBytes()).strip();
                     totalReadTimeFromProcess += System.currentTimeMillis()
                             - curTime;
-                    logger.info(
-                            String.format(
-                                    "[CassandraCqlshDaemon] have read the bytes in %d ms",
-                                    System.currentTimeMillis() - curTime));
-
+                    if (Config.getConf().debug) {
+                        logger.info(
+                                String.format(
+                                        "[CassandraCqlshDaemon] have read the bytes in %d ms",
+                                        System.currentTimeMillis() - curTime));
+                    }
                     // Process grepProc2 = docker.runInContainer(new String[] {
                     // "/bin/sh", "-c",
                     // "cat /var/log/supervisor/cassandra-stderr*"
@@ -132,7 +139,7 @@ public class CassandraCqlshDaemon {
                     // grepProc2.getInputStream().readAllBytes()).strip();
                     // System.err.println("grep check result2 = " + result2);
                     // logger.debug("Timeout check: "
-                            // + Config.getConf().cassandraEnableTimeoutCheck);
+                    // + Config.getConf().cassandraEnableTimeoutCheck);
                     if (Config.getConf().cassandraEnableTimeoutCheck) {
                         int processNum = Integer.parseInt(result);
                         if (Integer.parseInt(result) <= 2) {
@@ -156,7 +163,9 @@ public class CassandraCqlshDaemon {
     }
 
     public CqlshPacket execute(String cmd) throws Exception {
-        logger.info("[CqlshPacket] Call to execute ");
+        if (Config.getConf().debug) {
+            logger.info("[CqlshPacket] Call to execute ");
+        }
         BufferedWriter bw = new BufferedWriter(
                 new OutputStreamWriter(socket.getOutputStream()));
 
@@ -196,7 +205,10 @@ public class CassandraCqlshDaemon {
         // logger.info("before decode: " + cqlshPacket.message);
         cqlshPacket.message = Utilities.decodeString(cqlshPacket.message)
                 .replace("\0", "");
-        // logger.info("after decode: " + cqlshPacket.message);
+        if (Config.getConf().debug) {
+            logger.info("[CqlshDaemon] cqlsh message after decode: "
+                    + cqlshPacket.message);
+        }
 
         // logger.info("value size = " + cqlshPacket.message.length());
 
