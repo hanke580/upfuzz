@@ -209,92 +209,133 @@ public abstract class Executor implements IExecutor {
                     logger.error(
                             String.format("Cannot Inject {%s} here", event));
                     status = false;
-                    testPlanExecutionLog += "(Fault) injection failed in "
-                            + (System.currentTimeMillis() - initTime) + " ms, ";
+                    if (Config.getConf().debug) {
+                        testPlanExecutionLog += "(Fault) injection failed in "
+                                + (System.currentTimeMillis() - initTime)
+                                + " ms, ";
+                    }
                     break;
                 }
-                testPlanExecutionLog += "(Fault) injection in "
-                        + (System.currentTimeMillis() - initTime) + " ms, ";
+                if (Config.getConf().debug) {
+                    testPlanExecutionLog += "(Fault) injection in "
+                            + (System.currentTimeMillis() - initTime) + " ms, ";
+                }
             } else if (event instanceof FaultRecover) {
                 if (!handleFaultRecover((FaultRecover) event)) {
                     logger.error("FaultRecover execution problem");
                     status = false;
-                    testPlanExecutionLog += "(Recover) recovery failed in "
-                            + (System.currentTimeMillis() - initTime) + " ms, ";
+                    if (Config.getConf().debug) {
+                        testPlanExecutionLog += "(Recover) recovery failed in "
+                                + (System.currentTimeMillis() - initTime)
+                                + " ms, ";
+                    }
                     break;
                 }
-                testPlanExecutionLog += "(Recover) fault recover in "
-                        + (System.currentTimeMillis() - initTime) + " ms, ";
+                if (Config.getConf().debug) {
+                    testPlanExecutionLog += "(Recover) fault recover in "
+                            + (System.currentTimeMillis() - initTime) + " ms, ";
+                }
             } else if (event instanceof ShellCommand) {
                 if (!handleCommand((ShellCommand) event)) {
                     logger.error("ShellCommand problem");
                     status = false;
-
-                    testPlanExecutionLog += "(Shell) execution failed in "
-                            + (System.currentTimeMillis() - initTime) + " ms, ";
+                    if (Config.getConf().debug) {
+                        testPlanExecutionLog += "(Shell) execution failed in "
+                                + (System.currentTimeMillis() - initTime)
+                                + " ms, ";
+                    }
                     break;
                 }
-                testPlanExecutionLog += "(Shell) command execution in "
-                        + (System.currentTimeMillis() - initTime) + " ms, ";
+                if (Config.getConf().debug) {
+                    testPlanExecutionLog += "(Shell) command execution in "
+                            + (System.currentTimeMillis() - initTime) + " ms, ";
+                }
             } else if (event instanceof UpgradeOp) {
                 UpgradeOp upgradeOp = (UpgradeOp) event;
                 int nodeIdx = upgradeOp.nodeIndex;
                 oriCoverage[nodeIdx] = collectSingleNodeCoverage(nodeIdx,
                         "original");
 
-                testPlanExecutionLog += "(Upgrade) Single node coverage collection in "
-                        + (System.currentTimeMillis() - initTime) + " ms, ";
+                if (Config.getConf().debug) {
+                    testPlanExecutionLog += "(Upgrade) Single node coverage collection in "
+                            + (System.currentTimeMillis() - initTime) + " ms, ";
+                }
                 initTime = System.currentTimeMillis();
 
                 if (!handleUpgradeOp((UpgradeOp) event)) {
                     logger.error("UpgradeOp problem");
                     status = false;
-                    testPlanExecutionLog += "(Upgrade) operation failed in "
-                            + (System.currentTimeMillis() - initTime) + " ms, ";
+                    if (Config.getConf().debug) {
+                        testPlanExecutionLog += "(Upgrade) operation failed in "
+                                + (System.currentTimeMillis() - initTime)
+                                + " ms, ";
+                    }
                     break;
                 }
-                testPlanExecutionLog += "(Upgrade) operation in "
-                        + (System.currentTimeMillis() - initTime) + " ms, ";
+                if (Config.getConf().debug) {
+                    testPlanExecutionLog += "(Upgrade) operation in "
+                            + (System.currentTimeMillis() - initTime) + " ms, ";
+                }
             } else if (event instanceof DowngradeOp) {
                 if (!handleDowngradeOp((DowngradeOp) event)) {
                     logger.error("DowngradeOp problem");
                     status = false;
-                    testPlanExecutionLog += "(Downgrade) operation failed in "
-                            + (System.currentTimeMillis() - initTime) + " ms, ";
+                    if (Config.getConf().debug) {
+                        testPlanExecutionLog += "(Downgrade) operation failed in "
+                                + (System.currentTimeMillis() - initTime)
+                                + " ms, ";
+                    }
                     break;
                 }
-                testPlanExecutionLog += "(Downgrade) operation in "
-                        + (System.currentTimeMillis() - initTime) + " ms, ";
+                if (Config.getConf().debug) {
+                    testPlanExecutionLog += "(Downgrade) operation in "
+                            + (System.currentTimeMillis() - initTime) + " ms, ";
+                }
             } else if (event instanceof PrepareUpgrade) {
                 if (!handlePrepareUpgrade((PrepareUpgrade) event)) {
                     logger.error("UpgradeOp problem");
                     status = false;
-                    testPlanExecutionLog += "(Prepare) upgrade failed in "
-                            + (System.currentTimeMillis() - initTime) + " ms, ";
+                    if (Config.getConf().debug) {
+                        testPlanExecutionLog += "(Prepare) upgrade failed in "
+                                + (System.currentTimeMillis() - initTime)
+                                + " ms, ";
+                    }
                     break;
                 }
-                testPlanExecutionLog += "(Prepare) upgrade event in "
-                        + (System.currentTimeMillis() - initTime) + " ms, ";
+                if (Config.getConf().debug) {
+                    testPlanExecutionLog += "(Prepare) upgrade event in "
+                            + (System.currentTimeMillis() - initTime) + " ms, ";
+                }
             } else if (event instanceof HDFSStopSNN) {
                 if (!handleHDFSStopSNN((HDFSStopSNN) event)) {
                     logger.error("HDFS stop SNN problem");
                     status = false;
-                    testPlanExecutionLog += "(HDFSStopSNN) event failed in "
-                            + (System.currentTimeMillis() - initTime) + " ms, ";
+                    if (Config.getConf().debug) {
+                        testPlanExecutionLog += "(HDFSStopSNN) event failed in "
+                                + (System.currentTimeMillis() - initTime)
+                                + " ms, ";
+                    }
                     break;
                 }
-                testPlanExecutionLog += "(HDFSStopSNN) HDFS event in "
-                        + (System.currentTimeMillis() - initTime) + " ms, ";
+                if (Config.getConf().debug) {
+                    testPlanExecutionLog += "(HDFSStopSNN) HDFS event in "
+                            + (System.currentTimeMillis() - initTime) + " ms, ";
+                }
             } else if (event instanceof FinalizeUpgrade) {
                 if (!handleFinalizeUpgrade((FinalizeUpgrade) event)) {
                     logger.error("FinalizeUpgrade problem");
                     status = false;
-                    testPlanExecutionLog += "(Finalize) upgrade failed in "
-                            + (System.currentTimeMillis() - initTime) + " ms, ";
+                    if (Config.getConf().debug) {
+                        testPlanExecutionLog += "(Finalize) upgrade failed in "
+                                + (System.currentTimeMillis() - initTime)
+                                + " ms, ";
+                    }
                     break;
                 }
-                testPlanExecutionLog += "(Finalize) upgrade event in "
-                        + (System.currentTimeMillis() - initTime) + " ms, ";
+                if (Config.getConf().debug) {
+                    testPlanExecutionLog += "(Finalize) upgrade event in "
+                            + (System.currentTimeMillis() - initTime) + " ms, ";
+                }
             }
         }
         return status;

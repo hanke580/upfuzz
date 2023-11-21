@@ -405,7 +405,27 @@ public class MiniClientMain {
 
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             executedTestNum++;
-            // String[] commandSequenceList = { //1,2,3,6,7
+
+            // if you want to run fixed command sequence, remove the comments
+            // from the following lines
+
+            // String[] commandSequenceList = {
+            // "CREATE KEYSPACE distributed_test_keyspace WITH REPLICATION=
+            // {'class' : 'SimpleStrategy', 'replication_factor': 3 };",
+            // "CREATE TABLE distributed_test_keyspace.tbl (pk int, ck int, v
+            // int, PRIMARY KEY (pk, ck));",
+            // "INSERT INTO distributed_test_keyspace.tbl (pk, ck, v) VALUES (1,
+            // 1, 1) IF NOT EXISTS;",
+            // "UPDATE distributed_test_keyspace.tbl SET v = 3 WHERE pk = 1 and
+            // ck = 1 IF v = 2;",
+            // "UPDATE distributed_test_keyspace.tbl SET v = 2 WHERE pk = 1 and
+            // ck = 1 IF v = 1;",
+            // };
+            // String[] validationCommandsList = {
+            // "SELECT * FROM distributed_test_keyspace.tbl WHERE pk = 1;",
+            // };
+
+            // String[] commandSequenceList2 = { //1,2,3,6,7
             // "CREATE KEYSPACE uuid7bc0babf3a4d4970b4f20f4376046e36 WITH
             // REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor'
             // : 2 };",
@@ -446,7 +466,7 @@ public class MiniClientMain {
             // TKljkanAl set<INT> ;"
             // };
 
-            // String[] validationCommandsList = {
+            // String[] validationCommandsList2 = {
             // "SELECT UCTCKyMQZwcolZRRsOwT, y, QMMI, JptplUFOay, TKljkanAl,
             // cAPh, Zba, JJZdN, znIkGzEuT FROM
             // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
