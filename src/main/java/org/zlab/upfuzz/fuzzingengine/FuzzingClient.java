@@ -190,9 +190,11 @@ public class FuzzingClient {
         for (int i = 0; i < CLUSTER_START_RETRY; i++) {
             try {
                 if (executor.startup()) {
-                    logger.info(
+                    if (Config.getConf().debug) {
+                        logger.info(
                             "[Fuzzing Client] started up executor after trial "
                                     + i);
+                    }
                     return true;
                 }
             } catch (Exception e) {
@@ -517,16 +519,22 @@ public class FuzzingClient {
             }
         }
 
-        logger.info("[Fuzzing Client] Call to initialize executor");
+        if (Config.getConf().debug) {
+            logger.info("[Fuzzing Client] Call to initialize executor");
+        }
         executor = initExecutor(stackedTestPacket.nodeNum, null, configPath);
-        logger.info("[Fuzzing Client] Call to start up executor");
+        if (Config.getConf().debug) {
+            logger.info("[Fuzzing Client] Call to start up executor");
+        }
         boolean startUpStatus = startUpExecutor();
         if (!startUpStatus) {
             // old version **cluster** start up problem, this won't be upgrade
             // bugs
             return null;
         }
-        logger.info("[Fuzzing Client] started up executor");
+        if (Config.getConf().debug) {
+            logger.info("[Fuzzing Client] started up executor");
+        }
 
         if (Config.getConf().startUpClusterForDebugging) {
             logger.info("[Debugging Mode] Start up the cluster only");
@@ -539,14 +547,22 @@ public class FuzzingClient {
             System.exit(1);
         }
 
-        logger.info("[Fuzzing Client] Call to run the tests");
+        if (Config.getConf().debug) {            
+            logger.info("[Fuzzing Client] Call to run the tests");
+        }
         StackedFeedbackPacket stackedFeedbackPacket = runTheTests(executor,
                 stackedTestPacket);
-        logger.info("[Fuzzing Client] completed the testing");
+        if (Config.getConf().debug) {
+            logger.info("[Fuzzing Client] completed the testing");
+        }
 
-        logger.info("[Fuzzing Client] Call to teardown executor");
+        if (Config.getConf().debug) {                   
+            logger.info("[Fuzzing Client] Call to teardown executor");
+        }
         tearDownExecutor();
-        logger.info("[Fuzzing Client] Executor torn down");
+        if (Config.getConf().debug) {
+            logger.info("[Fuzzing Client] Executor torn down");
+        }
         return stackedFeedbackPacket;
     }
 
@@ -973,16 +989,23 @@ public class FuzzingClient {
         }
 
         // start up cluster
-        logger.info("[Fuzzing Client] Call to initialize executor");
+        if (Config.getConf().debug) {
+            logger.info("[Fuzzing Client] Call to initialize executor");
+        }
         executor = initExecutor(testPlanPacket.getNodeNum(), targetSystemStates,
                 configPath);
-        logger.info("[Fuzzing Client] Call to start up executor");
+        
+        if (Config.getConf().debug) {
+            logger.info("[Fuzzing Client] Call to start up executor");
+        }
         boolean startUpStatus = startUpExecutor();
         if (!startUpStatus) {
             return null;
         }
-        logger.info("[Fuzzing Client] started up executor");
 
+        if (Config.getConf().debug) {            
+            logger.info("[Fuzzing Client] started up executor");
+        }
         // LOG checking1
         Long curTime2 = System.currentTimeMillis();
         Map<Integer, LogInfo> logInfoBeforeUpgrade = null;
@@ -990,16 +1013,20 @@ public class FuzzingClient {
             logger.info("[HKLOG] error log checking");
             logInfoBeforeUpgrade = executor.grepLogInfo();
         }
-        logger.info(String.format(
+        if (Config.getConf().debug) {
+            logger.info(String.format(
                 "[Fuzzing Client] completed first log checking in %d ms",
                 System.currentTimeMillis() - curTime2));
-
+        }
         // execute test plan (rolling upgrade + fault)
 
-        logger.info("[Fuzzing Client] Call to run the tests");
+        if (Config.getConf().debug) {
+            logger.info("[Fuzzing Client] Call to run the tests");
+        }
         boolean status = executor.execute(testPlanPacket.getTestPlan());
-        logger.info("[Fuzzing Client] completed the testing");
-
+        if (Config.getConf().debug) {
+            logger.info("[Fuzzing Client] completed the testing");
+        }
         FeedBack[] testPlanFeedBacks = new FeedBack[nodeNum];
 
         Long curTime = System.currentTimeMillis();
@@ -1026,9 +1053,11 @@ public class FuzzingClient {
                     testPlanFeedBacks[i].originalCodeCoverage = executor.oriCoverage[i];
             }
         }
-        logger.info(String.format(
+        if (Config.getConf().debug) {
+            logger.info(String.format(
                 "[Fuzzing Client] completed collecting code coverages in %d ms",
                 System.currentTimeMillis() - curTime));
+        }
 
         TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
                 testPlanPacket.systemID, testPlanPacket.configFileName,
@@ -1154,13 +1183,17 @@ public class FuzzingClient {
                 }
             }
         }
-        logger.info(String.format(
+        if (Config.getConf().debug) {
+            logger.info(String.format(
                 "[Fuzzing Client] completed second log checking in %d ms",
                 System.currentTimeMillis() - curTime));
 
-        logger.info("[Fuzzing Client] Call to teardown executor");
+            logger.info("[Fuzzing Client] Call to teardown executor");
+        }
         tearDownExecutor();
-        logger.info("[Fuzzing Client] Executor torn down");
+        if (Config.getConf().debug) {
+            logger.info("[Fuzzing Client] Executor torn down");
+        }
         return testPlanFeedbackPacket;
     }
 

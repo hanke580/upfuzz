@@ -77,7 +77,9 @@ public class CassandraCqlshDaemon {
                             + "  "
                             + "Connect to cqlsh:" + ipAddress + "..." + i);
                     socket = new Socket();
-                    logger.info("[CassandraCqlshDaemon] Created a new socket");
+                    if (Config.getConf().debug) {
+                        logger.info("[CassandraCqlshDaemon] Created a new socket");
+                    }
                     socket.connect(new InetSocketAddress(ipAddress, port),
                             3 * 1000);
                     logger.info(
@@ -85,10 +87,10 @@ public class CassandraCqlshDaemon {
                                     + "Cqlsh connected: " + ipAddress);
                     if (Config.getConf().debug) {
                         logger.info(
-                                "[CassandraCqlshDaemon] Needed total proc exec time "
-                                        + totalProcExecTime + " ms"
-                                        + " and total read time "
-                                        + totalReadTimeFromProcess + " ms");
+                            "[CassandraCqlshDaemon] Needed total proc exec time "
+                                    + totalProcExecTime + " ms"
+                                    + " and total read time "
+                                    + totalReadTimeFromProcess + " ms");
                     }
                     totalReadTimeFromProcess = 0L;
                     totalProcExecTime = 0L;
@@ -106,7 +108,7 @@ public class CassandraCqlshDaemon {
                 try {
                     if (Config.getConf().debug) {
                         logger.info(
-                                "[CassandraCqlshDaemon] the process should start now");
+                            "[CassandraCqlshDaemon] the process should start now");
                     }
                     Long curTime = System.currentTimeMillis();
                     Process grepProc = docker.runInContainer(new String[] {
@@ -116,9 +118,9 @@ public class CassandraCqlshDaemon {
                     totalProcExecTime += System.currentTimeMillis() - curTime;
                     if (Config.getConf().debug) {
                         logger.info(
-                                String.format(
-                                        "[CassandraCqlshDaemon] have searched the daemon process in container for %d ms",
-                                        System.currentTimeMillis() - curTime));
+                            String.format(
+                                    "[CassandraCqlshDaemon] have searched the daemon process in container for %d ms",
+                                    System.currentTimeMillis() - curTime));
                     }
                     curTime = System.currentTimeMillis();
                     String result = new String(
@@ -127,9 +129,9 @@ public class CassandraCqlshDaemon {
                             - curTime;
                     if (Config.getConf().debug) {
                         logger.info(
-                                String.format(
-                                        "[CassandraCqlshDaemon] have read the bytes in %d ms",
-                                        System.currentTimeMillis() - curTime));
+                            String.format(
+                                    "[CassandraCqlshDaemon] have read the bytes in %d ms",
+                                    System.currentTimeMillis() - curTime));
                     }
                     // Process grepProc2 = docker.runInContainer(new String[] {
                     // "/bin/sh", "-c",
@@ -205,9 +207,8 @@ public class CassandraCqlshDaemon {
         // logger.info("before decode: " + cqlshPacket.message);
         cqlshPacket.message = Utilities.decodeString(cqlshPacket.message)
                 .replace("\0", "");
-        if (Config.getConf().debug) {
-            logger.info("[CqlshDaemon] cqlsh message after decode: "
-                    + cqlshPacket.message);
+        if (Config.getConf().debug) {            
+            logger.info("[CqlshDaemon] cqlsh message after decode: " + cqlshPacket.message);
         }
 
         // logger.info("value size = " + cqlshPacket.message.length());
