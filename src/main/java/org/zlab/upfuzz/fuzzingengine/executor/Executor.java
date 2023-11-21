@@ -422,7 +422,9 @@ public abstract class Executor implements IExecutor {
         Set<String> agentIdList = sessionGroup.get(executorID + "_" + version);
         // logger.info("agentIdList: " + agentIdList);
         // logger.info("executorID = " + executorID);
-        logger.info("[Executor] Invoked separate coverage collection");
+        if (Config.getConf().debug) {
+            logger.info("[Executor] Invoked separate coverage collection");
+        }
         if (agentIdList == null) {
             logger.error("No agent connection with executor " +
                     executorID);
@@ -433,15 +435,21 @@ public abstract class Executor implements IExecutor {
                 if (agentId.split("-")[3].equals("null"))
                     continue;
                 // logger.info("collect conn " + agentId);
-                logger.info(
+                if (Config.getConf().debug) {
+                    logger.info(
                         "[Executor] Going to get connection for agent server handler");
+                }
                 AgentServerHandler conn = agentHandler.get(agentId);
-                logger.info("[Executor] Going to collect coverage");
+                if (Config.getConf().debug) {
+                    logger.info("[Executor] Going to collect coverage");
+                }
                 if (conn != null) {
                     agentStore.remove(agentId);
                     conn.collect();
                 }
-                logger.info("[Executor] collected coverage");
+                if (Config.getConf().debug) {
+                    logger.info("[Executor] collected coverage");
+                }
             }
 
             ExecutionDataStore[] executionDataStores = new ExecutionDataStore[nodeNum];

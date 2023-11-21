@@ -84,12 +84,12 @@ class FuzzingClientSocket implements Runnable {
 
                 if (feedBackPacket == null) {
                     logger.debug(
-                            "[Client] Old version cluster startup problem");
+                            "[HKLOG] Old version cluster startup problem");
                     out.writeInt(-1);
                 } else {
                     feedBackPacket.write(out);
                     logger.debug(
-                            "[Client] Writing feedback packet back to server");
+                            "[HKLOG] Writing feedback packet back to server");
                 }
                 readHeader();
             } catch (Exception e) {
