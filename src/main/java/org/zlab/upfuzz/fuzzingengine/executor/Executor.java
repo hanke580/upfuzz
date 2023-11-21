@@ -39,6 +39,7 @@ public abstract class Executor implements IExecutor {
     public int nodeNum;
     public Set<String> targetSystemStates;
     public Path configPath;
+    public String testPlanExecutionLog = "";
 
     // Use for test plan coverage collection
     public ExecutionDataStore[] oriCoverage;
@@ -60,6 +61,10 @@ public abstract class Executor implements IExecutor {
 
     /* socket for client and agents to communicate*/
     public AgentServerSocket agentSocket;
+
+    public String getTestPlanExecutionLog() {
+        return testPlanExecutionLog;
+    }
 
     protected Executor() {
         executorID = RandomStringUtils.randomAlphanumeric(8);
@@ -193,61 +198,103 @@ public abstract class Executor implements IExecutor {
         for (eventIdx = 0; eventIdx < testPlan.getEvents().size(); eventIdx++) {
             Event event = testPlan.getEvents().get(eventIdx);
             logger.info(String.format("\nhandle %s\n", event));
+            // String command = String.format("handle %d %s ", eventIdx, event);
+            // testPlanExecutionLog += command.replace(";", ",").replace(":", "
+            // ");
+
+            Long initTime = System.currentTimeMillis();
             if (event instanceof Fault) {
                 if (!handleFault((Fault) event)) {
                     // If fault injection fails, keep executing
                     logger.error(
                             String.format("Cannot Inject {%s} here", event));
                     status = false;
+                    testPlanExecutionLog += "(Fault) injection failed in "
+                            + (System.currentTimeMillis() - initTime) + " ms, ";
                     break;
                 }
+                testPlanExecutionLog += "(Fault) injection in "
+                        + (System.currentTimeMillis() - initTime) + " ms, ";
             } else if (event instanceof FaultRecover) {
                 if (!handleFaultRecover((FaultRecover) event)) {
                     logger.error("FaultRecover execution problem");
                     status = false;
+                    testPlanExecutionLog += "(Recover) recovery failed in "
+                            + (System.currentTimeMillis() - initTime) + " ms, ";
                     break;
                 }
+                testPlanExecutionLog += "(Recover) fault recover in "
+                        + (System.currentTimeMillis() - initTime) + " ms, ";
             } else if (event instanceof ShellCommand) {
                 if (!handleCommand((ShellCommand) event)) {
                     logger.error("ShellCommand problem");
                     status = false;
+
+                    testPlanExecutionLog += "(Shell) execution failed in "
+                            + (System.currentTimeMillis() - initTime) + " ms, ";
                     break;
                 }
+                testPlanExecutionLog += "(Shell) command execution in "
+                        + (System.currentTimeMillis() - initTime) + " ms, ";
             } else if (event instanceof UpgradeOp) {
                 UpgradeOp upgradeOp = (UpgradeOp) event;
                 int nodeIdx = upgradeOp.nodeIndex;
                 oriCoverage[nodeIdx] = collectSingleNodeCoverage(nodeIdx,
                         "original");
 
+                testPlanExecutionLog += "(Upgrade) Single node coverage collection in "
+                        + (System.currentTimeMillis() - initTime) + " ms, ";
+                initTime = System.currentTimeMillis();
+
                 if (!handleUpgradeOp((UpgradeOp) event)) {
                     logger.error("UpgradeOp problem");
                     status = false;
+                    testPlanExecutionLog += "(Upgrade) operation failed in "
+                            + (System.currentTimeMillis() - initTime) + " ms, ";
                     break;
                 }
+                testPlanExecutionLog += "(Upgrade) operation in "
+                        + (System.currentTimeMillis() - initTime) + " ms, ";
             } else if (event instanceof DowngradeOp) {
                 if (!handleDowngradeOp((DowngradeOp) event)) {
                     logger.error("DowngradeOp problem");
                     status = false;
+                    testPlanExecutionLog += "(Downgrade) operation failed in "
+                            + (System.currentTimeMillis() - initTime) + " ms, ";
                     break;
                 }
+                testPlanExecutionLog += "(Downgrade) operation in "
+                        + (System.currentTimeMillis() - initTime) + " ms, ";
             } else if (event instanceof PrepareUpgrade) {
                 if (!handlePrepareUpgrade((PrepareUpgrade) event)) {
                     logger.error("UpgradeOp problem");
                     status = false;
+                    testPlanExecutionLog += "(Prepare) upgrade failed in "
+                            + (System.currentTimeMillis() - initTime) + " ms, ";
                     break;
                 }
+                testPlanExecutionLog += "(Prepare) upgrade event in "
+                        + (System.currentTimeMillis() - initTime) + " ms, ";
             } else if (event instanceof HDFSStopSNN) {
                 if (!handleHDFSStopSNN((HDFSStopSNN) event)) {
                     logger.error("HDFS stop SNN problem");
                     status = false;
+                    testPlanExecutionLog += "(HDFSStopSNN) event failed in "
+                            + (System.currentTimeMillis() - initTime) + " ms, ";
                     break;
                 }
+                testPlanExecutionLog += "(HDFSStopSNN) HDFS event in "
+                        + (System.currentTimeMillis() - initTime) + " ms, ";
             } else if (event instanceof FinalizeUpgrade) {
                 if (!handleFinalizeUpgrade((FinalizeUpgrade) event)) {
                     logger.error("FinalizeUpgrade problem");
                     status = false;
+                    testPlanExecutionLog += "(Finalize) upgrade failed in "
+                            + (System.currentTimeMillis() - initTime) + " ms, ";
                     break;
                 }
+                testPlanExecutionLog += "(Finalize) upgrade event in "
+                        + (System.currentTimeMillis() - initTime) + " ms, ";
             }
         }
         return status;
@@ -303,6 +350,7 @@ public abstract class Executor implements IExecutor {
             String version) {
         Set<String> agentIdList = sessionGroup.get(executorID + "_" + version);
         ExecutionDataStore executionDataStore = null;
+        logger.info("[Executor] Invoked single node coverage collection");
         if (agentIdList == null) {
             logger.error("No agent connection with executor " +
                     executorID);
@@ -333,6 +381,7 @@ public abstract class Executor implements IExecutor {
         Set<String> agentIdList = sessionGroup.get(executorID + "_" + version);
         // logger.info("agentIdList: " + agentIdList);
         // logger.info("executorID = " + executorID);
+        logger.info("[Executor] Invoked separate coverage collection");
         if (agentIdList == null) {
             logger.error("No agent connection with executor " +
                     executorID);
@@ -343,11 +392,15 @@ public abstract class Executor implements IExecutor {
                 if (agentId.split("-")[3].equals("null"))
                     continue;
                 // logger.info("collect conn " + agentId);
+                logger.info(
+                        "[Executor] Going to get connection for agent server handler");
                 AgentServerHandler conn = agentHandler.get(agentId);
+                logger.info("[Executor] Going to collect coverage");
                 if (conn != null) {
                     agentStore.remove(agentId);
                     conn.collect();
                 }
+                logger.info("[Executor] collected coverage");
             }
 
             ExecutionDataStore[] executionDataStores = new ExecutionDataStore[nodeNum];
