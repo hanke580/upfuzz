@@ -19,6 +19,7 @@ import java.io.PrintWriter;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.zlab.ocov.tracker.ObjectCoverage;
 import org.zlab.upfuzz.fuzzingengine.Config.Configuration;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.fuzzingengine.Config;
@@ -383,35 +384,13 @@ public class MiniClientMain {
         boolean breakNewInv = false;
 
         int[] lastBrokenInv = null;
-        if (Config.getConf().useLikelyInv) {
-            lastBrokenInv = executor.getBrokenInv();
-        }
 
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             executedTestNum++;
 
             // if you want to run fixed command sequence, remove the comments
             // from the following lines
-
-            // String[] commandSequenceList = {
-            // "CREATE KEYSPACE distributed_test_keyspace WITH REPLICATION=
-            // {'class' : 'SimpleStrategy', 'replication_factor': 3 };",
-            // "CREATE TABLE distributed_test_keyspace.tbl (pk int, ck int, v
-            // int, PRIMARY KEY (pk, ck));",
-            // "INSERT INTO distributed_test_keyspace.tbl (pk, ck, v) VALUES (1,
-            // 1, 1) IF NOT EXISTS;",
-            // "UPDATE distributed_test_keyspace.tbl SET v = 3 WHERE pk = 1 and
-            // ck = 1 IF v = 2;",
-            // "UPDATE distributed_test_keyspace.tbl SET v = 2 WHERE pk = 1 and
-            // ck = 1 IF v = 1;",
-            // };
-            // String[] validationCommandsList = {
-            // "SELECT * FROM distributed_test_keyspace.tbl WHERE pk = 1;",
-            // };
-
-            // List<String> originalCommandSequenceList = Arrays.asList(commandSequenceList);
-            // executor.executeCommands(originalCommandSequenceList);
-
+            // Moved the commented code to Utilities.createExampleCommands();
             executor.executeCommands(tp.originalCommandSequenceList);
             testExecutionLog += executor.getTestPlanExecutionLog();
             FeedBack[] feedBacks = new FeedBack[stackedTestPacket.nodeNum];
@@ -435,31 +414,12 @@ public class MiniClientMain {
                     .executeCommands(tp.validationCommandSequenceList);
             testID2oriResults.put(tp.testPacketID, oriResult);
 
-            // check invariants!
-            // calculate the diff between the current inv vs last inv
-            if (Config.getConf().useLikelyInv) {
-                // calculate the startup invariant, this should give credit
-                // to configuration file
-                int[] curBrokenInv = executor.getBrokenInv();
-                int[] diffBrokenInv = Utilities
-                        .computeDiffBrokenInv(lastBrokenInv, curBrokenInv);
-                lastBrokenInv = curBrokenInv;
+            if (Config.getConf().enableFormatCoverage) {
+                // logger.info("[HKLOG] format coverage checking");
                 testID2FeedbackPacket
-                        .get(tp.testPacketID).brokenInvs = diffBrokenInv;
-                // check whether any new invariant is broken
-                for (int i = 0; i < diffBrokenInv.length; i++) {
-                    if (!stackedTestPacket.ignoredInvs.contains(i)
-                            && diffBrokenInv[i] != 0) {
-                        testID2FeedbackPacket
-                                .get(tp.testPacketID).breakNewInv = true;
-                        breakNewInv = true;
-                        break;
-                    }
-                }
-                if (Config.getConf().skip && breakNewInv)
-                    break;
+                        .get(tp.testPacketID).formatCoverage = executor
+                                .getFormatCoverage();
             }
-
         }
 
         StackedFeedbackPacket stackedFeedbackPacket = new StackedFeedbackPacket(

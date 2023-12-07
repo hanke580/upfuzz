@@ -16,6 +16,19 @@ mkdir -p /var/log/cassandra
 mkdir -p /var/lib/cassandra
 
 if [[ ! -f "/tmp/.setup_conf" ]]; then
+    echo "copy format coverage information to tmp folder"
+    # Check whether the format coverage information available
+    # Use another variable to denote whether
+    # file: $CASSANDRA_HOME/topObjects.json and $CASSANDRA_HOME/serializedFields_alg1.json
+
+    # Check if the environment variable is set to true
+    if [ "$ENABLE_FORMAT_COVERAGE" = "true" ]; then
+        # Copy the file to /tmp
+        echo "Enable format coverage"
+        cp "$CASSANDRA_HOME/topObjects.json" /tmp/
+        cp "$CASSANDRA_HOME/serializedFields_alg1.json" /tmp/
+    fi
+
     echo "copy and format configurations"
     for VERSION in ${ORG_VERSION} ${UPG_VERSION}; do
         mkdir /etc/${VERSION}

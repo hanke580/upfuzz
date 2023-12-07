@@ -2,8 +2,14 @@ package org.zlab.upfuzz.fuzzingengine;
 
 import com.google.gson.GsonBuilder;
 import java.lang.reflect.Field;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.zlab.ocov.tracker.ObjectCoverage;
 
 public class Config {
 
@@ -17,6 +23,19 @@ public class Config {
 
     public Config() {
         instance = new Configuration();
+
+        // Path for format coverage
+        if (instance.enableFormatCoverage) {
+            try {
+                URL sysInfoURL = getClass().getResource(
+                        instance.system + "/"
+                                + instance.originalVersion);
+                Path sysInfoPath = Paths.get(sysInfoURL.toURI());
+            } catch (URISyntaxException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
     }
 
     public static class Configuration {
@@ -75,7 +94,6 @@ public class Config {
 
         // ------------FeedBack------------
         public boolean useCodeCoverage = true;
-        public boolean useLikelyInv = false;
         public boolean collUpFeedBack = true;
 
         // ------------Fault Injection-------------
@@ -137,18 +155,17 @@ public class Config {
         public boolean usePriorityCov = false;
         public double oldCovRatio = 0.4;
 
-        // ---------------Likely Inv-----------------
-        // if an invariant is broken over 20% test cases, ignore it
-        public double ignoreInvRatio = 0.2;
-        public int runtimeMonitorPort = 62000;
-        // if a inv is broken, we immediate skip it!
-        public boolean skip = false;
-        // Prioritize likely invariants in the priority queue
-        public int INVARIANT_PRIORITY_SCORE = 20;
-        public final int INVARIANT_MAP_LENGTH = 1000;
-
         // ---------------Test Graph-----------------
         public String testGraphDirPath = "graph";
+
+        // ---------------Format Coverage-----------------
+        public boolean enableFormatCoverage = false;
+        public String baseClassInfoFileName = "serializedFields_alg1.json";
+        public String topObjectsFileName = "topObjects.json";
+
+        public String formatInfoFolder = null;
+
+        public int formatCoveragePort = 62000;
 
         /**
          * ---------------Version Specific-----------------

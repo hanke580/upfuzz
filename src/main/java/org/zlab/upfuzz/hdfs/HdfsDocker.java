@@ -74,8 +74,8 @@ public class HdfsDocker extends Docker {
         formatMap.put("namenodeIP", namenodeIP);
         formatMap.put("networkIP", networkIP);
         formatMap.put("agentPort", Integer.toString(agentPort));
-        formatMap.put("runtimeMonitorPort",
-                Integer.toString(Config.instance.runtimeMonitorPort));
+        formatMap.put("formatCoveragePort",
+                Integer.toString(Config.instance.formatCoveragePort));
         formatMap.put("executorID", executorID);
         StringSubstitutor sub = new StringSubstitutor(formatMap);
         this.composeYaml = sub.replace(template);
@@ -325,7 +325,6 @@ public class HdfsDocker extends Docker {
             + "            - HDFS_LOG_DIR=/var/log/hadoop\n"
             + "        expose:\n"
             + "            - ${agentPort}\n"
-            + "            - ${runtimeMonitorPort}\n"
             + "            - 50020\n"
             + "            - 50010\n"
             + "            - 50075\n"

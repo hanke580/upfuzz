@@ -780,4 +780,158 @@ public class Utilities {
         }
         return true;
     }
+
+    // Only test usage: from bishal
+    public static List<String> createExampleCommands() {
+        // String[] commandSequenceList = {
+        // "CREATE KEYSPACE distributed_test_keyspace WITH REPLICATION=
+        // {'class' : 'SimpleStrategy', 'replication_factor': 3 };",
+        // "CREATE TABLE distributed_test_keyspace.tbl (pk int, ck int, v
+        // int, PRIMARY KEY (pk, ck));",
+        // "INSERT INTO distributed_test_keyspace.tbl (pk, ck, v) VALUES (1,
+        // 1, 1) IF NOT EXISTS;",
+        // "UPDATE distributed_test_keyspace.tbl SET v = 3 WHERE pk = 1 and
+        // ck = 1 IF v = 2;",
+        // "UPDATE distributed_test_keyspace.tbl SET v = 2 WHERE pk = 1 and
+        // ck = 1 IF v = 1;",
+        // };
+        // String[] validationCommandsList = {
+        // "SELECT * FROM distributed_test_keyspace.tbl WHERE pk = 1;",
+        // };
+
+        // String[] commandSequenceList2 = { //1,2,3,6,7
+        // "CREATE KEYSPACE uuid7bc0babf3a4d4970b4f20f4376046e36 WITH
+        // REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor'
+        // : 2 };",
+        // "CREATE KEYSPACE IF NOT EXISTS
+        // uuid22437341ec0044a397da18834342ac32 WITH REPLICATION = { 'class'
+        // : 'SimpleStrategy', 'replication_factor' : 2 };",
+        // "CREATE TYPE uuid22437341ec0044a397da18834342ac32.y (y
+        // set<TEXT>,zZAspM set<INT>,cAPh TEXT,JJZdN TEXT,QMMI
+        // set<INT>,JptplUFOay TEXT,OZXBDHHAL TEXT);",
+        // "DROP KEYSPACE uuid7bc0babf3a4d4970b4f20f4376046e36;",
+        // "DROP KEYSPACE uuid22437341ec0044a397da18834342ac32;",
+        // "CREATE KEYSPACE IF NOT EXISTS
+        // uuidb0fa2c07e69b4a679dc6725e8697fc91 WITH REPLICATION = { 'class'
+        // : 'SimpleStrategy', 'replication_factor' : 2 };",
+        // "CREATE TABLE uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI (QMMI
+        // INT,OZXBDHHAL set<TEXT>,Zba set<TEXT>,JptplUFOay TEXT,y
+        // TEXT,JJZdN TEXT,UCTCKyMQZwcolZRRsOwT TEXT, PRIMARY KEY
+        // (JptplUFOay, y, UCTCKyMQZwcolZRRsOwT, JJZdN )) WITH
+        // speculative_retry = 'ALWAYS';",
+        // "ALTER TABLE uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI RENAME
+        // cAPh TO cAPh;",
+        // "DELETE FROM uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh
+        // = 'GVbImcbCdFxPGtKYyNQwiIXYVAdmRJBrQageKxhEZZXGujCWjan' AND y =
+        // 'vLIJbZlyHZeVUHuVXbbdBwoPHyidfgxDmRIYeSEkolubnEotnMPPLKKraBnUmyvHVwkWpuzvugVsanfnUOBhIqfybBUAjHYnSxmlovLCcpdkKDgeXDqTuwUKjZERnuWPrHDKGERdqtGT'
+        // AND UCTCKyMQZwcolZRRsOwT =
+        // 'rSmSxYEuESMgCBrGtYWIjkUDcLlLVYKJKlEFtJmsLkLigaFJXhHBMtEzdGftoHvMLJNuHWdjzFdnhEWBPioHcjVyWRKZnwdWkeAxWWrWxQamAuudiBurzaWKmIGIDstuOxNJGiwEVdqfNZWLEAPAVbjwSIPdbrWCxJcaElU'
+        // AND JJZdN = 'hfLBnzt';",
+        // "TRUNCATE TABLE uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI;",
+        // "ALTER TABLE uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI ADD
+        // znIkGzEuT set<TEXT> ;",
+        // "USE uuidb0fa2c07e69b4a679dc6725e8697fc91;",
+        // "ALTER TABLE uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI ADD
+        // JptplUFOay set<INT> ;",
+        // "ALTER TABLE uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI ALTER
+        // JJZdN TYPE set<TEXT> ;",
+        // "USE uuidb0fa2c07e69b4a679dc6725e8697fc91;",
+        // "ALTER TABLE uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI ADD
+        // TKljkanAl set<INT> ;"
+        // };
+
+        // String[] validationCommandsList2 = {
+        // "SELECT UCTCKyMQZwcolZRRsOwT, y, QMMI, JptplUFOay, TKljkanAl,
+        // cAPh, Zba, JJZdN, znIkGzEuT FROM
+        // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
+        // 'rpoHvlFcAsdcvNElBCpoXMpnOnnBupzTNtArrLEthXKNbDnqMYOQCXPOuozalwfKAdXlOHiaVYrFBPKLVxEBvlquSGOqSApexrdZBUtejrARzXPMqtcOljkPzXQbDxnhDzPkhQvdAczgjhImChKsaEmVAtgKWufWOUxCQhLfDEeLLjLzKQRmUWhQyoPaowwpjJHuTUGcwpFNsiWQZeiFpDogwesfZzKuyhIwiAykwOlLCx'
+        // AND y =
+        // 'cwSKgnEeKGQHIqbJnXGZZVEaGJqbPKkOGyGXWrxwUwwNMRXfmqHGoBIhIGOrUcXwWOvpXIANQFhETriSMpZefgflbwyvKHLhQaxwSfsRaCJCxPvqGSbxjnRLyBqUVmrAfwERnrqhzUGGGGOWnvbUulvPKMqUdpzqvhjihlkFbFpsuaozAlbilrLY'
+        // AND UCTCKyMQZwcolZRRsOwT = 'hDuATCtjOoQcXvPufnZXugTqoPIRsqnuifvp'
+        // ORDER BY y ASC;",
+        // "SELECT JJZdN, UCTCKyMQZwcolZRRsOwT, cAPh, TKljkanAl, JptplUFOay,
+        // Zba, OZXBDHHAL FROM uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI
+        // WHERE cAPh =
+        // 'ONklQQIzEUdtjqFXiiICCFxCgwdHLYTGpXOmrcAJEcQvtHcDePpYNfbGVEQJORSdIUKFWOhNGohrGlvhNbNVtazXBIkvYcHkBKPxMDhjimtoli'
+        // ORDER BY y DESC;",
+        // "SELECT OZXBDHHAL, y, cAPh FROM
+        // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
+        // 'IQokwRsRfWuSQyihOexAkPgicoaSD' AND y =
+        // 'xpgAfIXYJhpGUqgzObWggnUrkrpwUjhBsTbqymZEQluosmrsMtXfvogGVMkAHcAenFFfDUALIrcXPUEGbtiArksOUQtmOYgBEUCgtbilDuuqIMEcUfTJSjYYlHBPaIWfJqHoKOZQTCtlLVnPSSNowocQQpcNvnAMJEvPAiTKbLIJeDNrNgwgmoouVWBTQObQgzmBHGaYShUULLunlcJSEywRVGMKCwu'
+        // AND UCTCKyMQZwcolZRRsOwT =
+        // 'BcceMDyJMMwRbqWplXPeuMlIOkWoTwWNMVFuezCwqkleXJSyibTWVNsIjtbbRqOMxOylbGxsQDwkYioWNtRPOtKJSoooRAiGKmqsrJiWSjLCRXrNkYZVrNKabOjsnwxaFFfDTrOHHvLAuCrOoMgMGBEPaBNuM'
+        // ORDER BY y DESC;",
+        // "SELECT JJZdN FROM uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI
+        // WHERE cAPh =
+        // 'FQlTaZGmRvxWzuccowrrgdtkgJiOCnWxOfOmuukwFJBCBEkZeaXlADZpJpswFQoTCVNNnyj'
+        // AND y = 'wXE' AND UCTCKyMQZwcolZRRsOwT =
+        // 'BeCzSTBXirTVhUgGFNPCsdiloYEahrfQVGClTHJalB';",
+        // "SELECT cAPh, JJZdN, TKljkanAl, UCTCKyMQZwcolZRRsOwT, JptplUFOay,
+        // QMMI, OZXBDHHAL, y, znIkGzEuT FROM
+        // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI;",
+        // "SELECT Zba, UCTCKyMQZwcolZRRsOwT, znIkGzEuT FROM
+        // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI;",
+        // "SELECT cAPh, UCTCKyMQZwcolZRRsOwT, Zba, znIkGzEuT FROM
+        // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI;",
+        // "SELECT y, UCTCKyMQZwcolZRRsOwT FROM
+        // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
+        // 'dLtlNYdbujEXjJylvHENctHRtssfdiFnpvmyVzBKcbUunCKIvlwavHGLEofAgIVkSIjYcoIfRMRGKGXgfSqSvuLOAvxJtIwbmKzHiVjVpDlROHBUEeyloemClOmuAKuhUojrLpn'
+        // AND y =
+        // 'WtGscttHzsnQKvOSfdTYHkGNjMdJCcqZmcrhFUfAZvrBgVSafgnlFnWMkcelUCKPrnmJGIlBntJWLVnvjZmnSdvRyPfIltNxrHOaTOfriAGsrTuRalJvwSzEBOpONbwxHIVGUMCpdAjfZDWR'
+        // AND UCTCKyMQZwcolZRRsOwT =
+        // 'RjsxWeNqwPRNsxJNluSoCgvxnmvtSijaDzsnqjlFJWEEKUXXPJPhRgtfidRyhjRvRTqAheGnLjWRLcCjbzINNamFRsJgFjPQTXwBrVomLZkVXWUHhfaBWLGXvfXfEIdPnELBkZHkYFOvQikOmSBpEjqhoEeSckHPKtySUGAjfOnMZrmvdmVovOAndBqCGsezCeTInjKNDEwbCXiYnRROWLiBmdBiaMUBecnQsGwE'
+        // ORDER BY y DESC;",
+        // "SELECT y, JJZdN, znIkGzEuT, OZXBDHHAL, cAPh FROM
+        // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
+        // 'MyJVcXMGXewQINOhhxqEkscubxvkjDXqgbuBWgxSjdsvmOyHWJiOtgjDnzIBtXEtGOSGuITQPTkTinooCEjKYMiPsiwGrZIhKPNrHdfYLQEKUWcoUfdqvnYnbZVrCfRhuVTigkwIWPoyQgmlGtIQxflpjhAvROWdksIxHBmiNQALLyMpVXAxqPGLVpJfQLgJIdnosYulTMHrnyvHkkwUirSltCgzXMuugkqBBiUeZXDAiRNnclqjiquZmHRXy'
+        // AND y =
+        // 'TOVCaPnaISZjXqsmzjDRdgjBBcNPSSQqioVEJQQPoYUkXviPChjZxtYuPbXPqtdoyDKcEuRBtWFskEyKszyNjfLzNghflVsfDVkhWUKmoGBFtNSVlZoMzZnXzFoPyvKGhQoTEfPsuacWLBzypzKGkTOcZUfkyOjmRex'
+        // ORDER BY y DESC;",
+        // "SELECT * FROM uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE
+        // cAPh =
+        // 'yrMbCQaUVupOeuekzjACCGPJJhBoyuDFjLEBOkFPDppIJKAUrdfScSfhXLIHVfMXaiAzXafdYzXSRCVZfoaTgLvPzXuFkmDwMuecZLXgchehnRTkzAXhYtZsdXXGGTotABflUzb'
+        // ORDER BY y ASC;",
+        // "SELECT QMMI, OZXBDHHAL, JptplUFOay FROM
+        // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
+        // 'jttJKjamrJXgLcXBpzYcceQnrFrLHjkznwtMUKPMrVbSDfexffbXtNSfKMGYaYpxdDsRwbeeWZyDDdhEeGmLehYpjmKiwnGtayZUIekVBCrLqGKMxftDVpCJZTGtXIxelpPiyoEogUYiCPrlpJAjhatMRboVlFVyHYnxQoSciHPcaTkFGCmTJLjSSiqKgRPdLnJHlrSpfHZOmyPejUYAjoyfpkkNSRdxqyJfoElO'
+        // AND y = 'vyWJtHRfyrKpouqfRTDseowSjcGroRzXqpwYyTYgXnVeoGuqM';",
+        // "SELECT UCTCKyMQZwcolZRRsOwT, TKljkanAl, Zba, OZXBDHHAL, y FROM
+        // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
+        // 'knsxgfYJLOgWuXbhkmZZtXtmjkhXzqqMInfxnhgUiPIScqsdUeNhWHydrLmFMNYHYdAPPbXAoeMQFypzuSdhXUwmGaZclrYoOLIWRdQvHLeYjDeJngpcCzJtiCQHGYmFoztOMuACAqELEheJDihyekUCZppWAzJEXvMjcPCtrDQYkvhNOLYEwuzoMleONlSuSJOuugvFbicfdFUaojo'
+        // AND y = 'mVOlqvkSTpTpymWMbKUQNAVULnLV' AND UCTCKyMQZwcolZRRsOwT =
+        // 'XUtpvrFTjCeqbkgzLbsssBQrItwKACuvjpjzXUiGTEWzAHYXyLjzQITnxJyJdHyAOlVTgnuZBaXureAMbcQVTQZugGWZuAkjqUxApIdwjMEIPnCbTnlnAfo';",
+        // "SELECT JptplUFOay, y, cAPh FROM
+        // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
+        // 'kNwjXgHXWjkwDdpQILNMfrNHaZEZkXcmMOfztsGsotShnLwbPdvStBysxB' AND
+        // y =
+        // 'UUvfLVsxCdIbBXOxXGoVMRcmqyWcaumPZCeltQsUrPWFyYbCdipPLHpaEavQpsAQZeHbaErmD'
+        // AND UCTCKyMQZwcolZRRsOwT =
+        // 'DVbTDsFKTYjnmGWyhdOFpRQOfnPxrfQyqZFlEcem' AND JJZdN =
+        // 'ALJkDNqOIpZbdvOnZSYnjsLQCTvgKQiaqlSfRBpFMrTtxcoByXEvpQNWoyOPlhJRweGlcyPYMTKWIHZFtWmdOXKeAvhIhKB';",
+        // "SELECT UCTCKyMQZwcolZRRsOwT, cAPh, OZXBDHHAL, znIkGzEuT, y,
+        // QMMI, JJZdN FROM uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE
+        // cAPh =
+        // 'TKoaMHQVxuhmyqtfYShifSJZlHViNwSGbyikpichHGTCnHeubDiRJvhhWXGdQhDwdAeFkPltviIZwpozGELYLvPUnwGygOmaBsREeLMXmdagwJOWwhFoaOemgSfMpuELfnciSlIiDEsWfPFrayNcUfeqHlWzsCRlustCJHvRMZqkKuMCzPp'
+        // AND y = 'fTAdIEajfapGzxccfsGmOILUwFkhHwNhEgFc';",
+        // "SELECT UCTCKyMQZwcolZRRsOwT, y, JptplUFOay, znIkGzEuT,
+        // OZXBDHHAL, cAPh, QMMI, JJZdN FROM
+        // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI;",
+        // "SELECT cAPh, UCTCKyMQZwcolZRRsOwT, OZXBDHHAL FROM
+        // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
+        // 'ObYEJXGwJdMGxSrCwNREgLUMehxDpXsFVENLsJFzRctUFFtgfkxTDSzhcDstsRANdqhktvIuidgCQrzDlCHhkRWQZYvWkDON'
+        // AND y =
+        // 'BfhuiKpfMufxugRyvPmkpSLTmkDDkablwIrPcyQixwinYxzCjqzXlyrqKdZnEWabuynibgaCMSZQcGdTRKMaPmVnJBaDAjYoMqzGeLJBYxcQJpwkdQXNgOlGTXNbPRVviPmQaYrZJUAHjbEjGQQPMOnAsIWViMRC'
+        // AND UCTCKyMQZwcolZRRsOwT =
+        // 'DQkTMihcijbwPgUkEtWlJDbnNmdkIvmGBbVkGroYtmFydVdGMOFoNQehEIjBwJNURCrCKEIKzUmAuTQXtxcPYkbUGqGcTeMmQOaKfXLfVzkFFFvBjPVWLDlwFPerPIwvuDnVhAxuuLloPwjVyUBpmalsGEBcUSUMDtgupywsoCgzzujJuEFMIobEmlhigQaQeYXMiJKsOyddGdAtbGMPpBOBPGUwmH'
+        // AND JJZdN =
+        // 'wqyKJdHjgczsdFtbyoTEUnhmTfZGWfZpOKUFXNGsIaSGXXaANylWhPqZYmqBAgsjioIfnJpLHyZnSXLITpNMp';",
+        // "SELECT OZXBDHHAL, UCTCKyMQZwcolZRRsOwT FROM
+        // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
+        // 'YvnEUbTIDekDJMJeawGaUgmluZTFXCgQzjSmyDatfPiPNmTDzJQNXYZwtnjNjsMSeqfDHwGZHoghQBWHiItnfWsCsVAicCstW'
+        // AND y = 'SUr';"
+        // };
+        // List<String> originalCommandSequenceList = Arrays
+        // .asList(commandSequenceList);
+        return null;
+    }
 }

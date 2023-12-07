@@ -15,6 +15,7 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionDataStore;
+import org.zlab.ocov.tracker.ObjectCoverage;
 import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.State;
@@ -88,8 +89,8 @@ public class FuzzingServer {
     ConfigGen configGen;
     public Path configDirPath;
 
-    // Invariant
-    private final Map<Integer, Integer> inv2BrokenNum = new HashMap<>();
+    // Format coverage
+    private ObjectCoverage oriObjCoverage;
 
     // System state comparison
     public Set<String> targetSystemStates = new HashSet<>();
@@ -118,6 +119,14 @@ public class FuzzingServer {
         testPlanPackets = new LinkedList<>();
         curOriCoverage = new ExecutionDataStore();
         curUpCoverage = new ExecutionDataStore();
+
+        // format coverage init
+        if (Config.getConf().enableFormatCoverage)
+            oriObjCoverage = new ObjectCoverage(
+                    Paths.get(Config.getConf().formatInfoFolder,
+                            Config.getConf().baseClassInfoFileName),
+                    Paths.get(Config.getConf().formatInfoFolder,
+                            Config.getConf().topObjectsFileName));
 
         if (Config.getConf().testSingleVersion) {
             configDirPath = Paths.get(System.getProperty("user.dir"),
@@ -179,9 +188,6 @@ public class FuzzingServer {
                 fuzzOne();
             assert !stackedTestPackets.isEmpty();
             StackedTestPacket stackedTestPacket = stackedTestPackets.poll();
-            if (Config.getConf().useLikelyInv) {
-                stackedTestPacket.ignoredInvs = computeIgnoredInvs();
-            }
             return stackedTestPacket;
         } else if (Config.getConf().testingMode == 1) {
             // always execute one test case
@@ -1038,14 +1044,6 @@ public class FuzzingServer {
             logger.info("upgrade process is skipped");
         }
 
-        if (Config.getConf().useLikelyInv) {
-            if (stackedFeedbackPacket.breakNewInv) {
-                logger.info("== Detected new broken inv ==");
-            } else {
-                logger.info("== No broken inv ==");
-            }
-        }
-
         Path failureDir = null;
 
         int startTestID = 0;
@@ -1070,18 +1068,6 @@ public class FuzzingServer {
                 .getFpList()) {
             // handle invariant
             finishedTestID++;
-            if (Config.getConf().useLikelyInv) {
-                for (int i = 0; i < feedbackPacket.brokenInvs.length; i++) {
-                    if (feedbackPacket.brokenInvs[i] != 0) {
-                        if (inv2BrokenNum.containsKey(i)) {
-                            inv2BrokenNum.put(i, inv2BrokenNum.get(i) + 1);
-                        } else {
-                            inv2BrokenNum.put(i, 1);
-                        }
-                    }
-                }
-            }
-
             int score = 0;
             boolean addToCorpus = false;
             if (Config.getConf().useCodeCoverage) {
@@ -1130,15 +1116,18 @@ public class FuzzingServer {
                 graph.updateNodeCoverage(feedbackPacket.testPacketID,
                         addToCorpus);
             }
-            if (Config.getConf().useLikelyInv) {
-                // cases that break invariants
-                if (feedbackPacket.breakNewInv) {
-                    logger.info(String.format(
-                            "test%d break new invariants, add to corpus",
-                            feedbackPacket.testPacketID));
-                    // we simply prioritize seeds that break likely invariants
-                    score = Config.getConf().INVARIANT_PRIORITY_SCORE;
-                    addToCorpus = true;
+            // format coverage
+            if (Config.getConf().enableFormatCoverage) {
+                if (feedbackPacket.formatCoverage != null) {
+                    if (oriObjCoverage.merge(feedbackPacket.formatCoverage)) {
+                        // learned format is updated
+                        logger.info("New format!");
+                        addToCorpus = true;
+                    } else {
+                        logger.info("No new format!");
+                    }
+                } else {
+                    logger.info("Null format coverage");
                 }
             }
 
@@ -1399,10 +1388,6 @@ public class FuzzingServer {
                 "------------------------------------------------------------"
                         + "-----------------------------------------------------------------");
 
-        if (Config.getConf().useLikelyInv) {
-            System.out.println("Broken inv status: " + inv2BrokenNum);
-        }
-
         // Print the coverage status
         // for (Pair<Integer, Integer> timeCoveragePair :
         // originalCoverageAlongTime) {
@@ -1555,18 +1540,6 @@ public class FuzzingServer {
             }
         }
         return states;
-    }
-
-    public Set<Integer> computeIgnoredInvs() {
-        Set<Integer> ignoredInvs = new HashSet<>();
-        for (Integer invId : inv2BrokenNum.keySet()) {
-            double brokenRatio = (double) inv2BrokenNum.get(invId)
-                    / finishedTestID;
-            if (brokenRatio >= Config.getConf().ignoreInvRatio) {
-                ignoredInvs.add(invId);
-            }
-        }
-        return ignoredInvs;
     }
 
     public void saveSeed(CommandSequence commandSequence,

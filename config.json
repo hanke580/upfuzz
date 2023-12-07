@@ -9,7 +9,7 @@
   "faultMaxNum": 2,
   "testSingleVersion": true,
   "testingMode": 0,
-  "useLikelyInv": false,
+  "enableFormatCoverage": false,
   "verifyConfig": false,
   "testAddedConfig": false,
   "testDeletedConfig": false,

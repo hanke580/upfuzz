@@ -25,14 +25,11 @@ public class StackedTestPacket extends Packet implements Serializable {
     public String configFileName;
     private List<TestPacket> tpList;
 
-    public Set<Integer> ignoredInvs; // inv which are broken all the time
-
     public StackedTestPacket(int nodeNum, String configFileName) {
         this.nodeNum = nodeNum;
         this.configFileName = configFileName;
         this.type = PacketType.StackedTestPacket;
         tpList = new LinkedList<>();
-        ignoredInvs = new HashSet<>();
     }
 
     public void addTestPacket(Seed seed, int testID) {

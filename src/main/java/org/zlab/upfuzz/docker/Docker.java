@@ -1,14 +1,15 @@
 package org.zlab.upfuzz.docker;
 
 import org.zlab.dinv.runtimechecker.Runtime;
+import org.zlab.ocov.tracker.ObjectCoverage;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.utils.Utilities;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.Map;
 
 public abstract class Docker extends DockerMeta implements IDocker {
 
@@ -30,28 +31,26 @@ public abstract class Docker extends DockerMeta implements IDocker {
     }
 
     @Override
-    public int[] getBrokenInv() throws Exception {
+    public ObjectCoverage getFormatCoverage() throws Exception {
         // execute check inv command
         Socket socket = new Socket(networkIP,
-                Config.instance.runtimeMonitorPort);
+                Config.instance.formatCoveragePort);
 
-        ObjectOutputStream out = new ObjectOutputStream(
-                socket.getOutputStream());
         ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+        PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+        out.println("collect format coverage"); // send a command to the server
 
-        out.writeObject("collectInv"); // send a command to the server
-        out.flush();
-        logger.debug("collect violation information");
+        logger.debug("collect format coverage");
+        ObjectCoverage response = (ObjectCoverage) in.readObject();
 
-        Runtime.ViolationInfo response = (Runtime.ViolationInfo) in
-                .readObject(); // read the server response
         logger.debug(
-                "Received response length: " + response.getViolations().length);
+                "Received object coverage top object size: "
+                        + response.objCoverage.keySet().size());
         // clean up resources
         out.close();
         in.close();
         socket.close();
-        return response.getViolations();
+        return response;
     }
 
 }

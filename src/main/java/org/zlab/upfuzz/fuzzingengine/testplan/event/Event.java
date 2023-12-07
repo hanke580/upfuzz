@@ -8,7 +8,7 @@ import java.io.Serializable;
 /**
  * Event is the base class for all the operations during the upgrade process.
  *      (1) A user/admin command
- *      (2) A fault (Netowrk/Crash)
+ *      (2) A fault (Network/Crash)
  *      (3) An upgrade command
  */
 public class Event implements Serializable {

@@ -2,6 +2,7 @@ package org.zlab.upfuzz.docker;
 
 import java.io.*;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
@@ -9,6 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.RandomUtils;
+import org.zlab.ocov.tracker.ObjectCoverage;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.LogInfo;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
@@ -230,22 +232,25 @@ public abstract class DockerCluster implements IDockerCluster {
         return ret;
     }
 
-    public int[] getBrokenInv() {
+    public ObjectCoverage getFormatCoverage() {
         assert dockers.length > 0;
-        int[] brokenInvMap = new int[Config.getConf().INVARIANT_MAP_LENGTH];
+        ObjectCoverage coverageMap = new ObjectCoverage(
+                Paths.get(Config.getConf().formatInfoFolder,
+                        Config.getConf().baseClassInfoFileName),
+                Paths.get(Config.getConf().formatInfoFolder,
+                        Config.getConf().topObjectsFileName));
         for (int i = 0; i < dockers.length; i++) {
             // merge
             try {
-                int[] invMap = dockers[i].getBrokenInv();
-                for (int j = 0; j < brokenInvMap.length; j++) {
-                    brokenInvMap[j] += invMap[j];
-                }
+                ObjectCoverage formatCoverageMap = dockers[i]
+                        .getFormatCoverage();
+                coverageMap.merge(formatCoverageMap);
             } catch (Exception e) {
                 logger.debug("Exception occur when collecting" +
-                        " broken invariant info: " + e);
+                        " format coverage: " + e);
             }
         }
-        return brokenInvMap;
+        return coverageMap;
     }
 
     public boolean fullStopCluster() throws Exception {

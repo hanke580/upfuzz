@@ -1,6 +1,9 @@
 package org.zlab.upfuzz.fuzzingengine.packet;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
+import org.zlab.ocov.tracker.type.*;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -8,9 +11,30 @@ import java.io.IOException;
 public abstract class Packet {
     PacketType type;
 
+    static Gson gson;
+    static {
+        RuntimeTypeAdapterFactory<TypeInfo> typeFactory = RuntimeTypeAdapterFactory
+                .of(TypeInfo.class, "type") // "type" is a field in JSON that
+                                            // tells us what the
+                // actual type is
+                .registerSubtype(ArrayType.class, "array")
+                .registerSubtype(BooleanType.class, "boolean")
+                .registerSubtype(CollectionType.class, "collection")
+                .registerSubtype(DoubleType.class, "double")
+                .registerSubtype(FloatType.class, "float")
+                .registerSubtype(IntegerType.class, "integer")
+                .registerSubtype(LongType.class, "long")
+                .registerSubtype(ObjectType.class, "object")
+                .registerSubtype(ShortType.class, "short")
+                .registerSubtype(StringType.class, "string");
+
+        gson = new GsonBuilder().registerTypeAdapterFactory(typeFactory)
+                .create();
+    }
+
     public void write(DataOutputStream out) throws IOException {
         out.writeInt(type.value);
-        String packetStr = new Gson().toJson(this);
+        String packetStr = gson.toJson(this);
         byte[] packetByte = packetStr.getBytes();
         // logger.debug("send stacked test packet size: " + packetByte.length);
         out.writeInt(packetByte.length);
@@ -18,7 +42,7 @@ public abstract class Packet {
     }
 
     public String getGsonStr() throws IOException {
-        String packetStr = new Gson().toJson(this);
+        String packetStr = gson.toJson(this);
         return packetStr;
     }
 

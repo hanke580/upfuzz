@@ -75,7 +75,7 @@ public class StackedFeedbackPacket extends Packet implements Serializable {
                 len += size;
             }
             // logger.debug("get packet length " + len);
-            return new Gson().fromJson(new String(bytes, 0, len),
+            return gson.fromJson(new String(bytes, 0, len),
                     StackedFeedbackPacket.class);
         } catch (IOException e) {
             e.printStackTrace();

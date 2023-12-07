@@ -76,10 +76,14 @@ public class CassandraDocker extends Docker {
         formatMap.put("seedIP", seedIP);
         formatMap.put("networkIP", networkIP);
         formatMap.put("agentPort", Integer.toString(agentPort));
-        formatMap.put("runtimeMonitorPort",
-                Integer.toString(Config.instance.runtimeMonitorPort));
+        formatMap.put("formatCoveragePort",
+                Integer.toString(Config.instance.formatCoveragePort));
         formatMap.put("executorID", executorID);
         formatMap.put("serviceName", serviceName);
+
+        // format coverage
+        formatMap.put("enableFormatCoverage",
+                Config.getConf().enableFormatCoverage ? "true" : "false");
 
         StringSubstitutor sub = new StringSubstitutor(formatMap);
         if (Config.getConf().testSingleVersion)
@@ -383,7 +387,6 @@ public class CassandraDocker extends Docker {
             + "            - CASSANDRA_LOG_DIR=/var/log/cassandra\n"
             + "        expose:\n"
             + "            - ${agentPort}\n"
-            + "            - ${runtimeMonitorPort}\n"
             + "            - 7000\n"
             + "            - 7001\n"
             + "            - 7199\n"
@@ -417,9 +420,9 @@ public class CassandraDocker extends Docker {
             + "            - CASSANDRA_LOGGING_LEVEL=DEBUG\n"
             + "            - CQLSH_HOST=${networkIP}\n"
             + "            - CASSANDRA_LOG_DIR=/var/log/cassandra\n"
+            + "            - ENABLE_FORMAT_COVERAGE=${enableFormatCoverage}\n"
             + "        expose:\n"
             + "            - ${agentPort}\n"
-            + "            - ${runtimeMonitorPort}\n"
             + "            - 7000\n"
             + "            - 7001\n"
             + "            - 7199\n"
