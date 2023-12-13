@@ -23,9 +23,9 @@
 #define round_up(x, y) (((x) + (y) - 1) & ~((y) - 1))
 
 void *mapfile(char *fn, uint64_t *size) {
-  int fd = open(fn, O_RDONLY);
-  if (fd < 0)
-	  return NULL;
+	int fd = open(fn, O_RDONLY);
+	if (fd < 0)
+		return NULL;
 	struct stat st;
 	void *map = (void *)-1L;
 	if (fstat(fd, &st) >= 0) {
@@ -35,14 +35,14 @@ void *mapfile(char *fn, uint64_t *size) {
 			   MAP_PRIVATE, fd, 0);
 	}
 	close(fd);
-
-  if(map){
+	
+	if(map){
 		void* copy = malloc(*size);
 		memcpy(copy, map, st.st_size);
 		munmap(map, round_up(*size, sysconf(_SC_PAGESIZE)));
 		return copy;
 	}
-  return NULL;
+	return NULL;
 }
 
 static void dump_payload(void* buffer, size_t len, const char* filename){
@@ -66,168 +66,167 @@ static void dump_payload(void* buffer, size_t len, const char* filename){
 }
 
 int push_to_host(char* stream_source){
-  char buf[256];
-  
-  if(!is_nyx_vcpu()){
-    printf("Error: NYX vCPU not found!\n");
-    return 0;
-  }
-
-  uint64_t size = 0;
-  void* ptr = mapfile(stream_source, &size);
-  clock_t start_time_2 = clock();
-  if(ptr && size){
-    dump_payload(ptr, size, basename(stream_source));
-  }
-  else{
-    hprintf("Error: File not found!\n");
-  }
-  hprintf("[cAgent test] transfered feedback archive (%s) from nyx to host: %"PRId64" bytes sent to hypervisor in %.5f ms\n", stream_source, size, ((double)((clock() - start_time_2)*1000) / CLOCKS_PER_SEC));
-  return 0;
+	char buf[256];
+	
+	if(!is_nyx_vcpu()) {
+		printf("Error: NYX vCPU not found!\n");
+		return 0;
+	}
+	
+	uint64_t size = 0;
+	void* ptr = mapfile(stream_source, &size);
+	clock_t start_time_2 = clock();
+	if(ptr && size) {
+		dump_payload(ptr, size, basename(stream_source));
+	}
+	else {
+		hprintf("Error: File not found!\n");
+	}
+	// hprintf("[cAgent test] transfered feedback archive (%s) from nyx to host: %"PRId64" bytes sent to hypervisor in %.5f ms\n", stream_source, size, ((double)((clock() - start_time_2)*1000) / CLOCKS_PER_SEC));
+	return 0;
 }
 
 int abort_operation(char* message){
-  char* error_message = NULL;
-  int ret;
-
-  if(!is_nyx_vcpu()){
-    hprintf("Error: NYX vCPU not found!\n");
-    return 0;
-  }
-
-  ret = asprintf(&error_message, "USER_ABORT called: %s", message);
-  if (ret != -1) {
-    kAFL_hypercall(HYPERCALL_KAFL_USER_ABORT, (uintptr_t)error_message);
-    return 0;
-  }
-  kAFL_hypercall(HYPERCALL_KAFL_USER_ABORT, (uintptr_t)"USER_ABORT called!");
-  return 0;
+	char* error_message = NULL;
+	int ret;
+	
+	if(!is_nyx_vcpu()){
+		hprintf("Error: NYX vCPU not found!\n");
+		return 0;
+	}
+	
+	ret = asprintf(&error_message, "USER_ABORT called: %s", message);
+	if (ret != -1) {
+		kAFL_hypercall(HYPERCALL_KAFL_USER_ABORT, (uintptr_t)error_message);
+		return 0;
+	}
+	kAFL_hypercall(HYPERCALL_KAFL_USER_ABORT, (uintptr_t)"USER_ABORT called!");
+	return 0;
 }
 
-int get_from_host(char* input_file, char* output_file){
+int get_from_host(char* input_file, char* output_file) {
+	void* stream_data = mmap((void*)NULL, 0x1000, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+	FILE* f = NULL;
 
-  void* stream_data = mmap((void*)NULL, 0x1000, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    
-  FILE* f = NULL;
-
-  uint64_t bytes = 0;
-  uint64_t total = 0;
-  clock_t start_time_2 = clock();
-  do{
-    strcpy(stream_data, input_file);
-    bytes = kAFL_hypercall(HYPERCALL_KAFL_REQ_STREAM_DATA, (uintptr_t)stream_data);
+	uint64_t bytes = 0;
+	uint64_t total = 0;
+	clock_t start_time_2 = clock();
+	do {
+		strcpy(stream_data, input_file);
+		bytes = kAFL_hypercall(HYPERCALL_KAFL_REQ_STREAM_DATA, (uintptr_t)stream_data);
 
 #if defined(__x86_64__)
-		if(bytes == 0xFFFFFFFFFFFFFFFFUL){
+		if(bytes == 0xFFFFFFFFFFFFFFFFUL) {
 #else
-			if(bytes == 0xFFFFFFFFUL){
+			if(bytes == 0xFFFFFFFFUL) {
 #endif
-			// habort("Error: Hypervisor has rejected stream buffer (file not found)");
-			abort_operation("Error: Hypervisor has rejected stream buffer (file not found)");
-			break;
-		}
-
-		if(f == NULL){
-			f = fopen(output_file, "w+");
-		}
-
-		fwrite(stream_data, 1, bytes, f);
-
-		total += bytes;
-
-  } while(bytes);
-  // hprintf("[cAgent test] transferring packet (%s) from host to nyx: %"PRId64" bytes received from hypervisor in %.5f ms\n", total, input_file, ((double)((clock() - start_time_2)*1000) / CLOCKS_PER_SEC));
-  if (strstr(input_file, "stackedTestPackets")) {
-    hprintf("[cAgent test] transferring test packet (%s) from host to nyx: %"PRId64" bytes received from hypervisor in %.5f ms\n", input_file, total, ((double)((clock() - start_time_2)*1000) / CLOCKS_PER_SEC));
-  }
-  else 
-    hprintf("[hget] %"PRId64" bytes received from hypervisor! (%s)\n", total, input_file);
-
-  if(f){
-    fclose(f);
-    return 0;
-  }
-  return -1;
+				// habort("Error: Hypervisor has rejected stream buffer (file not found)");
+				abort_operation("Error: Hypervisor has rejected stream buffer (file not found)");
+				break;
+			}
+			
+			if(f == NULL){
+				f = fopen(output_file, "w+");
+			}
+			
+			fwrite(stream_data, 1, bytes, f);
+			total += bytes;
+	} while(bytes);
+	// hprintf("[cAgent test] transferring packet (%s) from host to nyx: %"PRId64" bytes received from hypervisor in %.5f ms\n", total, input_file, ((double)((clock() - start_time_2)*1000) / CLOCKS_PER_SEC));
+	if (strstr(input_file, "stackedTestPackets")) {
+		hprintf("[cAgent test] transferring test packet (%s) from host to nyx: %"PRId64" bytes received from hypervisor in %.5f ms\n", input_file, total, ((double)((clock() - start_time_2)*1000) / CLOCKS_PER_SEC));
+	}
+	else 
+		hprintf("[hget] %"PRId64" bytes received from hypervisor! (%s)\n", total, input_file);
+	
+	if(f){
+		fclose(f);
+		return 0;
+	}
+	return -1;
 }
 
 	  
 int main(int argc, char **argv) {
-
-  /* Request information on available (host) capabilites (optional) */
-  host_config_t host_config;
-  kAFL_hypercall(HYPERCALL_KAFL_GET_HOST_CONFIG, (uintptr_t)&host_config);
-  clock_t snapshot_revert_time = clock();
-
-  /* this is our "bitmap" that is later shared with the fuzzer (you can also
-   * pass the pointer of the bitmap used by compile-time instrumentations in
-   * your target) */
-  uint8_t *trace_buffer = mmap(NULL, MMAP_SIZE(TRACE_BUFFER_SIZE), PROT_READ | PROT_WRITE,
+	/* Request information on available (host) capabilites (optional) */
+	host_config_t host_config;
+	kAFL_hypercall(HYPERCALL_KAFL_GET_HOST_CONFIG, (uintptr_t)&host_config);
+	clock_t snapshot_revert_time = clock();
+	
+	/* this is our "bitmap" that is later shared with the fuzzer (you can also
+ 	* pass the pointer of the bitmap used by compile-time instrumentations in
+  	* your target) */
+	uint8_t *trace_buffer = mmap(NULL, MMAP_SIZE(TRACE_BUFFER_SIZE), PROT_READ | PROT_WRITE,
            MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-  memset(trace_buffer, 0,
+	memset(trace_buffer, 0,
          TRACE_BUFFER_SIZE);  // makes sure that the bitmap buffer is already
                               // mapped into the guest's memory (alternatively
                               // you can use mlock) */
-
-  /* Submit agent configuration */
-  agent_config_t agent_config = {0};
-  agent_config.agent_magic = NYX_AGENT_MAGIC;
-  agent_config.agent_version = NYX_AGENT_VERSION;
-  agent_config.agent_timeout_detection =
-      0; /* timeout detection is implemented by the agent (currently not used)
-          */
-  agent_config.agent_tracing =
-      1; /* set this flag to propagade that instrumentation-based fuzzing is
-            availabe */
-  agent_config.agent_ijon_tracing = 0; /* set this flag to propagade that IJON
+	
+	/* Submit agent configuration */
+	agent_config_t agent_config = {0};
+	agent_config.agent_magic = NYX_AGENT_MAGIC;
+	agent_config.agent_version = NYX_AGENT_VERSION;
+	agent_config.agent_timeout_detection = 
+		0; /* timeout detection is implemented by the agent (currently not used)
+  			*/
+	agent_config.agent_tracing =
+		1; /* set this flag to propagade that instrumentation-based fuzzing is
+            		availabe */
+	
+	agent_config.agent_ijon_tracing = 0; /* set this flag to propagade that IJON
                                           extension is implmented agent-wise */
-  agent_config.trace_buffer_vaddr =
-      (uintptr_t)trace_buffer; /* trace "bitmap" pointer - required for
+	agent_config.trace_buffer_vaddr =
+		(uintptr_t)trace_buffer; /* trace "bitmap" pointer - required for
                                   instrumentation-only fuzzing */
-  agent_config.ijon_trace_buffer_vaddr =
-      (uintptr_t)NULL;                             /* "IJON" buffer pointer */
-  agent_config.agent_non_reload_mode =
-      1; /* non-reload mode is supported (usually because the agent implements a
-            fork-server; currently not used) */
-  agent_config.coverage_bitmap_size = TRACE_BUFFER_SIZE;
-  kAFL_hypercall(HYPERCALL_KAFL_SET_AGENT_CONFIG, (uintptr_t)&agent_config);
-
-  /* Tell hypervisor the virtual address of the payload (input) buffer (call
-   * mlock to ensure that this buffer stays in the guest's memory)*/
-  kAFL_payload *payload_buffer =
-      mmap(NULL, host_config.payload_buffer_size, PROT_READ | PROT_WRITE,
+	
+	agent_config.ijon_trace_buffer_vaddr =
+		(uintptr_t)NULL;                             /* "IJON" buffer pointer */
+	agent_config.agent_non_reload_mode =
+		1; /* non-reload mode is supported (usually because the agent implements a
+  			fork-server; currently not used) */
+	agent_config.coverage_bitmap_size = TRACE_BUFFER_SIZE;
+	kAFL_hypercall(HYPERCALL_KAFL_SET_AGENT_CONFIG, (uintptr_t)&agent_config);
+	
+	/* Tell hypervisor the virtual address of the payload (input) buffer (call
+ 		* mlock to ensure that this buffer stays in the guest's memory)*/
+	kAFL_payload *payload_buffer = 
+	mmap(NULL, host_config.payload_buffer_size, PROT_READ | PROT_WRITE,
            MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-  mlock(payload_buffer, (size_t)host_config.payload_buffer_size);
-  memset(payload_buffer, 0, host_config.payload_buffer_size);
-  kAFL_hypercall(HYPERCALL_KAFL_GET_PAYLOAD, (uintptr_t)payload_buffer);
-
-  /* the main fuzzing loop */
-  while (1) {
-    /*creating pipes */
-    int fds_input[2];
-    int fds_output[2];
-
-    pipe(fds_input);				// agent writes into this input pipe  
-                           
-    pipe(fds_output);                           // agent reads output from this output pipe 
-
-    pid_t p_id = fork();
-    
-    // operations in child process
-    if(p_id == 0) {
-      /* as agent reads from fds_input, duplicate the stdin file descriptor to the read end of input pipe */
-      dup2(fds_input[0], STDIN_FILENO);
-      
-      /* as agent writes to fds_output, duplicate the stdout file descriptor to the write end of output pipe */
-      dup2(fds_output[1], STDOUT_FILENO);
-
-      /* run the miniclient java program located at "/home/nyx/upfuzz/Miniclient.jar" */
-      char *argv[] = {"/bin/bash", "-c", "cd /home/nyx/upfuzz; java -jar MiniClient.jar", NULL};
-      execv("/bin/bash", argv);
-      exit(0);
-    }
-    else {
+	
+	mlock(payload_buffer, (size_t)host_config.payload_buffer_size);
+	memset(payload_buffer, 0, host_config.payload_buffer_size);
+	kAFL_hypercall(HYPERCALL_KAFL_GET_PAYLOAD, (uintptr_t)payload_buffer);
+	
+	/* the main fuzzing loop */
+	
+	while (1) {
+		/*creating pipes */
+		int fds_input[2];
+		int fds_output[2];
+		
+		pipe(fds_input);				// agent writes into this input pipe  
+		
+		pipe(fds_output);                           // agent reads output from this output pipe 
+		
+		pid_t p_id = fork();
+		
+		/* operations in child process */
+		if(p_id == 0) {
+			/* as agent reads from fds_input, duplicate the stdin file descriptor to the read end of input pipe */
+			dup2(fds_input[0], STDIN_FILENO);
+			
+			/* as agent writes to fds_output, duplicate the stdout file descriptor to the write end of output pipe */
+			dup2(fds_output[1], STDOUT_FILENO);
+			
+			/* run the miniclient java program located at "/home/nyx/upfuzz/Miniclient.jar" */
+			char *argv[] = {"/bin/bash", "-c", "cd /home/nyx/upfuzz; java -jar MiniClient.jar", NULL};
+			execv("/bin/bash", argv);
+			exit(0);
+		}
+		else {
 			/* these specific messages are configured in the miniclient.java program 
-			 * when the miniclient receives the packet "START_TESTING", it will start executing the test packets */
+    			* when the miniclient receives the packet "START_TESTING", it will start executing the test packets */
 			char *test_start_msg_stacked = "START_TESTING0\n";                      // for starting testing without fault injection
 			char *test_start_msg_testPlan = "START_TESTING4\n";                     // for starting testing with fault injection
 			
@@ -238,11 +237,11 @@ int main(int argc, char **argv) {
 			//-------------WAIT FOR EACH NODE TO BE CONNECTED VIA TCP-----------------------------//
 			/*------------------------------------------------------------------------------------*/
 			
-			char output_pkt_ready[2];  
+			char output_pkt_ready[2];
 			if (read(fds_output[0], output_pkt_ready, sizeof(output_pkt_ready)) < 0) {
 				abort_operation("Read operation failed");
 			}
-        
+			
 			if(!(output_pkt_ready[0]=='R')) {
 				if (output_pkt_ready[0] == 'F')                                       // executor might have failed to start
 				{
@@ -253,33 +252,34 @@ int main(int argc, char **argv) {
 						get_file_status_fdback = push_to_host("/miniClientWorkdir/stackedFeedbackPacket.ser");
 					else
 						get_file_status_fdback = push_to_host("/miniClientWorkdir/testPlanFeedbackPacket.ser");
-            
+					
 					if (get_file_status_fdback == -1)
 						abort_operation("ERROR! Failed to transfer feedback test file to host.");
 					kAFL_hypercall(HYPERCALL_KAFL_RELEASE, 0);
 					exit(0);
 				}
+				
 				abort_operation("Unable to startup the target system.");
 				exit(1);
 			}
-
+			
 			/* Executor started successfully. 
-		 		* Creates a root snapshot on first execution. Also we requested the next input with this hypercall */
+    			* Creates a root snapshot on first execution. Also we requested the next input with this hypercall */
 			clock_t start_time_snap = clock();
 			hprintf("[cAgent]Taking root snapshot!\n");
 			kAFL_hypercall(HYPERCALL_KAFL_USER_FAST_ACQUIRE, 0);  // root snapshot <--
 			// hprintf("[cAgent test] Execution time for taking root snapshot: %.5f ms\n", (double)((clock() - start_time_snap)*1000) / CLOCKS_PER_SEC);
-	
+			
 			/* the nodes are connected via tcp, need the test packet file name */
 			uint32_t len = payload_buffer->size;
 			char* file_name = payload_buffer -> data;
 			
 			/* transfer the test packet file from the host to the Nyx VM */
-      int get_file_status;
-      int test_type;
-      if (file_name[0]=='s' && file_name[1]=='t' && file_name[2]=='a')                               // file_name starts with "sta", so it is of type stacked test packet 
-			{                            	
-        get_file_status = get_from_host(file_name, "/miniClientWorkdir/mainStackedTestPacket.ser");
+			int get_file_status;
+			int test_type;
+			if (file_name[0]=='s' && file_name[1]=='t' && file_name[2]=='a')                               // file_name starts with "sta", so it is of type stacked test packet 
+			{
+				get_file_status = get_from_host(file_name, "/miniClientWorkdir/mainStackedTestPacket.ser");
 				test_type = 0;                      		// command execution without fault injection
 				if (get_file_status == -1)
 					abort_operation("ERROR! Failed to transfer file from host to guest.");
@@ -294,7 +294,7 @@ int main(int argc, char **argv) {
 			
 			if (test_type == 0) 					// Testing with command execution only, without fault injection  
 			{
-	    /* First snapshot created, now need to start testing, send the command "START_TESTING\n" to the client */
+				/* First snapshot created, now need to start testing, send the command "START_TESTING\n" to the client */
 				int send_test_status = write(fds_input[1], test_start_msg_stacked, strlen(test_start_msg_stacked));
 				if (send_test_status == -1)
 					abort_operation("Sending command to start testing failed.");
@@ -311,8 +311,7 @@ int main(int argc, char **argv) {
 			if (read(fds_output[0], output_pkt, sizeof(output_pkt)) < 0)
 				abort_operation("Read operation failed");
 			
-			if (output_pkt[0] != '2')
-			{
+			if (output_pkt[0] != '2'){
 				abort_operation("Feedback packets could not be generated.");
 			}
 			
@@ -352,7 +351,7 @@ int main(int argc, char **argv) {
 			
 			/* Reverting to the root checkpoint */
 			kAFL_hypercall(HYPERCALL_KAFL_RELEASE, 0);
-		} 
+		}
 	}
-  return 0; 
+	return 0; 
 }
