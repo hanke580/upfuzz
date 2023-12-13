@@ -14,48 +14,18 @@
 #include <inttypes.h>
 #include "nyx.h"
 #include <sys/syscall.h>
-#include <string.h>
 #include <dirent.h>
-//#include <sys/time.h>
-//#include <ctime>
 
 #define TRACE_BUFFER_SIZE (64)
-
-// #define WAIT_FOR_COMPLETION
 
 #define PAGE_SIZE 0x1000
 #define MMAP_SIZE(x) ((x & ~(PAGE_SIZE - 1)) + PAGE_SIZE)
 #define round_up(x, y) (((x) + (y) - 1) & ~((y) - 1))
 
-static volatile int child_completed = 0;
-
-void printClockRealTime(const char *s) {
-    struct timespec ts;
-    clock_gettime(CLOCK_REALTIME, &ts);
-    hprintf("%s: %ld.%06ld\n",s, ts.tv_sec, ts.tv_nsec/1000);
-}
-
-void printCurrentDateTimeWithMillis(const char *s) {
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-
-    struct tm* now = localtime(&tv.tv_sec);
-
-    char buffer[30];
-    strftime(buffer, 30, "%Y-%m-%d %H:%M:%S", now);
-    hprintf("%s: %s.%03ld\n", s, buffer, tv.tv_usec / 1000);
-}
-
-bool prefix(const char *pre, const char *str)
-{
-    return strncmp(pre, str, strlen(pre)) == 0;
-}
-
-void *mapfile(char *fn, uint64_t *size)
-{
-	int fd = open(fn, O_RDONLY);
-	if (fd < 0)
-		return NULL;
+void *mapfile(char *fn, uint64_t *size) {
+  int fd = open(fn, O_RDONLY);
+  if (fd < 0)
+	  return NULL;
 	struct stat st;
 	void *map = (void *)-1L;
 	if (fstat(fd, &st) >= 0) {
@@ -76,28 +46,28 @@ void *mapfile(char *fn, uint64_t *size)
 }
 
 static void dump_payload(void* buffer, size_t len, const char* filename){
-    static bool init = false;
-    static kafl_dump_file_t file_obj = {0};
+	static bool init = false;
+	static kafl_dump_file_t file_obj = {0};
+	
+	//printf("%s -> ptr: %p size: %lx - %s\n", __func__, buffer, len, filename);
 
-    //printf("%s -> ptr: %p size: %lx - %s\n", __func__, buffer, len, filename);
-
-    if (!init){
-        file_obj.file_name_str_ptr = (uintptr_t)filename;
-        file_obj.append = 0;
-        file_obj.bytes = 0;
-        kAFL_hypercall(HYPERCALL_KAFL_DUMP_FILE, (uintptr_t) (&file_obj));
-        init=true;
-    }
-
-    file_obj.append = 1;
-    file_obj.bytes = len;
-    file_obj.data_ptr = (uintptr_t)buffer;
-    kAFL_hypercall(HYPERCALL_KAFL_DUMP_FILE, (uintptr_t) (&file_obj));
+	if (!init){
+		file_obj.file_name_str_ptr = (uintptr_t)filename;
+		file_obj.append = 0;
+		file_obj.bytes = 0;
+		kAFL_hypercall(HYPERCALL_KAFL_DUMP_FILE, (uintptr_t) (&file_obj));
+		init=true;
+	}
+	
+	file_obj.append = 1;
+	file_obj.bytes = len;
+	file_obj.data_ptr = (uintptr_t)buffer;
+	kAFL_hypercall(HYPERCALL_KAFL_DUMP_FILE, (uintptr_t) (&file_obj));
 }
 
 int push_to_host(char* stream_source){
   char buf[256];
-
+  
   if(!is_nyx_vcpu()){
     printf("Error: NYX vCPU not found!\n");
     return 0;
@@ -148,22 +118,22 @@ int get_from_host(char* input_file, char* output_file){
     bytes = kAFL_hypercall(HYPERCALL_KAFL_REQ_STREAM_DATA, (uintptr_t)stream_data);
 
 #if defined(__x86_64__)
-      if(bytes == 0xFFFFFFFFFFFFFFFFUL){
+		if(bytes == 0xFFFFFFFFFFFFFFFFUL){
 #else
-      if(bytes == 0xFFFFFFFFUL){
+			if(bytes == 0xFFFFFFFFUL){
 #endif
-      // habort("Error: Hypervisor has rejected stream buffer (file not found)");
-      abort_operation("Error: Hypervisor has rejected stream buffer (file not found)");
-      break;
-    }
+			// habort("Error: Hypervisor has rejected stream buffer (file not found)");
+			abort_operation("Error: Hypervisor has rejected stream buffer (file not found)");
+			break;
+		}
 
-    if(f == NULL){
-      f = fopen(output_file, "w+");
-    }
+		if(f == NULL){
+			f = fopen(output_file, "w+");
+		}
 
-    fwrite(stream_data, 1, bytes, f);
+		fwrite(stream_data, 1, bytes, f);
 
-    total += bytes;
+		total += bytes;
 
   } while(bytes);
   // hprintf("[cAgent test] transferring packet (%s) from host to nyx: %"PRId64" bytes received from hypervisor in %.5f ms\n", total, input_file, ((double)((clock() - start_time_2)*1000) / CLOCKS_PER_SEC));
@@ -180,77 +150,7 @@ int get_from_host(char* input_file, char* output_file){
   return -1;
 }
 
-void list_files(const char *path) {
-    DIR *dir;
-    struct dirent *entry;
-
-    if (!(dir = opendir(path))) {
-        perror("opendir");
-        return;
-    }
-
-    while ((entry = readdir(dir)) != NULL) {
-        if (entry->d_type == DT_DIR) {
-            if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
-                char new_path[1024];
-                snprintf(new_path, sizeof(new_path), "%s/%s", path, entry->d_name);
-                // hprintf("Directory: %s\n", new_path);
-                list_files(new_path);
-            }
-        } else {
-            char file_address[1024]; // Create a char array to hold the file address
-            snprintf(file_address, sizeof(file_address), "%s/%s", path, entry->d_name);
-            hprintf("File: %s/%s\n", path, entry->d_name);
-
-            // if (!(strstr(file_address, "sshd-stdout") || strstr(file_address, "sshd-stderr"))) {
-            // }
-        }
-    }
-    closedir(dir);
-}
-
-static int exec_prog(const char **argv, char *archive_name)
-{
-    pid_t my_pid;
-    int status, timeout /* unused ifdef WAIT_FOR_COMPLETION */;
-
-    if (0 == (my_pid = fork())) {
-      hprintf("[cAgent child]: Going to archive the fuzzing storage directory \n");
-      if (-1 == execve(argv[0], (char **)argv , NULL)) {
-        perror("child process execve failed [%m]\n");
-        return -1;
-      }
-      int get_file_status_2 = push_to_host(archive_name);    
-      if (get_file_status_2 == -1)
-        abort_operation("cAgent: ERROR! Failed to transfer fuzzing_storage log file to host.");
-      hprintf("cAgent: pushed the fuzzing storage logs successfully");
-      child_completed = 1;
-    }
-
-    hprintf("[cAgent parent]: from the parent process \n");
-
-// #ifdef WAIT_FOR_COMPLETION
-    timeout = 1000;
-
-    while (0 == waitpid(my_pid , &status , WNOHANG)) {
-      if ( --timeout < 0 ) {
-        perror("timeout");
-        return -1;
-      }
-      sleep(1);
-    }
-
-    hprintf("%s WEXITSTATUS %d WIFEXITED %d [status %d]\n", argv[0], WEXITSTATUS(status), WIFEXITED(status), status);
-
-    if (1 != WIFEXITED(status) || 0 != WEXITSTATUS(status)) {
-      perror("%s failed, halt system");
-      return -1;
-    }
-
-// #endif
-    return 0;
-}
-
+	  
 int main(int argc, char **argv) {
 
   /* Request information on available (host) capabilites (optional) */
@@ -326,133 +226,133 @@ int main(int argc, char **argv) {
       exit(0);
     }
     else {
-        /* these specific messages are configured in the miniclient.java program 
-         * when the miniclient receives the packet "START_TESTING", it will start executing the test packets */
-        char *test_start_msg_stacked = "START_TESTING0\n";                      // for starting testing without fault injection
-        char *test_start_msg_testPlan = "START_TESTING4\n";                     // for starting testing with fault injection
+			/* these specific messages are configured in the miniclient.java program 
+			 * when the miniclient receives the packet "START_TESTING", it will start executing the test packets */
+			char *test_start_msg_stacked = "START_TESTING0\n";                      // for starting testing without fault injection
+			char *test_start_msg_testPlan = "START_TESTING4\n";                     // for starting testing with fault injection
+			
+			/* when the agent receives the packet 'R', it will know that the client is ready for testing */
+			char ready_state_msg = 'R';
+			
+			/*------------------------------------------------------------------------------------*/
+			//-------------WAIT FOR EACH NODE TO BE CONNECTED VIA TCP-----------------------------//
+			/*------------------------------------------------------------------------------------*/
+			
+			char output_pkt_ready[2];  
+			if (read(fds_output[0], output_pkt_ready, sizeof(output_pkt_ready)) < 0) {
+				abort_operation("Read operation failed");
+			}
         
-        /* when the agent receives the packet 'R', it will know that the client is ready for testing */
-        char ready_state_msg = 'R';
-        
-        /*------------------------------------------------------------------------------------*/
-        //-------------WAIT FOR EACH NODE TO BE CONNECTED VIA TCP-----------------------------//
-        /*------------------------------------------------------------------------------------*/
-        
-        char output_pkt_ready[2];  
-        if (read(fds_output[0], output_pkt_ready, sizeof(output_pkt_ready)) < 0) {
-          abort_operation("Read operation failed");
-        }
-        
-        if(!(output_pkt_ready[0]=='R')) {
-          if (output_pkt_ready[0] == 'F')                                       // executor might have failed to start
-          {
-            hprintf("[cAgent]: got signal of failure from MiniClient \n");
-            kAFL_hypercall(HYPERCALL_KAFL_USER_FAST_ACQUIRE, 0);
-            int get_file_status_fdback;
-            if (output_pkt_ready[1] == '0') 
-              get_file_status_fdback = push_to_host("/miniClientWorkdir/stackedFeedbackPacket.ser");
-            else
-              get_file_status_fdback = push_to_host("/miniClientWorkdir/testPlanFeedbackPacket.ser");
+			if(!(output_pkt_ready[0]=='R')) {
+				if (output_pkt_ready[0] == 'F')                                       // executor might have failed to start
+				{
+					hprintf("[cAgent]: got signal of failure from MiniClient \n");
+					kAFL_hypercall(HYPERCALL_KAFL_USER_FAST_ACQUIRE, 0);
+					int get_file_status_fdback;
+					if (output_pkt_ready[1] == '0') 
+						get_file_status_fdback = push_to_host("/miniClientWorkdir/stackedFeedbackPacket.ser");
+					else
+						get_file_status_fdback = push_to_host("/miniClientWorkdir/testPlanFeedbackPacket.ser");
             
-            if (get_file_status_fdback == -1)
-              abort_operation("ERROR! Failed to transfer feedback test file to host.");
-            kAFL_hypercall(HYPERCALL_KAFL_RELEASE, 0);
-            exit(0);
-          }
-          abort_operation("Unable to startup the target system.");
-          exit(1);
-        }
+					if (get_file_status_fdback == -1)
+						abort_operation("ERROR! Failed to transfer feedback test file to host.");
+					kAFL_hypercall(HYPERCALL_KAFL_RELEASE, 0);
+					exit(0);
+				}
+				abort_operation("Unable to startup the target system.");
+				exit(1);
+			}
 
-	/* Executor started successfully. 
-         * Creates a root snapshot on first execution. Also we requested the next input with this hypercall */
-	clock_t start_time_snap = clock();
-	hprintf("[cAgent]Taking root snapshot!\n");
-        kAFL_hypercall(HYPERCALL_KAFL_USER_FAST_ACQUIRE, 0);  // root snapshot <--
-	// hprintf("[cAgent test] Execution time for taking root snapshot: %.5f ms\n", (double)((clock() - start_time_snap)*1000) / CLOCKS_PER_SEC);
+			/* Executor started successfully. 
+		 		* Creates a root snapshot on first execution. Also we requested the next input with this hypercall */
+			clock_t start_time_snap = clock();
+			hprintf("[cAgent]Taking root snapshot!\n");
+			kAFL_hypercall(HYPERCALL_KAFL_USER_FAST_ACQUIRE, 0);  // root snapshot <--
+			// hprintf("[cAgent test] Execution time for taking root snapshot: %.5f ms\n", (double)((clock() - start_time_snap)*1000) / CLOCKS_PER_SEC);
 	
-	/* the nodes are connected via tcp, need the test packet file name */
-        uint32_t len = payload_buffer->size;
-        char* file_name = payload_buffer -> data;
-	
-        /* transfer the test packet file from the host to the Nyx VM */
-        int get_file_status;
-        int test_type;
-        if (file_name[0]=='s' && file_name[1]=='t' && file_name[2]=='a')                               // file_name starts with "sta", so it is of type stacked test packet 
-	{                            	
-          get_file_status = get_from_host(file_name, "/miniClientWorkdir/mainStackedTestPacket.ser");
-          test_type = 0;                      		// command execution without fault injection
-          if (get_file_status == -1)
-            abort_operation("ERROR! Failed to transfer file from host to guest.");
-        } 
-	else                                                                                          // file_name does not start with "sta", it is of test plan packet type 
-	{
-          get_file_status = get_from_host(file_name, "/miniClientWorkdir/mainTestPlanPacket.ser");
-          test_type = 4;                      		// command execution with fault injection
-          if (get_file_status == -1)
-            abort_operation("ERROR! Failed to transfer file from host to guest.");
-        }
-        
-        if (test_type == 0) 					// Testing with command execution only, without fault injection  
-	{
+			/* the nodes are connected via tcp, need the test packet file name */
+			uint32_t len = payload_buffer->size;
+			char* file_name = payload_buffer -> data;
+			
+			/* transfer the test packet file from the host to the Nyx VM */
+      int get_file_status;
+      int test_type;
+      if (file_name[0]=='s' && file_name[1]=='t' && file_name[2]=='a')                               // file_name starts with "sta", so it is of type stacked test packet 
+			{                            	
+        get_file_status = get_from_host(file_name, "/miniClientWorkdir/mainStackedTestPacket.ser");
+				test_type = 0;                      		// command execution without fault injection
+				if (get_file_status == -1)
+					abort_operation("ERROR! Failed to transfer file from host to guest.");
+			} 
+			else                                                                                          // file_name does not start with "sta", it is of test plan packet type 
+			{
+				get_file_status = get_from_host(file_name, "/miniClientWorkdir/mainTestPlanPacket.ser");
+				test_type = 4;                      		// command execution with fault injection
+				if (get_file_status == -1)
+					abort_operation("ERROR! Failed to transfer file from host to guest.");
+			}
+			
+			if (test_type == 0) 					// Testing with command execution only, without fault injection  
+			{
 	    /* First snapshot created, now need to start testing, send the command "START_TESTING\n" to the client */
-            int send_test_status = write(fds_input[1], test_start_msg_stacked, strlen(test_start_msg_stacked));
-            if (send_test_status == -1)
-              abort_operation("Sending command to start testing failed.");
-        } 
-	else							// Testing with fault injection 
-	{	
-            int send_test_status = write(fds_input[1], test_start_msg_testPlan, strlen(test_start_msg_testPlan));
-            if (send_test_status == -1)
-              abort_operation("Sending command to start testing failed.");
-        }
-
-        /* Read the input pipe from java client to c agent (output pipe fds_output) */
-        char output_pkt[550];
-        if (read(fds_output[0], output_pkt, sizeof(output_pkt)) < 0)
-          abort_operation("Read operation failed");
-        
-        if (output_pkt[0] != '2')
-        {
-          abort_operation("Feedback packets could not be generated.");
-        }
-        
-        if(strchr(output_pkt, ';') != NULL)                                     // upfuzz is running in debug mode, print debug messages from nyx too
-        {
-          const char *separator2 = strrchr(output_pkt, ';');
-          char messages[500];
-          strncpy(messages, separator2 + 1, 500);
-          messages[500] = '\0';
-        
-          hprintf("[cAgent] %s\n",messages);
-        }
-
-        const char *separator = strrchr(output_pkt, ':');
-        char archive_name[16];
-        strncpy(archive_name, separator + 1, 15);
-        archive_name[15] = '\0';
-        char archive_dir[36];
-        snprintf(archive_dir, sizeof(archive_dir), "/miniClientWorkdir/%s", archive_name);
-	
-        /* Push the test feedback file from client to host */
-        get_file_status = push_to_host(archive_dir);    
-        if (get_file_status == -1)
-          abort_operation("ERROR! Failed to transfer fuzzing storage archive to host.");
-
-	/* If you want to calculate the dirty page count of nyx vm, then you need to remove the comments from the following lines */
-
-	//char dirty_command[] = "dirty=$(cat /proc/meminfo | grep Dirty); value=$(echo \"$dirty\" | awk '{print $2}'); unit=$(echo \"$dirty\" | awk '{print $3}'); pagesize=$(getconf PAGESIZE); result=$(echo \"scale=2; $value*1024 / $pagesize\" | bc); echo \"$result $unit\"";
-        //FILE *fp1 = popen(dirty_command, "r");
-
-        //char result1[20];  // Assuming the result is less than 256 characters
-        //fgets(result1, sizeof(result1), fp1);
-
-        //pclose(fp1);
-
-        //hprintf("[cAgent in Nyx] Dirty page count: %s\n", result1);
-	
-	/* Reverting to the root checkpoint */
-	kAFL_hypercall(HYPERCALL_KAFL_RELEASE, 0);
-      } 
-    }
+				int send_test_status = write(fds_input[1], test_start_msg_stacked, strlen(test_start_msg_stacked));
+				if (send_test_status == -1)
+					abort_operation("Sending command to start testing failed.");
+			} 
+			else							// Testing with fault injection 
+			{
+				int send_test_status = write(fds_input[1], test_start_msg_testPlan, strlen(test_start_msg_testPlan));
+				if (send_test_status == -1)
+					abort_operation("Sending command to start testing failed.");
+			}
+			
+			/* Read the input pipe from java client to c agent (output pipe fds_output) */
+			char output_pkt[550];
+			if (read(fds_output[0], output_pkt, sizeof(output_pkt)) < 0)
+				abort_operation("Read operation failed");
+			
+			if (output_pkt[0] != '2')
+			{
+				abort_operation("Feedback packets could not be generated.");
+			}
+			
+			if(strchr(output_pkt, ';') != NULL)                                     // upfuzz is running in debug mode, print debug messages from nyx too
+			{
+				const char *separator2 = strrchr(output_pkt, ';');
+				char messages[500];
+				strncpy(messages, separator2 + 1, 500);
+				messages[500] = '\0';
+				
+				hprintf("[cAgent] %s\n",messages);
+			}
+			
+			const char *separator = strrchr(output_pkt, ':');
+			char archive_name[16];
+			strncpy(archive_name, separator + 1, 15);
+			archive_name[15] = '\0';
+			char archive_dir[36];
+			snprintf(archive_dir, sizeof(archive_dir), "/miniClientWorkdir/%s", archive_name);
+			
+			/* Push the test feedback file from client to host */
+			get_file_status = push_to_host(archive_dir);
+			if (get_file_status == -1)
+				abort_operation("ERROR! Failed to transfer fuzzing storage archive to host.");
+			
+			/* If you want to calculate the dirty page count of nyx vm, then you need to remove the comments from the following lines */
+			
+			//char dirty_command[] = "dirty=$(cat /proc/meminfo | grep Dirty); value=$(echo \"$dirty\" | awk '{print $2}'); unit=$(echo \"$dirty\" | awk '{print $3}'); pagesize=$(getconf PAGESIZE); result=$(echo \"scale=2; $value*1024 / $pagesize\" | bc); echo \"$result $unit\"";
+			//FILE *fp1 = popen(dirty_command, "r");
+			
+			//char result1[20];  // Assuming the result is less than 256 characters
+			//fgets(result1, sizeof(result1), fp1);
+			
+			//pclose(fp1);
+			
+			//hprintf("[cAgent in Nyx] Dirty page count: %s\n", result1);
+			
+			/* Reverting to the root checkpoint */
+			kAFL_hypercall(HYPERCALL_KAFL_RELEASE, 0);
+		} 
+	}
   return 0; 
 }
