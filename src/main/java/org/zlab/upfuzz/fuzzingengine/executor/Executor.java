@@ -161,7 +161,14 @@ public abstract class Executor implements IExecutor {
             if (command.isEmpty()) {
                 ret.add("");
             } else {
+                Long initTime = System.currentTimeMillis();
                 ret.add(execShellCommand(new ShellCommand(command)));
+                if (Config.getConf().debug) {
+                    testPlanExecutionLog += String.format("%.10s", command) + " in "
+                        +
+                        +(System.currentTimeMillis() - initTime)
+                        + " ms, ";
+                }
             }
         }
         return ret;
@@ -199,8 +206,6 @@ public abstract class Executor implements IExecutor {
             Event event = testPlan.getEvents().get(eventIdx);
             logger.info(String.format("\nhandle %s\n", event));
             // String command = String.format("handle %d %s ", eventIdx, event);
-            // testPlanExecutionLog += command.replace(";", ",").replace(":", "
-            // ");
 
             Long initTime = System.currentTimeMillis();
             if (event instanceof Fault) {
