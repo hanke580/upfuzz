@@ -39,14 +39,12 @@ import org.zlab.upfuzz.utils.Utilities;
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
-// import static org.zlab.upfuzz.fuzzingengine.server.FuzzingServer.readState;
 
 public class MiniClientMain {
     // WARNING: This must be disabled otherwise it can
     // log to output and corrupt the process
     // INFO => cClient output
-    // static Logger logger = LogManager.getLogger(MiniClientMain.class);
-
+    
     // Where all files are searched for
     static final String workdir = "/miniClientWorkdir";
 
@@ -54,8 +52,7 @@ public class MiniClientMain {
     static final int CLUSTER_START_RETRY = 3;
 
     static int testType;
-//     static String executorStartupErrorLog = "";
-    static String testPlanLog = "";
+    static String testExecutionLog = "";
 
     public static void setTestType(int type) {
         testType = type;
@@ -68,11 +65,7 @@ public class MiniClientMain {
                     return "success";
                 }
             } catch (Exception e) {
-                // StringWriter sw = new StringWriter();
-                // PrintWriter pw = new PrintWriter(sw);
-                // e.printStackTrace(pw);
                 e.printStackTrace();
-                // executorStartupErrorLog = sw.toString();
             }
             executor.teardown();
         }
@@ -84,8 +77,7 @@ public class MiniClientMain {
         // setup our input scanner
         Scanner stdin = new Scanner(System.in);
 
-        String s1 = "setting stream, ";
-        // ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        String logMessages = "setting stream, ";
         PrintStream nullStream = new PrintStream(new OutputStream() {
             public void write(int b) throws IOException {
             }
@@ -93,7 +85,7 @@ public class MiniClientMain {
         PrintStream cAgent = System.out;
         System.setOut(nullStream);
 
-        s1 += "reading config file, ";
+        logMessages += "reading config file, ";
         try {
             File configFile = new File("/home/nyx/upfuzz/config.json");
             Configuration cfg = new Gson().fromJson(
@@ -111,7 +103,7 @@ public class MiniClientMain {
                 stackedTestPath, testPlanPath;
         Path stackedFeedbackPath, testPlanFeedbackPath;
         StackedTestPacket defaultStackedTestPacket;
-        StackedTestPacket stackedTestPacket; // = new StackedTestPacket();
+        StackedTestPacket stackedTestPacket;
         TestPlanPacket defaultTestPlanPacket;
         TestPlanPacket testPlanPacket;
         StackedFeedbackPacket stackedFeedbackPacket;
@@ -119,7 +111,7 @@ public class MiniClientMain {
         String archive_name, fuzzing_archive_command;
         Long start_time_create_archive, start_time_t, startTimeReadTestPkt;
 
-        s1 += "Type " + testType + ", ";
+        logMessages += "Type " + testType + ", ";
 
         Path defaultTestPath = (testType == 0)
                 ? Paths.get(workdir, "defaultStackedTestPacket.ser")
@@ -127,7 +119,7 @@ public class MiniClientMain {
         defaultConfigPath = (testType == 0)
                 ? Paths.get(workdir, "stackedTestConfigFile")
                 : Paths.get(workdir, "testPlanConfigFile");
-        String res1 = "";
+        String executorStartUpReport = "";
         Executor executor;
         if (Config.getConf().verifyConfig) {
             System.err.println("verifying configuration");
@@ -154,14 +146,14 @@ public class MiniClientMain {
                 executor = FuzzingClient.initExecutor(
                         defaultStackedTestPacket.nodeNum, null,
                         defaultConfigPath);
-                res1 = startUpExecutor(executor, testType);
+                executorStartUpReport = startUpExecutor(executor, testType);
             } else {
                 defaultTestPlanPacket = (TestPlanPacket) Utilities
                         .readObjectFromFile(defaultTestPath.toFile());
                 executor = FuzzingClient.initExecutor(
                         defaultTestPlanPacket.getNodeNum(), null,
                         defaultConfigPath);
-                res1 = startUpExecutor(executor, testType);
+                executorStartUpReport = startUpExecutor(executor, testType);
             }
         } catch (ClassNotFoundException | IOException
                 | ClassCastException e) {
@@ -169,10 +161,8 @@ public class MiniClientMain {
             return;
         }
 
-        if (res1.equals("fail0")) {
+        if (executorStartUpReport.equals("fail0")) {
             // was unable to startup the docker system
-            List<Integer> list = new ArrayList<>();
-            list.add(-1);
             System.err.println(
                     "Nyx MiniClient: Executor failed to start up!");
             stackedFeedbackPacket = new StackedFeedbackPacket(
@@ -193,15 +183,13 @@ public class MiniClientMain {
             }
             cAgent.print("F0"); // F for failed
             return;
-        } else if (res1.equals("fail4")) {
+        } else if (executorStartUpReport.equals("fail4")) {
             // was unable to startup the docker system
-            // List<Integer> list = new ArrayList<>();
-            // list.add(-1);
-            FeedBack[] feedBacks = new FeedBack[1];
+            FeedBack[] testPlanFeedBacks = new FeedBack[1];
             System.err.println(
                     "Nyx MiniClient: Executor failed to start up!");
             testPlanFeedbackPacket = new TestPlanFeedbackPacket("",
-                    "/home/nyx/upfuzz/config.json", 0, feedBacks);
+                    "/home/nyx/upfuzz/config.json", 0, testPlanFeedBacks);
             testPlanFeedbackPath = Paths.get(workdir,
                     "testPlanFeedbackPacket.ser"); // "/miniClientWorkdir/testPlanFeedbackPacket.ser"
             try (DataOutputStream out = new DataOutputStream(
@@ -218,21 +206,19 @@ public class MiniClientMain {
             }
             cAgent.print("F4"); // F for failed
             return;
-        } else if (res1.equals("success")) {
-            // String nyxWorkdir = "R:" +
-            // executor.dockerCluster.workdir.getAbsolutePath();
-            s1 += "Sending read signal, ";
+        } else if (executorStartUpReport.equals("success")) {
+            logMessages += "Sending read signal, ";
             cAgent.print("R"); // READY_FOR_TESTS
-            // cAgent.print(nyxWorkdir); // READY_FOR_TESTS
         } else {
             cAgent.print("F0");
             return;
         }
-        s1 += res1 + ", ";
+        logMessages += executorStartUpReport + ", ";
 
         // c agent should checkpoint the vm here
         System.err.println("Waiting to start TESTING");
         String cAgentMsg = stdin.nextLine();
+        
         // wait for c agent to tell us to start testing
         if (!(cAgentMsg.equals("START_TESTING0")
                 || (cAgentMsg.equals("START_TESTING4")))) {
@@ -240,8 +226,8 @@ public class MiniClientMain {
             System.err.println("POSSIBLE SYNC ERROR OCCURED IN MINICLIENT");
             return;
         }
+        
         // Read the new stackedTestPacket to be used for test case sending
-
         startTimeReadTestPkt = System.currentTimeMillis();
         if (cAgentMsg.equals("START_TESTING0")) {
             stackedTestPath = Paths.get(workdir,
@@ -254,23 +240,20 @@ public class MiniClientMain {
                 e.printStackTrace();
                 return;
             }
-            s1 += "read stacked test file in "
+            logMessages += "read stacked test file in "
                     + (System.currentTimeMillis() - startTimeReadTestPkt)
                     + " ms, ";
 
             start_time_t = System.currentTimeMillis();
             stackedFeedbackPacket = runTheTests(executor, stackedTestPacket);
-            s1 += "Testing time " + (System.currentTimeMillis() - start_time_t)
+            logMessages += "Testing time " + (System.currentTimeMillis() - start_time_t)
                     + "ms, ";
             System.err.println(
                     "[MiniClient] Completed running stacked test packet");
-            // Path stackedFeedbackPath = Paths.get(workdir,
-            // "stackedFeedbackPacket.ser"); //
-            // "/miniClientWorkdir/stackedFeedbackPacket.ser"
+            
             start_time_create_archive = System.currentTimeMillis();
             stackedFeedbackPath = Paths.get(workdir,
                     "stackedFeedbackPacket.ser");
-            // s1 += "write feedback file, ";
             try (DataOutputStream out = new DataOutputStream(
                     new FileOutputStream(
                             stackedFeedbackPath.toAbsolutePath().toString()))) {
@@ -302,7 +285,6 @@ public class MiniClientMain {
         } else {
             testPlanPath = Paths.get(workdir,
                     "mainTestPlanPacket.ser"); // "/miniClientWorkdir/mainStackedTestPacket.ser"
-            // TestPlanPacket testPlanPacket;
             try { // if any of these catches go through we have a big problem
                 testPlanPacket = (TestPlanPacket) Utilities
                         .readObjectFromFile(testPlanPath.toFile());
@@ -312,23 +294,20 @@ public class MiniClientMain {
                 return;
             }
 
-            s1 += "read stacked test file in "
+            logMessages += "read stacked test file in "
                     + (System.currentTimeMillis() - startTimeReadTestPkt)
                     + " ms, ";
 
             start_time_t = System.currentTimeMillis();
             testPlanFeedbackPacket = runTestPlanPacket(executor,
                     testPlanPacket);
-            s1 += "Testing time " + (System.currentTimeMillis() - start_time_t)
+            logMessages += "Testing time " + (System.currentTimeMillis() - start_time_t)
                     + "ms, ";
 
-            // Path stackedFeedbackPath = Paths.get(workdir,
-            // "stackedFeedbackPacket.ser"); //
-            // "/miniClientWorkdir/stackedFeedbackPacket.ser"
             start_time_create_archive = System.currentTimeMillis();
             testPlanFeedbackPath = Paths.get(workdir,
                     "testPlanFeedbackPacket.ser");
-            // s1 += "write feedback file, ";
+            
             try (DataOutputStream out = new DataOutputStream(
                     new FileOutputStream(
                             testPlanFeedbackPath.toAbsolutePath()
@@ -364,7 +343,6 @@ public class MiniClientMain {
         try {
             ProcessBuilder builder = new ProcessBuilder();
             builder.command("/bin/bash", "-c", fuzzing_archive_command);
-            // builder.directory(new File(System.getProperty("user.home")));
             builder.redirectErrorStream(true);
 
             Process process = builder.start();
@@ -372,20 +350,19 @@ public class MiniClientMain {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        s1 += "Creating feedback archive "
+        logMessages += "Creating feedback archive "
                 + (System.currentTimeMillis() - start_time_create_archive)
                 + "ms, ";
+        
         // lets c agent know that the stackedFeedbackFile is ready
-        // s1 += "final signal pass to cAgent";
         String printMsg;
         if (Config.getConf().debug) {
-            printMsg = "2:" + archive_name + "; " + s1 + testPlanLog;
+            printMsg = "2:" + archive_name + "; " + logMessages + testExecutionLog;
         } else {
             printMsg = "2:" + archive_name;
         }
         cAgent.print(printMsg);
-        // cAgent.print("2");
-
+        
         // sit here, if any communication desync happened
         // this should be passed and system will crash
         stdin.nextLine();
@@ -430,142 +407,11 @@ public class MiniClientMain {
             // "SELECT * FROM distributed_test_keyspace.tbl WHERE pk = 1;",
             // };
 
-            // String[] commandSequenceList2 = { //1,2,3,6,7
-            // "CREATE KEYSPACE uuid7bc0babf3a4d4970b4f20f4376046e36 WITH
-            // REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor'
-            // : 2 };",
-            // "CREATE KEYSPACE IF NOT EXISTS
-            // uuid22437341ec0044a397da18834342ac32 WITH REPLICATION = { 'class'
-            // : 'SimpleStrategy', 'replication_factor' : 2 };",
-            // "CREATE TYPE uuid22437341ec0044a397da18834342ac32.y (y
-            // set<TEXT>,zZAspM set<INT>,cAPh TEXT,JJZdN TEXT,QMMI
-            // set<INT>,JptplUFOay TEXT,OZXBDHHAL TEXT);",
-            // "DROP KEYSPACE uuid7bc0babf3a4d4970b4f20f4376046e36;",
-            // "DROP KEYSPACE uuid22437341ec0044a397da18834342ac32;",
-            // "CREATE KEYSPACE IF NOT EXISTS
-            // uuidb0fa2c07e69b4a679dc6725e8697fc91 WITH REPLICATION = { 'class'
-            // : 'SimpleStrategy', 'replication_factor' : 2 };",
-            // "CREATE TABLE uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI (QMMI
-            // INT,OZXBDHHAL set<TEXT>,Zba set<TEXT>,JptplUFOay TEXT,y
-            // TEXT,JJZdN TEXT,UCTCKyMQZwcolZRRsOwT TEXT, PRIMARY KEY
-            // (JptplUFOay, y, UCTCKyMQZwcolZRRsOwT, JJZdN )) WITH
-            // speculative_retry = 'ALWAYS';",
-            // "ALTER TABLE uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI RENAME
-            // cAPh TO cAPh;",
-            // "DELETE FROM uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh
-            // = 'GVbImcbCdFxPGtKYyNQwiIXYVAdmRJBrQageKxhEZZXGujCWjan' AND y =
-            // 'vLIJbZlyHZeVUHuVXbbdBwoPHyidfgxDmRIYeSEkolubnEotnMPPLKKraBnUmyvHVwkWpuzvugVsanfnUOBhIqfybBUAjHYnSxmlovLCcpdkKDgeXDqTuwUKjZERnuWPrHDKGERdqtGT'
-            // AND UCTCKyMQZwcolZRRsOwT =
-            // 'rSmSxYEuESMgCBrGtYWIjkUDcLlLVYKJKlEFtJmsLkLigaFJXhHBMtEzdGftoHvMLJNuHWdjzFdnhEWBPioHcjVyWRKZnwdWkeAxWWrWxQamAuudiBurzaWKmIGIDstuOxNJGiwEVdqfNZWLEAPAVbjwSIPdbrWCxJcaElU'
-            // AND JJZdN = 'hfLBnzt';",
-            // "TRUNCATE TABLE uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI;",
-            // "ALTER TABLE uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI ADD
-            // znIkGzEuT set<TEXT> ;",
-            // "USE uuidb0fa2c07e69b4a679dc6725e8697fc91;",
-            // "ALTER TABLE uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI ADD
-            // JptplUFOay set<INT> ;",
-            // "ALTER TABLE uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI ALTER
-            // JJZdN TYPE set<TEXT> ;",
-            // "USE uuidb0fa2c07e69b4a679dc6725e8697fc91;",
-            // "ALTER TABLE uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI ADD
-            // TKljkanAl set<INT> ;"
-            // };
-
-            // String[] validationCommandsList2 = {
-            // "SELECT UCTCKyMQZwcolZRRsOwT, y, QMMI, JptplUFOay, TKljkanAl,
-            // cAPh, Zba, JJZdN, znIkGzEuT FROM
-            // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
-            // 'rpoHvlFcAsdcvNElBCpoXMpnOnnBupzTNtArrLEthXKNbDnqMYOQCXPOuozalwfKAdXlOHiaVYrFBPKLVxEBvlquSGOqSApexrdZBUtejrARzXPMqtcOljkPzXQbDxnhDzPkhQvdAczgjhImChKsaEmVAtgKWufWOUxCQhLfDEeLLjLzKQRmUWhQyoPaowwpjJHuTUGcwpFNsiWQZeiFpDogwesfZzKuyhIwiAykwOlLCx'
-            // AND y =
-            // 'cwSKgnEeKGQHIqbJnXGZZVEaGJqbPKkOGyGXWrxwUwwNMRXfmqHGoBIhIGOrUcXwWOvpXIANQFhETriSMpZefgflbwyvKHLhQaxwSfsRaCJCxPvqGSbxjnRLyBqUVmrAfwERnrqhzUGGGGOWnvbUulvPKMqUdpzqvhjihlkFbFpsuaozAlbilrLY'
-            // AND UCTCKyMQZwcolZRRsOwT = 'hDuATCtjOoQcXvPufnZXugTqoPIRsqnuifvp'
-            // ORDER BY y ASC;",
-            // "SELECT JJZdN, UCTCKyMQZwcolZRRsOwT, cAPh, TKljkanAl, JptplUFOay,
-            // Zba, OZXBDHHAL FROM uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI
-            // WHERE cAPh =
-            // 'ONklQQIzEUdtjqFXiiICCFxCgwdHLYTGpXOmrcAJEcQvtHcDePpYNfbGVEQJORSdIUKFWOhNGohrGlvhNbNVtazXBIkvYcHkBKPxMDhjimtoli'
-            // ORDER BY y DESC;",
-            // "SELECT OZXBDHHAL, y, cAPh FROM
-            // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
-            // 'IQokwRsRfWuSQyihOexAkPgicoaSD' AND y =
-            // 'xpgAfIXYJhpGUqgzObWggnUrkrpwUjhBsTbqymZEQluosmrsMtXfvogGVMkAHcAenFFfDUALIrcXPUEGbtiArksOUQtmOYgBEUCgtbilDuuqIMEcUfTJSjYYlHBPaIWfJqHoKOZQTCtlLVnPSSNowocQQpcNvnAMJEvPAiTKbLIJeDNrNgwgmoouVWBTQObQgzmBHGaYShUULLunlcJSEywRVGMKCwu'
-            // AND UCTCKyMQZwcolZRRsOwT =
-            // 'BcceMDyJMMwRbqWplXPeuMlIOkWoTwWNMVFuezCwqkleXJSyibTWVNsIjtbbRqOMxOylbGxsQDwkYioWNtRPOtKJSoooRAiGKmqsrJiWSjLCRXrNkYZVrNKabOjsnwxaFFfDTrOHHvLAuCrOoMgMGBEPaBNuM'
-            // ORDER BY y DESC;",
-            // "SELECT JJZdN FROM uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI
-            // WHERE cAPh =
-            // 'FQlTaZGmRvxWzuccowrrgdtkgJiOCnWxOfOmuukwFJBCBEkZeaXlADZpJpswFQoTCVNNnyj'
-            // AND y = 'wXE' AND UCTCKyMQZwcolZRRsOwT =
-            // 'BeCzSTBXirTVhUgGFNPCsdiloYEahrfQVGClTHJalB';",
-            // "SELECT cAPh, JJZdN, TKljkanAl, UCTCKyMQZwcolZRRsOwT, JptplUFOay,
-            // QMMI, OZXBDHHAL, y, znIkGzEuT FROM
-            // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI;",
-            // "SELECT Zba, UCTCKyMQZwcolZRRsOwT, znIkGzEuT FROM
-            // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI;",
-            // "SELECT cAPh, UCTCKyMQZwcolZRRsOwT, Zba, znIkGzEuT FROM
-            // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI;",
-            // "SELECT y, UCTCKyMQZwcolZRRsOwT FROM
-            // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
-            // 'dLtlNYdbujEXjJylvHENctHRtssfdiFnpvmyVzBKcbUunCKIvlwavHGLEofAgIVkSIjYcoIfRMRGKGXgfSqSvuLOAvxJtIwbmKzHiVjVpDlROHBUEeyloemClOmuAKuhUojrLpn'
-            // AND y =
-            // 'WtGscttHzsnQKvOSfdTYHkGNjMdJCcqZmcrhFUfAZvrBgVSafgnlFnWMkcelUCKPrnmJGIlBntJWLVnvjZmnSdvRyPfIltNxrHOaTOfriAGsrTuRalJvwSzEBOpONbwxHIVGUMCpdAjfZDWR'
-            // AND UCTCKyMQZwcolZRRsOwT =
-            // 'RjsxWeNqwPRNsxJNluSoCgvxnmvtSijaDzsnqjlFJWEEKUXXPJPhRgtfidRyhjRvRTqAheGnLjWRLcCjbzINNamFRsJgFjPQTXwBrVomLZkVXWUHhfaBWLGXvfXfEIdPnELBkZHkYFOvQikOmSBpEjqhoEeSckHPKtySUGAjfOnMZrmvdmVovOAndBqCGsezCeTInjKNDEwbCXiYnRROWLiBmdBiaMUBecnQsGwE'
-            // ORDER BY y DESC;",
-            // "SELECT y, JJZdN, znIkGzEuT, OZXBDHHAL, cAPh FROM
-            // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
-            // 'MyJVcXMGXewQINOhhxqEkscubxvkjDXqgbuBWgxSjdsvmOyHWJiOtgjDnzIBtXEtGOSGuITQPTkTinooCEjKYMiPsiwGrZIhKPNrHdfYLQEKUWcoUfdqvnYnbZVrCfRhuVTigkwIWPoyQgmlGtIQxflpjhAvROWdksIxHBmiNQALLyMpVXAxqPGLVpJfQLgJIdnosYulTMHrnyvHkkwUirSltCgzXMuugkqBBiUeZXDAiRNnclqjiquZmHRXy'
-            // AND y =
-            // 'TOVCaPnaISZjXqsmzjDRdgjBBcNPSSQqioVEJQQPoYUkXviPChjZxtYuPbXPqtdoyDKcEuRBtWFskEyKszyNjfLzNghflVsfDVkhWUKmoGBFtNSVlZoMzZnXzFoPyvKGhQoTEfPsuacWLBzypzKGkTOcZUfkyOjmRex'
-            // ORDER BY y DESC;",
-            // "SELECT * FROM uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE
-            // cAPh =
-            // 'yrMbCQaUVupOeuekzjACCGPJJhBoyuDFjLEBOkFPDppIJKAUrdfScSfhXLIHVfMXaiAzXafdYzXSRCVZfoaTgLvPzXuFkmDwMuecZLXgchehnRTkzAXhYtZsdXXGGTotABflUzb'
-            // ORDER BY y ASC;",
-            // "SELECT QMMI, OZXBDHHAL, JptplUFOay FROM
-            // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
-            // 'jttJKjamrJXgLcXBpzYcceQnrFrLHjkznwtMUKPMrVbSDfexffbXtNSfKMGYaYpxdDsRwbeeWZyDDdhEeGmLehYpjmKiwnGtayZUIekVBCrLqGKMxftDVpCJZTGtXIxelpPiyoEogUYiCPrlpJAjhatMRboVlFVyHYnxQoSciHPcaTkFGCmTJLjSSiqKgRPdLnJHlrSpfHZOmyPejUYAjoyfpkkNSRdxqyJfoElO'
-            // AND y = 'vyWJtHRfyrKpouqfRTDseowSjcGroRzXqpwYyTYgXnVeoGuqM';",
-            // "SELECT UCTCKyMQZwcolZRRsOwT, TKljkanAl, Zba, OZXBDHHAL, y FROM
-            // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
-            // 'knsxgfYJLOgWuXbhkmZZtXtmjkhXzqqMInfxnhgUiPIScqsdUeNhWHydrLmFMNYHYdAPPbXAoeMQFypzuSdhXUwmGaZclrYoOLIWRdQvHLeYjDeJngpcCzJtiCQHGYmFoztOMuACAqELEheJDihyekUCZppWAzJEXvMjcPCtrDQYkvhNOLYEwuzoMleONlSuSJOuugvFbicfdFUaojo'
-            // AND y = 'mVOlqvkSTpTpymWMbKUQNAVULnLV' AND UCTCKyMQZwcolZRRsOwT =
-            // 'XUtpvrFTjCeqbkgzLbsssBQrItwKACuvjpjzXUiGTEWzAHYXyLjzQITnxJyJdHyAOlVTgnuZBaXureAMbcQVTQZugGWZuAkjqUxApIdwjMEIPnCbTnlnAfo';",
-            // "SELECT JptplUFOay, y, cAPh FROM
-            // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
-            // 'kNwjXgHXWjkwDdpQILNMfrNHaZEZkXcmMOfztsGsotShnLwbPdvStBysxB' AND
-            // y =
-            // 'UUvfLVsxCdIbBXOxXGoVMRcmqyWcaumPZCeltQsUrPWFyYbCdipPLHpaEavQpsAQZeHbaErmD'
-            // AND UCTCKyMQZwcolZRRsOwT =
-            // 'DVbTDsFKTYjnmGWyhdOFpRQOfnPxrfQyqZFlEcem' AND JJZdN =
-            // 'ALJkDNqOIpZbdvOnZSYnjsLQCTvgKQiaqlSfRBpFMrTtxcoByXEvpQNWoyOPlhJRweGlcyPYMTKWIHZFtWmdOXKeAvhIhKB';",
-            // "SELECT UCTCKyMQZwcolZRRsOwT, cAPh, OZXBDHHAL, znIkGzEuT, y,
-            // QMMI, JJZdN FROM uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE
-            // cAPh =
-            // 'TKoaMHQVxuhmyqtfYShifSJZlHViNwSGbyikpichHGTCnHeubDiRJvhhWXGdQhDwdAeFkPltviIZwpozGELYLvPUnwGygOmaBsREeLMXmdagwJOWwhFoaOemgSfMpuELfnciSlIiDEsWfPFrayNcUfeqHlWzsCRlustCJHvRMZqkKuMCzPp'
-            // AND y = 'fTAdIEajfapGzxccfsGmOILUwFkhHwNhEgFc';",
-            // "SELECT UCTCKyMQZwcolZRRsOwT, y, JptplUFOay, znIkGzEuT,
-            // OZXBDHHAL, cAPh, QMMI, JJZdN FROM
-            // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI;",
-            // "SELECT cAPh, UCTCKyMQZwcolZRRsOwT, OZXBDHHAL FROM
-            // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
-            // 'ObYEJXGwJdMGxSrCwNREgLUMehxDpXsFVENLsJFzRctUFFtgfkxTDSzhcDstsRANdqhktvIuidgCQrzDlCHhkRWQZYvWkDON'
-            // AND y =
-            // 'BfhuiKpfMufxugRyvPmkpSLTmkDDkablwIrPcyQixwinYxzCjqzXlyrqKdZnEWabuynibgaCMSZQcGdTRKMaPmVnJBaDAjYoMqzGeLJBYxcQJpwkdQXNgOlGTXNbPRVviPmQaYrZJUAHjbEjGQQPMOnAsIWViMRC'
-            // AND UCTCKyMQZwcolZRRsOwT =
-            // 'DQkTMihcijbwPgUkEtWlJDbnNmdkIvmGBbVkGroYtmFydVdGMOFoNQehEIjBwJNURCrCKEIKzUmAuTQXtxcPYkbUGqGcTeMmQOaKfXLfVzkFFFvBjPVWLDlwFPerPIwvuDnVhAxuuLloPwjVyUBpmalsGEBcUSUMDtgupywsoCgzzujJuEFMIobEmlhigQaQeYXMiJKsOyddGdAtbGMPpBOBPGUwmH'
-            // AND JJZdN =
-            // 'wqyKJdHjgczsdFtbyoTEUnhmTfZGWfZpOKUFXNGsIaSGXXaANylWhPqZYmqBAgsjioIfnJpLHyZnSXLITpNMp';",
-            // "SELECT OZXBDHHAL, UCTCKyMQZwcolZRRsOwT FROM
-            // uuidb0fa2c07e69b4a679dc6725e8697fc91.QMMI WHERE cAPh =
-            // 'YvnEUbTIDekDJMJeawGaUgmluZTFXCgQzjSmyDatfPiPNmTDzJQNXYZwtnjNjsMSeqfDHwGZHoghQBWHiItnfWsCsVAicCstW'
-            // AND y = 'SUr';"
-            // };
-            // List<String> originalCommandSequenceList = Arrays
-            // .asList(commandSequenceList);
-            executor.executeCommands(tp.originalCommandSequenceList);
+            // List<String> originalCommandSequenceList = Arrays.asList(commandSequenceList);
             // executor.executeCommands(originalCommandSequenceList);
 
+            executor.executeCommands(tp.originalCommandSequenceList);
+            testExecutionLog += executor.getTestPlanExecutionLog();
             FeedBack[] feedBacks = new FeedBack[stackedTestPacket.nodeNum];
             for (int i = 0; i < stackedTestPacket.nodeNum; i++) {
                 feedBacks[i] = new FeedBack();
@@ -582,8 +428,7 @@ public class MiniClientMain {
                     new FeedbackPacket(tp.systemID, stackedTestPacket.nodeNum,
                             tp.testPacketID, feedBacks, null));
 
-            // List<String> oriResult = executor
-            // .executeCommands(Arrays.asList(validationCommandsList));
+            // List<String> oriResult = executor.executeCommands(Arrays.asList(validationCommandsList));
             List<String> oriResult = executor
                     .executeCommands(tp.validationCommandSequenceList);
             testID2oriResults.put(tp.testPacketID, oriResult);
@@ -752,25 +597,18 @@ public class MiniClientMain {
         int nodeNum = testPlanPacket.getNodeNum();
 
         // LOG checking1
-        // Long curTime2 = System.currentTimeMillis();
         Map<Integer, LogInfo> logInfoBeforeUpgrade = null;
         if (Config.getConf().enableLogCheck) {
-            // logger.info("[HKLOG] error log checking");
             logInfoBeforeUpgrade = executor.grepLogInfo();
         }
-        // logger.info(String.format(
-        // "[Fuzzing Client] completed first log checking in %d ms",
-        // System.currentTimeMillis() - curTime2));
-
+        
         // execute test plan (rolling upgrade + fault)
 
-        // logger.info("[Fuzzing Client] Call to run the tests");
         boolean status = executor.execute(testPlanPacket.getTestPlan());
-        // logger.info("[Fuzzing Client] completed the testing");
-        testPlanLog += "testing plan done in "
+        testExecutionLog += "testing plan done in "
                 + (System.currentTimeMillis() - initTime) + " ms, status "
                 + status + ", ";
-        testPlanLog += executor.getTestPlanExecutionLog();
+        testExecutionLog += executor.getTestPlanExecutionLog();
 
         initTime = System.currentTimeMillis();
         FeedBack[] testPlanFeedBacks = new FeedBack[nodeNum];
@@ -784,7 +622,7 @@ public class MiniClientMain {
                 if (oriCoverages != null)
                     testPlanFeedBacks[i].originalCodeCoverage = oriCoverages[i];
             }
-            testPlanLog += "(fullstop) coverage collected and processed in "
+            testExecutionLog += "(fullstop) coverage collected and processed in "
                     + (System.currentTimeMillis() - initTime) + " ms, ";
             // upgrade
 
@@ -794,7 +632,7 @@ public class MiniClientMain {
                 // update event id
                 executor.eventIdx = -1; // this means full-stop upgrade failed
 
-            testPlanLog += "fullstop upgrade done in "
+            testExecutionLog += "fullstop upgrade done in "
                     + (System.currentTimeMillis() - initTime) + " ms, ";
 
         } else {
@@ -805,12 +643,9 @@ public class MiniClientMain {
                 if (executor.oriCoverage[i] != null)
                     testPlanFeedBacks[i].originalCodeCoverage = executor.oriCoverage[i];
             }
-            testPlanLog += "fullstop upgrade done in "
+            testExecutionLog += "fullstop upgrade done in "
                     + (System.currentTimeMillis() - initTime) + " ms, ";
         }
-        // logger.info(String.format(
-        // "[Fuzzing Client] completed collecting code coverages in %d ms",
-        // System.currentTimeMillis() - curTime));
 
         initTime = System.currentTimeMillis();
         TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
@@ -822,14 +657,11 @@ public class MiniClientMain {
         // if (Config.getConf().enableStateComp) {
         // Map<Integer, Map<String, String>> states = executor
         // .readSystemState();
-        // // logger.info("rolling upgrade system states = " + states);
-        // // logger.info("full stop upgrade system state"
         // // + testPlanPacket.testPlan.targetSystemStatesOracle);
         // Map<Integer, Map<String, Pair<String, String>>> inconsistentStates =
         // stateCompare(
         // testPlanPacket.testPlan.targetSystemStatesOracle,
         // states);
-        // // logger.info("inconsistent states = " + inconsistentStates);
         // }
 
         if (!status) {
@@ -848,13 +680,13 @@ public class MiniClientMain {
                 try {
                     ExecutionDataStore[] oriCoverages = executor
                             .collectCoverageSeparate("original");
-                    testPlanLog += "(single) collected coverage, ";
+                    testExecutionLog += "(single) collected coverage, ";
                     if (oriCoverages != null) {
                         for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
                             testPlanFeedbackPacket.feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
                         }
                     }
-                    testPlanLog += "(single success) coverage collected and processed in "
+                    testExecutionLog += "(single success) coverage collected and processed in "
                             + (System.currentTimeMillis() - initTime) + " ms, ";
                 } catch (Exception e) {
                     // Cannot collect code coverage in the upgraded version
@@ -870,14 +702,8 @@ public class MiniClientMain {
                             recordedTestPlanPacket + "\n" + "Exception:"
                             + e;
 
-                    testPlanLog += "(failed) single version coverage collection in "
+                    testExecutionLog += "(failed) single version coverage collection in "
                             + (System.currentTimeMillis() - initTime) + " ms, ";
-                    // tearDownExecutor();
-                    // initTime = System.currentTimeMillis();
-                    // executor.teardown();
-                    // testPlanLog += "(failed) coverage collection, single
-                    // version teardown in "
-                    // + (System.currentTimeMillis() - initTime) + " ms, ";
                     return testPlanFeedbackPacket;
                 }
 
@@ -890,10 +716,6 @@ public class MiniClientMain {
                     List<String> testPlanReadResults = executor
                             .executeCommands(
                                     testPlanPacket.testPlan.validationCommands);
-                    // logger.debug("[HKLOG] full-stop results = \n"
-                    // + testPlanPacket.testPlan.validationReadResultsOracle);
-                    // logger.debug("[HKLOG] rolling upgrade results = \n"
-                    // + testPlanReadResults);
                     compareRes = executor
                             .checkResultConsistency(
                                     testPlanPacket.testPlan.validationReadResultsOracle,
@@ -932,8 +754,6 @@ public class MiniClientMain {
                             "ConfigIdx = " + testPlanPacket.configFileName
                             + "\n" +
                             recordedTestPlanPacket + "\n" + "Exception:" + e;
-                    // tearDownExecutor();
-                    // executor.teardown();
                     return testPlanFeedbackPacket;
                 }
             }
@@ -942,7 +762,6 @@ public class MiniClientMain {
         // LOG checking2
         initTime = System.currentTimeMillis();
         if (Config.getConf().enableLogCheck) {
-            // logger.info("[HKLOG] error log checking");
             assert logInfoBeforeUpgrade != null;
             Map<Integer, LogInfo> logInfo = FuzzingClient
                     .extractErrorLog(executor, logInfoBeforeUpgrade);
@@ -954,20 +773,9 @@ public class MiniClientMain {
                                 testPlanPacket.configFileName,
                                 logInfo);
             }
-            testPlanLog += "(log check) fuzzing client log check in "
+            testExecutionLog += "(log check) fuzzing client log check in "
                     + (System.currentTimeMillis() - initTime) + " ms, ";
         }
-        // logger.info(String.format(
-        // "[Fuzzing Client] completed second log checking in %d ms",
-        // System.currentTimeMillis() - curTime));
-
-        // logger.info("[Fuzzing Client] Call to teardown executor");
-        // tearDownExecutor();
-        // initTime = System.currentTimeMillis();
-        // executor.teardown();
-        // testPlanLog += "(success test plan) executor torn down in "
-        // + (System.currentTimeMillis() - initTime) + " ms, ";
         return testPlanFeedbackPacket;
-        // logger.info("[Fuzzing Client] Executor torn down");
     }
 }
