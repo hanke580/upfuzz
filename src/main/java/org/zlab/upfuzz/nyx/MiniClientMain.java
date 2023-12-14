@@ -163,10 +163,12 @@ public class MiniClientMain {
 
         if (executorStartUpReport.equals("fail0")) {
             // was unable to startup the docker system
+            List<Integer> testIds = new ArrayList<>();
+            testIds.add(-1);
             System.err.println(
                     "Nyx MiniClient: Executor failed to start up!");
             stackedFeedbackPacket = new StackedFeedbackPacket(
-                    "/home/nyx/upfuzz/config.json", list);
+                    "/home/nyx/upfuzz/config.json", testIds);
             stackedFeedbackPath = Paths.get(workdir,
                     "stackedFeedbackPacket.ser"); // "/miniClientWorkdir/stackedFeedbackPacket.ser"
             try (DataOutputStream out = new DataOutputStream(
