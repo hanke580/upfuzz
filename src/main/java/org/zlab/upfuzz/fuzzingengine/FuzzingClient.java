@@ -186,7 +186,7 @@ public class FuzzingClient {
     }
 
     public boolean startUpExecutor() {
-        logger.info("[Fuzzing Client] starting up executor");
+        logger.info("[HKLOG] Fuzzing client: starting up executor");
         for (int i = 0; i < CLUSTER_START_RETRY; i++) {
             try {
                 if (executor.startup()) {
@@ -352,22 +352,22 @@ public class FuzzingClient {
         if (this.previousConfigPath == null) {
             long startTime = System.currentTimeMillis();
             this.libnyx.nyxNew();
-            // if (Config.getConf().debug) {
-            logger.info(
+            if (Config.getConf().debug) {
+                logger.info(
                     "[Fuzzing Client] First execution: Time needed to start up a new nyx vm "
                             + (System.currentTimeMillis() - startTime)
                             + " milliseconds");
-            // }
+            }
         } else if (!sameConfigAsLastTime) {
             long startTime = System.currentTimeMillis();
             this.libnyx.nyxShutdown();
             this.libnyx.nyxNew();
-            // if (Config.getConf().debug) {
-            logger.info(
+            if (Config.getConf().debug) {
+                logger.info(
                     "[Fuzzing Client] New config: Time needed to shutdown old nyx vm and start a new nyx vm "
                             + (System.currentTimeMillis() - startTime)
                             + " seconds");
-            // }
+            }
         }
         this.previousConfigPath = configPath;
 
@@ -378,9 +378,11 @@ public class FuzzingClient {
                 + RandomStringUtils.randomAlphanumeric(8) + ".ser";
         Path stackedTestPath = Paths.get(this.libnyx.getSharedir(),
                 stackedTestFileLocation);
-        logger.info("[Fuzzing Client] time for getting stacked test path "
+        if (Config.getConf().debug) {
+            logger.info("[Fuzzing Client] time for getting stacked test path "
                 + (System.currentTimeMillis() - startTime3)
                 + " milliseconds");
+        }
 
         long startTime4 = System.currentTimeMillis();
         try {
@@ -390,29 +392,33 @@ public class FuzzingClient {
             e.printStackTrace();
             return null;
         }
-        logger.info("[Fuzzing Client] time for writing test packet to file "
+        if (Config.getConf().debug) {
+            logger.info("[Fuzzing Client] time for writing test packet to file "
                 + (System.currentTimeMillis() - startTime4)
                 + " milliseconds");
+        }
 
         // tell the nyx agent where to find the stackedTestPacket
         long startTime5 = System.currentTimeMillis();
         this.libnyx.setInput(stackedTestFileLocation); // set the test file
                                                        // location as input
-        logger.info("[Fuzzing Client] time for libnyx setInput function "
+        if (Config.getConf().debug) {
+            logger.info("[Fuzzing Client] time for libnyx setInput function "
                 + (System.currentTimeMillis() - startTime5)
                 + " milliseconds");
-
+        }
+        
         setTestType(0);
         long startTime6 = System.currentTimeMillis();
         this.libnyx.nyxExec();
-        logger.info("[Fuzzing Client] time for NyxExec() function "
+        if (Config.getConf().debug) {
+            logger.info("[Fuzzing Client] time for NyxExec() function "
                 + (System.currentTimeMillis() - startTime6)
                 + " milliseconds");
-        // if (Config.getConf().debug) {
-        logger.info("[Fuzzing Client] Total time for Nyx-UpFuzz execution "
+            logger.info("[Fuzzing Client] Total time for Nyx-UpFuzz execution "
                 + (System.currentTimeMillis() - startTime3)
                 + " milliseconds");
-        // }
+        }
 
         // String storagePath = executor.dockerCluster.workdir.getAbsolutePath()
         // .toString();
@@ -433,10 +439,10 @@ public class FuzzingClient {
                     }
                 }
             } else {
-                logger.info("[FuzzingClient] No files found in the directory.");
+                logger.info("[HKLOG] Fuzzing Client: No files found in the directory.");
             }
         } else {
-            logger.info("[FuzzingClient] Provided path is not a directory.");
+            logger.info("[HKLOG] Fuzzing Client: Provided path is not a directory.");
         }
 
         if (!archive_name.equals("")) {
@@ -447,7 +453,8 @@ public class FuzzingClient {
                     + " ; "
                     + "cd - ;"
                     + "mv " + storagePath + " "
-                    + Paths.get(this.libnyx.getSharedir()) + " ; ";
+                    + Paths.get(this.libnyx.getSharedir())
+                    + "/$(date +'%Y-%m-%d-%H-%M-%S')-" + archive_name + " ; ";
 
             try {
                 long startTime2 = System.currentTimeMillis();
@@ -458,10 +465,12 @@ public class FuzzingClient {
 
                 Process process = builder.start();
                 int exitCode = process.waitFor();
-                logger.info(
+                if (Config.getConf().debug) {
+                    logger.info(
                         "[Fuzzing Client] Time needed to unzip the fuzzing storage archive and moving it to the workdir: "
                                 + (System.currentTimeMillis() - startTime2)
                                 + " milliseconds");
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -491,9 +500,11 @@ public class FuzzingClient {
             e.printStackTrace();
             return null;
         }
-        logger.info("[Fuzzing Client] Time needed to read the feedback packet: "
+        if (Config.getConf().debug) {
+            logger.info("[Fuzzing Client] Time needed to read the feedback packet: "
                 + (System.currentTimeMillis() - startTimeFdbk)
                 + " milliseconds");
+        }
         return stackedFeedbackPacket;
     }
 
@@ -808,27 +819,29 @@ public class FuzzingClient {
         if (this.previousConfigPath == null) {
             long startTime = System.currentTimeMillis();
             this.libnyx.nyxNew();
-            // if (Config.getConf().debug) {
-            logger.info(
+            if (Config.getConf().debug) {
+                logger.info(
                     "[Fuzzing Client] First execution: Time needed to start up a new nyx vm "
                             + (System.currentTimeMillis() - startTime)
                             + " milliseconds");
-            // }
+            }
         } else if (!sameConfigAsLastTime) {
             long startTime = System.currentTimeMillis();
             this.libnyx.nyxShutdown();
             this.libnyx.nyxNew();
-            // if (Config.getConf().debug) {
-            logger.info(
+            if (Config.getConf().debug) {
+                logger.info(
                     "[Fuzzing Client] New config: Time needed to shutdown old nyx vm and start a new nyx vm "
                             + (System.currentTimeMillis() - startTime)
                             + " seconds");
-            // }
+            }
         }
         this.previousConfigPath = configPath;
 
         // Now write the stackedTestPacket to be used for actual tests
-        logger.info("[Fuzzing Client] Starting New Execution");
+        if (Config.getConf().debug) {
+            logger.info("[Fuzzing Client] Starting New Execution");
+        }
         long startTime3 = System.currentTimeMillis();
         String testPlanFileLocation = "testPlanPackets/"
                 + RandomStringUtils.randomAlphanumeric(8) + ".ser";
@@ -847,17 +860,21 @@ public class FuzzingClient {
             e.printStackTrace();
             return null;
         }
-        logger.info("[Fuzzing Client] time for writing test packet to file "
+        if (Config.getConf().debug) {
+            logger.info("[Fuzzing Client] time for writing test packet to file "
                 + (System.currentTimeMillis() - startTime4)
                 + " milliseconds");
+        }
 
         // tell the nyx agent where to find the stackedTestPacket
         long startTime5 = System.currentTimeMillis();
         this.libnyx.setInput(testPlanFileLocation); // set the test file
                                                     // location as input
-        logger.info("[Fuzzing Client] time for libnyx setInput function "
+        if (Config.getConf().debug) {
+            logger.info("[Fuzzing Client] time for libnyx setInput function "
                 + (System.currentTimeMillis() - startTime5)
                 + " milliseconds");
+        }
 
         setTestType(4);
         long startTime6 = System.currentTimeMillis();
@@ -882,10 +899,10 @@ public class FuzzingClient {
                     }
                 }
             } else {
-                logger.info("[FuzzingClient] No files found in the directory.");
+                logger.info("[HKLOG] Fuzzing Client: No files found in the directory.");
             }
         } else {
-            logger.info("[FuzzingClient] Provided path is not a directory.");
+            logger.info("[HKLOG] Fuzzing Client: Provided path is not a directory.");
         }
 
         if (!archive_name.equals("")) {
@@ -897,7 +914,8 @@ public class FuzzingClient {
                     + " ; "
                     + "cd - ;"
                     + "mv " + storagePath + " "
-                    + Paths.get(this.libnyx.getSharedir()) + " ; ";
+                    + Paths.get(this.libnyx.getSharedir()) 
+                    + "/$(date +'%Y-%m-%d-%H-%M-%S')-" + archive_name + " ; ";
 
             try {
                 long startTime2 = System.currentTimeMillis();
@@ -908,10 +926,12 @@ public class FuzzingClient {
 
                 Process process = builder.start();
                 int exitCode = process.waitFor();
-                logger.info(
+                if (Config.getConf().debug) {
+                    logger.info(
                         "[Fuzzing Client] Time needed to unzip the fuzzing storage archive and moving it to the workdir: "
                                 + (System.currentTimeMillis() - startTime2)
                                 + " milliseconds");
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -941,9 +961,11 @@ public class FuzzingClient {
             e.printStackTrace();
             return null;
         }
-        logger.info("[Fuzzing Client] Time needed to read the feedback packet: "
+        if (Config.getConf().debug) {
+            logger.info("[Fuzzing Client] Time needed to read the feedback packet: "
                 + (System.currentTimeMillis() - startTimeFdbk)
                 + " milliseconds");
+        }
         return testPlanFeedbackPacket;
     }
 
