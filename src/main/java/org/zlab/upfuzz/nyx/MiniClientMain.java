@@ -45,7 +45,7 @@ public class MiniClientMain {
     // WARNING: This must be disabled otherwise it can
     // log to output and corrupt the process
     // INFO => cClient output
-    
+
     // Where all files are searched for
     static final String workdir = "/miniClientWorkdir";
 
@@ -221,7 +221,7 @@ public class MiniClientMain {
         // c agent should checkpoint the vm here
         System.err.println("Waiting to start TESTING");
         String cAgentMsg = stdin.nextLine();
-        
+
         // wait for c agent to tell us to start testing
         if (!(cAgentMsg.equals("START_TESTING0")
                 || (cAgentMsg.equals("START_TESTING4")))) {
@@ -229,7 +229,7 @@ public class MiniClientMain {
             System.err.println("POSSIBLE SYNC ERROR OCCURED IN MINICLIENT");
             return;
         }
-        
+
         // Read the new stackedTestPacket to be used for test case sending
         startTimeReadTestPkt = System.currentTimeMillis();
         if (cAgentMsg.equals("START_TESTING0")) {
@@ -249,11 +249,12 @@ public class MiniClientMain {
 
             start_time_t = System.currentTimeMillis();
             stackedFeedbackPacket = runTheTests(executor, stackedTestPacket);
-            logMessages += "Testing time " + (System.currentTimeMillis() - start_time_t)
+            logMessages += "Testing time "
+                    + (System.currentTimeMillis() - start_time_t)
                     + "ms, ";
             System.err.println(
                     "[MiniClient] Completed running stacked test packet");
-            
+
             start_time_create_archive = System.currentTimeMillis();
             stackedFeedbackPath = Paths.get(workdir,
                     "stackedFeedbackPacket.ser");
@@ -304,13 +305,14 @@ public class MiniClientMain {
             start_time_t = System.currentTimeMillis();
             testPlanFeedbackPacket = runTestPlanPacket(executor,
                     testPlanPacket);
-            logMessages += "Testing time " + (System.currentTimeMillis() - start_time_t)
+            logMessages += "Testing time "
+                    + (System.currentTimeMillis() - start_time_t)
                     + "ms, ";
 
             start_time_create_archive = System.currentTimeMillis();
             testPlanFeedbackPath = Paths.get(workdir,
                     "testPlanFeedbackPacket.ser");
-            
+
             try (DataOutputStream out = new DataOutputStream(
                     new FileOutputStream(
                             testPlanFeedbackPath.toAbsolutePath()
@@ -356,16 +358,17 @@ public class MiniClientMain {
         logMessages += "Creating feedback archive "
                 + (System.currentTimeMillis() - start_time_create_archive)
                 + "ms, ";
-        
+
         // lets c agent know that the stackedFeedbackFile is ready
         String printMsg;
         if (Config.getConf().debug) {
-            printMsg = "2:" + archive_name + "; " + logMessages + testExecutionLog;
+            printMsg = "2:" + archive_name + "; " + logMessages
+                    + testExecutionLog;
         } else {
             printMsg = "2:" + archive_name;
         }
         cAgent.print(printMsg);
-        
+
         // sit here, if any communication desync happened
         // this should be passed and system will crash
         stdin.nextLine();
@@ -409,7 +412,8 @@ public class MiniClientMain {
                     new FeedbackPacket(tp.systemID, stackedTestPacket.nodeNum,
                             tp.testPacketID, feedBacks, null));
 
-            // List<String> oriResult = executor.executeCommands(Arrays.asList(validationCommandsList));
+            // List<String> oriResult =
+            // executor.executeCommands(Arrays.asList(validationCommandsList));
             List<String> oriResult = executor
                     .executeCommands(tp.validationCommandSequenceList);
             testID2oriResults.put(tp.testPacketID, oriResult);
@@ -563,7 +567,7 @@ public class MiniClientMain {
         if (Config.getConf().enableLogCheck) {
             logInfoBeforeUpgrade = executor.grepLogInfo();
         }
-        
+
         // execute test plan (rolling upgrade + fault)
 
         boolean status = executor.execute(testPlanPacket.getTestPlan());

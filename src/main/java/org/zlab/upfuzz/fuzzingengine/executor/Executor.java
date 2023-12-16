@@ -165,10 +165,11 @@ public abstract class Executor implements IExecutor {
                 Long initTime = System.currentTimeMillis();
                 ret.add(execShellCommand(new ShellCommand(command)));
                 if (Config.getConf().debug) {
-                    testPlanExecutionLog += String.format("%.10s", command) + " in "
-                        +
-                        +(System.currentTimeMillis() - initTime)
-                        + " ms, ";
+                    testPlanExecutionLog += String.format("%.10s", command)
+                            + " in "
+                            +
+                            +(System.currentTimeMillis() - initTime)
+                            + " ms, ";
                 }
             }
         }
