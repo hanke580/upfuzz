@@ -72,9 +72,9 @@ rsync --progress -e ssh /home/khan/ubuntu_install/cassandra_build/ubuntu.img Tin
 # Create a VM image file (30GB in size)
 ../packer/qemu_tool.sh create_image ubuntu.img $((1024*30))
 # Download the ubuntu server installation iso
-wget https://releases.ubuntu.com/22.04.2/ubuntu-22.04.2-live-server-amd64.iso
+wget https://releases.ubuntu.com/jammy/ubuntu-22.04.3-live-server-amd64.iso
 # Launch the VM through the qemu system.
-../packer/qemu_tool.sh install ubuntu.img ubuntu-22.04.2-live-server-amd64.iso
+../packer/qemu_tool.sh install ubuntu.img ubuntu-22.04.3-live-server-amd64.iso
 ```
 
 3.2 In a *new* terminal connect to the VM using **VNC** @ `localhost:5900`.
