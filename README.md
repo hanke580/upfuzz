@@ -40,6 +40,45 @@ sudo apt-get update
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
 ```
 
+## Data format guided testing
+* Infer data format likely invariants during testing.
+* Reward the test case if it improves the existing learned format likely invariants.
+
+```bash
+git clone git@github.com:zlab-purdue/upfuzz.git
+cd upfuzz
+
+git checkout implement_nyx
+export UPFUZZ_DIR=$PWD
+export ORI_VERSION=2.2.8
+export UP_VERSION=3.0.15
+
+mkdir -p "$UPFUZZ_DIR"/prebuild/cassandra
+cd prebuild/cassandra
+
+# Copy cassandra 2.2.8 from mufasa.cs.purdue.edu server (Or scp to another server)
+cp /home/khan/test_binary/apache-cassandra-2.2.8-format.tar.gz .
+cp /home/khan/test_binary/apache-cassandra-3.0.15-format.tar.gz .
+tar -xzvf apache-cassandra-2.2.8-format.tar.gz
+tar -xzvf apache-cassandra-3.0.15-format.tar.gz
+
+cd ${UPFUZZ_DIR}/src/main/resources/cassandra/normal/compile-src/
+sed -i -e 's/3.11.15/2.2.8/g' -e 's/4.1.3/3.0.15/g' cassandra-clusternode.sh
+docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"_apache-cassandra-"$UP_VERSION"
+
+cd ${UPFUZZ_DIR}
+./gradlew copyDependencies
+./gradlew :spotlessApply build
+
+# open terminal1: start server
+bin/start_server.sh format_example_config.json
+# open terminal2: start 4 clients
+bin/start_clients.sh 4 format_example_config.json
+
+# stop testing
+bin/cass_cl.sh 2.2.8 3.0.15
+```
+
 ## Minimal Set up for Cassandra (Try upfuzz quickly!)
 Requirement: java11, docker (Docker version 23.0.1, build a5ee5b1)
 > - Not test configurations.
