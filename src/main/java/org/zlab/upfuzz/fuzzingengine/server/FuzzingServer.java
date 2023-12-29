@@ -123,7 +123,7 @@ public class FuzzingServer {
 
         // format coverage init
         if (Config.getConf().enableFormatCoverage) {
-            Runtime.initWriter();
+            // Runtime.initWriter();
             oriObjCoverage = new ObjectCoverage(
                     Paths.get(Config.getConf().formatInfoFolder,
                             Config.getConf().baseClassInfoFileName),
