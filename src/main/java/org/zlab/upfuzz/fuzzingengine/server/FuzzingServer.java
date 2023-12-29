@@ -16,6 +16,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.ocov.tracker.ObjectCoverage;
+import org.zlab.ocov.tracker.Runtime;
 import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.State;
@@ -121,12 +122,14 @@ public class FuzzingServer {
         curUpCoverage = new ExecutionDataStore();
 
         // format coverage init
-        if (Config.getConf().enableFormatCoverage)
+        if (Config.getConf().enableFormatCoverage) {
+            Runtime.initWriter();
             oriObjCoverage = new ObjectCoverage(
                     Paths.get(Config.getConf().formatInfoFolder,
                             Config.getConf().baseClassInfoFileName),
                     Paths.get(Config.getConf().formatInfoFolder,
                             Config.getConf().topObjectsFileName));
+        }
 
         if (Config.getConf().testSingleVersion) {
             configDirPath = Paths.get(System.getProperty("user.dir"),
