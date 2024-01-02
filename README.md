@@ -40,6 +40,17 @@ sudo apt-get update
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
 ```
 
+## Testing through UpFuzz image with all dependencies enabled
+* You can avoid setting up all the prerequisites by connecting to our image hosted in chameleon cloud
+
+```bash
+ssh upfuzz@192.5.86.227
+# password: 123
+```
+
+* After logging in, you can proceed with the next steps
+* You can avoid setting up UPFUZZ_DIR again if you test through this image
+
 ## Data format guided testing
 * Infer data format likely invariants during testing.
 * Reward the test case if it improves the existing learned format likely invariants.
