@@ -261,6 +261,30 @@ bin/start_server.sh config.json
 bin/start_clients.sh 1 config.json 
 ```
 
+## Running UpFuzz-Nyx on pre-built Image
+
+* A prebuilt UpFuzz image with all the dependencies for UpFuzz and Nyx is hosted in Chameleon cloud
+* You can ssh into it and start the testing (Note: you need to ssh with -X flag enabled as vnc is needed to create pre snapshot)
+
+```bash
+ssh -X upfuzz@192.5.86.227
+# password: 123
+
+cd $UPFUZZ_DIR
+git pull
+cd nyx_mode/ubuntu
+sudo ../packer/qemu_tool.sh post_install ubuntu.img
+```
+
+* From a different terminal, connect to nyx vm via ssh
+```bash
+ssh -p 2222 nyx@localhost
+# password: nyx
+
+cd upfuzz
+git pull
+```
+
 ## Problem Shooting
 
 GLIBC version: The tested GLIBC version is 2.35 (UBUNTU 22.04). 
