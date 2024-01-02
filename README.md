@@ -48,8 +48,14 @@ ssh upfuzz@192.5.86.227
 # password: 123
 ```
 
-* After logging in, you can proceed with the next steps
+* After logging in, you can proceed with the next steps 
+* Instead of cloning git repository and switching branch again, you can pull
+```bash
+cd $UPFUZZ_DIR
+git pull
+```
 * You can avoid setting up UPFUZZ_DIR again if you test through this image
+* Start from setting the ORI_VERSION and the UP_VERSION
 
 ## Data format guided testing
 * Infer data format likely invariants during testing.
