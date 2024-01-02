@@ -67,10 +67,12 @@ cd upfuzz
 
 git checkout implement_nyx
 export UPFUZZ_DIR=$PWD
+
+## start from this step if testing through our prebuilt image
 export ORI_VERSION=2.2.8
 export UP_VERSION=3.0.15
 
-mkdir -p "$UPFUZZ_DIR"/prebuild/cassandra
+mkdir -p "$UPFUZZ_DIR"/prebuild/cassandra  # don't need to run this step if testing through prebuilt image
 cd prebuild/cassandra
 
 # Copy cassandra 2.2.8 from mufasa.cs.purdue.edu server (Or scp to another server)
