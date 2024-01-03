@@ -224,6 +224,7 @@ cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI
 cd ${UPFUZZ_DIR}
 ./gradlew copyDependencies
 ./gradlew :spotlessApply build
+./gradlew :spotlessApply nyxBuild
 
 sed -i 's/"testSingleVersion": false,/"testSingleVersion": true,/g' config.json
 sed -i 's/"nyxMode": false,/"nyxMode": true,/g' config.json
@@ -264,7 +265,7 @@ bin/start_clients.sh 1 config.json
 ## Running UpFuzz-Nyx on pre-built Image
 
 * A prebuilt UpFuzz image with all the dependencies for UpFuzz and Nyx is hosted in Chameleon cloud
-* You can ssh into it and start the testing (Note: you need to ssh with -X flag enabled as vnc is needed to create pre snapshot)
+1. You can ssh into it and start the testing (Note: you need to ssh with -X flag enabled as vnc is needed to create pre snapshot)
 
 ```bash
 ssh -X upfuzz@192.5.86.227
@@ -276,7 +277,7 @@ cd nyx_mode/ubuntu
 sudo ../packer/qemu_tool.sh post_install ubuntu.img
 ```
 
-* From a different terminal, connect to nyx vm via ssh
+2. From a different terminal, connect to the prebuilt image and then connect to nyx vm via ssh
 ```bash
 ssh -p 2222 nyx@localhost
 # password: nyx
@@ -284,6 +285,141 @@ ssh -p 2222 nyx@localhost
 cd upfuzz
 git pull
 ```
+
+3.1 for single version testing, from the same terminal (where ssh to nyx was done), run the following commands:
+```bash
+export UPFUZZ_DIR=$PWD
+export ORI_VERSION=3.11.15
+
+cd ${UPFUZZ_DIR}/prebuild/cassandra
+wget https://archive.apache.org/dist/cassandra/"$ORI_VERSION"/apache-cassandra-"$ORI_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$ORI_VERSION"-bin.tar.gz
+
+cd ${UPFUZZ_DIR}
+cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py   # depends on cassandra version
+
+cd ${UPFUZZ_DIR}/src/main/resources/cassandra/single-version-testing
+sed -i "s/ORG_VERSION=apache-cassandra-.*/ORG_VERSION=apache-cassandra-${ORI_VERSION}/" cassandra-clusternode.sh
+docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"
+
+cd ${UPFUZZ_DIR}
+./gradlew copyDependencies
+./gradlew :spotlessApply build
+sudo shutdown now
+```
+
+3.2 for upgrade testing, from the same terminal (where ssh to nyx was done), run the following commands:
+```bash
+export UPFUZZ_DIR=$PWD
+export ORI_VERSION=3.11.15
+export UP_VERSION=4.1.3
+
+cd ${UPFUZZ_DIR}/prebuild/cassandra
+wget https://archive.apache.org/dist/cassandra/"$ORI_VERSION"/apache-cassandra-"$ORI_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$ORI_VERSION"-bin.tar.gz
+wget https://archive.apache.org/dist/cassandra/"$UP_VERSION"/apache-cassandra-"$UP_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$UP_VERSION"-bin.tar.gz
+sed -i 's/num_tokens: 16/num_tokens: 256/' apache-cassandra-"$UP_VERSION"/conf/cassandra.yaml
+
+cd ${UPFUZZ_DIR}
+cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
+cp src/main/resources/cqlsh_daemon3_4.0.5_4.1.0.py  prebuild/cassandra/apache-cassandra-"$UP_VERSION"/bin/cqlsh_daemon.py
+
+cd ${UPFUZZ_DIR}/src/main/resources/cassandra/normal/compile-src/
+sed -i "s/ORG_VERSION=apache-cassandra-.*/ORG_VERSION=apache-cassandra-${ORI_VERSION}/" cassandra-clusternode.sh
+sed -i "s/UPG_VERSION=apache-cassandra-.*/UPG_VERSION=apache-cassandra-${UP_VERSION}/" cassandra-clusternode.sh
+docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"_apache-cassandra-"$UP_VERSION"
+
+cd ${UPFUZZ_DIR}
+./gradlew copyDependencies
+./gradlew :spotlessApply build
+sudo shutdown now
+```
+
+4. Now you need to take the first snapshot on the current nyx image, by following these steps:
+```bash
+cd $UPFUZZ_DIR/nyx_mode/ubuntu
+sudo ../packer/qemu_tool.sh create_snapshot ubuntu.img 8192 ./nyx_snapshot/
+# the third parameter for qemu_tool.sh script denotes the allocated memory, increase it if you want to start more than one nodes of the target system
+# in case of a pre-existing ./nyx_snapshot/ directory, run `sudo rm -rf ./nyx_snapshot` and then run `sudo ../packer/qemu_tool.sh create_snapshot ubuntu.img 8192 ./nyx_snapshot/` again
+```
+
+5. In another terminal window, connect to the nyx VM using VNC @ `localhost:5900`
+- when prompted for login and password, type 'nzx' and 'nzx' respectively
+
+```bash
+# execute inside vm using vnc
+sudo bash load.sh # password: nyx but you should type nzx because of messy keyboard
+```
+
+6. The nyx VM and qemu_tool.sh should close and your ./nyx_snapshot/ will contain the root snapshot. 
+- Modify the config.ron (upfuzz/nyx_mode/config.ron) file's mem_limit to atleast the amount which has been used in create_snapshot phase (which was 8192 in the example)
+
+```bash
+cd $UPFUZZ_DIR/nyx_mode/
+vim config.ron
+```
+
+7. Generate default configurations
+```bash
+cd $UPFUZZ_DIR/nyx_mode/packer/packer/fuzzer_config
+python3 ../nyx_config_gen.py tmp Snapshot -m 8192  # keep this value same as the memory used in create_snapshot phase
+```
+
+**Test Single Version**
+```bash
+cd ${UPFUZZ_DIR}
+export ORI_VERSION=3.11.15
+cd prebuild/cassandra
+wget https://archive.apache.org/dist/cassandra/"$ORI_VERSION"/apache-cassandra-"$ORI_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$ORI_VERSION"-bin.tar.gz
+
+cd ${UPFUZZ_DIR}
+cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
+
+cd ${UPFUZZ_DIR}
+./gradlew copyDependencies
+./gradlew :spotlessApply build
+./gradlew :spotlessApply nyxBuild
+
+sed -i 's/"testSingleVersion": false,/"testSingleVersion": true,/g' config.json
+sed -i 's/"nyxMode": false,/"nyxMode": true,/g' config.json
+
+# open terminal1: start server
+bin/start_server.sh config.json
+# open terminal2: start one client
+bin/start_clients.sh 1 config.json
+
+# to stop executing test, run `bin/cass_cl.sh $ORI_VERSION`
+```
+
+**Test Upgrade**
+```bash
+cd ${UPFUZZ_DIR}
+export ORI_VERSION=3.11.15
+export UP_VERSION=4.1.3
+
+cd prebuild/cassandra
+wget https://archive.apache.org/dist/cassandra/"$ORI_VERSION"/apache-cassandra-"$ORI_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$ORI_VERSION"-bin.tar.gz
+wget https://archive.apache.org/dist/cassandra/"$UP_VERSION"/apache-cassandra-"$UP_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$UP_VERSION"-bin.tar.gz
+sed -i 's/num_tokens: 16/num_tokens: 256/' apache-cassandra-"$UP_VERSION"/conf/cassandra.yaml
+
+cd ${UPFUZZ_DIR}
+cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
+cp src/main/resources/cqlsh_daemon3_4.0.5_4.1.0.py  prebuild/cassandra/apache-cassandra-"$UP_VERSION"/bin/cqlsh_daemon.py
+
+./gradlew copyDependencies
+./gradlew :spotlessApply build
+./gradlew :spotlessApply nyxBuild
+
+sed -i 's/"testSingleVersion": true,/"testSingleVersion": false,/g' config.json
+sed -i 's/"nyxMode": false,/"nyxMode": true,/g' config.json
+
+# Terminal1
+bin/start_server.sh config.json 
+
+# Terminal2
+bin/start_clients.sh 1 config.json
+
+# to stop executing test, run `bin/cass_cl.sh $ORI_VERSION $UP_VERSION` 
+```
+
 
 ## Problem Shooting
 
