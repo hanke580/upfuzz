@@ -15,6 +15,7 @@ cd ${UPFUZZ_DIR}
 cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
 
 cd ${UPFUZZ_DIR}/src/main/resources/cassandra/single-version-testing
+sed -i "s/ORG_VERSION=apache-cassandra-.*/ORG_VERSION=apache-cassandra-${ORI_VERSION}/" cassandra-clusternode.sh
 docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"
 
 cd ${UPFUZZ_DIR}
