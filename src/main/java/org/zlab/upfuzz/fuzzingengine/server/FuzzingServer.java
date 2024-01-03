@@ -1388,7 +1388,8 @@ public class FuzzingServer {
                             + upgradedProbeNum);
         }
 
-        if (Config.getConf().collectFormatCoverage) {
+        if (Config.getConf().collectFormatCoverage
+                && Config.getConf().useFormatCoverage) {
             System.out.format("|%30s|\n",
                     "new format num : " + newFormatNum);
         }
