@@ -86,6 +86,8 @@ public class FuzzingServer {
     public static int errorLogNum = 0;
     boolean isFullStopUpgrade = true;
 
+    private int newFormatNum = 0;
+
     // Config mutation
     ConfigGen configGen;
     public Path configDirPath;
@@ -129,6 +131,7 @@ public class FuzzingServer {
                             Config.getConf().baseClassInfoFileName),
                     Paths.get(Config.getConf().formatInfoFolder,
                             Config.getConf().topObjectsFileName));
+            Runtime.initWriter();
         }
 
         if (Config.getConf().testSingleVersion) {
@@ -1381,6 +1384,11 @@ public class FuzzingServer {
                             + originalProbeNum,
                     "up cov : " + upgradedCoveredBranches + "/"
                             + upgradedProbeNum);
+        }
+
+        if (Config.getConf().enableFormatCoverage) {
+            System.out.format("|%30s|\n",
+                    "new format num : " + newFormatNum);
         }
 
         if (Config.getConf().debug)

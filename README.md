@@ -48,7 +48,7 @@ ssh upfuzz@192.5.86.227
 # password: 123
 ```
 
-* After logging in, you can proceed with the next steps 
+* After logging in, you can proceed with the next steps
 * Instead of cloning git repository and switching branch again, you can pull
 ```bash
 cd $UPFUZZ_DIR
