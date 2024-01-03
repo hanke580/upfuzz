@@ -82,8 +82,8 @@ public class CassandraDocker extends Docker {
         formatMap.put("serviceName", serviceName);
 
         // format coverage
-        formatMap.put("enableFormatCoverage",
-                Config.getConf().enableFormatCoverage ? "true" : "false");
+        formatMap.put("collectFormatCoverage",
+                Config.getConf().collectFormatCoverage ? "true" : "false");
 
         StringSubstitutor sub = new StringSubstitutor(formatMap);
         if (Config.getConf().testSingleVersion)
@@ -420,7 +420,7 @@ public class CassandraDocker extends Docker {
             + "            - CASSANDRA_LOGGING_LEVEL=DEBUG\n"
             + "            - CQLSH_HOST=${networkIP}\n"
             + "            - CASSANDRA_LOG_DIR=/var/log/cassandra\n"
-            + "            - ENABLE_FORMAT_COVERAGE=${enableFormatCoverage}\n"
+            + "            - ENABLE_FORMAT_COVERAGE=${collectFormatCoverage}\n"
             + "        expose:\n"
             + "            - ${agentPort}\n"
             + "            - 7000\n"

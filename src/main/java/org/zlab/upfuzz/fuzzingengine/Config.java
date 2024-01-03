@@ -25,7 +25,7 @@ public class Config {
         instance = new Configuration();
 
         // Path for format coverage
-        if (instance.enableFormatCoverage) {
+        if (instance.collectFormatCoverage) {
             try {
                 URL sysInfoURL = getClass().getResource(
                         instance.system + "/"
@@ -159,7 +159,11 @@ public class Config {
         public String testGraphDirPath = "graph";
 
         // ---------------Format Coverage-----------------
-        public boolean enableFormatCoverage = false;
+        // whether to collect format coverage
+        public boolean collectFormatCoverage = false;
+        // whether to use format coverage to guide the test (add to corpus)
+        public boolean useFormatCoverage = false;
+
         public String baseClassInfoFileName = "serializedFields_alg1.json";
         public String topObjectsFileName = "topObjects.json";
 

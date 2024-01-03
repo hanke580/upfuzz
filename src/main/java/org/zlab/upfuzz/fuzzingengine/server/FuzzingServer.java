@@ -124,7 +124,7 @@ public class FuzzingServer {
         curUpCoverage = new ExecutionDataStore();
 
         // format coverage init
-        if (Config.getConf().enableFormatCoverage) {
+        if (Config.getConf().collectFormatCoverage) {
             // Runtime.initWriter();
             oriObjCoverage = new ObjectCoverage(
                     Paths.get(Config.getConf().formatInfoFolder,
@@ -1123,7 +1123,8 @@ public class FuzzingServer {
                         addToCorpus);
             }
             // format coverage
-            if (Config.getConf().enableFormatCoverage) {
+            if (Config.getConf().collectFormatCoverage
+                    && Config.getConf().useFormatCoverage) {
                 if (feedbackPacket.formatCoverage != null) {
                     if (oriObjCoverage.merge(feedbackPacket.formatCoverage)) {
                         // learned format is updated
@@ -1387,7 +1388,7 @@ public class FuzzingServer {
                             + upgradedProbeNum);
         }
 
-        if (Config.getConf().enableFormatCoverage) {
+        if (Config.getConf().collectFormatCoverage) {
             System.out.format("|%30s|\n",
                     "new format num : " + newFormatNum);
         }
