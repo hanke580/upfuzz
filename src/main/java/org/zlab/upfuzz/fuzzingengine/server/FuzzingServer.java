@@ -1128,6 +1128,7 @@ public class FuzzingServer {
                     if (oriObjCoverage.merge(feedbackPacket.formatCoverage)) {
                         // learned format is updated
                         logger.info("New format!");
+                        newFormatNum++;
                         addToCorpus = true;
                     } else {
                         logger.info("No new format!");
