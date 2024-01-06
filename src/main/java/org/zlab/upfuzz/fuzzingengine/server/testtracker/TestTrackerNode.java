@@ -13,7 +13,9 @@ public class TestTrackerNode implements Serializable {
     public List<String> readCommands;
     public int configId;
     // keep full coverage
-    public boolean newCoverage = false;
+    public boolean newOldVersionBranchCoverage = false;
+    public boolean newNewVersionBranchCoverage = false;
+    public boolean newFormatCoverage = false;
 
     public TestTrackerNode(int nodeId, int pNodeId, List<String> writeCommands,
             List<String> readCommands, int configId) {
@@ -30,7 +32,11 @@ public class TestTrackerNode implements Serializable {
         sb.append("nodeId: " + nodeId + "\n");
         sb.append("pNodeId: " + pNodeId + "\n");
         // coverage
-        sb.append("newCoverage: " + newCoverage + "\n");
+        sb.append("newOldVersionBranchCoverage: " + newOldVersionBranchCoverage
+                + "\n");
+        sb.append("newNewVersionBranchCoverage: " + newNewVersionBranchCoverage
+                + "\n");
+        sb.append("newFormatCoverage: " + newFormatCoverage + "\n");
         sb.append("configId: " + configId + "\n");
         sb.append("writeCommands: size = " + writeCommands.size() + "\n");
         for (String cmd : writeCommands) {
@@ -90,4 +96,5 @@ public class TestTrackerNode implements Serializable {
                 .resolve(args[0]);
         printNodeFromFile(filePath.toFile());
     }
+
 }

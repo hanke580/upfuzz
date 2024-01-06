@@ -110,8 +110,13 @@ public class TestGraph implements Serializable {
 
     private void printNode(TestNode node, String prefix, BufferedWriter writer)
             throws IOException {
-        if (node.newCoverage)
-            writer.write(prefix + node.nodeId + ": new coverage" + "\n");
+        if (node.newOldVersionBranchCoverage || node.newNewVersionBranchCoverage
+                || node.newFormatCoverage)
+            writer.write(prefix + node.nodeId
+                    + ": NOVC = " + node.newOldVersionBranchCoverage
+                    + ", NNVC = " + node.newNewVersionBranchCoverage
+                    + ", NFC = " + node.newFormatCoverage
+                    + "\n");
         else
             writer.write(prefix + node.nodeId + "\n");
 

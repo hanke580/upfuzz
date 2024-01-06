@@ -1075,62 +1075,59 @@ public class FuzzingServer {
             // handle invariant
             finishedTestID++;
             int score = 0;
+
             boolean addToCorpus = false;
-            if (Config.getConf().useCodeCoverage) {
-                // Merge all the feedbacks
-                FeedBack fb = mergeCoverage(feedbackPacket.feedBacks);
+            boolean newOldVersionBranchCoverage = false;
+            boolean newNewVersionBranchCoverage = false;
+            boolean newFormatCoverage = false;
 
-                // priority feature is disabled
-                if (Config.getConf().usePriorityCov) {
-                    int old_score = 0;
-                    int new_score = 0;
-                    if (Utilities.hasNewBitsAccum(
-                            curOriCoverage,
-                            fb.originalCodeCoverage)) {
-                        // Write Seed to Disk + Add to Corpus
-                        old_score = Utilities.mergeMax(curOriCoverage,
-                                fb.originalCodeCoverage);
-                        addToCorpus = true;
-                    }
-                    if (Utilities.hasNewBitsAccum(curUpCoverage,
-                            fb.upgradedCodeCoverage)) {
-                        new_score = Utilities.mergeMax(curUpCoverage,
-                                fb.upgradedCodeCoverage);
-                        addToCorpus = true;
-                    }
-                    score = (int) (old_score * Config.getConf().oldCovRatio
-                            + new_score * (1 - Config.getConf().oldCovRatio));
-                } else {
-                    if (Utilities.hasNewBits(
-                            curOriCoverage,
-                            fb.originalCodeCoverage)) {
-                        // Write Seed to Disk + Add to Corpus
-                        curOriCoverage.merge(
-                                fb.originalCodeCoverage);
-                        addToCorpus = true;
-                    }
-                    if (Utilities.hasNewBits(curUpCoverage,
-                            fb.upgradedCodeCoverage)) {
-                        curUpCoverage.merge(
-                                fb.upgradedCodeCoverage);
-                        addToCorpus = true;
-                    }
+            // Merge all the feedbacks
+            FeedBack fb = mergeCoverage(feedbackPacket.feedBacks);
+            // priority feature is disabled
+            if (Config.getConf().usePriorityCov) {
+                int old_score = 0;
+                int new_score = 0;
+                if (Utilities.hasNewBitsAccum(
+                        curOriCoverage,
+                        fb.originalCodeCoverage)) {
+                    // Write Seed to Disk + Add to Corpus
+                    old_score = Utilities.mergeMax(curOriCoverage,
+                            fb.originalCodeCoverage);
+                    newOldVersionBranchCoverage = true;
                 }
-
-                // if addToCorpus is true, it means there's a new coverage
-                // update Graph
-                graph.updateNodeCoverage(feedbackPacket.testPacketID,
-                        addToCorpus);
+                if (Utilities.hasNewBitsAccum(curUpCoverage,
+                        fb.upgradedCodeCoverage)) {
+                    new_score = Utilities.mergeMax(curUpCoverage,
+                            fb.upgradedCodeCoverage);
+                    newNewVersionBranchCoverage = true;
+                }
+                score = (int) (old_score * Config.getConf().oldCovRatio
+                        + new_score * (1 - Config.getConf().oldCovRatio));
+            } else {
+                if (Utilities.hasNewBits(
+                        curOriCoverage,
+                        fb.originalCodeCoverage)) {
+                    // Write Seed to Disk + Add to Corpus
+                    curOriCoverage.merge(
+                            fb.originalCodeCoverage);
+                    newOldVersionBranchCoverage = true;
+                }
+                if (Utilities.hasNewBits(curUpCoverage,
+                        fb.upgradedCodeCoverage)) {
+                    curUpCoverage.merge(
+                            fb.upgradedCodeCoverage);
+                    newNewVersionBranchCoverage = true;
+                }
             }
+
             // format coverage
-            if (Config.getConf().collectFormatCoverage
-                    && Config.getConf().useFormatCoverage) {
+            if (Config.getConf().collectFormatCoverage) {
                 if (feedbackPacket.formatCoverage != null) {
                     if (oriObjCoverage.merge(feedbackPacket.formatCoverage)) {
                         // learned format is updated
                         logger.info("New format!");
                         newFormatNum++;
-                        addToCorpus = true;
+                        newFormatCoverage = true;
                     } else {
                         logger.info("No new format!");
                     }
@@ -1138,7 +1135,20 @@ public class FuzzingServer {
                     logger.info("Null format coverage");
                 }
             }
-
+            if (Config.getConf().useCodeCoverage) {
+                if (newOldVersionBranchCoverage
+                        || newNewVersionBranchCoverage) {
+                    addToCorpus = true;
+                }
+            }
+            if (Config.getConf().useFormatCoverage) {
+                if (newFormatCoverage) {
+                    addToCorpus = true;
+                }
+            }
+            graph.updateNodeCoverage(feedbackPacket.testPacketID,
+                    newOldVersionBranchCoverage, newNewVersionBranchCoverage,
+                    newFormatCoverage);
             if (addToCorpus) {
                 Seed seed = testID2Seed
                         .get(feedbackPacket.testPacketID);

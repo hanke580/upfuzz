@@ -30,38 +30,38 @@ public class TestTrackerGraphTest extends AbstractTest {
         assert seed != null;
         seed.testID = 0;
         graph.addNode(-1, seed);
-        graph.updateNodeCoverage(0, true);
+        graph.updateNodeCoverage(0, true, false, true);
 
         Seed mutatedSeed = mutateSeed(seed, cassandraCommandPool,
                 CassandraState.class);
         mutatedSeed.testID = 1;
         graph.addNode(seed.testID, mutatedSeed);
-        graph.updateNodeCoverage(1, true);
+        graph.updateNodeCoverage(1, true, false, true);
 
         mutatedSeed = mutateSeed(seed, cassandraCommandPool,
                 CassandraState.class);
         mutatedSeed.testID = 2;
         graph.addNode(seed.testID, mutatedSeed);
-        graph.updateNodeCoverage(2, false);
+        graph.updateNodeCoverage(2, false, false, true);
 
         mutatedSeed = mutateSeed(seed, cassandraCommandPool,
                 CassandraState.class);
         mutatedSeed.testID = 20000;
         graph.addNode(seed.testID, mutatedSeed);
-        graph.updateNodeCoverage(20000, false);
+        graph.updateNodeCoverage(20000, false, false, true);
 
         Seed seed1 = generateSeed(cassandraCommandPool, CassandraState.class,
                 -1);
         assert seed1 != null;
         seed1.testID = 1000;
         graph.addNode(-1, seed1);
-        graph.updateNodeCoverage(1000, true);
+        graph.updateNodeCoverage(1000, true, false, true);
 
         mutatedSeed = SerializationUtils.clone(mutatedSeed);
         mutatedSeed.mutate(cassandraCommandPool, CassandraState.class);
         mutatedSeed.testID = 20001;
         graph.addNode(20000, mutatedSeed);
-        graph.updateNodeCoverage(20001, false);
+        graph.updateNodeCoverage(20001, false, false, true);
     }
 
 }

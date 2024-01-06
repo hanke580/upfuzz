@@ -51,11 +51,15 @@ public class TestTrackerGraph implements Serializable {
         addNode(node);
     }
 
-    public void updateNodeCoverage(int nodeId, boolean newCoverage) {
+    public void updateNodeCoverage(int nodeId,
+            boolean newOldVersionBranchCoverage,
+            boolean newNewVersionBranchCoverage, boolean newFormatCoverage) {
         // Runtime tracking, it removes the node from memory
         // long startTime = System.nanoTime();
         TestTrackerNode node = nodeMap.get(nodeId);
-        node.newCoverage = newCoverage;
+        node.newOldVersionBranchCoverage = newOldVersionBranchCoverage;
+        node.newNewVersionBranchCoverage = newNewVersionBranchCoverage;
+        node.newFormatCoverage = newFormatCoverage;
         // serialize this node to disk, remove it from map
         assert nodeMap.containsKey(nodeId);
 

@@ -18,7 +18,10 @@ public class TestNode extends TestTrackerNode {
         super(testTrackerNode.nodeId, testTrackerNode.pNodeId,
                 testTrackerNode.writeCommands, testTrackerNode.readCommands,
                 testTrackerNode.configId);
-        this.newCoverage = testTrackerNode.newCoverage;
+        // this.newCoverage = testTrackerNode.newCoverage;
+        this.newOldVersionBranchCoverage = testTrackerNode.newOldVersionBranchCoverage;
+        this.newNewVersionBranchCoverage = testTrackerNode.newNewVersionBranchCoverage;
+        this.newFormatCoverage = testTrackerNode.newFormatCoverage;
     }
 
     public List<TestNode> getChildren() {

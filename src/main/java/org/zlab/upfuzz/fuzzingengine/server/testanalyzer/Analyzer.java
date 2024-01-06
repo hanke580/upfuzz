@@ -36,7 +36,8 @@ public class Analyzer {
     private void traverseNode(TestNode node, String prefix,
             BufferedWriter writer)
             throws IOException {
-        if (node.newCoverage) {
+        if (node.newOldVersionBranchCoverage || node.newNewVersionBranchCoverage
+                || node.newFormatCoverage) {
             // Only print the new coverage nodes
             boolean check = false;
             switch (state) {
@@ -50,7 +51,10 @@ public class Analyzer {
                 check = checker2(node);
                 break;
             }
-            writer.write(prefix + node.nodeId + ": new coverage"
+            writer.write(prefix + node.nodeId
+                    + ": NOVC = " + node.newOldVersionBranchCoverage
+                    + ", NNVC = " + node.newNewVersionBranchCoverage
+                    + ", NFC = " + node.newFormatCoverage
                     + ", checker = " + check + "\n");
         }
 
