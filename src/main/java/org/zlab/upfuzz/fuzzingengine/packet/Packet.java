@@ -20,6 +20,7 @@ public abstract class Packet {
                 .registerSubtype(ArrayType.class, "array")
                 .registerSubtype(BooleanType.class, "boolean")
                 .registerSubtype(CollectionType.class, "collection")
+                .registerSubtype(MapType.class, "map")
                 .registerSubtype(DoubleType.class, "double")
                 .registerSubtype(FloatType.class, "float")
                 .registerSubtype(IntegerType.class, "integer")
