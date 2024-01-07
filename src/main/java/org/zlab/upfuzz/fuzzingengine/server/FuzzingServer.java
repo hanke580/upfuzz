@@ -1123,7 +1123,8 @@ public class FuzzingServer {
             // format coverage
             if (Config.getConf().collectFormatCoverage) {
                 if (feedbackPacket.formatCoverage != null) {
-                    if (oriObjCoverage.merge(feedbackPacket.formatCoverage)) {
+                    if (oriObjCoverage.merge(feedbackPacket.formatCoverage,
+                            feedbackPacket.testPacketID)) {
                         // learned format is updated
                         logger.info("New format!");
                         newFormatNum++;
