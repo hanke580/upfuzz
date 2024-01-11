@@ -246,8 +246,9 @@ public abstract class DockerCluster implements IDockerCluster {
                         .getFormatCoverage();
                 coverageMap.merge(formatCoverageMap);
             } catch (Exception e) {
-                logger.debug("Exception occur when collecting" +
+                logger.error("Exception occur when collecting" +
                         " format coverage: " + e);
+                throw new RuntimeException(e);
             }
         }
         return coverageMap;

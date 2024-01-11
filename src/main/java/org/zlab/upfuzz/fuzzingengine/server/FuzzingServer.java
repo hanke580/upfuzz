@@ -130,7 +130,9 @@ public class FuzzingServer {
                     Paths.get(Config.getConf().formatInfoFolder,
                             Config.getConf().baseClassInfoFileName),
                     Paths.get(Config.getConf().formatInfoFolder,
-                            Config.getConf().topObjectsFileName));
+                            Config.getConf().topObjectsFileName),
+                    Paths.get(Config.getConf().formatInfoFolder,
+                            Config.getConf().comparableClassesFileName));
             Runtime.initWriter();
         }
 
