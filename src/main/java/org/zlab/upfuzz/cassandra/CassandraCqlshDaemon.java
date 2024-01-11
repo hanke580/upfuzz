@@ -31,7 +31,7 @@ public class CassandraCqlshDaemon {
 
     // Check the process num after WAIT_INTERVAL time to
     // reduce the FP since the process might not start yet
-    public static final int WAIT_INTERVAL = 8;
+    public static final int WAIT_INTERVAL = 15;
 
     public static List<String> noiseErrors = new LinkedList<>();
     static {
