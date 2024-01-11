@@ -166,6 +166,7 @@ public class Config {
 
         public String baseClassInfoFileName = "serializedFields_alg1.json";
         public String topObjectsFileName = "topObjects.json";
+        public String comparableClassesFileName = "comparableClasses.json";
 
         public String formatInfoFolder = null;
 
