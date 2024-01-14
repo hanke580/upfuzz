@@ -269,27 +269,27 @@ public class FuzzingServer {
             double[] probabilities = { codeCovProbability,
                     formatCovProbability };
             int corpusType = getCorpusType(probabilities);
-            if (corpusType == 0) {
-                System.out.println(
-                        "Going to mutate seed from code coverage corpus");
-                seed = corpus.getSeed();
-                if (seed != null)
-                    formatCoverageCorpus.removeSeed(seed.testID);
-            } else {
-                System.out.println(
-                        "Going to mutate seed from format coverage corpus");
-                seed = formatCoverageCorpus.getSeed();
-                if (seed != null)
-                    corpus.removeSeed(seed.testID);
+            if (Config.getConf().debug) {
+                logger.debug("[HKLOG] Chosen seed of coverage type: "
+                    + (corpusType == 0 ? "branch" : "format"));
+            }
+            seed = corpus.getSeed(corpusType);
+            if (seed != null) {
+                for (int i = 0; i < probabilities.length; i++) {
+                    if (i != corpusType) {
+                        corpus.removeSeed(seed.testID, i);
+                        if (Config.getConf().debug) {
+                            logger.debug(
+                                "[HKLOG] Removed seed id " + seed.testID
+                                        + " from corpus type: "
+                                        + (i == 0 ? "branch" : "format"));
+                        }
+                    }
+                }
             }
         } else {
-            if (codeCovProbability > 0) {
-                seed = corpus.getSeed();
-            } else if (formatCovProbability > 0) {
-                seed = formatCoverageCorpus.getSeed();
-            } else {
-                seed = corpus.getSeed();
-            }
+            seed = codeCovProbability > 0 ? corpus.getSeed(0)
+                    : corpus.getSeed(1);
         }
         round++;
         StackedTestPacket stackedTestPacket;
@@ -1017,14 +1017,14 @@ public class FuzzingServer {
         System.out.println();
     }
 
-    public void addSeedToCorpus(PriorityCorpus corpusType,
+    public void addSeedToCorpus(PriorityCorpus priorityCorpus,
             Map<Integer, Seed> testID2Seed, FeedbackPacket feedbackPacket,
-            int score) {
+            int score, int corpusType) {
         Seed seed = testID2Seed.get(feedbackPacket.testPacketID);
 
         if (Config.getConf().debug) {
             PriorityQueue<Seed> pqCopy = new PriorityQueue<>(
-                    corpusType.queue);
+                    priorityCorpus.queues[0]);
             logger.debug("print queue info");
             while (!pqCopy.isEmpty()) {
                 logger.debug("score = " + pqCopy.poll().score);
@@ -1040,7 +1040,7 @@ public class FuzzingServer {
                         new HashMap<>(),
                         feedbackPacket.validationReadResults));
         System.out.println("Going to add seed with id: " + seed.testID);
-        corpusType.addSeed(seed);
+        priorityCorpus.addSeed(seed, corpusType);
     }
 
     public synchronized void updateStatus(
@@ -1218,11 +1218,11 @@ public class FuzzingServer {
                     newOldVersionBranchCoverage, newNewVersionBranchCoverage,
                     newFormatCoverage);
             if (addToCorpus) {
-                addSeedToCorpus(corpus, testID2Seed, feedbackPacket, score);
+                addSeedToCorpus(corpus, testID2Seed, feedbackPacket, score, 0);
             }
             if (addToFormatCoverageCorpus) {
-                addSeedToCorpus(formatCoverageCorpus, testID2Seed,
-                        feedbackPacket, score);
+                addSeedToCorpus(corpus, testID2Seed,
+                        feedbackPacket, score, 1);
             }
 
             if (feedbackPacket.isInconsistent) {
@@ -1427,7 +1427,7 @@ public class FuzzingServer {
                 "============================================================"
                         + "=================================================================");
         System.out.format("|%30s|%30s|%30s|%30s|\n",
-                "queue size : " + corpus.queue.size(),
+                "queue size : " + corpus.queues[0].size(),
                 "round : " + round,
                 "cur testID : " + testID,
                 "total exec : " + finishedTestID);
@@ -1453,7 +1453,7 @@ public class FuzzingServer {
         if (Config.getConf().collectFormatCoverage
                 && (Config.getConf().useFormatCoverage > 0)) {
             System.out.format("|%30s|%30s|\n",
-                    "queue size : " + formatCoverageCorpus.queue.size(),
+                    "format coverage queue size : " + corpus.queues[1].size(),
                     "new format num : " + newFormatNum);
         }
 
