@@ -93,7 +93,8 @@ public class Config {
         public int nodeNum = 3;
 
         // ------------FeedBack------------
-        public boolean useCodeCoverage = true;
+        // public boolean useCodeCoverage = true;
+        public double useCodeCoverage = 1.0;
         public boolean collUpFeedBack = true;
 
         // ------------Fault Injection-------------
@@ -162,7 +163,8 @@ public class Config {
         // whether to collect format coverage
         public boolean collectFormatCoverage = false;
         // whether to use format coverage to guide the test (add to corpus)
-        public boolean useFormatCoverage = false;
+        // public boolean useFormatCoverage = false;
+        public double useFormatCoverage = 0.0;
 
         public String baseClassInfoFileName = "serializedFields_alg1.json";
         public String topObjectsFileName = "topObjects.json";

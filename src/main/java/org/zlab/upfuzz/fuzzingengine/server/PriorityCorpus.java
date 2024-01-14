@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.Iterator;
 
 public class PriorityCorpus {
     AtomicLong timestampGenerator = new AtomicLong(0); // To track enqueue order
@@ -53,6 +54,22 @@ public class PriorityCorpus {
     public void addSeed(Seed seed) {
         seed.setTimestamp(timestampGenerator.getAndIncrement());
         queue.add(seed);
+    }
+
+    public void removeSeed(int targetTestId) {
+        // Iterate through the queue using an iterator to avoid
+        // ConcurrentModificationException
+        Iterator<Seed> iterator = queue.iterator();
+        while (iterator.hasNext()) {
+            Seed seed = iterator.next();
+            if (seed.testID == targetTestId) {
+                iterator.remove();
+                System.out.println(
+                        "Seed with test ID " + targetTestId + " removed.");
+                break; // Since there's only one seed with the target ID, we can
+                       // break after removal
+            }
+        }
     }
 
     public boolean isEmpty() {
