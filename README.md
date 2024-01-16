@@ -44,7 +44,7 @@ sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 * You can avoid setting up all the prerequisites by connecting to our image hosted in chameleon cloud
 
 ```bash
-ssh upfuzz@192.5.86.227
+ssh upfuzz@192.5.87.94
 # password: 123
 ```
 
