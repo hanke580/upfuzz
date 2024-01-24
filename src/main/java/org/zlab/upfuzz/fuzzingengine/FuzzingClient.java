@@ -166,19 +166,56 @@ public class FuzzingClient {
         clientThread.join();
     }
 
+    public static Executor[] initExecutorVersionDelta (int nodeNum,
+            Set<String> targetSystemStates,
+            Path configPath) {
+        String system = Config.getConf().system;
+        if (system.equals("cassandra")) {
+            CassandraExecutor [] cassandraExecutors = new CassandraExecutor[2];
+            
+            for (int i = 0; i < cassandraExecutors.length; i++) {
+                cassandraExecutor[i] = new CassandraExecutor(nodeNum, targetSystemStates,
+                                                    configPath, i);
+            }
+            
+            return cassandraExecutors;
+        } else if (system.equals("hdfs")) {
+            HdfsExecutor [] hdfsExecutors = new hdfsExecutor[2];
+            
+            for (int i = 0; i < hdfsExecutors.length; i++) {
+                hdfsExecutor[i] = new HdfsExecutor(nodeNum, targetSystemStates,
+                                                    configPath, i);
+            }
+            
+            return hdfsExecutors;
+        } else if (system.equals("hbase")) {
+            HdfsExecutor [] hbaseExecutors = new hbaseExecutor[2];
+            
+            for (int i = 0; i < hbaseExecutors.length; i++) {
+                hbaseExecutor[i] = new HbaseExecutor(nodeNum, targetSystemStates,
+                                                    configPath, i);
+            }
+            
+            return hbaseExecutors;
+        }
+        throw new RuntimeException(String.format(
+                "System %s is not supported yet, supported system: cassandra, hdfs, hbase",
+                Config.getConf().system));        
+    } 
+
     public static Executor initExecutor(int nodeNum,
             Set<String> targetSystemStates,
             Path configPath) {
         String system = Config.getConf().system;
         if (system.equals("cassandra")) {
             return new CassandraExecutor(nodeNum, targetSystemStates,
-                    configPath);
+                    configPath, 0);
         } else if (system.equals("hdfs")) {
             return new HdfsExecutor(nodeNum, targetSystemStates,
-                    configPath);
+                    configPath, 0);
         } else if (system.equals("hbase")) {
             return new HBaseExecutor(nodeNum, targetSystemStates,
-                    configPath);
+                    configPath, 0);
         }
         throw new RuntimeException(String.format(
                 "System %s is not supported yet, supported system: cassandra, hdfs, hbase",
@@ -214,10 +251,14 @@ public class FuzzingClient {
 
     public StackedFeedbackPacket executeStackedTestPacket(
             StackedTestPacket stackedTestPacket) {
-        if (Config.getConf().nyxMode) {
-            return executeStackedTestPacketNyx(stackedTestPacket);
+        if (Config.getConf().useVersionDelta) {
+            return executeStackedTestPacketRegularVersionDelta(stackedTestPacket);
         } else {
-            return executeStackedTestPacketRegular(stackedTestPacket);
+            if (Config.getConf().nyxMode) {
+                return executeStackedTestPacketNyx(stackedTestPacket);
+            }   else {
+                return executeStackedTestPacketRegular(stackedTestPacket);
+            }
         }
     }
 
@@ -578,6 +619,45 @@ public class FuzzingClient {
             logger.info("[Fuzzing Client] Executor torn down");
         }
         return stackedFeedbackPacket;
+    }
+
+    public StackedFeedbackPacket executeStackedTestPacketRegularVersionDelta(
+            StackedTestPacket stackedTestPacket) {
+        Path configPath = Paths.get(configDirPath.toString(),
+                stackedTestPacket.configFileName);
+        logger.info("[HKLOG] configPath = " + configPath);
+
+        // config verification
+        if (Config.getConf().verifyConfig) {
+            boolean validConfig = verifyConfig(configPath);
+            if (!validConfig) {
+                logger.error(
+                        "problem with configuration! system cannot start up");
+                return null;
+            }
+        }
+
+        if (Config.getConf().debug) {
+            logger.info("[Fuzzing Client] Call to initialize executor");
+        }
+        Executor[] executors = initExecutorVersionDelta(stackedTestPacket.nodeNum, null, configPath);
+
+        Thread threadUpgradeTest = new Thread(new RegularStackedTestThread(executors[0], 0, stackedTestPacket));
+        Thread threadDowngradTest = new Thread(new RegularStackedTestThread(executors[1], 1, stackedTestPacket));
+
+        // Start the threads
+        threadUpgradeTest.start();
+        threadDowngradTest.start();
+
+        // Wait for threads to finish
+        threadUpgradeTest.join();
+        threadDowngradTest.join();
+
+        // Retrieve results from the shared map
+        StackedFeedbackPacket stackedFeedbackPacketUp = threadUpgradeTest.getStackedFeedbackPacket();
+        StackedFeedbackPacket stackedFeedbackPacketDown = threadDowngradeTest.getStackedFeedbackPacket();
+        
+        return stackedFeedbackPacketUp;
     }
 
     public FullStopFeedbackPacket executeFullStopPacket(
