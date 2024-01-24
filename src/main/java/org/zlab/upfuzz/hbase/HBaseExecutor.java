@@ -49,13 +49,14 @@ public class HBaseExecutor extends Executor {
     }
 
     public HBaseExecutor(int nodeNum,
-            Set<String> targetSystemStates, Path configPath) {
+            Set<String> targetSystemStates, Path configPath, int direction) {
         super("hbase", nodeNum);
 
         timestamp = System.currentTimeMillis();
 
         this.targetSystemStates = targetSystemStates;
         this.configPath = configPath;
+        this.direction = direction;
 
         agentStore = new HashMap<>();
         agentHandler = new HashMap<>();
@@ -70,9 +71,15 @@ public class HBaseExecutor extends Executor {
             logger.error(e);
         }
 
-        dockerCluster = new HBaseDockerCluster(this,
+        if (direction == 0) {
+            dockerCluster = new HBaseDockerCluster(this,
                 Config.getConf().originalVersion,
                 nodeNum, null, configPath);
+        } else {
+            dockerCluster = new HBaseDockerCluster(this,
+                Config.getConf().upgradedVersion,
+                nodeNum, null, configPath);
+        }
     }
 
     @Override
