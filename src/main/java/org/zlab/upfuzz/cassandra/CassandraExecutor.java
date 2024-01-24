@@ -41,12 +41,13 @@ public class CassandraExecutor extends Executor {
     }
 
     public CassandraExecutor(int nodeNum,
-            Set<String> targetSystemStates, Path configPath) {
+            Set<String> targetSystemStates, Path configPath, int direction) {
         super("cassandra", nodeNum);
 
         timestamp = System.currentTimeMillis();
         this.targetSystemStates = targetSystemStates;
         this.configPath = configPath;
+        this.direction = direction;
         agentStore = new HashMap<>();
         agentHandler = new HashMap<>();
         sessionGroup = new ConcurrentHashMap<>();
@@ -64,9 +65,15 @@ public class CassandraExecutor extends Executor {
             return false;
         }
 
-        dockerCluster = new CassandraDockerCluster(
+        if (direction == 0) {
+            dockerCluster = new CassandraDockerCluster(
                 this, Config.getConf().originalVersion,
                 nodeNum, targetSystemStates, configPath);
+        } else {
+            dockerCluster = new CassandraDockerCluster(
+                this, Config.getConf().upgradedVersion,
+                nodeNum, targetSystemStates, configPath);
+        }
 
         try {
             dockerCluster.build();
