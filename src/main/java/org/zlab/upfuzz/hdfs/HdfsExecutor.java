@@ -41,13 +41,14 @@ public class HdfsExecutor extends Executor {
     }
 
     public HdfsExecutor(int nodeNum,
-            Set<String> targetSystemStates, Path configPath) {
+            Set<String> targetSystemStates, Path configPath, int direction) {
         super("hdfs", nodeNum);
 
         timestamp = System.currentTimeMillis();
 
         this.targetSystemStates = targetSystemStates;
         this.configPath = configPath;
+        this.direction = direction;
 
         agentStore = new HashMap<>();
         agentHandler = new HashMap<>();
@@ -93,9 +94,15 @@ public class HdfsExecutor extends Executor {
             return false;
         }
 
-        dockerCluster = new HdfsDockerCluster(this,
+        if (direction == 0) {
+            dockerCluster = new HdfsDockerCluster(this,
                 Config.getConf().originalVersion,
                 nodeNum, null, configPath);
+        } else {
+            dockerCluster = new HdfsDockerCluster(this,
+                Config.getConf().upgradedVersion,
+                nodeNum, null, configPath);
+        }
 
         try {
             dockerCluster.build();
