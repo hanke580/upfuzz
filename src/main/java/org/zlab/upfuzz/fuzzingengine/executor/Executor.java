@@ -41,6 +41,7 @@ public abstract class Executor implements IExecutor {
     public Set<String> targetSystemStates;
     public Path configPath;
     public String testPlanExecutionLog = "";
+    public int direction;
 
     // Use for test plan coverage collection
     public ExecutionDataStore[] oriCoverage;
