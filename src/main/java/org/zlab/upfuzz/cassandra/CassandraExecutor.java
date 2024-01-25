@@ -67,12 +67,12 @@ public class CassandraExecutor extends Executor {
 
         if (direction == 0) {
             dockerCluster = new CassandraDockerCluster(
-                this, Config.getConf().originalVersion,
-                nodeNum, targetSystemStates, configPath);
+                    this, Config.getConf().originalVersion,
+                    nodeNum, targetSystemStates, configPath);
         } else {
             dockerCluster = new CassandraDockerCluster(
-                this, Config.getConf().upgradedVersion,
-                nodeNum, targetSystemStates, configPath);
+                    this, Config.getConf().upgradedVersion,
+                    nodeNum, targetSystemStates, configPath);
         }
 
         try {

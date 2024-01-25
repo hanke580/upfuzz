@@ -110,6 +110,7 @@ public class Config {
         // ------------Branch Coverage------------
         public boolean useBranchCoverage = true;
         public boolean collUpFeedBack = true;
+        public boolean collDownFeedBack = true;
 
         // ------------Fault Injection-------------
         public boolean shuffleUpgradeOrder = false; // Whether shuffle the
@@ -191,7 +192,11 @@ public class Config {
         public String baseClassInfoFileName = "serializedFields_alg1.json";
         public String topObjectsFileName = "topObjects.json";
         public String comparableClassesFileName = "comparableClasses.json";
-        public String branch2CollectionFileName = "branch2Collection.json";
+
+        public String formatInfoFolder = null;
+
+        public int formatCoveragePort = 62000;
+        public boolean useVersionDelta = false;
 
         /**
          * ---------------Version Specific-----------------

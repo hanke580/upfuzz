@@ -38,6 +38,8 @@ import static org.zlab.upfuzz.nyx.MiniClientMain.setTestType;
 
 class RegularStackedTestThread implements Runnable {
 
+    static Logger logger = LogManager.getLogger(RegularStackedTestThread.class);
+
     private StackedFeedbackPacket stackedFeedbackPacket;
     private final Executor executor;
     private final int direction;
@@ -46,7 +48,8 @@ class RegularStackedTestThread implements Runnable {
     // If the cluster cannot start up for 3 times, it's serious
     int CLUSTER_START_RETRY = 3; // stop retry for now
 
-    public RegularStackedTestThread(Executor executor, int direction, StackedTestPacket stackedTestPacket) {
+    public RegularStackedTestThread(Executor executor, int direction,
+            StackedTestPacket stackedTestPacket) {
         this.executor = executor;
         this.direction = direction;
         this.stackedTestPacket = stackedTestPacket;
@@ -83,16 +86,17 @@ class RegularStackedTestThread implements Runnable {
         executor.teardown();
     }
 
-    public void run () {
-        
+    public void run() {
+
         if (Config.getConf().debug) {
-            logger.info("[Fuzzing Client] Call to start up executor: " + (direction == 0 ? "upgrade" : "downgrade"));
+            logger.info("[Fuzzing Client] Call to start up executor: "
+                    + (direction == 0 ? "upgrade" : "downgrade"));
         }
         boolean startUpStatus = startUpExecutor();
         if (!startUpStatus) {
             // old version **cluster** start up problem, this won't be upgrade
             // bugs
-            return null;
+            return;
         }
         if (Config.getConf().debug) {
             logger.info("[Fuzzing Client] started up executor");
@@ -125,5 +129,5 @@ class RegularStackedTestThread implements Runnable {
         if (Config.getConf().debug) {
             logger.info("[Fuzzing Client] Executor torn down");
         }
-    }    
+    }
 }

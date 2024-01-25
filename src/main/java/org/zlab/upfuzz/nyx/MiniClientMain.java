@@ -248,7 +248,7 @@ public class MiniClientMain {
                     + " ms, ";
 
             start_time_t = System.currentTimeMillis();
-            stackedFeedbackPacket = runTheTests(executor, stackedTestPacket);
+            stackedFeedbackPacket = runTheTests(executor, stackedTestPacket, 0);
             logMessages += "Testing time "
                     + (System.currentTimeMillis() - start_time_t)
                     + "ms, ";
@@ -377,11 +377,11 @@ public class MiniClientMain {
     }
 
     public static StackedFeedbackPacket runTheTests(Executor executor,
-            StackedTestPacket stackedTestPacket, int direction = 0) {
+            StackedTestPacket stackedTestPacket, int direction) {
         Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();
         Map<Integer, List<String>> testID2oriResults = new HashMap<>();
         Map<Integer, List<String>> testID2upResults = new HashMap<>();
-		Map<Integer, List<String>> testID2downResults = new HashMap<>();
+        Map<Integer, List<String>> testID2downResults = new HashMap<>();
         // if the middle of test has already broken an invariant
         // we stop executing.
         int executedTestNum = 0;
@@ -463,11 +463,12 @@ public class MiniClientMain {
             return stackedFeedbackPacket;
         }
 
-        boolean upgradeStatus;
+        boolean upgradeStatus = false;
+        boolean downgradeStatus = false;
         if (direction == 0)
-			upgradeStatus = executor.fullStopUpgrade();
-        else 
-			upgradeStatus = executor.downgrade();
+            upgradeStatus = executor.fullStopUpgrade();
+        else
+            downgradeStatus = executor.downgrade();
 
         if ((direction == 0) && (!upgradeStatus)) {
             // upgrade failed
@@ -475,15 +476,15 @@ public class MiniClientMain {
                     executor.executorID, stackedTestPacket.configFileName);
             stackedFeedbackPacket.isUpgradeProcessFailed = true;
             stackedFeedbackPacket.upgradeFailureReport = upgradeFailureReport;
-        } 
-		else if ((direction == 1) && (!downgradeStatus)) {
-			// downgrade failed
-			String downgradeFailureReport = FuzzingClient.genDowngradeFailureReport(
-				executor.executorID, stackedTestPacket.configFileName);
-			stackedFeedbackPacket.isDowngradeProcessFailed = true;
-			stackedFeedbackPacket.downgradeFailureReport = downgradeFailureReport;
-        } 
-        else if ((direction == 0) && (upgradeStatus)) {
+        } else if ((direction == 1) && (!downgradeStatus)) {
+            // downgrade failed
+            String downgradeFailureReport = FuzzingClient
+                    .genDowngradeFailureReport(
+                            executor.executorID,
+                            stackedTestPacket.configFileName);
+            stackedFeedbackPacket.isDowngradeProcessFailed = true;
+            stackedFeedbackPacket.downgradeFailureReport = downgradeFailureReport;
+        } else if ((direction == 0) && (upgradeStatus)) {
             // logger.info("upgrade succeed");
             stackedFeedbackPacket.isUpgradeProcessFailed = false;
             for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
@@ -521,8 +522,7 @@ public class MiniClientMain {
                 feedbackPacket.validationReadResults = testID2upResults
                         .get(tp.testPacketID);
             }
-        }
-		else if ((direction == 1) && (downgradeStatus)) {
+        } else if ((direction == 1) && (downgradeStatus)) {
             // logger.info("upgrade succeed");
             stackedFeedbackPacket.isDowngradeProcessFailed = false;
             for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
@@ -574,7 +574,7 @@ public class MiniClientMain {
         // test downgrade
         if (Config.getConf().testDowngrade) {
             // logger.info("downgrade cluster");
-            boolean downgradeStatus = executor.downgrade();
+            downgradeStatus = executor.downgrade();
             if (!downgradeStatus) {
                 // downgrade failed
                 stackedFeedbackPacket.isDowngradeProcessFailed = true;
