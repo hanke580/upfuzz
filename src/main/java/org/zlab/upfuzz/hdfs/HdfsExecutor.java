@@ -96,12 +96,12 @@ public class HdfsExecutor extends Executor {
 
         if (direction == 0) {
             dockerCluster = new HdfsDockerCluster(this,
-                Config.getConf().originalVersion,
-                nodeNum, null, configPath);
+                    Config.getConf().originalVersion,
+                    nodeNum, null, configPath);
         } else {
             dockerCluster = new HdfsDockerCluster(this,
-                Config.getConf().upgradedVersion,
-                nodeNum, null, configPath);
+                    Config.getConf().upgradedVersion,
+                    nodeNum, null, configPath);
         }
 
         try {

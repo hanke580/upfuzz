@@ -95,6 +95,7 @@ public class Config {
         // ------------FeedBack------------
         public boolean useCodeCoverage = true;
         public boolean collUpFeedBack = true;
+        public boolean collDownFeedBack = true;
 
         // ------------Fault Injection-------------
         public boolean shuffleUpgradeOrder = false; // Whether shuffle the
@@ -171,6 +172,7 @@ public class Config {
         public String formatInfoFolder = null;
 
         public int formatCoveragePort = 62000;
+        public boolean useVersionDelta = false;
 
         /**
          * ---------------Version Specific-----------------

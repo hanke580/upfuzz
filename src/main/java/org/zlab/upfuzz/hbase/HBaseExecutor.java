@@ -73,12 +73,12 @@ public class HBaseExecutor extends Executor {
 
         if (direction == 0) {
             dockerCluster = new HBaseDockerCluster(this,
-                Config.getConf().originalVersion,
-                nodeNum, null, configPath);
+                    Config.getConf().originalVersion,
+                    nodeNum, null, configPath);
         } else {
             dockerCluster = new HBaseDockerCluster(this,
-                Config.getConf().upgradedVersion,
-                nodeNum, null, configPath);
+                    Config.getConf().upgradedVersion,
+                    nodeNum, null, configPath);
         }
     }
 

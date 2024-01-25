@@ -166,42 +166,44 @@ public class FuzzingClient {
         clientThread.join();
     }
 
-    public static Executor[] initExecutorVersionDelta (int nodeNum,
+    public static Executor[] initExecutorVersionDelta(int nodeNum,
             Set<String> targetSystemStates,
             Path configPath) {
         String system = Config.getConf().system;
         if (system.equals("cassandra")) {
-            CassandraExecutor [] cassandraExecutors = new CassandraExecutor[2];
-            
+            CassandraExecutor[] cassandraExecutors = new CassandraExecutor[2];
+
             for (int i = 0; i < cassandraExecutors.length; i++) {
-                cassandraExecutor[i] = new CassandraExecutor(nodeNum, targetSystemStates,
-                                                    configPath, i);
+                cassandraExecutors[i] = new CassandraExecutor(nodeNum,
+                        targetSystemStates,
+                        configPath, i);
             }
-            
+
             return cassandraExecutors;
         } else if (system.equals("hdfs")) {
-            HdfsExecutor [] hdfsExecutors = new hdfsExecutor[2];
-            
+            HdfsExecutor[] hdfsExecutors = new HdfsExecutor[2];
+
             for (int i = 0; i < hdfsExecutors.length; i++) {
-                hdfsExecutor[i] = new HdfsExecutor(nodeNum, targetSystemStates,
-                                                    configPath, i);
+                hdfsExecutors[i] = new HdfsExecutor(nodeNum, targetSystemStates,
+                        configPath, i);
             }
-            
+
             return hdfsExecutors;
         } else if (system.equals("hbase")) {
-            HdfsExecutor [] hbaseExecutors = new hbaseExecutor[2];
-            
+            HBaseExecutor[] hbaseExecutors = new HBaseExecutor[2];
+
             for (int i = 0; i < hbaseExecutors.length; i++) {
-                hbaseExecutor[i] = new HbaseExecutor(nodeNum, targetSystemStates,
-                                                    configPath, i);
+                hbaseExecutors[i] = new HBaseExecutor(nodeNum,
+                        targetSystemStates,
+                        configPath, i);
             }
-            
+
             return hbaseExecutors;
         }
         throw new RuntimeException(String.format(
                 "System %s is not supported yet, supported system: cassandra, hdfs, hbase",
-                Config.getConf().system));        
-    } 
+                Config.getConf().system));
+    }
 
     public static Executor initExecutor(int nodeNum,
             Set<String> targetSystemStates,
@@ -250,13 +252,14 @@ public class FuzzingClient {
     }
 
     public StackedFeedbackPacket executeStackedTestPacket(
-            StackedTestPacket stackedTestPacket) {
+            StackedTestPacket stackedTestPacket) throws InterruptedException {
         if (Config.getConf().useVersionDelta) {
-            return executeStackedTestPacketRegularVersionDelta(stackedTestPacket);
+            return executeStackedTestPacketRegularVersionDelta(
+                    stackedTestPacket);
         } else {
             if (Config.getConf().nyxMode) {
                 return executeStackedTestPacketNyx(stackedTestPacket);
-            }   else {
+            } else {
                 return executeStackedTestPacketRegular(stackedTestPacket);
             }
         }
@@ -606,7 +609,7 @@ public class FuzzingClient {
             logger.info("[Fuzzing Client] Call to run the tests");
         }
         StackedFeedbackPacket stackedFeedbackPacket = runTheTests(executor,
-                stackedTestPacket);
+                stackedTestPacket, 0);
         if (Config.getConf().debug) {
             logger.info("[Fuzzing Client] completed the testing");
         }
@@ -622,7 +625,7 @@ public class FuzzingClient {
     }
 
     public StackedFeedbackPacket executeStackedTestPacketRegularVersionDelta(
-            StackedTestPacket stackedTestPacket) {
+            StackedTestPacket stackedTestPacket) throws InterruptedException {
         Path configPath = Paths.get(configDirPath.toString(),
                 stackedTestPacket.configFileName);
         logger.info("[HKLOG] configPath = " + configPath);
@@ -640,23 +643,36 @@ public class FuzzingClient {
         if (Config.getConf().debug) {
             logger.info("[Fuzzing Client] Call to initialize executor");
         }
-        Executor[] executors = initExecutorVersionDelta(stackedTestPacket.nodeNum, null, configPath);
+        Executor[] executors = initExecutorVersionDelta(
+                stackedTestPacket.nodeNum, null, configPath);
 
-        Thread threadUpgradeTest = new Thread(new RegularStackedTestThread(executors[0], 0, stackedTestPacket));
-        Thread threadDowngradTest = new Thread(new RegularStackedTestThread(executors[1], 1, stackedTestPacket));
+        RegularStackedTestThread upgradeTestThread = new RegularStackedTestThread(
+                executors[0], 0, stackedTestPacket);
+        RegularStackedTestThread downgradeTestThread = new RegularStackedTestThread(
+                executors[1], 1, stackedTestPacket);
+
+        Thread threadUpgradeTest = new Thread(upgradeTestThread);
+        Thread threadDowngradeTest = new Thread(downgradeTestThread);
 
         // Start the threads
         threadUpgradeTest.start();
-        threadDowngradTest.start();
+        threadDowngradeTest.start();
 
         // Wait for threads to finish
-        threadUpgradeTest.join();
-        threadDowngradTest.join();
+        try {
+            threadUpgradeTest.join();
+            threadDowngradeTest.join();
+        } catch (InterruptedException e) {
+            // Handle InterruptedException (e.g., log or handle accordingly)
+            e.printStackTrace();
+        }
 
         // Retrieve results from the shared map
-        StackedFeedbackPacket stackedFeedbackPacketUp = threadUpgradeTest.getStackedFeedbackPacket();
-        StackedFeedbackPacket stackedFeedbackPacketDown = threadDowngradeTest.getStackedFeedbackPacket();
-        
+        StackedFeedbackPacket stackedFeedbackPacketUp = upgradeTestThread
+                .getStackedFeedbackPacket();
+        StackedFeedbackPacket stackedFeedbackPacketDown = downgradeTestThread
+                .getStackedFeedbackPacket();
+
         return stackedFeedbackPacketUp;
     }
 
