@@ -142,17 +142,17 @@ public class AgentServerHandler
         for (Map.Entry<String, AgentServerHandler> entry : executor.agentHandler
                 .entrySet()) {
             // logger.info("After putting in agentHandler: "
-            //         + entry.getKey() + " : " + entry.getValue().sessionId);
+            // + entry.getKey() + " : " + entry.getValue().sessionId);
         }
 
         String identifier = sessionSplit[0], executorID = sessionSplit[1],
                 index = sessionSplit[2], nodeID = sessionSplit[3];
         // logger.info("identifier: " + identifier + ", executorID: "
-        //         + executorID + ", index: " + index + ", nodeID: " + nodeID);
+        // + executorID + ", index: " + index + ", nodeID: " + nodeID);
 
         if (!executor.sessionGroup.containsKey(executorID)) {
             // logger.info("executor ID " + executorID
-            //         + " not available in session group");
+            // + " not available in session group");
             executor.sessionGroup.put(executorID, new HashSet<>());
         }
         // logger.info("adding sessionId: " + sessionId);
