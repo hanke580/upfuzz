@@ -111,10 +111,13 @@ public abstract class DockerMeta {
 
     // NOTE If copyConfig modified then
     // FuzzingClient NyxMode configCheck may need to be modifed
-    public boolean copyConfig(Path configPath) throws IOException {
+    public boolean copyConfig(Path configPath, int direction)
+            throws IOException {
 
-        Path oriConfigPath = configPath.resolve("oriconfig");
-        Path upConfigPath = configPath.resolve("upconfig");
+        Path oriConfigPath = (direction == 0) ? configPath.resolve("oriconfig")
+                : configPath.resolve("upconfig");
+        Path upConfigPath = (direction == 0) ? configPath.resolve("upconfig")
+                : configPath.resolve("oriconfig");
 
         assert oriConfigPath.toFile().isDirectory();
         assert upConfigPath.toFile().isDirectory();

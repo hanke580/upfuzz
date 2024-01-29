@@ -25,8 +25,9 @@ public class CassandraDockerCluster extends DockerCluster {
     static final String excludes = "org.apache.cassandra.metrics.*:org.apache.cassandra.net.*:org.apache.cassandra.io.sstable.format.SSTableReader.*:org.apache.cassandra.service.*";
 
     CassandraDockerCluster(CassandraExecutor executor, String version,
-            int nodeNum, Set<String> targetSystemStates, Path configPath) {
-        super(executor, version, nodeNum, targetSystemStates);
+            int nodeNum, Set<String> targetSystemStates, Path configPath,
+            int direction) {
+        super(executor, version, nodeNum, targetSystemStates, direction);
 
         this.dockers = new CassandraDocker[nodeNum];
         this.seedIP = DockerCluster.getKthIP(hostIP, 0);
@@ -44,6 +45,7 @@ public class CassandraDockerCluster extends DockerCluster {
 
     public boolean build() throws Exception {
         for (int i = 0; i < dockers.length; ++i) {
+            logger.info(this.originalVersion + " -> " + this.upgradedVersion);
             dockers[i] = new CassandraDocker(this, i);
             dockers[i].build();
         }

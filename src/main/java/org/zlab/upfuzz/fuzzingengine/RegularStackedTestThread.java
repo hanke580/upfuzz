@@ -11,6 +11,7 @@ import java.io.ObjectOutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.*;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.concurrent.ExecutionException;
@@ -36,7 +37,7 @@ import static org.zlab.upfuzz.fuzzingengine.server.FuzzingServer.readState;
 import static org.zlab.upfuzz.nyx.MiniClientMain.runTheTests;
 import static org.zlab.upfuzz.nyx.MiniClientMain.setTestType;
 
-class RegularStackedTestThread implements Runnable {
+class RegularStackedTestThread implements Callable<StackedFeedbackPacket> {
 
     static Logger logger = LogManager.getLogger(RegularStackedTestThread.class);
 
@@ -56,7 +57,8 @@ class RegularStackedTestThread implements Runnable {
     }
 
     public boolean startUpExecutor() {
-        logger.info("[HKLOG] Fuzzing client: starting up executor");
+        logger.info(
+                "[HKLOG] Fuzzing client: starting up executor: " + direction);
         for (int i = 0; i < CLUSTER_START_RETRY; i++) {
             try {
                 if (executor.startup()) {
@@ -86,7 +88,8 @@ class RegularStackedTestThread implements Runnable {
         executor.teardown();
     }
 
-    public void run() {
+    @Override
+    public StackedFeedbackPacket call() throws Exception {
 
         if (Config.getConf().debug) {
             logger.info("[Fuzzing Client] Call to start up executor: "
@@ -96,38 +99,43 @@ class RegularStackedTestThread implements Runnable {
         if (!startUpStatus) {
             // old version **cluster** start up problem, this won't be upgrade
             // bugs
-            return;
-        }
-        if (Config.getConf().debug) {
-            logger.info("[Fuzzing Client] started up executor");
-        }
-
-        if (Config.getConf().startUpClusterForDebugging) {
-            logger.info("[Debugging Mode] Start up the cluster only");
-            try {
-                Thread.sleep(36000 * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            logger.info("[Fuzzing Client] Cluster startup problem: "
+                    + (direction == 0 ? "upgrade" : "downgrade"));
+            stackedFeedbackPacket = null;
+            return null;
+        } else {
+            if (Config.getConf().debug) {
+                logger.info("[Fuzzing Client] started up executor");
             }
-            logger.info("[Debugging Mode] System exit");
-            System.exit(1);
-        }
 
-        if (Config.getConf().debug) {
-            logger.info("[Fuzzing Client] Call to run the tests");
-        }
-        StackedFeedbackPacket stackedFeedbackPacket = runTheTests(executor,
-                stackedTestPacket, direction);
-        if (Config.getConf().debug) {
-            logger.info("[Fuzzing Client] completed the testing");
-        }
+            if (Config.getConf().startUpClusterForDebugging) {
+                logger.info("[Debugging Mode] Start up the cluster only");
+                try {
+                    Thread.sleep(36000 * 1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                logger.info("[Debugging Mode] System exit");
+                System.exit(1);
+            }
 
-        if (Config.getConf().debug) {
-            logger.info("[Fuzzing Client] Call to teardown executor");
-        }
-        tearDownExecutor();
-        if (Config.getConf().debug) {
-            logger.info("[Fuzzing Client] Executor torn down");
+            if (Config.getConf().debug) {
+                logger.info("[Fuzzing Client] Call to run the tests");
+            }
+            StackedFeedbackPacket stackedFeedbackPacket = runTheTests(executor,
+                    stackedTestPacket, direction);
+            if (Config.getConf().debug) {
+                logger.info("[Fuzzing Client] completed the testing");
+            }
+
+            if (Config.getConf().debug) {
+                logger.info("[Fuzzing Client] Call to teardown executor");
+            }
+            tearDownExecutor();
+            if (Config.getConf().debug) {
+                logger.info("[Fuzzing Client] Executor torn down");
+            }
+            return stackedFeedbackPacket;
         }
     }
 }

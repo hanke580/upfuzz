@@ -45,7 +45,7 @@ public class HBaseExecutor extends Executor {
 
         dockerCluster = new HBaseDockerCluster(this,
                 Config.getConf().originalVersion,
-                nodeNum, null, configPath);
+                nodeNum, null, configPath, direction);
     }
 
     public HBaseExecutor(int nodeNum,
@@ -74,11 +74,11 @@ public class HBaseExecutor extends Executor {
         if (direction == 0) {
             dockerCluster = new HBaseDockerCluster(this,
                     Config.getConf().originalVersion,
-                    nodeNum, null, configPath);
+                    nodeNum, null, configPath, direction);
         } else {
             dockerCluster = new HBaseDockerCluster(this,
                     Config.getConf().upgradedVersion,
-                    nodeNum, null, configPath);
+                    nodeNum, null, configPath, direction);
         }
     }
 

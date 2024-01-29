@@ -24,6 +24,7 @@ public class HBaseHDFSDocker extends Docker {
     String composeYaml;
     String javaToolOpts;
     int hdfsDaemonPort = 11116;
+    public int direction;
 
     public String namenodeIP;
 
@@ -31,6 +32,7 @@ public class HBaseHDFSDocker extends Docker {
 
     public HBaseHDFSDocker(HBaseDockerCluster dockerCluster, int index) {
         this.index = index;
+        this.direction = dockerCluster.direction;
         type = "original";
         workdir = dockerCluster.workdir;
         system = dockerCluster.system;
@@ -135,7 +137,7 @@ public class HBaseHDFSDocker extends Docker {
 
         // Copy the cassandra-ori.yaml and cassandra-up.yaml
         if (configPath != null) {
-            copyConfig(configPath);
+            copyConfig(configPath, direction);
         }
         return false;
     }

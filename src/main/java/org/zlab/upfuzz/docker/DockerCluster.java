@@ -45,6 +45,7 @@ public abstract class DockerCluster implements IDockerCluster {
     public String hostIP;
     public File workdir;
     public Path configpath;
+    public int direction;
 
     public Set<String> targetSystemStates;
     public Set<String> blackListErrorLog = new HashSet<>();
@@ -59,7 +60,7 @@ public abstract class DockerCluster implements IDockerCluster {
     }
 
     public DockerCluster(Executor executor, String version,
-            int nodeNum, Set<String> targetSystemStates) {
+            int nodeNum, Set<String> targetSystemStates, int direction) {
         // replace subnet
         // rename services
 
@@ -76,6 +77,7 @@ public abstract class DockerCluster implements IDockerCluster {
         this.upgradedVersion = Config.getConf().upgradedVersion;
         this.system = executor.systemID;
         this.nodeNum = nodeNum;
+        this.direction = direction;
         DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
         String executorTimestamp = formatter.format(System.currentTimeMillis());
 
@@ -90,15 +92,43 @@ public abstract class DockerCluster implements IDockerCluster {
                             originalVersion + "/" + executorTimestamp + "-"
                             + executor.executorID);
         } else {
-            this.networkName = MessageFormat.format(
-                    "network_{0}_{1}_to_{2}_{3}", executor.systemID,
-                    Config.getConf().originalVersion,
-                    Config.getConf().upgradedVersion,
-                    UUID.randomUUID());
-            this.workdir = new File(
-                    "fuzzing_storage/" + executor.systemID + "/" +
-                            originalVersion + "/" + upgradedVersion + "/" +
-                            executorTimestamp + "-" + executor.executorID);
+            if (!Config.getConf().useVersionDelta) {
+                this.networkName = MessageFormat.format(
+                        "network_{0}_{1}_to_{2}_{3}", executor.systemID,
+                        Config.getConf().originalVersion,
+                        Config.getConf().upgradedVersion,
+                        UUID.randomUUID());
+                this.workdir = new File(
+                        "fuzzing_storage/" + executor.systemID + "/" +
+                                originalVersion + "/" + upgradedVersion + "/" +
+                                executorTimestamp + "-" + executor.executorID);
+            } else {
+                if (direction == 0) {
+                    this.networkName = MessageFormat.format(
+                            "network_{0}_{1}_to_{2}_{3}", executor.systemID,
+                            Config.getConf().originalVersion,
+                            Config.getConf().upgradedVersion,
+                            UUID.randomUUID());
+                    this.workdir = new File(
+                            "fuzzing_storage/" + executor.systemID + "/" +
+                                    originalVersion + "/" + upgradedVersion
+                                    + "/" +
+                                    executorTimestamp + "-"
+                                    + executor.executorID);
+                } else {
+                    this.networkName = MessageFormat.format(
+                            "network_{0}_{2}_to_{1}_{3}", executor.systemID,
+                            Config.getConf().originalVersion,
+                            Config.getConf().upgradedVersion,
+                            UUID.randomUUID());
+                    this.workdir = new File(
+                            "fuzzing_storage/" + executor.systemID + "/" +
+                                    upgradedVersion + "/" + originalVersion
+                                    + "/" +
+                                    executorTimestamp + "-"
+                                    + executor.executorID);
+                }
+            }
         }
 
         this.network = new Network();

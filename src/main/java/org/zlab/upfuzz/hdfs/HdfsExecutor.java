@@ -37,7 +37,7 @@ public class HdfsExecutor extends Executor {
         // TODO: FIXME multiple init here for HBase
         dockerCluster = new HdfsDockerCluster(this,
                 Config.getConf().originalVersion,
-                nodeNum, null, configPath);
+                nodeNum, null, configPath, direction);
     }
 
     public HdfsExecutor(int nodeNum,
@@ -57,7 +57,7 @@ public class HdfsExecutor extends Executor {
         // TODO: FIXME multiple init here for HBase
         dockerCluster = new HdfsDockerCluster(this,
                 Config.getConf().originalVersion,
-                nodeNum, null, configPath);
+                nodeNum, null, configPath, direction);
     }
 
     public boolean isHdfsReady(String hdfsPath) {
@@ -97,11 +97,11 @@ public class HdfsExecutor extends Executor {
         if (direction == 0) {
             dockerCluster = new HdfsDockerCluster(this,
                     Config.getConf().originalVersion,
-                    nodeNum, null, configPath);
+                    nodeNum, null, configPath, direction);
         } else {
             dockerCluster = new HdfsDockerCluster(this,
                     Config.getConf().upgradedVersion,
-                    nodeNum, null, configPath);
+                    nodeNum, null, configPath, direction);
         }
 
         try {

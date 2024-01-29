@@ -25,6 +25,7 @@ public class CassandraDocker extends Docker {
     String composeYaml;
     String javaToolOpts;
     int cqlshDaemonPort = 18250;
+    public int direction;
 
     public String seedIP;
 
@@ -32,10 +33,15 @@ public class CassandraDocker extends Docker {
 
     public CassandraDocker(CassandraDockerCluster dockerCluster, int index) {
         this.index = index;
+        this.direction = dockerCluster.direction;
         workdir = dockerCluster.workdir;
         system = dockerCluster.system;
-        originalVersion = dockerCluster.originalVersion;
-        upgradedVersion = dockerCluster.upgradedVersion;
+        originalVersion = (dockerCluster.direction == 0)
+                ? dockerCluster.originalVersion
+                : dockerCluster.upgradedVersion;
+        upgradedVersion = (dockerCluster.direction == 0)
+                ? dockerCluster.upgradedVersion
+                : dockerCluster.originalVersion;
         networkName = dockerCluster.networkName;
         subnet = dockerCluster.subnet;
         hostIP = dockerCluster.hostIP;
@@ -99,7 +105,7 @@ public class CassandraDocker extends Docker {
         return 0;
     }
 
-    private void setEnvironment() throws IOException {
+    private synchronized void setEnvironment() throws IOException {
         File envFile = new File(workdir,
                 "./persistent/node_" + index + "/env.sh");
 
@@ -107,6 +113,7 @@ public class CassandraDocker extends Docker {
         envFile.getParentFile().mkdirs();
         fw = new FileWriter(envFile, false);
         for (String s : env) {
+            // logger.info("env to be written: " + s);
             fw.write("export " + s + "\n");
         }
         fw.close();
@@ -119,6 +126,8 @@ public class CassandraDocker extends Docker {
     @Override
     public boolean build() throws IOException {
         type = "original";
+        logger.info("[HKLOG] Cassandra Docker, original Version: "
+                + originalVersion);
         String cassandraHome = "/cassandra/" + originalVersion;
         String cassandraConf = "/etc/" + originalVersion;
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
@@ -154,7 +163,7 @@ public class CassandraDocker extends Docker {
 
         // Copy the cassandra-ori.yaml and cassandra-up.yaml
         if (configPath != null) {
-            copyConfig(configPath);
+            copyConfig(configPath, direction);
         }
         return true;
     }
@@ -253,6 +262,7 @@ public class CassandraDocker extends Docker {
         cqlshDaemonPort ^= 1;
 
         String pythonVersion = "python2";
+        logger.info("Downgrading from original version: " + originalVersion);
         String[] spStrings = originalVersion.split("-");
         try {
             int main_version = Integer

@@ -25,6 +25,7 @@ public class HdfsDocker extends Docker {
     String composeYaml;
     String javaToolOpts;
     int hdfsDaemonPort = 11116;
+    public int direction;
 
     public String namenodeIP;
 
@@ -32,11 +33,16 @@ public class HdfsDocker extends Docker {
 
     public HdfsDocker(HdfsDockerCluster dockerCluster, int index) {
         this.index = index;
+        this.direction = dockerCluster.direction;
         type = "original";
         workdir = dockerCluster.workdir;
         system = dockerCluster.system;
-        originalVersion = dockerCluster.originalVersion;
-        upgradedVersion = dockerCluster.upgradedVersion;
+        originalVersion = (dockerCluster.direction == 0)
+                ? dockerCluster.originalVersion
+                : dockerCluster.upgradedVersion;
+        upgradedVersion = (dockerCluster.direction == 0)
+                ? dockerCluster.upgradedVersion
+                : dockerCluster.originalVersion;
         networkName = dockerCluster.networkName;
         subnet = dockerCluster.subnet;
         hostIP = dockerCluster.hostIP;
@@ -132,7 +138,7 @@ public class HdfsDocker extends Docker {
 
         // Copy the cassandra-ori.yaml and cassandra-up.yaml
         if (configPath != null) {
-            copyConfig(configPath);
+            copyConfig(configPath, direction);
         }
         return false;
     }
