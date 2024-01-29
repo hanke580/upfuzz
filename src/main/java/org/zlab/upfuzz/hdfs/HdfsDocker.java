@@ -116,6 +116,7 @@ public class HdfsDocker extends Docker {
 
     @Override
     public boolean build() throws IOException {
+        type = (direction == 0) ? "original" : "upgraded";
         String hdfsHome = "/hdfs/" + originalVersion;
         String hdfsConf = "/etc/" + originalVersion + "/etc/hadoop";
 

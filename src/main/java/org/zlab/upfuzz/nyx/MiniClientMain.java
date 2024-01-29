@@ -401,8 +401,10 @@ public class MiniClientMain {
             for (int i = 0; i < stackedTestPacket.nodeNum; i++) {
                 feedBacks[i] = new FeedBack();
             }
-            ExecutionDataStore[] oriCoverages = executor
-                    .collectCoverageSeparate("original");
+            ExecutionDataStore[] oriCoverages = (direction == 0) ? executor
+                    .collectCoverageSeparate("original")
+                    : executor
+                            .collectCoverageSeparate("upgraded");
             if (oriCoverages != null) {
                 for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
                     feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
