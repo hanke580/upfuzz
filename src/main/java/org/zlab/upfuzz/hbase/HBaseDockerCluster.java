@@ -43,8 +43,8 @@ public class HBaseDockerCluster extends DockerCluster {
     };
 
     HBaseDockerCluster(HBaseExecutor executor, String version,
-            int nodeNum) {
-        super(executor, version, nodeNum, null);
+            int nodeNum, int direction) {
+        super(executor, version, nodeNum, null, direction);
 
         this.dockers = new HBaseDocker[nodeNum];
         this.extranodes = new HBaseHDFSDocker[1];
@@ -52,8 +52,9 @@ public class HBaseDockerCluster extends DockerCluster {
     }
 
     HBaseDockerCluster(HBaseExecutor executor, String version,
-            int nodeNum, Set<String> targetSystemStates, Path configPath) {
-        super(executor, version, nodeNum, targetSystemStates);
+            int nodeNum, Set<String> targetSystemStates, Path configPath,
+            int direction) {
+        super(executor, version, nodeNum, targetSystemStates, direction);
 
         this.dockers = new HBaseDocker[nodeNum];
         this.extranodes = new HBaseHDFSDocker[1];

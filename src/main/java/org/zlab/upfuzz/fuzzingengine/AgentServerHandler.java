@@ -20,6 +20,8 @@ import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.hbase.HBaseDockerCluster;
 import org.zlab.upfuzz.hdfs.HdfsDockerCluster;
 import org.zlab.upfuzz.utils.Utilities;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 
 public class AgentServerHandler
         implements Runnable, ISessionInfoVisitor, IExecutionDataVisitor {
@@ -135,11 +137,22 @@ public class AgentServerHandler
         // How to make sure that handler is updated???
         // We performed the upgrade but packet is not received.
         // We might lose the coverage
+        // logger.info("[HKLOG: AgenetServerHandler] Session ID: " + sessionId);
         executor.agentHandler.put(sessionId, this);
+        for (Map.Entry<String, AgentServerHandler> entry : executor.agentHandler
+                .entrySet()) {
+            // logger.info("After putting in agentHandler: "
+            //         + entry.getKey() + " : " + entry.getValue().sessionId);
+        }
 
         String identifier = sessionSplit[0], executorID = sessionSplit[1],
                 index = sessionSplit[2], nodeID = sessionSplit[3];
+        // logger.info("identifier: " + identifier + ", executorID: "
+        //         + executorID + ", index: " + index + ", nodeID: " + nodeID);
+
         if (!executor.sessionGroup.containsKey(executorID)) {
+            // logger.info("executor ID " + executorID
+            //         + " not available in session group");
             executor.sessionGroup.put(executorID, new HashSet<>());
         }
         // logger.info("adding sessionId: " + sessionId);
@@ -150,6 +163,7 @@ public class AgentServerHandler
 
     public void visitSessionInfo(final SessionInfo info) {
         if (!registered) {
+            // logger.info(info + " not registered");
             register(info);
         } else {
             // logger.debug("Retrieving execution Data for session: " +

@@ -11,6 +11,7 @@ import java.io.ObjectOutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.*;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
@@ -40,6 +41,8 @@ public class FuzzingClient {
 
     public Executor executor;
     public Path configDirPath;
+    public Path configDirPathUp;
+    public Path configDirPathDown;
     private LibnyxInterface libnyx = null;
 
     // If the cluster cannot start up for 3 times, it's serious
@@ -54,6 +57,16 @@ public class FuzzingClient {
             configDirPath = Paths.get(System.getProperty("user.dir"),
                     Config.getConf().configDir, Config.getConf().originalVersion
                             + "_" + Config.getConf().upgradedVersion);
+            if (Config.getConf().useVersionDelta) {
+                configDirPathUp = Paths.get(System.getProperty("user.dir"),
+                        Config.getConf().configDir,
+                        Config.getConf().originalVersion
+                                + "_" + Config.getConf().upgradedVersion);
+                configDirPathDown = Paths.get(System.getProperty("user.dir"),
+                        Config.getConf().configDir,
+                        Config.getConf().upgradedVersion
+                                + "_" + Config.getConf().originalVersion);
+            }
         }
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -646,33 +659,73 @@ public class FuzzingClient {
         Executor[] executors = initExecutorVersionDelta(
                 stackedTestPacket.nodeNum, null, configPath);
 
-        RegularStackedTestThread upgradeTestThread = new RegularStackedTestThread(
-                executors[0], 0, stackedTestPacket);
-        RegularStackedTestThread downgradeTestThread = new RegularStackedTestThread(
-                executors[1], 1, stackedTestPacket);
+        // RegularStackedTestThread upgradeTestThread = new
+        // RegularStackedTestThread(
+        // executors[0], 0, stackedTestPacket);
+        // RegularStackedTestThread downgradeTestThread = new
+        // RegularStackedTestThread(
+        // executors[1], 1, stackedTestPacket);
 
-        Thread threadUpgradeTest = new Thread(upgradeTestThread);
-        Thread threadDowngradeTest = new Thread(downgradeTestThread);
+        // Thread threadUpgradeTest = new Thread(upgradeTestThread);
+        // Thread threadDowngradeTest = new Thread(downgradeTestThread);
 
-        // Start the threads
-        threadUpgradeTest.start();
-        threadDowngradeTest.start();
+        // // Start the threads
+        // threadUpgradeTest.start();
+        // threadDowngradeTest.start();
 
-        // Wait for threads to finish
+        // // Wait for threads to finish
+        // try {
+        // threadUpgradeTest.join();
+        // threadDowngradeTest.join();
+        // } catch (InterruptedException e) {
+        // // Handle InterruptedException (e.g., log or handle accordingly)
+        // e.printStackTrace();
+        // }
+
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
+
+        // Submitting two Callable tasks
+        Future<StackedFeedbackPacket> futureStackedFeedbackPacketUp = executorService
+                .submit(new RegularStackedTestThread(executors[0], 0,
+                        stackedTestPacket));
+        Future<StackedFeedbackPacket> futureStackedFeedbackPacketDown = executorService
+                .submit(new RegularStackedTestThread(executors[1], 1,
+                        stackedTestPacket));
+
+        // Continue with other tasks while threads are running independently
+
+        // Retrieve and check the result of thread 1
+        StackedFeedbackPacket stackedFeedbackPacketUp = null;
+        StackedFeedbackPacket stackedFeedbackPacketDown = null;
         try {
-            threadUpgradeTest.join();
-            threadDowngradeTest.join();
-        } catch (InterruptedException e) {
-            // Handle InterruptedException (e.g., log or handle accordingly)
+            stackedFeedbackPacketUp = futureStackedFeedbackPacketUp
+                    .get();
+            System.out.println(
+                    "Result from Thread 1: " + stackedFeedbackPacketUp);
+        } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
 
-        // Retrieve results from the shared map
-        StackedFeedbackPacket stackedFeedbackPacketUp = upgradeTestThread
-                .getStackedFeedbackPacket();
-        StackedFeedbackPacket stackedFeedbackPacketDown = downgradeTestThread
-                .getStackedFeedbackPacket();
+        // Retrieve and check the result of thread 2
+        try {
+            stackedFeedbackPacketDown = futureStackedFeedbackPacketDown
+                    .get();
+            System.out.println(
+                    "Result from Thread 2: " + stackedFeedbackPacketDown);
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
 
+        // Shutdown the executor service
+        executorService.shutdown();
+
+        // Retrieve results from the shared map
+        // StackedFeedbackPacket stackedFeedbackPacketUp = upgradeTestThread
+        // .getStackedFeedbackPacket();
+        // StackedFeedbackPacket stackedFeedbackPacketDown = downgradeTestThread
+        // .getStackedFeedbackPacket();
+
+        System.out.println(stackedFeedbackPacketUp == null);
         return stackedFeedbackPacketUp;
     }
 

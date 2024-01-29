@@ -37,7 +37,7 @@ public class CassandraExecutor extends Executor {
 
         dockerCluster = new CassandraDockerCluster(
                 this, Config.getConf().originalVersion,
-                nodeNum, targetSystemStates, configPath);
+                nodeNum, targetSystemStates, configPath, direction);
     }
 
     public CassandraExecutor(int nodeNum,
@@ -65,14 +65,19 @@ public class CassandraExecutor extends Executor {
             return false;
         }
 
+        logger.info("[HKLOG] Got direction: " + direction);
         if (direction == 0) {
+            logger.info("[HKLOG] Docker Cluster startup, original version: "
+                    + Config.getConf().originalVersion);
             dockerCluster = new CassandraDockerCluster(
                     this, Config.getConf().originalVersion,
-                    nodeNum, targetSystemStates, configPath);
+                    nodeNum, targetSystemStates, configPath, direction);
         } else {
+            logger.info("[HKLOG] Docker Cluster startup, upgraded version: "
+                    + Config.getConf().upgradedVersion);
             dockerCluster = new CassandraDockerCluster(
                     this, Config.getConf().upgradedVersion,
-                    nodeNum, targetSystemStates, configPath);
+                    nodeNum, targetSystemStates, configPath, direction);
         }
 
         try {

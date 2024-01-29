@@ -533,7 +533,7 @@ public class MiniClientMain {
                 testID2downResults.put(tp.testPacketID, downResult);
                 if (Config.getConf().collDownFeedBack) {
                     ExecutionDataStore[] downCoverages = executor
-                            .collectCoverageSeparate("downgraded");
+                            .collectCoverageSeparate("original");
                     if (downCoverages != null) {
                         for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
                             testID2FeedbackPacket.get(

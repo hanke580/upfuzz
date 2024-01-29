@@ -28,6 +28,7 @@ public class HBaseDocker extends Docker {
     String composeYaml;
     String javaToolOpts;
     int HBaseDaemonPort = 36000;
+    public int direction;
 
     public String seedIP;
 
@@ -35,10 +36,15 @@ public class HBaseDocker extends Docker {
 
     public HBaseDocker(HBaseDockerCluster dockerCluster, int index) {
         this.index = index;
+        this.direction = dockerCluster.direction;
         workdir = dockerCluster.workdir;
         system = dockerCluster.system;
-        originalVersion = dockerCluster.originalVersion;
-        upgradedVersion = dockerCluster.upgradedVersion;
+        originalVersion = (dockerCluster.direction == 0)
+                ? dockerCluster.originalVersion
+                : dockerCluster.upgradedVersion;
+        upgradedVersion = (dockerCluster.direction == 0)
+                ? dockerCluster.upgradedVersion
+                : dockerCluster.originalVersion;
         networkName = dockerCluster.networkName;
         subnet = dockerCluster.subnet;
         hostIP = dockerCluster.hostIP;
@@ -163,7 +169,7 @@ public class HBaseDocker extends Docker {
         setEnvironment();
 
         if (configPath != null) {
-            copyConfig(configPath);
+            copyConfig(configPath, direction);
         }
         return true;
     }

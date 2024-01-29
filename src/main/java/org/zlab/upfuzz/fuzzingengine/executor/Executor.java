@@ -427,11 +427,16 @@ public abstract class Executor implements IExecutor {
 
     public ExecutionDataStore[] collectCoverageSeparate(String version) {
         // TODO: Separate the coverage here
+        if (Config.getConf().debug) {
+            logger.info("[HKLOG: Executor] Invoked coverage collection for: "
+                    + version);
+        }
         Set<String> agentIdList = sessionGroup.get(executorID + "_" + version);
         // logger.info("agentIdList: " + agentIdList);
         // logger.info("executorID = " + executorID);
         if (Config.getConf().debug) {
-            logger.info("[Executor] Invoked separate coverage collection");
+            logger.info("[Executor] Invoked separate coverage collection for: "
+                    + executorID);
         }
         if (agentIdList == null) {
             logger.error("No agent connection with executor " +
