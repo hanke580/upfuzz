@@ -44,7 +44,7 @@ sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 * You can avoid setting up all the prerequisites by connecting to our image hosted in chameleon cloud
 
 ```bash
-ssh upfuzz@192.5.86.227
+ssh upfuzz@192.5.87.94
 # password: 123
 ```
 
@@ -75,7 +75,7 @@ export UP_VERSION=3.0.15
 mkdir -p "$UPFUZZ_DIR"/prebuild/cassandra  # don't need to run this step if testing through prebuilt image
 cd prebuild/cassandra
 
-# Copy cassandra 2.2.8 from mufasa.cs.purdue.edu server (Or scp to another server)
+# Get the instrumented cassandra-2.2.8
 cp /home/khan/test_binary/apache-cassandra-2.2.8-format.tar.gz .
 cp /home/khan/test_binary/apache-cassandra-3.0.15-format.tar.gz .
 tar -xzvf apache-cassandra-2.2.8-format.tar.gz
@@ -84,6 +84,12 @@ tar -xzvf apache-cassandra-3.0.15-format.tar.gz
 cd ${UPFUZZ_DIR}/src/main/resources/cassandra/normal/compile-src/
 sed -i -e 's/3.11.15/2.2.8/g' -e 's/4.1.3/3.0.15/g' cassandra-clusternode.sh
 docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"_apache-cassandra-"$UP_VERSION"
+
+# Copy the format required json files to the /tmp/folder
+# Also make sure these files occur in the prebuild/cassandra/apache-cassandra-2.2.8/ folder
+cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.15/serializedFields_alg1.json /tmp
+cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.15/topObjects.json /tmp
+cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.15/comparableClasses.json /tmp
 
 cd ${UPFUZZ_DIR}
 ./gradlew copyDependencies

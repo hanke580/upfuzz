@@ -268,7 +268,7 @@ bin/start_clients.sh 1 config.json
 1. You can ssh into it and start the testing (Note: you need to ssh with -X flag enabled as vnc is needed to create pre snapshot)
 
 ```bash
-ssh -X upfuzz@192.5.86.227
+ssh -X upfuzz@192.5.87.94
 # password: 123
 
 cd $UPFUZZ_DIR
