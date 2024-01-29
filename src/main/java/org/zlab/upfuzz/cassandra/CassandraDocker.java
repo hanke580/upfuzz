@@ -125,7 +125,7 @@ public class CassandraDocker extends Docker {
 
     @Override
     public boolean build() throws IOException {
-        type = "original";
+        type = (direction == 0) ? "original" : "upgraded";
         logger.info("[HKLOG] Cassandra Docker, original Version: "
                 + originalVersion);
         String cassandraHome = "/cassandra/" + originalVersion;

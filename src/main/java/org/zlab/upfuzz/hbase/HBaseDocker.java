@@ -132,7 +132,7 @@ public class HBaseDocker extends Docker {
 
     @Override
     public boolean build() throws IOException {
-        type = "original";
+        type = (direction == 0) ? "original" : "upgraded";
         String HBaseHome = "/hbase/" + originalVersion;
         String HBaseConf = "/etc/" + originalVersion;
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
