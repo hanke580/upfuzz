@@ -700,24 +700,32 @@ public class FuzzingClient {
         try {
             stackedFeedbackPacketUp = futureStackedFeedbackPacketUp
                     .get();
-            System.out.println(
-                    "Result from Thread 1: " + stackedFeedbackPacketUp);
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-
-        // Retrieve and check the result of thread 2
-        try {
             stackedFeedbackPacketDown = futureStackedFeedbackPacketDown
                     .get();
-            System.out.println(
-                    "Result from Thread 2: " + stackedFeedbackPacketDown);
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
 
-        // Shutdown the executor service
-        executorService.shutdown();
+            if (Config.getConf().debug) {
+                logger.info("Result from Thread 1: "
+                        + stackedFeedbackPacketUp.getGsonStr());
+                logger.info("Result from Thread 2: "
+                        + stackedFeedbackPacketDown.getGsonStr());
+            }
+        } catch (InterruptedException | ExecutionException | IOException e) {
+            e.printStackTrace();
+        } finally {
+            // Shutdown the executor service
+            executorService.shutdown();
+
+            try {
+                // Wait for termination, or force termination after a timeout
+                if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+                    executorService.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                // (Re-)Cancel if current thread also interrupted
+                executorService.shutdownNow();
+            }
+        }
 
         // Retrieve results from the shared map
         // StackedFeedbackPacket stackedFeedbackPacketUp = upgradeTestThread
