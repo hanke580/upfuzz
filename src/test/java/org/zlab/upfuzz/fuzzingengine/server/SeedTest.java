@@ -16,10 +16,10 @@ public class SeedTest extends AbstractTest {
         Seed seed2 = generateSeed(commandPool, CassandraState.class, -1);
 
         PriorityCorpus priorityCorpus = new PriorityCorpus();
-        priorityCorpus.addSeed(seed1);
-        priorityCorpus.addSeed(seed2);
+        priorityCorpus.addSeed(seed1, 0);
+        priorityCorpus.addSeed(seed2, 0);
 
-        assert priorityCorpus.getSeed().equals(seed1);
-        assert priorityCorpus.getSeed().equals(seed2);
+        assert priorityCorpus.getSeed(0).equals(seed1);
+        assert priorityCorpus.getSeed(0).equals(seed2);
     }
 }

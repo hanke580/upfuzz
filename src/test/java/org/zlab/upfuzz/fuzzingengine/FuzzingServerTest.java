@@ -144,9 +144,9 @@ public class FuzzingServerTest extends AbstractTest {
         Seed seed2 = new Seed(null, null, 1, -1);
         seed1.score = 0;
         seed2.score = 1;
-        corpus.addSeed(seed1);
-        corpus.addSeed(seed2);
-        Seed testSeed = corpus.getSeed();
+        corpus.addSeed(seed1, 0);
+        corpus.addSeed(seed2, 0);
+        Seed testSeed = corpus.getSeed(0);
         assert testSeed.configIdx == 1;
     }
 

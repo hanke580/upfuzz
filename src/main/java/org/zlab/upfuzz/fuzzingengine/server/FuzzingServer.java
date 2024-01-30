@@ -64,6 +64,7 @@ public class FuzzingServer {
     public PriorityCorpus corpus = new PriorityCorpus();
     public TestPlanCorpus testPlanCorpus = new TestPlanCorpus();
     public FullStopCorpus fullStopCorpus = new FullStopCorpus();
+    public PriorityCorpus formatCoverageCorpus = new PriorityCorpus();
     private final Map<Integer, Seed> testID2Seed;
     private final Map<Integer, TestPlan> testID2TestPlan;
 
@@ -87,6 +88,9 @@ public class FuzzingServer {
     boolean isFullStopUpgrade = true;
 
     private int newFormatNum = 0;
+    private int newVersionDeltaCount = 0; // Use it in the UpdateStatus method,
+                                          // when VersionDelta is added to the
+                                          // implementation
 
     // Config mutation
     ConfigGen configGen;
@@ -114,6 +118,11 @@ public class FuzzingServer {
 
     TestTrackerGraph graph = new TestTrackerGraph();
 
+    // Calculate cumulative probabilities
+    double[] cumulativeProbabilities = new double[2];
+    double codeCovProbability;
+    double formatCovProbability;
+
     public FuzzingServer() {
         testID2Seed = new HashMap<>();
         testID2TestPlan = new HashMap<>();
@@ -136,6 +145,11 @@ public class FuzzingServer {
             Runtime.initWriter();
         }
 
+        /*
+         * ----- TODO? ------
+         * Version delta coverage init
+         */
+
         if (Config.getConf().testSingleVersion) {
             configDirPath = Paths.get(System.getProperty("user.dir"),
                     Config.getConf().configDir,
@@ -148,6 +162,9 @@ public class FuzzingServer {
 
         startTime = TimeUnit.SECONDS.convert(System.nanoTime(),
                 TimeUnit.NANOSECONDS);
+
+        codeCovProbability = Config.getConf().codeCoverageChoiceProb;
+        formatCovProbability = Config.getConf().formatCoverageChoiceProb;
     }
 
     private void init() {
@@ -181,6 +198,13 @@ public class FuzzingServer {
             logger.error("Not tracking system state");
             e.printStackTrace();
             System.exit(1);
+        }
+
+        double[] probabilities = { codeCovProbability, formatCovProbability };
+        cumulativeProbabilities[0] = probabilities[0];
+        for (int i = 1; i < probabilities.length; i++) {
+            cumulativeProbabilities[i] = cumulativeProbabilities[i - 1]
+                    + probabilities[i];
         }
     }
 
@@ -253,7 +277,38 @@ public class FuzzingServer {
         // Pick one test case from the corpus, fuzz it for mutationEpoch
         // Add the new tests into the stackedTestPackets
         // All packets have been dispatched, now fuzz next seed
-        Seed seed = corpus.getSeed();
+        Seed seed;
+        if ((codeCovProbability > 0) && (formatCovProbability > 0)) {
+            int corpusType = getCorpusType();
+            if (Config.getConf().debug) {
+                logger.debug("[HKLOG] Chosen seed of coverage type: "
+                        + (corpusType == 0 ? "branch" : "format"));
+            }
+            seed = corpus.getSeed(corpusType);
+            if (seed != null) {
+                if (Config.getConf().debug) {
+                    logger.debug(
+                            "[HKLOG] Got seed id " + seed.testID
+                                    + " from corpus type: "
+                                    + ((corpusType == 0) ? "branch"
+                                            : "format"));
+                }
+                for (int i = 0; i < cumulativeProbabilities.length; i++) {
+                    if (i != corpusType) {
+                        corpus.removeSeed(seed.testID, i);
+                        if (Config.getConf().debug) {
+                            logger.debug(
+                                    "[HKLOG] Removed seed id " + seed.testID
+                                            + " from corpus type: "
+                                            + (i == 0 ? "branch" : "format"));
+                        }
+                    }
+                }
+            }
+        } else {
+            seed = codeCovProbability > 0 ? corpus.getSeed(0)
+                    : corpus.getSeed(1);
+        }
         round++;
         StackedTestPacket stackedTestPacket;
 
@@ -903,14 +958,16 @@ public class FuzzingServer {
         }
 
         boolean addToCorpus = false;
-        if (Config.getConf().useCodeCoverage
+        if ((Config.getConf().useCodeCoverage
+                && (Config.getConf().codeCoverageChoiceProb > 0))
                 && Utilities.hasNewBits(curOriCoverage,
                         fb.originalCodeCoverage)) {
             addToCorpus = true;
             curOriCoverage.merge(fb.originalCodeCoverage);
         }
 
-        if (Config.getConf().useCodeCoverage
+        if ((Config.getConf().useCodeCoverage
+                && (Config.getConf().codeCoverageChoiceProb > 0))
                 && Utilities.hasNewBits(curUpCoverage,
                         fb.upgradedCodeCoverage)) {
             addToCorpus = true;
@@ -980,12 +1037,39 @@ public class FuzzingServer {
         System.out.println();
     }
 
+    public void addSeedToCorpus(PriorityCorpus priorityCorpus,
+            Map<Integer, Seed> testID2Seed, FeedbackPacket feedbackPacket,
+            int score, int corpusType) {
+        Seed seed = testID2Seed.get(feedbackPacket.testPacketID);
+
+        if (Config.getConf().debug) {
+            PriorityQueue<Seed> pqCopy = new PriorityQueue<>(
+                    priorityCorpus.queues[0]);
+            logger.debug("print queue info");
+            while (!pqCopy.isEmpty()) {
+                logger.debug("score = " + pqCopy.poll().score);
+            }
+        }
+        seed.score = score;
+        saveSeed(seed.originalCommandSequence,
+                seed.validationCommandSequence);
+        // logger.debug("valid res = "
+        // + feedbackPacket.validationReadResults);
+        fullStopCorpus.addSeed(
+                new FullStopSeed(seed, feedbackPacket.nodeNum,
+                        new HashMap<>(),
+                        feedbackPacket.validationReadResults));
+        System.out.println("Going to add seed with id: " + seed.testID);
+        priorityCorpus.addSeed(seed, corpusType);
+    }
+
     public synchronized void updateStatus(
             TestPlanFeedbackPacket testPlanFeedbackPacket) {
 
         FeedBack fb = mergeCoverage(testPlanFeedbackPacket.feedBacks);
         boolean addToCorpus = false;
-        if (Config.getConf().useCodeCoverage) {
+        if (Config.getConf().useCodeCoverage
+                && (Config.getConf().codeCoverageChoiceProb > 0)) {
             if (Utilities.hasNewBits(curOriCoverage,
                     fb.originalCodeCoverage)) {
                 addToCorpus = true;
@@ -1079,9 +1163,11 @@ public class FuzzingServer {
             int score = 0;
 
             boolean addToCorpus = false;
+            boolean addToFormatCoverageCorpus = false;
             boolean newOldVersionBranchCoverage = false;
             boolean newNewVersionBranchCoverage = false;
             boolean newFormatCoverage = false;
+            // boolean newVersionDeltaCoverage = false;
 
             // Merge all the feedbacks
             FeedBack fb = mergeCoverage(feedbackPacket.feedBacks);
@@ -1138,42 +1224,28 @@ public class FuzzingServer {
                     logger.info("Null format coverage");
                 }
             }
-            if (Config.getConf().useCodeCoverage) {
+            if (Config.getConf().useCodeCoverage
+                    && (Config.getConf().codeCoverageChoiceProb > 0)) {
                 if (newOldVersionBranchCoverage
                         || newNewVersionBranchCoverage) {
                     addToCorpus = true;
                 }
             }
-            if (Config.getConf().useFormatCoverage) {
+            if (Config.getConf().useFormatCoverage
+                    && (Config.getConf().formatCoverageChoiceProb > 0)) {
                 if (newFormatCoverage) {
-                    addToCorpus = true;
+                    addToFormatCoverageCorpus = true;
                 }
             }
             graph.updateNodeCoverage(feedbackPacket.testPacketID,
                     newOldVersionBranchCoverage, newNewVersionBranchCoverage,
                     newFormatCoverage);
             if (addToCorpus) {
-                Seed seed = testID2Seed
-                        .get(feedbackPacket.testPacketID);
-
-                if (Config.getConf().debug) {
-                    PriorityQueue<Seed> pqCopy = new PriorityQueue<>(
-                            corpus.queue);
-                    logger.debug("print queue info");
-                    while (!pqCopy.isEmpty()) {
-                        logger.debug("score = " + pqCopy.poll().score);
-                    }
-                }
-                seed.score = score;
-                saveSeed(seed.originalCommandSequence,
-                        seed.validationCommandSequence);
-                // logger.debug("valid res = "
-                // + feedbackPacket.validationReadResults);
-                fullStopCorpus.addSeed(
-                        new FullStopSeed(seed, feedbackPacket.nodeNum,
-                                new HashMap<>(),
-                                feedbackPacket.validationReadResults));
-                corpus.addSeed(seed);
+                addSeedToCorpus(corpus, testID2Seed, feedbackPacket, score, 0);
+            }
+            if (addToFormatCoverageCorpus) {
+                addSeedToCorpus(corpus, testID2Seed,
+                        feedbackPacket, score, 1);
             }
 
             if (feedbackPacket.isInconsistent) {
@@ -1378,7 +1450,7 @@ public class FuzzingServer {
                 "============================================================"
                         + "=================================================================");
         System.out.format("|%30s|%30s|%30s|%30s|\n",
-                "queue size : " + corpus.queue.size(),
+                "queue size : " + corpus.queues[0].size(),
                 "round : " + round,
                 "cur testID : " + testID,
                 "total exec : " + finishedTestID);
@@ -1402,8 +1474,10 @@ public class FuzzingServer {
         }
 
         if (Config.getConf().collectFormatCoverage
-                && Config.getConf().useFormatCoverage) {
-            System.out.format("|%30s|\n",
+                && (Config.getConf().useFormatCoverage)
+                && (Config.getConf().formatCoverageChoiceProb > 0)) {
+            System.out.format("|%30s|%30s|\n",
+                    "format coverage queue size : " + corpus.queues[1].size(),
                     "new format num : " + newFormatNum);
         }
 
@@ -1474,6 +1548,22 @@ public class FuzzingServer {
         }
 
         return upgradeOpAndFaults;
+    }
+
+    public int getCorpusType() {
+        // Generate a random number between 0 and 1
+        double randomValue = rand.nextDouble();
+
+        // Find the queue whose cumulative probability is greater than or equal
+        // to the random value
+        for (int i = 0; i < cumulativeProbabilities.length; i++) {
+            if (randomValue <= cumulativeProbabilities[i]) {
+                return i;
+            }
+        }
+
+        // Should not reach here if probabilities are valid
+        throw new IllegalStateException("Invalid probabilities");
     }
 
     public List<Event> interleaveWithOrder(List<Event> events1,

@@ -94,6 +94,7 @@ public class Config {
 
         // ------------FeedBack------------
         public boolean useCodeCoverage = true;
+        public double codeCoverageChoiceProb = 1.0;
         public boolean collUpFeedBack = true;
         public boolean collDownFeedBack = true;
 
@@ -164,6 +165,7 @@ public class Config {
         public boolean collectFormatCoverage = false;
         // whether to use format coverage to guide the test (add to corpus)
         public boolean useFormatCoverage = false;
+        public double formatCoverageChoiceProb = 0.0;
 
         public String baseClassInfoFileName = "serializedFields_alg1.json";
         public String topObjectsFileName = "topObjects.json";
