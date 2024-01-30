@@ -118,6 +118,11 @@ public class FuzzingServer {
 
     TestTrackerGraph graph = new TestTrackerGraph();
 
+    // Calculate cumulative probabilities
+    double[] cumulativeProbabilities = new double[2];
+    double codeCovProbability;
+    double formatCovProbability;
+
     public FuzzingServer() {
         testID2Seed = new HashMap<>();
         testID2TestPlan = new HashMap<>();
@@ -157,6 +162,9 @@ public class FuzzingServer {
 
         startTime = TimeUnit.SECONDS.convert(System.nanoTime(),
                 TimeUnit.NANOSECONDS);
+
+        codeCovProbability = Config.getConf().codeCoverageChoiceProb;
+        formatCovProbability = Config.getConf().formatCoverageChoiceProb;
     }
 
     private void init() {
@@ -190,6 +198,13 @@ public class FuzzingServer {
             logger.error("Not tracking system state");
             e.printStackTrace();
             System.exit(1);
+        }
+
+        double[] probabilities = { codeCovProbability, formatCovProbability };
+        cumulativeProbabilities[0] = probabilities[0];
+        for (int i = 1; i < probabilities.length; i++) {
+            cumulativeProbabilities[i] = cumulativeProbabilities[i - 1]
+                    + probabilities[i];
         }
     }
 
@@ -262,13 +277,9 @@ public class FuzzingServer {
         // Pick one test case from the corpus, fuzz it for mutationEpoch
         // Add the new tests into the stackedTestPackets
         // All packets have been dispatched, now fuzz next seed
-        double codeCovProbability = Config.getConf().codeCoverageChoiceProb;
-        double formatCovProbability = Config.getConf().formatCoverageChoiceProb;
         Seed seed;
         if ((codeCovProbability > 0) && (formatCovProbability > 0)) {
-            double[] probabilities = { codeCovProbability,
-                    formatCovProbability };
-            int corpusType = getCorpusType(probabilities);
+            int corpusType = getCorpusType();
             if (Config.getConf().debug) {
                 logger.debug("[HKLOG] Chosen seed of coverage type: "
                         + (corpusType == 0 ? "branch" : "format"));
@@ -282,7 +293,7 @@ public class FuzzingServer {
                                     + ((corpusType == 0) ? "branch"
                                             : "format"));
                 }
-                for (int i = 0; i < probabilities.length; i++) {
+                for (int i = 0; i < cumulativeProbabilities.length; i++) {
                     if (i != corpusType) {
                         corpus.removeSeed(seed.testID, i);
                         if (Config.getConf().debug) {
@@ -1539,17 +1550,8 @@ public class FuzzingServer {
         return upgradeOpAndFaults;
     }
 
-    public int getCorpusType(double[] probabilities) {
-        // Calculate cumulative probabilities
-        double[] cumulativeProbabilities = new double[probabilities.length];
-        cumulativeProbabilities[0] = probabilities[0];
-        for (int i = 1; i < probabilities.length; i++) {
-            cumulativeProbabilities[i] = cumulativeProbabilities[i - 1]
-                    + probabilities[i];
-        }
-
+    public int getCorpusType() {
         // Generate a random number between 0 and 1
-        // Random random = new Random();
         double randomValue = rand.nextDouble();
 
         // Find the queue whose cumulative probability is greater than or equal
