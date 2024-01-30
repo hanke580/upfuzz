@@ -266,15 +266,10 @@ public class FuzzingClient {
 
     public StackedFeedbackPacket executeStackedTestPacket(
             StackedTestPacket stackedTestPacket) throws InterruptedException {
-        if (Config.getConf().useVersionDelta) {
-            return executeStackedTestPacketRegularVersionDelta(
-                    stackedTestPacket);
+        if (Config.getConf().nyxMode) {
+            return executeStackedTestPacketNyx(stackedTestPacket);
         } else {
-            if (Config.getConf().nyxMode) {
-                return executeStackedTestPacketNyx(stackedTestPacket);
-            } else {
-                return executeStackedTestPacketRegular(stackedTestPacket);
-            }
+            return executeStackedTestPacketRegular(stackedTestPacket);
         }
     }
 
@@ -637,7 +632,7 @@ public class FuzzingClient {
         return stackedFeedbackPacket;
     }
 
-    public StackedFeedbackPacket executeStackedTestPacketRegularVersionDelta(
+    public VersionDeltaFeedbackPacket executeStackedTestPacketRegularVersionDelta(
             StackedTestPacket stackedTestPacket) throws InterruptedException {
         Path configPath = Paths.get(configDirPath.toString(),
                 stackedTestPacket.configFileName);
@@ -717,7 +712,7 @@ public class FuzzingClient {
 
             try {
                 // Wait for termination, or force termination after a timeout
-                if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+                if (!executorService.awaitTermination(3, TimeUnit.SECONDS)) {
                     executorService.shutdownNow();
                 }
             } catch (InterruptedException e) {
@@ -733,8 +728,19 @@ public class FuzzingClient {
         // StackedFeedbackPacket stackedFeedbackPacketDown = downgradeTestThread
         // .getStackedFeedbackPacket();
 
-        System.out.println(stackedFeedbackPacketUp == null);
-        return stackedFeedbackPacketUp;
+        VersionDeltaFeedbackPacket versionDeltaFeedbackPacket = new VersionDeltaFeedbackPacket(
+                stackedTestPacket.configFileName,
+                Utilities.extractTestIDs(stackedTestPacket));
+
+        for (FeedbackPacket fp : stackedFeedbackPacketUp.getFpList())
+            versionDeltaFeedbackPacket.addToFpList(fp, "up");
+
+        for (FeedbackPacket fp : stackedFeedbackPacketDown.getFpList())
+            versionDeltaFeedbackPacket.addToFpList(fp, "down");
+
+        versionDeltaFeedbackPacket.fullSequence = stackedFeedbackPacketUp.fullSequence;
+
+        return versionDeltaFeedbackPacket;
     }
 
     public FullStopFeedbackPacket executeFullStopPacket(

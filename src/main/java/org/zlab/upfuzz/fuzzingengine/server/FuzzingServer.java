@@ -115,13 +115,16 @@ public class FuzzingServer {
 
     ExecutionDataStore curOriCoverage;
     ExecutionDataStore curUpCoverage;
+    ExecutionDataStore curUpCoverageBeforeDowngrade;
+    ExecutionDataStore curOriCoverageAfterDowngrade;
 
     TestTrackerGraph graph = new TestTrackerGraph();
 
     // Calculate cumulative probabilities
-    double[] cumulativeProbabilities = new double[2];
+    double[] cumulativeProbabilities = new double[3];
     double codeCovProbability;
     double formatCovProbability;
+    double versionDeltaProbability;
 
     public FuzzingServer() {
         testID2Seed = new HashMap<>();
@@ -131,6 +134,8 @@ public class FuzzingServer {
         testPlanPackets = new LinkedList<>();
         curOriCoverage = new ExecutionDataStore();
         curUpCoverage = new ExecutionDataStore();
+        curUpCoverageBeforeDowngrade = new ExecutionDataStore();
+        curOriCoverageAfterDowngrade = new ExecutionDataStore();
 
         // format coverage init
         if (Config.getConf().collectFormatCoverage) {
@@ -165,6 +170,7 @@ public class FuzzingServer {
 
         codeCovProbability = Config.getConf().codeCoverageChoiceProb;
         formatCovProbability = Config.getConf().formatCoverageChoiceProb;
+        versionDeltaProbability = Config.getConf().versionDeltaChoiceProb;
     }
 
     private void init() {
@@ -200,7 +206,8 @@ public class FuzzingServer {
             System.exit(1);
         }
 
-        double[] probabilities = { codeCovProbability, formatCovProbability };
+        double[] probabilities = { codeCovProbability, formatCovProbability,
+                versionDeltaProbability };
         cumulativeProbabilities[0] = probabilities[0];
         for (int i = 1; i < probabilities.length; i++) {
             cumulativeProbabilities[i] = cumulativeProbabilities[i - 1]
@@ -278,11 +285,12 @@ public class FuzzingServer {
         // Add the new tests into the stackedTestPackets
         // All packets have been dispatched, now fuzz next seed
         Seed seed;
-        if ((codeCovProbability > 0) && (formatCovProbability > 0)) {
+        if ((codeCovProbability > 0) || (formatCovProbability > 0)
+                || (versionDeltaProbability > 0)) {
             int corpusType = getCorpusType();
             if (Config.getConf().debug) {
                 logger.debug("[HKLOG] Chosen seed of coverage type: "
-                        + (corpusType == 0 ? "branch" : "format"));
+                        + (corpusType == 2 ? "version delta" : "format/code"));
             }
             seed = corpus.getSeed(corpusType);
             if (seed != null) {
@@ -290,8 +298,7 @@ public class FuzzingServer {
                     logger.debug(
                             "[HKLOG] Got seed id " + seed.testID
                                     + " from corpus type: "
-                                    + ((corpusType == 0) ? "branch"
-                                            : "format"));
+                                    + corpusType);
                 }
                 for (int i = 0; i < cumulativeProbabilities.length; i++) {
                     if (i != corpusType) {
@@ -300,14 +307,13 @@ public class FuzzingServer {
                             logger.debug(
                                     "[HKLOG] Removed seed id " + seed.testID
                                             + " from corpus type: "
-                                            + (i == 0 ? "branch" : "format"));
+                                            + i);
                         }
                     }
                 }
             }
         } else {
-            seed = codeCovProbability > 0 ? corpus.getSeed(0)
-                    : corpus.getSeed(1);
+            seed = null;
         }
         round++;
         StackedTestPacket stackedTestPacket;
@@ -1273,6 +1279,243 @@ public class FuzzingServer {
             }
             saveErrorReport(failureDir,
                     stackedFeedbackPacket.errorLogReport, startTestID,
+                    endTestID);
+        }
+
+        // Update the coveredBranches to the newest value
+        Pair<Integer, Integer> curOriCoverageStatus = Utilities
+                .getCoverageStatus(curOriCoverage);
+        originalCoveredBranches = curOriCoverageStatus.left;
+        originalProbeNum = curOriCoverageStatus.right;
+
+        Pair<Integer, Integer> curUpCoverageStatus = Utilities
+                .getCoverageStatus(curUpCoverage);
+        upgradedCoveredBranches = curUpCoverageStatus.left;
+        upgradedProbeNum = curUpCoverageStatus.right;
+
+        Long timeElapsed = TimeUnit.SECONDS.convert(
+                System.nanoTime(), TimeUnit.NANOSECONDS) - startTime;
+        if (timeElapsed - lastTimePoint > Config.getConf().timeInterval ||
+                lastTimePoint == 0) {
+            // Insert a record (time: coverage)
+            originalCoverageAlongTime.add(
+                    new Pair(timeElapsed, originalCoveredBranches));
+            upgradedCoverageAlongTime.add(
+                    new Pair(timeElapsed, upgradedCoveredBranches));
+            lastTimePoint = timeElapsed;
+        }
+        printInfo();
+        System.out.println();
+    }
+
+    public synchronized void updateStatus(
+            VersionDeltaFeedbackPacket versionDeltaFeedbackPacket) {
+
+        if (versionDeltaFeedbackPacket.skippedUpgrade) {
+            // upgrade process is skipped
+            logger.info("upgrade process is skipped");
+        }
+
+        if (versionDeltaFeedbackPacket.skippedDowngrade) {
+            // upgrade process is skipped
+            logger.info("downgrade process is skipped");
+        }
+
+        Path failureDir = null;
+
+        int startTestID = 0;
+        int endTestID = 0;
+        if (versionDeltaFeedbackPacket.getFpList("up").size() > 0) {
+            startTestID = versionDeltaFeedbackPacket.getFpList("up")
+                    .get(0).testPacketID;
+            endTestID = versionDeltaFeedbackPacket.getFpList("up")
+                    .get(versionDeltaFeedbackPacket.getFpList("up").size()
+                            - 1).testPacketID;
+        }
+
+        if (versionDeltaFeedbackPacket.isUpgradeProcessFailed) {
+            failureDir = createFailureDir(
+                    versionDeltaFeedbackPacket.configFileName);
+            saveFullSequence(failureDir,
+                    versionDeltaFeedbackPacket.fullSequence);
+            saveFullStopCrashReport(failureDir,
+                    versionDeltaFeedbackPacket.upgradeFailureReport,
+                    startTestID,
+                    endTestID);
+            if (versionDeltaFeedbackPacket.isDowngradeProcessFailed) {
+                saveFullStopCrashReport(failureDir,
+                        versionDeltaFeedbackPacket.downgradeFailureReport,
+                        startTestID,
+                        endTestID);
+            }
+            finishedTestID++;
+        } else if (versionDeltaFeedbackPacket.isDowngradeProcessFailed) {
+            failureDir = createFailureDir(
+                    versionDeltaFeedbackPacket.configFileName);
+            saveFullSequence(failureDir,
+                    versionDeltaFeedbackPacket.fullSequence);
+            saveFullStopCrashReport(failureDir,
+                    versionDeltaFeedbackPacket.downgradeFailureReport,
+                    startTestID,
+                    endTestID);
+            finishedTestID++;
+        }
+        FuzzingServerHandler.printClientNum();
+
+        List<FeedbackPacket> versionDeltaFeedbackPacketsUp = versionDeltaFeedbackPacket
+                .getFpList("up");
+        List<FeedbackPacket> versionDeltaFeedbackPacketsDown = versionDeltaFeedbackPacket
+                .getFpList("down");
+        int feedbackLength = versionDeltaFeedbackPacketsUp.size();
+        for (int i = 0; i < feedbackLength; i++) {
+            // handle invariant
+            FeedbackPacket versionDeltaFeedbackPacketUp = versionDeltaFeedbackPacketsUp
+                    .get(i);
+            FeedbackPacket versionDeltaFeedbackPacketDown = versionDeltaFeedbackPacketsDown
+                    .get(i);
+            finishedTestID++;
+            int score = 0;
+
+            boolean addToCorpus = false;
+            boolean addToFormatCoverageCorpus = false;
+            boolean addToVersionDeltaCorpus = false;
+            boolean newOldVersionBranchCoverageBeforeUpgrade = false;
+            boolean newNewVersionBranchCoverageAfterUpgrade = false;
+            boolean newNewVersionBranchCoverageBeforeDowngrade = false;
+            boolean newOldVersionBranchCoverageAfterDowngrade = false;
+            boolean newFormatCoverageUpgrade = false;
+            boolean newFormatCoverageDowngrade = false;
+            boolean newVersionDeltaCoverage = false;
+
+            // Merge all the feedbacks
+            FeedBack fbUpgrade = mergeCoverage(
+                    versionDeltaFeedbackPacketUp.feedBacks);
+            FeedBack fbDowngrade = mergeCoverage(
+                    versionDeltaFeedbackPacketDown.feedBacks);
+
+            // priority feature is disabled
+            if (Utilities.hasNewBits(
+                    curOriCoverage,
+                    fbUpgrade.originalCodeCoverage)) {
+                // Write Seed to Disk + Add to Corpus
+                curOriCoverage.merge(
+                        fbUpgrade.originalCodeCoverage);
+                newOldVersionBranchCoverageBeforeUpgrade = true;
+            }
+            if (Utilities.hasNewBits(curUpCoverage,
+                    fbUpgrade.upgradedCodeCoverage)) {
+                curUpCoverage.merge(
+                        fbUpgrade.upgradedCodeCoverage);
+                newNewVersionBranchCoverageAfterUpgrade = true;
+            }
+            if (Utilities.hasNewBits(
+                    curUpCoverageBeforeDowngrade,
+                    fbDowngrade.originalCodeCoverage)) {
+                // Write Seed to Disk + Add to Corpus
+                curUpCoverageBeforeDowngrade.merge(
+                        fbDowngrade.originalCodeCoverage);
+                newNewVersionBranchCoverageBeforeDowngrade = true;
+            }
+            if (Utilities.hasNewBits(curOriCoverageAfterDowngrade,
+                    fbDowngrade.downgradedCodeCoverage)) {
+                curOriCoverageAfterDowngrade.merge(
+                        fbDowngrade.downgradedCodeCoverage);
+                newOldVersionBranchCoverageAfterDowngrade = true;
+            }
+
+            // format coverage
+            if (Config.getConf().collectFormatCoverage) {
+                if (versionDeltaFeedbackPacketUp.formatCoverage != null
+                        || versionDeltaFeedbackPacketDown.formatCoverage != null) {
+                    if (oriObjCoverage.merge(
+                            versionDeltaFeedbackPacketUp.formatCoverage,
+                            versionDeltaFeedbackPacketUp.testPacketID)) {
+                        // learned format is updated
+                        logger.info("New format!");
+                        newFormatNum++;
+                        newFormatCoverageUpgrade = true;
+                    } else if (oriObjCoverage.merge(
+                            versionDeltaFeedbackPacketDown.formatCoverage,
+                            versionDeltaFeedbackPacketDown.testPacketID)) {
+                        // learned format is updated
+                        logger.info("New format!");
+                        newFormatNum++;
+                        newFormatCoverageDowngrade = true;
+                    } else {
+                        logger.info("No new format!");
+                    }
+                } else {
+                    logger.info("Null format coverage");
+                }
+            }
+
+            if (Config.getConf().useCodeCoverage
+                    && (Config.getConf().codeCoverageChoiceProb > 0)) {
+                if (newOldVersionBranchCoverageBeforeUpgrade
+                        || newNewVersionBranchCoverageAfterUpgrade
+                        || newNewVersionBranchCoverageBeforeDowngrade
+                        || newOldVersionBranchCoverageAfterDowngrade) {
+                    addToCorpus = true;
+                }
+            }
+            if (Config.getConf().useFormatCoverage
+                    && (Config.getConf().formatCoverageChoiceProb > 0)) {
+                if (newFormatCoverageUpgrade || newFormatCoverageDowngrade) {
+                    addToFormatCoverageCorpus = true;
+                }
+            }
+            if (Config.getConf().useVersionDelta
+                    && (Config.getConf().versionDeltaChoiceProb > 0)) {
+                newVersionDeltaCoverage = (newOldVersionBranchCoverageBeforeUpgrade
+                        ^ newNewVersionBranchCoverageAfterUpgrade)
+                        | (newNewVersionBranchCoverageBeforeDowngrade
+                                ^ newOldVersionBranchCoverageAfterDowngrade);
+                if (newVersionDeltaCoverage) {
+                    addToVersionDeltaCorpus = true;
+                }
+            }
+            graph.updateNodeCoverage(versionDeltaFeedbackPacketUp.testPacketID,
+                    newOldVersionBranchCoverageBeforeUpgrade,
+                    newNewVersionBranchCoverageAfterUpgrade,
+                    newFormatCoverageUpgrade);
+            if (addToCorpus) {
+                addSeedToCorpus(corpus, testID2Seed,
+                        versionDeltaFeedbackPacketUp, score, 0);
+            }
+            if (addToFormatCoverageCorpus) {
+                addSeedToCorpus(corpus, testID2Seed,
+                        versionDeltaFeedbackPacketUp, score, 1);
+            }
+            if (addToVersionDeltaCorpus) {
+                addSeedToCorpus(corpus, testID2Seed,
+                        versionDeltaFeedbackPacketUp, score, 2);
+            }
+
+            if (versionDeltaFeedbackPacketUp.isInconsistent) {
+                if (failureDir == null) {
+                    failureDir = createFailureDir(
+                            versionDeltaFeedbackPacket.configFileName);
+                    saveFullSequence(failureDir,
+                            versionDeltaFeedbackPacket.fullSequence);
+                }
+                saveInconsistencyReport(failureDir,
+                        versionDeltaFeedbackPacketUp.testPacketID,
+                        versionDeltaFeedbackPacketUp.inconsistencyReport);
+            }
+        }
+        // update testid2Seed, no use anymore
+        for (int testID : versionDeltaFeedbackPacket.testIDs) {
+            testID2Seed.remove(testID);
+        }
+        if (versionDeltaFeedbackPacket.hasERRORLog) {
+            if (failureDir == null) {
+                failureDir = createFailureDir(
+                        versionDeltaFeedbackPacket.configFileName);
+                saveFullSequence(failureDir,
+                        versionDeltaFeedbackPacket.fullSequence);
+            }
+            saveErrorReport(failureDir,
+                    versionDeltaFeedbackPacket.errorLogReport, startTestID,
                     endTestID);
         }
 

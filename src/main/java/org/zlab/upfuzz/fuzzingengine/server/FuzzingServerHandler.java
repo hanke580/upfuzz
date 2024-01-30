@@ -93,6 +93,11 @@ public class FuzzingServerHandler implements Runnable {
             FullStopFeedbackPacket fullStopFeedbackPacket = FullStopFeedbackPacket
                     .read(in);
             fuzzingServer.updateStatus(fullStopFeedbackPacket);
+        } else if (intType == PacketType.VersionDeltaFeedbackPacket.value) {
+            logger.info("read version delta fb packet");
+            VersionDeltaFeedbackPacket versionDeltaFeedbackPacket = VersionDeltaFeedbackPacket
+                    .read(in);
+            fuzzingServer.updateStatus(versionDeltaFeedbackPacket);
         } else if (intType == -1) {
             // do nothing, null packet
             // TODO: We should avoid using that configuration!

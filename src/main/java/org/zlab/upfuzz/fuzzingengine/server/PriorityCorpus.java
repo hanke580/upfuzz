@@ -19,7 +19,7 @@ public class PriorityCorpus {
     // PriorityQueue<Seed> queue = new
     // PriorityQueue<>(Collections.reverseOrder());
     // Queue<Seed> queue = new LinkedList<>();
-    PriorityQueue<Seed>[] queues = new PriorityQueue[2];
+    PriorityQueue<Seed>[] queues = new PriorityQueue[3];
     {
         for (int i = 0; i < queues.length; i++) {
             queues[i] = new PriorityQueue<>(Collections.reverseOrder());
