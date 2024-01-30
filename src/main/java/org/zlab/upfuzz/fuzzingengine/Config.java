@@ -197,6 +197,7 @@ public class Config {
 
         public int formatCoveragePort = 62000;
         public boolean useVersionDelta = false;
+        public double versionDeltaChoiceProb = 0.0;
 
         /**
          * ---------------Version Specific-----------------

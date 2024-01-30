@@ -105,7 +105,9 @@ public abstract class Packet {
                 2), FeedbackPacket(3), TestPlanPacket(
                         4), TestPlanFeedbackPacket(5), MixedTestPacket(
                                 6), MixedFeedbackPacket(7), FullStopPacket(
-                                        8), FullStopFeedbackPacket(9);
+                                        8), FullStopFeedbackPacket(
+                                                9), VersionDeltaFeedbackPacket(
+                                                        10);
 
         public int value;
 

@@ -58,8 +58,13 @@ class FuzzingClientSocket implements Runnable {
                     // Run executor
                     StackedTestPacket stackedTestPacket = StackedTestPacket
                             .read(in);
-                    feedBackPacket = fuzzingClient
-                            .executeStackedTestPacket(stackedTestPacket);
+                    if (!Config.getConf().debug)
+                        feedBackPacket = fuzzingClient
+                                .executeStackedTestPacket(stackedTestPacket);
+                    else
+                        feedBackPacket = fuzzingClient
+                                .executeStackedTestPacketRegularVersionDelta(
+                                        stackedTestPacket);
                     break;
                 }
                 case FullStopPacket: {
