@@ -262,8 +262,8 @@ public class FuzzingServer {
         // Pick one test case from the corpus, fuzz it for mutationEpoch
         // Add the new tests into the stackedTestPackets
         // All packets have been dispatched, now fuzz next seed
-        double codeCovProbability = Config.getConf().useCodeCoverage;
-        double formatCovProbability = Config.getConf().useFormatCoverage;
+        double codeCovProbability = Config.getConf().codeCoverageChoiceProb;
+        double formatCovProbability = Config.getConf().formatCoverageChoiceProb;
         Seed seed;
         if ((codeCovProbability > 0) && (formatCovProbability > 0)) {
             double[] probabilities = { codeCovProbability,
@@ -271,18 +271,25 @@ public class FuzzingServer {
             int corpusType = getCorpusType(probabilities);
             if (Config.getConf().debug) {
                 logger.debug("[HKLOG] Chosen seed of coverage type: "
-                    + (corpusType == 0 ? "branch" : "format"));
+                        + (corpusType == 0 ? "branch" : "format"));
             }
             seed = corpus.getSeed(corpusType);
             if (seed != null) {
+                if (Config.getConf().debug) {
+                    logger.debug(
+                            "[HKLOG] Got seed id " + seed.testID
+                                    + " from corpus type: "
+                                    + ((corpusType == 0) ? "branch"
+                                            : "format"));
+                }
                 for (int i = 0; i < probabilities.length; i++) {
                     if (i != corpusType) {
                         corpus.removeSeed(seed.testID, i);
                         if (Config.getConf().debug) {
                             logger.debug(
-                                "[HKLOG] Removed seed id " + seed.testID
-                                        + " from corpus type: "
-                                        + (i == 0 ? "branch" : "format"));
+                                    "[HKLOG] Removed seed id " + seed.testID
+                                            + " from corpus type: "
+                                            + (i == 0 ? "branch" : "format"));
                         }
                     }
                 }
@@ -940,14 +947,16 @@ public class FuzzingServer {
         }
 
         boolean addToCorpus = false;
-        if ((Config.getConf().useCodeCoverage > 0)
+        if ((Config.getConf().useCodeCoverage
+                && (Config.getConf().codeCoverageChoiceProb > 0))
                 && Utilities.hasNewBits(curOriCoverage,
                         fb.originalCodeCoverage)) {
             addToCorpus = true;
             curOriCoverage.merge(fb.originalCodeCoverage);
         }
 
-        if ((Config.getConf().useCodeCoverage > 0)
+        if ((Config.getConf().useCodeCoverage
+                && (Config.getConf().codeCoverageChoiceProb > 0))
                 && Utilities.hasNewBits(curUpCoverage,
                         fb.upgradedCodeCoverage)) {
             addToCorpus = true;
@@ -1048,7 +1057,8 @@ public class FuzzingServer {
 
         FeedBack fb = mergeCoverage(testPlanFeedbackPacket.feedBacks);
         boolean addToCorpus = false;
-        if (Config.getConf().useCodeCoverage > 0) {
+        if (Config.getConf().useCodeCoverage
+                && (Config.getConf().codeCoverageChoiceProb > 0)) {
             if (Utilities.hasNewBits(curOriCoverage,
                     fb.originalCodeCoverage)) {
                 addToCorpus = true;
@@ -1203,13 +1213,15 @@ public class FuzzingServer {
                     logger.info("Null format coverage");
                 }
             }
-            if (Config.getConf().useCodeCoverage > 0) {
+            if (Config.getConf().useCodeCoverage
+                    && (Config.getConf().codeCoverageChoiceProb > 0)) {
                 if (newOldVersionBranchCoverage
                         || newNewVersionBranchCoverage) {
                     addToCorpus = true;
                 }
             }
-            if (Config.getConf().useFormatCoverage > 0) {
+            if (Config.getConf().useFormatCoverage
+                    && (Config.getConf().formatCoverageChoiceProb > 0)) {
                 if (newFormatCoverage) {
                     addToFormatCoverageCorpus = true;
                 }
@@ -1451,7 +1463,8 @@ public class FuzzingServer {
         }
 
         if (Config.getConf().collectFormatCoverage
-                && (Config.getConf().useFormatCoverage > 0)) {
+                && (Config.getConf().useFormatCoverage)
+                && (Config.getConf().formatCoverageChoiceProb > 0)) {
             System.out.format("|%30s|%30s|\n",
                     "format coverage queue size : " + corpus.queues[1].size(),
                     "new format num : " + newFormatNum);
