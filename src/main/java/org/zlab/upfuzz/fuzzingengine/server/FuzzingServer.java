@@ -1549,8 +1549,8 @@ public class FuzzingServer {
         }
 
         // Generate a random number between 0 and 1
-        Random random = new Random();
-        double randomValue = random.nextDouble();
+        // Random random = new Random();
+        double randomValue = rand.nextDouble();
 
         // Find the queue whose cumulative probability is greater than or equal
         // to the random value
