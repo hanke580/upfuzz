@@ -1,7 +1,7 @@
 package org.zlab.upfuzz.docker;
 
 import org.zlab.dinv.runtimechecker.Runtime;
-import org.zlab.ocov.tracker.ObjectCoverage;
+import org.zlab.ocov.tracker.ObjectGraphCoverage;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.utils.Utilities;
 
@@ -31,7 +31,7 @@ public abstract class Docker extends DockerMeta implements IDocker {
     }
 
     @Override
-    public ObjectCoverage getFormatCoverage() throws Exception {
+    public ObjectGraphCoverage getFormatCoverage() throws Exception {
         // execute check inv command
         Socket socket = new Socket(networkIP,
                 Config.instance.formatCoveragePort);
@@ -41,7 +41,7 @@ public abstract class Docker extends DockerMeta implements IDocker {
         out.println("collect format coverage"); // send a command to the server
 
         logger.debug("collect format coverage");
-        ObjectCoverage response = (ObjectCoverage) in.readObject();
+        ObjectGraphCoverage response = (ObjectGraphCoverage) in.readObject();
 
         logger.debug(
                 "Received object coverage top object size: "

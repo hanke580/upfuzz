@@ -15,7 +15,7 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionDataStore;
-import org.zlab.ocov.tracker.ObjectCoverage;
+import org.zlab.ocov.tracker.ObjectGraphCoverage;
 import org.zlab.ocov.tracker.Runtime;
 import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.CommandSequence;
@@ -97,7 +97,7 @@ public class FuzzingServer {
     public Path configDirPath;
 
     // Format coverage
-    private ObjectCoverage oriObjCoverage;
+    private ObjectGraphCoverage oriObjCoverage;
 
     // System state comparison
     public Set<String> targetSystemStates = new HashSet<>();
@@ -135,7 +135,7 @@ public class FuzzingServer {
         // format coverage init
         if (Config.getConf().collectFormatCoverage) {
             // Runtime.initWriter();
-            oriObjCoverage = new ObjectCoverage(
+            oriObjCoverage = new ObjectGraphCoverage(
                     Paths.get(Config.getConf().formatInfoFolder,
                             Config.getConf().baseClassInfoFileName),
                     Paths.get(Config.getConf().formatInfoFolder,

@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.RandomUtils;
-import org.zlab.ocov.tracker.ObjectCoverage;
+import org.zlab.ocov.tracker.ObjectGraphCoverage;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.LogInfo;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
@@ -232,9 +232,9 @@ public abstract class DockerCluster implements IDockerCluster {
         return ret;
     }
 
-    public ObjectCoverage getFormatCoverage() {
+    public ObjectGraphCoverage getFormatCoverage() {
         assert dockers.length > 0;
-        ObjectCoverage coverageMap = new ObjectCoverage(
+        ObjectGraphCoverage coverageMap = new ObjectGraphCoverage(
                 Paths.get(Config.getConf().formatInfoFolder,
                         Config.getConf().baseClassInfoFileName),
                 Paths.get(Config.getConf().formatInfoFolder,
@@ -242,7 +242,7 @@ public abstract class DockerCluster implements IDockerCluster {
         for (int i = 0; i < dockers.length; i++) {
             // merge
             try {
-                ObjectCoverage formatCoverageMap = dockers[i]
+                ObjectGraphCoverage formatCoverageMap = dockers[i]
                         .getFormatCoverage();
                 coverageMap.merge(formatCoverageMap);
             } catch (Exception e) {

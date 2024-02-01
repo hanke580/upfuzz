@@ -1,6 +1,6 @@
 package org.zlab.upfuzz.docker;
 
-import org.zlab.ocov.tracker.ObjectCoverage;
+import org.zlab.ocov.tracker.ObjectGraphCoverage;
 import org.zlab.upfuzz.fuzzingengine.LogInfo;
 
 import java.nio.file.Path;
@@ -26,7 +26,7 @@ public interface IDocker {
 
     void downgrade() throws Exception;
 
-    ObjectCoverage getFormatCoverage() throws Exception;
+    ObjectGraphCoverage getFormatCoverage() throws Exception;
 
     // remove all system data (data/ in cassandra)
     boolean clear();

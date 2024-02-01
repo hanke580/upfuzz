@@ -3,6 +3,13 @@ package org.zlab.upfuzz.fuzzingengine.packet;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
+import org.jgrapht.graph.DirectedMultigraph;
+import org.zlab.ocov.tracker.graph.GraphDeserializer;
+import org.zlab.ocov.tracker.graph.GraphSerializer;
+import org.zlab.ocov.tracker.graph.label.LabelConstraint;
+import org.zlab.ocov.tracker.graph.label.ValueConstraint;
+import org.zlab.ocov.tracker.inv.Invariant;
+import org.zlab.ocov.tracker.inv.unary.*;
 import org.zlab.ocov.tracker.type.*;
 
 import java.io.DataOutputStream;
@@ -29,7 +36,40 @@ public abstract class Packet {
                 .registerSubtype(ShortType.class, "short")
                 .registerSubtype(StringType.class, "string");
 
-        gson = new GsonBuilder().registerTypeAdapterFactory(typeFactory)
+        RuntimeTypeAdapterFactory<LabelConstraint> typeFactory1 = RuntimeTypeAdapterFactory
+                .of(LabelConstraint.class, "LabelConstraint")
+                .registerSubtype(ValueConstraint.class, "ValueConstraint");
+
+        RuntimeTypeAdapterFactory<Invariant> typeFactory2 = RuntimeTypeAdapterFactory
+                .of(Invariant.class, "Invariant")
+                .registerSubtype(UnaryInvariant.class, "UnaryInvariant");
+        RuntimeTypeAdapterFactory<UnaryInvariant> typeFactory3 = RuntimeTypeAdapterFactory
+                .of(UnaryInvariant.class, "UnaryInvariant")
+                .registerSubtype(IntegerLowerBound.class, "IntegerLowerBound")
+                .registerSubtype(IntegerUpperBound.class, "IntegerUpperBound")
+                .registerSubtype(EmptyStringOnce.class, "EmptyStringOnce")
+                .registerSubtype(TrueOnce.class, "TrueOnce")
+                .registerSubtype(RestOnce.class, "RestOnce")
+                .registerSubtype(FalseOnce.class, "FalseOnce")
+                .registerSubtype(NegativeOneOnce.class, "NegativeOneOnce")
+                .registerSubtype(OneCharStringOnce.class, "OneCharStringOnce")
+                .registerSubtype(NullOnce.class, "NullOnce")
+                .registerSubtype(OneOnce.class, "OneOnce")
+                .registerSubtype(ZeroOnce.class, "ZeroOnce")
+                .registerSubtype(RestStringSizeOnce.class, "RestStringSizeOnce")
+                .registerSubtype(EnumConstant.class, "EnumConstant")
+                .registerSubtype(LongLowerBound.class, "LongLowerBound")
+                .registerSubtype(LongUpperBound.class, "LongUpperBound");
+
+        gson = new GsonBuilder()
+                .registerTypeAdapterFactory(typeFactory)
+                .registerTypeAdapterFactory(typeFactory1)
+                .registerTypeAdapterFactory(typeFactory2)
+                .registerTypeAdapterFactory(typeFactory3)
+                .registerTypeAdapter(DirectedMultigraph.class,
+                        new GraphSerializer())
+                .registerTypeAdapter(DirectedMultigraph.class,
+                        new GraphDeserializer())
                 .create();
     }
 

@@ -8,7 +8,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionDataStore;
-import org.zlab.ocov.tracker.ObjectCoverage;
+import org.zlab.ocov.tracker.ObjectGraphCoverage;
 import org.zlab.upfuzz.*;
 import org.zlab.upfuzz.docker.DockerCluster;
 import org.zlab.upfuzz.docker.DockerMeta;
@@ -103,7 +103,7 @@ public abstract class Executor implements IExecutor {
         }
     }
 
-    public ObjectCoverage getFormatCoverage() {
+    public ObjectGraphCoverage getFormatCoverage() {
         return dockerCluster.getFormatCoverage();
     }
 
