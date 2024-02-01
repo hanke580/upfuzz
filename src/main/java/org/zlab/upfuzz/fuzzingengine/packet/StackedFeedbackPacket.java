@@ -40,6 +40,8 @@ public class StackedFeedbackPacket extends Packet implements Serializable {
 
     public boolean breakNewInv = false;
 
+    private String version;
+
     // public int nodeNum;
     // (1) Failed Upgrade Process: Report all command sequences
     // (2) Result Inconsistency: Report the target seed's inconsistency
@@ -61,6 +63,14 @@ public class StackedFeedbackPacket extends Packet implements Serializable {
 
     public int size() {
         return fpList.size();
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public String getVersion() {
+        return version;
     }
 
     public static StackedFeedbackPacket read(DataInputStream in) {

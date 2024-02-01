@@ -15,6 +15,7 @@ import java.util.concurrent.*;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -34,7 +35,9 @@ import org.zlab.upfuzz.utils.Utilities;
 import org.zlab.upfuzz.nyx.LibnyxInterface;
 
 import static org.zlab.upfuzz.fuzzingengine.server.FuzzingServer.readState;
-import static org.zlab.upfuzz.nyx.MiniClientMain.runTheTests;
+import static org.zlab.upfuzz.nyx.MiniClientMain.runTheTestsBeforeChangingVersion;
+import static org.zlab.upfuzz.nyx.MiniClientMain.changeVersionAndRunTheTests;
+import static org.zlab.upfuzz.nyx.MiniClientMain.clearData;
 import static org.zlab.upfuzz.nyx.MiniClientMain.setTestType;
 
 class RegularStackedTestThread implements Callable<StackedFeedbackPacket> {
@@ -45,15 +48,20 @@ class RegularStackedTestThread implements Callable<StackedFeedbackPacket> {
     private final Executor executor;
     private final int direction;
     private final StackedTestPacket stackedTestPacket;
+    private AtomicInteger decision; // Shared decision variable
+    private BlockingQueue<StackedFeedbackPacket> feedbackPacketQueueBeforeVersionChange;
 
     // If the cluster cannot start up for 3 times, it's serious
     int CLUSTER_START_RETRY = 3; // stop retry for now
 
     public RegularStackedTestThread(Executor executor, int direction,
-            StackedTestPacket stackedTestPacket) {
+            StackedTestPacket stackedTestPacket, AtomicInteger decision,
+            BlockingQueue<StackedFeedbackPacket> feedbackPacketQueueBeforeVersionChange) {
         this.executor = executor;
         this.direction = direction;
         this.stackedTestPacket = stackedTestPacket;
+        this.decision = decision;
+        this.feedbackPacketQueueBeforeVersionChange = feedbackPacketQueueBeforeVersionChange;
     }
 
     public boolean startUpExecutor() {
@@ -122,20 +130,61 @@ class RegularStackedTestThread implements Callable<StackedFeedbackPacket> {
             if (Config.getConf().debug) {
                 logger.info("[Fuzzing Client] Call to run the tests");
             }
-            StackedFeedbackPacket stackedFeedbackPacket = runTheTests(executor,
+            // StackedFeedbackPacket stackedFeedbackPacket =
+            // runTheTests(executor,
+            // stackedTestPacket, direction);
+            StackedFeedbackPacket stackedFeedbackPacketBeforeVersionChange = runTheTestsBeforeChangingVersion(
+                    executor,
                     stackedTestPacket, direction);
-            if (Config.getConf().debug) {
-                logger.info("[Fuzzing Client] completed the testing");
-            }
 
-            if (Config.getConf().debug) {
-                logger.info("[Fuzzing Client] Call to teardown executor");
+            // Send result of running tests before changing version to caller
+            feedbackPacketQueueBeforeVersionChange
+                    .put(stackedFeedbackPacketBeforeVersionChange);
+
+            // Wait for signal to proceed
+            // Wait for decision
+            while (true) {
+                int decisionValue = decision.get();
+                if (decisionValue == 1) {
+                    // Proceed with operation 2
+                    // Peform version change and continue testing
+                    StackedFeedbackPacket stackedFeedbackPacket = changeVersionAndRunTheTests(
+                            executor,
+                            stackedTestPacket, direction,
+                            stackedFeedbackPacketBeforeVersionChange);
+                    if (Config.getConf().debug) {
+                        logger.info("[Fuzzing Client] completed the testing");
+                    }
+
+                    if (Config.getConf().debug) {
+                        logger.info(
+                                "[Fuzzing Client] Call to teardown executor");
+                    }
+                    tearDownExecutor();
+                    if (Config.getConf().debug) {
+                        logger.info("[Fuzzing Client] Executor torn down");
+                    }
+                    return stackedFeedbackPacket;
+                } else if (decisionValue == 2) {
+                    // Terminate thread
+                    clearData();
+                    if (Config.getConf().debug) {
+                        logger.info("[Fuzzing Client] completed the testing");
+                    }
+
+                    if (Config.getConf().debug) {
+                        logger.info(
+                                "[Fuzzing Client] Call to teardown executor");
+                    }
+                    tearDownExecutor();
+                    if (Config.getConf().debug) {
+                        logger.info("[Fuzzing Client] Executor torn down");
+                    }
+                    return stackedFeedbackPacketBeforeVersionChange;
+                }
+                // Wait for a short time before checking again
+                Thread.sleep(10);
             }
-            tearDownExecutor();
-            if (Config.getConf().debug) {
-                logger.info("[Fuzzing Client] Executor torn down");
-            }
-            return stackedFeedbackPacket;
         }
     }
 }

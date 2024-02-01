@@ -54,6 +54,13 @@ public class MiniClientMain {
 
     static int testType;
     static String testExecutionLog = "";
+    static boolean hasNewOriCoverage = false;
+    static boolean hasNewUpCoverage = false;
+    static boolean analyzedOriFeedback = false;
+    static boolean analyzedUpFeedback = false;
+    static Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();
+    static Map<Integer, List<String>> testID2oriResults = new HashMap<>();
+    static Map<Integer, LogInfo> logInfoBeforeUpgrade = null;
 
     public static void setTestType(int type) {
         testType = type;
@@ -376,10 +383,256 @@ public class MiniClientMain {
         stdin.close();
     }
 
+    public static StackedFeedbackPacket runTheTestsBeforeChangingVersion(
+            Executor executor,
+            StackedTestPacket stackedTestPacket, int direction) {
+
+        // if the middle of test has already broken an invariant
+        // we stop executing.
+        int executedTestNum = 0;
+        boolean breakNewInv = false;
+
+        int[] lastBrokenInv = null;
+
+        for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
+            executedTestNum++;
+
+            // if you want to run fixed command sequence, remove the comments
+            // from the following lines
+            // Moved the commented code to Utilities.createExampleCommands();
+            executor.executeCommands(tp.originalCommandSequenceList);
+            testExecutionLog += executor.getTestPlanExecutionLog();
+            FeedBack[] feedBacks = new FeedBack[stackedTestPacket.nodeNum];
+            for (int i = 0; i < stackedTestPacket.nodeNum; i++) {
+                feedBacks[i] = new FeedBack();
+            }
+            ExecutionDataStore[] oriCoverages = (direction == 0) ? executor
+                    .collectCoverageSeparate("original")
+                    : executor
+                            .collectCoverageSeparate("upgraded");
+
+            boolean hasNewOriCoverage = false;
+            if (oriCoverages != null) {
+                for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
+                    feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
+                }
+            }
+            testID2FeedbackPacket.put(
+                    tp.testPacketID,
+                    new FeedbackPacket(tp.systemID, stackedTestPacket.nodeNum,
+                            tp.testPacketID, feedBacks, null));
+
+            // List<String> oriResult =
+            // executor.executeCommands(Arrays.asList(validationCommandsList));
+            List<String> oriResult = executor
+                    .executeCommands(tp.validationCommandSequenceList);
+            testID2oriResults.put(tp.testPacketID, oriResult);
+
+            if (Config.getConf().collectFormatCoverage) {
+                // logger.info("[HKLOG] format coverage checking");
+                testID2FeedbackPacket
+                        .get(tp.testPacketID).formatCoverage = executor
+                                .getFormatCoverage();
+            }
+        }
+
+        StackedFeedbackPacket stackedFeedbackPacket = new StackedFeedbackPacket(
+                stackedTestPacket.configFileName,
+                Utilities.extractTestIDs(stackedTestPacket));
+        stackedFeedbackPacket.fullSequence = FuzzingClient
+                .recordStackedTestPacket(
+                        stackedTestPacket);
+        stackedFeedbackPacket.breakNewInv = breakNewInv;
+
+        // LOG checking1
+        if (Config.getConf().enableLogCheck) {
+            // logger.info("[HKLOG] error log checking");
+            logInfoBeforeUpgrade = executor.grepLogInfo();
+        }
+        if (Config.getConf().enableLogCheck
+                && FuzzingClient.hasERRORLOG(logInfoBeforeUpgrade)) {
+            stackedFeedbackPacket.hasERRORLog = true;
+            stackedFeedbackPacket.errorLogReport = FuzzingClient
+                    .genErrorLogReport(
+                            executor.executorID,
+                            stackedTestPacket.configFileName,
+                            logInfoBeforeUpgrade);
+        }
+
+        for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
+            TestPacket tp = stackedTestPacket.getTestPacketList()
+                    .get(testPacketIdx);
+            FeedbackPacket feedbackPacket = testID2FeedbackPacket
+                    .get(tp.testPacketID);
+            stackedFeedbackPacket.addFeedbackPacket(feedbackPacket);
+        }
+        stackedFeedbackPacket.setVersion(executor.dockerCluster.version);
+        return stackedFeedbackPacket;
+    }
+
+    public static void clearData() {
+        testID2FeedbackPacket = new HashMap<>();
+        testID2oriResults = new HashMap<>();
+        logInfoBeforeUpgrade = null;
+
+    }
+
+    public static StackedFeedbackPacket changeVersionAndRunTheTests(
+            Executor executor,
+            StackedTestPacket stackedTestPacket, int direction,
+            StackedFeedbackPacket stackedFeedbackPacket) {
+
+        Map<Integer, List<String>> testID2upResults = new HashMap<>();
+        Map<Integer, List<String>> testID2downResults = new HashMap<>();
+        boolean upgradeStatus = false;
+        boolean downgradeStatus = false;
+
+        int executedTestNum = stackedTestPacket.getTestPacketList().size();
+        if (direction == 0)
+            upgradeStatus = executor.fullStopUpgrade();
+        else
+            downgradeStatus = executor.downgrade();
+
+        if ((direction == 0) && (!upgradeStatus)) {
+            // upgrade failed
+            String upgradeFailureReport = FuzzingClient.genUpgradeFailureReport(
+                    executor.executorID, stackedTestPacket.configFileName);
+            stackedFeedbackPacket.isUpgradeProcessFailed = true;
+            stackedFeedbackPacket.upgradeFailureReport = upgradeFailureReport;
+        } else if ((direction == 1) && (!downgradeStatus)) {
+            // downgrade failed
+            String downgradeFailureReport = FuzzingClient
+                    .genDowngradeFailureReport(
+                            executor.executorID,
+                            stackedTestPacket.configFileName);
+            stackedFeedbackPacket.isDowngradeProcessFailed = true;
+            stackedFeedbackPacket.downgradeFailureReport = downgradeFailureReport;
+        } else if ((direction == 0) && (upgradeStatus)) {
+            // logger.info("upgrade succeed");
+            stackedFeedbackPacket.isUpgradeProcessFailed = false;
+            for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
+                TestPacket tp = stackedTestPacket.getTestPacketList()
+                        .get(testPacketIdx);
+                List<String> upResult = executor
+                        .executeCommands(tp.validationCommandSequenceList);
+                testID2upResults.put(tp.testPacketID, upResult);
+                if (Config.getConf().collUpFeedBack) {
+                    ExecutionDataStore[] upCoverages = executor
+                            .collectCoverageSeparate("upgraded");
+                    if (upCoverages != null) {
+                        for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
+                            testID2FeedbackPacket.get(
+                                    tp.testPacketID).feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
+                        }
+                    }
+                }
+                Pair<Boolean, String> compareRes = executor
+                        .checkResultConsistency(
+                                testID2oriResults.get(tp.testPacketID),
+                                testID2upResults.get(tp.testPacketID), true);
+                // Update FeedbackPacket
+                FeedbackPacket feedbackPacket = testID2FeedbackPacket
+                        .get(tp.testPacketID);
+                if (!compareRes.left) {
+                    String failureReport = FuzzingClient.genInconsistencyReport(
+                            executor.executorID,
+                            stackedTestPacket.configFileName,
+                            compareRes.right,
+                            FuzzingClient.recordSingleTestPacket(tp));
+                    feedbackPacket.isInconsistent = true;
+                    feedbackPacket.inconsistencyReport = failureReport;
+                }
+                feedbackPacket.validationReadResults = testID2upResults
+                        .get(tp.testPacketID);
+            }
+        } else if ((direction == 1) && (downgradeStatus)) {
+            // logger.info("upgrade succeed");
+            stackedFeedbackPacket.isDowngradeProcessFailed = false;
+            for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
+                TestPacket tp = stackedTestPacket.getTestPacketList()
+                        .get(testPacketIdx);
+                List<String> downResult = executor
+                        .executeCommands(tp.validationCommandSequenceList);
+                testID2downResults.put(tp.testPacketID, downResult);
+                if (Config.getConf().collDownFeedBack) {
+                    ExecutionDataStore[] downCoverages = executor
+                            .collectCoverageSeparate("original");
+                    if (downCoverages != null) {
+                        for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
+                            testID2FeedbackPacket.get(
+                                    tp.testPacketID).feedBacks[nodeIdx].downgradedCodeCoverage = downCoverages[nodeIdx];
+                        }
+                    }
+                }
+                Pair<Boolean, String> compareRes = executor
+                        .checkResultConsistency(
+                                testID2oriResults.get(tp.testPacketID),
+                                testID2downResults.get(tp.testPacketID), true);
+                // Update FeedbackPacket
+                FeedbackPacket feedbackPacket = testID2FeedbackPacket
+                        .get(tp.testPacketID);
+                if (!compareRes.left) {
+                    String failureReport = FuzzingClient.genInconsistencyReport(
+                            executor.executorID,
+                            stackedTestPacket.configFileName,
+                            compareRes.right,
+                            FuzzingClient.recordSingleTestPacket(tp));
+                    feedbackPacket.isInconsistent = true;
+                    feedbackPacket.inconsistencyReport = failureReport;
+                }
+                feedbackPacket.validationReadResults = testID2upResults
+                        .get(tp.testPacketID);
+            }
+        }
+
+        // update stackedFeedbackPacket
+        for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
+            TestPacket tp = stackedTestPacket.getTestPacketList()
+                    .get(testPacketIdx);
+            FeedbackPacket feedbackPacket = testID2FeedbackPacket
+                    .get(tp.testPacketID);
+            stackedFeedbackPacket.addFeedbackPacket(feedbackPacket);
+        }
+
+        // test downgrade
+        if (Config.getConf().testDowngrade) {
+            // logger.info("downgrade cluster");
+            downgradeStatus = executor.downgrade();
+            if (!downgradeStatus) {
+                // downgrade failed
+                stackedFeedbackPacket.isDowngradeProcessFailed = true;
+                stackedFeedbackPacket.downgradeFailureReport = FuzzingClient
+                        .genDowngradeFailureReport(
+                                executor.executorID,
+                                stackedFeedbackPacket.configFileName);
+            }
+        }
+
+        // LOG checking2
+        if (Config.getConf().enableLogCheck) {
+            // logger.info("[HKLOG] error log checking: merge logs");
+            assert logInfoBeforeUpgrade != null;
+            Map<Integer, LogInfo> logInfo = FuzzingClient
+                    .extractErrorLog(executor, logInfoBeforeUpgrade);
+            if (FuzzingClient.hasERRORLOG(logInfo)) {
+                stackedFeedbackPacket.hasERRORLog = true;
+                stackedFeedbackPacket.errorLogReport = FuzzingClient
+                        .genErrorLogReport(
+                                executor.executorID,
+                                stackedTestPacket.configFileName,
+                                logInfo);
+            }
+        }
+        // teardown is teardown in a higher loop
+        testID2FeedbackPacket = new HashMap<>();
+        testID2oriResults = new HashMap<>();
+        return stackedFeedbackPacket;
+    }
+
     public static StackedFeedbackPacket runTheTests(Executor executor,
             StackedTestPacket stackedTestPacket, int direction) {
-        Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();
-        Map<Integer, List<String>> testID2oriResults = new HashMap<>();
+        // Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();
+        // Map<Integer, List<String>> testID2oriResults = new HashMap<>();
         Map<Integer, List<String>> testID2upResults = new HashMap<>();
         Map<Integer, List<String>> testID2downResults = new HashMap<>();
         // if the middle of test has already broken an invariant
@@ -462,6 +715,8 @@ public class MiniClientMain {
                         .get(tp.testPacketID);
                 stackedFeedbackPacket.addFeedbackPacket(feedbackPacket);
             }
+            testID2FeedbackPacket = new HashMap<>();
+            testID2oriResults = new HashMap<>();
             return stackedFeedbackPacket;
         }
 
@@ -603,6 +858,8 @@ public class MiniClientMain {
             }
         }
         // teardown is teardown in a higher loop
+        testID2FeedbackPacket = new HashMap<>();
+        testID2oriResults = new HashMap<>();
         return stackedFeedbackPacket;
     }
 
