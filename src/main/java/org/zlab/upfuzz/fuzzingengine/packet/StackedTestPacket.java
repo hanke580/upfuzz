@@ -13,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.server.Seed;
+import org.jacoco.core.data.ExecutionDataStore;
 
 // This class is for execute multiple tests in one
 // system instance. Like separating 60 tests with
@@ -24,11 +25,17 @@ public class StackedTestPacket extends Packet implements Serializable {
     public int nodeNum;
     public String configFileName;
     private List<TestPacket> tpList;
+    public ExecutionDataStore curOriCoverage;
+    public ExecutionDataStore curUpCoverage;
 
-    public StackedTestPacket(int nodeNum, String configFileName) {
+    public StackedTestPacket(int nodeNum, String configFileName,
+            ExecutionDataStore curOriCoverage,
+            ExecutionDataStore curUpCoverage) {
         this.nodeNum = nodeNum;
         this.configFileName = configFileName;
         this.type = PacketType.StackedTestPacket;
+        this.curOriCoverage = curOriCoverage;
+        this.curUpCoverage = curUpCoverage;
         tpList = new LinkedList<>();
     }
 

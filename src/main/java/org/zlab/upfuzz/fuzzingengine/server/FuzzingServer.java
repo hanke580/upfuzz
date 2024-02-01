@@ -325,7 +325,7 @@ public class FuzzingServer {
             String configFileName = "test" + configIdx;
             // corpus is empty, random generate one test packet and wait
             stackedTestPacket = new StackedTestPacket(Config.getConf().nodeNum,
-                    configFileName);
+                    configFileName, curOriCoverage, curUpCoverage);
             for (int i = 0; i < Config.getConf().STACKED_TESTS_NUM; i++) {
                 seed = Executor.generateSeed(commandPool, stateClass,
                         configIdx, testID);
@@ -370,12 +370,13 @@ public class FuzzingServer {
             }
             String configFileName = "test" + configIdx;
             stackedTestPacket = new StackedTestPacket(Config.getConf().nodeNum,
-                    configFileName);
+                    configFileName, curOriCoverage, curUpCoverage);
             for (int i = 0; i < mutationEpoch; i++) {
                 if (i != 0 && i % Config.getConf().STACKED_TESTS_NUM == 0) {
                     stackedTestPackets.add(stackedTestPacket);
                     stackedTestPacket = new StackedTestPacket(
-                            Config.getConf().nodeNum, configFileName);
+                            Config.getConf().nodeNum, configFileName,
+                            curOriCoverage, curUpCoverage);
                 }
                 Seed mutateSeed = SerializationUtils.clone(seed);
                 if (mutateSeed.mutate(commandPool, stateClass)) {
@@ -411,7 +412,7 @@ public class FuzzingServer {
                     configFileName = "test" + configIdx;
                     stackedTestPacket = new StackedTestPacket(
                             Config.getConf().nodeNum,
-                            configFileName);
+                            configFileName, curOriCoverage, curUpCoverage);
                     // put the seed into it
                     Seed mutateSeed = SerializationUtils.clone(seed);
                     mutateSeed.configIdx = configIdx;

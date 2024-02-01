@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
@@ -44,7 +45,7 @@ public class FuzzingClient {
     public Path configDirPathUp;
     public Path configDirPathDown;
     private LibnyxInterface libnyx = null;
-
+    private ExecutorService executorService = Executors.newFixedThreadPool(2);
     // If the cluster cannot start up for 3 times, it's serious
     int CLUSTER_START_RETRY = 3; // stop retry for now
 
@@ -632,6 +633,20 @@ public class FuzzingClient {
         return stackedFeedbackPacket;
     }
 
+    public FeedBack mergeCoverage(FeedBack[] feedBacks) {
+        FeedBack fb = new FeedBack();
+        if (feedBacks == null) {
+            return fb;
+        }
+        for (FeedBack feedBack : feedBacks) {
+            if (feedBack.originalCodeCoverage != null)
+                fb.originalCodeCoverage.merge(feedBack.originalCodeCoverage);
+            if (feedBack.upgradedCodeCoverage != null)
+                fb.upgradedCodeCoverage.merge(feedBack.upgradedCodeCoverage);
+        }
+        return fb;
+    }
+
     public VersionDeltaFeedbackPacket executeStackedTestPacketRegularVersionDelta(
             StackedTestPacket stackedTestPacket) throws InterruptedException {
         Path configPath = Paths.get(configDirPath.toString(),
@@ -654,40 +669,79 @@ public class FuzzingClient {
         Executor[] executors = initExecutorVersionDelta(
                 stackedTestPacket.nodeNum, null, configPath);
 
-        // RegularStackedTestThread upgradeTestThread = new
-        // RegularStackedTestThread(
-        // executors[0], 0, stackedTestPacket);
-        // RegularStackedTestThread downgradeTestThread = new
-        // RegularStackedTestThread(
-        // executors[1], 1, stackedTestPacket);
-
-        // Thread threadUpgradeTest = new Thread(upgradeTestThread);
-        // Thread threadDowngradeTest = new Thread(downgradeTestThread);
-
-        // // Start the threads
-        // threadUpgradeTest.start();
-        // threadDowngradeTest.start();
-
-        // // Wait for threads to finish
-        // try {
-        // threadUpgradeTest.join();
-        // threadDowngradeTest.join();
-        // } catch (InterruptedException e) {
-        // // Handle InterruptedException (e.g., log or handle accordingly)
-        // e.printStackTrace();
-        // }
-
-        ExecutorService executorService = Executors.newFixedThreadPool(2);
+        BlockingQueue<StackedFeedbackPacket> feedbackPacketQueueBeforeVersionChange = new LinkedBlockingQueue<>();
+        AtomicInteger decisionForVersionChange = new AtomicInteger(0); // 0:
+                                                                       // undecided,
+                                                                       // 1:
+                                                                       // continue,
+                                                                       // 2:
+                                                                       // terminate
 
         // Submitting two Callable tasks
         Future<StackedFeedbackPacket> futureStackedFeedbackPacketUp = executorService
                 .submit(new RegularStackedTestThread(executors[0], 0,
-                        stackedTestPacket));
+                        stackedTestPacket, decisionForVersionChange,
+                        feedbackPacketQueueBeforeVersionChange));
         Future<StackedFeedbackPacket> futureStackedFeedbackPacketDown = executorService
                 .submit(new RegularStackedTestThread(executors[1], 1,
-                        stackedTestPacket));
+                        stackedTestPacket, decisionForVersionChange,
+                        feedbackPacketQueueBeforeVersionChange));
 
-        // Continue with other tasks while threads are running independently
+        // Retrieve results for operation 1
+        StackedFeedbackPacket feedbackPackets1BeforeVersionChange = feedbackPacketQueueBeforeVersionChange
+                .take();
+        StackedFeedbackPacket feedbackPackets2BeforeVersionChange = feedbackPacketQueueBeforeVersionChange
+                .take();
+
+        // Process results for operation 1
+        List<FeedbackPacket> fpListBeforeUpgrade = (feedbackPackets1BeforeVersionChange
+                .equals(Config.getConf().originalVersion))
+                        ? feedbackPackets1BeforeVersionChange.getFpList()
+                        : feedbackPackets2BeforeVersionChange.getFpList();
+        List<FeedbackPacket> fpListBeforeDowngrade = (feedbackPackets1BeforeVersionChange
+                .equals(Config.getConf().originalVersion))
+                        ? feedbackPackets2BeforeVersionChange.getFpList()
+                        : feedbackPackets1BeforeVersionChange.getFpList();
+
+        int feedbackLength = fpListBeforeUpgrade.size();
+        boolean inducedNewVersionDelta = false;
+
+        for (int i = 0; i < feedbackLength; i++) {
+            boolean newOldVersionBranchCoverage = false;
+            boolean newNewVersionBranchCoverage = false;
+
+            FeedbackPacket feedbackPacketOri = fpListBeforeUpgrade.get(i);
+            FeedbackPacket feedbackPacketUp = fpListBeforeDowngrade.get(i);
+
+            // Merge all the feedbacks
+            FeedBack fbOri = mergeCoverage(feedbackPacketOri.feedBacks);
+            FeedBack fbUp = mergeCoverage(feedbackPacketUp.feedBacks);
+
+            // priority feature is disabled
+            if (Utilities.hasNewBits(
+                    stackedTestPacket.curOriCoverage,
+                    fbOri.originalCodeCoverage)) {
+                newOldVersionBranchCoverage = true;
+            }
+            if (Utilities.hasNewBits(stackedTestPacket.curUpCoverage,
+                    fbUp.originalCodeCoverage)) {
+                newNewVersionBranchCoverage = true;
+            }
+            inducedNewVersionDelta = newOldVersionBranchCoverage
+                    ^ newNewVersionBranchCoverage;
+            if (inducedNewVersionDelta)
+                break;
+        }
+
+        System.out.println(
+                "New version delta induced: " + inducedNewVersionDelta);
+
+        // Signal threads to proceed with operation 2
+        if (inducedNewVersionDelta) {
+            decisionForVersionChange.set(1);
+        } else {
+            decisionForVersionChange.set(2);
+        }
 
         // Retrieve and check the result of thread 1
         StackedFeedbackPacket stackedFeedbackPacketUp = null;
@@ -706,27 +760,22 @@ public class FuzzingClient {
             }
         } catch (InterruptedException | ExecutionException | IOException e) {
             e.printStackTrace();
-        } finally {
-            // Shutdown the executor service
-            executorService.shutdown();
-
-            try {
-                // Wait for termination, or force termination after a timeout
-                if (!executorService.awaitTermination(3, TimeUnit.SECONDS)) {
-                    executorService.shutdownNow();
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-                // (Re-)Cancel if current thread also interrupted
-                executorService.shutdownNow();
-            }
         }
+        // finally {
+        // // Shutdown the executor service
+        // executorService.shutdown();
 
-        // Retrieve results from the shared map
-        // StackedFeedbackPacket stackedFeedbackPacketUp = upgradeTestThread
-        // .getStackedFeedbackPacket();
-        // StackedFeedbackPacket stackedFeedbackPacketDown = downgradeTestThread
-        // .getStackedFeedbackPacket();
+        // try {
+        // // Wait for termination, or force termination after a timeout
+        // if (!executorService.awaitTermination(3, TimeUnit.SECONDS)) {
+        // executorService.shutdownNow();
+        // }
+        // } catch (InterruptedException e) {
+        // e.printStackTrace();
+        // // (Re-)Cancel if current thread also interrupted
+        // executorService.shutdownNow();
+        // }
+        // }
 
         VersionDeltaFeedbackPacket versionDeltaFeedbackPacket = new VersionDeltaFeedbackPacket(
                 stackedTestPacket.configFileName,
@@ -739,7 +788,7 @@ public class FuzzingClient {
             versionDeltaFeedbackPacket.addToFpList(fp, "down");
 
         versionDeltaFeedbackPacket.fullSequence = stackedFeedbackPacketUp.fullSequence;
-
+        decisionForVersionChange.set(0);
         return versionDeltaFeedbackPacket;
     }
 
