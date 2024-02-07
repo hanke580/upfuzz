@@ -14,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.server.Seed;
 import org.jacoco.core.data.ExecutionDataStore;
+import org.zlab.ocov.tracker.ObjectCoverage;
 
 // This class is for execute multiple tests in one
 // system instance. Like separating 60 tests with
@@ -27,16 +28,46 @@ public class StackedTestPacket extends Packet implements Serializable {
     private List<TestPacket> tpList;
     public ExecutionDataStore curOriCoverage;
     public ExecutionDataStore curUpCoverage;
+    public ObjectCoverage curOriObjCoverage;
+    public ObjectCoverage curUpObjCoverage;
 
-    public StackedTestPacket(int nodeNum, String configFileName,
-            ExecutionDataStore curOriCoverage,
-            ExecutionDataStore curUpCoverage) {
+    public StackedTestPacket(int nodeNum, String configFileName) {
         this.nodeNum = nodeNum;
         this.configFileName = configFileName;
         this.type = PacketType.StackedTestPacket;
-        this.curOriCoverage = curOriCoverage;
-        this.curUpCoverage = curUpCoverage;
         tpList = new LinkedList<>();
+    }
+
+    public void setCurOriCoverage(ExecutionDataStore curOriCoverage) {
+        this.curOriCoverage = curOriCoverage;
+    }
+
+    public void setCurUpCoverage(ExecutionDataStore curUpCoverage) {
+        this.curUpCoverage = curUpCoverage;
+    }
+
+    public void setCurOriObjCoverage(ObjectCoverage curOriObjCoverage) {
+        this.curOriObjCoverage = curOriObjCoverage;
+    }
+
+    public void setCurUpObjCoverage(ObjectCoverage curUpObjCoverage) {
+        this.curUpObjCoverage = curUpObjCoverage;
+    }
+
+    public ExecutionDataStore getCurOriCoverage() {
+        return curOriCoverage;
+    }
+
+    public ExecutionDataStore getCurUpCoverage() {
+        return curUpCoverage;
+    }
+
+    public ObjectCoverage getCurOriObjCoverage() {
+        return curOriObjCoverage;
+    }
+
+    public ObjectCoverage getCurUpObjCoverage() {
+        return curUpObjCoverage;
     }
 
     public void addTestPacket(Seed seed, int testID) {
