@@ -57,6 +57,10 @@ public class StackedFeedbackPacket extends Packet implements Serializable {
         fpList.add(fp);
     }
 
+    public void updateFeedbackPacket(int i, FeedbackPacket fp) {
+        fpList.set(i, fp);
+    }
+
     public List<FeedbackPacket> getFpList() {
         return fpList;
     }

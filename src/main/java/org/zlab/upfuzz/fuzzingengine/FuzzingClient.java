@@ -36,6 +36,8 @@ import org.zlab.upfuzz.nyx.LibnyxInterface;
 import static org.zlab.upfuzz.fuzzingengine.server.FuzzingServer.readState;
 import static org.zlab.upfuzz.nyx.MiniClientMain.runTheTests;
 import static org.zlab.upfuzz.nyx.MiniClientMain.setTestType;
+import org.zlab.ocov.tracker.ObjectCoverage;
+import static org.zlab.upfuzz.nyx.MiniClientMain.clearData;
 
 public class FuzzingClient {
     static Logger logger = LogManager.getLogger(FuzzingClient.class);
@@ -693,6 +695,9 @@ public class FuzzingClient {
         StackedFeedbackPacket feedbackPackets2BeforeVersionChange = feedbackPacketQueueBeforeVersionChange
                 .take();
 
+        System.out.println(feedbackPackets1BeforeVersionChange);
+        System.out.println(feedbackPackets2BeforeVersionChange);
+
         // Process results for operation 1
         List<FeedbackPacket> fpListBeforeUpgrade = (feedbackPackets1BeforeVersionChange
                 .equals(Config.getConf().originalVersion))
@@ -706,9 +711,14 @@ public class FuzzingClient {
         int feedbackLength = fpListBeforeUpgrade.size();
         boolean inducedNewVersionDelta = false;
 
+        ObjectCoverage curOriObjCoverage = stackedTestPacket.curOriObjCoverage;
+        ObjectCoverage curUpObjCoverage = stackedTestPacket.curUpObjCoverage;
+
         for (int i = 0; i < feedbackLength; i++) {
             boolean newOldVersionBranchCoverage = false;
             boolean newNewVersionBranchCoverage = false;
+            boolean newOldVersionFormatCoverage = false;
+            boolean newNewVersionFormatCoverage = false;
 
             FeedbackPacket feedbackPacketOri = fpListBeforeUpgrade.get(i);
             FeedbackPacket feedbackPacketUp = fpListBeforeDowngrade.get(i);
@@ -717,6 +727,36 @@ public class FuzzingClient {
             FeedBack fbOri = mergeCoverage(feedbackPacketOri.feedBacks);
             FeedBack fbUp = mergeCoverage(feedbackPacketUp.feedBacks);
 
+            if (Config.getConf().collectFormatCoverage) {
+                if (feedbackPacketOri.formatCoverage != null) {
+                    if (curOriObjCoverage.merge(
+                            feedbackPacketOri.formatCoverage,
+                            feedbackPacketOri.testPacketID)) {
+                        // learned format is updated
+                        logger.info("New format!");
+                        // newFormatNum++;
+                        newOldVersionFormatCoverage = true;
+                    } else {
+                        logger.info("No new format in old version!");
+                    }
+                } else {
+                    logger.info("Null format coverage");
+                }
+
+                if (feedbackPacketUp.formatCoverage != null) {
+                    if (curUpObjCoverage.merge(feedbackPacketUp.formatCoverage,
+                            feedbackPacketOri.testPacketID)) {
+                        // learned format is updated
+                        logger.info("New format!");
+                        // newFormatNum++;
+                        newNewVersionFormatCoverage = true;
+                    } else {
+                        logger.info("No new format!");
+                    }
+                } else {
+                    logger.info("Null format coverage");
+                }
+            }
             // priority feature is disabled
             if (Utilities.hasNewBits(
                     stackedTestPacket.curOriCoverage,
@@ -727,10 +767,14 @@ public class FuzzingClient {
                     fbUp.originalCodeCoverage)) {
                 newNewVersionBranchCoverage = true;
             }
-            inducedNewVersionDelta = newOldVersionBranchCoverage
-                    ^ newNewVersionBranchCoverage;
-            if (inducedNewVersionDelta)
-                break;
+
+            inducedNewVersionDelta = (newOldVersionBranchCoverage
+                    | newNewVersionBranchCoverage)
+                    | (newOldVersionFormatCoverage
+                            | newNewVersionFormatCoverage);
+            if (inducedNewVersionDelta) {
+                feedbackPacketOri.inducedNewVersionDeltaBeforeVersionChange = true;
+            }
         }
 
         System.out.println(
@@ -753,12 +797,10 @@ public class FuzzingClient {
                     .get();
 
             if (Config.getConf().debug) {
-                logger.info("Result from Thread 1: "
-                        + stackedFeedbackPacketUp.getGsonStr());
-                logger.info("Result from Thread 2: "
-                        + stackedFeedbackPacketDown.getGsonStr());
+                logger.info("Result from Thread 1: ");
+                logger.info("Result from Thread 2: ");
             }
-        } catch (InterruptedException | ExecutionException | IOException e) {
+        } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
         // finally {
@@ -781,6 +823,8 @@ public class FuzzingClient {
                 stackedTestPacket.configFileName,
                 Utilities.extractTestIDs(stackedTestPacket));
 
+        System.out.println("Stacked Feedback Packet list size: "
+                + stackedFeedbackPacketUp.getFpList().size());
         for (FeedbackPacket fp : stackedFeedbackPacketUp.getFpList())
             versionDeltaFeedbackPacket.addToFpList(fp, "up");
 
@@ -788,7 +832,12 @@ public class FuzzingClient {
             versionDeltaFeedbackPacket.addToFpList(fp, "down");
 
         versionDeltaFeedbackPacket.fullSequence = stackedFeedbackPacketUp.fullSequence;
+        if (!inducedNewVersionDelta) {
+            versionDeltaFeedbackPacket.skippedUpgrade = true;
+            versionDeltaFeedbackPacket.skippedDowngrade = true;
+        }
         decisionForVersionChange.set(0);
+        clearData();
         return versionDeltaFeedbackPacket;
     }
 

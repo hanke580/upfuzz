@@ -393,6 +393,7 @@ public class MiniClientMain {
         boolean breakNewInv = false;
 
         int[] lastBrokenInv = null;
+        System.out.println("Invoked with direction: " + direction);
 
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             executedTestNum++;
@@ -421,6 +422,12 @@ public class MiniClientMain {
                     tp.testPacketID,
                     new FeedbackPacket(tp.systemID, stackedTestPacket.nodeNum,
                             tp.testPacketID, feedBacks, null));
+            if (direction == 1) {
+                for (FeedBack feedBack : testID2FeedbackPacket
+                        .get(tp.testPacketID).feedBacks) {
+                    System.out.println(feedBack);
+                }
+            }
 
             // List<String> oriResult =
             // executor.executeCommands(Arrays.asList(validationCommandsList));
@@ -471,10 +478,10 @@ public class MiniClientMain {
     }
 
     public static void clearData() {
+        System.out.println("Invoked clear data");
         testID2FeedbackPacket = new HashMap<>();
         testID2oriResults = new HashMap<>();
         logInfoBeforeUpgrade = null;
-
     }
 
     public static StackedFeedbackPacket changeVersionAndRunTheTests(
@@ -513,6 +520,8 @@ public class MiniClientMain {
             for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
                 TestPacket tp = stackedTestPacket.getTestPacketList()
                         .get(testPacketIdx);
+                System.out.println(testID2FeedbackPacket.get(tp.testPacketID));
+
                 List<String> upResult = executor
                         .executeCommands(tp.validationCommandSequenceList);
                 testID2upResults.put(tp.testPacketID, upResult);
@@ -559,6 +568,8 @@ public class MiniClientMain {
                             .collectCoverageSeparate("original");
                     if (downCoverages != null) {
                         for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
+                            System.out.println(
+                                    testID2FeedbackPacket.get(tp.testPacketID));
                             testID2FeedbackPacket.get(
                                     tp.testPacketID).feedBacks[nodeIdx].downgradedCodeCoverage = downCoverages[nodeIdx];
                         }
@@ -591,7 +602,8 @@ public class MiniClientMain {
                     .get(testPacketIdx);
             FeedbackPacket feedbackPacket = testID2FeedbackPacket
                     .get(tp.testPacketID);
-            stackedFeedbackPacket.addFeedbackPacket(feedbackPacket);
+            stackedFeedbackPacket.updateFeedbackPacket(testPacketIdx,
+                    feedbackPacket);
         }
 
         // test downgrade
@@ -624,8 +636,8 @@ public class MiniClientMain {
             }
         }
         // teardown is teardown in a higher loop
-        testID2FeedbackPacket = new HashMap<>();
-        testID2oriResults = new HashMap<>();
+        // testID2FeedbackPacket = new HashMap<>();
+        // testID2oriResults = new HashMap<>();
         return stackedFeedbackPacket;
     }
 

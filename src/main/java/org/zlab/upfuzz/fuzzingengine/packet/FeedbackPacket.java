@@ -36,6 +36,9 @@ public class FeedbackPacket extends Packet {
     // format coverage
     public ObjectCoverage formatCoverage;
 
+    // has this test packet induced new version delta?
+    public boolean inducedNewVersionDeltaBeforeVersionChange = false;
+
     public FeedbackPacket(String systemID, int nodeNum, int testPacketID,
             FeedBack[] feedBacks, List<String> validationReadResults) {
         this.type = PacketType.FeedbackPacket;

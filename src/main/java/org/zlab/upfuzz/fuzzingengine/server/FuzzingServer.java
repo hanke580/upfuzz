@@ -98,6 +98,7 @@ public class FuzzingServer {
 
     // Format coverage
     private ObjectCoverage oriObjCoverage;
+    private ObjectCoverage upObjCoverage;
 
     // System state comparison
     public Set<String> targetSystemStates = new HashSet<>();
@@ -325,7 +326,11 @@ public class FuzzingServer {
             String configFileName = "test" + configIdx;
             // corpus is empty, random generate one test packet and wait
             stackedTestPacket = new StackedTestPacket(Config.getConf().nodeNum,
-                    configFileName, curOriCoverage, curUpCoverage);
+                    configFileName);
+            stackedTestPacket.setCurOriCoverage(curOriCoverage);
+            stackedTestPacket.setCurUpCoverage(curUpCoverage);
+            stackedTestPacket.setCurOriObjCoverage(oriObjCoverage);
+            stackedTestPacket.setCurUpObjCoverage(upObjCoverage);
             for (int i = 0; i < Config.getConf().STACKED_TESTS_NUM; i++) {
                 seed = Executor.generateSeed(commandPool, stateClass,
                         configIdx, testID);
@@ -370,13 +375,20 @@ public class FuzzingServer {
             }
             String configFileName = "test" + configIdx;
             stackedTestPacket = new StackedTestPacket(Config.getConf().nodeNum,
-                    configFileName, curOriCoverage, curUpCoverage);
+                    configFileName);
+            stackedTestPacket.setCurOriCoverage(curOriCoverage);
+            stackedTestPacket.setCurUpCoverage(curUpCoverage);
+            stackedTestPacket.setCurOriObjCoverage(oriObjCoverage);
+            stackedTestPacket.setCurUpObjCoverage(upObjCoverage);
             for (int i = 0; i < mutationEpoch; i++) {
                 if (i != 0 && i % Config.getConf().STACKED_TESTS_NUM == 0) {
                     stackedTestPackets.add(stackedTestPacket);
                     stackedTestPacket = new StackedTestPacket(
-                            Config.getConf().nodeNum, configFileName,
-                            curOriCoverage, curUpCoverage);
+                            Config.getConf().nodeNum, configFileName);
+                    stackedTestPacket.setCurOriCoverage(curOriCoverage);
+                    stackedTestPacket.setCurUpCoverage(curUpCoverage);
+                    stackedTestPacket.setCurOriObjCoverage(oriObjCoverage);
+                    stackedTestPacket.setCurUpObjCoverage(upObjCoverage);
                 }
                 Seed mutateSeed = SerializationUtils.clone(seed);
                 if (mutateSeed.mutate(commandPool, stateClass)) {
@@ -412,7 +424,11 @@ public class FuzzingServer {
                     configFileName = "test" + configIdx;
                     stackedTestPacket = new StackedTestPacket(
                             Config.getConf().nodeNum,
-                            configFileName, curOriCoverage, curUpCoverage);
+                            configFileName);
+                    stackedTestPacket.setCurOriCoverage(curOriCoverage);
+                    stackedTestPacket.setCurUpCoverage(curUpCoverage);
+                    stackedTestPacket.setCurOriObjCoverage(oriObjCoverage);
+                    stackedTestPacket.setCurUpObjCoverage(upObjCoverage);
                     // put the seed into it
                     Seed mutateSeed = SerializationUtils.clone(seed);
                     mutateSeed.configIdx = configIdx;
@@ -1368,6 +1384,7 @@ public class FuzzingServer {
         List<FeedbackPacket> versionDeltaFeedbackPacketsDown = versionDeltaFeedbackPacket
                 .getFpList("down");
         int feedbackLength = versionDeltaFeedbackPacketsUp.size();
+        System.out.println("feedback length: " + feedbackLength);
         for (int i = 0; i < feedbackLength; i++) {
             // handle invariant
             FeedbackPacket versionDeltaFeedbackPacketUp = versionDeltaFeedbackPacketsUp
@@ -1435,7 +1452,7 @@ public class FuzzingServer {
                         logger.info("New format!");
                         newFormatNum++;
                         newFormatCoverageUpgrade = true;
-                    } else if (oriObjCoverage.merge(
+                    } else if (upObjCoverage.merge(
                             versionDeltaFeedbackPacketDown.formatCoverage,
                             versionDeltaFeedbackPacketDown.testPacketID)) {
                         // learned format is updated
@@ -1466,18 +1483,13 @@ public class FuzzingServer {
                 }
             }
             if (Config.getConf().useVersionDelta
-                    && (Config.getConf().versionDeltaChoiceProb > 0)) {
-                newVersionDeltaCoverage = (newOldVersionBranchCoverageBeforeUpgrade
-                        ^ newNewVersionBranchCoverageAfterUpgrade)
-                        | (newNewVersionBranchCoverageBeforeDowngrade
-                                ^ newOldVersionBranchCoverageAfterDowngrade);
-                if (newVersionDeltaCoverage) {
-                    addToVersionDeltaCorpus = true;
-                }
+                    && (versionDeltaFeedbackPacketUp.inducedNewVersionDeltaBeforeVersionChange)) {
+                addToVersionDeltaCorpus = true;
             }
+            System.out.println(versionDeltaFeedbackPacketUp.testPacketID);
             graph.updateNodeCoverage(versionDeltaFeedbackPacketUp.testPacketID,
                     newOldVersionBranchCoverageBeforeUpgrade,
-                    newNewVersionBranchCoverageAfterUpgrade,
+                    newNewVersionBranchCoverageBeforeDowngrade,
                     newFormatCoverageUpgrade);
             if (addToCorpus) {
                 addSeedToCorpus(corpus, testID2Seed,
