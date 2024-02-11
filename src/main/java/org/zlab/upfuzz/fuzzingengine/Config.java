@@ -61,6 +61,9 @@ public class Config {
         public String nyxFuzzSH = null;
 
         // ------------Input Generation------------
+        // use the same command sequence for debug
+        public boolean useFixedCommand = false;
+
         // Sequence Generation
         public int MIN_CMD_SEQ_LEN = 15;
         public int MAX_CMD_SEQ_LEN = 30;

@@ -55,6 +55,10 @@ public class FuzzingServer {
     static Logger logger = LogManager.getLogger(FuzzingServer.class);
     static Random rand = new Random();
 
+    // Debug
+    public List<String> fixedWriteCommands;
+    public List<String> fixedValidationCommands;
+
     // Target system
     public CommandPool commandPool;
     public Executor executor;
@@ -220,6 +224,23 @@ public class FuzzingServer {
                 fuzzOne();
             assert !stackedTestPackets.isEmpty();
             StackedTestPacket stackedTestPacket = stackedTestPackets.poll();
+
+            // Debug: use the fixed command
+            if (Config.getConf().useFixedCommand) {
+                if (fixedWriteCommands == null
+                        || fixedValidationCommands == null) {
+                    Path commandPath = Paths.get(System.getProperty("user.dir"),
+                            "examplecase");
+                    fixedWriteCommands = readCommands(
+                            commandPath.resolve("commands.txt"));
+                    fixedValidationCommands = readCommands(
+                            commandPath.resolve("validcommands.txt"));
+                }
+                for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
+                    tp.originalCommandSequenceList = fixedWriteCommands;
+                    tp.validationCommandSequenceList = fixedValidationCommands;
+                }
+            }
             return stackedTestPacket;
         } else if (Config.getConf().testingMode == 1) {
             // always execute one test case

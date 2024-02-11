@@ -4,6 +4,7 @@
   "system" : "cassandra",
   "serverPort" : "6399",
   "clientPort" : "6400",
+  "useFixedCommand" : false,
   "STACKED_TESTS_NUM" : "1",
   "nodeNum": 1,
   "faultMaxNum": 2,
