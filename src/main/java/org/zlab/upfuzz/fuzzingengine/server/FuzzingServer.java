@@ -138,14 +138,18 @@ public class FuzzingServer {
 
         // format coverage init
         if (Config.getConf().collectFormatCoverage) {
-            // Runtime.initWriter();
+            // FIXME: add isSerialized path
             oriObjCoverage = new ObjectGraphCoverage(
                     Paths.get(Config.getConf().formatInfoFolder,
                             Config.getConf().baseClassInfoFileName),
                     Paths.get(Config.getConf().formatInfoFolder,
                             Config.getConf().topObjectsFileName),
                     Paths.get(Config.getConf().formatInfoFolder,
-                            Config.getConf().comparableClassesFileName));
+                            Config.getConf().comparableClassesFileName),
+                    null,
+                    null,
+                    Paths.get(Config.getConf().formatInfoFolder,
+                            Config.getConf().branch2CollectionFileName));
             Runtime.initWriter();
         }
 
