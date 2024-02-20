@@ -1,44 +1,16 @@
 package org.zlab.upfuzz.fuzzingengine;
 
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
 import java.util.concurrent.*;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jacoco.core.data.ExecutionDataStore;
-import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.fuzzingengine.packet.*;
-import org.zlab.upfuzz.fuzzingengine.packet.Packet.PacketType;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
-import org.zlab.upfuzz.fuzzingengine.configgen.ConfigGen;
-import org.zlab.upfuzz.hdfs.HdfsExecutor;
-import org.zlab.upfuzz.hbase.HBaseExecutor;
-import org.zlab.upfuzz.utils.Pair;
-import org.zlab.upfuzz.utils.Utilities;
-import org.zlab.upfuzz.nyx.LibnyxInterface;
 
-import static org.zlab.upfuzz.fuzzingengine.server.FuzzingServer.readState;
 import static org.zlab.upfuzz.nyx.MiniClientMain.runTheTestsBeforeChangingVersion;
 import static org.zlab.upfuzz.nyx.MiniClientMain.changeVersionAndRunTheTests;
 import static org.zlab.upfuzz.nyx.MiniClientMain.clearData;
-import static org.zlab.upfuzz.nyx.MiniClientMain.setTestType;
 
 class RegularStackedTestThread implements Callable<StackedFeedbackPacket> {
 
