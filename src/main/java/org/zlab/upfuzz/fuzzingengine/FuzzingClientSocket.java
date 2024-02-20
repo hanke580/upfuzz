@@ -17,9 +17,11 @@ class FuzzingClientSocket implements Runnable {
     DataInputStream in;
     DataOutputStream out;
     Socket socket;
+    int group;
 
-    FuzzingClientSocket(FuzzingClient fuzzingClient) {
+    FuzzingClientSocket(FuzzingClient fuzzingClient, int group) {
         this.fuzzingClient = fuzzingClient;
+        this.group = group;
         try {
             socket = new Socket(Config.getConf().serverHost,
                     Config.getConf().serverPort);
@@ -49,6 +51,7 @@ class FuzzingClientSocket implements Runnable {
                 System.out.println("intType = " + intType);
                 Packet.PacketType type = Packet.PacketType.values()[intType];
                 Packet feedBackPacket = null;
+                int requestedGroupForVersionDelta = 0;
 
                 switch (type) {
                 // Now there's only StackedFeedbackPacket, there'll be
@@ -58,12 +61,13 @@ class FuzzingClientSocket implements Runnable {
                     // Run executor
                     StackedTestPacket stackedTestPacket = StackedTestPacket
                             .read(in);
+                    requestedGroupForVersionDelta = stackedTestPacket.clientGroupForVersionDelta;
                     if (!Config.getConf().useVersionDelta) {
-                        System.out.println("Regular stacked testing");
+                        logger.info("Regular stacked testing");
                         feedBackPacket = fuzzingClient
                                 .executeStackedTestPacket(stackedTestPacket);
                     } else {
-                        System.out.println("Version Delta testing");
+                        logger.info("Version Delta testing");
                         feedBackPacket = fuzzingClient
                                 .executeStackedTestPacketRegularVersionDelta(
                                         stackedTestPacket);
@@ -91,9 +95,22 @@ class FuzzingClientSocket implements Runnable {
                 }
 
                 if (feedBackPacket == null) {
-                    logger.debug(
-                            "[HKLOG] Old version cluster startup problem");
-                    out.writeInt(-1);
+                    logger.info("Feedback packet is null for group: " + group);
+                    if (Config.getConf().useVersionDelta == true
+                            && Config.getConf().versionDeltaApproach == 2) {
+                        if (requestedGroupForVersionDelta != group) {
+                            // Thread.sleep(10);
+                            continue;
+                        } else {
+                            logger.debug(
+                                    "[HKLOG] Old version cluster startup problem");
+                            out.writeInt(-1);
+                        }
+                    } else {
+                        logger.debug(
+                                "[HKLOG] Old version cluster startup problem");
+                        out.writeInt(-1);
+                    }
                 } else {
                     feedBackPacket.write(out);
                     logger.debug(
@@ -110,7 +127,7 @@ class FuzzingClientSocket implements Runnable {
     }
 
     private void writeRegisterPacket() {
-        RegisterPacket registerPacket = new RegisterPacket(socket);
+        RegisterPacket registerPacket = new RegisterPacket(socket, group);
         try {
             registerPacket.write(out);
         } catch (IOException e) {

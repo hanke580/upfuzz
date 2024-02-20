@@ -1,0 +1,165 @@
+
+version: '3'
+
+services:
+
+    DC3N0:
+        container_name: container_hbase_hbase-2.4.15_executor_uuid_N0
+        image: upfuzz_hdfs:hadoop-2.10.2
+        command: bash -c 'sleep 0 && /usr/bin/supervisord'
+        networks:
+            network_hbase-2.4.15_to_hbase-2.5.2_dc1ring:
+                ipv4_address: 252.11.1.10
+        volumes:
+            # - ./persistent/hdfs/data:/var/hadoop/data
+            - ./persistent/hdfs/log:/var/log/hadoop
+            - ./persistent/hdfs/consolelog:/var/log/supervisor
+            - /vagrant/workdir/upfuzz/prebuild/hadoop/hadoop-2.10.2:/hadoop/hadoop-2.10.2
+        environment:
+            - hbase_CLUSTER_NAME=dev_cluster
+            - hbase_SEEDS=252.11.1.2,
+            - hbase_LOGGING_LEVEL=DEBUG
+        expose:
+            - 22
+            - 7000
+            - 7001
+            - 7199
+            - 8020
+            - 9042
+            - 9160
+            - 18251
+            - 16000
+            - 16010
+        ulimits:
+            memlock: -1
+            nproc: 32768
+            nofile: 100000
+
+    DC3N1:
+        container_name: container_hbase_hbase-2.4.15_executor_uuid_N1
+        image: upfuzz_hbase:hbase-2.4.15
+        command: bash -c 'sleep 5s && /usr/bin/supervisord'
+        networks:
+            network_hbase-2.4.15_to_hbase-2.5.2_dc1ring:
+                ipv4_address: 252.11.1.2
+        volumes:
+            - ./persistent/node_0/log:/var/log/hbase
+            - ./persistent/node_0/consolelog:/var/log/supervisor
+            - ./persistent/node_0/zookeeper:/usr/local/zookeeper
+            - ./supervisord.conf:/etc/supervisor/conf.d/supervisord.conf
+            - /vagrant/workdir/upfuzz/prebuild/hbase/hbase-2.4.15:/hbase/hbase-2.4.15
+            - /vagrant/workdir/upfuzz/prebuild/hbase/hbase-2.5.2:/hbase/hbase-2.5.2
+            - /vagrant/workdir/upfuzz/prebuild/hadoop/hadoop-2.10.2:/hadoop/hadoop-2.10.2
+        environment:
+            - hbase_CONFIG=/hbase/conf
+            - hbase_CLUSTER_NAME=dev_cluster
+            - hbase_SEEDS=252.11.1.2,
+            - hbase_LOGGING_LEVEL=DEBUG
+        depends_on:
+            - DC3N0
+        expose:
+            - 22
+            - 2181
+            - 2888
+            - 3888
+            - 7000
+            - 7001
+            - 7199
+            - 8020
+            - 9042
+            - 9160
+            - 18251
+            - 16000
+            - 16010
+        ulimits:
+            memlock: -1
+            nproc: 32768
+            nofile: 100000
+
+    DC3N2:
+        container_name: container_hbase_hbase-2.4.15_executor_uuid_N2
+        image: upfuzz_hbase:hbase-2.4.15
+        command: bash -c 'sleep 0 && /usr/bin/supervisord'
+        networks:
+            network_hbase-2.4.15_to_hbase-2.5.2_dc1ring:
+                ipv4_address: 252.11.1.3
+        volumes:
+            - ./persistent/node_1/log:/var/log/hbase
+            - ./persistent/node_1/consolelog:/var/log/supervisor
+            - ./persistent/node_1/zookeeper:/usr/local/zookeeper
+            - ./supervisord-hregion.conf:/etc/supervisor/conf.d/supervisord.conf
+            - /vagrant/workdir/upfuzz/prebuild/hbase/hbase-2.4.15:/hbase/hbase-2.4.15
+            - /vagrant/workdir/upfuzz/prebuild/hbase/hbase-2.5.2:/hbase/hbase-2.5.2
+        environment:
+            - hbase_CONFIG=/hbase/conf
+            - hbase_CLUSTER_NAME=dev_cluster
+            - hbase_SEEDS=252.11.1.2,
+            - hbase_LOGGING_LEVEL=DEBUG
+        depends_on:
+            - DC3N1
+        expose:
+            - 22
+            - 2181
+            - 2888
+            - 3888
+            - 7000
+            - 7001
+            - 7199
+            - 8020
+            - 9042
+            - 9160
+            - 18251
+            - 16000
+            - 16010
+        ulimits:
+            memlock: -1
+            nproc: 32768
+            nofile: 100000
+
+    DC3N3:
+        container_name: container_hbase_hbase-2.4.15_executor_uuid_N3
+        image: upfuzz_hbase:hbase-2.4.15
+        command: bash -c 'sleep 0 && /usr/bin/supervisord'
+        networks:
+            network_hbase-2.4.15_to_hbase-2.5.2_dc1ring:
+                ipv4_address: 252.11.1.4
+        volumes:
+            - ./persistent/node_2/log:/var/log/hbase
+            - ./persistent/node_2/consolelog:/var/log/supervisor
+            - ./persistent/node_2/zookeeper:/usr/local/zookeeper
+            - ./supervisord-hregion.conf:/etc/supervisor/conf.d/supervisord.conf
+            - /vagrant/workdir/upfuzz/prebuild/hbase/hbase-2.4.15:/hbase/hbase-2.4.15
+            - /vagrant/workdir/upfuzz/prebuild/hbase/hbase-2.5.2:/hbase/hbase-2.5.2
+        environment:
+            - hbase_CONFIG=/hbase/conf
+            - hbase_CLUSTER_NAME=dev_cluster
+            - hbase_SEEDS=252.11.1.2,
+            - hbase_LOGGING_LEVEL=DEBUG
+        depends_on:
+            - DC3N1
+        expose:
+            - 22
+            - 2181
+            - 2888
+            - 3888
+            - 7000
+            - 7001
+            - 7199
+            - 8020
+            - 9042
+            - 9160
+            - 18251
+            - 16000
+            - 16010
+        ulimits:
+            memlock: -1
+            nproc: 32768
+            nofile: 100000
+
+networks:
+    network_hbase-2.4.15_to_hbase-2.5.2_dc1ring:
+        driver: bridge
+        ipam:
+            driver: default
+            config:
+                - subnet: 252.11.1.1/24

@@ -43,7 +43,7 @@ public class CassandraExecutor extends Executor {
     public CassandraExecutor(int nodeNum,
             Set<String> targetSystemStates, Path configPath, int direction) {
         super("cassandra", nodeNum);
-
+        System.out.println("Starting with node number: " + nodeNum);
         timestamp = System.currentTimeMillis();
         this.targetSystemStates = targetSystemStates;
         this.configPath = configPath;

@@ -14,15 +14,17 @@ public class RegisterPacket extends Packet {
 
     public String systemId;
     public String clientId;
+    public int group;
 
     public RegisterPacket() {
     }
 
-    public RegisterPacket(Socket socket) {
+    public RegisterPacket(Socket socket, int group) {
         this.systemId = Config.getConf().system;
         this.type = PacketType.RegisterPacket;
         this.clientId = socket.getLocalAddress().getHostName() +
                 socket.getLocalSocketAddress().toString();
+        this.group = group;
     }
 
     public static RegisterPacket read(DataInputStream in) {

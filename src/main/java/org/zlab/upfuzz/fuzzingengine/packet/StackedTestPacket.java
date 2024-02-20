@@ -30,6 +30,7 @@ public class StackedTestPacket extends Packet implements Serializable {
     public ExecutionDataStore curUpCoverage;
     public ObjectCoverage curOriObjCoverage;
     public ObjectCoverage curUpObjCoverage;
+    public int clientGroupForVersionDelta;
 
     public StackedTestPacket(int nodeNum, String configFileName) {
         this.nodeNum = nodeNum;
