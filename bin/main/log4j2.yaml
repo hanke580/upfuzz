@@ -1,0 +1,27 @@
+Configutation:
+    name: Default
+    Properties:
+        Property:
+            name: logfile
+            value: "logs/upfuzz.log"
+    Appenders:
+        Console:
+            name: Console_Appender
+            target: SYSTEM_OUT
+            PatternLayout:
+                pattern: "%highlight{%d [%t] %-5level %F:%M:%L: %msg%n%throwable}{FATAL=Bright red, ERROR=red, WARN=yellow, INFO=blue, DEBUG=green, TRACE=magenta}"
+                disableAnsi: false
+        File:
+            name: File_Appender
+            fileName: ${sys:logfile}
+            append: false
+            PatternLayout:
+                pattern: "%d [%t] %-5level %F:%M:%L: %msg%n%throwable"
+    Loggers:
+        Root:
+            level: all
+            AppenderRef:
+                - ref: Console_Appender
+                  level: debug
+                - ref: File_Appender
+                  level: all

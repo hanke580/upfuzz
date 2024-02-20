@@ -40,8 +40,26 @@ public class Main {
                 .hasArg()
                 .desc("Configuration file location")
                 .build();
+        Option flagOption = Option.builder("flag")
+                .argName("flag")
+                .hasArg()
+                .desc("Fuzzing Client type")
+                .build();
+        Option group1OptionServer = Option.builder("group1")
+                .argName("group1")
+                .hasArg()
+                .desc("Fuzzing Client Count Group 1")
+                .build();
+        Option group2OptionServer = Option.builder("group2")
+                .argName("group2")
+                .hasArg()
+                .desc("Fuzzing Client Count Group 2")
+                .build();
         options.addOption(clazzOption);
         options.addOption(configFileOption);
+        options.addOption(flagOption);
+        options.addOption(group1OptionServer);
+        options.addOption(group2OptionServer);
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = parser.parse(options, args);
 
@@ -83,7 +101,17 @@ public class Main {
         if (type.equalsIgnoreCase("server")) {
             new FuzzingServer().start();
         } else if (type.equalsIgnoreCase("client")) {
-            new FuzzingClient().start();
+            FuzzingClient fuzzingClient = new FuzzingClient();
+            if (cmd.hasOption(flagOption)) {
+                StringBuilder optionBuilder = new StringBuilder();
+                optionBuilder.append(cmd.getOptionValue(flagOption));
+                System.out.println(optionBuilder.toString());
+                fuzzingClient.group = (optionBuilder.toString()
+                        .equals("group1"))
+                                ? 1
+                                : 2;
+            }
+            fuzzingClient.start();
         } else if (type.equalsIgnoreCase("fuzzer")) {
             logger.error("equal fuzzer");
             Runtime.getRuntime().addShutdownHook(new Thread() {

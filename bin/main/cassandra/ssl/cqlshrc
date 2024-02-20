@@ -1,0 +1,17 @@
+[connection]
+hostname = 192.168.50.2
+port = 9042
+factory = cqlshlib.ssl.ssl_transport_factory
+
+
+[ssl]
+certfile =  /test_CLIENT.cer.pem
+validate = false
+# Next 2 lines must be provided when require_client_auth = true in the cassandra.yaml file
+userkey = /test_CLIENT.key.pem
+usercert = /test_CLIENT.cer.pem
+# This is to force cqlsh to not use TLSv1.0 protocol, avoid exception 
+# Client requested protocol TLSv1 is not enabled or supported in server context
+# https://support.datastax.com/s/article/FAQ-How-to-force-SSL-TLSv12-protocol-with-DSE
+version = SSLv23 
+

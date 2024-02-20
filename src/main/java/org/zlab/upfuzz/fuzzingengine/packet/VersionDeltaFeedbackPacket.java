@@ -19,6 +19,7 @@ public class VersionDeltaFeedbackPacket extends Packet implements Serializable {
 
     public final List<FeedbackPacket> fpListUpgrade;
     public final List<FeedbackPacket> fpListDowngrade;
+    public final List<TestPacket> versionDeltaInducedTestPackets;
 
     // include all testIDs (either executed or not)
     // we should remove them from testID2Seed for oom problem
@@ -44,9 +45,25 @@ public class VersionDeltaFeedbackPacket extends Packet implements Serializable {
     public boolean breakNewInvUp = false;
     public boolean breakNewInvDown = false;
 
+    public int nodeNum;
+
+    public int clientGroup = 0;
+
     // public int nodeNum;
     // (1) Failed Upgrade Process: Report all command sequences
     // (2) Result Inconsistency: Report the target seed's inconsistency
+
+    public VersionDeltaFeedbackPacket(String configFileName,
+            List<Integer> testIDs, int clientGroup, int nodeNum) {
+        this.configFileName = configFileName;
+        this.testIDs = testIDs;
+        this.type = PacketType.VersionDeltaFeedbackPacket;
+        this.clientGroup = clientGroup;
+        this.nodeNum = nodeNum;
+        fpListUpgrade = new LinkedList<>();
+        fpListDowngrade = new LinkedList<>();
+        versionDeltaInducedTestPackets = new LinkedList<>();
+    }
 
     public VersionDeltaFeedbackPacket(String configFileName,
             List<Integer> testIDs) {
@@ -55,6 +72,7 @@ public class VersionDeltaFeedbackPacket extends Packet implements Serializable {
         this.type = PacketType.VersionDeltaFeedbackPacket;
         fpListUpgrade = new LinkedList<>();
         fpListDowngrade = new LinkedList<>();
+        versionDeltaInducedTestPackets = new LinkedList<>();
     }
 
     public void addToFpList(FeedbackPacket fp, String choice) {
@@ -62,6 +80,10 @@ public class VersionDeltaFeedbackPacket extends Packet implements Serializable {
             fpListUpgrade.add(fp);
         else
             fpListDowngrade.add(fp);
+    }
+
+    public void addToTpList(TestPacket tp) {
+        versionDeltaInducedTestPackets.add(tp);
     }
 
     public List<FeedbackPacket> getFpList(String choice) {

@@ -10,7 +10,10 @@
   "testSingleVersion": false,
   "testingMode": 0,
   "collectFormatCoverage": false,
+  "codeCoverageChoiceProb": 0.7,
   "useVersionDelta": true,
+  "versionDeltaChoiceProb": 0.3,
+  "versionDeltaApproach": 2,
   "verifyConfig": false,
   "testBoundaryConfig": true,
   "testAddedConfig": true,
@@ -21,5 +24,5 @@
   "debug": true,
   "useExampleTestPlan": true,
   "startUpClusterForDebugging": false,
-  "cassandraEnableTimeoutCheck": true
+  "cassandraEnableTimeoutCheck": false
 }

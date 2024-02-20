@@ -3,6 +3,7 @@ package org.zlab.upfuzz.fuzzingengine.server;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.net.Socket;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.Config;
@@ -26,8 +27,20 @@ class FuzzingServerSocket implements Runnable {
                     server.getLocalSocketAddress());
             while (true) {
                 try {
+                    Socket clientSocket = server.accept();
+                    System.out.println("Local address: "
+                            + clientSocket.getLocalSocketAddress());
+                    System.out.println("Remote address: "
+                            + clientSocket.getRemoteSocketAddress());
+                    System.out.println(
+                            "Local port: " + clientSocket.getLocalPort());
+                    System.out.println(
+                            "Remote port: " + clientSocket.getPort());
+                    System.out.println("Socket information: " + clientSocket);
+                    System.out.println("Creating handler");
                     FuzzingServerHandler handler = new FuzzingServerHandler(
-                            fuzzingServer, server.accept());
+                            fuzzingServer, clientSocket);
+                    System.out.println("Created handler");
                     new Thread(handler).start();
                 } catch (IOException e) {
                     e.printStackTrace();

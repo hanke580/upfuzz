@@ -8,8 +8,17 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.CountDownLatch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import javassist.bytecode.analysis.ControlFlow.Block;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.logging.log4j.LogManager;
@@ -114,6 +123,7 @@ public class FuzzingServer {
     public static List<Pair<Integer, Integer>> originalCoverageAlongTime = new ArrayList<>(); // time:
     public static List<Pair<Integer, Integer>> upgradedCoverageAlongTime = new ArrayList<>(); // time:
     public static long lastTimePoint = 0;
+    public BlockingQueue<StackedTestPacket> stackedTestPacketsQueueVersionDelta;
     public long startTime;
 
     ExecutionDataStore curOriCoverage;
@@ -134,6 +144,8 @@ public class FuzzingServer {
     double codeCovProbability;
     double formatCovProbability;
     double versionDeltaProbability;
+
+    private VersionDeltaFeedbackPacket versionDeltaFeedbackPacketFromGroup1;
 
     public FuzzingServer() {
         testID2Seed = new HashMap<>();
@@ -191,6 +203,7 @@ public class FuzzingServer {
         if (Config.getConf().initSeedDir != null) {
             corpus.initCorpus(Paths.get(Config.getConf().initSeedDir));
         }
+        stackedTestPacketsQueueVersionDelta = new LinkedBlockingQueue<>();
 
         // maintain the num of configuration files
         // read all configurations file name in a list
@@ -324,6 +337,10 @@ public class FuzzingServer {
             // corpus is empty, random generate one test packet and wait
             stackedTestPacket = new StackedTestPacket(Config.getConf().nodeNum,
                     configFileName);
+            if (Config.getConf().useVersionDelta
+                    && Config.getConf().versionDeltaApproach == 2) {
+                stackedTestPacket.clientGroupForVersionDelta = 1;
+            }
             stackedTestPacket.setCurOriCoverage(curOriCoverage);
             stackedTestPacket.setCurUpCoverage(curUpCoverage);
             stackedTestPacket.setCurOriObjCoverage(oriObjCoverage);
@@ -373,6 +390,10 @@ public class FuzzingServer {
             String configFileName = "test" + configIdx;
             stackedTestPacket = new StackedTestPacket(Config.getConf().nodeNum,
                     configFileName);
+            if (Config.getConf().useVersionDelta
+                    && Config.getConf().versionDeltaApproach == 2) {
+                stackedTestPacket.clientGroupForVersionDelta = 1;
+            }
             stackedTestPacket.setCurOriCoverage(curOriCoverage);
             stackedTestPacket.setCurUpCoverage(curUpCoverage);
             stackedTestPacket.setCurOriObjCoverage(oriObjCoverage);
@@ -381,7 +402,12 @@ public class FuzzingServer {
                 if (i != 0 && i % Config.getConf().STACKED_TESTS_NUM == 0) {
                     stackedTestPackets.add(stackedTestPacket);
                     stackedTestPacket = new StackedTestPacket(
-                            Config.getConf().nodeNum, configFileName);
+                            Config.getConf().nodeNum,
+                            configFileName);
+                    if (Config.getConf().useVersionDelta
+                            && Config.getConf().versionDeltaApproach == 2) {
+                        stackedTestPacket.clientGroupForVersionDelta = 1;
+                    }
                     stackedTestPacket.setCurOriCoverage(curOriCoverage);
                     stackedTestPacket.setCurUpCoverage(curUpCoverage);
                     stackedTestPacket.setCurOriObjCoverage(oriObjCoverage);
@@ -422,6 +448,10 @@ public class FuzzingServer {
                     stackedTestPacket = new StackedTestPacket(
                             Config.getConf().nodeNum,
                             configFileName);
+                    if (Config.getConf().useVersionDelta
+                            && Config.getConf().versionDeltaApproach == 2) {
+                        stackedTestPacket.clientGroupForVersionDelta = 1;
+                    }
                     stackedTestPacket.setCurOriCoverage(curOriCoverage);
                     stackedTestPacket.setCurUpCoverage(curUpCoverage);
                     stackedTestPacket.setCurOriObjCoverage(oriObjCoverage);

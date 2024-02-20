@@ -120,6 +120,7 @@ public class Config {
         public float noRecoverProb = 0.5f;
 
         public int rebuildConnectionSecs = 5;
+        public int versionDeltaApproach = 1;
 
         // ------------Configuration Testing-------------
         public boolean verifyConfig = false;
