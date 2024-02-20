@@ -45,21 +45,9 @@ public class Main {
                 .hasArg()
                 .desc("Fuzzing Client type")
                 .build();
-        Option group1OptionServer = Option.builder("group1")
-                .argName("group1")
-                .hasArg()
-                .desc("Fuzzing Client Count Group 1")
-                .build();
-        Option group2OptionServer = Option.builder("group2")
-                .argName("group2")
-                .hasArg()
-                .desc("Fuzzing Client Count Group 2")
-                .build();
         options.addOption(clazzOption);
         options.addOption(configFileOption);
         options.addOption(flagOption);
-        options.addOption(group1OptionServer);
-        options.addOption(group2OptionServer);
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = parser.parse(options, args);
 
