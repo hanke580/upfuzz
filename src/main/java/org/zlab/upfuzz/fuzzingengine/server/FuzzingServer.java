@@ -9,15 +9,9 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.CountDownLatch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import javassist.bytecode.analysis.ControlFlow.Block;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SerializationUtils;
@@ -144,8 +138,6 @@ public class FuzzingServer {
     double codeCovProbability;
     double formatCovProbability;
     double versionDeltaProbability;
-
-    private VersionDeltaFeedbackPacket versionDeltaFeedbackPacketFromGroup1;
 
     public FuzzingServer() {
         testID2Seed = new HashMap<>();

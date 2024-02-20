@@ -28,19 +28,8 @@ class FuzzingServerSocket implements Runnable {
             while (true) {
                 try {
                     Socket clientSocket = server.accept();
-                    System.out.println("Local address: "
-                            + clientSocket.getLocalSocketAddress());
-                    System.out.println("Remote address: "
-                            + clientSocket.getRemoteSocketAddress());
-                    System.out.println(
-                            "Local port: " + clientSocket.getLocalPort());
-                    System.out.println(
-                            "Remote port: " + clientSocket.getPort());
-                    System.out.println("Socket information: " + clientSocket);
-                    System.out.println("Creating handler");
                     FuzzingServerHandler handler = new FuzzingServerHandler(
                             fuzzingServer, clientSocket);
-                    System.out.println("Created handler");
                     new Thread(handler).start();
                 } catch (IOException e) {
                     e.printStackTrace();
