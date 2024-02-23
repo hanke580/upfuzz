@@ -86,11 +86,16 @@ sed -i -e 's/3.11.15/2.2.8/g' -e 's/4.1.3/3.0.15/g' cassandra-clusternode.sh
 docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"_apache-cassandra-"$UP_VERSION"
 
 # Copy the format required json files to the /tmp/folder
-# Also make sure these files occur in the prebuild/cassandra/apache-cassandra-2.2.8/ folder
 cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.15/serializedFields_alg1.json /tmp
 cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.15/topObjects.json /tmp
 cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.15/comparableClasses.json /tmp
 cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.15/branch2Collection.json /tmp
+
+# Also make sure these files occur in the prebuild/cassandra/apache-cassandra-2.2.8/ folder
+cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.15/serializedFields_alg1.json prebuild/cassandra/apache-cassandra-2.2.8/
+cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.15/topObjects.json prebuild/cassandra/apache-cassandra-2.2.8/
+cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.15/comparableClasses.json prebuild/cassandra/apache-cassandra-2.2.8/
+cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.15/branch2Collection.json prebuild/cassandra/apache-cassandra-2.2.8/
 
 cd ${UPFUZZ_DIR}
 ./gradlew copyDependencies
