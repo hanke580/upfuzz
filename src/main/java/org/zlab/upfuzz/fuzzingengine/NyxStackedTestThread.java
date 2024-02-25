@@ -34,7 +34,7 @@ class NyxStackedTestThread implements Callable<StackedFeedbackPacket> {
 
     private StackedFeedbackPacket stackedFeedbackPacket;
     private final int direction;
-    private final StackedTestPacket stackedTestPacket;
+    private final StackedTestPacketSerializable stackedTestPacket;
     private Path configPath;
     private Path previousConfigPath;
     private LibnyxInterface libnyx;
@@ -47,7 +47,8 @@ class NyxStackedTestThread implements Callable<StackedFeedbackPacket> {
     int CLUSTER_START_RETRY = 3; // stop retry for now
 
     public NyxStackedTestThread(int direction,
-            StackedTestPacket stackedTestPacket, LibnyxInterface libnyx,
+            StackedTestPacketSerializable stackedTestPacket,
+            LibnyxInterface libnyx,
             Path configPath, Path previousConfigPath,
             boolean sameConfigAsLastTime) {
         this.direction = direction;
@@ -143,6 +144,7 @@ class NyxStackedTestThread implements Callable<StackedFeedbackPacket> {
                 + RandomStringUtils.randomAlphanumeric(8) + ".ser";
         Path stackedTestPath = Paths.get(this.libnyx.getSharedir(),
                 stackedTestFileLocation);
+        System.out.println(stackedTestPath);
         if (Config.getConf().debug) {
             logger.info("[Fuzzing Client] time for getting stacked test path "
                     + (System.currentTimeMillis() - startTime3)
@@ -152,7 +154,7 @@ class NyxStackedTestThread implements Callable<StackedFeedbackPacket> {
         long startTime4 = System.currentTimeMillis();
         try {
             Utilities.writeObjectToFile(stackedTestPath.toFile(),
-                    stackedTestPacket);
+                    this.stackedTestPacket);
         } catch (IOException e) {
             e.printStackTrace();
             return null;
