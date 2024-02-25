@@ -221,6 +221,7 @@ public class FuzzingServerHandler implements Runnable {
                                 versionDeltaFeedbackPacket.versionDeltaInducedTestPackets,
                                 versionDeltaFeedbackPacket.configFileName,
                                 versionDeltaFeedbackPacket.nodeNum);
+                        // fuzzingServer.updateStatus(versionDeltaFeedbackPacket);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

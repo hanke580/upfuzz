@@ -75,6 +75,7 @@ public class Config {
         public int sequenceMutationEpoch = 800;
         public int firstConfigMutationEpoch = 3;
         public int configMutationEpoch = 10;
+        public int limitConfigForVersionDeltaRound = 100;
 
         // violent mutation, usually fewer
         public int bothMutationEpoch = 20;
