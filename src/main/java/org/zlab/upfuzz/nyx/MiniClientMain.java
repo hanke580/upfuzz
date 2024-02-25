@@ -30,6 +30,7 @@ import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.packet.FeedbackPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.StackedFeedbackPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacket;
+import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacketSerializable;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPlanPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPlanFeedbackPacket;
@@ -121,8 +122,8 @@ public class MiniClientMain {
         Path defaultStackedTestPath, defaultConfigPath, defaultTestPlanPath,
                 stackedTestPath, testPlanPath;
         Path stackedFeedbackPath, testPlanFeedbackPath;
-        StackedTestPacket defaultStackedTestPacket;
-        StackedTestPacket stackedTestPacket;
+        StackedTestPacketSerializable defaultStackedTestPacket;
+        StackedTestPacketSerializable stackedTestPacket;
         TestPlanPacket defaultTestPlanPacket;
         TestPlanPacket testPlanPacket;
         StackedFeedbackPacket stackedFeedbackPacket;
@@ -165,7 +166,7 @@ public class MiniClientMain {
         }
         try { // if any of these catches go through we have a big problem
             if (testType == 0) {
-                defaultStackedTestPacket = (StackedTestPacket) Utilities
+                defaultStackedTestPacket = (StackedTestPacketSerializable) Utilities
                         .readObjectFromFile(defaultTestPath.toFile());
                 if (!Config.getConf().useVersionDelta) {
                     executor = FuzzingClient.initExecutor(
@@ -271,7 +272,7 @@ public class MiniClientMain {
             stackedTestPath = Paths.get(workdir,
                     "mainStackedTestPacket.ser"); // "/miniClientWorkdir/mainStackedTestPacket.ser"
             try { // if any of these catches go through we have a big problem
-                stackedTestPacket = (StackedTestPacket) Utilities
+                stackedTestPacket = (StackedTestPacketSerializable) Utilities
                         .readObjectFromFile(stackedTestPath.toFile());
             } catch (ClassNotFoundException | IOException
                     | ClassCastException e) {
@@ -425,7 +426,7 @@ public class MiniClientMain {
 
     public static StackedFeedbackPacket runTheTestsBeforeChangingVersion(
             Executor executor,
-            StackedTestPacket stackedTestPacket, int direction) {
+            StackedTestPacketSerializable stackedTestPacket, int direction) {
 
         // if the middle of test has already broken an invariant
         // we stop executing.
@@ -526,7 +527,7 @@ public class MiniClientMain {
 
     public static StackedFeedbackPacket changeVersionAndRunTheTests(
             Executor executor,
-            StackedTestPacket stackedTestPacket, int direction,
+            StackedTestPacketSerializable stackedTestPacket, int direction,
             StackedFeedbackPacket stackedFeedbackPacket) {
 
         Map<Integer, List<String>> testID2upResults = new HashMap<>();
@@ -682,7 +683,7 @@ public class MiniClientMain {
     }
 
     public static StackedFeedbackPacket runTheTests(Executor executor,
-            StackedTestPacket stackedTestPacket, int direction) {
+            StackedTestPacketSerializable stackedTestPacket, int direction) {
         Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();
         Map<Integer, List<String>> testID2oriResults = new HashMap<>();
         Map<Integer, List<String>> testID2upResults = new HashMap<>();
