@@ -142,8 +142,13 @@ public class MiniClientMain {
         Executor executor;
         if (Config.getConf().verifyConfig) {
             System.err.println("verifying configuration");
-            executor = FuzzingClient.initExecutor(
-                    1, null, defaultConfigPath);
+            if (!Config.getConf().useVersionDelta) {
+                executor = FuzzingClient.initExecutor(
+                        1, null, defaultConfigPath);
+            } else {
+                executor = FuzzingClient.initExecutor(
+                        1, null, defaultConfigPath, testDirection);
+            }
             boolean startUpStatus = executor.startup();
 
             if (!startUpStatus) {

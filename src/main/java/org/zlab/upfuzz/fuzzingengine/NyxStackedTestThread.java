@@ -65,6 +65,8 @@ class NyxStackedTestThread implements Callable<StackedFeedbackPacket> {
 
     @Override
     public StackedFeedbackPacket call() throws Exception {
+        logger.info("Previous Config Path: " + previousConfigPath);
+        logger.info("Same config as last time: " + this.sameConfigAsLastTime);
         if (this.previousConfigPath == null || !this.sameConfigAsLastTime) {
             // the miniClient will setup the distributed system according to the
             // defaultStackedTestPacket and the config
@@ -112,6 +114,7 @@ class NyxStackedTestThread implements Callable<StackedFeedbackPacket> {
             }
         }
         if (this.previousConfigPath == null) {
+            logger.info("Should create a new nyx vm");
             long startTime = System.currentTimeMillis();
             this.libnyx.nyxNew();
             setTestDirection(this.direction);

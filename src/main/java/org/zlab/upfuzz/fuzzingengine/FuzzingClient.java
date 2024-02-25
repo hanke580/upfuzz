@@ -367,11 +367,15 @@ public class FuzzingClient {
     }
 
     public StackedFeedbackPacket executeStackedTestPacketNyx(
-            StackedTestPacket stackedTestPacket) {
+            StackedTestPacket stackedTestPacketUnser) {
         Path configPath = Paths.get(configDirPath.toString(),
-                stackedTestPacket.configFileName);
+                stackedTestPacketUnser.configFileName);
         logger.info("[HKLOG] configPath = " + configPath);
 
+        StackedTestPacketSerializable stackedTestPacket = new StackedTestPacketSerializable(
+                stackedTestPacketUnser.nodeNum,
+                stackedTestPacketUnser.configFileName,
+                stackedTestPacketUnser.getTestPacketList(), group);
         // config verification - do we really want this?, maybe just skip config
         // verification TODO
         // if (Config.getConf().verifyConfig) {
@@ -471,6 +475,7 @@ public class FuzzingClient {
 
         long startTime4 = System.currentTimeMillis();
         try {
+
             Utilities.writeObjectToFile(stackedTestPath.toFile(),
                     stackedTestPacket);
         } catch (IOException e) {
@@ -637,11 +642,12 @@ public class FuzzingClient {
                     stackedTestPacket.getTestPacketList(), group);
             Future<StackedFeedbackPacket> futureStackedFeedbackPacketUp = executorService
                     .submit(new NyxStackedTestThread(0,
-                            stackedTestPacketSer, libnyx, configPath,
+                            stackedTestPacketSer, this.libnyx, configPath,
                             previousConfigPath, sameConfigAsLastTime));
             Future<StackedFeedbackPacket> futureStackedFeedbackPacketDown = executorService
                     .submit(new NyxStackedTestThread(1,
-                            stackedTestPacketSer, libnyxSibling, configPath,
+                            stackedTestPacketSer, this.libnyxSibling,
+                            configPath,
                             previousConfigPath, sameConfigAsLastTime));
 
             this.previousConfigPath = configPath;

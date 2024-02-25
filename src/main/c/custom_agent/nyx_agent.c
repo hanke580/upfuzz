@@ -237,6 +237,7 @@ int main(int argc, char **argv) {
 				abort_operation("Read operation failed");
 			}
 			
+			hprintf("[cAgent]: got signal from MiniClient: %s\n", output_pkt_ready[0]);
 			if(!(output_pkt_ready[0]=='R')) {
 				if (output_pkt_ready[0] == 'F')                                       // executor might have failed to start
 				{
