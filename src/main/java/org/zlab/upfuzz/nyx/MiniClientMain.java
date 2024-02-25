@@ -171,7 +171,7 @@ public class MiniClientMain {
                 if (!Config.getConf().useVersionDelta) {
                     executor = FuzzingClient.initExecutor(
                             defaultStackedTestPacket.nodeNum, null,
-                            defaultConfigPath);
+                            defaultConfigPath, 0);
                 } else {
                     executor = FuzzingClient.initExecutor(
                             defaultStackedTestPacket.nodeNum, null,

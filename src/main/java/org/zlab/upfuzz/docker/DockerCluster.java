@@ -174,7 +174,8 @@ public abstract class DockerCluster implements IDockerCluster {
 
                 formatComposeYaml();
                 composeFile.createNewFile();
-                // logger.info("\n\n compose yaml \n" + composeYaml + "\n\n");
+                logger.info(workdir);
+                logger.info("\n\n compose yaml \n" + composeYaml + "\n\n");
                 writer.write(composeYaml);
                 writer.close();
 
