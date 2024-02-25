@@ -53,6 +53,9 @@ public class MiniClientMain {
     static final int CLUSTER_START_RETRY = 3;
 
     static int testType;
+    static int testDirection = 0;
+    static boolean inducedNewVersionDelta = false;
+    static int clientGroup = 0;
     static String testExecutionLog = "";
     static boolean hasNewOriCoverage = false;
     static boolean hasNewUpCoverage = false;
@@ -64,6 +67,14 @@ public class MiniClientMain {
 
     public static void setTestType(int type) {
         testType = type;
+    }
+
+    public static void setTestDirection(int direction) {
+        testDirection = direction;
+    }
+
+    public static void setClientGroup(int group) {
+        clientGroup = group;
     }
 
     public static String startUpExecutor(Executor executor, int type) {
@@ -151,16 +162,28 @@ public class MiniClientMain {
             if (testType == 0) {
                 defaultStackedTestPacket = (StackedTestPacket) Utilities
                         .readObjectFromFile(defaultTestPath.toFile());
-                executor = FuzzingClient.initExecutor(
-                        defaultStackedTestPacket.nodeNum, null,
-                        defaultConfigPath);
+                if (!Config.getConf().useVersionDelta) {
+                    executor = FuzzingClient.initExecutor(
+                            defaultStackedTestPacket.nodeNum, null,
+                            defaultConfigPath);
+                } else {
+                    executor = FuzzingClient.initExecutor(
+                            defaultStackedTestPacket.nodeNum, null,
+                            defaultConfigPath, testDirection);
+                }
                 executorStartUpReport = startUpExecutor(executor, testType);
             } else {
                 defaultTestPlanPacket = (TestPlanPacket) Utilities
                         .readObjectFromFile(defaultTestPath.toFile());
-                executor = FuzzingClient.initExecutor(
-                        defaultTestPlanPacket.getNodeNum(), null,
-                        defaultConfigPath);
+                if (!Config.getConf().useVersionDelta) {
+                    executor = FuzzingClient.initExecutor(
+                            defaultTestPlanPacket.getNodeNum(), null,
+                            defaultConfigPath);
+                } else {
+                    executor = FuzzingClient.initExecutor(
+                            defaultTestPlanPacket.getNodeNum(), null,
+                            defaultConfigPath, testDirection);
+                }
                 executorStartUpReport = startUpExecutor(executor, testType);
             }
         } catch (ClassNotFoundException | IOException
@@ -255,7 +278,19 @@ public class MiniClientMain {
                     + " ms, ";
 
             start_time_t = System.currentTimeMillis();
-            stackedFeedbackPacket = runTheTests(executor, stackedTestPacket, 0);
+            if (!Config.getConf().useVersionDelta) {
+                stackedFeedbackPacket = runTheTests(executor, stackedTestPacket,
+                        0);
+            } else {
+                stackedFeedbackPacket = runTheTestsBeforeChangingVersion(
+                        executor, stackedTestPacket, testDirection);
+                if (clientGroup == 2) {
+                    StackedFeedbackPacket stackedFeedbackPacketBeforeVersionChange = stackedFeedbackPacket;
+                    stackedFeedbackPacket = changeVersionAndRunTheTests(
+                            executor, stackedTestPacket, testDirection,
+                            stackedFeedbackPacketBeforeVersionChange);
+                }
+            }
             logMessages += "Testing time "
                     + (System.currentTimeMillis() - start_time_t)
                     + "ms, ";
@@ -643,8 +678,8 @@ public class MiniClientMain {
 
     public static StackedFeedbackPacket runTheTests(Executor executor,
             StackedTestPacket stackedTestPacket, int direction) {
-        // Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();
-        // Map<Integer, List<String>> testID2oriResults = new HashMap<>();
+        Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();
+        Map<Integer, List<String>> testID2oriResults = new HashMap<>();
         Map<Integer, List<String>> testID2upResults = new HashMap<>();
         Map<Integer, List<String>> testID2downResults = new HashMap<>();
         // if the middle of test has already broken an invariant

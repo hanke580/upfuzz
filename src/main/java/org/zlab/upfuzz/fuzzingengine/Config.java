@@ -83,6 +83,7 @@ public class Config {
         public int sequenceMutationEpoch = 800;
         public int firstConfigMutationEpoch = 3;
         public int configMutationEpoch = 10;
+        public int limitConfigForVersionDeltaRound = 100;
 
         /* Special Mutation */
         public boolean enableAddMultiCommandMutation = true;

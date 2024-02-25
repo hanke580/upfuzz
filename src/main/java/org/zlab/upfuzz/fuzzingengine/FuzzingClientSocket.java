@@ -69,7 +69,7 @@ class FuzzingClientSocket implements Runnable {
                     } else {
                         logger.info("Version Delta testing");
                         feedBackPacket = fuzzingClient
-                                .executeStackedTestPacketRegularVersionDelta(
+                                .executeStackedTestPacketVersionDelta(
                                         stackedTestPacket);
                     }
                     break;

@@ -48,6 +48,7 @@ public class FuzzingClient {
     public Path configDirPathDown;
     public int group;
     private LibnyxInterface libnyx = null;
+    private LibnyxInterface libnyxSibling = null;
     private ExecutorService executorService = Executors.newFixedThreadPool(20);
     // If the cluster cannot start up for 3 times, it's serious
     int CLUSTER_START_RETRY = 3; // stop retry for now
@@ -78,103 +79,111 @@ public class FuzzingClient {
             executor.upgradeTeardown();
         }));
         if (Config.getConf().nyxMode) {
-            this.libnyx = new LibnyxInterface(
-                    Paths.get("/tmp", RandomStringUtils.randomAlphanumeric(8))
-                            .toAbsolutePath().toString(),
-                    Paths.get("/tmp", RandomStringUtils.randomAlphanumeric(8))
-                            .toAbsolutePath().toString(),
-                    0);
-            try {
-                FileUtils.copyFile(
-                        Main.upfuzzConfigFilePath.toFile(),
-                        Paths.get(this.libnyx.getSharedir(), "config.json")
-                                .toFile(),
-                        false);
-            } catch (IOException e) {
-                // e.printStackTrace();
-                logger.info(
-                        "[NyxMode] config.json unable to copy into sharedir");
-                logger.info("[NyxMode] Disabling Nyx Mode");
-                Config.getConf().nyxMode = false; // disable nyx
-            }
-            try {
-                FileUtils.copyFile(
-                        Paths.get("./", Config.getConf().nyxFuzzSH).toFile(), // fuzz_no_pt.sh
-                                                                              // script
-                                                                              // location
-                        Paths.get(this.libnyx.getSharedir(), "fuzz_no_pt.sh")
-                                .toFile(),
-                        false);
-            } catch (IOException e) {
-                // e.printStackTrace();
-                logger.info(
-                        "[NyxMode] fuzz_no_pt.sh unable to copy into sharedir");
-                logger.info("[NyxMode] Disabling Nyx Mode");
-                Config.getConf().nyxMode = false; // disable nyx
-            }
-            try {
-                FileUtils.copyFile(
-                        Paths.get("./", "nyx_mode", "config.ron").toFile(),
-                        Paths.get(this.libnyx.getSharedir(), "config.ron")
-                                .toFile(),
-                        false);
-            } catch (IOException e) {
-                // e.printStackTrace();
-                logger.info(
-                        "[NyxMode] config.ron unable to copy into sharedir");
-                logger.info("[NyxMode] Disabling Nyx Mode");
-                Config.getConf().nyxMode = false; // disable nyx
-            }
-            try {
-                FileUtils.copyFile(
-                        Paths.get("./", "nyx_mode", "packer", "packer",
-                                "linux_x86_64-userspace", "bin64", "hget_no_pt")
-                                .toFile(),
-                        Paths.get(this.libnyx.getSharedir(), "hget_no_pt")
-                                .toFile(),
-                        false);
-            } catch (IOException e) {
-                // e.printStackTrace();
-                logger.info(
-                        "[NyxMode] hget_no_pt unable to copy into sharedir");
-                logger.info("[NyxMode] Disabling Nyx Mode");
-                Config.getConf().nyxMode = false; // disable nyx
-            }
-            try {
-                FileUtils.copyFile(
-                        Paths.get("./", "nyx_mode", "packer", "packer",
-                                "linux_x86_64-userspace", "bin64", "hcat_no_pt")
-                                .toFile(),
-                        Paths.get(this.libnyx.getSharedir(), "hcat_no_pt")
-                                .toFile(),
-                        false);
-            } catch (IOException e) {
-                // e.printStackTrace();
-                logger.info(
-                        "[NyxMode] hget_no_pt unable to copy into sharedir");
-                logger.info("[NyxMode] Disabling Nyx Mode");
-                Config.getConf().nyxMode = false; // disable nyx
-            }
-            // Copy over C Agent and MiniClient.jar
-            try {
-                FileUtils.copyFile(
-                        new File("build/libs/c_agent"),
-                        Paths.get(this.libnyx.getSharedir(), "c_agent")
-                                .toFile(),
-                        false);
-                FileUtils.copyFile(
-                        new File(
-                                "build/libs/MiniClient.jar"),
-                        Paths.get(this.libnyx.getSharedir(), "MiniClient.jar")
-                                .toFile(),
-                        false);
-            } catch (IOException e) {
-                logger.info(
-                        "[NyxMode] unable to copy agent or MiniClient.jar into sharedir");
-                logger.info("[NyxMode] Disabling Nyx Mode");
-                Config.getConf().nyxMode = false; // disable nyx
+            this.libnyx = createLibnyxInterface();
+            if (Config.getConf().useVersionDelta) {
+                this.libnyxSibling = createLibnyxInterface();
             }
         }
+    }
+
+    public LibnyxInterface createLibnyxInterface() {
+        LibnyxInterface libnyx = new LibnyxInterface(
+                Paths.get("/tmp", RandomStringUtils.randomAlphanumeric(8))
+                        .toAbsolutePath().toString(),
+                Paths.get("/tmp", RandomStringUtils.randomAlphanumeric(8))
+                        .toAbsolutePath().toString(),
+                0);
+        try {
+            FileUtils.copyFile(
+                    Main.upfuzzConfigFilePath.toFile(),
+                    Paths.get(libnyx.getSharedir(), "config.json")
+                            .toFile(),
+                    false);
+        } catch (IOException e) {
+            // e.printStackTrace();
+            logger.info(
+                    "[NyxMode] config.json unable to copy into sharedir");
+            logger.info("[NyxMode] Disabling Nyx Mode");
+            Config.getConf().nyxMode = false; // disable nyx
+        }
+        try {
+            FileUtils.copyFile(
+                    Paths.get("./", Config.getConf().nyxFuzzSH).toFile(), // fuzz_no_pt.sh
+                                                                          // script
+                                                                          // location
+                    Paths.get(libnyx.getSharedir(), "fuzz_no_pt.sh")
+                            .toFile(),
+                    false);
+        } catch (IOException e) {
+            // e.printStackTrace();
+            logger.info(
+                    "[NyxMode] fuzz_no_pt.sh unable to copy into sharedir");
+            logger.info("[NyxMode] Disabling Nyx Mode");
+            Config.getConf().nyxMode = false; // disable nyx
+        }
+        try {
+            FileUtils.copyFile(
+                    Paths.get("./", "nyx_mode", "config.ron").toFile(),
+                    Paths.get(libnyx.getSharedir(), "config.ron")
+                            .toFile(),
+                    false);
+        } catch (IOException e) {
+            // e.printStackTrace();
+            logger.info(
+                    "[NyxMode] config.ron unable to copy into sharedir");
+            logger.info("[NyxMode] Disabling Nyx Mode");
+            Config.getConf().nyxMode = false; // disable nyx
+        }
+        try {
+            FileUtils.copyFile(
+                    Paths.get("./", "nyx_mode", "packer", "packer",
+                            "linux_x86_64-userspace", "bin64", "hget_no_pt")
+                            .toFile(),
+                    Paths.get(libnyx.getSharedir(), "hget_no_pt")
+                            .toFile(),
+                    false);
+        } catch (IOException e) {
+            // e.printStackTrace();
+            logger.info(
+                    "[NyxMode] hget_no_pt unable to copy into sharedir");
+            logger.info("[NyxMode] Disabling Nyx Mode");
+            Config.getConf().nyxMode = false; // disable nyx
+        }
+        try {
+            FileUtils.copyFile(
+                    Paths.get("./", "nyx_mode", "packer", "packer",
+                            "linux_x86_64-userspace", "bin64", "hcat_no_pt")
+                            .toFile(),
+                    Paths.get(libnyx.getSharedir(), "hcat_no_pt")
+                            .toFile(),
+                    false);
+        } catch (IOException e) {
+            // e.printStackTrace();
+            logger.info(
+                    "[NyxMode] hget_no_pt unable to copy into sharedir");
+            logger.info("[NyxMode] Disabling Nyx Mode");
+            Config.getConf().nyxMode = false; // disable nyx
+        }
+        // Copy over C Agent and MiniClient.jar
+        try {
+            FileUtils.copyFile(
+                    new File("build/libs/c_agent"),
+                    Paths.get(libnyx.getSharedir(), "c_agent")
+                            .toFile(),
+                    false);
+            FileUtils.copyFile(
+                    new File(
+                            "build/libs/MiniClient.jar"),
+                    Paths.get(libnyx.getSharedir(), "MiniClient.jar")
+                            .toFile(),
+                    false);
+        } catch (IOException e) {
+            logger.info(
+                    "[NyxMode] unable to copy agent or MiniClient.jar into sharedir");
+            logger.info("[NyxMode] Disabling Nyx Mode");
+            Config.getConf().nyxMode = false; // disable nyx
+        }
+        return libnyx;
     }
 
     public void start() throws InterruptedException {
@@ -236,6 +245,25 @@ public class FuzzingClient {
         } else if (system.equals("hbase")) {
             return new HBaseExecutor(nodeNum, targetSystemStates,
                     configPath, 0);
+        }
+        throw new RuntimeException(String.format(
+                "System %s is not supported yet, supported system: cassandra, hdfs, hbase",
+                Config.getConf().system));
+    }
+
+    public static Executor initExecutor(int nodeNum,
+            Set<String> targetSystemStates,
+            Path configPath, int testDirection) {
+        String system = Config.getConf().system;
+        if (system.equals("cassandra")) {
+            return new CassandraExecutor(nodeNum, targetSystemStates,
+                    configPath, testDirection);
+        } else if (system.equals("hdfs")) {
+            return new HdfsExecutor(nodeNum, targetSystemStates,
+                    configPath, testDirection);
+        } else if (system.equals("hbase")) {
+            return new HBaseExecutor(nodeNum, targetSystemStates,
+                    configPath, testDirection);
         }
         throw new RuntimeException(String.format(
                 "System %s is not supported yet, supported system: cassandra, hdfs, hbase",
@@ -568,6 +596,198 @@ public class FuzzingClient {
         return stackedFeedbackPacket;
     }
 
+    public VersionDeltaFeedbackPacket executeStackedTestPacketVersionDelta(
+            StackedTestPacket stackedTestPacket) {
+        if (Config.getConf().nyxMode) {
+            return executeStackedTestPacketNyxVersionDelta(stackedTestPacket);
+        } else {
+            try {
+                return executeStackedTestPacketRegularVersionDelta(
+                        stackedTestPacket);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+    }
+
+    public VersionDeltaFeedbackPacket executeStackedTestPacketNyxVersionDelta(
+            StackedTestPacket stackedTestPacket) {
+        if (Config.getConf().debug) {
+            logger.info("Version delta testing for group: "
+                    + stackedTestPacket.clientGroupForVersionDelta);
+            logger.info("This client is in group: " + group);
+        }
+        if (stackedTestPacket.clientGroupForVersionDelta != group) {
+            logger.info("Not for this group of client");
+            return null;
+        } else {
+            Path configPath = Paths.get(configDirPath.toString(),
+                    stackedTestPacket.configFileName);
+            logger.info("[HKLOG] configPath = " + configPath);
+
+            boolean sameConfigAsLastTime = false;
+            if (this.previousConfigPath != null) {
+                sameConfigAsLastTime = isSameConfig(this.previousConfigPath,
+                        configPath);
+            }
+
+            Future<StackedFeedbackPacket> futureStackedFeedbackPacketUp = executorService
+                    .submit(new NyxStackedTestThread(0,
+                            stackedTestPacket, libnyx, configPath,
+                            previousConfigPath, sameConfigAsLastTime));
+            Future<StackedFeedbackPacket> futureStackedFeedbackPacketDown = executorService
+                    .submit(new NyxStackedTestThread(1,
+                            stackedTestPacket, libnyxSibling, configPath,
+                            previousConfigPath, sameConfigAsLastTime));
+
+            this.previousConfigPath = configPath;
+            // Retrieve results for operation 1
+            try {
+                StackedFeedbackPacket stackedFeedbackPacketUp = futureStackedFeedbackPacketUp
+                        .get();
+                StackedFeedbackPacket stackedFeedbackPacketDown = futureStackedFeedbackPacketDown
+                        .get();
+
+                ObjectCoverage curOriObjCoverage = stackedTestPacket.curOriObjCoverage;
+                ObjectCoverage curUpObjCoverage = stackedTestPacket.curUpObjCoverage;
+
+                VersionDeltaFeedbackPacket versionDeltaFeedbackPacket = new VersionDeltaFeedbackPacket(
+                        stackedTestPacket.configFileName,
+                        Utilities.extractTestIDs(stackedTestPacket), 0,
+                        stackedTestPacket.nodeNum);
+
+                // Process results for operations before version change
+                List<FeedbackPacket> fpListBeforeUpgrade = stackedFeedbackPacketUp
+                        .getFpList();
+                List<FeedbackPacket> fpListBeforeDowngrade = stackedFeedbackPacketDown
+                        .getFpList();
+
+                int feedbackLength = fpListBeforeUpgrade.size();
+                boolean inducedNewVersionDelta = false;
+                boolean inducedNewVersionDeltaCoverage = false;
+
+                for (int i = 0; i < feedbackLength; i++) {
+                    boolean newOldVersionBranchCoverage = false;
+                    boolean newNewVersionBranchCoverage = false;
+                    boolean newOldVersionFormatCoverage = false;
+                    boolean newNewVersionFormatCoverage = false;
+
+                    FeedbackPacket feedbackPacketOri = fpListBeforeUpgrade
+                            .get(i);
+                    FeedbackPacket feedbackPacketUp = fpListBeforeDowngrade
+                            .get(i);
+
+                    // Merge all the feedbacks
+                    FeedBack fbOri = mergeCoverage(feedbackPacketOri.feedBacks);
+                    FeedBack fbUp = mergeCoverage(feedbackPacketUp.feedBacks);
+
+                    if (Config.getConf().collectFormatCoverage) {
+                        if (feedbackPacketOri.formatCoverage != null) {
+                            if (curOriObjCoverage.merge(
+                                    feedbackPacketOri.formatCoverage,
+                                    feedbackPacketOri.testPacketID)) {
+                                // learned format is updated
+                                logger.info("New format!");
+                                // newFormatNum++;
+                                newOldVersionFormatCoverage = true;
+                            } else {
+                                logger.info("No new format in old version!");
+                            }
+                        } else {
+                            logger.info("Null format coverage");
+                        }
+
+                        if (feedbackPacketUp.formatCoverage != null) {
+                            if (curUpObjCoverage.merge(
+                                    feedbackPacketUp.formatCoverage,
+                                    feedbackPacketOri.testPacketID)) {
+                                // learned format is updated
+                                logger.info("New format!");
+                                // newFormatNum++;
+                                newNewVersionFormatCoverage = true;
+                            } else {
+                                logger.info("No new format!");
+                            }
+                        } else {
+                            logger.info("Null format coverage");
+                        }
+                    }
+                    // priority feature is disabled
+                    if (Utilities.hasNewBits(
+                            stackedTestPacket.curOriCoverage,
+                            fbOri.originalCodeCoverage)) {
+                        newOldVersionBranchCoverage = true;
+                    }
+                    if (Utilities.hasNewBits(stackedTestPacket.curUpCoverage,
+                            fbUp.originalCodeCoverage)) {
+                        newNewVersionBranchCoverage = true;
+                    }
+
+                    inducedNewVersionDelta = (newOldVersionBranchCoverage
+                            | newNewVersionBranchCoverage)
+                            | (newOldVersionFormatCoverage
+                                    | newNewVersionFormatCoverage);
+
+                    inducedNewVersionDeltaCoverage = (newOldVersionBranchCoverage
+                            ^ newNewVersionBranchCoverage)
+                            | (newOldVersionFormatCoverage
+                                    ^ newNewVersionFormatCoverage);
+
+                    if (inducedNewVersionDelta) {
+                        feedbackPacketOri.inducedNewVersionDeltaBeforeVersionChange = true;
+                        feedbackPacketUp.inducedNewVersionDeltaBeforeVersionChange = true;
+                        if (Config.getConf().versionDeltaApproach == 2) {
+                            versionDeltaFeedbackPacket
+                                    .addToTpList(stackedTestPacket
+                                            .getTestPacketList().get(i));
+                        }
+                    }
+
+                    if (inducedNewVersionDeltaCoverage) {
+                        if (Config.getConf().versionDeltaApproach == 2) {
+                            versionDeltaFeedbackPacket
+                                    .addToInducedTpList(stackedTestPacket
+                                            .getTestPacketList().get(i));
+                        }
+                    }
+                }
+
+                if (Config.getConf().debug) {
+                    logger.info(
+                            "New version delta induced: "
+                                    + inducedNewVersionDelta);
+                }
+
+                if (inducedNewVersionDeltaCoverage) {
+                    versionDeltaFeedbackPacket.inducedNewVersionDeltaCoverage = true;
+                }
+
+                if (group == 1) {
+                    versionDeltaFeedbackPacket.skippedUpgrade = true;
+                    versionDeltaFeedbackPacket.skippedDowngrade = true;
+                }
+                if (group == 2) {
+                    for (FeedbackPacket fp : stackedFeedbackPacketUp
+                            .getFpList())
+                        versionDeltaFeedbackPacket.addToFpList(fp, "up");
+
+                    for (FeedbackPacket fp : stackedFeedbackPacketDown
+                            .getFpList())
+                        versionDeltaFeedbackPacket.addToFpList(fp, "down");
+
+                    versionDeltaFeedbackPacket.fullSequence = stackedFeedbackPacketUp.fullSequence;
+                }
+                versionDeltaFeedbackPacket.clientGroup = group;
+                return versionDeltaFeedbackPacket;
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+    }
+
     /**
      * start the old version system, execute and count the coverage of all
      * test cases of stackedFeedbackPacket, perform an upgrade process, check
@@ -719,6 +939,7 @@ public class FuzzingClient {
 
             int feedbackLength = fpListBeforeUpgrade.size();
             boolean inducedNewVersionDelta = false;
+            boolean inducedNewVersionDeltaCoverage = false;
 
             ObjectCoverage curOriObjCoverage = stackedTestPacket.curOriObjCoverage;
             ObjectCoverage curUpObjCoverage = stackedTestPacket.curUpObjCoverage;
@@ -787,11 +1008,26 @@ public class FuzzingClient {
                         | newNewVersionBranchCoverage)
                         | (newOldVersionFormatCoverage
                                 | newNewVersionFormatCoverage);
+
+                inducedNewVersionDeltaCoverage = (newOldVersionBranchCoverage
+                        ^ newNewVersionBranchCoverage)
+                        | (newOldVersionFormatCoverage
+                                ^ newNewVersionFormatCoverage);
+
                 if (inducedNewVersionDelta) {
                     feedbackPacketOri.inducedNewVersionDeltaBeforeVersionChange = true;
+                    feedbackPacketUp.inducedNewVersionDeltaBeforeVersionChange = true;
                     if (Config.getConf().versionDeltaApproach == 2) {
                         versionDeltaFeedbackPacket
                                 .addToTpList(stackedTestPacket
+                                        .getTestPacketList().get(i));
+                    }
+                }
+
+                if (inducedNewVersionDeltaCoverage) {
+                    if (Config.getConf().versionDeltaApproach == 2) {
+                        versionDeltaFeedbackPacket
+                                .addToInducedTpList(stackedTestPacket
                                         .getTestPacketList().get(i));
                     }
                 }
@@ -800,6 +1036,10 @@ public class FuzzingClient {
             if (Config.getConf().debug) {
                 logger.info(
                         "New version delta induced: " + inducedNewVersionDelta);
+            }
+
+            if (inducedNewVersionDeltaCoverage) {
+                versionDeltaFeedbackPacket.inducedNewVersionDeltaCoverage = true;
             }
 
             // Signal threads to proceed with operation 2
@@ -867,8 +1107,6 @@ public class FuzzingClient {
                     e.printStackTrace();
                 }
 
-                System.out.println("Stacked Feedback Packet list size: "
-                        + stackedFeedbackPacketUp.getFpList().size());
                 for (FeedbackPacket fp : stackedFeedbackPacketUp.getFpList())
                     versionDeltaFeedbackPacket.addToFpList(fp, "up");
 
@@ -881,8 +1119,6 @@ public class FuzzingClient {
                     versionDeltaFeedbackPacket.skippedDowngrade = true;
                 }
                 versionDeltaFeedbackPacket.clientGroup = group;
-                logger.info("Set the group of versionDeltaFeedbackPacket as: "
-                        + versionDeltaFeedbackPacket.clientGroup);
                 decisionForVersionChange.set(0);
                 clearData();
                 return versionDeltaFeedbackPacket;

@@ -119,6 +119,7 @@ public class FuzzingServer {
     public static long lastTimePoint = 0;
     public BlockingQueue<StackedTestPacket> stackedTestPacketsQueueVersionDelta;
     public long startTime;
+    public long lastRoundIntroducingVersionDelta;
 
     ExecutionDataStore curOriCoverage;
     ExecutionDataStore curUpCoverage;
@@ -425,7 +426,9 @@ public class FuzzingServer {
             // stackedTestPackets)
             // configMutationEpoch*STACKED_TESTS_NUM = 1000 tests
 
-            if (configGen.enable) {
+            if (configGen.enable && (!(Config.getConf().useVersionDelta)
+                    || (round - lastRoundIntroducingVersionDelta > Config
+                            .getConf().limitConfigForVersionDeltaRound))) {
                 int configMutationEpoch;
                 if (firstMutationSeedNum < Config
                         .getConf().firstMutationSeedLimit)
@@ -1476,9 +1479,12 @@ public class FuzzingServer {
                     addToFormatCoverageCorpus = true;
                 }
             }
-            if (Config.getConf().useVersionDelta
-                    && (versionDeltaFeedbackPacketUp.inducedNewVersionDeltaBeforeVersionChange)) {
-                addToVersionDeltaCorpus = true;
+            if (Config.getConf().useVersionDelta) {
+                if (versionDeltaFeedbackPacket.inducedNewVersionDeltaCoverage == true) {
+                    addToVersionDeltaCorpus = true;
+                    newVersionDeltaCount++;
+                    lastRoundIntroducingVersionDelta = round;
+                }
             }
             System.out.println(versionDeltaFeedbackPacketUp.testPacketID);
             graph.updateNodeCoverage(versionDeltaFeedbackPacketUp.testPacketID,
@@ -1734,6 +1740,13 @@ public class FuzzingServer {
                     "FC index : "
                             + corpus.getIndex(
                                     Corpus.QueueType.FORMAT_COVERAGE));
+        }
+
+        if (Config.getConf().useVersionDelta
+                && (Config.getConf().versionDeltaChoiceProb > 0)) {
+            System.out.format("|%30s|%30s|\n",
+                    "version delta queue size : " + corpus.queues[2].size(),
+                    "new version delta count : " + newVersionDeltaCount);
         }
 
         if (Config.getConf().debug)

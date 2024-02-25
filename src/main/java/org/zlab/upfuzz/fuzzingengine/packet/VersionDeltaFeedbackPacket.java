@@ -20,6 +20,7 @@ public class VersionDeltaFeedbackPacket extends Packet implements Serializable {
     public final List<FeedbackPacket> fpListUpgrade;
     public final List<FeedbackPacket> fpListDowngrade;
     public final List<TestPacket> versionDeltaInducedTestPackets;
+    public final List<TestPacket> versionDeltaCoverageInducedTestPackets;
 
     // include all testIDs (either executed or not)
     // we should remove them from testID2Seed for oom problem
@@ -49,6 +50,8 @@ public class VersionDeltaFeedbackPacket extends Packet implements Serializable {
 
     public int clientGroup = 0;
 
+    public boolean inducedNewVersionDeltaCoverage = false;
+
     // public int nodeNum;
     // (1) Failed Upgrade Process: Report all command sequences
     // (2) Result Inconsistency: Report the target seed's inconsistency
@@ -63,6 +66,7 @@ public class VersionDeltaFeedbackPacket extends Packet implements Serializable {
         fpListUpgrade = new LinkedList<>();
         fpListDowngrade = new LinkedList<>();
         versionDeltaInducedTestPackets = new LinkedList<>();
+        versionDeltaCoverageInducedTestPackets = new LinkedList<>();
     }
 
     public VersionDeltaFeedbackPacket(String configFileName,
@@ -73,6 +77,7 @@ public class VersionDeltaFeedbackPacket extends Packet implements Serializable {
         fpListUpgrade = new LinkedList<>();
         fpListDowngrade = new LinkedList<>();
         versionDeltaInducedTestPackets = new LinkedList<>();
+        versionDeltaCoverageInducedTestPackets = new LinkedList<>();
     }
 
     public void addToFpList(FeedbackPacket fp, String choice) {
@@ -84,6 +89,10 @@ public class VersionDeltaFeedbackPacket extends Packet implements Serializable {
 
     public void addToTpList(TestPacket tp) {
         versionDeltaInducedTestPackets.add(tp);
+    }
+
+    public void addToInducedTpList(TestPacket tp) {
+        versionDeltaCoverageInducedTestPackets.add(tp);
     }
 
     public List<FeedbackPacket> getFpList(String choice) {
@@ -119,5 +128,4 @@ public class VersionDeltaFeedbackPacket extends Packet implements Serializable {
         }
         return null;
     }
-
 }
