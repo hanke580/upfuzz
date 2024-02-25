@@ -617,19 +617,24 @@ public class FuzzingClient {
     }
 
     public VersionDeltaFeedbackPacket executeStackedTestPacketNyxVersionDelta(
-            StackedTestPacket stackedTestPacket) {
+            StackedTestPacket stackedTestPacketUnser) {
         if (Config.getConf().debug) {
             logger.info("Version delta testing for group: "
-                    + stackedTestPacket.clientGroupForVersionDelta);
+                    + stackedTestPacketUnser.clientGroupForVersionDelta);
             logger.info("This client is in group: " + group);
         }
-        if (stackedTestPacket.clientGroupForVersionDelta != group) {
+        if (stackedTestPacketUnser.clientGroupForVersionDelta != group) {
             logger.info("Not for this group of client");
             return null;
         } else {
             Path configPath = Paths.get(configDirPath.toString(),
-                    stackedTestPacket.configFileName);
+                    stackedTestPacketUnser.configFileName);
             logger.info("[HKLOG] configPath = " + configPath);
+
+            StackedTestPacketSerializable stackedTestPacket = new StackedTestPacketSerializable(
+                    stackedTestPacketUnser.nodeNum,
+                    stackedTestPacketUnser.configFileName,
+                    stackedTestPacketUnser.getTestPacketList(), group);
 
             boolean sameConfigAsLastTime = false;
             if (this.previousConfigPath != null) {
@@ -658,8 +663,8 @@ public class FuzzingClient {
                 StackedFeedbackPacket stackedFeedbackPacketDown = futureStackedFeedbackPacketDown
                         .get();
 
-                ObjectCoverage curOriObjCoverage = stackedTestPacket.curOriObjCoverage;
-                ObjectCoverage curUpObjCoverage = stackedTestPacket.curUpObjCoverage;
+                ObjectCoverage curOriObjCoverage = stackedTestPacketUnser.curOriObjCoverage;
+                ObjectCoverage curUpObjCoverage = stackedTestPacketUnser.curUpObjCoverage;
 
                 VersionDeltaFeedbackPacket versionDeltaFeedbackPacket = new VersionDeltaFeedbackPacket(
                         stackedTestPacket.configFileName,
@@ -724,11 +729,12 @@ public class FuzzingClient {
                     }
                     // priority feature is disabled
                     if (Utilities.hasNewBits(
-                            stackedTestPacket.curOriCoverage,
+                            stackedTestPacketUnser.curOriCoverage,
                             fbOri.originalCodeCoverage)) {
                         newOldVersionBranchCoverage = true;
                     }
-                    if (Utilities.hasNewBits(stackedTestPacket.curUpCoverage,
+                    if (Utilities.hasNewBits(
+                            stackedTestPacketUnser.curUpCoverage,
                             fbUp.originalCodeCoverage)) {
                         newNewVersionBranchCoverage = true;
                     }
@@ -804,11 +810,15 @@ public class FuzzingClient {
      * @param stackedTestPacket the stacked test packets from server
      */
     public StackedFeedbackPacket executeStackedTestPacketRegular(
-            StackedTestPacket stackedTestPacket) {
+            StackedTestPacket stackedTestPacketUnser) {
         Path configPath = Paths.get(configDirPath.toString(),
-                stackedTestPacket.configFileName);
+                stackedTestPacketUnser.configFileName);
         logger.info("[HKLOG] configPath = " + configPath);
 
+        StackedTestPacketSerializable stackedTestPacket = new StackedTestPacketSerializable(
+                stackedTestPacketUnser.nodeNum,
+                stackedTestPacketUnser.configFileName,
+                stackedTestPacketUnser.getTestPacketList(), group);
         // config verification
         if (Config.getConf().verifyConfig) {
             boolean validConfig = verifyConfig(configPath);
@@ -881,21 +891,26 @@ public class FuzzingClient {
     }
 
     public VersionDeltaFeedbackPacket executeStackedTestPacketRegularVersionDelta(
-            StackedTestPacket stackedTestPacket) throws InterruptedException {
+            StackedTestPacket stackedTestPacketUnser)
+            throws InterruptedException {
 
         if (Config.getConf().debug) {
             logger.info("Version delta testing for group: "
-                    + stackedTestPacket.clientGroupForVersionDelta);
+                    + stackedTestPacketUnser.clientGroupForVersionDelta);
             logger.info("This client is in group: " + group);
         }
-        if (stackedTestPacket.clientGroupForVersionDelta != group) {
+        if (stackedTestPacketUnser.clientGroupForVersionDelta != group) {
             logger.info("Not for this group of client");
             return null;
         } else {
             Path configPath = Paths.get(configDirPath.toString(),
-                    stackedTestPacket.configFileName);
+                    stackedTestPacketUnser.configFileName);
             logger.info("[HKLOG] configPath = " + configPath);
 
+            StackedTestPacketSerializable stackedTestPacket = new StackedTestPacketSerializable(
+                    stackedTestPacketUnser.nodeNum,
+                    stackedTestPacketUnser.configFileName,
+                    stackedTestPacketUnser.getTestPacketList(), group);
             // config verification
             if (Config.getConf().verifyConfig) {
                 boolean validConfig = verifyConfig(configPath);
@@ -950,8 +965,8 @@ public class FuzzingClient {
             boolean inducedNewVersionDelta = false;
             boolean inducedNewVersionDeltaCoverage = false;
 
-            ObjectCoverage curOriObjCoverage = stackedTestPacket.curOriObjCoverage;
-            ObjectCoverage curUpObjCoverage = stackedTestPacket.curUpObjCoverage;
+            ObjectCoverage curOriObjCoverage = stackedTestPacketUnser.curOriObjCoverage;
+            ObjectCoverage curUpObjCoverage = stackedTestPacketUnser.curUpObjCoverage;
 
             VersionDeltaFeedbackPacket versionDeltaFeedbackPacket = new VersionDeltaFeedbackPacket(
                     stackedTestPacket.configFileName,
@@ -1004,11 +1019,11 @@ public class FuzzingClient {
                 }
                 // priority feature is disabled
                 if (Utilities.hasNewBits(
-                        stackedTestPacket.curOriCoverage,
+                        stackedTestPacketUnser.curOriCoverage,
                         fbOri.originalCodeCoverage)) {
                     newOldVersionBranchCoverage = true;
                 }
-                if (Utilities.hasNewBits(stackedTestPacket.curUpCoverage,
+                if (Utilities.hasNewBits(stackedTestPacketUnser.curUpCoverage,
                         fbUp.originalCodeCoverage)) {
                     newNewVersionBranchCoverage = true;
                 }
@@ -1783,9 +1798,13 @@ public class FuzzingClient {
     public MixedFeedbackPacket executeMixedTestPacket(
             MixedTestPacket mixedTestPacket) {
 
-        StackedTestPacket stackedTestPacket = mixedTestPacket.stackedTestPacket;
+        StackedTestPacket stackedTestPacketUnser = mixedTestPacket.stackedTestPacket;
         TestPlanPacket testPlanPacket = mixedTestPacket.testPlanPacket;
 
+        StackedTestPacketSerializable stackedTestPacket = new StackedTestPacketSerializable(
+                stackedTestPacketUnser.nodeNum,
+                stackedTestPacketUnser.configFileName,
+                stackedTestPacketUnser.getTestPacketList(), group);
         String testPlanPacketStr = recordTestPlanPacket(testPlanPacket);
         String mixedTestPacketStr = recordMixedTestPacket(mixedTestPacket);
 
@@ -2078,7 +2097,7 @@ public class FuzzingClient {
     }
 
     public static String recordStackedTestPacket(
-            StackedTestPacket stackedTestPacket) {
+            StackedTestPacketSerializable stackedTestPacket) {
         StringBuilder sb = new StringBuilder();
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             for (String cmdStr : tp.originalCommandSequenceList) {
@@ -2106,7 +2125,11 @@ public class FuzzingClient {
     private String recordMixedTestPacket(MixedTestPacket mixedTestPacket) {
         return recordTestPlanPacket(mixedTestPacket.testPlanPacket) +
                 "\n" +
-                recordStackedTestPacket(mixedTestPacket.stackedTestPacket);
+                recordStackedTestPacket(new StackedTestPacketSerializable(
+                        mixedTestPacket.stackedTestPacket.nodeNum,
+                        mixedTestPacket.stackedTestPacket.configFileName,
+                        mixedTestPacket.stackedTestPacket.getTestPacketList(),
+                        group));
     }
 
     public static String recordSingleTestPacket(TestPacket tp) {

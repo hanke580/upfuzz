@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
 import org.zlab.upfuzz.Parameter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -30,6 +32,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacket;
+import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacketSerializable;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPacket;
 
 public class Utilities {
@@ -173,7 +176,9 @@ public class Utilities {
             throws IOException {
         FileOutputStream fos = new FileOutputStream(file);
         ObjectOutputStream oos = new ObjectOutputStream(fos);
+        logger.info("Got serializable object? " + obj instanceof Serializable);
         oos.writeObject(obj);
+        logger.info(true);
         oos.close();
         fos.close();
     }
@@ -724,7 +729,7 @@ public class Utilities {
     }
 
     public static List<Integer> extractTestIDs(
-            StackedTestPacket stackedTestPacket) {
+            StackedTestPacketSerializable stackedTestPacket) {
         List<Integer> testIDs = new LinkedList<>();
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             testIDs.add(tp.testPacketID);
