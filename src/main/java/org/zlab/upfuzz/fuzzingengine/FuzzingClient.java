@@ -632,13 +632,16 @@ public class FuzzingClient {
                         configPath);
             }
 
+            StackedTestPacketSerializable stackedTestPacketSer = new StackedTestPacketSerializable(
+                    stackedTestPacket.nodeNum, stackedTestPacket.configFileName,
+                    stackedTestPacket.getTestPacketList(), group);
             Future<StackedFeedbackPacket> futureStackedFeedbackPacketUp = executorService
                     .submit(new NyxStackedTestThread(0,
-                            stackedTestPacket, libnyx, configPath,
+                            stackedTestPacketSer, libnyx, configPath,
                             previousConfigPath, sameConfigAsLastTime));
             Future<StackedFeedbackPacket> futureStackedFeedbackPacketDown = executorService
                     .submit(new NyxStackedTestThread(1,
-                            stackedTestPacket, libnyxSibling, configPath,
+                            stackedTestPacketSer, libnyxSibling, configPath,
                             previousConfigPath, sameConfigAsLastTime));
 
             this.previousConfigPath = configPath;
@@ -654,7 +657,7 @@ public class FuzzingClient {
 
                 VersionDeltaFeedbackPacket versionDeltaFeedbackPacket = new VersionDeltaFeedbackPacket(
                         stackedTestPacket.configFileName,
-                        Utilities.extractTestIDs(stackedTestPacket), 0,
+                        Utilities.extractTestIDs(stackedTestPacket), group,
                         stackedTestPacket.nodeNum);
 
                 // Process results for operations before version change
