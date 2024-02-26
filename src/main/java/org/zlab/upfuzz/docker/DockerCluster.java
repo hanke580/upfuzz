@@ -167,24 +167,28 @@ public abstract class DockerCluster implements IDockerCluster {
         Process buildProcess = null;
         int retry = 3, ret = -1;
 
+        System.err.println("Entering retry loop");
         for (int i = 0; i < retry; ++i) {
-            logger.info("Retry: " + i);
+            System.err.println("Retry: " + i);
             try {
                 BufferedWriter writer = new BufferedWriter(
                         new FileWriter(composeFile));
 
-                logger.info("writer on: " + composeFile);
+                System.err.println("writer on: " + composeFile);
                 formatComposeYaml();
                 composeFile.createNewFile();
-                logger.info(workdir);
-                logger.info("\n\n compose yaml \n" + composeYaml + "\n\n");
+                System.err.println(workdir);
+                System.err
+                        .println("\n\n compose yaml \n" + composeYaml + "\n\n");
                 writer.write(composeYaml);
                 writer.close();
 
+                System.err.println("Going to run docker compose up");
                 buildProcess = Utilities.exec(
                         new String[] { "docker", "compose", "up", "-d" },
                         workdir);
                 ret = buildProcess.waitFor();
+                System.err.println("docker compose up returned: " + ret);
                 if (ret == 0) {
                     logger.info("docker compose up " + workdir);
                     break;
