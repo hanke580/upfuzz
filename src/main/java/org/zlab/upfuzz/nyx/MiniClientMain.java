@@ -30,7 +30,7 @@ import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.packet.FeedbackPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.StackedFeedbackPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacket;
-import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacketSerializable;
+// import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacketSerializable;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPlanPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPlanFeedbackPacket;
@@ -51,7 +51,7 @@ public class MiniClientMain {
     static final String workdir = "/miniClientWorkdir";
 
     // If the cluster startup fails 3 times, then give up
-    static final int CLUSTER_START_RETRY = 1;
+    static final int CLUSTER_START_RETRY = 3;
 
     static int testType;
     static int testDirection = 0;
@@ -122,8 +122,8 @@ public class MiniClientMain {
         Path defaultStackedTestPath, defaultConfigPath, defaultTestPlanPath,
                 stackedTestPath, testPlanPath;
         Path stackedFeedbackPath, testPlanFeedbackPath;
-        StackedTestPacketSerializable defaultStackedTestPacket;
-        StackedTestPacketSerializable stackedTestPacket;
+        StackedTestPacket defaultStackedTestPacket;
+        StackedTestPacket stackedTestPacket;
         TestPlanPacket defaultTestPlanPacket;
         TestPlanPacket testPlanPacket;
         StackedFeedbackPacket stackedFeedbackPacket;
@@ -166,7 +166,7 @@ public class MiniClientMain {
         }
         try { // if any of these catches go through we have a big problem
             if (testType == 0) {
-                defaultStackedTestPacket = (StackedTestPacketSerializable) Utilities
+                defaultStackedTestPacket = (StackedTestPacket) Utilities
                         .readObjectFromFile(defaultTestPath.toFile());
                 if (!Config.getConf().useVersionDelta) {
                     executor = FuzzingClient.initExecutor(
@@ -272,7 +272,7 @@ public class MiniClientMain {
             stackedTestPath = Paths.get(workdir,
                     "mainStackedTestPacket.ser"); // "/miniClientWorkdir/mainStackedTestPacket.ser"
             try { // if any of these catches go through we have a big problem
-                stackedTestPacket = (StackedTestPacketSerializable) Utilities
+                stackedTestPacket = (StackedTestPacket) Utilities
                         .readObjectFromFile(stackedTestPath.toFile());
             } catch (ClassNotFoundException | IOException
                     | ClassCastException e) {
@@ -426,7 +426,7 @@ public class MiniClientMain {
 
     public static StackedFeedbackPacket runTheTestsBeforeChangingVersion(
             Executor executor,
-            StackedTestPacketSerializable stackedTestPacket, int direction) {
+            StackedTestPacket stackedTestPacket, int direction) {
 
         // if the middle of test has already broken an invariant
         // we stop executing.
@@ -527,7 +527,7 @@ public class MiniClientMain {
 
     public static StackedFeedbackPacket changeVersionAndRunTheTests(
             Executor executor,
-            StackedTestPacketSerializable stackedTestPacket, int direction,
+            StackedTestPacket stackedTestPacket, int direction,
             StackedFeedbackPacket stackedFeedbackPacket) {
 
         Map<Integer, List<String>> testID2upResults = new HashMap<>();
@@ -683,7 +683,7 @@ public class MiniClientMain {
     }
 
     public static StackedFeedbackPacket runTheTests(Executor executor,
-            StackedTestPacketSerializable stackedTestPacket, int direction) {
+            StackedTestPacket stackedTestPacket, int direction) {
         Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();
         Map<Integer, List<String>> testID2oriResults = new HashMap<>();
         Map<Integer, List<String>> testID2upResults = new HashMap<>();

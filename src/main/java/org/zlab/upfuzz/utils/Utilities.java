@@ -32,7 +32,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacket;
-import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacketSerializable;
+// import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacketSerializable;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPacket;
 
 public class Utilities {
@@ -791,7 +791,7 @@ public class Utilities {
     }
 
     public static List<Integer> extractTestIDs(
-            StackedTestPacketSerializable stackedTestPacket) {
+            StackedTestPacket stackedTestPacket) {
         List<Integer> testIDs = new LinkedList<>();
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             testIDs.add(tp.testPacketID);

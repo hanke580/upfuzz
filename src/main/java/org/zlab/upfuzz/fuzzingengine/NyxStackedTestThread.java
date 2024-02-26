@@ -34,7 +34,7 @@ class NyxStackedTestThread implements Callable<StackedFeedbackPacket> {
 
     private StackedFeedbackPacket stackedFeedbackPacket;
     private final int direction;
-    private final StackedTestPacketSerializable stackedTestPacket;
+    private final StackedTestPacket stackedTestPacket;
     private Path configPath;
     private Path previousConfigPath;
     private LibnyxInterface libnyx;
@@ -47,7 +47,7 @@ class NyxStackedTestThread implements Callable<StackedFeedbackPacket> {
     int CLUSTER_START_RETRY = 3; // stop retry for now
 
     public NyxStackedTestThread(int direction,
-            StackedTestPacketSerializable stackedTestPacket,
+            StackedTestPacket stackedTestPacket,
             LibnyxInterface libnyx,
             Path configPath, Path previousConfigPath,
             boolean sameConfigAsLastTime) {

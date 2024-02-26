@@ -26,10 +26,10 @@ public class StackedTestPacket extends Packet implements Serializable {
     public int nodeNum;
     public String configFileName;
     private List<TestPacket> tpList;
-    public ExecutionDataStore curOriCoverage;
-    public ExecutionDataStore curUpCoverage;
-    public ObjectCoverage curOriObjCoverage;
-    public ObjectCoverage curUpObjCoverage;
+    public transient ExecutionDataStore curOriCoverage;
+    public transient ExecutionDataStore curUpCoverage;
+    public transient ObjectCoverage curOriObjCoverage;
+    public transient ObjectCoverage curUpObjCoverage;
     public int clientGroupForVersionDelta;
 
     public StackedTestPacket(int nodeNum, String configFileName) {
