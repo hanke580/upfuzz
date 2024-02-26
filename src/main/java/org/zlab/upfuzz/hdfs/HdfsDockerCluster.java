@@ -56,7 +56,7 @@ public class HdfsDockerCluster extends DockerCluster {
     @Override
     public void refreshNetwork() {
         this.subnetID = RandomUtils.nextInt(1, 256);
-        this.subnet = "192.168." + Integer.toString(subnetID) + ".1/24";
+        this.subnet = "192.168." + Integer.toString(subnetID) + ".0/24";
         this.hostIP = "192.168." + Integer.toString(subnetID) + ".1";
         this.namenodeIP = DockerCluster.getKthIP(hostIP, 0);
         try {
