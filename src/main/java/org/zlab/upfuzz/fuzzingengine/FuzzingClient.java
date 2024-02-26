@@ -49,7 +49,8 @@ public class FuzzingClient {
     public int group;
     private LibnyxInterface libnyx = null;
     private LibnyxInterface libnyxSibling = null;
-    private ExecutorService executorService = Executors.newFixedThreadPool(20);
+    // private ExecutorService executorService =
+    // Executors.newFixedThreadPool(20);
     // If the cluster cannot start up for 3 times, it's serious
     int CLUSTER_START_RETRY = 3; // stop retry for now
 
@@ -627,6 +628,7 @@ public class FuzzingClient {
             logger.info("Not for this group of client");
             return null;
         } else {
+            ExecutorService executorService = Executors.newFixedThreadPool(20);
             Path configPath = Paths.get(configDirPath.toString(),
                     stackedTestPacketUnser.configFileName);
             logger.info("[HKLOG] configPath = " + configPath);
@@ -794,6 +796,7 @@ public class FuzzingClient {
                     versionDeltaFeedbackPacket.fullSequence = stackedFeedbackPacketUp.fullSequence;
                 }
                 versionDeltaFeedbackPacket.clientGroup = group;
+                executorService.shutdown();
                 return versionDeltaFeedbackPacket;
 
             } catch (Exception e) {
@@ -903,6 +906,7 @@ public class FuzzingClient {
             logger.info("Not for this group of client");
             return null;
         } else {
+            ExecutorService executorService = Executors.newFixedThreadPool(20);
             Path configPath = Paths.get(configDirPath.toString(),
                     stackedTestPacketUnser.configFileName);
             logger.info("[HKLOG] configPath = " + configPath);
@@ -1106,6 +1110,7 @@ public class FuzzingClient {
                 versionDeltaFeedbackPacket.clientGroup = 0;
                 decisionForVersionChange.set(0);
                 clearData();
+                executorService.shutdown();
                 return versionDeltaFeedbackPacket;
             } else {
                 logger.info(
@@ -1145,6 +1150,7 @@ public class FuzzingClient {
                 versionDeltaFeedbackPacket.clientGroup = group;
                 decisionForVersionChange.set(0);
                 clearData();
+                executorService.shutdown();
                 return versionDeltaFeedbackPacket;
             }
         }
