@@ -168,10 +168,12 @@ public abstract class DockerCluster implements IDockerCluster {
         int retry = 3, ret = -1;
 
         for (int i = 0; i < retry; ++i) {
+            logger.info("Retry: " + i);
             try {
                 BufferedWriter writer = new BufferedWriter(
                         new FileWriter(composeFile));
 
+                logger.info("writer on: " + composeFile);
                 formatComposeYaml();
                 composeFile.createNewFile();
                 logger.info(workdir);

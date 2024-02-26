@@ -51,7 +51,7 @@ public class MiniClientMain {
     static final String workdir = "/miniClientWorkdir";
 
     // If the cluster startup fails 3 times, then give up
-    static final int CLUSTER_START_RETRY = 3;
+    static final int CLUSTER_START_RETRY = 1;
 
     static int testType;
     static int testDirection = 0;

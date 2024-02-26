@@ -22,7 +22,8 @@ import org.zlab.ocov.tracker.ObjectCoverage;
 // between them for acceleration
 public class StackedTestPacketSerializable extends Packet
         implements Serializable {
-    static Logger logger = LogManager.getLogger(StackedTestPacket.class);
+    static Logger logger = LogManager
+            .getLogger(StackedTestPacketSerializable.class);
 
     public int nodeNum;
     public String configFileName;
