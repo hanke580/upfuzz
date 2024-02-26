@@ -19,7 +19,7 @@ class RegularStackedTestThread implements Callable<StackedFeedbackPacket> {
     private StackedFeedbackPacket stackedFeedbackPacket;
     private final Executor executor;
     private final int direction;
-    private final StackedTestPacketSerializable stackedTestPacket;
+    private final StackedTestPacket stackedTestPacket;
     private AtomicInteger decision; // Shared decision variable
     private BlockingQueue<StackedFeedbackPacket> feedbackPacketQueueBeforeVersionChange;
 
@@ -27,7 +27,7 @@ class RegularStackedTestThread implements Callable<StackedFeedbackPacket> {
     int CLUSTER_START_RETRY = 3; // stop retry for now
 
     public RegularStackedTestThread(Executor executor, int direction,
-            StackedTestPacketSerializable stackedTestPacket,
+            StackedTestPacket stackedTestPacket,
             AtomicInteger decision,
             BlockingQueue<StackedFeedbackPacket> feedbackPacketQueueBeforeVersionChange) {
         this.executor = executor;
