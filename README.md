@@ -186,6 +186,49 @@ bin/cass_cl.sh
 # python3 proc_failure.py cassandra &> /dev/null | python3 proc_failure.py read
 ```
 
+### Test version delta process
+```bash
+git clone git@github.com:zlab-purdue/upfuzz.git
+cd upfuzz
+git checkout feature/version_delta
+export UPFUZZ_DIR=$PWD
+export ORI_VERSION=3.11.15
+export UP_VERSION=4.1.3
+
+mkdir -p "$UPFUZZ_DIR"/prebuild/cassandra
+cd prebuild/cassandra
+wget https://archive.apache.org/dist/cassandra/"$ORI_VERSION"/apache-cassandra-"$ORI_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$ORI_VERSION"-bin.tar.gz
+wget https://archive.apache.org/dist/cassandra/"$UP_VERSION"/apache-cassandra-"$UP_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$UP_VERSION"-bin.tar.gz
+sed -i 's/num_tokens: 16/num_tokens: 256/' apache-cassandra-"$UP_VERSION"/conf/cassandra.yaml
+
+cd ${UPFUZZ_DIR}
+cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
+cp src/main/resources/cqlsh_daemon3_4.0.5_4.1.0.py  prebuild/cassandra/apache-cassandra-"$UP_VERSION"/bin/cqlsh_daemon.py
+
+cd src/main/resources/cassandra/normal/compile-src/
+docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"_apache-cassandra-"$UP_VERSION"
+
+# modify the cassandra-clusternode.sh file: set ORG_VERSION = 4.1.3, UPG_VERSION=3.11.15
+docker build . -t upfuzz_cassandra:apache-cassandra-"$UP_VERSION"_apache-cassandra-"$ORI_VERSION"
+
+cd ${UPFUZZ_DIR}
+./gradlew copyDependencies
+./gradlew :spotlessApply build
+
+# open terminal1: start server
+bin/start_server.sh config.json
+# open terminal2: start two groups of agents: 3 agents in group 1, 2 agents in group 2
+bin/start_version_delta_clients.sh 3 2 config.json
+
+# stop testing:
+bin/cass_cl.sh 3.11.15 4.1.3
+bin/cass_cl.sh 4.1.3 3.11.15
+
+# Check failures
+# python3 proc_failure.py cassandra &> /dev/null | python3 proc_failure.py read
+```
+
+
 ## Minimal Set up for HDFS (Try upfuzz quickly!)
 Requirement: jdk8, jdk11, docker (Docker version 23.0.1, build a5ee5b1)
 > - Not test configurations.
