@@ -654,6 +654,13 @@ public class FuzzingClient {
                 sameConfigAsLastTime = isSameConfig(this.previousConfigPath,
                         configPath);
             }
+            String threadIdGroup = "group" + group + "_"
+                    + String.valueOf(Thread.currentThread().getId());
+            long startTimeVersionDeltaExecution = System.currentTimeMillis();
+            if (Config.getConf().debug) {
+                logger.info("[HKLOG: profiler] " + threadIdGroup + ": group "
+                        + group + ": (nyx mode) started version delta execution");
+            }
 
             Future<StackedFeedbackPacket> futureStackedFeedbackPacketUp = executorService
                     .submit(new NyxStackedTestThread(0,
@@ -711,7 +718,6 @@ public class FuzzingClient {
                 }
                 versionDeltaFeedbackPacket.clientGroup = group;
                 executorService.shutdown();
-
                 return versionDeltaFeedbackPacket;
 
             } catch (Exception e) {
