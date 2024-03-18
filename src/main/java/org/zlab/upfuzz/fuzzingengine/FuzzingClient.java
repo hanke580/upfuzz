@@ -645,6 +645,13 @@ public class FuzzingClient {
                 sameConfigAsLastTime = isSameConfig(this.previousConfigPath,
                         configPath);
             }
+            String threadIdGroup = "group" + group + "_"
+                    + String.valueOf(Thread.currentThread().getId());
+            long startTimeVersionDeltaExecution = System.currentTimeMillis();
+            if (Config.getConf().debug) {
+                logger.info("[HKLOG: profiler] " + threadIdGroup + ": group "
+                        + group + ": (nyx mode) started version delta execution");
+            }
 
             // StackedTestPacketSerializable stackedTestPacketSer = new
             // StackedTestPacketSerializable(
@@ -800,6 +807,13 @@ public class FuzzingClient {
                 }
                 versionDeltaFeedbackPacket.clientGroup = group;
                 executorService.shutdown();
+                if (Config.getConf().debug) {
+                    logger.info("[HKLOG: profiler] " + threadIdGroup
+                            + ": group " + group
+                            + ": (nyx mode) finished version delta execution, time spent: "
+                            + (System.currentTimeMillis()
+                                    - startTimeVersionDeltaExecution));
+                }
                 return versionDeltaFeedbackPacket;
 
             } catch (Exception e) {
@@ -935,6 +949,14 @@ public class FuzzingClient {
             }
             Executor[] executors = initExecutorVersionDelta(
                     stackedTestPacket.nodeNum, null, configPath);
+
+            String threadIdGroup = "group" + group + "_"
+                    + String.valueOf(Thread.currentThread().getId());
+            long startTimeVersionDeltaExecution = System.currentTimeMillis();
+            if (Config.getConf().debug) {
+                logger.info("[HKLOG: profiler] " + threadIdGroup + ": group "
+                        + group + ": started version delta execution");
+            }
 
             BlockingQueue<StackedFeedbackPacket> feedbackPacketQueueBeforeVersionChange = new LinkedBlockingQueue<>();
             AtomicInteger decisionForVersionChange = new AtomicInteger(0); // 0:
@@ -1122,6 +1144,12 @@ public class FuzzingClient {
                         "[HKLOG] Using the second approach for version delta");
                 if (group == 1) {
                     decisionForVersionChange.set(2);
+                    // if (Config.getConf().debug) {
+                    // logger.info("[HKLOG: profiler] "+ threadIdGroup + ":
+                    // group " + group + ": finished version delta execution,
+                    // time spent: " + (System.currentTimeMillis() -
+                    // startTimeVersionDeltaExecution));
+                    // }
                 } else {
                     decisionForVersionChange.set(1);
                 }
@@ -1156,6 +1184,13 @@ public class FuzzingClient {
                 decisionForVersionChange.set(0);
                 clearData();
                 executorService.shutdown();
+                if (Config.getConf().debug) {
+                    logger.info("[HKLOG: profiler] " + threadIdGroup
+                            + ": group " + group
+                            + ": finished version delta execution, time spent: "
+                            + (System.currentTimeMillis()
+                                    - startTimeVersionDeltaExecution));
+                }
                 return versionDeltaFeedbackPacket;
             }
         }
