@@ -271,9 +271,13 @@ public class CassandraDocker extends Docker {
 
         String pythonVersion = "python2";
         logger.info("Downgrading from original version: " + originalVersion);
+<<<<<<< HEAD
         String[] spStrings = (!Config.getConf().useVersionDelta)
                 ? originalVersion.split("-")
                 : upgradedVersion.split("-");
+=======
+        String[] spStrings = (!Config.getConf().useVersionDelta) ? originalVersion.split("-") : upgradedVersion.split("-");
+>>>>>>> ae6871a (version delta downgrade fixed)
         try {
             int main_version = Integer
                     .parseInt(spStrings[spStrings.length - 1].substring(0, 1));
@@ -312,7 +316,7 @@ public class CassandraDocker extends Docker {
         logger.debug("downgrade version start: " + ret + "\n" + message);
         cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort, this);
     }
-
+    
     public boolean invChecker() throws IOException, InterruptedException {
         // use daikon checker to monitor invariants
         String checkInvCmd = "java -cp /daikon.jar daikon.tools.InvariantChecker --verbose --output /broken_inv /targetInv.inv.gz /CassandraDaemon.dtrace.gz";
