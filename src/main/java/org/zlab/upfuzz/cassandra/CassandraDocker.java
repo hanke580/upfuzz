@@ -248,8 +248,15 @@ public class CassandraDocker extends Docker {
     @Override
     public void downgrade() throws Exception {
         type = "original";
-        String cassandraHome = "/cassandra/" + originalVersion;
-        String cassandraConf = "/etc/" + originalVersion;
+        String cassandraHome;
+        String cassandraConf;
+        if (!Config.getConf().useVersionDelta) {
+            cassandraHome = "/cassandra/" + originalVersion;
+            cassandraConf = "/etc/" + originalVersion;
+        } else {
+            cassandraHome = "/cassandra/" + upgradedVersion;
+            cassandraConf = "/etc/" + upgradedVersion;
+        }
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"
                 + "/org.jacoco.agent.rt.jar"
                 + "=append=false"
@@ -263,7 +270,7 @@ public class CassandraDocker extends Docker {
 
         String pythonVersion = "python2";
         logger.info("Downgrading from original version: " + originalVersion);
-        String[] spStrings = originalVersion.split("-");
+        String[] spStrings = (!Config.getConf().useVersionDelta) ? originalVersion.split("-") : upgradedVersion.split("-");
         try {
             int main_version = Integer
                     .parseInt(spStrings[spStrings.length - 1].substring(0, 1));
@@ -280,10 +287,21 @@ public class CassandraDocker extends Docker {
                 "CQLSH_DAEMON_PORT=\"" + cqlshDaemonPort + "\"",
                 "PYTHON=" + pythonVersion };
 
+        logger.info("[HKLOG] Calling from CassandraDocker.downgrade");
         setEnvironment();
 
+        String removeCassandraLibCommand = "rm -R /var/lib/cassandra";
         String restartCommand = "supervisorctl restart upfuzz_cassandra:";
         // TODO remove the env arguments, we already have /usr/bin/set_env
+        if (Integer.parseInt(
+                spStrings[spStrings.length - 1].substring(0, 1)) == 2) {
+            Process removeCassandraLib = runInContainer(
+                    new String[] { "/bin/bash", "-c",
+                            removeCassandraLibCommand });
+            removeCassandraLib.waitFor();
+            logger.info(
+                    "[HKLOG] /var/lib/cassandra removed successfully, now the daemon should start");
+        }
         Process restart = runInContainer(
                 new String[] { "/bin/bash", "-c", restartCommand }, env);
         int ret = restart.waitFor();
@@ -291,7 +309,7 @@ public class CassandraDocker extends Docker {
         logger.debug("downgrade version start: " + ret + "\n" + message);
         cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort, this);
     }
-
+    
     public boolean invChecker() throws IOException, InterruptedException {
         // use daikon checker to monitor invariants
         String checkInvCmd = "java -cp /daikon.jar daikon.tools.InvariantChecker --verbose --output /broken_inv /targetInv.inv.gz /CassandraDaemon.dtrace.gz";
