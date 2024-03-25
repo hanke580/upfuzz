@@ -209,7 +209,7 @@ public class Config {
          */
         // == cassandra ==
         public boolean eval_CASSANDRA13939 = false;
-        public boolean eval_CASSANDRA14912 = false;
+        public boolean eval_CASSANDRA14912 = true;
         public int CASSANDRA_LIST_TYPE_MAX_SIZE = 10;
 
         // Three choices: disable, flush or drain

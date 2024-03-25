@@ -31,6 +31,7 @@ public class StackedTestPacket extends Packet implements Serializable {
     public transient ObjectCoverage curOriObjCoverage;
     public transient ObjectCoverage curUpObjCoverage;
     public int clientGroupForVersionDelta;
+    public int batchId;
 
     public StackedTestPacket(int nodeNum, String configFileName) {
         this.nodeNum = nodeNum;

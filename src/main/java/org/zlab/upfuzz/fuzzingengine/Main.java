@@ -45,9 +45,15 @@ public class Main {
                 .hasArg()
                 .desc("Fuzzing Client type")
                 .build();
+        Option downgradeSupportOption = Option.builder("downgrade")
+                .argName("downgrade")
+                .hasArg()
+                .desc("Is downgrade supported for this version pair")
+                .build();
         options.addOption(clazzOption);
         options.addOption(configFileOption);
         options.addOption(flagOption);
+        options.addOption(downgradeSupportOption);
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = parser.parse(options, args);
 
@@ -98,6 +104,16 @@ public class Main {
                         .equals("group1"))
                                 ? 1
                                 : 2;
+            }
+            if (cmd.hasOption(downgradeSupportOption)) {
+                StringBuilder optionBuilder = new StringBuilder();
+                optionBuilder
+                        .append(cmd.getOptionValue(downgradeSupportOption));
+                System.out.println(optionBuilder.toString());
+                fuzzingClient.isDowngradeSupported = (optionBuilder.toString()
+                        .equals("Y"))
+                                ? true
+                                : false;
             }
             fuzzingClient.start();
         } else if (type.equalsIgnoreCase("fuzzer")) {
