@@ -27,6 +27,7 @@ import static org.zlab.upfuzz.nyx.MiniClientMain.setTestDirection;
 import static org.zlab.upfuzz.nyx.MiniClientMain.setClientGroup;
 import static org.zlab.upfuzz.nyx.MiniClientMain.changeVersionAndRunTheTests;
 import static org.zlab.upfuzz.nyx.MiniClientMain.clearData;
+import static org.zlab.upfuzz.nyx.MiniClientMain.setIsDowngradeSupported;
 
 class NyxStackedTestThread implements Callable<StackedFeedbackPacket> {
 
@@ -39,6 +40,7 @@ class NyxStackedTestThread implements Callable<StackedFeedbackPacket> {
     private Path previousConfigPath;
     private LibnyxInterface libnyx;
     private boolean sameConfigAsLastTime;
+    private boolean isDowngradeSupported;
     // private AtomicInteger decision; // Shared decision variable
     // private BlockingQueue<StackedFeedbackPacket>
     // feedbackPacketQueueBeforeVersionChange;
@@ -50,13 +52,15 @@ class NyxStackedTestThread implements Callable<StackedFeedbackPacket> {
             StackedTestPacket stackedTestPacket,
             LibnyxInterface libnyx,
             Path configPath, Path previousConfigPath,
-            boolean sameConfigAsLastTime) {
+            boolean sameConfigAsLastTime,
+            boolean isDowngradeSupported) {
         this.direction = direction;
         this.stackedTestPacket = stackedTestPacket;
         this.libnyx = libnyx;
         this.previousConfigPath = previousConfigPath;
         this.configPath = configPath;
         this.sameConfigAsLastTime = sameConfigAsLastTime;
+        this.isDowngradeSupported = isDowngradeSupported;
     }
 
     public StackedFeedbackPacket getStackedFeedbackPacket() {
@@ -180,6 +184,7 @@ class NyxStackedTestThread implements Callable<StackedFeedbackPacket> {
 
         setTestType(0);
         setTestDirection(this.direction);
+        setIsDowngradeSupported(this.isDowngradeSupported);
         long startTime6 = System.currentTimeMillis();
         this.libnyx.nyxExec();
         if (Config.getConf().debug) {
