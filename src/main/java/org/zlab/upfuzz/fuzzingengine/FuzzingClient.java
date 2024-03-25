@@ -49,6 +49,9 @@ public class FuzzingClient {
     public int group;
     private LibnyxInterface libnyx = null;
     private LibnyxInterface libnyxSibling = null;
+    public boolean isDowngradeSupported;
+    // public BlockingQueue<StackedFeedbackPacket>
+    // feedbackPacketQueueBeforeVersionChange = new LinkedBlockingQueue<>();
     // private ExecutorService executorService =
     // Executors.newFixedThreadPool(20);
     // If the cluster cannot start up for 3 times, it's serious
@@ -605,15 +608,27 @@ public class FuzzingClient {
 
     public VersionDeltaFeedbackPacket executeStackedTestPacketVersionDelta(
             StackedTestPacket stackedTestPacket) {
-        if (Config.getConf().nyxMode) {
-            return executeStackedTestPacketNyxVersionDelta(stackedTestPacket);
-        } else {
+
+        if (Config.getConf().versionDeltaApproach == 1) {
             try {
-                return executeStackedTestPacketRegularVersionDelta(
+                return executeStackedTestPacketVersionDeltaApproach1(
                         stackedTestPacket);
             } catch (Exception e) {
                 e.printStackTrace();
                 return null;
+            }
+        } else {
+            if (Config.getConf().nyxMode) {
+                return executeStackedTestPacketNyxVersionDelta(
+                        stackedTestPacket);
+            } else {
+                try {
+                    return executeStackedTestPacketRegularVersionDelta(
+                            stackedTestPacket);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return null;
+                }
             }
         }
     }
@@ -634,22 +649,12 @@ public class FuzzingClient {
                     stackedTestPacket.configFileName);
             logger.info("[HKLOG] configPath = " + configPath);
 
-            // StackedTestPacketSerializable stackedTestPacket = new
-            // StackedTestPacketSerializable(
-            // stackedTestPacketUnser.nodeNum,
-            // stackedTestPacketUnser.configFileName,
-            // stackedTestPacketUnser.getTestPacketList(), group);
-
             boolean sameConfigAsLastTime = false;
             if (this.previousConfigPath != null) {
                 sameConfigAsLastTime = isSameConfig(this.previousConfigPath,
                         configPath);
             }
 
-            // StackedTestPacketSerializable stackedTestPacketSer = new
-            // StackedTestPacketSerializable(
-            // stackedTestPacket.nodeNum, stackedTestPacket.configFileName,
-            // stackedTestPacket.getTestPacketList(), group);
             Future<StackedFeedbackPacket> futureStackedFeedbackPacketUp = executorService
                     .submit(new NyxStackedTestThread(0,
                             stackedTestPacket, this.libnyx, configPath,
@@ -687,119 +692,26 @@ public class FuzzingClient {
                 boolean inducedNewVersionDeltaCoverage = false;
 
                 for (int i = 0; i < feedbackLength; i++) {
-                    boolean newOldVersionBranchCoverage = false;
-                    boolean newNewVersionBranchCoverage = false;
-                    boolean newOldVersionFormatCoverage = false;
-                    boolean newNewVersionFormatCoverage = false;
-
-                    FeedbackPacket feedbackPacketOri = fpListBeforeUpgrade
-                            .get(i);
-                    FeedbackPacket feedbackPacketUp = fpListBeforeDowngrade
-                            .get(i);
-
-                    // Merge all the feedbacks
-                    FeedBack fbOri = mergeCoverage(feedbackPacketOri.feedBacks);
-                    FeedBack fbUp = mergeCoverage(feedbackPacketUp.feedBacks);
-
-                    if (Config.getConf().collectFormatCoverage) {
-                        if (feedbackPacketOri.formatCoverage != null) {
-                            if (curOriObjCoverage.merge(
-                                    feedbackPacketOri.formatCoverage,
-                                    feedbackPacketOri.testPacketID)) {
-                                // learned format is updated
-                                logger.info("New format!");
-                                // newFormatNum++;
-                                newOldVersionFormatCoverage = true;
-                            } else {
-                                logger.info("No new format in old version!");
-                            }
-                        } else {
-                            logger.info("Null format coverage");
-                        }
-
-                        if (feedbackPacketUp.formatCoverage != null) {
-                            if (curUpObjCoverage.merge(
-                                    feedbackPacketUp.formatCoverage,
-                                    feedbackPacketOri.testPacketID)) {
-                                // learned format is updated
-                                logger.info("New format!");
-                                // newFormatNum++;
-                                newNewVersionFormatCoverage = true;
-                            } else {
-                                logger.info("No new format!");
-                            }
-                        } else {
-                            logger.info("Null format coverage");
-                        }
-                    }
-                    // priority feature is disabled
-                    if (Utilities.hasNewBits(
-                            stackedTestPacket.curOriCoverage,
-                            fbOri.originalCodeCoverage)) {
-                        newOldVersionBranchCoverage = true;
-                    }
-                    if (Utilities.hasNewBits(
-                            stackedTestPacket.curUpCoverage,
-                            fbUp.originalCodeCoverage)) {
-                        newNewVersionBranchCoverage = true;
-                    }
-
-                    inducedNewVersionDelta = (newOldVersionBranchCoverage
-                            | newNewVersionBranchCoverage)
-                            | (newOldVersionFormatCoverage
-                                    | newNewVersionFormatCoverage);
-
-                    inducedNewVersionDeltaCoverage = (newOldVersionBranchCoverage
-                            ^ newNewVersionBranchCoverage)
-                            | (newOldVersionFormatCoverage
-                                    ^ newNewVersionFormatCoverage);
-
-                    if (inducedNewVersionDelta) {
-                        feedbackPacketOri.inducedNewVersionDeltaBeforeVersionChange = true;
-                        feedbackPacketUp.inducedNewVersionDeltaBeforeVersionChange = true;
-                        if (Config.getConf().versionDeltaApproach == 2) {
-                            versionDeltaFeedbackPacket
-                                    .addToTpList(stackedTestPacket
-                                            .getTestPacketList().get(i));
-                        }
-                    }
-
-                    if (inducedNewVersionDeltaCoverage) {
-                        if (Config.getConf().versionDeltaApproach == 2) {
-                            versionDeltaFeedbackPacket
-                                    .addToInducedTpList(stackedTestPacket
-                                            .getTestPacketList().get(i));
-                        }
-                    }
+                    versionDeltaFeedbackPacket.addToTpList(
+                            stackedTestPacket.getTestPacketList().get(i));
                 }
 
-                if (Config.getConf().debug) {
-                    logger.info(
-                            "New version delta induced: "
-                                    + inducedNewVersionDelta);
-                }
+                for (FeedbackPacket fp : stackedFeedbackPacketUp
+                        .getFpList())
+                    versionDeltaFeedbackPacket.addToFpList(fp, "up");
 
-                if (inducedNewVersionDeltaCoverage) {
-                    versionDeltaFeedbackPacket.inducedNewVersionDeltaCoverage = true;
-                }
+                for (FeedbackPacket fp : stackedFeedbackPacketDown
+                        .getFpList())
+                    versionDeltaFeedbackPacket.addToFpList(fp, "down");
 
+                versionDeltaFeedbackPacket.fullSequence = stackedFeedbackPacketUp.fullSequence;
                 if (group == 1) {
                     versionDeltaFeedbackPacket.skippedUpgrade = true;
                     versionDeltaFeedbackPacket.skippedDowngrade = true;
                 }
-                if (group == 2) {
-                    for (FeedbackPacket fp : stackedFeedbackPacketUp
-                            .getFpList())
-                        versionDeltaFeedbackPacket.addToFpList(fp, "up");
-
-                    for (FeedbackPacket fp : stackedFeedbackPacketDown
-                            .getFpList())
-                        versionDeltaFeedbackPacket.addToFpList(fp, "down");
-
-                    versionDeltaFeedbackPacket.fullSequence = stackedFeedbackPacketUp.fullSequence;
-                }
                 versionDeltaFeedbackPacket.clientGroup = group;
                 executorService.shutdown();
+
                 return versionDeltaFeedbackPacket;
 
             } catch (Exception e) {
@@ -897,6 +809,234 @@ public class FuzzingClient {
         return fb;
     }
 
+    public VersionDeltaFeedbackPacket executeStackedTestPacketVersionDeltaApproach1(
+            StackedTestPacket stackedTestPacket) throws InterruptedException {
+
+        ExecutorService executorService = Executors.newFixedThreadPool(20);
+        Path configPath = Paths.get(configDirPath.toString(),
+                stackedTestPacket.configFileName);
+        logger.info("[HKLOG] configPath = " + configPath);
+
+        // config verification
+        if (Config.getConf().verifyConfig) {
+            boolean validConfig = verifyConfig(configPath);
+            if (!validConfig) {
+                logger.error(
+                        "problem with configuration! system cannot start up");
+                return null;
+            }
+        }
+
+        if (Config.getConf().debug) {
+            logger.info("[Fuzzing Client] Call to initialize executor");
+        }
+        Executor[] executors = initExecutorVersionDelta(
+                stackedTestPacket.nodeNum, null, configPath);
+
+        BlockingQueue<StackedFeedbackPacket> feedbackPacketQueueBeforeVersionChange = new LinkedBlockingQueue<>();
+        AtomicInteger decisionForVersionChange = new AtomicInteger(0); // 0:
+                                                                       // undecided,
+                                                                       // 1:
+                                                                       // continue,
+                                                                       // 2:
+                                                                       // terminate
+
+        // Submitting two Callable tasks
+        // direction 0 means original --> upgraded
+        // direction 1 means upgraded --> original
+        Future<StackedFeedbackPacket> futureStackedFeedbackPacketUp = executorService
+                .submit(new RegularStackedTestThread(executors[0], 0,
+                        stackedTestPacket, isDowngradeSupported,
+                        decisionForVersionChange,
+                        feedbackPacketQueueBeforeVersionChange));
+        Future<StackedFeedbackPacket> futureStackedFeedbackPacketDown = executorService
+                .submit(new RegularStackedTestThread(executors[1], 1,
+                        stackedTestPacket, isDowngradeSupported,
+                        decisionForVersionChange,
+                        feedbackPacketQueueBeforeVersionChange));
+
+        // Retrieve results for operation 1
+        StackedFeedbackPacket feedbackPackets1BeforeVersionChange = feedbackPacketQueueBeforeVersionChange
+                .take();
+        StackedFeedbackPacket feedbackPackets2BeforeVersionChange = feedbackPacketQueueBeforeVersionChange
+                .take();
+
+        // Process results for operations before version change
+        List<FeedbackPacket> fpListBeforeUpgrade = (feedbackPackets1BeforeVersionChange
+                .getVersion()
+                .equals(Config.getConf().originalVersion))
+                        ? feedbackPackets1BeforeVersionChange.getFpList()
+                        : feedbackPackets2BeforeVersionChange.getFpList();
+        List<FeedbackPacket> fpListBeforeDowngrade = (feedbackPackets1BeforeVersionChange
+                .getVersion()
+                .equals(Config.getConf().originalVersion))
+                        ? feedbackPackets2BeforeVersionChange.getFpList()
+                        : feedbackPackets1BeforeVersionChange.getFpList();
+
+        int feedbackLength = fpListBeforeUpgrade.size();
+        boolean inducedNewVersionDelta = false;
+        boolean inducedNewVersionDeltaCoverage = false;
+
+        ObjectCoverage curOriObjCoverage = stackedTestPacket.curOriObjCoverage;
+        ObjectCoverage curUpObjCoverage = stackedTestPacket.curUpObjCoverage;
+
+        VersionDeltaFeedbackPacket versionDeltaFeedbackPacket = new VersionDeltaFeedbackPacket(
+                stackedTestPacket.configFileName,
+                Utilities.extractTestIDs(stackedTestPacket), 0,
+                stackedTestPacket.nodeNum);
+
+        for (int i = 0; i < feedbackLength; i++) {
+            boolean newOldVersionBranchCoverage = false;
+            boolean newNewVersionBranchCoverage = false;
+            boolean newOldVersionFormatCoverage = false;
+            boolean newNewVersionFormatCoverage = false;
+
+            FeedbackPacket feedbackPacketOri = fpListBeforeUpgrade.get(i);
+            FeedbackPacket feedbackPacketUp = fpListBeforeDowngrade.get(i);
+
+            // Merge all the feedbacks
+            FeedBack fbOri = mergeCoverage(feedbackPacketOri.feedBacks);
+            FeedBack fbUp = mergeCoverage(feedbackPacketUp.feedBacks);
+
+            if (Config.getConf().collectFormatCoverage) {
+                if (feedbackPacketOri.formatCoverage != null) {
+                    if (curOriObjCoverage.merge(
+                            feedbackPacketOri.formatCoverage,
+                            feedbackPacketOri.testPacketID)) {
+                        // learned format is updated
+                        logger.info("New format!");
+                        // newFormatNum++;
+                        newOldVersionFormatCoverage = true;
+                    } else {
+                        logger.info("No new format in old version!");
+                    }
+                } else {
+                    logger.info("Null format coverage");
+                }
+
+                if (feedbackPacketUp.formatCoverage != null) {
+                    if (curUpObjCoverage.merge(
+                            feedbackPacketUp.formatCoverage,
+                            feedbackPacketOri.testPacketID)) {
+                        // learned format is updated
+                        logger.info("New format!");
+                        // newFormatNum++;
+                        newNewVersionFormatCoverage = true;
+                    } else {
+                        logger.info("No new format!");
+                    }
+                } else {
+                    logger.info("Null format coverage");
+                }
+            }
+            // priority feature is disabled
+            if (Utilities.hasNewBits(
+                    stackedTestPacket.curOriCoverage,
+                    fbOri.originalCodeCoverage)) {
+                newOldVersionBranchCoverage = true;
+                feedbackPacketOri.newOriCoverage = true;
+            }
+            if (Utilities.hasNewBits(stackedTestPacket.curUpCoverage,
+                    fbUp.originalCodeCoverage)) {
+                newNewVersionBranchCoverage = true;
+                feedbackPacketUp.newOriCoverage = true;
+            }
+
+            if (inducedNewVersionDelta == false) {
+                inducedNewVersionDelta = (newOldVersionBranchCoverage
+                        | newNewVersionBranchCoverage)
+                        | (newOldVersionFormatCoverage
+                                | newNewVersionFormatCoverage);
+            }
+
+            logger.info(" test packet: " + feedbackPacketOri.testPacketID
+                    + " newOldVersionBranchCoverage: "
+                    + newOldVersionBranchCoverage);
+            logger.info(" test packet: " + feedbackPacketOri.testPacketID
+                    + " newNewVersionBranchCoverage: "
+                    + newNewVersionBranchCoverage);
+
+            if (inducedNewVersionDeltaCoverage == false) {
+                inducedNewVersionDeltaCoverage = (newOldVersionBranchCoverage
+                        ^ newNewVersionBranchCoverage)
+                        | (newOldVersionFormatCoverage
+                                ^ newNewVersionFormatCoverage);
+            }
+
+            if (inducedNewVersionDelta) {
+
+                feedbackPacketOri.inducedNewVersionDeltaBeforeVersionChange = true;
+                feedbackPacketUp.inducedNewVersionDeltaBeforeVersionChange = true;
+                if (Config.getConf().versionDeltaApproach == 2) {
+                    versionDeltaFeedbackPacket
+                            .addToTpList(stackedTestPacket
+                                    .getTestPacketList().get(i));
+                }
+            }
+
+            if (inducedNewVersionDeltaCoverage) {
+                versionDeltaFeedbackPacket.inducedNewVersionDeltaCoverage = true;
+                if (Config.getConf().versionDeltaApproach == 2) {
+                    versionDeltaFeedbackPacket
+                            .addToInducedTpList(stackedTestPacket
+                                    .getTestPacketList().get(i));
+                }
+            }
+
+            if (Config.getConf().versionDeltaApproach == 2) {
+                versionDeltaFeedbackPacket.addToTpList(
+                        stackedTestPacket.getTestPacketList().get(i));
+            }
+        }
+
+        if (Config.getConf().debug) {
+            logger.info(
+                    "New version delta induced: " + inducedNewVersionDelta);
+        }
+
+        // Signal threads to proceed with operation 2
+        logger.info(
+                "[HKLOG] Using the first approach for version delta");
+        if (inducedNewVersionDelta) {
+            decisionForVersionChange.set(1);
+        } else {
+            decisionForVersionChange.set(2);
+        }
+        // Retrieve and check the result of thread 1
+        StackedFeedbackPacket stackedFeedbackPacketUp = null;
+        StackedFeedbackPacket stackedFeedbackPacketDown = null;
+        try {
+            stackedFeedbackPacketUp = futureStackedFeedbackPacketUp
+                    .get();
+            stackedFeedbackPacketDown = futureStackedFeedbackPacketDown
+                    .get();
+
+            if (Config.getConf().debug) {
+                logger.info("Result from Thread 1: ");
+                logger.info("Result from Thread 2: ");
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        for (FeedbackPacket fp : stackedFeedbackPacketUp.getFpList())
+            versionDeltaFeedbackPacket.addToFpList(fp, "up");
+
+        for (FeedbackPacket fp : stackedFeedbackPacketDown.getFpList())
+            versionDeltaFeedbackPacket.addToFpList(fp, "down");
+
+        versionDeltaFeedbackPacket.fullSequence = stackedFeedbackPacketUp.fullSequence;
+        if (!inducedNewVersionDelta) {
+            versionDeltaFeedbackPacket.skippedUpgrade = true;
+            versionDeltaFeedbackPacket.skippedDowngrade = true;
+        }
+        versionDeltaFeedbackPacket.clientGroup = 0;
+        decisionForVersionChange.set(0);
+        clearData();
+        executorService.shutdown();
+        return versionDeltaFeedbackPacket;
+    }
+
     public VersionDeltaFeedbackPacket executeStackedTestPacketRegularVersionDelta(
             StackedTestPacket stackedTestPacket)
             throws InterruptedException {
@@ -915,11 +1055,6 @@ public class FuzzingClient {
                     stackedTestPacket.configFileName);
             logger.info("[HKLOG] configPath = " + configPath);
 
-            // StackedTestPacketSerializable stackedTestPacket = new
-            // StackedTestPacketSerializable(
-            // stackedTestPacketUnser.nodeNum,
-            // stackedTestPacketUnser.configFileName,
-            // stackedTestPacketUnser.getTestPacketList(), group);
             // config verification
             if (Config.getConf().verifyConfig) {
                 boolean validConfig = verifyConfig(configPath);
@@ -936,6 +1071,14 @@ public class FuzzingClient {
             Executor[] executors = initExecutorVersionDelta(
                     stackedTestPacket.nodeNum, null, configPath);
 
+            String threadIdGroup = "group" + group + "_"
+                    + String.valueOf(Thread.currentThread().getId());
+            long startTimeVersionDeltaExecution = System.currentTimeMillis();
+            if (Config.getConf().debug) {
+                logger.info("[HKLOG: profiler] " + threadIdGroup + ": group "
+                        + group + ": started version delta execution");
+            }
+
             BlockingQueue<StackedFeedbackPacket> feedbackPacketQueueBeforeVersionChange = new LinkedBlockingQueue<>();
             AtomicInteger decisionForVersionChange = new AtomicInteger(0); // 0:
                                                                            // undecided,
@@ -945,37 +1088,56 @@ public class FuzzingClient {
                                                                            // terminate
 
             // Submitting two Callable tasks
+            // direction 0 means original --> upgraded
+            // direction 1 means upgraded --> original
+            logger.info("[HKLOG] Downgrade supported: " + isDowngradeSupported);
             Future<StackedFeedbackPacket> futureStackedFeedbackPacketUp = executorService
                     .submit(new RegularStackedTestThread(executors[0], 0,
-                            stackedTestPacket, decisionForVersionChange,
+                            stackedTestPacket, isDowngradeSupported,
+                            decisionForVersionChange,
                             feedbackPacketQueueBeforeVersionChange));
             Future<StackedFeedbackPacket> futureStackedFeedbackPacketDown = executorService
                     .submit(new RegularStackedTestThread(executors[1], 1,
-                            stackedTestPacket, decisionForVersionChange,
+                            stackedTestPacket, isDowngradeSupported,
+                            decisionForVersionChange,
                             feedbackPacketQueueBeforeVersionChange));
 
             // Retrieve results for operation 1
-            StackedFeedbackPacket feedbackPackets1BeforeVersionChange = feedbackPacketQueueBeforeVersionChange
-                    .take();
-            StackedFeedbackPacket feedbackPackets2BeforeVersionChange = feedbackPacketQueueBeforeVersionChange
-                    .take();
+            StackedFeedbackPacket feedbackPackets1BeforeVersionChange = null;
+            StackedFeedbackPacket feedbackPackets2BeforeVersionChange = null;
+            try {
+                synchronized (feedbackPacketQueueBeforeVersionChange) {
+                    feedbackPackets1BeforeVersionChange = feedbackPacketQueueBeforeVersionChange
+                            .take();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                synchronized (feedbackPacketQueueBeforeVersionChange) {
+                    feedbackPackets2BeforeVersionChange = feedbackPacketQueueBeforeVersionChange
+                            .take();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
             // Process results for operations before version change
+            if (feedbackPackets1BeforeVersionChange == null
+                    || feedbackPackets2BeforeVersionChange == null) {
+                return null;
+            }
+            logger.info("[HKLOG] fplist versions, fp1: "
+                    + feedbackPackets1BeforeVersionChange.getVersion());
+            logger.info("[HKLOG] fplist versions, fp2: "
+                    + feedbackPackets2BeforeVersionChange.getVersion());
             List<FeedbackPacket> fpListBeforeUpgrade = (feedbackPackets1BeforeVersionChange
+                    .getVersion()
                     .equals(Config.getConf().originalVersion))
                             ? feedbackPackets1BeforeVersionChange.getFpList()
                             : feedbackPackets2BeforeVersionChange.getFpList();
-            List<FeedbackPacket> fpListBeforeDowngrade = (feedbackPackets1BeforeVersionChange
-                    .equals(Config.getConf().originalVersion))
-                            ? feedbackPackets2BeforeVersionChange.getFpList()
-                            : feedbackPackets1BeforeVersionChange.getFpList();
 
             int feedbackLength = fpListBeforeUpgrade.size();
-            boolean inducedNewVersionDelta = false;
-            boolean inducedNewVersionDeltaCoverage = false;
-
-            ObjectCoverage curOriObjCoverage = stackedTestPacket.curOriObjCoverage;
-            ObjectCoverage curUpObjCoverage = stackedTestPacket.curUpObjCoverage;
 
             VersionDeltaFeedbackPacket versionDeltaFeedbackPacket = new VersionDeltaFeedbackPacket(
                     stackedTestPacket.configFileName,
@@ -983,181 +1145,66 @@ public class FuzzingClient {
                     stackedTestPacket.nodeNum);
 
             for (int i = 0; i < feedbackLength; i++) {
-                boolean newOldVersionBranchCoverage = false;
-                boolean newNewVersionBranchCoverage = false;
-                boolean newOldVersionFormatCoverage = false;
-                boolean newNewVersionFormatCoverage = false;
-
-                FeedbackPacket feedbackPacketOri = fpListBeforeUpgrade.get(i);
-                FeedbackPacket feedbackPacketUp = fpListBeforeDowngrade.get(i);
-
-                // Merge all the feedbacks
-                FeedBack fbOri = mergeCoverage(feedbackPacketOri.feedBacks);
-                FeedBack fbUp = mergeCoverage(feedbackPacketUp.feedBacks);
-
-                if (Config.getConf().collectFormatCoverage) {
-                    if (feedbackPacketOri.formatCoverage != null) {
-                        if (curOriObjCoverage.merge(
-                                feedbackPacketOri.formatCoverage,
-                                feedbackPacketOri.testPacketID)) {
-                            // learned format is updated
-                            logger.info("New format!");
-                            // newFormatNum++;
-                            newOldVersionFormatCoverage = true;
-                        } else {
-                            logger.info("No new format in old version!");
-                        }
-                    } else {
-                        logger.info("Null format coverage");
-                    }
-
-                    if (feedbackPacketUp.formatCoverage != null) {
-                        if (curUpObjCoverage.merge(
-                                feedbackPacketUp.formatCoverage,
-                                feedbackPacketOri.testPacketID)) {
-                            // learned format is updated
-                            logger.info("New format!");
-                            // newFormatNum++;
-                            newNewVersionFormatCoverage = true;
-                        } else {
-                            logger.info("No new format!");
-                        }
-                    } else {
-                        logger.info("Null format coverage");
-                    }
-                }
-                // priority feature is disabled
-                if (Utilities.hasNewBits(
-                        stackedTestPacket.curOriCoverage,
-                        fbOri.originalCodeCoverage)) {
-                    newOldVersionBranchCoverage = true;
-                }
-                if (Utilities.hasNewBits(stackedTestPacket.curUpCoverage,
-                        fbUp.originalCodeCoverage)) {
-                    newNewVersionBranchCoverage = true;
-                }
-
-                inducedNewVersionDelta = (newOldVersionBranchCoverage
-                        | newNewVersionBranchCoverage)
-                        | (newOldVersionFormatCoverage
-                                | newNewVersionFormatCoverage);
-
-                inducedNewVersionDeltaCoverage = (newOldVersionBranchCoverage
-                        ^ newNewVersionBranchCoverage)
-                        | (newOldVersionFormatCoverage
-                                ^ newNewVersionFormatCoverage);
-
-                if (inducedNewVersionDelta) {
-                    feedbackPacketOri.inducedNewVersionDeltaBeforeVersionChange = true;
-                    feedbackPacketUp.inducedNewVersionDeltaBeforeVersionChange = true;
-                    if (Config.getConf().versionDeltaApproach == 2) {
-                        versionDeltaFeedbackPacket
-                                .addToTpList(stackedTestPacket
-                                        .getTestPacketList().get(i));
-                    }
-                }
-
-                if (inducedNewVersionDeltaCoverage) {
-                    if (Config.getConf().versionDeltaApproach == 2) {
-                        versionDeltaFeedbackPacket
-                                .addToInducedTpList(stackedTestPacket
-                                        .getTestPacketList().get(i));
-                    }
-                }
+                versionDeltaFeedbackPacket.addToTpList(
+                        stackedTestPacket.getTestPacketList().get(i));
             }
 
-            if (Config.getConf().debug) {
-                logger.info(
-                        "New version delta induced: " + inducedNewVersionDelta);
-            }
-
-            if (inducedNewVersionDeltaCoverage) {
-                versionDeltaFeedbackPacket.inducedNewVersionDeltaCoverage = true;
-            }
-
-            // Signal threads to proceed with operation 2
-            if (Config.getConf().versionDeltaApproach == 1) {
-                logger.info(
-                        "[HKLOG] Using the first approach for version delta");
-                if (inducedNewVersionDelta) {
-                    decisionForVersionChange.set(1);
-                } else {
-                    decisionForVersionChange.set(2);
-                }
-                // Retrieve and check the result of thread 1
-                StackedFeedbackPacket stackedFeedbackPacketUp = null;
-                StackedFeedbackPacket stackedFeedbackPacketDown = null;
-                try {
-                    stackedFeedbackPacketUp = futureStackedFeedbackPacketUp
-                            .get();
-                    stackedFeedbackPacketDown = futureStackedFeedbackPacketDown
-                            .get();
-
-                    if (Config.getConf().debug) {
-                        logger.info("Result from Thread 1: ");
-                        logger.info("Result from Thread 2: ");
-                    }
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
-                }
-
-                for (FeedbackPacket fp : stackedFeedbackPacketUp.getFpList())
-                    versionDeltaFeedbackPacket.addToFpList(fp, "up");
-
-                for (FeedbackPacket fp : stackedFeedbackPacketDown.getFpList())
-                    versionDeltaFeedbackPacket.addToFpList(fp, "down");
-
-                versionDeltaFeedbackPacket.fullSequence = stackedFeedbackPacketUp.fullSequence;
-                if (!inducedNewVersionDelta) {
-                    versionDeltaFeedbackPacket.skippedUpgrade = true;
-                    versionDeltaFeedbackPacket.skippedDowngrade = true;
-                }
-                versionDeltaFeedbackPacket.clientGroup = 0;
-                decisionForVersionChange.set(0);
-                clearData();
-                executorService.shutdown();
-                return versionDeltaFeedbackPacket;
+            logger.info(
+                    "[HKLOG] Using the second approach for version delta");
+            if (group == 1) {
+                decisionForVersionChange.set(2);
             } else {
-                logger.info(
-                        "[HKLOG] Using the second approach for version delta");
-                if (group == 1) {
-                    decisionForVersionChange.set(2);
-                } else {
-                    decisionForVersionChange.set(1);
-                }
-                StackedFeedbackPacket stackedFeedbackPacketUp = null;
-                StackedFeedbackPacket stackedFeedbackPacketDown = null;
-                try {
-                    stackedFeedbackPacketUp = futureStackedFeedbackPacketUp
-                            .get();
-                    stackedFeedbackPacketDown = futureStackedFeedbackPacketDown
-                            .get();
-
-                    if (Config.getConf().debug) {
-                        logger.info("Result from Thread 1: ");
-                        logger.info("Result from Thread 2: ");
-                    }
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
-                }
-
-                for (FeedbackPacket fp : stackedFeedbackPacketUp.getFpList())
-                    versionDeltaFeedbackPacket.addToFpList(fp, "up");
-
-                for (FeedbackPacket fp : stackedFeedbackPacketDown.getFpList())
-                    versionDeltaFeedbackPacket.addToFpList(fp, "down");
-
-                versionDeltaFeedbackPacket.fullSequence = stackedFeedbackPacketUp.fullSequence;
-                if (group == 1) {
-                    versionDeltaFeedbackPacket.skippedUpgrade = true;
-                    versionDeltaFeedbackPacket.skippedDowngrade = true;
-                }
-                versionDeltaFeedbackPacket.clientGroup = group;
-                decisionForVersionChange.set(0);
-                clearData();
-                executorService.shutdown();
-                return versionDeltaFeedbackPacket;
+                decisionForVersionChange.set(1);
             }
+            StackedFeedbackPacket stackedFeedbackPacketUp = null;
+            StackedFeedbackPacket stackedFeedbackPacketDown = null;
+            try {
+                stackedFeedbackPacketUp = futureStackedFeedbackPacketUp
+                        .get();
+                stackedFeedbackPacketDown = futureStackedFeedbackPacketDown
+                        .get();
+                logger.info("[HKLOG] fpList version, fpUp: "
+                        + stackedFeedbackPacketUp.getVersion());
+                logger.info("[HKLOG] fpList version, fpDown: "
+                        + stackedFeedbackPacketDown.getVersion());
+                if (group == 1) {
+                    logger.info("[HKLOG] fp tracker"
+                            + stackedFeedbackPacketUp.getFpList().toString());
+                    logger.info("[HKLOG] fp tracker"
+                            + stackedFeedbackPacketDown.getFpList().toString());
+                }
+
+                if (Config.getConf().debug) {
+                    logger.info("Result from Thread 1: ");
+                    logger.info("Result from Thread 2: ");
+                }
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+
+            for (FeedbackPacket fp : stackedFeedbackPacketUp.getFpList())
+                versionDeltaFeedbackPacket.addToFpList(fp, "up");
+
+            for (FeedbackPacket fp : stackedFeedbackPacketDown.getFpList())
+                versionDeltaFeedbackPacket.addToFpList(fp, "down");
+
+            versionDeltaFeedbackPacket.fullSequence = stackedFeedbackPacketUp.fullSequence;
+            if (group == 1) {
+                versionDeltaFeedbackPacket.skippedUpgrade = true;
+                versionDeltaFeedbackPacket.skippedDowngrade = true;
+            }
+            versionDeltaFeedbackPacket.clientGroup = group;
+            decisionForVersionChange.set(0);
+            clearData();
+            executorService.shutdown();
+            if (Config.getConf().debug) {
+                logger.info("[HKLOG: profiler] " + threadIdGroup
+                        + ": group " + group
+                        + ": finished version delta execution, time spent: "
+                        + (System.currentTimeMillis()
+                                - startTimeVersionDeltaExecution));
+            }
+            return versionDeltaFeedbackPacket;
         }
     }
 

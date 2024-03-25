@@ -25,6 +25,7 @@ public class FeedbackPacket extends Packet {
     public FeedBack[] feedBacks;
 
     public boolean isInconsistent = false; // true if inconsistent
+    public boolean isInconsistencyInsignificant = false;
     public String inconsistencyReport;
 
     public List<String> validationReadResults;
@@ -38,6 +39,8 @@ public class FeedbackPacket extends Packet {
 
     // has this test packet induced new version delta?
     public boolean inducedNewVersionDeltaBeforeVersionChange = false;
+    public boolean newOriCoverage = false;
+    public boolean newUpCoverage = false;
 
     public FeedbackPacket(String systemID, int nodeNum, int testPacketID,
             FeedBack[] feedBacks, List<String> validationReadResults) {

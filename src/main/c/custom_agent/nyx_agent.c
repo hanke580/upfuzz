@@ -96,7 +96,7 @@ int abort_operation(char* message){
 	}
 	
 	ret = asprintf(&error_message, "USER_ABORT called: %s", message);
-	sleep(10000);
+	// sleep(10000);
 	if (ret != -1) {
 		kAFL_hypercall(HYPERCALL_KAFL_USER_ABORT, (uintptr_t)error_message);
 		return 0;
@@ -239,7 +239,7 @@ int main(int argc, char **argv) {
 			}
 			
 			// hprintf("[cAgent]: got signal from MiniClient: %s\n", output_pkt_ready[0]);
-			sleep(10000);
+			// sleep(10000);
 			if(!(output_pkt_ready[0]=='R')) {
 				if (output_pkt_ready[0] == 'F')                                       // executor might have failed to start
 				{

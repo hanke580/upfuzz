@@ -207,8 +207,19 @@ public class CassandraExecutor extends Executor {
                         continue;
                     }
 
-                    String errorMsg = "Result inconsistency at read id: " + i
-                            + "\n";
+                    String errorMsg;
+                    if (((oriResult.get(i).contains("InvalidRequest")) &&
+                            !(upResult.get(i).contains("InvalidRequest")))
+                            || ((upResult.get(i).contains("InvalidRequest")) &&
+                                    !(oriResult.get(i)
+                                            .contains("InvalidRequest")))) {
+                        errorMsg = "Insignificant Result inconsistency at read id: "
+                                + i
+                                + "\n";
+                    } else {
+                        errorMsg = "Result inconsistency at read id: " + i
+                                + "\n";
+                    }
                     if (compareOldAndNew) {
                         errorMsg += "Old Version Result: "
                                 + oriResult.get(i).strip()

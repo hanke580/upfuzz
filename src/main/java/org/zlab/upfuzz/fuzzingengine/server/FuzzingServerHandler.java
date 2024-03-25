@@ -26,23 +26,17 @@ public class FuzzingServerHandler implements Runnable {
     DataInputStream in;
     DataOutputStream out;
     DataOutputStream outGroup2;
+    private Set<Integer> insignificantInconsistenciesIn = new HashSet<>();
 
-    public void addElementsToSharedQueues(List<TestPacket> testPacketList,
-            String configFileName, int nodeNum) {
-        StackedTestPacket stackedTestPacket = new StackedTestPacket(nodeNum,
-                configFileName);
-        stackedTestPacket.clientGroupForVersionDelta = 2;
-        for (TestPacket tp : testPacketList) {
-            stackedTestPacket.addTestPacket(tp);
-        }
-        fuzzingServer.stackedTestPacketsQueueVersionDelta
-                .add(stackedTestPacket);
+    public void addBatchesToInterestingTestCorpus(
+            VersionDeltaFeedbackPacket versionDeltaFeedbackPacket) {
+        fuzzingServer.analyzeFeedbackFromVersionDeltaGroup1(
+                versionDeltaFeedbackPacket);
         if (Config.getConf().debug) {
-            logger.info("Added element to shared queue. Queue length: "
-                    + fuzzingServer.stackedTestPacketsQueueVersionDelta.size());
+            logger.info("Added element to shared queue. ");
         }
-        synchronized (fuzzingServer.stackedTestPacketsQueueVersionDelta) {
-            fuzzingServer.stackedTestPacketsQueueVersionDelta.notifyAll();
+        synchronized (fuzzingServer.testBatchCorpus) {
+            fuzzingServer.testBatchCorpus.notifyAll();
         }
     }
 
@@ -95,8 +89,8 @@ public class FuzzingServerHandler implements Runnable {
                 } else {
                     if (this.clientGroup == 1) {
                         synchronized (fuzzingServer.stackedTestPacketsQueueVersionDelta) {
-                            while (!fuzzingServer.stackedTestPacketsQueueVersionDelta
-                                    .isEmpty()) {
+                            if (fuzzingServer.stackedTestPacketsQueueVersionDelta
+                                    .size() >= 100) {
                                 fuzzingServer.stackedTestPacketsQueueVersionDelta
                                         .wait();
                             }
@@ -106,20 +100,66 @@ public class FuzzingServerHandler implements Runnable {
                         assert testPacket != null;
                         testPacket.write(out);
                         readFeedbackPacket();
-                        synchronized (fuzzingServer.stackedTestPacketsQueueVersionDelta) {
-                            // readFeedbackPacket();
-                            logger.info(
-                                    fuzzingServer.stackedTestPacketsQueueVersionDelta
+                        // synchronized
+                        // (fuzzingServer.stackedTestPacketsQueueVersionDelta) {
+                        // // readFeedbackPacket();
+                        // logger.info(
+                        // fuzzingServer.stackedTestPacketsQueueVersionDelta
+                        // .size());
+                        // // stackedTestPacketsQueueVersionDelta.notifyAll();
+                        // }
+                        synchronized (fuzzingServer.testBatchCorpus) {
+                            logger.info("Branch coverage queue size: " +
+                                    fuzzingServer.testBatchCorpus.queues[0]
                                             .size());
-                            // stackedTestPacketsQueueVersionDelta.notifyAll();
+                            logger.info("Format coverage queue size: " +
+                                    fuzzingServer.testBatchCorpus.queues[1]
+                                            .size());
+                            logger.info("Version delta coverage queue size: " +
+                                    fuzzingServer.testBatchCorpus.queues[2]
+                                            .size());
                         }
-                    } else {
+                    }
+                    // else {
+                    // StackedTestPacket stackedTestPacketForGroup2 = null;
+                    // synchronized
+                    // (fuzzingServer.stackedTestPacketsQueueVersionDelta) {
+                    // while (fuzzingServer.stackedTestPacketsQueueVersionDelta
+                    // .isEmpty()) {
+                    // try {
+                    // fuzzingServer.stackedTestPacketsQueueVersionDelta
+                    // .wait();
+                    // } catch (Exception e) {
+                    // e.printStackTrace();
+                    // }
+                    // }
+                    // if (Config.getConf().debug) {
+                    // logger.info(
+                    // "Now executing version delta induced test packets in
+                    // group 2");
+                    // }
+
+                    // stackedTestPacketForGroup2 =
+                    // fuzzingServer.stackedTestPacketsQueueVersionDelta
+                    // .take();
+                    // if (fuzzingServer.stackedTestPacketsQueueVersionDelta
+                    // .isEmpty()) {
+                    // fuzzingServer.stackedTestPacketsQueueVersionDelta
+                    // .notifyAll();
+                    // }
+                    // }
+                    // Packet testPacketForGroup2 = (Packet)
+                    // stackedTestPacketForGroup2;
+                    // testPacketForGroup2.write(out);
+                    // readFeedbackPacket();
+                    // }
+                    else {
                         StackedTestPacket stackedTestPacketForGroup2 = null;
-                        synchronized (fuzzingServer.stackedTestPacketsQueueVersionDelta) {
-                            while (fuzzingServer.stackedTestPacketsQueueVersionDelta
-                                    .isEmpty()) {
+                        synchronized (fuzzingServer.testBatchCorpus) {
+                            while (fuzzingServer.testBatchCorpus
+                                    .areAllQueuesEmpty()) {
                                 try {
-                                    fuzzingServer.stackedTestPacketsQueueVersionDelta
+                                    fuzzingServer.testBatchCorpus
                                             .wait();
                                 } catch (Exception e) {
                                     e.printStackTrace();
@@ -130,13 +170,17 @@ public class FuzzingServerHandler implements Runnable {
                                         "Now executing version delta induced test packets in group 2");
                             }
 
-                            stackedTestPacketForGroup2 = fuzzingServer.stackedTestPacketsQueueVersionDelta
-                                    .take();
-                            if (fuzzingServer.stackedTestPacketsQueueVersionDelta
-                                    .isEmpty()) {
-                                fuzzingServer.stackedTestPacketsQueueVersionDelta
-                                        .notifyAll();
+                            int corpusType = fuzzingServer.getCorpusType();
+                            if (fuzzingServer.testBatchCorpus.queues[corpusType]
+                                    .size() == 0) {
+                                corpusType = fuzzingServer
+                                        .getNextBestCorpusType();
                             }
+                            stackedTestPacketForGroup2 = fuzzingServer.testBatchCorpus
+                                    .getBatch(corpusType);
+                            logger.info(
+                                    "Going to execute a batch in group 2 agents. Type: "
+                                            + corpusType);
                         }
                         Packet testPacketForGroup2 = (Packet) stackedTestPacketForGroup2;
                         testPacketForGroup2.write(out);
@@ -149,6 +193,7 @@ public class FuzzingServerHandler implements Runnable {
             }
         } catch (Exception e) {
             logger.error("FuzzingServerHandler runs into exceptions ", e);
+            e.printStackTrace();
         } finally {
             synchronized (FuzzingServerHandler.class) {
                 clientNum--;
@@ -217,11 +262,10 @@ public class FuzzingServerHandler implements Runnable {
                             logger.info(
                                     "MATCHED THIS CONDITION: clientGroup 1, got feedback packet from group 1!");
                         }
-                        addElementsToSharedQueues(
-                                versionDeltaFeedbackPacket.versionDeltaInducedTestPackets,
-                                versionDeltaFeedbackPacket.configFileName,
-                                versionDeltaFeedbackPacket.nodeNum);
-                        // fuzzingServer.updateStatus(versionDeltaFeedbackPacket);
+
+                        logger.info("Going to call update corpus for group 1");
+                        addBatchesToInterestingTestCorpus(
+                                versionDeltaFeedbackPacket);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -229,12 +273,17 @@ public class FuzzingServerHandler implements Runnable {
                         && versionDeltaFeedbackPacket.clientGroup == 2) {
                     if (Config.getConf().debug) {
                         logger.info(
-                                "MATCHED THIS CONDITION: clientGroup 2, got feedback packet from group 2, now update status!");
+                                "MATCHED THIS CONDITION: clientGroup 2, got feedback packet from group 2, now update status! Induced new version delta coverage? "
+                                        + versionDeltaFeedbackPacket.inducedNewVersionDeltaCoverage);
                     }
-                    fuzzingServer.updateStatus(versionDeltaFeedbackPacket);
+                    logger.info("Calling update status");
+                    versionDeltaFeedbackPacket.inducedNewVersionDeltaCoverage = true;
+                    fuzzingServer.analyzeFeedbackFromVersionDeltaGroup2(
+                            versionDeltaFeedbackPacket);
                 }
             } else {
-                fuzzingServer.updateStatus(versionDeltaFeedbackPacket);
+                fuzzingServer.analyzeFeedbackFromVersionDeltaGroup2(
+                        versionDeltaFeedbackPacket);
             }
         } else if (intType == -1) {
             // do nothing, null packet

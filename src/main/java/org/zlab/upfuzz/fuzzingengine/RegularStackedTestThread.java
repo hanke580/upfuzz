@@ -16,10 +16,12 @@ class RegularStackedTestThread implements Callable<StackedFeedbackPacket> {
 
     static Logger logger = LogManager.getLogger(RegularStackedTestThread.class);
 
+    private FuzzingClient fuzzingClient;
     private StackedFeedbackPacket stackedFeedbackPacket;
     private final Executor executor;
     private final int direction;
     private final StackedTestPacket stackedTestPacket;
+    private final boolean isDowngradeSupported;
     private AtomicInteger decision; // Shared decision variable
     private BlockingQueue<StackedFeedbackPacket> feedbackPacketQueueBeforeVersionChange;
 
@@ -27,7 +29,7 @@ class RegularStackedTestThread implements Callable<StackedFeedbackPacket> {
     int CLUSTER_START_RETRY = 3; // stop retry for now
 
     public RegularStackedTestThread(Executor executor, int direction,
-            StackedTestPacket stackedTestPacket,
+            StackedTestPacket stackedTestPacket, boolean isDowngradeSupported,
             AtomicInteger decision,
             BlockingQueue<StackedFeedbackPacket> feedbackPacketQueueBeforeVersionChange) {
         this.executor = executor;
@@ -35,6 +37,7 @@ class RegularStackedTestThread implements Callable<StackedFeedbackPacket> {
         this.stackedTestPacket = stackedTestPacket;
         this.decision = decision;
         this.feedbackPacketQueueBeforeVersionChange = feedbackPacketQueueBeforeVersionChange;
+        this.isDowngradeSupported = isDowngradeSupported;
     }
 
     public boolean startUpExecutor() {
@@ -111,8 +114,25 @@ class RegularStackedTestThread implements Callable<StackedFeedbackPacket> {
                     stackedTestPacket, direction);
 
             // Send result of running tests before changing version to caller
+
+            // synchronized
+            // (fuzzingClient.feedbackPacketQueueBeforeVersionChange) {
+
+            logger.info("[HKLOG] debugging coverage issue: "
+                    + (stackedFeedbackPacketBeforeVersionChange.getFpList()
+                            .get(0).feedBacks[0].originalCodeCoverage
+                                    .equals(null)));
+            logger.info("[HKLOG] debugging coverage issue: "
+                    + (stackedFeedbackPacketBeforeVersionChange.getFpList()
+                            .get(0).feedBacks[0].upgradedCodeCoverage
+                                    .equals(null)));
+            logger.info("[HKLOG] debugging coverage issue: "
+                    + (stackedFeedbackPacketBeforeVersionChange.getFpList().get(
+                            0).feedBacks[0].downgradedCodeCoverage
+                                    .equals(null)));
             feedbackPacketQueueBeforeVersionChange
                     .put(stackedFeedbackPacketBeforeVersionChange);
+            // }
 
             // Wait for signal to proceed
             // Wait for decision
@@ -123,7 +143,7 @@ class RegularStackedTestThread implements Callable<StackedFeedbackPacket> {
                     // Peform version change and continue testing
                     StackedFeedbackPacket stackedFeedbackPacket = changeVersionAndRunTheTests(
                             executor,
-                            stackedTestPacket, direction,
+                            stackedTestPacket, direction, isDowngradeSupported,
                             stackedFeedbackPacketBeforeVersionChange);
                     if (Config.getConf().debug) {
                         logger.info("[Fuzzing Client] completed the testing");

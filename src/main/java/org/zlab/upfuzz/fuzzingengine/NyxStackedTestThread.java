@@ -30,7 +30,7 @@ import static org.zlab.upfuzz.nyx.MiniClientMain.clearData;
 
 class NyxStackedTestThread implements Callable<StackedFeedbackPacket> {
 
-    static Logger logger = LogManager.getLogger(RegularStackedTestThread.class);
+    static Logger logger = LogManager.getLogger(NyxStackedTestThread.class);
 
     private StackedFeedbackPacket stackedFeedbackPacket;
     private final int direction;

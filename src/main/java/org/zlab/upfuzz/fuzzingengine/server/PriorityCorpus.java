@@ -19,10 +19,10 @@ public class PriorityCorpus {
     // PriorityQueue<Seed> queue = new
     // PriorityQueue<>(Collections.reverseOrder());
     // Queue<Seed> queue = new LinkedList<>();
-    PriorityQueue<Seed>[] queues = new PriorityQueue[3];
+    LinkedList<Seed>[] queues = new LinkedList[3];
     {
         for (int i = 0; i < queues.length; i++) {
-            queues[i] = new PriorityQueue<>(Collections.reverseOrder());
+            queues[i] = new LinkedList<>();
         }
     }
 
@@ -63,6 +63,15 @@ public class PriorityCorpus {
     public void addSeed(Seed seed, int type) {
         seed.setTimestamp(timestampGenerator.getAndIncrement());
         queues[type].add(seed);
+    }
+
+    public boolean areAllQueuesEmpty() {
+        for (Queue<Seed> queue : queues) {
+            if (!queue.isEmpty()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public void removeSeed(int targetTestId, int type) {
