@@ -659,18 +659,21 @@ public class FuzzingClient {
             long startTimeVersionDeltaExecution = System.currentTimeMillis();
             if (Config.getConf().debug) {
                 logger.info("[HKLOG: profiler] " + threadIdGroup + ": group "
-                        + group + ": (nyx mode) started version delta execution");
+                        + group
+                        + ": (nyx mode) started version delta execution");
             }
 
             Future<StackedFeedbackPacket> futureStackedFeedbackPacketUp = executorService
                     .submit(new NyxStackedTestThread(0,
                             stackedTestPacket, this.libnyx, configPath,
-                            previousConfigPath, sameConfigAsLastTime));
+                            previousConfigPath, sameConfigAsLastTime,
+                            isDowngradeSupported));
             Future<StackedFeedbackPacket> futureStackedFeedbackPacketDown = executorService
                     .submit(new NyxStackedTestThread(1,
                             stackedTestPacket, this.libnyxSibling,
                             configPath,
-                            previousConfigPath, sameConfigAsLastTime));
+                            previousConfigPath, sameConfigAsLastTime,
+                            isDowngradeSupported));
 
             this.previousConfigPath = configPath;
             // Retrieve results for operation 1

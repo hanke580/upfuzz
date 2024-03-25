@@ -58,6 +58,7 @@ public class MiniClientMain {
     static int testDirection = 0;
     static boolean inducedNewVersionDelta = false;
     static int clientGroup = 0;
+    static boolean isDowngradeSupported = false;
     static String testExecutionLog = "";
     static boolean hasNewOriCoverage = false;
     static boolean hasNewUpCoverage = false;
@@ -77,6 +78,10 @@ public class MiniClientMain {
 
     public static void setClientGroup(int group) {
         clientGroup = group;
+    }
+
+    public static void setIsDowngradeSupported(boolean isDowngradeSupported) {
+        isDowngradeSupported = isDowngradeSupported;
     }
 
     public static String startUpExecutor(Executor executor, int type) {
@@ -690,14 +695,16 @@ public class MiniClientMain {
         // test downgrade
         if (Config.getConf().testDowngrade) {
             // logger.info("downgrade cluster");
-            downgradeStatus = executor.downgrade();
-            if (!downgradeStatus) {
-                // downgrade failed
-                stackedFeedbackPacket.isDowngradeProcessFailed = true;
-                stackedFeedbackPacket.downgradeFailureReport = FuzzingClient
-                        .genDowngradeFailureReport(
-                                executor.executorID,
-                                stackedFeedbackPacket.configFileName);
+            if (isDowngradeSupported) {
+                downgradeStatus = executor.downgrade();
+                if (!downgradeStatus) {
+                    // downgrade failed
+                    stackedFeedbackPacket.isDowngradeProcessFailed = true;
+                    stackedFeedbackPacket.downgradeFailureReport = FuzzingClient
+                            .genDowngradeFailureReport(
+                                    executor.executorID,
+                                    stackedFeedbackPacket.configFileName);
+                }
             }
         }
 
@@ -819,8 +826,12 @@ public class MiniClientMain {
             upgradeStatus = executor.fullStopUpgrade();
             testExecutionLog += "upgraded, ";
         } else {
-            downgradeStatus = executor.downgrade();
-            testExecutionLog += "downgraded, ";
+            if (isDowngradeSupported) {
+                downgradeStatus = executor.downgrade();
+                testExecutionLog += "downgraded, ";
+            } else {
+                downgradeStatus = true;
+            }
         }
 
         if ((direction == 0) && (!upgradeStatus)) {
@@ -877,41 +888,48 @@ public class MiniClientMain {
             }
         } else if ((direction == 1) && (downgradeStatus)) {
             // logger.info("upgrade succeed");
-            stackedFeedbackPacket.isDowngradeProcessFailed = false;
-            for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
-                TestPacket tp = stackedTestPacket.getTestPacketList()
-                        .get(testPacketIdx);
-                List<String> downResult = executor
-                        .executeCommands(tp.validationCommandSequenceList);
-                testID2downResults.put(tp.testPacketID, downResult);
-                if (Config.getConf().collDownFeedBack) {
-                    ExecutionDataStore[] downCoverages = executor
-                            .collectCoverageSeparate("original");
-                    if (downCoverages != null) {
-                        for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
-                            testID2FeedbackPacket.get(
-                                    tp.testPacketID).feedBacks[nodeIdx].downgradedCodeCoverage = downCoverages[nodeIdx];
+            if (isDowngradeSupported) {
+                stackedFeedbackPacket.isDowngradeProcessFailed = false;
+                for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
+                    TestPacket tp = stackedTestPacket.getTestPacketList()
+                            .get(testPacketIdx);
+                    List<String> downResult = executor
+                            .executeCommands(tp.validationCommandSequenceList);
+                    testID2downResults.put(tp.testPacketID, downResult);
+                    if (Config.getConf().collDownFeedBack) {
+                        ExecutionDataStore[] downCoverages = executor
+                                .collectCoverageSeparate("original");
+                        if (downCoverages != null) {
+                            for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
+                                testID2FeedbackPacket.get(
+                                        tp.testPacketID).feedBacks[nodeIdx].downgradedCodeCoverage = downCoverages[nodeIdx];
+                            }
                         }
                     }
+                    Pair<Boolean, String> compareRes = executor
+                            .checkResultConsistency(
+                                    testID2oriResults.get(tp.testPacketID),
+                                    testID2downResults.get(tp.testPacketID),
+                                    true);
+                    // Update FeedbackPacket
+                    FeedbackPacket feedbackPacket = testID2FeedbackPacket
+                            .get(tp.testPacketID);
+                    if (!compareRes.left) {
+                        String failureReport = FuzzingClient
+                                .genInconsistencyReport(
+                                        executor.executorID,
+                                        stackedTestPacket.configFileName,
+                                        compareRes.right,
+                                        FuzzingClient
+                                                .recordSingleTestPacket(tp));
+                        feedbackPacket.isInconsistent = true;
+                        feedbackPacket.inconsistencyReport = failureReport;
+                    }
+                    feedbackPacket.validationReadResults = testID2upResults
+                            .get(tp.testPacketID);
                 }
-                Pair<Boolean, String> compareRes = executor
-                        .checkResultConsistency(
-                                testID2oriResults.get(tp.testPacketID),
-                                testID2downResults.get(tp.testPacketID), true);
-                // Update FeedbackPacket
-                FeedbackPacket feedbackPacket = testID2FeedbackPacket
-                        .get(tp.testPacketID);
-                if (!compareRes.left) {
-                    String failureReport = FuzzingClient.genInconsistencyReport(
-                            executor.executorID,
-                            stackedTestPacket.configFileName,
-                            compareRes.right,
-                            FuzzingClient.recordSingleTestPacket(tp));
-                    feedbackPacket.isInconsistent = true;
-                    feedbackPacket.inconsistencyReport = failureReport;
-                }
-                feedbackPacket.validationReadResults = testID2upResults
-                        .get(tp.testPacketID);
+            } else {
+                return stackedFeedbackPacket;
             }
         }
 
@@ -927,14 +945,16 @@ public class MiniClientMain {
         // test downgrade
         if (Config.getConf().testDowngrade) {
             // logger.info("downgrade cluster");
-            downgradeStatus = executor.downgrade();
-            if (!downgradeStatus) {
-                // downgrade failed
-                stackedFeedbackPacket.isDowngradeProcessFailed = true;
-                stackedFeedbackPacket.downgradeFailureReport = FuzzingClient
-                        .genDowngradeFailureReport(
-                                executor.executorID,
-                                stackedFeedbackPacket.configFileName);
+            if (isDowngradeSupported) {
+                downgradeStatus = executor.downgrade();
+                if (!downgradeStatus) {
+                    // downgrade failed
+                    stackedFeedbackPacket.isDowngradeProcessFailed = true;
+                    stackedFeedbackPacket.downgradeFailureReport = FuzzingClient
+                            .genDowngradeFailureReport(
+                                    executor.executorID,
+                                    stackedFeedbackPacket.configFileName);
+                }
             }
         }
 
