@@ -312,7 +312,7 @@ public class CassandraDocker extends Docker {
         logger.debug("downgrade version start: " + ret + "\n" + message);
         cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort, this);
     }
-
+    
     public boolean invChecker() throws IOException, InterruptedException {
         // use daikon checker to monitor invariants
         String checkInvCmd = "java -cp /daikon.jar daikon.tools.InvariantChecker --verbose --output /broken_inv /targetInv.inv.gz /CassandraDaemon.dtrace.gz";
