@@ -11,6 +11,7 @@ fi
 
 CLIENT_NUM_G1=$1
 CLIENT_NUM_G2=$2
+
 if [[ -z $3 ]];
 then
         echo "using config.json"
@@ -30,12 +31,24 @@ fi
 echo "CLIENT_NUM_G1: $CLIENT_NUM_G1";
 echo "CLIENT_NUM_G2: $CLIENT_NUM_G2";
 
+curDir=$PWD
+cd bin/
+./cass_downgrade_checker.sh $CONFIG
+
+if [[ "$?" -eq 0 ]]; then
+        DOWNGRADE_SUPPORTED="Y"
+else
+        DOWNGRADE_SUPPORTED="N"
+        echo "========= WARNING!!! Downgrade is not supported for this version pair! =========="
+fi
+cd $curDir
+
 for i in $(seq $CLIENT_NUM_G1)
 do
-  java -Dlogfile="logs/upfuzz_client_g1.log" -cp "build/classes/java/main/:dependencies/*:dependencies/:build/resources/main" org/zlab/upfuzz/fuzzingengine/Main -class client -config "$CONFIG" -flag "group1" &
+  java -Dlogfile="logs/upfuzz_client_g1.log" -cp "build/classes/java/main/:dependencies/*:dependencies/:build/resources/main" org/zlab/upfuzz/fuzzingengine/Main -class client -config "$CONFIG" -flag "group1" -downgrade "$DOWNGRADE_SUPPORTED" &
 done
 
 for j in $(seq $CLIENT_NUM_G2)
 do
-  java -Dlogfile="logs/upfuzz_client_g2.log" -cp "build/classes/java/main/:dependencies/*:dependencies/:build/resources/main" org/zlab/upfuzz/fuzzingengine/Main -class client -config "$CONFIG" -flag "group2" &
+  java -Dlogfile="logs/upfuzz_client_g2.log" -cp "build/classes/java/main/:dependencies/*:dependencies/:build/resources/main" org/zlab/upfuzz/fuzzingengine/Main -class client -config "$CONFIG" -flag "group2" -downgrade "$DOWNGRADE_SUPPORTED" &
 done

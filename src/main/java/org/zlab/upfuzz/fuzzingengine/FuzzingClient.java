@@ -707,12 +707,20 @@ public class FuzzingClient {
                 }
 
                 for (FeedbackPacket fp : stackedFeedbackPacketUp
-                        .getFpList())
+                        .getFpList()) {
+                    // logger.info("[HKLOG] coverage tracker upgrade: "
+                    // + fp.testPacketID);
+                    // Utilities.printCoverages(fp.feedBacks, "upgrade");
                     versionDeltaFeedbackPacket.addToFpList(fp, "up");
+                }
 
                 for (FeedbackPacket fp : stackedFeedbackPacketDown
-                        .getFpList())
+                        .getFpList()) {
+                    // logger.info("[HKLOG] coverage tracker downgrade: "
+                    // + fp.testPacketID);
+                    // Utilities.printCoverages(fp.feedBacks, "downgrade");
                     versionDeltaFeedbackPacket.addToFpList(fp, "down");
+                }
 
                 versionDeltaFeedbackPacket.fullSequence = stackedFeedbackPacketUp.fullSequence;
                 if (group == 1) {
@@ -1191,11 +1199,27 @@ public class FuzzingClient {
                 e.printStackTrace();
             }
 
-            for (FeedbackPacket fp : stackedFeedbackPacketUp.getFpList())
+            for (FeedbackPacket fp : stackedFeedbackPacketUp
+                    .getFpList()) {
+                if (Config.getConf().debug) {
+                    logger.info("[HKLOG] coverage tracker upgrade: "
+                            + fp.testPacketID);
+                    Utilities.printCoverages(fp.testPacketID, fp.feedBacks,
+                            "upgrade");
+                }
                 versionDeltaFeedbackPacket.addToFpList(fp, "up");
+            }
 
-            for (FeedbackPacket fp : stackedFeedbackPacketDown.getFpList())
+            for (FeedbackPacket fp : stackedFeedbackPacketDown
+                    .getFpList()) {
+                if (Config.getConf().debug) {
+                    logger.info("[HKLOG] coverage tracker downgrade: "
+                            + fp.testPacketID);
+                    Utilities.printCoverages(fp.testPacketID, fp.feedBacks,
+                            "downgrade");
+                }
                 versionDeltaFeedbackPacket.addToFpList(fp, "down");
+            }
 
             versionDeltaFeedbackPacket.fullSequence = stackedFeedbackPacketUp.fullSequence;
             if (group == 1) {

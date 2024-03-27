@@ -31,6 +31,7 @@ import org.jacoco.core.data.ExecutionDataStore;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.zlab.upfuzz.CommandSequence;
+import org.zlab.upfuzz.fuzzingengine.FeedBack;
 import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacket;
 // import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacketSerializable;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPacket;
@@ -118,6 +119,33 @@ public class Utilities {
         return true;
     }
 
+    public static void printCoverages(int testId, FeedBack[] feedBacks,
+            String type) {
+        FeedBack fb = new FeedBack();
+        int i = 0;
+        for (FeedBack feedBack : feedBacks) {
+            for (ExecutionData curData : feedBack.originalCodeCoverage
+                    .getContents()) {
+                final Long id = Long.valueOf(curData.getId());
+                final String name = curData.getName();
+                int[] curProbes = curData.getProbes();
+                System.out.println();
+                synchronized (logger) {
+                    logger.info(
+                            "printing coverages for testId: " + testId + ", " +
+                                    "feedback probe " + id + ", class " + name
+                                    + " from " + type + ": ");
+                    String probeDetails = "";
+                    for (int j = 0; j < curProbes.length; j++) {
+                        probeDetails += (curProbes[j] + " ");
+                    }
+                    logger.info(probeDetails);
+                }
+                i += 1;
+            }
+        }
+    }
+
     public static boolean hasNewBits(ExecutionDataStore curCoverage,
             ExecutionDataStore testSequenceCoverage) {
 
@@ -155,12 +183,11 @@ public class Utilities {
                             // }
                             // System.out.println();
 
-                            // System.out.println("probe len = " +
-                            // curProbes.length);
-                            // System.out.println("Class " +
-                            // testSequenceData.getName() +
-                            // " id: [" + i + "]"
-                            // + " is different!");
+                            // System.out
+                            // .println("probe len = " + curProbes.length);
+                            // System.out.println("Class "
+                            // + testSequenceData.getName() + " id: [" + i
+                            // + "]" + " is different!");
                             return true;
                         }
                     }

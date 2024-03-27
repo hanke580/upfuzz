@@ -176,15 +176,23 @@ public class FuzzingServerHandler implements Runnable {
                                 corpusType = fuzzingServer
                                         .getNextBestCorpusType();
                             }
-                            stackedTestPacketForGroup2 = fuzzingServer.testBatchCorpus
-                                    .getBatch(corpusType);
-                            logger.info(
-                                    "Going to execute a batch in group 2 agents. Type: "
-                                            + corpusType);
+                            try {
+                                stackedTestPacketForGroup2 = fuzzingServer.testBatchCorpus
+                                        .getBatch(corpusType);
+                                logger.info(
+                                        "Going to execute a batch in group 2 agents. Type: "
+                                                + corpusType);
+                            } catch (Exception e) {
+                                logger.info("Could not collect the test batch, queues became empty");
+                            }
                         }
-                        Packet testPacketForGroup2 = (Packet) stackedTestPacketForGroup2;
-                        testPacketForGroup2.write(out);
-                        readFeedbackPacket();
+                        try {
+                            Packet testPacketForGroup2 = (Packet) stackedTestPacketForGroup2;
+                            testPacketForGroup2.write(out);
+                            readFeedbackPacket();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
                 if (this.clientGroup != 1 && this.clientGroup != 2) {

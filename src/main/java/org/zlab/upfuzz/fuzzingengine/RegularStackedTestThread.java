@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.packet.*;
+import org.zlab.upfuzz.utils.Utilities;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 
 import static org.zlab.upfuzz.nyx.MiniClientMain.runTheTestsBeforeChangingVersion;
@@ -112,6 +113,13 @@ class RegularStackedTestThread implements Callable<StackedFeedbackPacket> {
             StackedFeedbackPacket stackedFeedbackPacketBeforeVersionChange = runTheTestsBeforeChangingVersion(
                     executor,
                     stackedTestPacket, direction);
+            // synchronized (this) {
+            // for (FeedbackPacket fbPacket :
+            // stackedFeedbackPacketBeforeVersionChange.fpList) {
+            // Utilities.printCoverages(fbPacket.feedBacks,
+            // (direction == 0 ? "upgrade" : "downgrade"));
+            // }
+            // }
 
             // Send result of running tests before changing version to caller
 

@@ -189,6 +189,7 @@ public class Config {
         public boolean eval_CASSANDRA13939 = false;
         public boolean eval_CASSANDRA14912 = true;
         public int CASSANDRA_LIST_TYPE_MAX_SIZE = 10;
+        public boolean CASSANDRA_ENABLE_SPECULATIVE_RETRY = true;
 
         // Three choices: disable, flush or drain
         public boolean enableFlushOrDrain = true;
