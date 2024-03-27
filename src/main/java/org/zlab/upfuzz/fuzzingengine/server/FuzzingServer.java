@@ -1954,6 +1954,12 @@ public class FuzzingServer {
     private void saveFullSequenceBasedOnType(String storageDir,
             String reportName,
             String fullSequence) {
+
+        File storage = new File(storageDir);
+        if (!storage.exists()) {
+            storage.mkdirs();
+        }
+
         Path fullSequenceReportPath = Paths.get(
                 storageDir.toString(),
                 reportName);
