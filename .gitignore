@@ -22,6 +22,7 @@ nyx_mode/nyx.h
 graph
 testGraph.txt
 testGraph.ser
+fullSequences/
 
 
 ##############################
