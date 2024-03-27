@@ -13,6 +13,7 @@ import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.STRINGType;
 import org.zlab.upfuzz.utils.Utilities;
 
+import org.zlab.upfuzz.fuzzingengine.Config;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -186,12 +187,19 @@ public class CREATE_TABLE extends CassandraCommand {
         Parameter primaryColumnsName = primaryColumnsNameType
                 .generateRandomParameter(null, this);
 
-        return "CREATE TABLE " + IF_NOT_EXIST.toString() + " "
-                + keyspaceName.toString() + "." + tableName.toString()
-                + " (" + columns.toString() + ", PRIMARY KEY ("
-                + primaryColumnsName.toString() + " )" + ")" +
-                " WITH speculative_retry = '" + speculative_retry.toString()
-                + "';";
+        if (Config.getConf().CASSANDRA_ENABLE_SPECULATIVE_RETRY) {
+            return "CREATE TABLE " + IF_NOT_EXIST.toString() + " "
+                    + keyspaceName.toString() + "." + tableName.toString()
+                    + " (" + columns.toString() + ", PRIMARY KEY ("
+                    + primaryColumnsName.toString() + " )" + ")" +
+                    " WITH speculative_retry = '" + speculative_retry.toString()
+                    + "';";
+        } else {
+            return "CREATE TABLE " + IF_NOT_EXIST.toString() + " "
+                    + keyspaceName.toString() + "." + tableName.toString()
+                    + " (" + columns.toString() + ", PRIMARY KEY ("
+                    + primaryColumnsName.toString() + " )" + ");";
+        }
     }
 
     @Override

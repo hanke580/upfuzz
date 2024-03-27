@@ -150,6 +150,9 @@ public class FuzzingServer {
     Set<Integer> insignificantInconsistenciesIn = new HashSet<>();
     Map<Integer, Double> probabilities;
 
+    List<Integer> versionDeltaInducedTpIds = new ArrayList<>();
+    List<Integer> onlyNewBranchCoverageInducedTpIds = new ArrayList<>();
+
     public FuzzingServer() {
         testID2Seed = new HashMap<>();
         testID2TestPlan = new HashMap<>();
@@ -1474,7 +1477,6 @@ public class FuzzingServer {
         List<TestPacket> versionDeltaInducedTpList = new ArrayList<>();
         List<TestPacket> onlyNewBranchCoverageInducedTpList = new ArrayList<>();
         List<TestPacket> onlyNewFormatCoverageInducedTpList = new ArrayList<>();
-        List<Integer> versionDeltaInducedTpIds = new ArrayList<>();
 
         for (int i = 0; i < feedbackLength; i++) {
             // handle invariant
@@ -1500,6 +1502,7 @@ public class FuzzingServer {
                     versionDeltaFeedbackPacketDown.feedBacks);
 
             // priority feature is disabled
+            logger.info("Checking new bits for upgrade feedback");
             if (Utilities.hasNewBits(
                     curOriCoverage,
                     fbUpgrade.originalCodeCoverage)) {
@@ -1508,6 +1511,7 @@ public class FuzzingServer {
                         fbUpgrade.originalCodeCoverage);
                 newOldVersionBranchCoverageBeforeUpgrade = true;
             }
+            logger.info("Checking new bits for downgrade feedback");
             if (Utilities.hasNewBits(curUpCoverage,
                     fbDowngrade.originalCodeCoverage)) {
                 curUpCoverage.merge(
@@ -1572,6 +1576,8 @@ public class FuzzingServer {
                     onlyNewBranchCoverageInducedTpList.add(
                             versionDeltaFeedbackPacket.versionDeltaInducedTestPackets
                                     .get(i));
+                    onlyNewBranchCoverageInducedTpIds
+                            .add(versionDeltaFeedbackPacket.testIDs.get(i));
                     executionCountWithOnlyNewBranchCoverage += 1;
                 }
                 if (newFormatCoverageUpgrade || newFormatCoverageDowngrade) {
@@ -1626,6 +1632,21 @@ public class FuzzingServer {
                     versionDeltaFeedbackPacket.errorLogReport, startTestID,
                     endTestID);
         }
+
+        Integer[] versionDeltaInducedArray = versionDeltaInducedTpIds
+                .toArray(new Integer[0]);
+        Integer[] branchCoverageInducedArray = onlyNewBranchCoverageInducedTpIds
+                .toArray(new Integer[0]);
+
+        // Print array using toString() method
+        System.out.println();
+
+        logger.info("[HKLOG] branch coverage induced in "
+                + java.util.Arrays.toString(branchCoverageInducedArray));
+        logger.info("[HKLOG] version delta induced in "
+                + java.util.Arrays.toString(versionDeltaInducedArray));
+
+        System.out.println();
 
         // Update the coveredBranches to the newest value
         Pair<Integer, Integer> curOriCoverageStatus = Utilities
@@ -1699,6 +1720,23 @@ public class FuzzingServer {
             stackedTestPacketFormatCoverage.curUpObjCoverage = upObjCoverage;
 
             testBatchCorpus.addBatch(stackedTestPacketBranchCoverage, 1);
+        }
+
+        if (Config.getConf().debug) {
+            String reportDir = "fullSequences/lessPriority";
+            if (versionDeltaInducedTpList.size() > 0) {
+                reportDir = "fullSequences/versionDelta";
+            }
+            if (onlyNewFormatCoverageInducedTpList.size() > 0) {
+                reportDir = "fullSequences/formatCoverage";
+            }
+            if (onlyNewBranchCoverageInducedTpList.size() > 0) {
+                reportDir = "fullSequences/branchCoverage";
+            }
+            String reportName = "fullSequence_" + endTestID + ".txt";
+
+            saveFullSequenceBasedOnType(reportDir, reportName,
+                    versionDeltaFeedbackPacket.fullSequence);
         }
     }
 
@@ -1948,6 +1986,16 @@ public class FuzzingServer {
                 failureDir.toString(),
                 "fullSequence.report");
         Utilities.write2TXT(crashReportPath.toFile(), fullSequence, false);
+    }
+
+    private void saveFullSequenceBasedOnType(String storageDir,
+            String reportName,
+            String fullSequence) {
+        Path fullSequenceReportPath = Paths.get(
+                storageDir.toString(),
+                reportName);
+        Utilities.write2TXT(fullSequenceReportPath.toFile(), fullSequence,
+                false);
     }
 
     private void saveFullStopCrashReport(Path failureDir,

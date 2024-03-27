@@ -1,0 +1,37 @@
+version: '3'
+services:
+    DC3N0:
+        container_name: cassandra-test_N0
+        image: upfuzz_cassandra_test:apache-cassandra-3.0.15_apache-cassandra-2.2.8
+        command: bash -c 'sleep 0 && /usr/bin/supervisord'
+        networks:
+            network_cassandra_apache-cassandra-3.0.15_to_apache-cassandra-2.2.8_8ea795f9-71b9-43fb-b578-7d6e69677f92:
+                ipv4_address: 192.168.47.2
+        volumes:
+            - ./persistent/node_0/env.sh:/usr/bin/set_env
+        environment:
+            - CASSANDRA_CLUSTER_NAME=dev_cluster
+            - CASSANDRA_SEEDS=192.168.47.2,
+            - CASSANDRA_LOGGING_LEVEL=DEBUG
+            - CQLSH_HOST=192.168.47.2
+            - CASSANDRA_LOG_DIR=/var/log/cassandra
+        expose:
+            - 34979
+            - 7000
+            - 7001
+            - 7199
+            - 9042
+            - 9160
+            - 18251
+        ulimits:
+            memlock: -1
+            nproc: 32768
+            nofile: 100000
+
+networks:
+    network_cassandra_apache-cassandra-3.0.15_to_apache-cassandra-2.2.8_8ea795f9-71b9-43fb-b578-7d6e69677f92:
+        driver: bridge
+        ipam:
+            driver: default
+            config:
+                - subnet: 192.168.47.0/24
