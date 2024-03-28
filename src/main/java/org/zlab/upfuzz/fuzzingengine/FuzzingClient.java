@@ -1122,22 +1122,10 @@ public class FuzzingClient {
             // Retrieve results for operation 1
             StackedFeedbackPacket feedbackPackets1BeforeVersionChange = null;
             StackedFeedbackPacket feedbackPackets2BeforeVersionChange = null;
-            try {
-                synchronized (feedbackPacketQueueBeforeVersionChange) {
-                    feedbackPackets1BeforeVersionChange = feedbackPacketQueueBeforeVersionChange
-                            .take();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            try {
-                synchronized (feedbackPacketQueueBeforeVersionChange) {
-                    feedbackPackets2BeforeVersionChange = feedbackPacketQueueBeforeVersionChange
-                            .take();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            feedbackPackets1BeforeVersionChange = feedbackPacketQueueBeforeVersionChange
+                    .take();
+            feedbackPackets2BeforeVersionChange = feedbackPacketQueueBeforeVersionChange
+                    .take();
 
             // Process results for operations before version change
             if (feedbackPackets1BeforeVersionChange == null

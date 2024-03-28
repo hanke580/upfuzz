@@ -150,9 +150,6 @@ public class FuzzingServer {
     Set<Integer> insignificantInconsistenciesIn = new HashSet<>();
     Map<Integer, Double> probabilities;
 
-    List<Integer> versionDeltaInducedTpIds = new ArrayList<>();
-    List<Integer> onlyNewBranchCoverageInducedTpIds = new ArrayList<>();
-
     public FuzzingServer() {
         testID2Seed = new HashMap<>();
         testID2TestPlan = new HashMap<>();
@@ -239,22 +236,6 @@ public class FuzzingServer {
             e.printStackTrace();
             System.exit(1);
         }
-<<<<<<< HEAD
-=======
-
-        probabilities = new HashMap<>();
-        probabilities.put(0, codeCovProbability);
-        probabilities.put(1, formatCovProbability);
-        probabilities.put(2, versionDeltaProbability);
-        List<Map.Entry<Integer, Double>> entries = new ArrayList<>(
-                probabilities.entrySet());
-
-        cumulativeProbabilities[0] = probabilities.get(0);
-        for (int i = 1; i < probabilities.keySet().size(); i++) {
-            cumulativeProbabilities[i] = cumulativeProbabilities[i - 1]
-                    + probabilities.get(i);
-        }
->>>>>>> d5f4bb0 (Delta: seed addition to corpus, selecting interesting test batch from group 1)
     }
 
     public void start() {
@@ -348,50 +329,10 @@ public class FuzzingServer {
         // Pick one test case from the corpus, fuzz it for mutationEpoch
         // Add the new tests into the stackedTestPackets
         // All packets have been dispatched, now fuzz next seed
-<<<<<<< HEAD
 
         Seed seed = null;
         if (rand.nextDouble() < Config.getConf().getSeedFromCorpusRatio)
             seed = corpus.getSeed();
-=======
-        Seed seed;
-        boolean allQueuesEmpty = corpus.areAllQueuesEmpty();
-        int corpusType = getCorpusType();
-        if ((codeCovProbability > 0) || (formatCovProbability > 0)
-                || (versionDeltaProbability > 0)) {
-            if (Config.getConf().debug) {
-                logger.debug("[HKLOG] Chosen seed of coverage type: "
-                        + (corpusType == 2 ? "version delta" : "format/code"));
-            }
-            if (corpus.queues[corpusType].size() == 0 && !allQueuesEmpty) {
-                corpusType = getNextBestCorpusType();
-            }
-            seed = corpus.getSeed(corpusType);
-            if (seed != null) {
-                // logger.info("From corpus type: " + corpusType
-                // + ", obtained seed id: " + seed.testID);
-                if (Config.getConf().debug) {
-                    logger.debug(
-                            "[HKLOG] Got seed id " + seed.testID
-                                    + " from corpus type: "
-                                    + corpusType);
-                }
-                for (int i = 0; i < cumulativeProbabilities.length; i++) {
-                    if (i != corpusType) {
-                        corpus.removeSeed(seed.testID, i);
-                        if (Config.getConf().debug) {
-                            logger.debug(
-                                    "[HKLOG] Removed seed id " + seed.testID
-                                            + " from corpus type: "
-                                            + i);
-                        }
-                    }
-                }
-            }
-        } else {
-            seed = null;
-        }
->>>>>>> d5f4bb0 (Delta: seed addition to corpus, selecting interesting test batch from group 1)
         round++;
         StackedTestPacket stackedTestPacket;
 
@@ -1186,26 +1127,8 @@ public class FuzzingServer {
 
     public void addSeedToCorpus(Corpus corpus,
             Map<Integer, Seed> testID2Seed, FeedbackPacket feedbackPacket,
-<<<<<<< HEAD
             int score, Corpus.QueueType queueType) {
         Seed seed = testID2Seed.get(feedbackPacket.testPacketID);
-=======
-            int score, int corpusType) {
-        // for (Integer key : testID2Seed.keySet()) {
-        // logger.info("added to corpus type: " + corpusType + ", seed id: "
-        // + key);
-        // }
-        Seed seed = testID2Seed.get(feedbackPacket.testPacketID);
-
-        if (Config.getConf().debug) {
-            PriorityQueue<Seed> pqCopy = new PriorityQueue<>(
-                    priorityCorpus.queues[0]);
-            // logger.debug("print queue info");
-            while (!pqCopy.isEmpty()) {
-                logger.debug("score = " + pqCopy.poll().score);
-            }
-        }
->>>>>>> d5f4bb0 (Delta: seed addition to corpus, selecting interesting test batch from group 1)
         seed.score = score;
         saveSeed(seed.originalCommandSequence,
                 seed.validationCommandSequence);
@@ -1213,15 +1136,8 @@ public class FuzzingServer {
                 new FullStopSeed(seed, feedbackPacket.nodeNum,
                         new HashMap<>(),
                         feedbackPacket.validationReadResults));
-<<<<<<< HEAD
         logger.debug("Add seed " + seed.testID + " to queue " + queueType);
         corpus.addSeed(seed, queueType);
-=======
-
-        System.out.println("Going to add seed with id: " + seed.testID
-                + " to corpus type: " + corpusType);
-        priorityCorpus.addSeed(seed, corpusType);
->>>>>>> d5f4bb0 (Delta: seed addition to corpus, selecting interesting test batch from group 1)
     }
 
     public synchronized void updateStatus(
@@ -1477,6 +1393,7 @@ public class FuzzingServer {
         List<TestPacket> versionDeltaInducedTpList = new ArrayList<>();
         List<TestPacket> onlyNewBranchCoverageInducedTpList = new ArrayList<>();
         List<TestPacket> onlyNewFormatCoverageInducedTpList = new ArrayList<>();
+        List<Integer> versionDeltaInducedTpIds = new ArrayList<>();
 
         for (int i = 0; i < feedbackLength; i++) {
             // handle invariant
@@ -1502,7 +1419,6 @@ public class FuzzingServer {
                     versionDeltaFeedbackPacketDown.feedBacks);
 
             // priority feature is disabled
-            logger.info("Checking new bits for upgrade feedback");
             if (Utilities.hasNewBits(
                     curOriCoverage,
                     fbUpgrade.originalCodeCoverage)) {
@@ -1511,7 +1427,6 @@ public class FuzzingServer {
                         fbUpgrade.originalCodeCoverage);
                 newOldVersionBranchCoverageBeforeUpgrade = true;
             }
-            logger.info("Checking new bits for downgrade feedback");
             if (Utilities.hasNewBits(curUpCoverage,
                     fbDowngrade.originalCodeCoverage)) {
                 curUpCoverage.merge(
@@ -1576,8 +1491,6 @@ public class FuzzingServer {
                     onlyNewBranchCoverageInducedTpList.add(
                             versionDeltaFeedbackPacket.versionDeltaInducedTestPackets
                                     .get(i));
-                    onlyNewBranchCoverageInducedTpIds
-                            .add(versionDeltaFeedbackPacket.testIDs.get(i));
                     executionCountWithOnlyNewBranchCoverage += 1;
                 }
                 if (newFormatCoverageUpgrade || newFormatCoverageDowngrade) {
@@ -1632,21 +1545,6 @@ public class FuzzingServer {
                     versionDeltaFeedbackPacket.errorLogReport, startTestID,
                     endTestID);
         }
-
-        Integer[] versionDeltaInducedArray = versionDeltaInducedTpIds
-                .toArray(new Integer[0]);
-        Integer[] branchCoverageInducedArray = onlyNewBranchCoverageInducedTpIds
-                .toArray(new Integer[0]);
-
-        // Print array using toString() method
-        System.out.println();
-
-        logger.info("[HKLOG] branch coverage induced in "
-                + java.util.Arrays.toString(branchCoverageInducedArray));
-        logger.info("[HKLOG] version delta induced in "
-                + java.util.Arrays.toString(versionDeltaInducedArray));
-
-        System.out.println();
 
         // Update the coveredBranches to the newest value
         Pair<Integer, Integer> curOriCoverageStatus = Utilities
@@ -1720,23 +1618,6 @@ public class FuzzingServer {
             stackedTestPacketFormatCoverage.curUpObjCoverage = upObjCoverage;
 
             testBatchCorpus.addBatch(stackedTestPacketBranchCoverage, 1);
-        }
-
-        if (Config.getConf().debug) {
-            String reportDir = "fullSequences/lessPriority";
-            if (versionDeltaInducedTpList.size() > 0) {
-                reportDir = "fullSequences/versionDelta";
-            }
-            if (onlyNewFormatCoverageInducedTpList.size() > 0) {
-                reportDir = "fullSequences/formatCoverage";
-            }
-            if (onlyNewBranchCoverageInducedTpList.size() > 0) {
-                reportDir = "fullSequences/branchCoverage";
-            }
-            String reportName = "fullSequence_" + endTestID + ".txt";
-
-            saveFullSequenceBasedOnType(reportDir, reportName,
-                    versionDeltaFeedbackPacket.fullSequence);
         }
     }
 
@@ -1988,22 +1869,6 @@ public class FuzzingServer {
         Utilities.write2TXT(crashReportPath.toFile(), fullSequence, false);
     }
 
-    private void saveFullSequenceBasedOnType(String storageDir,
-            String reportName,
-            String fullSequence) {
-
-        File storage = new File(storageDir);
-        if (!storage.exists()) {
-            storage.mkdirs();
-        }
-
-        Path fullSequenceReportPath = Paths.get(
-                storageDir.toString(),
-                reportName);
-        Utilities.write2TXT(fullSequenceReportPath.toFile(), fullSequence,
-                false);
-    }
-
     private void saveFullStopCrashReport(Path failureDir,
             String report, int startTestID) {
         Path subDir = createFullStopCrashSubDir(failureDir);
@@ -2187,8 +2052,6 @@ public class FuzzingServer {
         return upgradeOpAndFaults;
     }
 
-<<<<<<< HEAD
-=======
     public int getCorpusType() {
         // Generate a random number between 0 and 1
         double randomValue = rand.nextDouble();
@@ -2225,7 +2088,6 @@ public class FuzzingServer {
                 "No non-empty list found based on probabilities");
     }
 
->>>>>>> d5f4bb0 (Delta: seed addition to corpus, selecting interesting test batch from group 1)
     public List<Event> interleaveWithOrder(List<Event> events1,
             List<Event> events2) {
         // Merge two lists but still maintain the inner order

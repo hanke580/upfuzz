@@ -157,7 +157,9 @@ public class FuzzingServerHandler implements Runnable {
                         StackedTestPacket stackedTestPacketForGroup2 = null;
                         synchronized (fuzzingServer.testBatchCorpus) {
                             while (fuzzingServer.testBatchCorpus
-                                    .areAllQueuesEmpty()) {
+                                    .areAllQueuesEmpty()
+                                    || fuzzingServer.testBatchCorpus.configFiles
+                                            .size() == 0) {
                                 try {
                                     fuzzingServer.testBatchCorpus
                                             .wait();
@@ -169,21 +171,11 @@ public class FuzzingServerHandler implements Runnable {
                                 logger.info(
                                         "Now executing version delta induced test packets in group 2");
                             }
-
-                            int corpusType = fuzzingServer.getCorpusType();
-                            if (fuzzingServer.testBatchCorpus.queues[corpusType]
-                                    .size() == 0) {
-                                corpusType = fuzzingServer
-                                        .getNextBestCorpusType();
-                            }
                             try {
-                                stackedTestPacketForGroup2 = fuzzingServer.testBatchCorpus
-                                        .getBatch(corpusType);
-                                logger.info(
-                                        "Going to execute a batch in group 2 agents. Type: "
-                                                + corpusType);
+                                stackedTestPacketForGroup2 = fuzzingServer
+                                        .getOneBatch();
                             } catch (Exception e) {
-                                logger.info("Could not collect the test batch, queues became empty");
+                                e.printStackTrace();
                             }
                         }
                         try {
