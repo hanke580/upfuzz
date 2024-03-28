@@ -93,9 +93,15 @@ public class FuzzingServer {
     boolean isFullStopUpgrade = true;
 
     private int newFormatNum = 0;
-    private int newVersionDeltaCount = 0; // Use it in the UpdateStatus method,
-                                          // when VersionDelta is added to the
-                                          // implementation
+    private int newVersionDeltaCountForBranchCoverage = 0; // Use it in the
+                                                           // UpdateStatus
+                                                           // method,
+                                                           // when VersionDelta
+                                                           // is added to the
+                                                           // implementation
+    private int newVersionDeltaCountForFormatCoverage = 0;
+    private int executionCountWithOnlyNewBranchDelta = 0;
+    private int executionCountWithOnlyNewFormatDelta = 0;
     private int executionCountWithOnlyNewBranchCoverage = 0;
     private int executionCountWithOnlyNewFormatCoverage = 0;
     private int executionCountWithoutAnyNewCoverage = 0;
@@ -127,23 +133,42 @@ public class FuzzingServer {
 
     ExecutionDataStore curOriCoverage;
     ExecutionDataStore curUpCoverage;
-    ExecutionDataStore curUpCoverageBeforeDowngrade;
+    ExecutionDataStore curUpCoverageAfterUpgrade;
     ExecutionDataStore curOriCoverageAfterDowngrade;
+    ExecutionDataStore curUpCoverageBeforeDowngrade;
 
     TestTrackerGraph graph = new TestTrackerGraph();
 
     // Calculate cumulative probabilities
-    double[] cumulativeProbabilities = new double[3];
+    double[] cumulativeSeedChoiceProbabilities = new double[6];
+
+    double newCovAfterUpgSeedChoiceProb;
+    double newCovAfterDowngSeedChoiceProb;
+    double branchDeltaSeedChoiceProb;
+    double formatDeltaSeedChoiceProb;
+    double branchCovSeedChoiceProb;
+    double formatCovSeedChoiceProb;
+
+    double[] cumulativeTestChoiceProbabilities = new double[4];
+
     double codeCovProbability;
     double formatCovProbability;
-    double versionDeltaProbability;
+    double branchVersionDeltaProbability;
+    double formatVersionDeltaProbability;
 
     Set<Integer> mutatedSeedIds = new HashSet<>();
     Set<Integer> insignificantInconsistenciesIn = new HashSet<>();
-    Map<Integer, Double> probabilities;
+    Map<Integer, Double> seedChoiceProbabilities;
+    Map<Integer, Double> testChoiceProbabilities;
 
     List<Integer> versionDeltaInducedTpIds = new ArrayList<>();
+    List<Integer> branchVersionDeltaInducedTpIds = new ArrayList<>();
+    List<Integer> formatVersionDeltaInducedTpIds = new ArrayList<>();
     List<Integer> onlyNewBranchCoverageInducedTpIds = new ArrayList<>();
+    List<Integer> onlyNewFormatCoverageInducedTpIds = new ArrayList<>();
+    List<Integer> newCoverageAfterUpgradeInducedTpIds = new ArrayList<>();
+    List<Integer> newCoverageAfterDowngradeInducedTpIds = new ArrayList<>();
+    List<Integer> nonInterestingTpIds = new ArrayList<>();
 
     public FuzzingServer() {
         testID2Seed = new HashMap<>();
@@ -153,6 +178,7 @@ public class FuzzingServer {
         testPlanPackets = new LinkedList<>();
         curOriCoverage = new ExecutionDataStore();
         curUpCoverage = new ExecutionDataStore();
+        curUpCoverageAfterUpgrade = new ExecutionDataStore();
         curUpCoverageBeforeDowngrade = new ExecutionDataStore();
         curOriCoverageAfterDowngrade = new ExecutionDataStore();
 
@@ -189,7 +215,19 @@ public class FuzzingServer {
 
         codeCovProbability = Config.getConf().codeCoverageChoiceProb;
         formatCovProbability = Config.getConf().formatCoverageChoiceProb;
-        versionDeltaProbability = Config.getConf().versionDeltaChoiceProb;
+        branchVersionDeltaProbability = Config
+                .getConf().branchVersionDeltaChoiceProb;
+        formatVersionDeltaProbability = Config
+                .getConf().formatVersionDeltaChoiceProb;
+
+        branchCovSeedChoiceProb = Config.getConf().branchCovSeedChoiceProb;
+        formatCovSeedChoiceProb = Config.getConf().formatCovSeedChoiceProb;
+        branchDeltaSeedChoiceProb = Config.getConf().branchDeltaSeedChoiceProb;
+        formatDeltaSeedChoiceProb = Config.getConf().formatDeltaSeedChoiceProb;
+        newCovAfterUpgSeedChoiceProb = Config
+                .getConf().branchCovAfterUpgSeedChoiceProb;
+        newCovAfterDowngSeedChoiceProb = Config
+                .getConf().branchCovAfterDowngSeedChoiceProb;
     }
 
     private void init() {
@@ -227,17 +265,37 @@ public class FuzzingServer {
             System.exit(1);
         }
 
-        probabilities = new HashMap<>();
-        probabilities.put(0, codeCovProbability);
-        probabilities.put(1, formatCovProbability);
-        probabilities.put(2, versionDeltaProbability);
-        List<Map.Entry<Integer, Double>> entries = new ArrayList<>(
-                probabilities.entrySet());
+        seedChoiceProbabilities = new HashMap<>();
+        seedChoiceProbabilities.put(0, branchCovSeedChoiceProb);
+        seedChoiceProbabilities.put(1, formatCovSeedChoiceProb);
+        seedChoiceProbabilities.put(2, branchDeltaSeedChoiceProb);
+        seedChoiceProbabilities.put(3, formatDeltaSeedChoiceProb);
+        seedChoiceProbabilities.put(4, newCovAfterUpgSeedChoiceProb);
+        seedChoiceProbabilities.put(5, newCovAfterUpgSeedChoiceProb);
 
-        cumulativeProbabilities[0] = probabilities.get(0);
-        for (int i = 1; i < probabilities.keySet().size(); i++) {
-            cumulativeProbabilities[i] = cumulativeProbabilities[i - 1]
-                    + probabilities.get(i);
+        testChoiceProbabilities = new HashMap<>();
+        testChoiceProbabilities.put(0, codeCovProbability);
+        testChoiceProbabilities.put(1, formatCovProbability);
+        testChoiceProbabilities.put(2, branchVersionDeltaProbability);
+        testChoiceProbabilities.put(3, formatVersionDeltaProbability);
+
+        List<Map.Entry<Integer, Double>> seedChoiceEntries = new ArrayList<>(
+                seedChoiceProbabilities.entrySet());
+        List<Map.Entry<Integer, Double>> testChoiceEntries = new ArrayList<>(
+                testChoiceProbabilities.entrySet());
+
+        cumulativeSeedChoiceProbabilities[0] = seedChoiceProbabilities.get(0);
+        for (int i = 1; i < seedChoiceProbabilities.keySet().size(); i++) {
+            cumulativeSeedChoiceProbabilities[i] = cumulativeSeedChoiceProbabilities[i
+                    - 1]
+                    + seedChoiceProbabilities.get(i);
+        }
+
+        cumulativeTestChoiceProbabilities[0] = testChoiceProbabilities.get(0);
+        for (int i = 1; i < testChoiceProbabilities.keySet().size(); i++) {
+            cumulativeTestChoiceProbabilities[i] = cumulativeTestChoiceProbabilities[i
+                    - 1]
+                    + testChoiceProbabilities.get(i);
         }
     }
 
@@ -245,6 +303,40 @@ public class FuzzingServer {
         init();
         new Thread(new FuzzingServerSocket(this)).start();
         // new Thread(new FuzzingServerDispatcher(this)).start();
+    }
+
+    public synchronized StackedTestPacket getOneBatch() {
+        String configFileName = testBatchCorpus.getConfigFile();
+        StackedTestPacket stackedTestPacket = new StackedTestPacket(
+                Config.getConf().nodeNum, configFileName);
+        logger.info("[HKLOG] config file name: " + configFileName);
+        for (int i = 0; i < (int) (Config.getConf().batchSizePortionInGroup2
+                * Config.getConf().STACKED_TESTS_NUM); i++) {
+            if (!testBatchCorpus.noInterestingTests()) {
+                int testType = getSeedOrTestType(
+                        cumulativeTestChoiceProbabilities);
+                if (testBatchCorpus.queues[testType].size() == 0) {
+                    testType = getNextBestType(testChoiceProbabilities);
+                }
+                stackedTestPacket
+                        .addTestPacket(testBatchCorpus.getPacket(testType));
+            } else {
+                try {
+                    stackedTestPacket
+                            .addTestPacket(testBatchCorpus.getPacket(4));
+                } catch (Exception e) {
+                    logger.error(
+                            "Not enough test packets in the buffer yet, trying with a smaller batch in this execution");
+                }
+            }
+        }
+        stackedTestPacket.curOriCoverage = curOriCoverage;
+        stackedTestPacket.curUpCoverage = curUpCoverage;
+        stackedTestPacket.curOriObjCoverage = oriObjCoverage;
+        stackedTestPacket.curUpObjCoverage = upObjCoverage;
+        stackedTestPacket.clientGroupForVersionDelta = 2;
+
+        return stackedTestPacket;
     }
 
     public synchronized Packet getOneTest() {
@@ -315,17 +407,28 @@ public class FuzzingServer {
         // All packets have been dispatched, now fuzz next seed
         Seed seed;
         boolean allQueuesEmpty = corpus.areAllQueuesEmpty();
-        int corpusType = getCorpusType();
-        if ((codeCovProbability > 0) || (formatCovProbability > 0)
-                || (versionDeltaProbability > 0)) {
+        int corpusType = getSeedOrTestType(cumulativeSeedChoiceProbabilities);
+        if ((branchCovSeedChoiceProb > 0) || (formatCovSeedChoiceProb > 0)
+                || (branchDeltaSeedChoiceProb > 0)
+                || (formatDeltaSeedChoiceProb > 0)
+                || (newCovAfterUpgSeedChoiceProb > 0)
+                || (newCovAfterDowngSeedChoiceProb > 0)) {
             if (Config.getConf().debug) {
                 logger.debug("[HKLOG] Chosen seed of coverage type: "
                         + (corpusType == 2 ? "version delta" : "format/code"));
             }
             if (corpus.queues[corpusType].size() == 0 && !allQueuesEmpty) {
-                corpusType = getNextBestCorpusType();
+                corpusType = getNextBestType(seedChoiceProbabilities);
+            }
+            if (Config.getConf().debug) {
+                logger.info("Before getting seed from the corpus: ");
+                corpus.printCache();
             }
             seed = corpus.getSeed(corpusType);
+            if (Config.getConf().debug) {
+                logger.info("After getting seed from the corpus: ");
+                corpus.printCache();
+            }
             if (seed != null) {
                 // logger.info("From corpus type: " + corpusType
                 // + ", obtained seed id: " + seed.testID);
@@ -335,7 +438,7 @@ public class FuzzingServer {
                                     + " from corpus type: "
                                     + corpusType);
                 }
-                for (int i = 0; i < cumulativeProbabilities.length; i++) {
+                for (int i = 0; i < cumulativeSeedChoiceProbabilities.length; i++) {
                     if (i != corpusType) {
                         corpus.removeSeed(seed.testID, i);
                         if (Config.getConf().debug) {
@@ -1438,12 +1541,11 @@ public class FuzzingServer {
         System.out.println("feedback length: " + feedbackLength);
 
         Path failureDir = null;
-        List<TestPacket> versionDeltaInducedTpList = new ArrayList<>();
-        List<TestPacket> onlyNewBranchCoverageInducedTpList = new ArrayList<>();
-        List<TestPacket> onlyNewFormatCoverageInducedTpList = new ArrayList<>();
 
         for (int i = 0; i < feedbackLength; i++) {
             // handle invariant
+            TestPacket testPacket = versionDeltaFeedbackPacket.versionDeltaInducedTestPackets
+                    .get(i);
             FeedbackPacket versionDeltaFeedbackPacketUp = versionDeltaFeedbackPacketsUp
                     .get(i);
             FeedbackPacket versionDeltaFeedbackPacketDown = versionDeltaFeedbackPacketsDown
@@ -1453,7 +1555,8 @@ public class FuzzingServer {
 
             boolean addToCorpus = false;
             boolean addToFormatCoverageCorpus = false;
-            boolean addToVersionDeltaCorpus = false;
+            boolean addToVersionDeltaCorpusForBranchCoverage = false;
+            boolean addToVersionDeltaCorpusForFormatCoverage = false;
             boolean newOldVersionBranchCoverageBeforeUpgrade = false;
             boolean newNewVersionBranchCoverageBeforeDowngrade = false;
             boolean newFormatCoverageUpgrade = false;
@@ -1466,7 +1569,7 @@ public class FuzzingServer {
                     versionDeltaFeedbackPacketDown.feedBacks);
 
             // priority feature is disabled
-            logger.info("Checking new bits for upgrade feedback");
+            // logger.info("Checking new bits for upgrade feedback");
             if (Utilities.hasNewBits(
                     curOriCoverage,
                     fbUpgrade.originalCodeCoverage)) {
@@ -1475,7 +1578,7 @@ public class FuzzingServer {
                         fbUpgrade.originalCodeCoverage);
                 newOldVersionBranchCoverageBeforeUpgrade = true;
             }
-            logger.info("Checking new bits for downgrade feedback");
+            // logger.info("Checking new bits for downgrade feedback");
             if (Utilities.hasNewBits(curUpCoverage,
                     fbDowngrade.originalCodeCoverage)) {
                 curUpCoverage.merge(
@@ -1509,53 +1612,119 @@ public class FuzzingServer {
                 }
             }
 
+            if (Config.getConf().debug) {
+                logger.info("[HKLOG] newOldVersionBranchCoverageBeforeUpgrade: "
+                        + newOldVersionBranchCoverageBeforeUpgrade);
+                logger.info(
+                        "[HKLOG] newNewVersionBranchCoverageBeforeDowngrade: "
+                                + newNewVersionBranchCoverageBeforeDowngrade);
+                logger.info("[HKLOG] newFormatCoverageUpgrade: "
+                        + newFormatCoverageUpgrade);
+                logger.info("[HKLOG] newFormatCoverageDowngrade: "
+                        + newFormatCoverageDowngrade);
+            }
+
+            boolean hasFeedbackInducedBranchVersionDelta = newOldVersionBranchCoverageBeforeUpgrade
+                    ^ newNewVersionBranchCoverageBeforeDowngrade;
+            boolean hasFeedbackInducedFormatVersionDelta = newFormatCoverageUpgrade
+                    ^ newFormatCoverageDowngrade;
+            boolean hasFeedbackInducedNewBranchCoverage = newOldVersionBranchCoverageBeforeUpgrade
+                    || newNewVersionBranchCoverageBeforeDowngrade;
+            boolean hasFeedbackInducedNewFormatCoverage = newFormatCoverageUpgrade
+                    || newFormatCoverageDowngrade;
+            boolean isFeedbackInteresting = hasFeedbackInducedNewBranchCoverage
+                    || hasFeedbackInducedNewFormatCoverage;
+
+            if (Config.getConf().debug) {
+                logger.info("[HKLOG] code coverage choice probability: "
+                        + Config.getConf().codeCoverageChoiceProb);
+                logger.info("[HKLOG] version delta choice probability: "
+                        + Config.getConf().branchVersionDeltaChoiceProb);
+                logger.info("[HKLOG] format coverage choice probability: "
+                        + Config.getConf().formatCoverageChoiceProb);
+            }
+
             if (Config.getConf().useCodeCoverage
                     && (Config.getConf().codeCoverageChoiceProb > 0)) {
-                if (newOldVersionBranchCoverageBeforeUpgrade
-                        || newNewVersionBranchCoverageBeforeDowngrade) {
-                    System.out.println("Adding to code coverage corpus: "
+                if (hasFeedbackInducedBranchVersionDelta) {
+                    logger.info("Adding to code coverage corpus: "
                             + versionDeltaFeedbackPacketUp.testPacketID);
-                    System.out.println(
+                    logger.info(
                             "new old version branch coverage before upgrade: "
                                     + newOldVersionBranchCoverageBeforeUpgrade);
-                    System.out.println(
+                    logger.info(
                             "new new version branch coverage before downgrade: "
                                     + newNewVersionBranchCoverageBeforeDowngrade);
+                    addToVersionDeltaCorpusForBranchCoverage = true;
+                    newVersionDeltaCountForBranchCoverage += 1;
+                } else if (hasFeedbackInducedNewBranchCoverage) {
                     addToCorpus = true;
-                }
-            }
-            if ((newOldVersionBranchCoverageBeforeUpgrade
-                    ^ newNewVersionBranchCoverageBeforeDowngrade)
-                    || (newFormatCoverageUpgrade
-                            ^ newFormatCoverageDowngrade)) {
-                versionDeltaInducedTpList.add(
-                        versionDeltaFeedbackPacket.versionDeltaInducedTestPackets
-                                .get(i));
-                versionDeltaInducedTpIds
-                        .add(versionDeltaFeedbackPacket.testIDs.get(i));
-                newVersionDeltaCount += 1;
-            } else {
-                if (newOldVersionBranchCoverageBeforeUpgrade
-                        || newNewVersionBranchCoverageBeforeDowngrade) {
-                    onlyNewBranchCoverageInducedTpList.add(
-                            versionDeltaFeedbackPacket.versionDeltaInducedTestPackets
-                                    .get(i));
-                    onlyNewBranchCoverageInducedTpIds
-                            .add(versionDeltaFeedbackPacket.testIDs.get(i));
                     executionCountWithOnlyNewBranchCoverage += 1;
-                }
-                if (newFormatCoverageUpgrade || newFormatCoverageDowngrade) {
-                    onlyNewFormatCoverageInducedTpList.add(
-                            versionDeltaFeedbackPacket.versionDeltaInducedTestPackets
-                                    .get(i));
-                    executionCountWithOnlyNewFormatCoverage += 1;
                 }
             }
 
             if (Config.getConf().useFormatCoverage
                     && (Config.getConf().formatCoverageChoiceProb > 0)) {
-                if (newFormatCoverageUpgrade || newFormatCoverageDowngrade) {
+                if (hasFeedbackInducedFormatVersionDelta) {
+                    System.out.println("Adding to version delta corpus: "
+                            + versionDeltaFeedbackPacketUp.testPacketID);
+                    System.out.println(
+                            "new old version format coverage upgrade: "
+                                    + newFormatCoverageUpgrade);
+                    System.out.println(
+                            "new old version format coverage downgrade: "
+                                    + newFormatCoverageDowngrade);
+                    addToVersionDeltaCorpusForFormatCoverage = true;
+                    newVersionDeltaCountForFormatCoverage += 1;
+                } else if (hasFeedbackInducedNewFormatCoverage) {
                     addToFormatCoverageCorpus = true;
+                    executionCountWithOnlyNewFormatCoverage += 1;
+                }
+            }
+
+            if (hasFeedbackInducedBranchVersionDelta
+                    ^ hasFeedbackInducedFormatVersionDelta) {
+                if (hasFeedbackInducedBranchVersionDelta) {
+                    testBatchCorpus.addPacket(testPacket, 2);
+                    branchVersionDeltaInducedTpIds
+                            .add(versionDeltaFeedbackPacket.testIDs.get(i));
+                } else {
+                    testBatchCorpus.addPacket(testPacket, 3);
+                    formatVersionDeltaInducedTpIds
+                            .add(versionDeltaFeedbackPacket.testIDs.get(i));
+                }
+            } else {
+                if (hasFeedbackInducedBranchVersionDelta
+                        && hasFeedbackInducedFormatVersionDelta) {
+                    testBatchCorpus.addPacket(testPacket, 3);
+                    versionDeltaInducedTpIds
+                            .add(versionDeltaFeedbackPacket.testIDs.get(i));
+                } else {
+                    if (hasFeedbackInducedNewBranchCoverage
+                            ^ hasFeedbackInducedNewFormatCoverage) {
+                        if (hasFeedbackInducedNewFormatCoverage) {
+                            testBatchCorpus.addPacket(testPacket, 1);
+                            onlyNewFormatCoverageInducedTpIds.add(
+                                    versionDeltaFeedbackPacket.testIDs.get(i));
+                        } else {
+                            testBatchCorpus.addPacket(testPacket, 0);
+                            onlyNewBranchCoverageInducedTpIds.add(
+                                    versionDeltaFeedbackPacket.testIDs.get(i));
+                        }
+                    } else {
+                        if (hasFeedbackInducedNewBranchCoverage
+                                && hasFeedbackInducedNewFormatCoverage) {
+                            testBatchCorpus.addPacket(testPacket, 1);
+                            onlyNewFormatCoverageInducedTpIds.add(
+                                    versionDeltaFeedbackPacket.testIDs.get(i));
+                            onlyNewBranchCoverageInducedTpIds.add(
+                                    versionDeltaFeedbackPacket.testIDs.get(i));
+                        } else {
+                            testBatchCorpus.addPacket(testPacket, 4);
+                            nonInterestingTpIds.add(
+                                    versionDeltaFeedbackPacket.testIDs.get(i));
+                        }
+                    }
                 }
             }
 
@@ -1573,10 +1742,13 @@ public class FuzzingServer {
                 addSeedToCorpus(corpus, testID2Seed,
                         versionDeltaFeedbackPacketUp, score, 1);
             }
-            if (addToVersionDeltaCorpus) {
+            if (addToVersionDeltaCorpusForBranchCoverage) {
                 addSeedToCorpus(corpus, testID2Seed,
-                        versionDeltaFeedbackPacketUp,
-                        score, 2);
+                        versionDeltaFeedbackPacketUp, score, 2);
+            }
+            if (addToVersionDeltaCorpusForFormatCoverage) {
+                addSeedToCorpus(corpus, testID2Seed,
+                        versionDeltaFeedbackPacketUp, score, 3);
             }
         }
         // update testid2Seed, no use anymore
@@ -1585,6 +1757,7 @@ public class FuzzingServer {
         // testID2Seed.remove(testID);
         // }
         // }
+
         if (versionDeltaFeedbackPacket.hasERRORLog) {
             if (failureDir == null) {
                 failureDir = createFailureDir(
@@ -1597,7 +1770,9 @@ public class FuzzingServer {
                     endTestID);
         }
 
-        Integer[] versionDeltaInducedArray = versionDeltaInducedTpIds
+        Integer[] branchVersionDeltaInducedArray = branchVersionDeltaInducedTpIds
+                .toArray(new Integer[0]);
+        Integer[] formatVersionDeltaInducedArray = formatVersionDeltaInducedTpIds
                 .toArray(new Integer[0]);
         Integer[] branchCoverageInducedArray = onlyNewBranchCoverageInducedTpIds
                 .toArray(new Integer[0]);
@@ -1605,28 +1780,37 @@ public class FuzzingServer {
         // Print array using toString() method
         System.out.println();
 
-        logger.info("[HKLOG] branch coverage induced in "
-                + java.util.Arrays.toString(branchCoverageInducedArray));
-        logger.info("[HKLOG] version delta induced in "
-                + java.util.Arrays.toString(versionDeltaInducedArray));
+        if (Config.getConf().debug) {
+            logger.info("[HKLOG] branch coverage induced in "
+                    + java.util.Arrays.toString(branchCoverageInducedArray));
+            logger.info("[HKLOG] branch version delta induced in "
+                    + java.util.Arrays
+                            .toString(branchVersionDeltaInducedArray));
+            logger.info("[HKLOG] format version delta induced in "
+                    + java.util.Arrays
+                            .toString(formatVersionDeltaInducedArray));
+        }
 
         System.out.println();
 
         // Update the coveredBranches to the newest value
         Pair<Integer, Integer> curOriCoverageStatus = Utilities
-                .getCoverageStatus(curOriCoverage);
+                .getCoverageStatus(
+                        curOriCoverage);
         originalCoveredBranches = curOriCoverageStatus.left;
         originalProbeNum = curOriCoverageStatus.right;
 
         Pair<Integer, Integer> curUpCoverageStatus = Utilities
-                .getCoverageStatus(curUpCoverage);
+                .getCoverageStatus(
+                        curUpCoverage);
         upgradedCoveredBranches = curUpCoverageStatus.left;
         upgradedProbeNum = curUpCoverageStatus.right;
 
         Long timeElapsed = TimeUnit.SECONDS.convert(
-                System.nanoTime(), TimeUnit.NANOSECONDS) - startTime;
-        if (timeElapsed - lastTimePoint > Config.getConf().timeInterval ||
-                lastTimePoint == 0) {
+                System.nanoTime(), TimeUnit.NANOSECONDS)
+                - startTime;
+        if (timeElapsed - lastTimePoint > Config.getConf().timeInterval
+                || lastTimePoint == 0) {
             // Insert a record (time: coverage)
             originalCoverageAlongTime.add(
                     new Pair(timeElapsed, originalCoveredBranches));
@@ -1634,6 +1818,9 @@ public class FuzzingServer {
                     new Pair(timeElapsed, upgradedCoveredBranches));
             lastTimePoint = timeElapsed;
         }
+
+        testBatchCorpus
+                .addConfigFile(versionDeltaFeedbackPacket.configFileName);
         printInfo();
         System.out.println();
 
@@ -1647,54 +1834,16 @@ public class FuzzingServer {
                 versionDeltaFeedbackPacket.nodeNum,
                 versionDeltaFeedbackPacket.configFileName);
 
-        if (versionDeltaInducedTpList.size() > 0) {
-            stackedTestPacketVersionDelta.clientGroupForVersionDelta = 2;
-            for (TestPacket tp : versionDeltaInducedTpList) {
-                stackedTestPacketVersionDelta.addTestPacket(tp);
-            }
-            stackedTestPacketVersionDelta.curOriCoverage = curOriCoverage;
-            stackedTestPacketVersionDelta.curUpCoverage = curUpCoverage;
-            stackedTestPacketVersionDelta.curOriObjCoverage = oriObjCoverage;
-            stackedTestPacketVersionDelta.curUpObjCoverage = upObjCoverage;
-
-            testBatchCorpus.addBatch(stackedTestPacketVersionDelta, 2);
-        }
-
-        if (onlyNewBranchCoverageInducedTpList.size() > 0) {
-            stackedTestPacketBranchCoverage.clientGroupForVersionDelta = 2;
-            for (TestPacket tp : onlyNewBranchCoverageInducedTpList) {
-                stackedTestPacketBranchCoverage.addTestPacket(tp);
-            }
-            stackedTestPacketBranchCoverage.curOriCoverage = curOriCoverage;
-            stackedTestPacketBranchCoverage.curUpCoverage = curUpCoverage;
-            stackedTestPacketBranchCoverage.curOriObjCoverage = oriObjCoverage;
-            stackedTestPacketBranchCoverage.curUpObjCoverage = upObjCoverage;
-
-            testBatchCorpus.addBatch(stackedTestPacketBranchCoverage, 0);
-        }
-
-        if (onlyNewFormatCoverageInducedTpList.size() > 0) {
-            stackedTestPacketFormatCoverage.clientGroupForVersionDelta = 2;
-            for (TestPacket tp : onlyNewFormatCoverageInducedTpList) {
-                stackedTestPacketFormatCoverage.addTestPacket(tp);
-            }
-            stackedTestPacketFormatCoverage.curOriCoverage = curOriCoverage;
-            stackedTestPacketFormatCoverage.curUpCoverage = curUpCoverage;
-            stackedTestPacketFormatCoverage.curOriObjCoverage = oriObjCoverage;
-            stackedTestPacketFormatCoverage.curUpObjCoverage = upObjCoverage;
-
-            testBatchCorpus.addBatch(stackedTestPacketBranchCoverage, 1);
-        }
-
         if (Config.getConf().debug) {
             String reportDir = "fullSequences/lessPriority";
-            if (versionDeltaInducedTpList.size() > 0) {
+            if (formatVersionDeltaInducedTpIds.size() > 0
+                    || branchVersionDeltaInducedTpIds.size() > 0) {
                 reportDir = "fullSequences/versionDelta";
             }
-            if (onlyNewFormatCoverageInducedTpList.size() > 0) {
+            if (onlyNewFormatCoverageInducedTpIds.size() > 0) {
                 reportDir = "fullSequences/formatCoverage";
             }
-            if (onlyNewBranchCoverageInducedTpList.size() > 0) {
+            if (onlyNewBranchCoverageInducedTpIds.size() > 0) {
                 reportDir = "fullSequences/branchCoverage";
             }
             String reportName = "fullSequence_" + endTestID + ".txt";
@@ -1702,6 +1851,7 @@ public class FuzzingServer {
             saveFullSequenceBasedOnType(reportDir, reportName,
                     versionDeltaFeedbackPacket.fullSequence);
         }
+        // addOneBatchToSharedQueue(versionDeltaFeedbackPacket);
     }
 
     public synchronized void analyzeFeedbackFromVersionDeltaGroup2(
@@ -1786,7 +1936,8 @@ public class FuzzingServer {
             finishedTestID++;
             int score = 0;
 
-            boolean addToCorpus = false;
+            boolean addToCorpusAfterUpgrade = false;
+            boolean addToCorpusAfterDowngrade = false;
             boolean newNewVersionBranchCoverageAfterUpgrade = false;
             boolean newOldVersionBranchCoverageAfterDowngrade = false;
 
@@ -1798,29 +1949,39 @@ public class FuzzingServer {
 
             // priority feature is disabled
             if (Utilities.hasNewBits(
-                    curUpCoverage,
+                    curUpCoverageAfterUpgrade,
                     fbUpgrade.upgradedCodeCoverage)) {
                 // Write Seed to Disk + Add to Corpus
                 newNewVersionBranchCoverageAfterUpgrade = true;
             }
-            if (Utilities.hasNewBits(curOriCoverage,
+            if (Utilities.hasNewBits(curOriCoverageAfterDowngrade,
                     fbDowngrade.downgradedCodeCoverage)) {
                 newOldVersionBranchCoverageAfterDowngrade = true;
             }
 
+            curUpCoverageAfterUpgrade.merge(fbUpgrade.upgradedCodeCoverage);
+            curOriCoverageAfterDowngrade
+                    .merge(fbDowngrade.downgradedCodeCoverage);
+
             if (Config.getConf().useCodeCoverage
                     && (Config.getConf().codeCoverageChoiceProb > 0)) {
-                if (newNewVersionBranchCoverageAfterUpgrade
-                        || newOldVersionBranchCoverageAfterDowngrade) {
-                    System.out.println("Adding to code coverage corpus: "
-                            + versionDeltaFeedbackPacketUp.testPacketID);
+                if (newNewVersionBranchCoverageAfterUpgrade) {
+                    System.out.println(
+                            "Adding to code coverage corpus after upgrade: "
+                                    + versionDeltaFeedbackPacketUp.testPacketID);
                     System.out.println(
                             "new new version branch coverage after upgrade: "
                                     + newNewVersionBranchCoverageAfterUpgrade);
+                    addToCorpusAfterUpgrade = true;
+                }
+                if (newOldVersionBranchCoverageAfterDowngrade) {
+                    System.out.println(
+                            "Adding to code coverage corpus after upgrade: "
+                                    + versionDeltaFeedbackPacketUp.testPacketID);
                     System.out.println(
                             "new old version branch coverage after downgrade: "
                                     + newOldVersionBranchCoverageAfterDowngrade);
-                    addToCorpus = true;
+                    addToCorpusAfterDowngrade = true;
                 }
             }
 
@@ -1836,9 +1997,13 @@ public class FuzzingServer {
                         versionDeltaFeedbackPacketUp.inconsistencyReport);
             }
 
-            if (addToCorpus) {
+            if (addToCorpusAfterUpgrade) {
                 addSeedToCorpus(corpus, testID2Seed,
-                        versionDeltaFeedbackPacketUp, score, 0);
+                        versionDeltaFeedbackPacketUp, score, 4);
+            }
+            if (addToCorpusAfterDowngrade) {
+                addSeedToCorpus(corpus, testID2Seed,
+                        versionDeltaFeedbackPacketDown, score, 5);
             }
         }
         // update testid2Seed, no use anymore
@@ -2079,13 +2244,26 @@ public class FuzzingServer {
         }
 
         if (Config.getConf().useVersionDelta
-                && (Config.getConf().versionDeltaChoiceProb > 0)) {
+                && (Config.getConf().branchVersionDeltaChoiceProb > 0)) {
             System.out.format("|%30s|%30s|%30s|%30s|\n",
-                    "version delta queue size : " + corpus.queues[2].size(),
-                    "new version delta count : " + newVersionDeltaCount,
-                    "exec with only branch cov : "
+                    "branch delta queue size : " + corpus.queues[2].size(),
+                    "format delta queue size : " + corpus.queues[3].size(),
+                    "branch cov queue size : " + corpus.queues[0].size(),
+                    "format cov queue size : " + corpus.queues[1].size());
+            System.out.format("|%30s|%30s|%30s|%30s|\n",
+                    "post upg queue size : " + corpus.queues[4].size(),
+                    "post downg queue size : " + corpus.queues[5].size(),
+                    "only new branch delta : "
+                            + executionCountWithOnlyNewBranchDelta,
+                    "only new format delta : "
+                            + executionCountWithOnlyNewFormatDelta);
+            System.out.format("|%30s|%30s|%30s|\n",
+                    "both version delta : "
+                            + (newVersionDeltaCountForBranchCoverage
+                                    - executionCountWithOnlyNewBranchDelta),
+                    "exec with branch cov : "
                             + executionCountWithOnlyNewBranchCoverage,
-                    "exec with only format cov : "
+                    "exec with format cov : "
                             + executionCountWithOnlyNewFormatCoverage);
         }
 
@@ -2097,10 +2275,14 @@ public class FuzzingServer {
                 "------------------------------------------------------------"
                         + "-----------------------------------------------------------------");
 
-        logger.info("[HKLOG] insignificant inconsistencies in: "
-                + insignificantInconsistenciesIn.toString());
-        logger.info("[HKLOG: Seed tracker] Mutated Seed IDs: "
-                + mutatedSeedIds.toString());
+        if (Config.getConf().debug) {
+            logger.info("[HKLOG] insignificant inconsistencies in: "
+                    + insignificantInconsistenciesIn.toString());
+            logger.info("[HKLOG: Seed tracker] Mutated Seed IDs: "
+                    + mutatedSeedIds.toString());
+            logger.info("[HKLOG] buffer details: ");
+            testBatchCorpus.printCache();
+        }
         System.out.println();
     }
 
@@ -2146,7 +2328,7 @@ public class FuzzingServer {
         return upgradeOpAndFaults;
     }
 
-    public int getCorpusType() {
+    public int getSeedOrTestType(double[] cumulativeProbabilities) {
         // Generate a random number between 0 and 1
         double randomValue = rand.nextDouble();
 
@@ -2162,7 +2344,7 @@ public class FuzzingServer {
         throw new IllegalStateException("Invalid probabilities");
     }
 
-    public int getNextBestCorpusType() {
+    public int getNextBestType(Map<Integer, Double> probabilities) {
         // Sort probabilities in descending order
         List<Map.Entry<Integer, Double>> sortedProbabilities = new ArrayList<>(
                 probabilities.entrySet());

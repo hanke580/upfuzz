@@ -1,5 +1,7 @@
 package org.zlab.upfuzz.fuzzingengine.server;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
@@ -14,12 +16,13 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.Iterator;
 
 public class PriorityCorpus {
+    static Logger logger = LogManager.getLogger(PriorityCorpus.class);
     AtomicLong timestampGenerator = new AtomicLong(0); // To track enqueue order
 
     // PriorityQueue<Seed> queue = new
     // PriorityQueue<>(Collections.reverseOrder());
     // Queue<Seed> queue = new LinkedList<>();
-    LinkedList<Seed>[] queues = new LinkedList[3];
+    LinkedList<Seed>[] queues = new LinkedList[6];
     {
         for (int i = 0; i < queues.length; i++) {
             queues[i] = new LinkedList<>();
@@ -90,5 +93,12 @@ public class PriorityCorpus {
 
     public boolean isEmpty(int type) {
         return queues[type].isEmpty();
+    }
+
+    public void printCache() {
+        for (int i = 0; i < queues.length; i++) {
+            logger.info(
+                    "[HKLOG] Corpus Queue " + i + " size: " + queues[i].size());
+        }
     }
 }

@@ -1,7 +1,11 @@
 package org.zlab.upfuzz.fuzzingengine.server;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.CommandSequence;
+import org.zlab.upfuzz.fuzzingengine.configgen.ConfigInfo;
 import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacket;
+import org.zlab.upfuzz.fuzzingengine.packet.TestPacket;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
@@ -17,7 +21,11 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.Iterator;
 
 public class InterestingTestsCorpus {
-    public BlockingQueue<StackedTestPacket>[] queues = new LinkedBlockingQueue[3];
+    static Logger logger = LogManager.getLogger(InterestingTestsCorpus.class);
+
+    public BlockingQueue<TestPacket>[] queues = new LinkedBlockingQueue[5];
+    public BlockingQueue<String> configFiles = new LinkedBlockingQueue<>();
+
     // LinkedList<StackedTestPacket>[] queues = new LinkedList[3];
     {
         for (int i = 0; i < queues.length; i++) {
@@ -25,24 +33,34 @@ public class InterestingTestsCorpus {
         }
     }
 
-    public StackedTestPacket getBatch(int type) {
+    public String getConfigFile() {
+        if (configFiles.isEmpty())
+            return null;
+        return configFiles.poll();
+    }
+
+    public void addConfigFile(String configFileName) {
+        configFiles.add(configFileName);
+    }
+
+    public TestPacket getPacket(int type) {
         if (queues[type].isEmpty())
             return null;
         return queues[type].poll();
     }
 
-    public StackedTestPacket peekBatch(int type) {
+    public TestPacket peekPacket(int type) {
         if (queues[type].isEmpty())
             return null;
         return queues[type].peek();
     }
 
-    public void addBatch(StackedTestPacket batch, int type) {
-        queues[type].add(batch);
+    public void addPacket(TestPacket packet, int type) {
+        queues[type].add(packet);
     }
 
     public boolean areAllQueuesEmpty() {
-        for (BlockingQueue<StackedTestPacket> queue : queues) {
+        for (BlockingQueue<TestPacket> queue : queues) {
             if (!queue.isEmpty()) {
                 return false;
             }
@@ -50,15 +68,25 @@ public class InterestingTestsCorpus {
         return true;
     }
 
-    public void removeBatch(int targetBatchId, int type) {
+    public boolean noInterestingTests() {
+        for (int i = 0; i < queues.length - 1; i++) {
+            if (!queues[i].isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void removePacket(int targetPacketId, int type) {
         // Iterate through the queue using an iterator to avoid
         // ConcurrentModificationException
-        Iterator<StackedTestPacket> iterator = queues[type].iterator();
+        Iterator<TestPacket> iterator = queues[type].iterator();
         while (iterator.hasNext()) {
-            StackedTestPacket nextBatch = iterator.next();
-            if (nextBatch.batchId == targetBatchId) {
+            TestPacket nextPacket = iterator.next();
+            if (nextPacket.testPacketID == targetPacketId) {
                 iterator.remove();
-                break; // Since there's only one seed with the target ID, we can
+                break; // Since there's only one packet with the target ID, we
+                       // can
                        // break after removal
             }
         }
@@ -66,5 +94,12 @@ public class InterestingTestsCorpus {
 
     public boolean isEmpty(int type) {
         return queues[type].isEmpty();
+    }
+
+    public void printCache() {
+        for (int i = 0; i < queues.length; i++) {
+            logger.info("[HKLOG] Queue " + i + " size: " + queues[i].size());
+        }
+        logger.info("[HKLOG] Config file queue size: " + configFiles.size());
     }
 }

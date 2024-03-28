@@ -88,6 +88,7 @@ public class Config {
         public String targetSystemStateFile = "states.json";
 
         public int STACKED_TESTS_NUM = 50;
+        public double batchSizePortionInGroup2 = 0.8;
         public long timeInterval = 600; // seconds, record time
         public boolean keepDir = true; // set to false if start a long running
                                        // test
@@ -95,7 +96,6 @@ public class Config {
 
         // ------------FeedBack------------
         public boolean useCodeCoverage = true;
-        public double codeCoverageChoiceProb = 1.0;
         public boolean collUpFeedBack = true;
         public boolean collDownFeedBack = true;
 
@@ -167,7 +167,6 @@ public class Config {
         public boolean collectFormatCoverage = false;
         // whether to use format coverage to guide the test (add to corpus)
         public boolean useFormatCoverage = false;
-        public double formatCoverageChoiceProb = 0.0;
 
         public String baseClassInfoFileName = "serializedFields_alg1.json";
         public String topObjectsFileName = "topObjects.json";
@@ -177,7 +176,17 @@ public class Config {
 
         public int formatCoveragePort = 62000;
         public boolean useVersionDelta = false;
-        public double versionDeltaChoiceProb = 0.0;
+        public double branchVersionDeltaChoiceProb = 0.7;
+        public double formatVersionDeltaChoiceProb = 0.0;
+        public double formatCoverageChoiceProb = 0.0;
+        public double codeCoverageChoiceProb = 0.3;
+
+        public double branchCovSeedChoiceProb = 0.1;
+        public double formatCovSeedChoiceProb = 0.15;
+        public double branchDeltaSeedChoiceProb = 0.25;
+        public double formatDeltaSeedChoiceProb = 0.3;
+        public double branchCovAfterUpgSeedChoiceProb = 0.1;
+        public double branchCovAfterDowngSeedChoiceProb = 0.1;
 
         /**
          * ---------------Version Specific-----------------

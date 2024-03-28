@@ -113,34 +113,10 @@ class RegularStackedTestThread implements Callable<StackedFeedbackPacket> {
             StackedFeedbackPacket stackedFeedbackPacketBeforeVersionChange = runTheTestsBeforeChangingVersion(
                     executor,
                     stackedTestPacket, direction);
-            // synchronized (this) {
-            // for (FeedbackPacket fbPacket :
-            // stackedFeedbackPacketBeforeVersionChange.fpList) {
-            // Utilities.printCoverages(fbPacket.feedBacks,
-            // (direction == 0 ? "upgrade" : "downgrade"));
-            // }
-            // }
 
             // Send result of running tests before changing version to caller
-
-            // synchronized
-            // (fuzzingClient.feedbackPacketQueueBeforeVersionChange) {
-
-            logger.info("[HKLOG] debugging coverage issue: "
-                    + (stackedFeedbackPacketBeforeVersionChange.getFpList()
-                            .get(0).feedBacks[0].originalCodeCoverage
-                                    .equals(null)));
-            logger.info("[HKLOG] debugging coverage issue: "
-                    + (stackedFeedbackPacketBeforeVersionChange.getFpList()
-                            .get(0).feedBacks[0].upgradedCodeCoverage
-                                    .equals(null)));
-            logger.info("[HKLOG] debugging coverage issue: "
-                    + (stackedFeedbackPacketBeforeVersionChange.getFpList().get(
-                            0).feedBacks[0].downgradedCodeCoverage
-                                    .equals(null)));
             feedbackPacketQueueBeforeVersionChange
-                    .put(stackedFeedbackPacketBeforeVersionChange);
-            // }
+                    .offer(stackedFeedbackPacketBeforeVersionChange);
 
             // Wait for signal to proceed
             // Wait for decision
