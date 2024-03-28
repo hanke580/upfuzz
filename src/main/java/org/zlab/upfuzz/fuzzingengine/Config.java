@@ -117,9 +117,10 @@ public class Config {
         public boolean testConfig = false;
         public double testSingleVersionConfigRatio = 0.1;
 
+        public boolean testBoundaryConfig = false;
         public boolean testAddedConfig = false;
         public boolean testDeletedConfig = false;
-        public boolean testCommonConfig = false;
+        public boolean testCommonConfig = false; // marked "deprecated"
         public double testUpgradeConfigRatio = 0.4; // We mutate testConfigRatio
         // configuration each
         // test, default is 40

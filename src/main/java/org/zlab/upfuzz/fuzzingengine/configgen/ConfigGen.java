@@ -24,6 +24,8 @@ public abstract class ConfigGen {
     public final Set<String> configBlackList = new HashSet<>();
 
     // upgrade version testing
+    public Set<String> boundaryConfig;
+    public ConfigValGenerator boundaryConfigValGenerator;
     public Set<String> commonConfig;
     public ConfigValGenerator commonConfigValGenerator;
     public Set<String> addedConfig;
@@ -49,7 +51,8 @@ public abstract class ConfigGen {
         initUpgradeFileGenerator();
         if (Config.getConf().testAddedConfig
                 || Config.getConf().testDeletedConfig
-                || Config.getConf().testCommonConfig) {
+                || Config.getConf().testCommonConfig
+                || Config.getConf().testBoundaryConfig) {
             enable = true;
             loadUpgradeConfigInfo();
             initUpgradeValGenerator();
@@ -96,12 +99,16 @@ public abstract class ConfigGen {
                     "missing configuration test files: " + configInfoPath);
         }
 
+        Path boundaryConfigPath = configInfoPath
+                .resolve("boundaryRelatedConfig.json");
         Path commonConfigPath = configInfoPath.resolve("commonConfig.json");
         Path addedConfigPath = configInfoPath
                 .resolve("addedClassConfig.json");
         Path deletedConfigPath = configInfoPath
                 .resolve("deletedClassConfig.json");
         try {
+            boundaryConfig = mapper.readValue(boundaryConfigPath.toFile(),
+                    HashSet.class);
             commonConfig = mapper.readValue(commonConfigPath.toFile(),
                     HashSet.class);
             addedConfig = mapper.readValue(addedConfigPath.toFile(),
@@ -171,6 +178,8 @@ public abstract class ConfigGen {
     public abstract void initSingleFileGenerator();
 
     public void initUpgradeValGenerator() {
+        boundaryConfigValGenerator = new ConfigValGenerator(boundaryConfig,
+                oriConfigInfo);
         commonConfigValGenerator = new ConfigValGenerator(commonConfig,
                 oriConfigInfo);
         addedConfigValGenerator = new ConfigValGenerator(addedConfig,
@@ -248,6 +257,14 @@ public abstract class ConfigGen {
         Map<String, String> oriConfigtest = new HashMap<>();
         Map<String, String> upConfigtest = new HashMap<>();
 
+        if (Config.getConf().testBoundaryConfig) {
+            Map<String, String> filteredConfigTest = filteredConfigTestGen(
+                    boundaryConfigValGenerator, true,
+                    Config.getConf().testUpgradeConfigRatio);
+            oriConfigtest.putAll(filteredConfigTest);
+            upConfigtest.putAll(filteredConfigTest);
+        }
+
         if (Config.getConf().testCommonConfig) {
             Map<String, String> filteredConfigTest = filteredConfigTestGen(
                     commonConfigValGenerator, true,
@@ -283,7 +300,8 @@ public abstract class ConfigGen {
 
         if (Config.getConf().testAddedConfig
                 || Config.getConf().testDeletedConfig
-                || Config.getConf().testCommonConfig) {
+                || Config.getConf().testCommonConfig
+                || Config.getConf().testBoundaryConfig) {
             return configFileGenerator[0].generate(oriConfigtest,
                     oriConfigInfo.config2type,
                     upConfigtest, upConfigInfo.config2type);
