@@ -304,11 +304,15 @@ public class MiniClientMain {
                     stackedFeedbackPacket = runTheTestsBeforeChangingVersion(
                             executor, stackedTestPacket, testDirection);
                 } else {
-                    // StackedFeedbackPacket
-                    // stackedFeedbackPacketBeforeVersionChange =
+                    StackedFeedbackPacket stackedFeedbackPacketBeforeVersionChange = runTheTestsBeforeChangingVersion(
+                            executor, stackedTestPacket, testDirection);
+                    stackedFeedbackPacket = changeVersionAndRunTheTests(
+                            executor, stackedTestPacket, testDirection,
+                            isDowngradeSupported,
+                            stackedFeedbackPacketBeforeVersionChange);
                     // stackedFeedbackPacket;
-                    stackedFeedbackPacket = runTheTests(executor,
-                            stackedTestPacket, testDirection);
+                    // stackedFeedbackPacket = runTheTests(executor,
+                    // stackedTestPacket, testDirection);
                 }
             }
             logMessages += "Testing time "
