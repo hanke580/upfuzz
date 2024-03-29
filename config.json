@@ -7,7 +7,7 @@
   "STACKED_TESTS_NUM" : "1",
   "nodeNum": 1,
   "faultMaxNum": 2,
-  "testSingleVersion": true,
+  "testSingleVersion": false,
   "testingMode": 0,
   "collectFormatCoverage": false,
   "verifyConfig": false,

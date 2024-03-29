@@ -413,11 +413,11 @@ sed -i 's/num_tokens: 16/num_tokens: 256/' prebuild/cassandra/apache-cassandra-4
 6. Build the docker image.
 
 First, modify the first few lines in `src/main/resources/cassandra/normal/compile-src/cassandra-clusternode.sh`
-file. You should change the `ORG_VERSION` and `UPG_VERSION` to the name of the target system. In this example,
+file. You should change the `ORI_VERSION` and `UP_VERSION` to the name of the target system. In this example,
 ```bash
 vim src/main/resources/cassandra/normal/compile-src/cassandra-clusternode.sh
-ORG_VERSION=apache-cassandra-3.11.15
-UPG_VERSION=apache-cassandra-4.1.3
+ORI_VERSION=apache-cassandra-3.11.15
+UP_VERSION=apache-cassandra-4.1.3
 ```
 
 Then build the docker image (pwd=/path/to/upfuzz/)
@@ -491,8 +491,8 @@ sed -i "s/elif \[ \"\$COMMAND\" = \"dfs\" \] ; then/elif [ \"\$COMMAND\" = \"dfs
 ```shell
 vim bin/main/hdfs/compile-src/hdfs-clusternode.sh
 # Change it to the target systems
-ORG_VERSION=hadoop-2.10.2
-UPG_VERSION=hadoop-3.3.0
+ORI_VERSION=hadoop-2.10.2
+UP_VERSION=hadoop-3.3.0
 ```
 
 6. Build the docker image.
