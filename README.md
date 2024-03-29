@@ -82,7 +82,8 @@ tar -xzvf apache-cassandra-2.2.8-format.tar.gz
 tar -xzvf apache-cassandra-3.0.15-format.tar.gz
 
 cd ${UPFUZZ_DIR}/src/main/resources/cassandra/normal/compile-src/
-sed -i -e 's/3.11.15/2.2.8/g' -e 's/4.1.3/3.0.15/g' cassandra-clusternode.sh
+sed -i "s/ORI_VERSION=apache-cassandra-.*$/ORI_VERSION=apache-cassandra-$ORI_VERSION/" cassandra-clusternode.sh
+sed -i "s/UP_VERSION=apache-cassandra-.*$/UP_VERSION=apache-cassandra-$UP_VERSION/" cassandra-clusternode.sh
 docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"_apache-cassandra-"$UP_VERSION"
 
 # Copy the format required json files to the /tmp/folder
@@ -173,6 +174,8 @@ cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI
 cp src/main/resources/cqlsh_daemon3_4.0.5_4.1.0.py  prebuild/cassandra/apache-cassandra-"$UP_VERSION"/bin/cqlsh_daemon.py
 
 cd src/main/resources/cassandra/normal/compile-src/
+sed -i "s/ORI_VERSION=apache-cassandra-.*$/ORI_VERSION=apache-cassandra-$ORI_VERSION/" cassandra-clusternode.sh
+sed -i "s/UP_VERSION=apache-cassandra-.*$/UP_VERSION=apache-cassandra-$UP_VERSION/" cassandra-clusternode.sh
 docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"_apache-cassandra-"$UP_VERSION"
 
 cd ${UPFUZZ_DIR}
