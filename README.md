@@ -70,16 +70,16 @@ export UPFUZZ_DIR=$PWD
 
 ## start from this step if testing through our prebuilt image
 export ORI_VERSION=2.2.8
-export UP_VERSION=3.0.15
+export UP_VERSION=3.0.17
 
 mkdir -p "$UPFUZZ_DIR"/prebuild/cassandra  # don't need to run this step if testing through prebuilt image
 cd prebuild/cassandra
 
 # Get the instrumented cassandra-2.2.8
 cp /home/khan/test_binary/apache-cassandra-2.2.8-format.tar.gz .
-cp /home/khan/test_binary/apache-cassandra-3.0.15-format.tar.gz .
+cp /home/khan/test_binary/apache-cassandra-3.0.17-format.tar.gz .
 tar -xzvf apache-cassandra-2.2.8-format.tar.gz
-tar -xzvf apache-cassandra-3.0.15-format.tar.gz
+tar -xzvf apache-cassandra-3.0.17-format.tar.gz
 
 cd ${UPFUZZ_DIR}/src/main/resources/cassandra/normal/compile-src/
 sed -i "s/ORI_VERSION=apache-cassandra-.*$/ORI_VERSION=apache-cassandra-$ORI_VERSION/" cassandra-clusternode.sh
@@ -87,16 +87,16 @@ sed -i "s/UP_VERSION=apache-cassandra-.*$/UP_VERSION=apache-cassandra-$UP_VERSIO
 docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"_apache-cassandra-"$UP_VERSION"
 
 # Copy the format required json files to the /tmp/folder
-cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.15/serializedFields_alg1.json /tmp
-cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.15/topObjects.json /tmp
-cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.15/comparableClasses.json /tmp
-cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.15/branch2Collection.json /tmp
+cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.17/serializedFields_alg1.json /tmp
+cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.17/topObjects.json /tmp
+cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.17/comparableClasses.json /tmp
+cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.17/branch2Collection.json /tmp
 
 # Also make sure these files occur in the prebuild/cassandra/apache-cassandra-2.2.8/ folder
-cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.15/serializedFields_alg1.json prebuild/cassandra/apache-cassandra-2.2.8/
-cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.15/topObjects.json prebuild/cassandra/apache-cassandra-2.2.8/
-cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.15/comparableClasses.json prebuild/cassandra/apache-cassandra-2.2.8/
-cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.15/branch2Collection.json prebuild/cassandra/apache-cassandra-2.2.8/
+cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.17/serializedFields_alg1.json prebuild/cassandra/apache-cassandra-2.2.8/
+cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.17/topObjects.json prebuild/cassandra/apache-cassandra-2.2.8/
+cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.17/comparableClasses.json prebuild/cassandra/apache-cassandra-2.2.8/
+cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.17/branch2Collection.json prebuild/cassandra/apache-cassandra-2.2.8/
 
 cd ${UPFUZZ_DIR}
 ./gradlew copyDependencies
@@ -108,7 +108,7 @@ bin/start_server.sh format_example_config.json
 bin/start_clients.sh 4 format_example_config.json
 
 # stop testing
-bin/cass_cl.sh 2.2.8 3.0.15
+bin/cass_cl.sh 2.2.8 3.0.17
 ```
 
 ## Minimal Set up for Cassandra (Try upfuzz quickly!)
