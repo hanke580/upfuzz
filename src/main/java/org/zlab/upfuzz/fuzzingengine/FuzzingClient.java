@@ -1189,23 +1189,23 @@ public class FuzzingClient {
 
             for (FeedbackPacket fp : stackedFeedbackPacketUp
                     .getFpList()) {
-                if (Config.getConf().debug) {
-                    logger.info("[HKLOG] coverage tracker upgrade: "
-                            + fp.testPacketID);
-                    Utilities.printCoverages(fp.testPacketID, fp.feedBacks,
-                            "upgrade");
-                }
+                // if (Config.getConf().debug) {
+                // logger.info("[HKLOG] coverage tracker upgrade: "
+                // + fp.testPacketID);
+                // Utilities.printCoverages(fp.testPacketID, fp.feedBacks,
+                // "upgrade");
+                // }
                 versionDeltaFeedbackPacket.addToFpList(fp, "up");
             }
 
             for (FeedbackPacket fp : stackedFeedbackPacketDown
                     .getFpList()) {
-                if (Config.getConf().debug) {
-                    logger.info("[HKLOG] coverage tracker downgrade: "
-                            + fp.testPacketID);
-                    Utilities.printCoverages(fp.testPacketID, fp.feedBacks,
-                            "downgrade");
-                }
+                // if (Config.getConf().debug) {
+                // logger.info("[HKLOG] coverage tracker downgrade: "
+                // + fp.testPacketID);
+                // Utilities.printCoverages(fp.testPacketID, fp.feedBacks,
+                // "downgrade");
+                // }
                 versionDeltaFeedbackPacket.addToFpList(fp, "down");
             }
 
@@ -1216,7 +1216,7 @@ public class FuzzingClient {
             }
             versionDeltaFeedbackPacket.clientGroup = group;
             decisionForVersionChange.set(0);
-            clearData();
+            // clearData();
             executorService.shutdown();
             if (Config.getConf().debug) {
                 logger.info("[HKLOG: profiler] " + threadIdGroup

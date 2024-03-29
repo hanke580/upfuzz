@@ -8,6 +8,7 @@ import java.util.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.zlab.upfuzz.fuzzingengine.LogInfo;
 
 /**
  * Client: Execute and reply the execute information
@@ -17,6 +18,8 @@ public class StackedFeedbackPacket extends Packet implements Serializable {
     static Logger logger = LogManager.getLogger(StackedFeedbackPacket.class);
 
     public final List<FeedbackPacket> fpList;
+    public List<List<String>> oriResults;
+    public List<LogInfo> logInfos;
 
     // include all testIDs (either executed or not)
     // we should remove them from testID2Seed for oom problem
@@ -51,6 +54,8 @@ public class StackedFeedbackPacket extends Packet implements Serializable {
         this.testIDs = testIDs;
         this.type = PacketType.StackedFeedbackPacket;
         fpList = new LinkedList<>();
+        oriResults = new LinkedList<>();
+        logInfos = new LinkedList<>();
     }
 
     public void addFeedbackPacket(FeedbackPacket fp) {
@@ -63,6 +68,14 @@ public class StackedFeedbackPacket extends Packet implements Serializable {
 
     public List<FeedbackPacket> getFpList() {
         return fpList;
+    }
+
+    public List<List<String>> getOriResults() {
+        return oriResults;
+    }
+
+    public List<LogInfo> getLogInfos() {
+        return logInfos;
     }
 
     public int size() {
