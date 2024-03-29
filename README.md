@@ -390,7 +390,7 @@ prebuild
    version that the Cassandra supports. Cassandra-3.x still uses python2. You need
    to **change the name** to `cqlsh_daemon.py`.
 
-> cqlsh_daemon2.py: cassandra-2.2.8, cassandra-3.0.16 (Old 3.x version)
+> cqlsh_daemon2.py: cassandra-2.2.8, cassandra-3.0.15/16/17,  (Old 3.x version)
 >
 > cqlsh_daemon3.py:
 
@@ -537,4 +537,21 @@ only test single node
 ```bash
 # Modify bin/cassandra, add the following code
 cassandra_parms="$cassandra_parms -Dcassandra.ring_delay_ms=1 -Dcassandra.skip_wait_for_gossip_to_settle=0"
+```
+
+### Add cassandra log config for 3.0.x/2.0.x
+Old version cassandra cannot use env var to adjust log dir, so we add a few scripts to handle this.
+```bash
+if [ -z "$CASSANDRA_LOG_DIR" ]; then
+  CASSANDRA_LOG_DIR=$CASSANDRA_HOME/logs
+fi
+
+launch_service()
+{
+    pidpath="$1"
+    foreground="$2"
+    props="$3"
+    class="$4"
+    cassandra_parms="-Dlogback.configurationFile=logback.xml"
+    cassandra_parms="$cassandra_parms -Dcassandra.logdir=$CASSANDRA_LOG_DIR"
 ```
