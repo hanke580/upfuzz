@@ -2,6 +2,7 @@ package org.zlab.upfuzz.fuzzingengine.configgen;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.zlab.upfuzz.fuzzingengine.Config;
+import org.zlab.upfuzz.fuzzingengine.server.FuzzingServer;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -257,10 +258,12 @@ public abstract class ConfigGen {
         Map<String, String> oriConfigtest = new HashMap<>();
         Map<String, String> upConfigtest = new HashMap<>();
 
-        if (Config.getConf().testBoundaryConfig) {
+        if (Config.getConf().testBoundaryConfig
+                && FuzzingServer.startMutateBoundaryConfig) {
+            System.out.println("Start mutate boundary config");
             Map<String, String> filteredConfigTest = filteredConfigTestGen(
                     boundaryConfigValGenerator, true,
-                    Config.getConf().testUpgradeConfigRatio);
+                    Config.getConf().testBoundaryUpgradeConfigRatio);
             oriConfigtest.putAll(filteredConfigTest);
             upConfigtest.putAll(filteredConfigTest);
         }

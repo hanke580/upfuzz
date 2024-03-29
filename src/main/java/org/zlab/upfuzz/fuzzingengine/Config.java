@@ -118,6 +118,9 @@ public class Config {
         public double testSingleVersionConfigRatio = 0.1;
 
         public boolean testBoundaryConfig = false;
+        public double testBoundaryUpgradeConfigRatio = 1; // We mutate
+                                                          // testConfigRatio
+
         public boolean testAddedConfig = false;
         public boolean testDeletedConfig = false;
         public boolean testCommonConfig = false; // marked "deprecated"

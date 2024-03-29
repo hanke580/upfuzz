@@ -127,6 +127,13 @@ public class FuzzingServer {
     double codeCovProbability;
     double formatCovProbability;
 
+    // ----------------- Evaluation -----------------
+    /**
+     * We start mutate boundary config after 20 tests, see what will happen,
+     * use fixed command sequence
+     */
+    public static boolean startMutateBoundaryConfig = false;
+
     public FuzzingServer() {
         testID2Seed = new HashMap<>();
         testID2TestPlan = new HashMap<>();
@@ -241,6 +248,8 @@ public class FuzzingServer {
                             commandPath.resolve("validcommands.txt"));
                 }
                 for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
+                    System.out.println(
+                            "[Eval] use fixed commands from examplecase/commands.txt");
                     tp.originalCommandSequenceList = fixedWriteCommands;
                     tp.validationCommandSequenceList = fixedValidationCommands;
                 }
@@ -1323,6 +1332,11 @@ public class FuzzingServer {
                     new Pair(timeElapsed, upgradedCoveredBranches));
             lastTimePoint = timeElapsed;
         }
+
+        if (finishedTestID > 20) {
+            startMutateBoundaryConfig = true;
+        }
+
         printInfo();
         System.out.println();
     }
