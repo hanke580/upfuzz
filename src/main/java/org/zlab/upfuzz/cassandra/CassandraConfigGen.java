@@ -60,6 +60,8 @@ public class CassandraConfigGen extends ConfigGen {
     @Override
     public void initUpgradeValGenerator() {
         // specialize ConfigValGenerator for Cassandra
+        boundaryConfigValGenerator = new CassandraConfigValGenerator(
+                boundaryConfig, oriConfigInfo);
         commonConfigValGenerator = new CassandraConfigValGenerator(commonConfig,
                 oriConfigInfo);
         addedConfigValGenerator = new CassandraConfigValGenerator(addedConfig,
