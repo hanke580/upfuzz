@@ -1351,9 +1351,9 @@ public class FuzzingServer {
             lastTimePoint = timeElapsed;
         }
 
-        if (finishedTestID > 20) {
-            startMutateBoundaryConfig = true;
-        }
+        // if (finishedTestID > 20) {
+        // startMutateBoundaryConfig = true;
+        // }
 
         printInfo();
         System.out.println();

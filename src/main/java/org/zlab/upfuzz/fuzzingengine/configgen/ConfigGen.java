@@ -258,9 +258,8 @@ public abstract class ConfigGen {
         Map<String, String> oriConfigtest = new HashMap<>();
         Map<String, String> upConfigtest = new HashMap<>();
 
-        if (Config.getConf().testBoundaryConfig
-                && FuzzingServer.startMutateBoundaryConfig) {
-            System.out.println("Start mutate boundary config");
+        if (Config.getConf().testBoundaryConfig) {
+            // System.out.println("Start mutate boundary config");
             Map<String, String> filteredConfigTest = filteredConfigTestGen(
                     boundaryConfigValGenerator, true,
                     Config.getConf().testBoundaryUpgradeConfigRatio);

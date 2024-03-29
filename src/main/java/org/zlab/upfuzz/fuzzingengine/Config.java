@@ -40,7 +40,7 @@ public class Config {
 
     public static class Configuration {
         // ------ debug coverage ------
-        public boolean debugCoverage = true;
+        public boolean debugCoverage = false;
 
         public String serverHost = "localhost";
         public Integer serverPort = 6299;
