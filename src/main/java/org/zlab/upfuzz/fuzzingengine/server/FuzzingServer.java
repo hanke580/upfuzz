@@ -1226,20 +1226,38 @@ public class FuzzingServer {
                 score = (int) (old_score * Config.getConf().oldCovRatio
                         + new_score * (1 - Config.getConf().oldCovRatio));
             } else {
-                if (Utilities.hasNewBits(
-                        curOriCoverage,
-                        fb.originalCodeCoverage)) {
-                    // Write Seed to Disk + Add to Corpus
-                    curOriCoverage.merge(
-                            fb.originalCodeCoverage);
-                    newOldVersionBranchCoverage = true;
+                if (Config.getConf().debugCoverage) {
+                    if (Utilities.hasNewBitsDebug(
+                            curOriCoverage,
+                            fb.originalCodeCoverage)) {
+                        // Write Seed to Disk + Add to Corpus
+                        curOriCoverage.merge(
+                                fb.originalCodeCoverage);
+                        newOldVersionBranchCoverage = true;
+                    }
+                    if (Utilities.hasNewBitsDebug(curUpCoverage,
+                            fb.upgradedCodeCoverage)) {
+                        curUpCoverage.merge(
+                                fb.upgradedCodeCoverage);
+                        newNewVersionBranchCoverage = true;
+                    }
+                } else {
+                    if (Utilities.hasNewBits(
+                            curOriCoverage,
+                            fb.originalCodeCoverage)) {
+                        // Write Seed to Disk + Add to Corpus
+                        curOriCoverage.merge(
+                                fb.originalCodeCoverage);
+                        newOldVersionBranchCoverage = true;
+                    }
+                    if (Utilities.hasNewBits(curUpCoverage,
+                            fb.upgradedCodeCoverage)) {
+                        curUpCoverage.merge(
+                                fb.upgradedCodeCoverage);
+                        newNewVersionBranchCoverage = true;
+                    }
                 }
-                if (Utilities.hasNewBits(curUpCoverage,
-                        fb.upgradedCodeCoverage)) {
-                    curUpCoverage.merge(
-                            fb.upgradedCodeCoverage);
-                    newNewVersionBranchCoverage = true;
-                }
+
             }
 
             // format coverage
