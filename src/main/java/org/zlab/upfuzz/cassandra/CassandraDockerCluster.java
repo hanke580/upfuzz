@@ -53,7 +53,7 @@ public class CassandraDockerCluster extends DockerCluster {
     @Override
     public void refreshNetwork() {
         this.subnetID = RandomUtils.nextInt(1, 256);
-        this.subnet = "192.168." + subnetID + ".1/24";
+        this.subnet = "192.168." + subnetID + ".0/24";
         this.hostIP = "192.168." + subnetID + ".1";
         this.seedIP = DockerCluster.getKthIP(hostIP, 0);
         try {

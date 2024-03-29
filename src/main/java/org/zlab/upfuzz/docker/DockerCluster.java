@@ -66,7 +66,7 @@ public abstract class DockerCluster implements IDockerCluster {
         // 192.168.24.[(0001~1111)|0000] / 28
 
         this.subnetID = RandomUtils.nextInt(1, 256);
-        this.subnet = "192.168." + subnetID + ".1/24";
+        this.subnet = "192.168." + subnetID + ".0/24";
         this.hostIP = "192.168." + subnetID + ".1";
         this.agentPort = executor.agentPort;
         this.executor = executor;
