@@ -238,10 +238,10 @@ class TCPHandler(socketserver.BaseRequestHandler):
                     print("Message too large to send!")
                     resp = {
                         "cmd": cmd,
-                        "exitValue": exit_code,
+                        "exitValue": 0 if ret == True else 1,
                         "timeUsage": end_time - start_time,
-                        "message": "message too large to send: here's the first 10000 Bytes:\n" + ret_out[:10000] + "\n...",
-                        "error": "message too large to send: here's the first 10000 Bytes:\n" + ret_err[:10000] + "\n..."
+                        "message": "message too large to send: here's the first 10000 Bytes:\n" + base64_message[:10000] + "\n...",
+                        "error": "message too large to send: here's the first 10000 Bytes:\n" + base64_message[:10000] + "\n..."
                     }
                     msg = json.dumps(resp).encode("ascii")
                 self.request.sendall(msg)
