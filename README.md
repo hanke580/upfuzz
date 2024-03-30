@@ -555,3 +555,10 @@ launch_service()
     cassandra_parms="-Dlogback.configurationFile=logback.xml"
     cassandra_parms="$cassandra_parms -Dcassandra.logdir=$CASSANDRA_LOG_DIR"
 ```
+
+### cqlsh daemon to version
+* [cqlsh_daemon2](src/main/resources/cqlsh_daemon2_cass2.1.py): cassandra 2.1
+* [cqlsh_daemon2.py](src/main/resources/cqlsh_daemon2.py): cassandra-2.2.8, cassandra-3.0.15/16/17,  (Old 3.x version)
+* [cqlsh_daemon3.py](src/main/resources/cqlsh_daemon3.py): 3.11 (TO verify...)
+
+### hdfs daemon to version
