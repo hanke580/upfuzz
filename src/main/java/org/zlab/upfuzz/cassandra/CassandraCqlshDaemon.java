@@ -2,15 +2,12 @@ package org.zlab.upfuzz.cassandra;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.sql.Time;
 import java.util.LinkedList;
 import java.util.List;
@@ -169,44 +166,41 @@ public class CassandraCqlshDaemon {
         if (Config.getConf().debug) {
             logger.info("[CqlshPacket] Call to execute ");
         }
-        BufferedWriter bw = new BufferedWriter(
-                new OutputStreamWriter(socket.getOutputStream()));
 
-        bw.write(cmd);
-        bw.flush();
-        // System.out.println("executor write " + cmd);
-        BufferedReader br = new BufferedReader(
-                new InputStreamReader(socket.getInputStream()));
+        // Convert the command string to bytes to accurately measure its length
+        byte[] cmdBytes = cmd.getBytes(StandardCharsets.UTF_8);
+        int cmdLen = cmdBytes.length;
+        OutputStream os = socket.getOutputStream();
+        ByteBuffer buffer = ByteBuffer.allocate(4); // Integer.SIZE / Byte.SIZE
+        buffer.putInt(cmdLen);
+        byte[] lengthBytes = buffer.array();
+        os.write(lengthBytes);
+        os.write(cmdBytes);
 
-        // // Socket
-        // System.out.println("Socket Debug");
-        // byte[] output = new byte[10240];
-        // cqlsh.getInputStream().read(output);
-        // System.out.println(new String(output));
+        // Make sure to flush the output stream to ensure data is sent
+        os.flush();
 
-        // FIXME: Also need to modify cqlsh_daemon
-        char[] chars = new char[51200];
+        DataInputStream dis = new DataInputStream(socket.getInputStream());
+        int readLength = dis.readInt();
+        byte[] messageBytes = new byte[readLength];
+        dis.readFully(messageBytes);
+        String cqlshMessage = new String(messageBytes);
 
-        int cnt = br.read(chars);
-        if (cnt == -1) {
-            throw new IllegalStateException("cqlsh daemon crashed");
-        }
-        String cqlshMessage = new String(chars, 0, cnt);
-
-        // logger.info("[HKLOG] length of cqlshMessage: " +
-        // cqlshMessage.length());
-
-        Gson gson = new GsonBuilder()
-                .setLenient()
-                .create();
-
-        // logger.info("cqlshMessage: " + cqlshMessage);
-        CqlshPacket cqlshPacket = null;
-        cqlshPacket = gson.fromJson(cqlshMessage,
+        // Convert JSON string back to object
+        Gson gson = new GsonBuilder().setLenient().create();
+        CqlshPacket cqlshPacket = gson.fromJson(cqlshMessage,
                 CqlshPacket.class);
 
-        // logger.info("before decode: " + cqlshPacket.message);
+        // Assert: the cmd must be equal
+        if (!cqlshPacket.cmd.equals(cmd)) {
+            throw new RuntimeException(
+                    "cqlshPacket.cmd != cmd: " + cqlshPacket.cmd + " != "
+                            + cmd);
+        }
+
         cqlshPacket.message = Utilities.decodeString(cqlshPacket.message)
+                .replace("\0", "");
+        cqlshPacket.error = Utilities.decodeString(cqlshPacket.error)
                 .replace("\0", "");
         if (Config.getConf().debug) {
             logger.info("[CqlshDaemon] cqlsh message after decode: "
