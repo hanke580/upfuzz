@@ -130,17 +130,15 @@ public class Utilities {
                 final String name = curData.getName();
                 int[] curProbes = curData.getProbes();
                 System.out.println();
-                synchronized (logger) {
-                    logger.info(
-                            "printing coverages for testId: " + testId + ", " +
-                                    "feedback probe " + id + ", class " + name
-                                    + " from " + type + ": ");
-                    String probeDetails = "";
-                    for (int j = 0; j < curProbes.length; j++) {
-                        probeDetails += (curProbes[j] + " ");
-                    }
-                    logger.info(probeDetails);
+                logger.info(
+                        "printing coverages for testId: " + testId + ", " +
+                                "feedback probe " + id + ", class " + name
+                                + " from " + type + ": ");
+                String probeDetails = "";
+                for (int j = 0; j < curProbes.length; j++) {
+                    probeDetails += (curProbes[j] + " ");
                 }
+                logger.info(probeDetails);
                 i += 1;
             }
         }

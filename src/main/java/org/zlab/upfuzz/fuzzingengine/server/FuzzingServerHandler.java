@@ -26,7 +26,6 @@ public class FuzzingServerHandler implements Runnable {
     DataInputStream in;
     DataOutputStream out;
     DataOutputStream outGroup2;
-    private Set<Integer> insignificantInconsistenciesIn = new HashSet<>();
 
     public void addBatchesToInterestingTestCorpus(
             VersionDeltaFeedbackPacket versionDeltaFeedbackPacket) {
@@ -88,26 +87,11 @@ public class FuzzingServerHandler implements Runnable {
                     testPacket.write(out);
                 } else {
                     if (this.clientGroup == 1) {
-                        synchronized (fuzzingServer.stackedTestPacketsQueueVersionDelta) {
-                            if (fuzzingServer.stackedTestPacketsQueueVersionDelta
-                                    .size() >= 100) {
-                                fuzzingServer.stackedTestPacketsQueueVersionDelta
-                                        .wait();
-                            }
-                            // notifyAll();
-                        }
                         testPacket = fuzzingServer.getOneTest();
                         assert testPacket != null;
                         testPacket.write(out);
                         readFeedbackPacket();
-                        // synchronized
-                        // (fuzzingServer.stackedTestPacketsQueueVersionDelta) {
-                        // // readFeedbackPacket();
-                        // logger.info(
-                        // fuzzingServer.stackedTestPacketsQueueVersionDelta
-                        // .size());
-                        // // stackedTestPacketsQueueVersionDelta.notifyAll();
-                        // }
+
                         synchronized (fuzzingServer.testBatchCorpus) {
                             logger.info("Branch coverage queue size: " +
                                     fuzzingServer.testBatchCorpus.queues[0]
@@ -119,41 +103,7 @@ public class FuzzingServerHandler implements Runnable {
                                     fuzzingServer.testBatchCorpus.queues[2]
                                             .size());
                         }
-                    }
-                    // else {
-                    // StackedTestPacket stackedTestPacketForGroup2 = null;
-                    // synchronized
-                    // (fuzzingServer.stackedTestPacketsQueueVersionDelta) {
-                    // while (fuzzingServer.stackedTestPacketsQueueVersionDelta
-                    // .isEmpty()) {
-                    // try {
-                    // fuzzingServer.stackedTestPacketsQueueVersionDelta
-                    // .wait();
-                    // } catch (Exception e) {
-                    // e.printStackTrace();
-                    // }
-                    // }
-                    // if (Config.getConf().debug) {
-                    // logger.info(
-                    // "Now executing version delta induced test packets in
-                    // group 2");
-                    // }
-
-                    // stackedTestPacketForGroup2 =
-                    // fuzzingServer.stackedTestPacketsQueueVersionDelta
-                    // .take();
-                    // if (fuzzingServer.stackedTestPacketsQueueVersionDelta
-                    // .isEmpty()) {
-                    // fuzzingServer.stackedTestPacketsQueueVersionDelta
-                    // .notifyAll();
-                    // }
-                    // }
-                    // Packet testPacketForGroup2 = (Packet)
-                    // stackedTestPacketForGroup2;
-                    // testPacketForGroup2.write(out);
-                    // readFeedbackPacket();
-                    // }
-                    else {
+                    } else {
                         StackedTestPacket stackedTestPacketForGroup2 = null;
                         synchronized (fuzzingServer.testBatchCorpus) {
                             while (fuzzingServer.testBatchCorpus

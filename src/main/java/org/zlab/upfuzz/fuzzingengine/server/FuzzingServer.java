@@ -316,14 +316,19 @@ public class FuzzingServer {
                 int testType = getSeedOrTestType(
                         cumulativeTestChoiceProbabilities);
                 if (testBatchCorpus.queues[testType].size() == 0) {
-                    testType = getNextBestType(testChoiceProbabilities);
+                    testType = getNextBestType(testChoiceProbabilities, 1);
                 }
-                stackedTestPacket
-                        .addTestPacket(testBatchCorpus.getPacket(testType));
+                TestPacket testPacket = testBatchCorpus.getPacket(testType);
+                if (testPacket != null) {
+                    stackedTestPacket.addTestPacket(testPacket);
+                }
             } else {
+                TestPacket testPacket = testBatchCorpus.getPacket(4);
                 try {
-                    stackedTestPacket
-                            .addTestPacket(testBatchCorpus.getPacket(4));
+                    if (testPacket != null) {
+                        stackedTestPacket
+                                .addTestPacket(testPacket);
+                    }
                 } catch (Exception e) {
                     logger.error(
                             "Not enough test packets in the buffer yet, trying with a smaller batch in this execution");
@@ -418,7 +423,7 @@ public class FuzzingServer {
                         + (corpusType == 2 ? "version delta" : "format/code"));
             }
             if (corpus.queues[corpusType].size() == 0 && !allQueuesEmpty) {
-                corpusType = getNextBestType(seedChoiceProbabilities);
+                corpusType = getNextBestType(seedChoiceProbabilities, 0);
             }
             if (Config.getConf().debug) {
                 logger.info("Before getting seed from the corpus: ");
@@ -2344,7 +2349,7 @@ public class FuzzingServer {
         throw new IllegalStateException("Invalid probabilities");
     }
 
-    public int getNextBestType(Map<Integer, Double> probabilities) {
+    public int getNextBestType(Map<Integer, Double> probabilities, int type) {
         // Sort probabilities in descending order
         List<Map.Entry<Integer, Double>> sortedProbabilities = new ArrayList<>(
                 probabilities.entrySet());
@@ -2354,8 +2359,16 @@ public class FuzzingServer {
         // Iterate through sorted probabilities
         for (Map.Entry<Integer, Double> entry : sortedProbabilities) {
             int elementIndex = entry.getKey();
-            if (!corpus.isEmpty(elementIndex)) {
-                return elementIndex; // Return the index of the non-empty list
+            if (type == 0) {
+                if (!corpus.isEmpty(elementIndex)) {
+                    return elementIndex; // Return the index of the non-empty
+                                         // list
+                }
+            } else {
+                if (!testBatchCorpus.isEmpty(elementIndex)) {
+                    return elementIndex; // Return the index of the non-empty
+                                         // list
+                }
             }
         }
 
