@@ -244,6 +244,45 @@ public class FuzzingServer {
         // new Thread(new FuzzingServerDispatcher(this)).start();
     }
 
+    public synchronized StackedTestPacket getOneBatch() {
+        String configFileName = testBatchCorpus.getConfigFile();
+        StackedTestPacket stackedTestPacket = new StackedTestPacket(
+                Config.getConf().nodeNum, configFileName);
+        logger.info("[HKLOG] config file name: " + configFileName);
+        for (int i = 0; i < (int) (Config.getConf().batchSizePortionInGroup2
+                * Config.getConf().STACKED_TESTS_NUM); i++) {
+            if (!testBatchCorpus.noInterestingTests()) {
+                int testType = getSeedOrTestType(
+                        cumulativeTestChoiceProbabilities);
+                if (testBatchCorpus.queues[testType].size() == 0) {
+                    testType = getNextBestType(testChoiceProbabilities, 1);
+                }
+                TestPacket testPacket = testBatchCorpus.getPacket(testType);
+                if (testPacket != null) {
+                    stackedTestPacket.addTestPacket(testPacket);
+                }
+            } else {
+                TestPacket testPacket = testBatchCorpus.getPacket(4);
+                try {
+                    if (testPacket != null) {
+                        stackedTestPacket
+                                .addTestPacket(testPacket);
+                    }
+                } catch (Exception e) {
+                    logger.error(
+                            "Not enough test packets in the buffer yet, trying with a smaller batch in this execution");
+                }
+            }
+        }
+        stackedTestPacket.curOriCoverage = curOriCoverage;
+        stackedTestPacket.curUpCoverage = curUpCoverage;
+        stackedTestPacket.curOriObjCoverage = oriObjCoverage;
+        stackedTestPacket.curUpObjCoverage = upObjCoverage;
+        stackedTestPacket.clientGroupForVersionDelta = 2;
+
+        return stackedTestPacket;
+    }
+
     public synchronized Packet getOneTest() {
         if (Config.getConf().testingMode == 0) {
             if (stackedTestPackets.isEmpty()) {
@@ -2068,7 +2107,11 @@ public class FuzzingServer {
         throw new IllegalStateException("Invalid probabilities");
     }
 
+<<<<<<< HEAD
     public int getNextBestCorpusType() {
+=======
+    public int getNextBestType(Map<Integer, Double> probabilities, int type) {
+>>>>>>> af895b2 (bugfix in test batch creation in server)
         // Sort probabilities in descending order
         List<Map.Entry<Integer, Double>> sortedProbabilities = new ArrayList<>(
                 probabilities.entrySet());
@@ -2078,8 +2121,16 @@ public class FuzzingServer {
         // Iterate through sorted probabilities
         for (Map.Entry<Integer, Double> entry : sortedProbabilities) {
             int elementIndex = entry.getKey();
-            if (!corpus.isEmpty(elementIndex)) {
-                return elementIndex; // Return the index of the non-empty list
+            if (type == 0) {
+                if (!corpus.isEmpty(elementIndex)) {
+                    return elementIndex; // Return the index of the non-empty
+                                         // list
+                }
+            } else {
+                if (!testBatchCorpus.isEmpty(elementIndex)) {
+                    return elementIndex; // Return the index of the non-empty
+                                         // list
+                }
             }
         }
 

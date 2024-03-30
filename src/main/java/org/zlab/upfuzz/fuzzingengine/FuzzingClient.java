@@ -37,7 +37,6 @@ import static org.zlab.upfuzz.fuzzingengine.server.FuzzingServer.readState;
 import static org.zlab.upfuzz.nyx.MiniClientMain.runTheTests;
 import static org.zlab.upfuzz.nyx.MiniClientMain.setTestType;
 import org.zlab.ocov.tracker.ObjectCoverage;
-import static org.zlab.upfuzz.nyx.MiniClientMain.clearData;
 
 public class FuzzingClient {
     static Logger logger = LogManager.getLogger(FuzzingClient.class);
@@ -505,7 +504,9 @@ public class FuzzingClient {
 
         setTestType(0);
         long startTime6 = System.currentTimeMillis();
+        logger.info("[HKLOG] Now starting nyx execution");
         this.libnyx.nyxExec();
+
         if (Config.getConf().debug) {
             logger.info("[Fuzzing Client] time for NyxExec() function "
                     + (System.currentTimeMillis() - startTime6)
@@ -623,7 +624,7 @@ public class FuzzingClient {
                         stackedTestPacket);
             } else {
                 try {
-                    return executeStackedTestPacketRegularVersionDelta(
+                    return executeStackedTestPacketRegularVersionDeltaApproach2(
                             stackedTestPacket);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -1049,104 +1050,82 @@ public class FuzzingClient {
         }
         versionDeltaFeedbackPacket.clientGroup = 0;
         decisionForVersionChange.set(0);
-        clearData();
+        // clearData();
         executorService.shutdown();
         return versionDeltaFeedbackPacket;
     }
 
-    public VersionDeltaFeedbackPacket executeStackedTestPacketRegularVersionDelta(
-            StackedTestPacket stackedTestPacket)
-            throws InterruptedException {
+    public VersionDeltaFeedbackPacket executeStackedTestPacketRegularVersionDeltaApproach2(
+            StackedTestPacket stackedTestPacket) {
+        ExecutorService executorService = Executors.newFixedThreadPool(20);
+        Path configPath = Paths.get(configDirPath.toString(),
+                stackedTestPacket.configFileName);
+        logger.info("[HKLOG] configPath = " + configPath);
+
+        // config verification
+        if (Config.getConf().verifyConfig) {
+            boolean validConfig = verifyConfig(configPath);
+            if (!validConfig) {
+                logger.error(
+                        "problem with configuration! system cannot start up");
+                return null;
+            }
+        }
 
         if (Config.getConf().debug) {
-            logger.info("Version delta testing for group: "
-                    + stackedTestPacket.clientGroupForVersionDelta);
-            logger.info("This client is in group: " + group);
+            logger.info("[Fuzzing Client] Call to initialize executor");
         }
-        if (stackedTestPacket.clientGroupForVersionDelta != group) {
-            logger.info("Not for this group of client");
-            return null;
-        } else {
-            ExecutorService executorService = Executors.newFixedThreadPool(20);
-            Path configPath = Paths.get(configDirPath.toString(),
-                    stackedTestPacket.configFileName);
-            logger.info("[HKLOG] configPath = " + configPath);
+        Executor[] executors = initExecutorVersionDelta(
+                stackedTestPacket.nodeNum, null, configPath);
 
-            // config verification
-            if (Config.getConf().verifyConfig) {
-                boolean validConfig = verifyConfig(configPath);
-                if (!validConfig) {
-                    logger.error(
-                            "problem with configuration! system cannot start up");
-                    return null;
-                }
-            }
+        String threadIdGroup = "group" + group + "_"
+                + String.valueOf(Thread.currentThread().getId());
+        long startTimeVersionDeltaExecution = System.currentTimeMillis();
+        if (Config.getConf().debug) {
+            logger.info("[HKLOG: profiler] " + threadIdGroup + ": group "
+                    + group + ": started version delta execution");
+        }
 
-            if (Config.getConf().debug) {
-                logger.info("[Fuzzing Client] Call to initialize executor");
-            }
-            Executor[] executors = initExecutorVersionDelta(
-                    stackedTestPacket.nodeNum, null, configPath);
+        logger.info("[HKLOG] Downgrade supported: " + isDowngradeSupported);
+        // Submitting two Callable tasks
+        StackedTestPacket stackedTestPacketUp = stackedTestPacket;
+        StackedTestPacket stackedTestPacketDown = stackedTestPacket;
+        Future<StackedFeedbackPacket> futureStackedFeedbackPacketUp = executorService
+                .submit(new VersionDeltaStackedTestThread(executors[0], 0,
+                        stackedTestPacketUp, isDowngradeSupported, group));
+        Future<StackedFeedbackPacket> futureStackedFeedbackPacketDown = executorService
+                .submit(new VersionDeltaStackedTestThread(executors[1], 1,
+                        stackedTestPacketDown, isDowngradeSupported, group));
 
-            String threadIdGroup = "group" + group + "_"
-                    + String.valueOf(Thread.currentThread().getId());
-            long startTimeVersionDeltaExecution = System.currentTimeMillis();
-            if (Config.getConf().debug) {
-                logger.info("[HKLOG: profiler] " + threadIdGroup + ": group "
-                        + group + ": started version delta execution");
-            }
-
-            BlockingQueue<StackedFeedbackPacket> feedbackPacketQueueBeforeVersionChange = new LinkedBlockingQueue<>();
-            AtomicInteger decisionForVersionChange = new AtomicInteger(0); // 0:
-                                                                           // undecided,
-                                                                           // 1:
-                                                                           // continue,
-                                                                           // 2:
-                                                                           // terminate
-
-            // Submitting two Callable tasks
-            // direction 0 means original --> upgraded
-            // direction 1 means upgraded --> original
-            logger.info("[HKLOG] Downgrade supported: " + isDowngradeSupported);
-            Future<StackedFeedbackPacket> futureStackedFeedbackPacketUp = executorService
-                    .submit(new RegularStackedTestThread(executors[0], 0,
-                            stackedTestPacket, isDowngradeSupported,
-                            decisionForVersionChange,
-                            feedbackPacketQueueBeforeVersionChange));
-            Future<StackedFeedbackPacket> futureStackedFeedbackPacketDown = executorService
-                    .submit(new RegularStackedTestThread(executors[1], 1,
-                            stackedTestPacket, isDowngradeSupported,
-                            decisionForVersionChange,
-                            feedbackPacketQueueBeforeVersionChange));
-
-            // Retrieve results for operation 1
-            StackedFeedbackPacket feedbackPackets1BeforeVersionChange = null;
-            StackedFeedbackPacket feedbackPackets2BeforeVersionChange = null;
-            feedbackPackets1BeforeVersionChange = feedbackPacketQueueBeforeVersionChange
-                    .take();
-            feedbackPackets2BeforeVersionChange = feedbackPacketQueueBeforeVersionChange
-                    .take();
+        // Retrieve results for operation 1
+        // StackedFeedbackPacket stackedFeedbackPacketUp = null;
+        // StackedFeedbackPacket stackedFeedbackPacketDown = null;
+        try {
+            StackedFeedbackPacket stackedFeedbackPacketUp = futureStackedFeedbackPacketUp
+                    .get();
+            StackedFeedbackPacket stackedFeedbackPacketDown = futureStackedFeedbackPacketDown
+                    .get();
 
             // Process results for operations before version change
-            if (feedbackPackets1BeforeVersionChange == null
-                    || feedbackPackets2BeforeVersionChange == null) {
+            if (stackedFeedbackPacketUp == null
+                    || stackedFeedbackPacketDown == null) {
                 return null;
             }
             logger.info("[HKLOG] fplist versions, fp1: "
-                    + feedbackPackets1BeforeVersionChange.getVersion());
+                    + stackedFeedbackPacketUp.getVersion());
             logger.info("[HKLOG] fplist versions, fp2: "
-                    + feedbackPackets2BeforeVersionChange.getVersion());
-            List<FeedbackPacket> fpListBeforeUpgrade = (feedbackPackets1BeforeVersionChange
-                    .getVersion()
-                    .equals(Config.getConf().originalVersion))
-                            ? feedbackPackets1BeforeVersionChange.getFpList()
-                            : feedbackPackets2BeforeVersionChange.getFpList();
+                    + stackedFeedbackPacketDown.getVersion());
 
-            int feedbackLength = fpListBeforeUpgrade.size();
+            List<FeedbackPacket> fpListUpgrade = stackedFeedbackPacketUp
+                    .getFpList();
+            List<FeedbackPacket> fpListDowngrade = stackedFeedbackPacketDown
+                    .getFpList();
+
+            int feedbackLength = fpListUpgrade.size();
 
             VersionDeltaFeedbackPacket versionDeltaFeedbackPacket = new VersionDeltaFeedbackPacket(
                     stackedTestPacket.configFileName,
-                    Utilities.extractTestIDs(stackedTestPacket), 0,
+                    Utilities.extractTestIDs(stackedTestPacket), group,
                     stackedTestPacket.nodeNum);
 
             for (int i = 0; i < feedbackLength; i++) {
@@ -1154,58 +1133,13 @@ public class FuzzingClient {
                         stackedTestPacket.getTestPacketList().get(i));
             }
 
-            logger.info(
-                    "[HKLOG] Using the second approach for version delta");
-            if (group == 1) {
-                decisionForVersionChange.set(2);
-            } else {
-                decisionForVersionChange.set(1);
-            }
-            StackedFeedbackPacket stackedFeedbackPacketUp = null;
-            StackedFeedbackPacket stackedFeedbackPacketDown = null;
-            try {
-                stackedFeedbackPacketUp = futureStackedFeedbackPacketUp
-                        .get();
-                stackedFeedbackPacketDown = futureStackedFeedbackPacketDown
-                        .get();
-                logger.info("[HKLOG] fpList version, fpUp: "
-                        + stackedFeedbackPacketUp.getVersion());
-                logger.info("[HKLOG] fpList version, fpDown: "
-                        + stackedFeedbackPacketDown.getVersion());
-                if (group == 1) {
-                    logger.info("[HKLOG] fp tracker"
-                            + stackedFeedbackPacketUp.getFpList().toString());
-                    logger.info("[HKLOG] fp tracker"
-                            + stackedFeedbackPacketDown.getFpList().toString());
-                }
-
-                if (Config.getConf().debug) {
-                    logger.info("Result from Thread 1: ");
-                    logger.info("Result from Thread 2: ");
-                }
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-
             for (FeedbackPacket fp : stackedFeedbackPacketUp
                     .getFpList()) {
-                // if (Config.getConf().debug) {
-                // logger.info("[HKLOG] coverage tracker upgrade: "
-                // + fp.testPacketID);
-                // Utilities.printCoverages(fp.testPacketID, fp.feedBacks,
-                // "upgrade");
-                // }
                 versionDeltaFeedbackPacket.addToFpList(fp, "up");
             }
 
             for (FeedbackPacket fp : stackedFeedbackPacketDown
                     .getFpList()) {
-                // if (Config.getConf().debug) {
-                // logger.info("[HKLOG] coverage tracker downgrade: "
-                // + fp.testPacketID);
-                // Utilities.printCoverages(fp.testPacketID, fp.feedBacks,
-                // "downgrade");
-                // }
                 versionDeltaFeedbackPacket.addToFpList(fp, "down");
             }
 
@@ -1215,9 +1149,7 @@ public class FuzzingClient {
                 versionDeltaFeedbackPacket.skippedDowngrade = true;
             }
             versionDeltaFeedbackPacket.clientGroup = group;
-            decisionForVersionChange.set(0);
             // clearData();
-            executorService.shutdown();
             if (Config.getConf().debug) {
                 logger.info("[HKLOG: profiler] " + threadIdGroup
                         + ": group " + group
@@ -1225,7 +1157,13 @@ public class FuzzingClient {
                         + (System.currentTimeMillis()
                                 - startTimeVersionDeltaExecution));
             }
+            executorService.shutdown();
+            assert versionDeltaFeedbackPacket != null;
             return versionDeltaFeedbackPacket;
+        } catch (Exception e) {
+            logger.info("[HKLOG] Caught Exception!!! " + e);
+            e.printStackTrace();
+            return null;
         }
     }
 

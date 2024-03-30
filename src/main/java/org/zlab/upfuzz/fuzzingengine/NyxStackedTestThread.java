@@ -26,7 +26,6 @@ import static org.zlab.upfuzz.nyx.MiniClientMain.setTestType;
 import static org.zlab.upfuzz.nyx.MiniClientMain.setTestDirection;
 import static org.zlab.upfuzz.nyx.MiniClientMain.setClientGroup;
 import static org.zlab.upfuzz.nyx.MiniClientMain.changeVersionAndRunTheTests;
-import static org.zlab.upfuzz.nyx.MiniClientMain.clearData;
 import static org.zlab.upfuzz.nyx.MiniClientMain.setIsDowngradeSupported;
 
 class NyxStackedTestThread implements Callable<StackedFeedbackPacket> {
