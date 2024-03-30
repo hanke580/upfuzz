@@ -13,6 +13,8 @@ import codecs
 import SocketServer as socketserver
 import socket
 
+import base64
+
 from six import StringIO
 
 from cqlsh import (
@@ -153,11 +155,18 @@ class TCPHandler(object):
                 start_time = time.time()
                 ret = self.shell.onecmd(cmd)
                 end_time = time.time()
+
+
+                terminal_output = self.stdout_buffer.getvalue().replace('\0', '')
+                message_bytes = terminal_output.encode('ascii')
+                base64_bytes = base64.b64encode(message_bytes)
+                base64_message = base64_bytes.decode('ascii')
+
                 resp = {
                     "cmd": cmd,
                     "exitValue": 0 if ret == True else 1,
                     "timeUsage": end_time - start_time,
-                    "message": self.stdout_buffer.getvalue(),
+                    "message": base64_message,
                     "error": self.stderr_buffer.getvalue(),
                 }
                 self.stdout_buffer.truncate(0)
@@ -168,10 +177,10 @@ class TCPHandler(object):
                     print("Message too large to send!")
                     resp = {
                         "cmd": cmd,
-                        "exitValue": exit_code,
+                        "exitValue": 0 if ret == True else 1,
                         "timeUsage": end_time - start_time,
-                        "message": "message too large to send: here's the first 10000 Bytes:\n" + ret_out[:10000] + "\n...",
-                        "error": "message too large to send: here's the first 10000 Bytes:\n" + ret_err[:10000] + "\n..."
+                        "message": "message too large to send: here's the first 10000 Bytes:\n" + base64_message[:10000] + "\n...",
+                        "error": "message too large to send: here's the first 10000 Bytes:\n" + base64_message[:10000] + "\n..."
                     }
                     msg = json.dumps(resp).encode("ascii")
                 self.request.sendall(msg)
