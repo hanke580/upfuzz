@@ -34,6 +34,7 @@ public class TestPlanPacket extends Packet implements Serializable {
     public int testPacketID;
     public String configFileName;
     public TestPlan testPlan;
+    public int testDirection;
 
     static RuntimeTypeAdapterFactory<Event> runtimeTypeAdapterFactory;
     static Type listType;

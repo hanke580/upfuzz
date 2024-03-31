@@ -95,7 +95,7 @@ public class Main {
         if (type.equalsIgnoreCase("server")) {
             new FuzzingServer().start();
         } else if (type.equalsIgnoreCase("client")) {
-            FuzzingClient fuzzingClient;
+            FuzzingClient fuzzingClient = new FuzzingClient();
             if (cmd.hasOption(flagOption)) {
                 StringBuilder optionBuilder = new StringBuilder();
                 optionBuilder.append(cmd.getOptionValue(flagOption));
@@ -104,9 +104,7 @@ public class Main {
                         .equals("group1"))
                                 ? 1
                                 : 2;
-                fuzzingClient = new FuzzingClient(group);
-            } else {
-                fuzzingClient = new FuzzingClient(0);
+                fuzzingClient.group = group;
             }
             if (cmd.hasOption(downgradeSupportOption)) {
                 StringBuilder optionBuilder = new StringBuilder();
