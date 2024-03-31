@@ -56,7 +56,7 @@ public class FuzzingClient {
     // If the cluster cannot start up for 3 times, it's serious
     int CLUSTER_START_RETRY = 3; // stop retry for now
 
-    FuzzingClient() {
+    FuzzingClient(int group) {
         if (Config.getConf().testSingleVersion) {
             configDirPath = Paths.get(System.getProperty("user.dir"),
                     Config.getConf().configDir,
@@ -77,6 +77,7 @@ public class FuzzingClient {
             }
         }
 
+        this.group = group;
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             executor.teardown();
             executor.upgradeTeardown();
@@ -92,9 +93,9 @@ public class FuzzingClient {
     public LibnyxInterface createLibnyxInterface() {
         LibnyxInterface libnyx = new LibnyxInterface(
                 Paths.get("/tmp", RandomStringUtils.randomAlphanumeric(8))
-                        .toAbsolutePath().toString(),
+                        .toAbsolutePath().toString() + "_" + this.group,
                 Paths.get("/tmp", RandomStringUtils.randomAlphanumeric(8))
-                        .toAbsolutePath().toString(),
+                        .toAbsolutePath().toString() + "_" + this.group,
                 0);
         try {
             FileUtils.copyFile(
@@ -683,9 +684,6 @@ public class FuzzingClient {
                         .get();
                 StackedFeedbackPacket stackedFeedbackPacketDown = futureStackedFeedbackPacketDown
                         .get();
-
-                ObjectCoverage curOriObjCoverage = stackedTestPacket.curOriObjCoverage;
-                ObjectCoverage curUpObjCoverage = stackedTestPacket.curUpObjCoverage;
 
                 VersionDeltaFeedbackPacket versionDeltaFeedbackPacket = new VersionDeltaFeedbackPacket(
                         stackedTestPacket.configFileName,
