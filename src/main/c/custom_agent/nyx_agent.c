@@ -329,6 +329,7 @@ int main(int argc, char **argv) {
 			archive_name[15] = '\0';
 			char archive_dir[36];
 			snprintf(archive_dir, sizeof(archive_dir), "/miniClientWorkdir/%s", archive_name);
+			hprintf("[cAgent] archive directory: %s\n", archive_dir);
 			
 			/* Push the test feedback file from client to host */
 			get_file_status = push_to_host(archive_dir);

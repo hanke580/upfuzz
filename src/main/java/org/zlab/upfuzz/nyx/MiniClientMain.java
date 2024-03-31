@@ -55,30 +55,22 @@ public class MiniClientMain {
     static final int CLUSTER_START_RETRY = 3;
 
     static int testType;
-    static int testDirection = 0;
+    // static int testDirection;
     static boolean inducedNewVersionDelta = false;
-    static int clientGroup = 0;
-    static boolean isDowngradeSupported = false;
-    static String testExecutionLog = "";
+    // static int clientGroup;
+    // static boolean isDowngradeSupported = false;
+    static String testExecutionLog = "AAAA";
     static boolean hasNewOriCoverage = false;
     static boolean hasNewUpCoverage = false;
     static boolean analyzedOriFeedback = false;
     static boolean analyzedUpFeedback = false;
+    private static final Object lock = new Object();
 
     public static void setTestType(int type) {
-        testType = type;
-    }
-
-    public static void setTestDirection(int direction) {
-        testDirection = direction;
-    }
-
-    public static void setClientGroup(int group) {
-        clientGroup = group;
-    }
-
-    public static void setIsDowngradeSupported(boolean isDowngradeSupported) {
-        isDowngradeSupported = isDowngradeSupported;
+        testExecutionLog += "invoked set test type: " + type;
+        synchronized (lock) {
+            testType = type;
+        }
     }
 
     public static String startUpExecutor(Executor executor, int type) {
@@ -130,6 +122,8 @@ public class MiniClientMain {
         TestPlanPacket defaultTestPlanPacket;
         TestPlanPacket testPlanPacket;
         StackedFeedbackPacket stackedFeedbackPacket;
+        StackedFeedbackPacket stackedFeedbackPacketUp;
+        StackedFeedbackPacket stackedFeedbackPacketDown;
         TestPlanFeedbackPacket testPlanFeedbackPacket;
         String archive_name, fuzzing_archive_command;
         Long start_time_create_archive, start_time_t, startTimeReadTestPkt;
@@ -151,7 +145,7 @@ public class MiniClientMain {
                         1, null, defaultConfigPath);
             } else {
                 executor = FuzzingClient.initExecutor(
-                        1, null, defaultConfigPath, testDirection);
+                        1, null, defaultConfigPath, 0);
             }
             boolean startUpStatus = executor.startup();
 
@@ -178,7 +172,8 @@ public class MiniClientMain {
                 } else {
                     executor = FuzzingClient.initExecutor(
                             defaultStackedTestPacket.nodeNum, null,
-                            defaultConfigPath, testDirection);
+                            defaultConfigPath,
+                            defaultStackedTestPacket.testDirection);
                 }
                 executorStartUpReport = startUpExecutor(executor, testType);
             } else {
@@ -191,7 +186,8 @@ public class MiniClientMain {
                 } else {
                     executor = FuzzingClient.initExecutor(
                             defaultTestPlanPacket.getNodeNum(), null,
-                            defaultConfigPath, testDirection);
+                            defaultConfigPath,
+                            defaultTestPlanPacket.testDirection);
                 }
                 executorStartUpReport = startUpExecutor(executor, testType);
             }
@@ -291,15 +287,21 @@ public class MiniClientMain {
                 stackedFeedbackPacket = runTheTests(executor, stackedTestPacket,
                         0);
             } else {
-                if (clientGroup == 1) {
+                logMessages += "direction " + stackedTestPacket.testDirection;
+                logMessages += "client group "
+                        + stackedTestPacket.clientGroupForVersionDelta;
+                if (stackedTestPacket.clientGroupForVersionDelta == 1) {
                     stackedFeedbackPacket = runTheTestsBeforeChangingVersion(
-                            executor, stackedTestPacket, testDirection);
+                            executor, stackedTestPacket,
+                            stackedTestPacket.testDirection);
                 } else {
                     StackedFeedbackPacket stackedFeedbackPacketBeforeVersionChange = runTheTestsBeforeChangingVersion(
-                            executor, stackedTestPacket, testDirection);
+                            executor, stackedTestPacket,
+                            stackedTestPacket.testDirection);
                     stackedFeedbackPacket = changeVersionAndRunTheTests(
-                            executor, stackedTestPacket, testDirection,
-                            isDowngradeSupported,
+                            executor, stackedTestPacket,
+                            stackedTestPacket.testDirection,
+                            stackedTestPacket.isDowngradeSupported,
                             stackedFeedbackPacketBeforeVersionChange);
                 }
             }
@@ -314,7 +316,8 @@ public class MiniClientMain {
                     "stackedFeedbackPacket.ser");
             try (DataOutputStream out = new DataOutputStream(
                     new FileOutputStream(
-                            stackedFeedbackPath.toAbsolutePath().toString()))) {
+                            stackedFeedbackPath.toAbsolutePath()
+                                    .toString()))) {
                 stackedFeedbackPacket.write(out);
             } catch (IOException e) {
                 e.printStackTrace(System.err);
@@ -430,19 +433,16 @@ public class MiniClientMain {
         stdin.close();
     }
 
-    public static StackedFeedbackPacket runTheTestsBeforeChangingVersion(
+    public synchronized static StackedFeedbackPacket runTheTestsBeforeChangingVersion(
             Executor executor,
             StackedTestPacket stackedTestPacket, int direction) {
         // if the middle of test has already broken an invariant
         // we stop executing.
         int executedTestNum = 0;
         boolean breakNewInv = false;
-        Map<Integer, FeedbackPacket> testID2FeedbackPacketUpgrade = new HashMap<>();
-        Map<Integer, FeedbackPacket> testID2FeedbackPacketDowngrade = new HashMap<>();
-        Map<Integer, LogInfo> logInfoBeforeVersionChangeUpgrade = new HashMap<>();
-        Map<Integer, LogInfo> logInfoBeforeVersionChangeDowngrade = new HashMap<>();
-        Map<Integer, List<String>> testID2oriResultsUpgrade = new HashMap<>();
-        Map<Integer, List<String>> testID2oriResultsDowngrade = new HashMap<>();
+        Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();
+        Map<Integer, LogInfo> logInfoBeforeVersionChange = new HashMap<>();
+        Map<Integer, List<String>> testID2oriResults = new HashMap<>();
 
         int[] lastBrokenInv = null;
         System.out.println("Invoked with direction: " + direction);
@@ -461,151 +461,78 @@ public class MiniClientMain {
             }
             // logger.info("[HKLOG] Got direction in miniclient: " + direction);
             boolean hasNewOriCoverage = false;
-            if (direction == 0) {
-                ExecutionDataStore[] oriCoverages = executor
-                        .collectCoverageSeparate("original");
-
-                if (oriCoverages != null) {
-                    for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
-                        // feedBacks[nodeIdx]
-                        // .setOriginalCodeCoverage(oriCoverages[nodeIdx]);
-                        feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
-                        // feedBacks[nodeIdx].upgradedCodeCoverage = null;
-                    }
+            ExecutionDataStore[] oriCoverages = (direction == 0) ? executor
+                    .collectCoverageSeparate("original")
+                    : executor
+                            .collectCoverageSeparate("upgraded");
+            if (oriCoverages != null) {
+                for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
+                    // feedBacks[nodeIdx]
+                    // .setOriginalCodeCoverage(oriCoverages[nodeIdx]);
+                    feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
+                    // feedBacks[nodeIdx].upgradedCodeCoverage = null;
                 }
-                testID2FeedbackPacketUpgrade.put(
-                        tp.testPacketID,
-                        new FeedbackPacket(tp.systemID,
-                                stackedTestPacket.nodeNum,
-                                tp.testPacketID, feedBacks, null));
-            } else {
-                ExecutionDataStore[] oriCoverages = executor
-                        .collectCoverageSeparate("upgraded");
-                if (oriCoverages != null) {
-                    for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
-                        // feedBacks[nodeIdx]
-                        // .setOriginalCodeCoverage(oriCoverages[nodeIdx]);
-                        feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
-                        // feedBacks[nodeIdx].upgradedCodeCoverage = null;
-                    }
-                }
-                testID2FeedbackPacketDowngrade.put(
-                        tp.testPacketID,
-                        new FeedbackPacket(tp.systemID,
-                                stackedTestPacket.nodeNum,
-                                tp.testPacketID, feedBacks, null));
             }
+            testID2FeedbackPacket.put(
+                    tp.testPacketID,
+                    new FeedbackPacket(tp.systemID,
+                            stackedTestPacket.nodeNum,
+                            tp.testPacketID, feedBacks, null));
 
             // List<String> oriResult =
             // executor.executeCommands(Arrays.asList(validationCommandsList));
-            if (direction == 0) {
-                List<String> oriResult = executor
-                        .executeCommands(tp.validationCommandSequenceList);
-                testID2oriResultsUpgrade.put(tp.testPacketID, oriResult);
-            } else {
-                List<String> oriResult = executor
-                        .executeCommands(tp.validationCommandSequenceList);
-                testID2oriResultsDowngrade.put(tp.testPacketID, oriResult);
-            }
+            List<String> oriResult = executor
+                    .executeCommands(tp.validationCommandSequenceList);
+            testID2oriResults.put(tp.testPacketID, oriResult);
 
             if (Config.getConf().collectFormatCoverage) {
                 // logger.info("[HKLOG] format coverage checking");
-                if (direction == 0) {
-                    testID2FeedbackPacketUpgrade
-                            .get(tp.testPacketID).formatCoverage = executor
-                                    .getFormatCoverage();
-                } else {
-                    testID2FeedbackPacketDowngrade
-                            .get(tp.testPacketID).formatCoverage = executor
-                                    .getFormatCoverage();
-                }
+                testID2FeedbackPacket
+                        .get(tp.testPacketID).formatCoverage = executor
+                                .getFormatCoverage();
             }
         }
 
-        if (direction == 0) {
-            StackedFeedbackPacket stackedFeedbackPacketUp = new StackedFeedbackPacket(
-                    stackedTestPacket.configFileName,
-                    Utilities.extractTestIDs(stackedTestPacket));
+        StackedFeedbackPacket stackedFeedbackPacketUp = new StackedFeedbackPacket(
+                stackedTestPacket.configFileName,
+                Utilities.extractTestIDs(stackedTestPacket));
 
-            stackedFeedbackPacketUp.fullSequence = FuzzingClient
-                    .recordStackedTestPacket(
-                            stackedTestPacket);
-            stackedFeedbackPacketUp.breakNewInv = breakNewInv;
+        stackedFeedbackPacketUp.fullSequence = FuzzingClient
+                .recordStackedTestPacket(
+                        stackedTestPacket);
+        stackedFeedbackPacketUp.breakNewInv = breakNewInv;
 
-            // LOG checking1
-            if (Config.getConf().enableLogCheck) {
-                // logger.info("[HKLOG] error log checking");
-                logInfoBeforeVersionChangeUpgrade = executor.grepLogInfo();
-            }
-            if (Config.getConf().enableLogCheck
-                    && FuzzingClient
-                            .hasERRORLOG(logInfoBeforeVersionChangeUpgrade)) {
-                stackedFeedbackPacketUp.hasERRORLog = true;
-                stackedFeedbackPacketUp.errorLogReport = FuzzingClient
-                        .genErrorLogReport(
-                                executor.executorID,
-                                stackedTestPacket.configFileName,
-                                logInfoBeforeVersionChangeUpgrade);
-            }
-
-            for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
-                TestPacket tp = stackedTestPacket.getTestPacketList()
-                        .get(testPacketIdx);
-                FeedbackPacket feedbackPacket = testID2FeedbackPacketUpgrade
-                        .get(tp.testPacketID);
-                List<String> oriResult = testID2oriResultsUpgrade
-                        .get(tp.testPacketID);
-                LogInfo logInfo = logInfoBeforeVersionChangeUpgrade
-                        .get(tp.testPacketID);
-                stackedFeedbackPacketUp.addFeedbackPacket(feedbackPacket);
-                stackedFeedbackPacketUp.oriResults.add(oriResult);
-                stackedFeedbackPacketUp.logInfos.add(logInfo);
-            }
-            stackedFeedbackPacketUp.setVersion(executor.dockerCluster.version);
-            return stackedFeedbackPacketUp;
-        } else {
-            StackedFeedbackPacket stackedFeedbackPacketDown = new StackedFeedbackPacket(
-                    stackedTestPacket.configFileName,
-                    Utilities.extractTestIDs(stackedTestPacket));
-
-            stackedFeedbackPacketDown.fullSequence = FuzzingClient
-                    .recordStackedTestPacket(
-                            stackedTestPacket);
-            stackedFeedbackPacketDown.breakNewInv = breakNewInv;
-
-            // LOG checking1
-            if (Config.getConf().enableLogCheck) {
-                // logger.info("[HKLOG] error log checking");
-                logInfoBeforeVersionChangeDowngrade = executor.grepLogInfo();
-            }
-            if (Config.getConf().enableLogCheck
-                    && FuzzingClient
-                            .hasERRORLOG(logInfoBeforeVersionChangeDowngrade)) {
-                stackedFeedbackPacketDown.hasERRORLog = true;
-                stackedFeedbackPacketDown.errorLogReport = FuzzingClient
-                        .genErrorLogReport(
-                                executor.executorID,
-                                stackedTestPacket.configFileName,
-                                logInfoBeforeVersionChangeDowngrade);
-            }
-
-            for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
-                TestPacket tp = stackedTestPacket.getTestPacketList()
-                        .get(testPacketIdx);
-                FeedbackPacket feedbackPacket = testID2FeedbackPacketDowngrade
-                        .get(tp.testPacketID);
-                List<String> oriResult = testID2oriResultsDowngrade
-                        .get(tp.testPacketID);
-                LogInfo logInfo = logInfoBeforeVersionChangeDowngrade
-                        .get(tp.testPacketID);
-                stackedFeedbackPacketDown.addFeedbackPacket(feedbackPacket);
-                stackedFeedbackPacketDown.oriResults.add(oriResult);
-                stackedFeedbackPacketDown.logInfos.add(logInfo);
-            }
-            stackedFeedbackPacketDown
-                    .setVersion(executor.dockerCluster.version);
-            return stackedFeedbackPacketDown;
+        // LOG checking1
+        if (Config.getConf().enableLogCheck) {
+            // logger.info("[HKLOG] error log checking");
+            logInfoBeforeVersionChange = executor.grepLogInfo();
         }
+        if (Config.getConf().enableLogCheck
+                && FuzzingClient
+                        .hasERRORLOG(logInfoBeforeVersionChange)) {
+            stackedFeedbackPacketUp.hasERRORLog = true;
+            stackedFeedbackPacketUp.errorLogReport = FuzzingClient
+                    .genErrorLogReport(
+                            executor.executorID,
+                            stackedTestPacket.configFileName,
+                            logInfoBeforeVersionChange);
+        }
+
+        for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
+            TestPacket tp = stackedTestPacket.getTestPacketList()
+                    .get(testPacketIdx);
+            FeedbackPacket feedbackPacket = testID2FeedbackPacket
+                    .get(tp.testPacketID);
+            List<String> oriResult = testID2oriResults
+                    .get(tp.testPacketID);
+            LogInfo logInfo = logInfoBeforeVersionChange
+                    .get(tp.testPacketID);
+            stackedFeedbackPacketUp.addFeedbackPacket(feedbackPacket);
+            stackedFeedbackPacketUp.oriResults.add(oriResult);
+            stackedFeedbackPacketUp.logInfos.add(logInfo);
+        }
+        stackedFeedbackPacketUp.setVersion(executor.dockerCluster.version);
+        return stackedFeedbackPacketUp;
     }
 
     public static StackedFeedbackPacket changeVersionAndRunTheTests(
@@ -906,7 +833,7 @@ public class MiniClientMain {
             upgradeStatus = executor.fullStopUpgrade();
             testExecutionLog += "upgraded, ";
         } else {
-            if (isDowngradeSupported) {
+            if (stackedTestPacket.isDowngradeSupported) {
                 downgradeStatus = executor.downgrade();
                 testExecutionLog += "downgraded, ";
             } else {
@@ -968,7 +895,7 @@ public class MiniClientMain {
             }
         } else if ((direction == 1) && (downgradeStatus)) {
             // logger.info("upgrade succeed");
-            if (isDowngradeSupported) {
+            if (stackedTestPacket.isDowngradeSupported) {
                 stackedFeedbackPacket.isDowngradeProcessFailed = false;
                 for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
                     TestPacket tp = stackedTestPacket.getTestPacketList()
@@ -1025,7 +952,7 @@ public class MiniClientMain {
         // test downgrade
         if (Config.getConf().testDowngrade) {
             // logger.info("downgrade cluster");
-            if (isDowngradeSupported) {
+            if (stackedTestPacket.isDowngradeSupported) {
                 downgradeStatus = executor.downgrade();
                 if (!downgradeStatus) {
                     // downgrade failed

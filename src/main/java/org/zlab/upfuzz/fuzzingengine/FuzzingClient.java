@@ -56,7 +56,7 @@ public class FuzzingClient {
     // If the cluster cannot start up for 3 times, it's serious
     int CLUSTER_START_RETRY = 3; // stop retry for now
 
-    FuzzingClient(int group) {
+    FuzzingClient() {
         if (Config.getConf().testSingleVersion) {
             configDirPath = Paths.get(System.getProperty("user.dir"),
                     Config.getConf().configDir,
@@ -93,9 +93,9 @@ public class FuzzingClient {
     public LibnyxInterface createLibnyxInterface() {
         LibnyxInterface libnyx = new LibnyxInterface(
                 Paths.get("/tmp", RandomStringUtils.randomAlphanumeric(8))
-                        .toAbsolutePath().toString() + "_" + this.group,
+                        .toAbsolutePath().toString(),
                 Paths.get("/tmp", RandomStringUtils.randomAlphanumeric(8))
-                        .toAbsolutePath().toString() + "_" + this.group,
+                        .toAbsolutePath().toString(),
                 0);
         try {
             FileUtils.copyFile(
@@ -709,7 +709,8 @@ public class FuzzingClient {
                         .getFpList()) {
                     // logger.info("[HKLOG] coverage tracker upgrade: "
                     // + fp.testPacketID);
-                    // Utilities.printCoverages(fp.feedBacks, "upgrade");
+                    // Utilities.printCoverages(fp.testPacketID, fp.feedBacks,
+                    // "upgrade");
                     versionDeltaFeedbackPacket.addToFpList(fp, "up");
                 }
 
@@ -717,7 +718,8 @@ public class FuzzingClient {
                         .getFpList()) {
                     // logger.info("[HKLOG] coverage tracker downgrade: "
                     // + fp.testPacketID);
-                    // Utilities.printCoverages(fp.feedBacks, "downgrade");
+                    // Utilities.printCoverages(fp.testPacketID, fp.feedBacks,
+                    // "downgrade");
                     versionDeltaFeedbackPacket.addToFpList(fp, "down");
                 }
 
