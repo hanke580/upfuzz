@@ -7,7 +7,7 @@ import org.zlab.upfuzz.cassandra.cqlcommands.*;
 import org.zlab.upfuzz.fuzzingengine.Config;
 
 public class CassandraCommandPool extends CommandPool {
-    public static int boundaryWriteCommandRate = 10;
+    // public static int boundaryWriteCommandRate = 10;
     public static int writeCommandRate = 5;
     public static int createCommandRate = 5;
     public static int readCommandRate = 5;
@@ -24,7 +24,7 @@ public class CassandraCommandPool extends CommandPool {
                         writeCommandRate));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(INSERT.class,
-                        boundaryWriteCommandRate));
+                        writeCommandRate));
         createCommandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
                 CREATE_KEYSPACE.class, createCommandRate));
         createCommandClassList.add(
@@ -112,7 +112,7 @@ public class CassandraCommandPool extends CommandPool {
                         writeCommandRate));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(INSERT.class,
-                        boundaryWriteCommandRate));
+                        writeCommandRate));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(TRUNCATE.class,
                         deleteLargeDateRate));
