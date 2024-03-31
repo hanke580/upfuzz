@@ -665,14 +665,33 @@ public class FuzzingClient {
                         + ": (nyx mode) started version delta execution");
             }
 
+            StackedTestPacket stackedTestPacket1 = new StackedTestPacket(
+                    stackedTestPacket.nodeNum,
+                    stackedTestPacket.configFileName);
+            StackedTestPacket stackedTestPacket2 = new StackedTestPacket(
+                    stackedTestPacket.nodeNum,
+                    stackedTestPacket.configFileName);
+            for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
+                stackedTestPacket1.addTestPacket(tp);
+                stackedTestPacket2.addTestPacket(tp);
+            }
+
+            stackedTestPacket1.clientGroupForVersionDelta = this.group;
+            stackedTestPacket1.testDirection = 0;
+            stackedTestPacket1.isDowngradeSupported = isDowngradeSupported;
+
+            stackedTestPacket2.clientGroupForVersionDelta = this.group;
+            stackedTestPacket2.testDirection = 1;
+            stackedTestPacket2.isDowngradeSupported = isDowngradeSupported;
+
             Future<StackedFeedbackPacket> futureStackedFeedbackPacketUp = executorService
                     .submit(new NyxStackedTestThread(0,
-                            stackedTestPacket, this.libnyx, configPath,
+                            stackedTestPacket1, this.libnyx, configPath,
                             previousConfigPath, sameConfigAsLastTime,
                             isDowngradeSupported));
             Future<StackedFeedbackPacket> futureStackedFeedbackPacketDown = executorService
                     .submit(new NyxStackedTestThread(1,
-                            stackedTestPacket, this.libnyxSibling,
+                            stackedTestPacket2, this.libnyxSibling,
                             configPath,
                             previousConfigPath, sameConfigAsLastTime,
                             isDowngradeSupported));

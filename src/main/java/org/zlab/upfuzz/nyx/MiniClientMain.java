@@ -122,8 +122,6 @@ public class MiniClientMain {
         TestPlanPacket defaultTestPlanPacket;
         TestPlanPacket testPlanPacket;
         StackedFeedbackPacket stackedFeedbackPacket;
-        StackedFeedbackPacket stackedFeedbackPacketUp;
-        StackedFeedbackPacket stackedFeedbackPacketDown;
         TestPlanFeedbackPacket testPlanFeedbackPacket;
         String archive_name, fuzzing_archive_command;
         Long start_time_create_archive, start_time_t, startTimeReadTestPkt;
@@ -287,9 +285,10 @@ public class MiniClientMain {
                 stackedFeedbackPacket = runTheTests(executor, stackedTestPacket,
                         0);
             } else {
-                logMessages += "direction " + stackedTestPacket.testDirection;
-                logMessages += "client group "
-                        + stackedTestPacket.clientGroupForVersionDelta;
+                logMessages += "direction " + stackedTestPacket.testDirection
+                        + ", ";
+                logMessages += "group "
+                        + stackedTestPacket.clientGroupForVersionDelta + ", ";
                 if (stackedTestPacket.clientGroupForVersionDelta == 1) {
                     stackedFeedbackPacket = runTheTestsBeforeChangingVersion(
                             executor, stackedTestPacket,
@@ -316,8 +315,7 @@ public class MiniClientMain {
                     "stackedFeedbackPacket.ser");
             try (DataOutputStream out = new DataOutputStream(
                     new FileOutputStream(
-                            stackedFeedbackPath.toAbsolutePath()
-                                    .toString()))) {
+                            stackedFeedbackPath.toAbsolutePath().toString()))) {
                 stackedFeedbackPacket.write(out);
             } catch (IOException e) {
                 e.printStackTrace(System.err);
@@ -433,7 +431,7 @@ public class MiniClientMain {
         stdin.close();
     }
 
-    public synchronized static StackedFeedbackPacket runTheTestsBeforeChangingVersion(
+    public static StackedFeedbackPacket runTheTestsBeforeChangingVersion(
             Executor executor,
             StackedTestPacket stackedTestPacket, int direction) {
         // if the middle of test has already broken an invariant
@@ -460,11 +458,12 @@ public class MiniClientMain {
                 feedBacks[i] = new FeedBack();
             }
             // logger.info("[HKLOG] Got direction in miniclient: " + direction);
-            boolean hasNewOriCoverage = false;
             ExecutionDataStore[] oriCoverages = (direction == 0) ? executor
                     .collectCoverageSeparate("original")
                     : executor
                             .collectCoverageSeparate("upgraded");
+
+            boolean hasNewOriCoverage = false;
             if (oriCoverages != null) {
                 for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
                     // feedBacks[nodeIdx]
@@ -475,8 +474,7 @@ public class MiniClientMain {
             }
             testID2FeedbackPacket.put(
                     tp.testPacketID,
-                    new FeedbackPacket(tp.systemID,
-                            stackedTestPacket.nodeNum,
+                    new FeedbackPacket(tp.systemID, stackedTestPacket.nodeNum,
                             tp.testPacketID, feedBacks, null));
 
             // List<String> oriResult =
@@ -493,14 +491,13 @@ public class MiniClientMain {
             }
         }
 
-        StackedFeedbackPacket stackedFeedbackPacketUp = new StackedFeedbackPacket(
+        StackedFeedbackPacket stackedFeedbackPacket = new StackedFeedbackPacket(
                 stackedTestPacket.configFileName,
                 Utilities.extractTestIDs(stackedTestPacket));
-
-        stackedFeedbackPacketUp.fullSequence = FuzzingClient
+        stackedFeedbackPacket.fullSequence = FuzzingClient
                 .recordStackedTestPacket(
                         stackedTestPacket);
-        stackedFeedbackPacketUp.breakNewInv = breakNewInv;
+        stackedFeedbackPacket.breakNewInv = breakNewInv;
 
         // LOG checking1
         if (Config.getConf().enableLogCheck) {
@@ -508,10 +505,9 @@ public class MiniClientMain {
             logInfoBeforeVersionChange = executor.grepLogInfo();
         }
         if (Config.getConf().enableLogCheck
-                && FuzzingClient
-                        .hasERRORLOG(logInfoBeforeVersionChange)) {
-            stackedFeedbackPacketUp.hasERRORLog = true;
-            stackedFeedbackPacketUp.errorLogReport = FuzzingClient
+                && FuzzingClient.hasERRORLOG(logInfoBeforeVersionChange)) {
+            stackedFeedbackPacket.hasERRORLog = true;
+            stackedFeedbackPacket.errorLogReport = FuzzingClient
                     .genErrorLogReport(
                             executor.executorID,
                             stackedTestPacket.configFileName,
@@ -523,16 +519,15 @@ public class MiniClientMain {
                     .get(testPacketIdx);
             FeedbackPacket feedbackPacket = testID2FeedbackPacket
                     .get(tp.testPacketID);
-            List<String> oriResult = testID2oriResults
-                    .get(tp.testPacketID);
-            LogInfo logInfo = logInfoBeforeVersionChange
-                    .get(tp.testPacketID);
-            stackedFeedbackPacketUp.addFeedbackPacket(feedbackPacket);
-            stackedFeedbackPacketUp.oriResults.add(oriResult);
-            stackedFeedbackPacketUp.logInfos.add(logInfo);
+            List<String> oriResult = testID2oriResults.get(tp.testPacketID);
+            LogInfo logInfo = logInfoBeforeVersionChange.get(tp.testPacketID);
+            stackedFeedbackPacket.addFeedbackPacket(feedbackPacket);
+            stackedFeedbackPacket.oriResults.add(oriResult);
+            stackedFeedbackPacket.logInfos.add(logInfo);
         }
-        stackedFeedbackPacketUp.setVersion(executor.dockerCluster.version);
-        return stackedFeedbackPacketUp;
+        stackedFeedbackPacket.setVersion(executor.dockerCluster.version);
+        testExecutionLog += "Completed all testing, ";
+        return stackedFeedbackPacket;
     }
 
     public static StackedFeedbackPacket changeVersionAndRunTheTests(
