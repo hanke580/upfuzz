@@ -95,15 +95,18 @@ public class Main {
         if (type.equalsIgnoreCase("server")) {
             new FuzzingServer().start();
         } else if (type.equalsIgnoreCase("client")) {
-            FuzzingClient fuzzingClient = new FuzzingClient();
+            FuzzingClient fuzzingClient;
             if (cmd.hasOption(flagOption)) {
                 StringBuilder optionBuilder = new StringBuilder();
                 optionBuilder.append(cmd.getOptionValue(flagOption));
                 System.out.println(optionBuilder.toString());
-                fuzzingClient.group = (optionBuilder.toString()
+                int group = (optionBuilder.toString()
                         .equals("group1"))
                                 ? 1
                                 : 2;
+                fuzzingClient = new FuzzingClient(group);
+            } else {
+                fuzzingClient = new FuzzingClient(0);
             }
             if (cmd.hasOption(downgradeSupportOption)) {
                 StringBuilder optionBuilder = new StringBuilder();

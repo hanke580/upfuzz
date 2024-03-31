@@ -184,6 +184,7 @@ class NyxStackedTestThread implements Callable<StackedFeedbackPacket> {
         setTestType(0);
         setTestDirection(this.direction);
         setIsDowngradeSupported(this.isDowngradeSupported);
+        setClientGroup(stackedTestPacket.clientGroupForVersionDelta);
         long startTime6 = System.currentTimeMillis();
         this.libnyx.nyxExec();
         if (Config.getConf().debug) {
@@ -261,6 +262,8 @@ class NyxStackedTestThread implements Callable<StackedFeedbackPacket> {
 
         // convert it to StackedFeedbackPacket
         StackedFeedbackPacket stackedFeedbackPacket;
+        logger.info("[HKLOG] Nyx version delta thread: "
+                + stackedFeedbackPath.toAbsolutePath().toString());
         try (DataInputStream in = new DataInputStream(new FileInputStream(
                 stackedFeedbackPath.toAbsolutePath().toString()))) {
             int intType = in.readInt();

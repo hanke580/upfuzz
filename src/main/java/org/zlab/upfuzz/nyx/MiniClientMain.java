@@ -437,9 +437,12 @@ public class MiniClientMain {
         // we stop executing.
         int executedTestNum = 0;
         boolean breakNewInv = false;
-        Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();
-        Map<Integer, LogInfo> logInfoBeforeVersionChange = new HashMap<>();
-        Map<Integer, List<String>> testID2oriResults = new HashMap<>();
+        Map<Integer, FeedbackPacket> testID2FeedbackPacketUpgrade = new HashMap<>();
+        Map<Integer, FeedbackPacket> testID2FeedbackPacketDowngrade = new HashMap<>();
+        Map<Integer, LogInfo> logInfoBeforeVersionChangeUpgrade = new HashMap<>();
+        Map<Integer, LogInfo> logInfoBeforeVersionChangeDowngrade = new HashMap<>();
+        Map<Integer, List<String>> testID2oriResultsUpgrade = new HashMap<>();
+        Map<Integer, List<String>> testID2oriResultsDowngrade = new HashMap<>();
 
         int[] lastBrokenInv = null;
         System.out.println("Invoked with direction: " + direction);
@@ -457,75 +460,152 @@ public class MiniClientMain {
                 feedBacks[i] = new FeedBack();
             }
             // logger.info("[HKLOG] Got direction in miniclient: " + direction);
-            ExecutionDataStore[] oriCoverages = (direction == 0) ? executor
-                    .collectCoverageSeparate("original")
-                    : executor
-                            .collectCoverageSeparate("upgraded");
-
             boolean hasNewOriCoverage = false;
-            if (oriCoverages != null) {
-                for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
-                    // feedBacks[nodeIdx]
-                    // .setOriginalCodeCoverage(oriCoverages[nodeIdx]);
-                    feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
-                    // feedBacks[nodeIdx].upgradedCodeCoverage = null;
+            if (direction == 0) {
+                ExecutionDataStore[] oriCoverages = executor
+                        .collectCoverageSeparate("original");
+
+                if (oriCoverages != null) {
+                    for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
+                        // feedBacks[nodeIdx]
+                        // .setOriginalCodeCoverage(oriCoverages[nodeIdx]);
+                        feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
+                        // feedBacks[nodeIdx].upgradedCodeCoverage = null;
+                    }
                 }
+                testID2FeedbackPacketUpgrade.put(
+                        tp.testPacketID,
+                        new FeedbackPacket(tp.systemID,
+                                stackedTestPacket.nodeNum,
+                                tp.testPacketID, feedBacks, null));
+            } else {
+                ExecutionDataStore[] oriCoverages = executor
+                        .collectCoverageSeparate("upgraded");
+                if (oriCoverages != null) {
+                    for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
+                        // feedBacks[nodeIdx]
+                        // .setOriginalCodeCoverage(oriCoverages[nodeIdx]);
+                        feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
+                        // feedBacks[nodeIdx].upgradedCodeCoverage = null;
+                    }
+                }
+                testID2FeedbackPacketDowngrade.put(
+                        tp.testPacketID,
+                        new FeedbackPacket(tp.systemID,
+                                stackedTestPacket.nodeNum,
+                                tp.testPacketID, feedBacks, null));
             }
-            testID2FeedbackPacket.put(
-                    tp.testPacketID,
-                    new FeedbackPacket(tp.systemID, stackedTestPacket.nodeNum,
-                            tp.testPacketID, feedBacks, null));
 
             // List<String> oriResult =
             // executor.executeCommands(Arrays.asList(validationCommandsList));
-            List<String> oriResult = executor
-                    .executeCommands(tp.validationCommandSequenceList);
-            testID2oriResults.put(tp.testPacketID, oriResult);
+            if (direction == 0) {
+                List<String> oriResult = executor
+                        .executeCommands(tp.validationCommandSequenceList);
+                testID2oriResultsUpgrade.put(tp.testPacketID, oriResult);
+            } else {
+                List<String> oriResult = executor
+                        .executeCommands(tp.validationCommandSequenceList);
+                testID2oriResultsDowngrade.put(tp.testPacketID, oriResult);
+            }
 
             if (Config.getConf().collectFormatCoverage) {
                 // logger.info("[HKLOG] format coverage checking");
-                testID2FeedbackPacket
-                        .get(tp.testPacketID).formatCoverage = executor
-                                .getFormatCoverage();
+                if (direction == 0) {
+                    testID2FeedbackPacketUpgrade
+                            .get(tp.testPacketID).formatCoverage = executor
+                                    .getFormatCoverage();
+                } else {
+                    testID2FeedbackPacketDowngrade
+                            .get(tp.testPacketID).formatCoverage = executor
+                                    .getFormatCoverage();
+                }
             }
         }
 
-        StackedFeedbackPacket stackedFeedbackPacket = new StackedFeedbackPacket(
-                stackedTestPacket.configFileName,
-                Utilities.extractTestIDs(stackedTestPacket));
-        stackedFeedbackPacket.fullSequence = FuzzingClient
-                .recordStackedTestPacket(
-                        stackedTestPacket);
-        stackedFeedbackPacket.breakNewInv = breakNewInv;
+        if (direction == 0) {
+            StackedFeedbackPacket stackedFeedbackPacketUp = new StackedFeedbackPacket(
+                    stackedTestPacket.configFileName,
+                    Utilities.extractTestIDs(stackedTestPacket));
 
-        // LOG checking1
-        if (Config.getConf().enableLogCheck) {
-            // logger.info("[HKLOG] error log checking");
-            logInfoBeforeVersionChange = executor.grepLogInfo();
-        }
-        if (Config.getConf().enableLogCheck
-                && FuzzingClient.hasERRORLOG(logInfoBeforeVersionChange)) {
-            stackedFeedbackPacket.hasERRORLog = true;
-            stackedFeedbackPacket.errorLogReport = FuzzingClient
-                    .genErrorLogReport(
-                            executor.executorID,
-                            stackedTestPacket.configFileName,
-                            logInfoBeforeVersionChange);
-        }
+            stackedFeedbackPacketUp.fullSequence = FuzzingClient
+                    .recordStackedTestPacket(
+                            stackedTestPacket);
+            stackedFeedbackPacketUp.breakNewInv = breakNewInv;
 
-        for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
-            TestPacket tp = stackedTestPacket.getTestPacketList()
-                    .get(testPacketIdx);
-            FeedbackPacket feedbackPacket = testID2FeedbackPacket
-                    .get(tp.testPacketID);
-            List<String> oriResult = testID2oriResults.get(tp.testPacketID);
-            LogInfo logInfo = logInfoBeforeVersionChange.get(tp.testPacketID);
-            stackedFeedbackPacket.addFeedbackPacket(feedbackPacket);
-            stackedFeedbackPacket.oriResults.add(oriResult);
-            stackedFeedbackPacket.logInfos.add(logInfo);
+            // LOG checking1
+            if (Config.getConf().enableLogCheck) {
+                // logger.info("[HKLOG] error log checking");
+                logInfoBeforeVersionChangeUpgrade = executor.grepLogInfo();
+            }
+            if (Config.getConf().enableLogCheck
+                    && FuzzingClient
+                            .hasERRORLOG(logInfoBeforeVersionChangeUpgrade)) {
+                stackedFeedbackPacketUp.hasERRORLog = true;
+                stackedFeedbackPacketUp.errorLogReport = FuzzingClient
+                        .genErrorLogReport(
+                                executor.executorID,
+                                stackedTestPacket.configFileName,
+                                logInfoBeforeVersionChangeUpgrade);
+            }
+
+            for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
+                TestPacket tp = stackedTestPacket.getTestPacketList()
+                        .get(testPacketIdx);
+                FeedbackPacket feedbackPacket = testID2FeedbackPacketUpgrade
+                        .get(tp.testPacketID);
+                List<String> oriResult = testID2oriResultsUpgrade
+                        .get(tp.testPacketID);
+                LogInfo logInfo = logInfoBeforeVersionChangeUpgrade
+                        .get(tp.testPacketID);
+                stackedFeedbackPacketUp.addFeedbackPacket(feedbackPacket);
+                stackedFeedbackPacketUp.oriResults.add(oriResult);
+                stackedFeedbackPacketUp.logInfos.add(logInfo);
+            }
+            stackedFeedbackPacketUp.setVersion(executor.dockerCluster.version);
+            return stackedFeedbackPacketUp;
+        } else {
+            StackedFeedbackPacket stackedFeedbackPacketDown = new StackedFeedbackPacket(
+                    stackedTestPacket.configFileName,
+                    Utilities.extractTestIDs(stackedTestPacket));
+
+            stackedFeedbackPacketDown.fullSequence = FuzzingClient
+                    .recordStackedTestPacket(
+                            stackedTestPacket);
+            stackedFeedbackPacketDown.breakNewInv = breakNewInv;
+
+            // LOG checking1
+            if (Config.getConf().enableLogCheck) {
+                // logger.info("[HKLOG] error log checking");
+                logInfoBeforeVersionChangeDowngrade = executor.grepLogInfo();
+            }
+            if (Config.getConf().enableLogCheck
+                    && FuzzingClient
+                            .hasERRORLOG(logInfoBeforeVersionChangeDowngrade)) {
+                stackedFeedbackPacketDown.hasERRORLog = true;
+                stackedFeedbackPacketDown.errorLogReport = FuzzingClient
+                        .genErrorLogReport(
+                                executor.executorID,
+                                stackedTestPacket.configFileName,
+                                logInfoBeforeVersionChangeDowngrade);
+            }
+
+            for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
+                TestPacket tp = stackedTestPacket.getTestPacketList()
+                        .get(testPacketIdx);
+                FeedbackPacket feedbackPacket = testID2FeedbackPacketDowngrade
+                        .get(tp.testPacketID);
+                List<String> oriResult = testID2oriResultsDowngrade
+                        .get(tp.testPacketID);
+                LogInfo logInfo = logInfoBeforeVersionChangeDowngrade
+                        .get(tp.testPacketID);
+                stackedFeedbackPacketDown.addFeedbackPacket(feedbackPacket);
+                stackedFeedbackPacketDown.oriResults.add(oriResult);
+                stackedFeedbackPacketDown.logInfos.add(logInfo);
+            }
+            stackedFeedbackPacketDown
+                    .setVersion(executor.dockerCluster.version);
+            return stackedFeedbackPacketDown;
         }
-        stackedFeedbackPacket.setVersion(executor.dockerCluster.version);
-        return stackedFeedbackPacket;
     }
 
     public static StackedFeedbackPacket changeVersionAndRunTheTests(
