@@ -23,10 +23,7 @@ import org.zlab.upfuzz.nyx.LibnyxInterface;
 
 import static org.zlab.upfuzz.nyx.MiniClientMain.runTheTestsBeforeChangingVersion;
 import static org.zlab.upfuzz.nyx.MiniClientMain.setTestType;
-// import static org.zlab.upfuzz.nyx.MiniClientMain.setTestDirection;
-// import static org.zlab.upfuzz.nyx.MiniClientMain.setClientGroup;
 import static org.zlab.upfuzz.nyx.MiniClientMain.changeVersionAndRunTheTests;
-// import static org.zlab.upfuzz.nyx.MiniClientMain.setIsDowngradeSupported;
 
 class NyxStackedTestThread implements Callable<StackedFeedbackPacket> {
 
@@ -55,8 +52,6 @@ class NyxStackedTestThread implements Callable<StackedFeedbackPacket> {
             boolean isDowngradeSupported) {
         this.direction = direction;
         this.stackedTestPacket = stackedTestPacket;
-        this.stackedTestPacket.testDirection = direction;
-        this.stackedTestPacket.isDowngradeSupported = isDowngradeSupported;
         this.libnyx = libnyx;
         this.previousConfigPath = previousConfigPath;
         this.configPath = configPath;
@@ -122,10 +117,8 @@ class NyxStackedTestThread implements Callable<StackedFeedbackPacket> {
             logger.info("Should create a new nyx vm");
             long startTime = System.currentTimeMillis();
             this.libnyx.nyxNew();
-            setTestType(0);
-            logger.info("[HKLOG] Setting test direction: " + this.direction);
-            // setTestDirection(direction);
-            // setClientGroup(this.stackedTestPacket.clientGroupForVersionDelta);
+            // setTestDirection(this.direction);
+            // setClientGroup(stackedTestPacket.clientGroupForVersionDelta);
             if (Config.getConf().debug) {
                 logger.info(
                         "[Fuzzing Client] First execution: Time needed to start up a new nyx vm "
@@ -137,7 +130,7 @@ class NyxStackedTestThread implements Callable<StackedFeedbackPacket> {
             this.libnyx.nyxShutdown();
             this.libnyx.nyxNew();
             // setTestDirection(this.direction);
-            // setClientGroup(this.stackedTestPacket.clientGroupForVersionDelta);
+            // setClientGroup(stackedTestPacket.clientGroupForVersionDelta);
             if (Config.getConf().debug) {
                 logger.info(
                         "[Fuzzing Client] New config: Time needed to shutdown old nyx vm and start a new nyx vm "
@@ -148,8 +141,6 @@ class NyxStackedTestThread implements Callable<StackedFeedbackPacket> {
         // this.previousConfigPath = configPath;
 
         // Now write the stackedTestPacket to be used for actual tests
-        this.stackedTestPacket.testDirection = this.direction;
-        this.stackedTestPacket.isDowngradeSupported = this.isDowngradeSupported;
         logger.info("[Fuzzing Client] Starting New Execution");
         long startTime3 = System.currentTimeMillis();
         String stackedTestFileLocation = "stackedTestPackets/"
@@ -190,7 +181,6 @@ class NyxStackedTestThread implements Callable<StackedFeedbackPacket> {
         setTestType(0);
         // setTestDirection(this.direction);
         // setIsDowngradeSupported(this.isDowngradeSupported);
-        // setClientGroup(stackedTestPacket.clientGroupForVersionDelta);
         long startTime6 = System.currentTimeMillis();
         this.libnyx.nyxExec();
         if (Config.getConf().debug) {
@@ -231,10 +221,9 @@ class NyxStackedTestThread implements Callable<StackedFeedbackPacket> {
 
         if (!archive_name.equals("")) {
             String storagePath = directoryPath + "/" + archive_name;
-            String feedbackPacketSerFileName = "persistent/stackedFeedbackPacket0.ser";
             String unzip_archive_command = "cd " + directoryPath + "/ ; "
                     + "tar -xzf " + archive_name + " ; "
-                    + "cp " + feedbackPacketSerFileName + " " + directoryPath
+                    + "cp persistent/stackedFeedbackPacket.ser " + directoryPath
                     + " ; "
                     + "cd - ;"
                     + "mv " + storagePath + " "
@@ -263,15 +252,12 @@ class NyxStackedTestThread implements Callable<StackedFeedbackPacket> {
 
         // get feedback file from hpush dir (in workdir)
         long startTimeFdbk = System.currentTimeMillis();
-        Path stackedFeedbackPath;
-        stackedFeedbackPath = Paths.get(this.libnyx.getWorkdir(),
+        Path stackedFeedbackPath = Paths.get(this.libnyx.getWorkdir(),
                 "dump",
                 "stackedFeedbackPacket.ser");
 
         // convert it to StackedFeedbackPacket
         StackedFeedbackPacket stackedFeedbackPacket;
-        logger.info("[HKLOG] Nyx version delta thread: "
-                + stackedFeedbackPath.toAbsolutePath().toString());
         try (DataInputStream in = new DataInputStream(new FileInputStream(
                 stackedFeedbackPath.toAbsolutePath().toString()))) {
             int intType = in.readInt();
