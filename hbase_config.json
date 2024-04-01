@@ -13,7 +13,6 @@
   "faultMaxNum": 2,
   "testSingleVersion": false,
   "testingMode": 0,
-  "collectFormatCoverage": false,
   "verifyConfig": false,
   "testAddedConfig": false,
   "testDeletedConfig": false,

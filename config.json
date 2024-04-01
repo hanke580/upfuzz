@@ -9,7 +9,6 @@
   "faultMaxNum": 2,
   "testSingleVersion": false,
   "testingMode": 0,
-  "collectFormatCoverage": false,
   "verifyConfig": false,
   "testBoundaryConfig": true,
   "testAddedConfig": true,

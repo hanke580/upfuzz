@@ -418,7 +418,7 @@ public class MiniClientMain {
                     .executeCommands(tp.validationCommandSequenceList);
             testID2oriResults.put(tp.testPacketID, oriResult);
 
-            if (Config.getConf().collectFormatCoverage) {
+            if (Config.getConf().useFormatCoverage) {
                 // logger.info("[HKLOG] format coverage checking");
                 testID2FeedbackPacket
                         .get(tp.testPacketID).formatCoverage = executor

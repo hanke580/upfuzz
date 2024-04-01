@@ -83,7 +83,7 @@ public class CassandraDocker extends Docker {
 
         // format coverage
         formatMap.put("collectFormatCoverage",
-                Config.getConf().collectFormatCoverage ? "true" : "false");
+                Config.getConf().useFormatCoverage ? "true" : "false");
 
         StringSubstitutor sub = new StringSubstitutor(formatMap);
         if (Config.getConf().testSingleVersion)
