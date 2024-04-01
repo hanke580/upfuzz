@@ -144,7 +144,6 @@ public class CommandSequence implements Serializable {
                     command = generateSingleCommand(commandClassList, state);
                     while (command == null) {
                         assert !createCommandClassList.isEmpty();
-                        ;
                         command = generateSingleCommand(createCommandClassList,
                                 state);
                     }
@@ -168,7 +167,6 @@ public class CommandSequence implements Serializable {
                     }
                 }
                 commands = validCommands;
-                this.state = state;
 
                 ParameterType.BasicConcreteType.clearPool();
 
