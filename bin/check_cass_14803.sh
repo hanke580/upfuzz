@@ -1,0 +1,1 @@
+bin/find_failure_with_DESC.sh; cat input_file | bin/grep_and_newline.sh | grep -i "found"
