@@ -10,7 +10,7 @@ process_file() {
     echo "Processing file: $file"
 
     # Use grep with -n to include line numbers for easier processing
-    grep -n "rows" "$file" | while IFS= read -r line; do
+    grep -n " rows)" "$file" | while IFS= read -r line; do
         # Extract the number of rows from the current line
         current_value=$(echo "$line" | grep -oP '\(\K[0-9]+(?= rows\))')
 
