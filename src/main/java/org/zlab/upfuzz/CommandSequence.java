@@ -132,8 +132,6 @@ public class CommandSequence implements Serializable {
                         pos = org.zlab.upfuzz.utils.Utilities.biasRand(
                                 rand, commands.size() + 1, 5);
                     }
-
-                    // pos = rand.nextInt(commands.size() + 1);
                     logger.trace("\t\tMutate Command Pos " + pos);
 
                     // Compute the state up to the position
@@ -155,6 +153,8 @@ public class CommandSequence implements Serializable {
                             commands.add(pos, newCommand);
                             pos++;
                         }
+                        /* pos should point to the last command being inserted */
+                        pos--;
                     } else {
                         /* Insert one command */
                         Command command;
@@ -176,6 +176,9 @@ public class CommandSequence implements Serializable {
                 // fixed. Therefore, remove them to keep the
                 // validity.
                 List<Command> validCommands = new LinkedList<>();
+                // pos must be smaller than commands.size()
+                if (pos >= commands.size())
+                    throw new RuntimeException("Invalid pos during mutation");
                 for (int i = 0; i < pos + 1; i++) {
                     validCommands.add(commands.get(i));
                 }
