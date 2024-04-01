@@ -137,9 +137,14 @@ public class FuzzingServer {
         curOriCoverage = new ExecutionDataStore();
         curUpCoverage = new ExecutionDataStore();
 
-        // format coverage init
         if (Config.getConf().useFormatCoverage) {
             // FIXME: add isSerialized path
+            if (Config.getConf().formatInfoFolder == null) {
+                throw new RuntimeException(
+                        "formatInfoFolder is not specified in the configuration file"
+                                +
+                                "while format coverage is enabled");
+            }
             oriObjCoverage = new ObjectGraphCoverage(
                     Paths.get(Config.getConf().formatInfoFolder,
                             Config.getConf().baseClassInfoFileName),
