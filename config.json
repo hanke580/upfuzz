@@ -21,8 +21,8 @@
   "testCommonConfig": false,
   "nyxMode": false,
   "nyxFuzzSH": "nyx_mode/fuzz_no_pt.sh",
-  "debug": true,
-  "useExampleTestPlan": true,
+  "debug": false,
+  "useExampleTestPlan": false,
   "startUpClusterForDebugging": false,
   "cassandraEnableTimeoutCheck": false
 }
