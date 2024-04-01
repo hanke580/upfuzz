@@ -91,6 +91,8 @@ public class FuzzingServer {
     public static int errorLogNum = 0;
     private int ineterestingTestBatchId = 0;
     boolean isFullStopUpgrade = true;
+    private int finishedTestIdAgentGroup1 = 0;
+    private int finishedTestIdAgentGroup2 = 0;
 
     private int newFormatNum = 0;
     private int newVersionDeltaCountForBranchCoverage = 0; // Use it in the
@@ -341,6 +343,8 @@ public class FuzzingServer {
         stackedTestPacket.curUpObjCoverage = upObjCoverage;
         stackedTestPacket.clientGroupForVersionDelta = 2;
 
+        logger.info("[HKLOG] sending batch size to agent group 2: "
+                + stackedTestPacket.getTestPacketList().size());
         return stackedTestPacket;
     }
 
@@ -1556,6 +1560,7 @@ public class FuzzingServer {
             FeedbackPacket versionDeltaFeedbackPacketDown = versionDeltaFeedbackPacketsDown
                     .get(i);
             finishedTestID++;
+            finishedTestIdAgentGroup1++;
             int score = 0;
 
             boolean addToCorpus = false;
@@ -1900,6 +1905,7 @@ public class FuzzingServer {
                         endTestID);
             }
             finishedTestID++;
+            finishedTestIdAgentGroup2++;
         } else if (versionDeltaFeedbackPacket.isDowngradeProcessFailed) {
             failureDir = createFailureDir(
                     versionDeltaFeedbackPacket.configFileName);
@@ -1910,6 +1916,7 @@ public class FuzzingServer {
                     startTestID,
                     endTestID);
             finishedTestID++;
+            finishedTestIdAgentGroup2++;
         }
         FuzzingServerHandler.printClientNum();
 
@@ -1939,6 +1946,7 @@ public class FuzzingServer {
             FeedbackPacket versionDeltaFeedbackPacketDown = versionDeltaFeedbackPacketsDown
                     .get(i);
             finishedTestID++;
+            finishedTestIdAgentGroup2++;
             int score = 0;
 
             boolean addToCorpusAfterUpgrade = false;
@@ -2250,6 +2258,9 @@ public class FuzzingServer {
 
         if (Config.getConf().useVersionDelta
                 && (Config.getConf().branchVersionDeltaChoiceProb > 0)) {
+            System.out.format("|%30s|%30s|\n",
+                    "exec group 1 : " + finishedTestIdAgentGroup1,
+                    "exec group 2 : " + finishedTestIdAgentGroup2);
             System.out.format("|%30s|%30s|%30s|%30s|\n",
                     "branch delta queue size : " + corpus.queues[2].size(),
                     "format delta queue size : " + corpus.queues[3].size(),
