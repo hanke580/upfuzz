@@ -640,22 +640,30 @@ public class FuzzingServer {
                     mutateSeed.testID = testID; // update testID after mutation
                     graph.addNode(seed.testID, mutateSeed);
                     testID2Seed.put(testID, mutateSeed);
+
+                    /**
+                     * We shouldn't add more tests for this batch, since it's only
+                     * testing the configuration mutation, this batch would be 1.
+                     * If we add more tests, actually we already think that this
+                     * config is interesting, however, we shouldn't do that.
+                     */
                     stackedTestPacket.addTestPacket(mutateSeed, testID++);
                     // add mutated seeds (Mutate sequence&config)
-                    for (int i = 1; i < Config
-                            .getConf().STACKED_TESTS_NUM; i++) {
-                        mutateSeed = SerializationUtils.clone(seed);
-                        mutateSeed.configIdx = configIdx;
-                        if (mutateSeed.mutate(commandPool, stateClass)) {
-                            mutateSeed.testID = testID; // update testID after
-                            // mutation
-                            graph.addNode(seed.testID, mutateSeed);
-                            testID2Seed.put(testID, mutateSeed);
-                            stackedTestPacket.addTestPacket(mutateSeed,
-                                    testID++);
-                        } else {
-                            logger.debug("Mutation failed");
-                            i--;
+                    if (Config.getConf().paddingStackedTestPackets) {
+                        for (int i = 1; i < Config
+                                .getConf().STACKED_TESTS_NUM; i++) {
+                            mutateSeed = SerializationUtils.clone(seed);
+                            mutateSeed.configIdx = configIdx;
+                            if (mutateSeed.mutate(commandPool, stateClass)) {
+                                mutateSeed.testID = testID;
+                                graph.addNode(seed.testID, mutateSeed);
+                                testID2Seed.put(testID, mutateSeed);
+                                stackedTestPacket.addTestPacket(mutateSeed,
+                                        testID++);
+                            } else {
+                                logger.debug("Mutation failed");
+                                i--;
+                            }
                         }
                     }
                     stackedTestPackets.add(stackedTestPacket);

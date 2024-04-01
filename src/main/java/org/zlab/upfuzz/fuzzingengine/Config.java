@@ -62,7 +62,7 @@ public class Config {
         public boolean nyxMode = false;
         public String nyxFuzzSH = null;
 
-        // ------------Input Generation------------
+        // ------------ Input Generation ------------
         // Debug use the same command sequence
         public boolean useFixedCommand = false;
 
@@ -75,15 +75,30 @@ public class Config {
         // 95% get seed from corpus, 5% generate new seed
         public double getSeedFromCorpusRatio = 0.95;
 
+        // ---------------- Mutation ---------------
+
         // Mutation
-        // for the first 10 seeds added to the corpus,
-        // we only mutate them for relative few times
+        // For the first firstMutationSeedLimit seeds added
+        // to the corpus, mutate them for relative few times
         public int firstMutationSeedLimit = 5;
         public int firstSequenceMutationEpoch = 10;
         public int sequenceMutationEpoch = 800;
         public int firstConfigMutationEpoch = 3;
-        public int configMutationEpoch = 10;
         public int limitConfigForVersionDeltaRound = 100;
+        public int configMutationEpoch = 20;
+
+        /**
+         * When we only mutate config, we cannot stack them
+         * together. For throughput, we can stack
+         * other tests here. But this is a hack, it looks like
+         * that we already think that this config is interesting,
+         * which is not reasonable.
+         * Also, with NYX, there's no need for doing this.
+         *
+         * This can be enabled when using stacked tests and aiming
+         * only for largest throughput.
+         */
+        public boolean paddingStackedTestPackets = false;
 
         /* Special Mutation */
         public boolean enableAddMultiCommandMutation = true;
