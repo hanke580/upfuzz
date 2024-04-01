@@ -192,16 +192,8 @@ public class STRINGType extends ParameterType.BasicConcreteType {
             mutatedString = mutateWord((String) p.value);
             break;
         case 6:
-            // Flip a Bit
-            mutatedString = flipBit((String) p.value);
-            break;
-        case 7:
-            // Add a Bit
-            mutatedString = addBit((String) p.value);
-            break;
-        case 8:
-            // Delete a Bit
-            mutatedString = deleteBit((String) p.value);
+            // Double size of this String
+            mutatedString = (String) p.value + (String) p.value;
             break;
         default:
             throw new IllegalStateException("Unexpected value: " + choice);

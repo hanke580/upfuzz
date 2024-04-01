@@ -41,9 +41,6 @@ public abstract class Command implements Serializable {
 
         for (int i = 0; i < RETRY_TIMES; i++) {
             int mutateParamIdx = rand.nextInt(params.size());
-            if (CassandraCommand.DEBUG) {
-                mutateParamIdx = 2;
-            }
             // logger.debug("Mutate Parameter Pos = " + mutateParamIdx);
             if (params.get(mutateParamIdx).mutate(s, this))
                 return true;
