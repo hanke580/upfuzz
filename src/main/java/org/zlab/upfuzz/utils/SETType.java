@@ -12,6 +12,7 @@ import java.util.*;
 public class SETType extends ParameterType.GenericTypeOne {
 
     public static final SETType instance = new SETType();
+    private static final Random rand = new Random();
 
     @Override
     public Parameter generateRandomParameter(State s, Command c,
@@ -19,7 +20,7 @@ public class SETType extends ParameterType.GenericTypeOne {
         // (Pair<TEXT,TYPE>)
         Set<Parameter> value = new HashSet<>();
 
-        int len = new Random().nextInt(Config.getConf().SET_TYPE_MAX_SIZE);
+        int len = rand.nextInt(Config.getConf().SET_TYPE_MAX_SIZE);
 
         ConcreteType t = types.get(0);
 
@@ -78,7 +79,7 @@ public class SETType extends ParameterType.GenericTypeOne {
     public boolean mutate(State s, Command c, Parameter p,
             List<ConcreteType> types) {
         // We can regenerate or just remove or add some values
-        int choice = new Random().nextInt(3);
+        int choice = rand.nextInt(4);
         switch (choice) {
         case 0:
             p.value = generateRandomParameter(s, c, types).value;
@@ -87,12 +88,19 @@ public class SETType extends ParameterType.GenericTypeOne {
             return Utilities.setRandomDeleteAtLeaseOneItem(
                     (Set<Parameter>) p.getValue());
         case 2:
-            int numToAdd = new Random().nextInt(3);
+            int numToAdd = rand.nextInt(3);
             for (int i = 0; i < numToAdd; i++) {
                 Parameter item = types.get(0).generateRandomParameter(s, c);
                 ((Set<Parameter>) p.getValue()).add(item);
             }
             return true;
+        case 3:
+            // double size of this set
+            int size = ((Set<Parameter>) p.getValue()).size();
+            for (int i = 0; i < size; i++) {
+                Parameter item = types.get(0).generateRandomParameter(s, c);
+                ((Set<Parameter>) p.getValue()).add(item);
+            }
         }
         return false;
     }

@@ -9,6 +9,8 @@ import org.zlab.upfuzz.utils.*;
 
 public class CassandraTypes {
 
+    private static final Random rand = new Random();
+
     public static Map<ParameterType, String> type2String = new HashMap<>();
     public static Map<ParameterType, String> complexType2String = new HashMap<>();
     public static Map<ParameterType, String> genericType2String = new HashMap<>();
@@ -59,7 +61,7 @@ public class CassandraTypes {
         else
             types = new ArrayList<ParameterType>(
                     type2String.keySet());
-        int typeIdx = new Random().nextInt(types.size());
+        int typeIdx = rand.nextInt(types.size());
         return types.get(typeIdx);
     }
 
@@ -174,7 +176,7 @@ public class CassandraTypes {
             // (Pair<TEXT,TYPE>)
             List<Parameter> value = new ArrayList<>();
 
-            int len = new Random()
+            int len = rand
                     .nextInt(Config.getConf().CASSANDRA_LIST_TYPE_MAX_SIZE);
 
             ConcreteType t = types.get(0);
@@ -237,7 +239,21 @@ public class CassandraTypes {
         @Override
         public boolean mutate(State s, Command c, Parameter p,
                 List<ConcreteType> types) {
-            p.value = generateRandomParameter(s, c, types).value;
+            int choice = rand.nextInt(2);
+            switch (choice) {
+            case 0:
+                // [Dramatic Change] Regenerate the list
+                p.value = generateRandomParameter(s, c, types).value;
+                break;
+            case 1:
+                // Double size of this list
+                List<Parameter> value = (List<Parameter>) p.value;
+                int size = value.size();
+                for (int i = 0; i < size; i++) {
+                    value.add(types.get(0).generateRandomParameter(s, c));
+                }
+                break;
+            }
             return true;
         }
 
@@ -310,7 +326,7 @@ public class CassandraTypes {
             Set<String> leftSet = new HashSet<>();
 
             int bound = 10; // specified by user
-            int len = new Random().nextInt(bound);
+            int len = rand.nextInt(bound);
 
             for (int i = 0; i < len; i++) {
                 Parameter p = t.generateRandomParameter(s, c);
@@ -352,7 +368,7 @@ public class CassandraTypes {
             Set<String> leftSet = new HashSet<>();
 
             int bound = 10; // specified by user
-            int len = new Random().nextInt(bound);
+            int len = rand.nextInt(bound);
 
             // make sure the first 2 are non-complex type
 
@@ -538,7 +554,6 @@ public class CassandraTypes {
             }
 
             if (filteredTargetSet.size() > 0) {
-                Random rand = new Random();
                 int setSize = rand.nextInt(filteredTargetSet.size() + 1); // specified
                 // by user
                 List<Integer> indexArray = new ArrayList<>();
