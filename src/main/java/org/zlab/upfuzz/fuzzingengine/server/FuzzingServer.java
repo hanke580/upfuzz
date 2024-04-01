@@ -94,6 +94,8 @@ public class FuzzingServer {
     public static int errorLogNum = 0;
     private int ineterestingTestBatchId = 0;
     boolean isFullStopUpgrade = true;
+    private int finishedTestIdAgentGroup1 = 0;
+    private int finishedTestIdAgentGroup2 = 0;
 
     private int newFormatNum = 0;
     private int newVersionDeltaCount = 0; // Use it in the UpdateStatus method,
@@ -280,6 +282,8 @@ public class FuzzingServer {
         stackedTestPacket.curUpObjCoverage = upObjCoverage;
         stackedTestPacket.clientGroupForVersionDelta = 2;
 
+        logger.info("[HKLOG] sending batch size to agent group 2: "
+                + stackedTestPacket.getTestPacketList().size());
         return stackedTestPacket;
     }
 
@@ -1441,6 +1445,7 @@ public class FuzzingServer {
             FeedbackPacket versionDeltaFeedbackPacketDown = versionDeltaFeedbackPacketsDown
                     .get(i);
             finishedTestID++;
+            finishedTestIdAgentGroup1++;
             int score = 0;
 
             boolean addToCorpus = false;
@@ -1701,6 +1706,7 @@ public class FuzzingServer {
                         endTestID);
             }
             finishedTestID++;
+            finishedTestIdAgentGroup2++;
         } else if (versionDeltaFeedbackPacket.isDowngradeProcessFailed) {
             failureDir = createFailureDir(
                     versionDeltaFeedbackPacket.configFileName);
@@ -1711,6 +1717,7 @@ public class FuzzingServer {
                     startTestID,
                     endTestID);
             finishedTestID++;
+            finishedTestIdAgentGroup2++;
         }
         FuzzingServerHandler.printClientNum();
 
@@ -1740,6 +1747,7 @@ public class FuzzingServer {
             FeedbackPacket versionDeltaFeedbackPacketDown = versionDeltaFeedbackPacketsDown
                     .get(i);
             finishedTestID++;
+            finishedTestIdAgentGroup2++;
             int score = 0;
 
             boolean addToCorpus = false;
@@ -2024,7 +2032,10 @@ public class FuzzingServer {
         }
 
         if (Config.getConf().useVersionDelta
-                && (Config.getConf().versionDeltaChoiceProb > 0)) {
+                && (Config.getConf().branchVersionDeltaChoiceProb > 0)) {
+            System.out.format("|%30s|%30s|\n",
+                    "exec group 1 : " + finishedTestIdAgentGroup1,
+                    "exec group 2 : " + finishedTestIdAgentGroup2);
             System.out.format("|%30s|%30s|%30s|%30s|\n",
                     "version delta queue size : " + corpus.queues[2].size(),
                     "new version delta count : " + newVersionDeltaCount,
@@ -2107,11 +2118,7 @@ public class FuzzingServer {
         throw new IllegalStateException("Invalid probabilities");
     }
 
-<<<<<<< HEAD
-    public int getNextBestCorpusType() {
-=======
     public int getNextBestType(Map<Integer, Double> probabilities, int type) {
->>>>>>> af895b2 (bugfix in test batch creation in server)
         // Sort probabilities in descending order
         List<Map.Entry<Integer, Double>> sortedProbabilities = new ArrayList<>(
                 probabilities.entrySet());
