@@ -87,6 +87,11 @@ public class Config {
         public int limitConfigForVersionDeltaRound = 100;
         public int configMutationEpoch = 20;
 
+        // Fix config and random generate new command sequences
+        // Focus on fuzzing
+        public int firstSequenceRandGenEpoch = 10;
+        public int sequenceRandGenEpoch = 200;
+
         /**
          * When we only mutate config, we cannot stack them
          * together. For throughput, we can stack

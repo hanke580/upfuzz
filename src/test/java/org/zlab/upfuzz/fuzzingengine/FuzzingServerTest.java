@@ -28,6 +28,8 @@ import org.zlab.upfuzz.hdfs.HdfsCommandPool;
 import org.zlab.upfuzz.hdfs.HdfsState;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -155,6 +157,31 @@ public class FuzzingServerTest extends AbstractTest {
         assert corpus.getSeed() == seed1;
         assert corpus.getSeed() == seed2;
         assert corpus.getSeed() == seed1;
+    }
+
+    // @Test
+    public void testFuzzOne() throws InvocationTargetException,
+            IllegalAccessException, NoSuchMethodException {
+        /**
+         * Need to explicitly set the 2.x and 3.x in the prebuild folder
+         */
+        Config.instance.system = "cassandra";
+        Config.instance.originalVersion = "apache-cassandra-2.2.8";
+        Config.instance.upgradedVersion = "apache-cassandra-3.0.17";
+        Config.instance.testAddedConfig = true;
+
+        CassandraCommandPool pool = new CassandraCommandPool();
+
+        Seed seed1 = Executor.generateSeed(pool, CassandraState.class, 2, 1);
+
+        FuzzingServer fuzzingServer = new FuzzingServer();
+
+        Method initMethod = FuzzingServer.class.getDeclaredMethod("init");
+        initMethod.setAccessible(true);
+        initMethod.invoke(fuzzingServer);
+        fuzzingServer.corpus.addSeed(seed1, Corpus.QueueType.BRANCH_COVERAGE);
+        fuzzingServer.fuzzOne();
+
     }
 
 //    @Test

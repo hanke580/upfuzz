@@ -540,21 +540,31 @@ public class FuzzingServer {
             /**
              *  Get a seed from corpus, now fuzz it for an epoch
              *  The seed contains a specific configuration to trigger new coverage
-             *  (1) Only mutate sequence: Maintain the config, mutate for mutationEpoch times
-             *  (2) Only mutate config: Maintain the sequence
-             *  (3) Mutate both (More violent mutation)
+             *  1. Fix the config, mutate command sequences
+             *      a. Mutate command sequences
+             *      b. Random generate new command sequences
+             *  2. Fix the command sequence
+             *      a. Mutate the configs (not supported yet)
+             *      b. Random generate new configs
+             *  3. Mutate both config and command sequence (violent, disabled)
              */
-            // Situation1: Only mutate sequence
+
+            // 1.a Fix config, mutate command sequences
             if (seed.configIdx == -1)
                 configIdx = configGen.generateConfig();
             else
                 configIdx = seed.configIdx;
 
             int mutationEpoch;
-            if (firstMutationSeedNum < Config.getConf().firstMutationSeedLimit)
+            int randGenEpoch;
+            if (firstMutationSeedNum < Config
+                    .getConf().firstMutationSeedLimit) {
                 mutationEpoch = Config.getConf().firstSequenceMutationEpoch;
-            else
+                randGenEpoch = Config.getConf().firstSequenceRandGenEpoch;
+            } else {
                 mutationEpoch = Config.getConf().sequenceMutationEpoch;
+                randGenEpoch = Config.getConf().sequenceRandGenEpoch;
+            }
 
             if (Config.getConf().debug) {
                 logger.debug(String.format(
@@ -604,10 +614,32 @@ public class FuzzingServer {
             if (stackedTestPacket.size() != 0) {
                 stackedTestPackets.add(stackedTestPacket);
             }
+            // 1.b Fix config, random generate new command sequences
+            stackedTestPacket = new StackedTestPacket(Config.getConf().nodeNum,
+                    configFileName);
+            for (int i = 0; i < randGenEpoch; i++) {
+                if (i != 0 && i % Config.getConf().STACKED_TESTS_NUM == 0) {
+                    stackedTestPackets.add(stackedTestPacket);
+                    stackedTestPacket = new StackedTestPacket(
+                            Config.getConf().nodeNum, configFileName);
+                }
+                Seed randGenSeed = Executor.generateSeed(commandPool,
+                        stateClass,
+                        configIdx, testID);
+                if (randGenSeed != null) {
+                    graph.addNode(seed.testID, randGenSeed);
+                    testID2Seed.put(testID, randGenSeed);
+                    stackedTestPacket.addTestPacket(randGenSeed, testID++);
+                } else {
+                    logger.debug("Random seed generation failed");
+                    i--;
+                }
+            }
+            // last test packet
+            if (stackedTestPacket.size() != 0) {
+                stackedTestPackets.add(stackedTestPacket);
+            }
 
-            // Situation2: Only mutate config + Mutate both (Combined with
-            // stackedTestPackets)
-            // configMutationEpoch*STACKED_TESTS_NUM = 1000 tests
 
             if (configGen.enable && (!(Config.getConf().useVersionDelta)
                     || (round - lastRoundIntroducingVersionDelta > Config

@@ -24,7 +24,7 @@ public class CassandraCqlshDaemonTest extends TestCase {
 
     @Test
     public void testCqlshPythonScript() {
-        System.out.println(CassandraCqlshDaemon.cqlshPython2Script);
-        System.out.println(CassandraCqlshDaemon.cqlshPython3Script);
+        // System.out.println(CassandraCqlshDaemon.cqlshPython2Script);
+        // System.out.println(CassandraCqlshDaemon.cqlshPython3Script);
     }
 }

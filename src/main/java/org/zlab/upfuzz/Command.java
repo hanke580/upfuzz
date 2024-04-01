@@ -38,7 +38,8 @@ public abstract class Command implements Serializable {
 
     public boolean mutate(State s) throws Exception {
         Random rand = new Random();
-
+        if (params.size() == 0)
+            return false;
         for (int i = 0; i < RETRY_TIMES; i++) {
             int mutateParamIdx = rand.nextInt(params.size());
             // logger.debug("Mutate Parameter Pos = " + mutateParamIdx);

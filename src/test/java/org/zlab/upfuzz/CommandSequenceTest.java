@@ -164,21 +164,21 @@ public class CommandSequenceTest extends AbstractTest {
         CassandraCommandPool pool = new CassandraCommandPool();
         Seed seed = Executor.generateSeed(pool, CassandraState.class, -1, -1);
 
-        if (seed != null) {
-            for (String str : seed.originalCommandSequence
-                    .getCommandStringList()) {
-                logger.info(str);
+        boolean print = false;
+        if (print) {
+            if (seed != null) {
+                for (String str : seed.originalCommandSequence
+                        .getCommandStringList()) {
+                    logger.info(str);
+                }
+                logger.info("\n\n");
+                for (String str : seed.validationCommandSequence
+                        .getCommandStringList()) {
+                    logger.info(str);
+                }
+                logger.info("size = " + seed.validationCommandSequence
+                        .getCommandStringList().size());
             }
-            logger.info("\n\n");
-
-            for (String str : seed.validationCommandSequence
-                    .getCommandStringList()) {
-                logger.info(str);
-            }
-            logger.info("size = " + seed.validationCommandSequence
-                    .getCommandStringList().size());
-
         }
-
     }
 }
