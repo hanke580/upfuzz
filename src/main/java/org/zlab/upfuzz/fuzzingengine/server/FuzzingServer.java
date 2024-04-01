@@ -1203,11 +1203,10 @@ public class FuzzingServer {
                     if (oriObjCoverage.merge(feedbackPacket.formatCoverage,
                             feedbackPacket.testPacketID)) {
                         // learned format is updated
-                        logger.info("New format coverage");
+                        logger.info("New format coverage for test "
+                                + feedbackPacket.testPacketID);
                         newFormatNum++;
                         newFormatCoverage = true;
-                    } else {
-                        logger.info("No new format coverage");
                     }
                 } else {
                     logger.info("Null format coverage");
@@ -1312,9 +1311,10 @@ public class FuzzingServer {
     }
 
     private void copyConfig(Path failureSubDir, String configFileName) {
-        logger.info("[HKLOG] debug copy config, failureSubDir = "
-                + failureSubDir + " configFile = " + configFileName
-                + " configPath = " + configDirPath);
+        if (Config.getConf().debug)
+            logger.info("[HKLOG] debug copy config, failureSubDir = "
+                    + failureSubDir + " configFile = " + configFileName
+                    + " configPath = " + configDirPath);
         if (configFileName == null || configFileName.isEmpty())
             return;
         Path configPath = Paths.get(configDirPath.toString(), configFileName);
@@ -1438,9 +1438,10 @@ public class FuzzingServer {
                 "============================================================"
                         + "=================================================================");
         System.out.format("|%30s|%30s|%30s|%30s|\n",
-                "queue size : "
+                "BC queue size : "
                         + corpus.getSize(Corpus.QueueType.BRANCH_COVERAGE),
-                "round : " + round,
+                "BC index : "
+                        + corpus.getIndex(Corpus.QueueType.BRANCH_COVERAGE),
                 "cur testID : " + testID,
                 "total exec : " + finishedTestID);
         System.out.format("|%30s|%30s|%30s|%30s|\n",
@@ -1454,19 +1455,22 @@ public class FuzzingServer {
                     "Cov : " + originalCoveredBranches + "/"
                             + originalProbeNum);
         } else {
-            System.out.format("|%30s|%30s|%30s|\n",
+            System.out.format("|%30s|%30s|%30s|%30s|\n",
                     "run time : " + timeElapsed + "s",
                     "ori cov : " + originalCoveredBranches + "/"
                             + originalProbeNum,
                     "up cov : " + upgradedCoveredBranches + "/"
-                            + upgradedProbeNum);
+                            + upgradedProbeNum,
+                    "round : " + round);
         }
 
         if (Config.getConf().useFormatCoverage) {
             System.out.format("|%30s|%30s|\n",
-                    "format coverage queue size : "
+                    "FC queue size : "
                             + corpus.getSize(Corpus.QueueType.FORMAT_COVERAGE),
-                    "new format num : " + newFormatNum);
+                    "FC index : "
+                            + corpus.getIndex(
+                                    Corpus.QueueType.FORMAT_COVERAGE));
         }
 
         if (Config.getConf().debug)

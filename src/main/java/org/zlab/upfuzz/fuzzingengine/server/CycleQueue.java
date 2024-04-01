@@ -44,4 +44,8 @@ public class CycleQueue {
         return queue.size();
     }
 
+    public int getCurrentIndex() {
+        return currentIndex;
+    }
+
 }

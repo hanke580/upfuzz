@@ -13,6 +13,7 @@ import org.zlab.upfuzz.cassandra.CassandraConfigGen;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.docker.DockerCluster;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPlanPacket;
+import org.zlab.upfuzz.fuzzingengine.server.Corpus;
 import org.zlab.upfuzz.fuzzingengine.server.FullStopSeed;
 import org.zlab.upfuzz.fuzzingengine.server.FuzzingServer;
 import org.zlab.upfuzz.fuzzingengine.server.Seed;
@@ -137,6 +138,21 @@ public class FuzzingServerTest extends AbstractTest {
 
     @Test
     public void testCorpus() {
+        Config.instance.system = "cassandra";
+        CassandraCommandPool pool = new CassandraCommandPool();
+        Seed seed1 = Executor.generateSeed(pool, CassandraState.class, -1, 1);
+        Seed seed2 = Executor.generateSeed(pool, CassandraState.class, -1, 2);
+
+        assert seed1 != null;
+        assert seed2 != null;
+
+        Corpus corpus = new Corpus();
+        corpus.addSeed(seed1, Corpus.QueueType.BRANCH_COVERAGE);
+        corpus.addSeed(seed2, Corpus.QueueType.BRANCH_COVERAGE);
+
+        assert corpus.getSeed() == seed1;
+        assert corpus.getSeed() == seed2;
+        assert corpus.getSeed() == seed1;
     }
 
 //    @Test

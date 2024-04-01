@@ -21,7 +21,7 @@ public class Corpus {
 
     private Mode mode;
 
-    enum QueueType {
+    public enum QueueType {
         FORMAT_COVERAGE, BRANCH_COVERAGE
     }
 
@@ -138,6 +138,17 @@ public class Corpus {
             return formatCoverageQueue.size();
         case BRANCH_COVERAGE:
             return branchCoverageQueue.size();
+        default:
+            throw new IllegalArgumentException("Invalid queue type");
+        }
+    }
+
+    public int getIndex(QueueType type) {
+        switch (type) {
+        case FORMAT_COVERAGE:
+            return formatCoverageQueue.getCurrentIndex();
+        case BRANCH_COVERAGE:
+            return branchCoverageQueue.getCurrentIndex();
         default:
             throw new IllegalArgumentException("Invalid queue type");
         }
