@@ -9,7 +9,6 @@ import java.nio.file.Paths;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.zlab.ocov.tracker.ObjectGraphCoverage;
 
 public class Config {
 
@@ -64,7 +63,7 @@ public class Config {
         public String nyxFuzzSH = null;
 
         // ------------Input Generation------------
-        // use the same command sequence for debug
+        // Debug use the same command sequence
         public boolean useFixedCommand = false;
 
         // Sequence Generation
@@ -72,6 +71,9 @@ public class Config {
         public int MAX_CMD_SEQ_LEN = 30;
 
         public int SET_TYPE_MAX_SIZE = 10;
+
+        // 95% get seed from corpus, 5% generate new seed
+        public double getSeedFromCorpusRatio = 0.95;
 
         // Mutation
         // for the first 10 seeds added to the corpus,
@@ -98,7 +100,7 @@ public class Config {
                                        // test
         public int nodeNum = 3;
 
-        // ------------FeedBack------------
+        // ------------Branch Coverage------------
         public boolean useBranchCoverage = true;
         public boolean collUpFeedBack = true;
 
@@ -115,20 +117,21 @@ public class Config {
         public boolean verifyConfig = false;
         public String configDir = "configtests";
 
-        // single version
+        // == single version ==
         public boolean testConfig = false;
         public double testSingleVersionConfigRatio = 0.1;
 
+        // == upgrade ==
         public boolean testBoundaryConfig = false;
-        public double testBoundaryUpgradeConfigRatio = 1; // We mutate
-                                                          // testConfigRatio
+        // Mutate all boundary related configs
+        public double testBoundaryUpgradeConfigRatio = 1;
 
         public boolean testAddedConfig = false;
         public boolean testDeletedConfig = false;
-        public boolean testCommonConfig = false; // marked "deprecated"
-        public double testUpgradeConfigRatio = 0.4; // We mutate testConfigRatio
-        // configuration each
-        // test, default is 40
+        // marked "deprecated"
+        public boolean testCommonConfig = false;
+        // Mutate 40% of the upgrade configs
+        public double testUpgradeConfigRatio = 0.4;
 
         // ------------Test Mode-------------
         public boolean testDowngrade = false;
@@ -148,7 +151,7 @@ public class Config {
         // full-stop upgrade
         public boolean fullStopUpgradeWithFaults = false;
 
-        // ------------State Comparison-------------
+        // ------------State Comparison (deprecated) -------------
         public boolean enableStateComp = false;
         // Debug option
         public boolean startUpClusterForDebugging = false;
@@ -174,14 +177,14 @@ public class Config {
         public boolean useFormatCoverage = false;
         public double formatCoverageChoiceProb = 0.7;
 
+        public int formatCoveragePort = 62000;
+
+        public String formatInfoFolder = null;
+
         public String baseClassInfoFileName = "serializedFields_alg1.json";
         public String topObjectsFileName = "topObjects.json";
         public String comparableClassesFileName = "comparableClasses.json";
         public String branch2CollectionFileName = "branch2Collection.json";
-
-        public String formatInfoFolder = null;
-
-        public int formatCoveragePort = 62000;
 
         /**
          * ---------------Version Specific-----------------

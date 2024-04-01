@@ -300,7 +300,10 @@ public class FuzzingServer {
         // Pick one test case from the corpus, fuzz it for mutationEpoch
         // Add the new tests into the stackedTestPackets
         // All packets have been dispatched, now fuzz next seed
-        Seed seed = corpus.getSeed();
+
+        Seed seed = null;
+        if (rand.nextDouble() < Config.getConf().getSeedFromCorpusRatio)
+            seed = corpus.getSeed();
         round++;
         StackedTestPacket stackedTestPacket;
 
@@ -1136,70 +1139,45 @@ public class FuzzingServer {
         FuzzingServerHandler.printClientNum();
         for (FeedbackPacket feedbackPacket : stackedFeedbackPacket
                 .getFpList()) {
-            // handle invariant
             finishedTestID++;
             int score = 0;
 
             boolean newOldVersionBranchCoverage = false;
             boolean newNewVersionBranchCoverage = false;
             boolean newFormatCoverage = false;
-            // boolean newVersionDeltaCoverage = false;
 
             // Merge all the feedbacks
             FeedBack fb = mergeCoverage(feedbackPacket.feedBacks);
-            // priority feature is disabled
-            if (Config.getConf().usePriorityCov) {
-                int old_score = 0;
-                int new_score = 0;
-                if (Utilities.hasNewBitsAccum(
+            if (Config.getConf().debugCoverage) {
+                if (Utilities.hasNewBitsDebug(
                         curOriCoverage,
                         fb.originalCodeCoverage)) {
                     // Write Seed to Disk + Add to Corpus
-                    old_score = Utilities.mergeMax(curOriCoverage,
+                    curOriCoverage.merge(
                             fb.originalCodeCoverage);
                     newOldVersionBranchCoverage = true;
                 }
-                if (Utilities.hasNewBitsAccum(curUpCoverage,
+                if (Utilities.hasNewBitsDebug(curUpCoverage,
                         fb.upgradedCodeCoverage)) {
-                    new_score = Utilities.mergeMax(curUpCoverage,
+                    curUpCoverage.merge(
                             fb.upgradedCodeCoverage);
                     newNewVersionBranchCoverage = true;
                 }
-                score = (int) (old_score * Config.getConf().oldCovRatio
-                        + new_score * (1 - Config.getConf().oldCovRatio));
             } else {
-                if (Config.getConf().debugCoverage) {
-                    if (Utilities.hasNewBitsDebug(
-                            curOriCoverage,
-                            fb.originalCodeCoverage)) {
-                        // Write Seed to Disk + Add to Corpus
-                        curOriCoverage.merge(
-                                fb.originalCodeCoverage);
-                        newOldVersionBranchCoverage = true;
-                    }
-                    if (Utilities.hasNewBitsDebug(curUpCoverage,
-                            fb.upgradedCodeCoverage)) {
-                        curUpCoverage.merge(
-                                fb.upgradedCodeCoverage);
-                        newNewVersionBranchCoverage = true;
-                    }
-                } else {
-                    if (Utilities.hasNewBits(
-                            curOriCoverage,
-                            fb.originalCodeCoverage)) {
-                        // Write Seed to Disk + Add to Corpus
-                        curOriCoverage.merge(
-                                fb.originalCodeCoverage);
-                        newOldVersionBranchCoverage = true;
-                    }
-                    if (Utilities.hasNewBits(curUpCoverage,
-                            fb.upgradedCodeCoverage)) {
-                        curUpCoverage.merge(
-                                fb.upgradedCodeCoverage);
-                        newNewVersionBranchCoverage = true;
-                    }
+                if (Utilities.hasNewBits(
+                        curOriCoverage,
+                        fb.originalCodeCoverage)) {
+                    // Write Seed to Disk + Add to Corpus
+                    curOriCoverage.merge(
+                            fb.originalCodeCoverage);
+                    newOldVersionBranchCoverage = true;
                 }
-
+                if (Utilities.hasNewBits(curUpCoverage,
+                        fb.upgradedCodeCoverage)) {
+                    curUpCoverage.merge(
+                            fb.upgradedCodeCoverage);
+                    newNewVersionBranchCoverage = true;
+                }
             }
 
             // format coverage
