@@ -116,6 +116,9 @@ public class CommandTests extends AbstractTest {
         commandSequence.mutate();
         boolean useIdx = false;
 
+        // print : after mutation
+        System.out.println("== After mutation ==");
+
         List<String> commandStringList = commandSequence.getCommandStringList();
         for (int i = 0; i < commandStringList.size(); i++) {
             if (useIdx)
@@ -984,9 +987,9 @@ public class CommandTests extends AbstractTest {
         cmd11.updateState(s);
         l.add(cmd11);
 
-        for (Command cmd : l) {
-            System.out.println(cmd.constructCommandString());
-        }
+        // for (Command cmd : l) {
+        // System.out.println(cmd.constructCommandString());
+        // }
 
         CommandSequence commandSequence = new CommandSequence(l,
                 CassandraCommand.cassandraCommandPool.commandClassList,

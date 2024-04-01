@@ -21,6 +21,8 @@ import org.zlab.upfuzz.utils.Utilities;
 public class CommandSequence implements Serializable {
     static Logger logger = LogManager.getLogger(CommandSequence.class);
 
+    private static final Random rand = new Random();
+
     public final static int RETRY_GENERATE_TIME = 50;
     public final static int RETRY_MUTATE_TIME = 20;
 
@@ -83,7 +85,6 @@ public class CommandSequence implements Serializable {
             System.out.println("Int Pool: " + INTType.intPool);
         }
 
-        Random rand = new Random();
         for (int mutateRetryIdx = 0; mutateRetryIdx < RETRY_MUTATE_TIME; mutateRetryIdx++) {
             try {
                 int choice = rand.nextInt(3);
@@ -139,16 +140,36 @@ public class CommandSequence implements Serializable {
                     for (int i = 0; i < pos; i++) {
                         commands.get(i).updateState(state);
                     }
-                    Command command;
 
-                    command = generateSingleCommand(commandClassList, state);
-                    while (command == null) {
-                        assert !createCommandClassList.isEmpty();
-                        command = generateSingleCommand(createCommandClassList,
+                    if (Config.getConf().enableAddMultiCommandMutation
+                            && rand.nextDouble() < Config
+                                    .getConf().addCommandWithSameTypeProb) {
+                        /* Insert multiple commands with the same type */
+                        List<Command> newCommands = generateCommandsWithSameType(
+                                commandClassList, state);
+                        // add all commands, they must not be null
+                        if (newCommands.size() != Config
+                                .getConf().addCommandWithSameTypeNum)
+                            continue;
+                        for (Command newCommand : newCommands) {
+                            commands.add(pos, newCommand);
+                            pos++;
+                        }
+                    } else {
+                        /* Insert one command */
+                        Command command;
+                        command = generateSingleCommand(commandClassList,
                                 state);
+                        while (command == null) {
+                            assert !createCommandClassList.isEmpty();
+                            command = generateSingleCommand(
+                                    createCommandClassList,
+                                    state);
+                        }
+                        commands.add(pos, command);
+                        // state is already updated in generateSingleCommand!
+                        // commands.get(pos).updateState(state);
                     }
-                    commands.add(pos, command);
-                    commands.get(pos).updateState(state);
                 }
                 // Check the following commands
                 // There could be some commands that cannot be
@@ -182,33 +203,35 @@ public class CommandSequence implements Serializable {
         return false;
     }
 
+    public static int getWeightIndex(
+            List<Map.Entry<Class<? extends Command>, Integer>> commandClassList) {
+        int sum = commandClassList.stream()
+                .mapToInt(Map.Entry::getValue)
+                .sum();
+        int tmpSum = 0;
+        int randInt = rand.nextInt(sum);
+        int cmdIdx = 0;
+        for (int j = 0; j < sum; j++) {
+            tmpSum += commandClassList.get(j).getValue();
+            if (randInt < tmpSum)
+                break;
+            cmdIdx++;
+        }
+        return cmdIdx;
+    }
+
     public static Command generateSingleCommand(
             List<Map.Entry<Class<? extends Command>, Integer>> commandClassList,
             State state) {
         Command command = null;
-        Random rand = new Random();
         assert !commandClassList.isEmpty();
         // Set Retry time is to avoid forever loop when all
         // the commands cannot be generated correctly.
         for (int i = 0; i < RETRY_GENERATE_TIME; i++) {
             try {
-                int sum = commandClassList.stream()
-                        .mapToInt(Map.Entry::getValue)
-                        .sum();
-
-                int tmpSum = 0;
-                int randInt = rand.nextInt(sum);
-                int cmdIdx = 0;
-
-                for (int j = 0; j < sum; j++) {
-                    tmpSum += commandClassList.get(j).getValue();
-                    if (randInt < tmpSum)
-                        break;
-                    cmdIdx++;
-                }
+                int cmdIdx = getWeightIndex(commandClassList);
                 Class<? extends Command> clazz = commandClassList.get(cmdIdx)
                         .getKey();
-
                 Constructor<?> constructor;
                 try {
                     constructor = clazz.getConstructor(state.getClass());
@@ -222,8 +245,41 @@ public class CommandSequence implements Serializable {
                 command = null;
             }
         }
-
         return command;
+    }
+
+    public static List<Command> generateCommandsWithSameType(
+            List<Map.Entry<Class<? extends Command>, Integer>> commandClassList,
+            State state) {
+        assert !commandClassList.isEmpty();
+
+        List<Command> commands = new LinkedList<>();
+        int cmdIdx = getWeightIndex(commandClassList);
+        Class<? extends Command> clazz = commandClassList.get(cmdIdx)
+                .getKey();
+        for (int i = 0; i < RETRY_GENERATE_TIME; i++) {
+            Command command;
+            try {
+                Constructor<?> constructor;
+                try {
+                    constructor = clazz.getConstructor(state.getClass());
+                } catch (NoSuchMethodException e) {
+                    constructor = clazz.getConstructor(State.class);
+                }
+                command = (Command) constructor.newInstance(state);
+            } catch (Exception e) {
+                continue;
+            }
+            if (command == null) {
+                throw new RuntimeException("Command is null");
+            }
+            command.updateState(state);
+            commands.add(command);
+            if (commands.size() >= Config.getConf().addCommandWithSameTypeNum) {
+                break;
+            }
+        }
+        return commands;
     }
 
     public static CommandSequence generateSequence(
@@ -234,7 +290,6 @@ public class CommandSequence implements Serializable {
 
         assert commandClassList != null;
 
-        Random rand = new Random();
         int len = rand
                 .nextInt(Config.getConf().MAX_CMD_SEQ_LEN
                         - Config.getConf().MIN_CMD_SEQ_LEN)

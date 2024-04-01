@@ -84,6 +84,12 @@ public class Config {
         public int firstConfigMutationEpoch = 3;
         public int configMutationEpoch = 10;
 
+        /* Special Mutation */
+        public boolean enableAddMultiCommandMutation = true;
+        // If choose to add command, 30% add multiple commands
+        public double addCommandWithSameTypeProb = 0.3;
+        public int addCommandWithSameTypeNum = 3;
+
         // violent mutation, usually fewer
         public int bothMutationEpoch = 20;
         public int testPlanMutationEpoch = 20;
@@ -92,6 +98,7 @@ public class Config {
         // test plan from it.
         public int testPlanGenerationNum = 20;
 
+        // deprecated
         public String targetSystemStateFile = "states.json";
 
         public int STACKED_TESTS_NUM = 50;
