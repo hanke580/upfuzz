@@ -1,26 +1,20 @@
 package org.zlab.upfuzz.fuzzingengine.server;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Objects;
-import java.util.PriorityQueue;
-import java.util.Queue;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class Corpus {
-    AtomicLong timestampGenerator = new AtomicLong(0); // To track enqueue order
-
     static Logger logger = LogManager.getLogger(Corpus.class);
+    AtomicLong timestampGenerator = new AtomicLong(0); // To track enqueue order
 
     // private final CycleQueue formatCoverageQueue = new CycleQueue();
     // private final CycleQueue branchCoverageQueue = new CycleQueue();
@@ -100,8 +94,10 @@ public class Corpus {
         case BOTH:
             double randomValue = FuzzingServer.rand.nextDouble();
             if (randomValue < Config.getConf().formatCoverageChoiceProb) {
+                logger.debug("Pick format coverage seed");
                 return getSeed(QueueType.FORMAT_COVERAGE);
             } else {
+                logger.debug("Pick branch coverage seed");
                 return getSeed(QueueType.BRANCH_COVERAGE_BEFORE_VERSION_CHANGE);
             }
         }

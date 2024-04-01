@@ -205,6 +205,7 @@ public class Config {
         // whether to use format coverage to guide the test (add to corpus)
         // If disabled, we also won't collect format coverage
         public boolean useFormatCoverage = false;
+        public double formatCoverageChoiceProb = 0.8;
 
         public int formatCoveragePort = 62000;
 
@@ -218,7 +219,6 @@ public class Config {
         public boolean useVersionDelta = false;
         public double branchVersionDeltaChoiceProb = 0.7;
         public double formatVersionDeltaChoiceProb = 0.0;
-        public double formatCoverageChoiceProb = 0.0;
         public double codeCoverageChoiceProb = 0.3;
 
         public double branchCovSeedChoiceProb = 0.1;
