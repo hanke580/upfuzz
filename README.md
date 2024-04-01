@@ -72,25 +72,17 @@ export UPFUZZ_DIR=$PWD
 export ORI_VERSION=2.2.8
 export UP_VERSION=3.0.17
 
-mkdir -p "$UPFUZZ_DIR"/prebuild/cassandra  # don't need to run this step if testing through prebuilt image
+mkdir -p "$UPFUZZ_DIR"/prebuild/cassandra
 cd prebuild/cassandra
-
-# Get the instrumented cassandra-2.2.8
-cp /home/khan/test_binary/apache-cassandra-2.2.8-format.tar.gz .
-cp /home/khan/test_binary/apache-cassandra-3.0.17-format.tar.gz .
-tar -xzvf apache-cassandra-2.2.8-format.tar.gz
-tar -xzvf apache-cassandra-3.0.17-format.tar.gz
+# Untar instrumented cassandra binaries
 
 cd ${UPFUZZ_DIR}/src/main/resources/cassandra/normal/compile-src/
 sed -i "s/ORI_VERSION=apache-cassandra-.*$/ORI_VERSION=apache-cassandra-$ORI_VERSION/" cassandra-clusternode.sh
 sed -i "s/UP_VERSION=apache-cassandra-.*$/UP_VERSION=apache-cassandra-$UP_VERSION/" cassandra-clusternode.sh
 docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"_apache-cassandra-"$UP_VERSION"
 
-# Copy the format required json files to the /tmp/folder
-cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.17/serializedFields_alg1.json /tmp
-cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.17/topObjects.json /tmp
-cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.17/comparableClasses.json /tmp
-cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.17/branch2Collection.json /tmp
+# Make sure format folder contains serializedFields_alg1.json and topObjects.json files
+# "formatInfoFolder": "configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.17",
 
 # Also make sure these files occur in the prebuild/cassandra/apache-cassandra-2.2.8/ folder
 cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.17/serializedFields_alg1.json prebuild/cassandra/apache-cassandra-2.2.8/
