@@ -33,6 +33,10 @@ public class InterestingTestsCorpus {
         }
     }
 
+    public enum TestType {
+        FORMAT_COVERAGE_VERSION_DELTA, BRANCH_COVERAGE_VERSION_DELTA, FORMAT_COVERAGE, BRANCH_COVERAGE_BEFORE_VERSION_CHANGE, LOW_PRIORITY
+    }
+
     public String getConfigFile() {
         if (configFiles.isEmpty())
             return null;
@@ -43,20 +47,20 @@ public class InterestingTestsCorpus {
         configFiles.add(configFileName);
     }
 
-    public TestPacket getPacket(int type) {
-        if (queues[type].isEmpty())
+    public TestPacket getPacket(TestType type) {
+        if (queues[type.ordinal()].isEmpty())
             return null;
-        return queues[type].poll();
+        return queues[type.ordinal()].poll();
     }
 
-    public TestPacket peekPacket(int type) {
-        if (queues[type].isEmpty())
+    public TestPacket peekPacket(TestType type) {
+        if (queues[type.ordinal()].isEmpty())
             return null;
-        return queues[type].peek();
+        return queues[type.ordinal()].peek();
     }
 
-    public void addPacket(TestPacket packet, int type) {
-        queues[type].add(packet);
+    public void addPacket(TestPacket packet, TestType type) {
+        queues[type.ordinal()].add(packet);
     }
 
     public boolean areAllQueuesEmpty() {
@@ -92,8 +96,8 @@ public class InterestingTestsCorpus {
         }
     }
 
-    public boolean isEmpty(int type) {
-        return queues[type].isEmpty();
+    public boolean isEmpty(TestType type) {
+        return queues[type.ordinal()].isEmpty();
     }
 
     public void printCache() {

@@ -186,7 +186,6 @@ public class Config {
         // whether to use format coverage to guide the test (add to corpus)
         // If disabled, we also won't collect format coverage
         public boolean useFormatCoverage = false;
-        public double formatCoverageChoiceProb = 0.7;
 
         public int formatCoveragePort = 62000;
 
@@ -195,10 +194,8 @@ public class Config {
         public String baseClassInfoFileName = "serializedFields_alg1.json";
         public String topObjectsFileName = "topObjects.json";
         public String comparableClassesFileName = "comparableClasses.json";
+        public String branch2CollectionFileName = "branch2Collection.json";
 
-        public String formatInfoFolder = null;
-
-        public int formatCoveragePort = 62000;
         public boolean useVersionDelta = false;
         public double branchVersionDeltaChoiceProb = 0.7;
         public double formatVersionDeltaChoiceProb = 0.0;

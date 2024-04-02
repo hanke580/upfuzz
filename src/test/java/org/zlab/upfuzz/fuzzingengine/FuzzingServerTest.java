@@ -147,8 +147,10 @@ public class FuzzingServerTest extends AbstractTest {
         assert seed2 != null;
 
         Corpus corpus = new Corpus();
-        corpus.addSeed(seed1, Corpus.QueueType.BRANCH_COVERAGE);
-        corpus.addSeed(seed2, Corpus.QueueType.BRANCH_COVERAGE);
+        corpus.addSeed(seed1,
+                Corpus.QueueType.BRANCH_COVERAGE_BEFORE_VERSION_CHANGE);
+        corpus.addSeed(seed2,
+                Corpus.QueueType.BRANCH_COVERAGE_BEFORE_VERSION_CHANGE);
 
         assert corpus.getSeed() == seed1;
         assert corpus.getSeed() == seed2;

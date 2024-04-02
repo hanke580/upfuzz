@@ -37,6 +37,7 @@ import static org.zlab.upfuzz.fuzzingengine.server.FuzzingServer.readState;
 import static org.zlab.upfuzz.nyx.MiniClientMain.runTheTests;
 import static org.zlab.upfuzz.nyx.MiniClientMain.setTestType;
 import org.zlab.ocov.tracker.ObjectCoverage;
+import org.zlab.ocov.tracker.ObjectGraphCoverage;
 
 public class FuzzingClient {
     static Logger logger = LogManager.getLogger(FuzzingClient.class);
@@ -914,8 +915,8 @@ public class FuzzingClient {
         boolean inducedNewVersionDelta = false;
         boolean inducedNewVersionDeltaCoverage = false;
 
-        ObjectCoverage curOriObjCoverage = stackedTestPacket.curOriObjCoverage;
-        ObjectCoverage curUpObjCoverage = stackedTestPacket.curUpObjCoverage;
+        ObjectGraphCoverage curOriObjCoverage = stackedTestPacket.curOriObjCoverage;
+        ObjectGraphCoverage curUpObjCoverage = stackedTestPacket.curUpObjCoverage;
 
         VersionDeltaFeedbackPacket versionDeltaFeedbackPacket = new VersionDeltaFeedbackPacket(
                 stackedTestPacket.configFileName,
@@ -935,7 +936,7 @@ public class FuzzingClient {
             FeedBack fbOri = mergeCoverage(feedbackPacketOri.feedBacks);
             FeedBack fbUp = mergeCoverage(feedbackPacketUp.feedBacks);
 
-            if (Config.getConf().collectFormatCoverage) {
+            if (Config.getConf().useFormatCoverage) {
                 if (feedbackPacketOri.formatCoverage != null) {
                     if (curOriObjCoverage.merge(
                             feedbackPacketOri.formatCoverage,

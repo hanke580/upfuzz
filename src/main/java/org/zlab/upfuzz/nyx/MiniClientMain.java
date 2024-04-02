@@ -59,7 +59,7 @@ public class MiniClientMain {
     static boolean inducedNewVersionDelta = false;
     // static int clientGroup;
     // static boolean isDowngradeSupported = false;
-    static String testExecutionLog = "AAAA";
+    static String testExecutionLog = "";
     static boolean hasNewOriCoverage = false;
     static boolean hasNewUpCoverage = false;
     static boolean analyzedOriFeedback = false;
@@ -483,7 +483,7 @@ public class MiniClientMain {
                     .executeCommands(tp.validationCommandSequenceList);
             testID2oriResults.put(tp.testPacketID, oriResult);
 
-            if (Config.getConf().collectFormatCoverage) {
+            if (Config.getConf().useFormatCoverage) {
                 // logger.info("[HKLOG] format coverage checking");
                 testID2FeedbackPacket
                         .get(tp.testPacketID).formatCoverage = executor

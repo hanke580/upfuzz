@@ -17,8 +17,8 @@ public class SeedTest extends AbstractTest {
         Seed seed2 = generateSeed(commandPool, CassandraState.class, -1);
 
         Corpus corpus = new Corpus();
-        corpus.addSeed(seed1, QueueType.BRANCH_COVERAGE);
-        corpus.addSeed(seed2, QueueType.BRANCH_COVERAGE);
+        corpus.addSeed(seed1, QueueType.BRANCH_COVERAGE_BEFORE_VERSION_CHANGE);
+        corpus.addSeed(seed2, QueueType.BRANCH_COVERAGE_BEFORE_VERSION_CHANGE);
 
         assert corpus.getSeed().equals(seed1);
         assert corpus.getSeed().equals(seed2);

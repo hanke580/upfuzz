@@ -14,7 +14,7 @@ import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.server.Seed;
 import org.jacoco.core.data.ExecutionDataStore;
-import org.zlab.ocov.tracker.ObjectCoverage;
+import org.zlab.ocov.tracker.ObjectGraphCoverage;
 
 // This class is for execute multiple tests in one
 // system instance. Like separating 60 tests with
@@ -28,8 +28,8 @@ public class StackedTestPacket extends Packet implements Serializable {
     private List<TestPacket> tpList;
     public transient ExecutionDataStore curOriCoverage;
     public transient ExecutionDataStore curUpCoverage;
-    public transient ObjectCoverage curOriObjCoverage;
-    public transient ObjectCoverage curUpObjCoverage;
+    public transient ObjectGraphCoverage curOriObjCoverage;
+    public transient ObjectGraphCoverage curUpObjCoverage;
     public int clientGroupForVersionDelta;
     public int batchId;
     public int testDirection;
@@ -50,11 +50,11 @@ public class StackedTestPacket extends Packet implements Serializable {
         this.curUpCoverage = curUpCoverage;
     }
 
-    public void setCurOriObjCoverage(ObjectCoverage curOriObjCoverage) {
+    public void setCurOriObjCoverage(ObjectGraphCoverage curOriObjCoverage) {
         this.curOriObjCoverage = curOriObjCoverage;
     }
 
-    public void setCurUpObjCoverage(ObjectCoverage curUpObjCoverage) {
+    public void setCurUpObjCoverage(ObjectGraphCoverage curUpObjCoverage) {
         this.curUpObjCoverage = curUpObjCoverage;
     }
 
@@ -66,11 +66,11 @@ public class StackedTestPacket extends Packet implements Serializable {
         return curUpCoverage;
     }
 
-    public ObjectCoverage getCurOriObjCoverage() {
+    public ObjectGraphCoverage getCurOriObjCoverage() {
         return curOriObjCoverage;
     }
 
-    public ObjectCoverage getCurUpObjCoverage() {
+    public ObjectGraphCoverage getCurUpObjCoverage() {
         return curUpObjCoverage;
     }
 
