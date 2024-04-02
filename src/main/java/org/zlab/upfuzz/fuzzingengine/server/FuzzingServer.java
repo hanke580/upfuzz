@@ -653,7 +653,6 @@ public class FuzzingServer {
                 stackedTestPackets.add(stackedTestPacket);
             }
 
-
             if (configGen.enable && (!(Config.getConf().useVersionDelta)
                     || (round - lastRoundIntroducingVersionDelta > Config
                             .getConf().limitConfigForVersionDeltaRound))) {

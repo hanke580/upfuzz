@@ -179,7 +179,8 @@ public class FuzzingServerTest extends AbstractTest {
         Method initMethod = FuzzingServer.class.getDeclaredMethod("init");
         initMethod.setAccessible(true);
         initMethod.invoke(fuzzingServer);
-        fuzzingServer.corpus.addSeed(seed1, Corpus.QueueType.BRANCH_COVERAGE);
+        fuzzingServer.corpus.addSeed(seed1,
+                Corpus.QueueType.BRANCH_COVERAGE_BEFORE_VERSION_CHANGE);
         fuzzingServer.fuzzOne();
 
     }
