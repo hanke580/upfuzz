@@ -36,11 +36,7 @@ import org.zlab.upfuzz.nyx.LibnyxInterface;
 import static org.zlab.upfuzz.fuzzingengine.server.FuzzingServer.readState;
 import static org.zlab.upfuzz.nyx.MiniClientMain.runTheTests;
 import static org.zlab.upfuzz.nyx.MiniClientMain.setTestType;
-import org.zlab.ocov.tracker.ObjectCoverage;
-<<<<<<< HEAD
 import org.zlab.ocov.tracker.ObjectGraphCoverage;
-=======
->>>>>>> 9e1e8ed1f89b20129532ecfec18ac6e9d232223c
 
 public class FuzzingClient {
     static Logger logger = LogManager.getLogger(FuzzingClient.class);
@@ -918,13 +914,8 @@ public class FuzzingClient {
         boolean inducedNewVersionDelta = false;
         boolean inducedNewVersionDeltaCoverage = false;
 
-<<<<<<< HEAD
         ObjectGraphCoverage curOriObjCoverage = stackedTestPacket.curOriObjCoverage;
         ObjectGraphCoverage curUpObjCoverage = stackedTestPacket.curUpObjCoverage;
-=======
-        ObjectCoverage curOriObjCoverage = stackedTestPacket.curOriObjCoverage;
-        ObjectCoverage curUpObjCoverage = stackedTestPacket.curUpObjCoverage;
->>>>>>> 9e1e8ed1f89b20129532ecfec18ac6e9d232223c
 
         VersionDeltaFeedbackPacket versionDeltaFeedbackPacket = new VersionDeltaFeedbackPacket(
                 stackedTestPacket.configFileName,
@@ -944,11 +935,7 @@ public class FuzzingClient {
             FeedBack fbOri = mergeCoverage(feedbackPacketOri.feedBacks);
             FeedBack fbUp = mergeCoverage(feedbackPacketUp.feedBacks);
 
-<<<<<<< HEAD
             if (Config.getConf().useFormatCoverage) {
-=======
-            if (Config.getConf().collectFormatCoverage) {
->>>>>>> 9e1e8ed1f89b20129532ecfec18ac6e9d232223c
                 if (feedbackPacketOri.formatCoverage != null) {
                     if (curOriObjCoverage.merge(
                             feedbackPacketOri.formatCoverage,

@@ -33,13 +33,10 @@ public class InterestingTestsCorpus {
         }
     }
 
-<<<<<<< HEAD
     public enum TestType {
         FORMAT_COVERAGE_VERSION_DELTA, BRANCH_COVERAGE_VERSION_DELTA, FORMAT_COVERAGE, BRANCH_COVERAGE_BEFORE_VERSION_CHANGE, LOW_PRIORITY
     }
 
-=======
->>>>>>> 9e1e8ed1f89b20129532ecfec18ac6e9d232223c
     public String getConfigFile() {
         if (configFiles.isEmpty())
             return null;
@@ -50,7 +47,6 @@ public class InterestingTestsCorpus {
         configFiles.add(configFileName);
     }
 
-<<<<<<< HEAD
     public TestPacket getPacket(TestType type) {
         if (queues[type.ordinal()].isEmpty())
             return null;
@@ -65,7 +61,8 @@ public class InterestingTestsCorpus {
 
     public void addPacket(TestPacket packet, TestType type) {
         queues[type.ordinal()].add(packet);
-=======
+    }
+
     public TestPacket getPacket(int type) {
         if (queues[type].isEmpty())
             return null;
@@ -76,11 +73,6 @@ public class InterestingTestsCorpus {
         if (queues[type].isEmpty())
             return null;
         return queues[type].peek();
-    }
-
-    public void addPacket(TestPacket packet, int type) {
-        queues[type].add(packet);
->>>>>>> 9e1e8ed1f89b20129532ecfec18ac6e9d232223c
     }
 
     public boolean areAllQueuesEmpty() {
@@ -116,13 +108,8 @@ public class InterestingTestsCorpus {
         }
     }
 
-<<<<<<< HEAD
     public boolean isEmpty(TestType type) {
         return queues[type.ordinal()].isEmpty();
-=======
-    public boolean isEmpty(int type) {
-        return queues[type].isEmpty();
->>>>>>> 9e1e8ed1f89b20129532ecfec18ac6e9d232223c
     }
 
     public void printCache() {

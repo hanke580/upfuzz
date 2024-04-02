@@ -84,16 +84,12 @@ public class Config {
         public int firstConfigMutationEpoch = 3;
         public int configMutationEpoch = 10;
         public int limitConfigForVersionDeltaRound = 100;
-<<<<<<< HEAD
 
         /* Special Mutation */
         public boolean enableAddMultiCommandMutation = true;
         // If choose to add command, 30% add multiple commands
         public double addCommandWithSameTypeProb = 0.3;
         public int addCommandWithSameTypeNum = 3;
-=======
->>>>>>> 9e1e8ed1f89b20129532ecfec18ac6e9d232223c
-
         // violent mutation, usually fewer
         public int bothMutationEpoch = 20;
         public int testPlanMutationEpoch = 20;
@@ -112,13 +108,8 @@ public class Config {
                                        // test
         public int nodeNum = 3;
 
-<<<<<<< HEAD
         // ------------Branch Coverage------------
         public boolean useBranchCoverage = true;
-=======
-        // ------------FeedBack------------
-        public boolean useCodeCoverage = true;
->>>>>>> 9e1e8ed1f89b20129532ecfec18ac6e9d232223c
         public boolean collUpFeedBack = true;
         public boolean collDownFeedBack = true;
 
@@ -194,13 +185,10 @@ public class Config {
         // whether to use format coverage to guide the test (add to corpus)
         // If disabled, we also won't collect format coverage
         public boolean useFormatCoverage = false;
-<<<<<<< HEAD
 
         public int formatCoveragePort = 62000;
 
         public String formatInfoFolder = null;
-=======
->>>>>>> 9e1e8ed1f89b20129532ecfec18ac6e9d232223c
 
         public String baseClassInfoFileName = "serializedFields_alg1.json";
         public String topObjectsFileName = "topObjects.json";
@@ -213,16 +201,6 @@ public class Config {
         public double formatCoverageChoiceProb = 0.0;
         public double codeCoverageChoiceProb = 0.3;
 
-<<<<<<< HEAD
-=======
-        public int formatCoveragePort = 62000;
-        public boolean useVersionDelta = false;
-        public double branchVersionDeltaChoiceProb = 0.7;
-        public double formatVersionDeltaChoiceProb = 0.0;
-        public double formatCoverageChoiceProb = 0.0;
-        public double codeCoverageChoiceProb = 0.3;
-
->>>>>>> 9e1e8ed1f89b20129532ecfec18ac6e9d232223c
         public double branchCovSeedChoiceProb = 0.1;
         public double formatCovSeedChoiceProb = 0.15;
         public double branchDeltaSeedChoiceProb = 0.25;
