@@ -136,7 +136,11 @@ class RegularStackedTestThread implements Callable<StackedFeedbackPacket> {
                         .executeCommands(tp.validationCommandSequenceList);
                 testID2oriResults.put(tp.testPacketID, oriResult);
 
+<<<<<<< HEAD
                 if (Config.getConf().useFormatCoverage) {
+=======
+                if (Config.getConf().collectFormatCoverage) {
+>>>>>>> 9e1e8ed1f89b20129532ecfec18ac6e9d232223c
                     // logger.info("[HKLOG] format coverage checking");
                     testID2FeedbackPacket
                             .get(tp.testPacketID).formatCoverage = executor

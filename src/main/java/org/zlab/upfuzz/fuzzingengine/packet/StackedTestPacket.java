@@ -14,7 +14,11 @@ import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.server.Seed;
 import org.jacoco.core.data.ExecutionDataStore;
+<<<<<<< HEAD
 import org.zlab.ocov.tracker.ObjectGraphCoverage;
+=======
+import org.zlab.ocov.tracker.ObjectCoverage;
+>>>>>>> 9e1e8ed1f89b20129532ecfec18ac6e9d232223c
 
 // This class is for execute multiple tests in one
 // system instance. Like separating 60 tests with
@@ -28,8 +32,13 @@ public class StackedTestPacket extends Packet implements Serializable {
     private List<TestPacket> tpList;
     public transient ExecutionDataStore curOriCoverage;
     public transient ExecutionDataStore curUpCoverage;
+<<<<<<< HEAD
     public transient ObjectGraphCoverage curOriObjCoverage;
     public transient ObjectGraphCoverage curUpObjCoverage;
+=======
+    public transient ObjectCoverage curOriObjCoverage;
+    public transient ObjectCoverage curUpObjCoverage;
+>>>>>>> 9e1e8ed1f89b20129532ecfec18ac6e9d232223c
     public int clientGroupForVersionDelta;
     public int batchId;
     public int testDirection;
@@ -50,11 +59,19 @@ public class StackedTestPacket extends Packet implements Serializable {
         this.curUpCoverage = curUpCoverage;
     }
 
+<<<<<<< HEAD
     public void setCurOriObjCoverage(ObjectGraphCoverage curOriObjCoverage) {
         this.curOriObjCoverage = curOriObjCoverage;
     }
 
     public void setCurUpObjCoverage(ObjectGraphCoverage curUpObjCoverage) {
+=======
+    public void setCurOriObjCoverage(ObjectCoverage curOriObjCoverage) {
+        this.curOriObjCoverage = curOriObjCoverage;
+    }
+
+    public void setCurUpObjCoverage(ObjectCoverage curUpObjCoverage) {
+>>>>>>> 9e1e8ed1f89b20129532ecfec18ac6e9d232223c
         this.curUpObjCoverage = curUpObjCoverage;
     }
 
@@ -66,11 +83,19 @@ public class StackedTestPacket extends Packet implements Serializable {
         return curUpCoverage;
     }
 
+<<<<<<< HEAD
     public ObjectGraphCoverage getCurOriObjCoverage() {
         return curOriObjCoverage;
     }
 
     public ObjectGraphCoverage getCurUpObjCoverage() {
+=======
+    public ObjectCoverage getCurOriObjCoverage() {
+        return curOriObjCoverage;
+    }
+
+    public ObjectCoverage getCurUpObjCoverage() {
+>>>>>>> 9e1e8ed1f89b20129532ecfec18ac6e9d232223c
         return curUpObjCoverage;
     }
 

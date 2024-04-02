@@ -272,12 +272,18 @@ public class CassandraDocker extends Docker {
         String pythonVersion = "python2";
         logger.info("Downgrading from original version: " + originalVersion);
 <<<<<<< HEAD
+<<<<<<< HEAD
         String[] spStrings = (!Config.getConf().useVersionDelta)
                 ? originalVersion.split("-")
                 : upgradedVersion.split("-");
 =======
         String[] spStrings = (!Config.getConf().useVersionDelta) ? originalVersion.split("-") : upgradedVersion.split("-");
 >>>>>>> ae6871a (version delta downgrade fixed)
+=======
+        String[] spStrings = (!Config.getConf().useVersionDelta)
+                ? originalVersion.split("-")
+                : upgradedVersion.split("-");
+>>>>>>> 9e1e8ed1f89b20129532ecfec18ac6e9d232223c
         try {
             int main_version = Integer
                     .parseInt(spStrings[spStrings.length - 1].substring(0, 1));

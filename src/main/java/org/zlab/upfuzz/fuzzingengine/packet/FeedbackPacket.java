@@ -42,6 +42,11 @@ public class FeedbackPacket extends Packet {
     public boolean newOriCoverage = false;
     public boolean newUpCoverage = false;
 
+    // has this test packet induced new version delta?
+    public boolean inducedNewVersionDeltaBeforeVersionChange = false;
+    public boolean newOriCoverage = false;
+    public boolean newUpCoverage = false;
+
     public FeedbackPacket(String systemID, int nodeNum, int testPacketID,
             FeedBack[] feedBacks, List<String> validationReadResults) {
         this.type = PacketType.FeedbackPacket;
