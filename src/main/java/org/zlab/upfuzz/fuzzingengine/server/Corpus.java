@@ -16,17 +16,6 @@ public class Corpus {
     static Logger logger = LogManager.getLogger(Corpus.class);
     AtomicLong timestampGenerator = new AtomicLong(0); // To track enqueue order
 
-    // private final CycleQueue formatCoverageQueue = new CycleQueue();
-    // private final CycleQueue branchCoverageQueue = new CycleQueue();
-    // private final CycleQueue branchCoverageVersionDeltaQueue = new
-    // CycleQueue();
-    // private final CycleQueue formatCoverageVersionDeltaQueue = new
-    // CycleQueue();
-    // private final CycleQueue newCoverageOldVersionAfterVersionChangeQueue =
-    // new CycleQueue();
-    // private final CycleQueue newCoverageNewVersionAfterVersionChangeQueue =
-    // new CycleQueue();
-
     private final CycleQueue[] cycleQueues = new CycleQueue[6];
     {
         for (int i = 0; i < cycleQueues.length; i++) {
@@ -104,75 +93,6 @@ public class Corpus {
         // shouldn't run here
         throw new IllegalArgumentException("Invalid mode");
     }
-
-    // private Seed getSeed(QueueType type) {
-    // switch (type) {
-    // case FORMAT_COVERAGE:
-    // return formatCoverageQueue.getNextSeed();
-    // case BRANCH_COVERAGE:
-    // return branchCoverageQueue.getNextSeed();
-    // default:
-    // throw new IllegalArgumentException("Invalid queue type");
-    // }
-    // }
-
-    // public Seed peekSeed(QueueType type) {
-    // switch (type) {
-    // case FORMAT_COVERAGE:
-    // return formatCoverageQueue.peekSeed();
-    // case BRANCH_COVERAGE:
-    // return branchCoverageQueue.peekSeed();
-    // default:
-    // throw new IllegalArgumentException("Invalid queue type");
-    // }
-    // }
-
-    // public void addSeed(Seed seed, QueueType type) {
-    // seed.setTimestamp(timestampGenerator.getAndIncrement());
-    // switch (type) {
-    // case FORMAT_COVERAGE:
-    // formatCoverageQueue.addSeed(seed);
-    // break;
-    // case BRANCH_COVERAGE:
-    // branchCoverageQueue.addSeed(seed);
-    // break;
-    // default:
-    // throw new IllegalArgumentException("Invalid queue type");
-    // }
-    // }
-
-    // public boolean isEmpty(QueueType type) {
-    // switch (type) {
-    // case FORMAT_COVERAGE:
-    // return formatCoverageQueue.isEmpty();
-    // case BRANCH_COVERAGE:
-    // return branchCoverageQueue.isEmpty();
-    // default:
-    // throw new IllegalArgumentException("Invalid queue type");
-    // }
-    // }
-
-    // public int getSize(QueueType type) {
-    // switch (type) {
-    // case FORMAT_COVERAGE:
-    // return formatCoverageQueue.size();
-    // case BRANCH_COVERAGE:
-    // return branchCoverageQueue.size();
-    // default:
-    // throw new IllegalArgumentException("Invalid queue type");
-    // }
-    // }
-
-    // public int getIndex(QueueType type) {
-    // switch (type) {
-    // case FORMAT_COVERAGE:
-    // return formatCoverageQueue.getCurrentIndex();
-    // case BRANCH_COVERAGE:
-    // return branchCoverageQueue.getCurrentIndex();
-    // default:
-    // throw new IllegalArgumentException("Invalid queue type");
-    // }
-    // }
 
     public Seed getSeed(QueueType type) {
         return cycleQueues[type.ordinal()].getNextSeed();
