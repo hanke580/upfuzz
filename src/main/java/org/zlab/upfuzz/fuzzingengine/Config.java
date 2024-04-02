@@ -41,6 +41,7 @@ public class Config {
         // ------ debug coverage ------
         public boolean debugCoverage = false;
 
+        // ----------- general ------------
         public String serverHost = "localhost";
         public Integer serverPort = 6299;
         public String clientHost = "localhost";
@@ -61,6 +62,9 @@ public class Config {
 
         public boolean nyxMode = false;
         public String nyxFuzzSH = null;
+
+        // -------------- GC --------------
+        public int gcInterval = 10; // minutes
 
         // ------------ Input Generation ------------
         // Debug use the same command sequence

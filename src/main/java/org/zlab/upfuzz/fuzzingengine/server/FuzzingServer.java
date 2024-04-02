@@ -8,6 +8,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.CertPathValidatorException.BasicReason;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -254,6 +256,17 @@ public class FuzzingServer {
     }
 
     private void init() {
+        /**
+         * Force GC every 10 minutes, using format coverage would incur a
+         * large amount of objects which need to be GC quickly. Otherwise,
+         * the memory usage could burst to 20+GB.
+         */
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+            System.gc();
+            logger.info("[GC] Garbage Collection invoked");
+        }, Config.getConf().gcInterval, Config.getConf().gcInterval,
+                TimeUnit.MINUTES);
+
         if (Config.getConf().initSeedDir != null) {
             corpus.initCorpus(Paths.get(Config.getConf().initSeedDir));
         }
