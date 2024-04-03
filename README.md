@@ -596,6 +596,6 @@ launch_service()
 * [cqlsh_daemon2.py](src/main/resources/cqlsh_daemon2.py): cassandra-2.2.8, cassandra-3.0.15/16/17, **cassandra-3.11.16**
 * [cqlsh_daemon3.py](src/main/resources/cqlsh_daemon3.py): N/A
 * [cqlsh_daemon4.py] (src/main/resources/cqlsh_daemon4.py): 4.0.5, **4.0.12**, 4.1.0, **4.1.4**
-* [cqlsh_daemon_trunk.py](src/main/resources/cqlsh_daemon_trunk.py): 
+* [cqlsh_daemon5.py](src/main/resources/cqlsh_daemon5.py): 5.0-beta
 
 ### hdfs daemon to version
