@@ -97,7 +97,8 @@ public class FuzzingServer {
     private int finishedTestIdAgentGroup1 = 0;
     private int finishedTestIdAgentGroup2 = 0;
 
-    private int newFormatNum = 0;
+    private int oriNewFormatNum = 0;
+    private int upNewFormatNum = 0;
 
     private int newVersionDeltaCountForBranchCoverage = 0; // Use it in the
                                                            // UpdateStatus
@@ -200,7 +201,7 @@ public class FuzzingServer {
             if (Config.getConf().oriFormatInfoFolder == null
                     || Config.getConf().upFormatInfoFolder == null) {
                 throw new RuntimeException(
-                        "oriFormatInfoFolder or upFormatInfoFolder is not specified in the configuration file"
+                        "oriFormatInfoFolder or upFormatInfoFolder is not specified in the configuration file "
                                 +
                                 "while format coverage is enabled");
             }
@@ -1505,7 +1506,7 @@ public class FuzzingServer {
                         // learned format is updated
                         logger.info("New format coverage for test "
                                 + feedbackPacket.testPacketID);
-                        newFormatNum++;
+                        oriNewFormatNum++;
                         newFormatCoverage = true;
                     }
                 } else {
@@ -1631,8 +1632,8 @@ public class FuzzingServer {
             boolean addToVersionDeltaCorpusForFormatCoverage = false;
             boolean newOldVersionBranchCoverageBeforeUpgrade = false;
             boolean newNewVersionBranchCoverageBeforeDowngrade = false;
-            boolean newFormatCoverageUpgrade = false;
-            boolean newFormatCoverageDowngrade = false;
+            boolean oriNewFormat = false;
+            boolean upNewFormat = false;
 
             // Merge all the feedbacks
             FeedBack fbUpgrade = mergeCoverage(
@@ -1660,27 +1661,23 @@ public class FuzzingServer {
 
             // format coverage
             if (Config.getConf().useFormatCoverage) {
-                if (versionDeltaFeedbackPacketUp.formatCoverage != null
-                        || versionDeltaFeedbackPacketDown.formatCoverage != null) {
-                    if (oriObjCoverage.merge(
-                            versionDeltaFeedbackPacketUp.formatCoverage,
-                            versionDeltaFeedbackPacketUp.testPacketID)) {
-                        // learned format is updated
-                        logger.info("New format!");
-                        newFormatNum++;
-                        newFormatCoverageUpgrade = true;
-                    } else if (upObjCoverage.merge(
-                            versionDeltaFeedbackPacketDown.formatCoverage,
-                            versionDeltaFeedbackPacketDown.testPacketID)) {
-                        // learned format is updated
-                        logger.info("New format!");
-                        newFormatNum++;
-                        newFormatCoverageDowngrade = true;
-                    } else {
-                        logger.info("No new format!");
-                    }
-                } else {
-                    logger.info("Null format coverage");
+                if (oriObjCoverage.merge(
+                        versionDeltaFeedbackPacketUp.formatCoverage,
+                        versionDeltaFeedbackPacketUp.testPacketID)) {
+                    // learned format is updated
+                    logger.info("oriNewFormatNum: "
+                            + versionDeltaFeedbackPacketUp.testPacketID);
+                    oriNewFormatNum++;
+                    oriNewFormat = true;
+                }
+                if (upObjCoverage.merge(
+                        versionDeltaFeedbackPacketDown.formatCoverage,
+                        versionDeltaFeedbackPacketDown.testPacketID)) {
+                    // learned format is updated
+                    logger.info("upNewFormat: "
+                            + versionDeltaFeedbackPacketUp.testPacketID);
+                    upNewFormatNum++;
+                    upNewFormat = true;
                 }
             }
 
@@ -1690,20 +1687,20 @@ public class FuzzingServer {
                 logger.info(
                         "[HKLOG] newNewVersionBranchCoverageBeforeDowngrade: "
                                 + newNewVersionBranchCoverageBeforeDowngrade);
-                logger.info("[HKLOG] newFormatCoverageUpgrade: "
-                        + newFormatCoverageUpgrade);
-                logger.info("[HKLOG] newFormatCoverageDowngrade: "
-                        + newFormatCoverageDowngrade);
+                logger.info("[HKLOG] oriNewFormat: "
+                        + oriNewFormat);
+                logger.info("[HKLOG] upNewFormat: "
+                        + upNewFormat);
             }
 
             boolean hasFeedbackInducedBranchVersionDelta = newOldVersionBranchCoverageBeforeUpgrade
                     ^ newNewVersionBranchCoverageBeforeDowngrade;
-            boolean hasFeedbackInducedFormatVersionDelta = newFormatCoverageUpgrade
-                    ^ newFormatCoverageDowngrade;
+            boolean hasFeedbackInducedFormatVersionDelta = oriNewFormat
+                    ^ upNewFormat;
             boolean hasFeedbackInducedNewBranchCoverage = newOldVersionBranchCoverageBeforeUpgrade
                     || newNewVersionBranchCoverageBeforeDowngrade;
-            boolean hasFeedbackInducedNewFormatCoverage = newFormatCoverageUpgrade
-                    || newFormatCoverageDowngrade;
+            boolean hasFeedbackInducedNewFormatCoverage = oriNewFormat
+                    || upNewFormat;
             boolean isFeedbackInteresting = hasFeedbackInducedNewBranchCoverage
                     || hasFeedbackInducedNewFormatCoverage;
 
@@ -1738,14 +1735,10 @@ public class FuzzingServer {
             if (Config.getConf().useFormatCoverage
                     && (Config.getConf().formatCoverageChoiceProb > 0)) {
                 if (hasFeedbackInducedFormatVersionDelta) {
-                    System.out.println("Adding to version delta corpus: "
-                            + versionDeltaFeedbackPacketUp.testPacketID);
-                    System.out.println(
-                            "new old version format coverage upgrade: "
-                                    + newFormatCoverageUpgrade);
-                    System.out.println(
-                            "new old version format coverage downgrade: "
-                                    + newFormatCoverageDowngrade);
+                    logger.debug("Add test "
+                            + versionDeltaFeedbackPacketUp.testPacketID
+                            + " to format coverage corpus " + "oriNewFormat = "
+                            + oriNewFormat + " upNewFormat = " + upNewFormat);
                     addToVersionDeltaCorpusForFormatCoverage = true;
                     newVersionDeltaCountForFormatCoverage += 1;
                 } else if (hasFeedbackInducedNewFormatCoverage) {
@@ -1811,7 +1804,7 @@ public class FuzzingServer {
             graph.updateNodeCoverage(versionDeltaFeedbackPacketUp.testPacketID,
                     newOldVersionBranchCoverageBeforeUpgrade,
                     newNewVersionBranchCoverageBeforeDowngrade,
-                    newFormatCoverageUpgrade);
+                    oriNewFormat);
 
             if (addToCorpus) {
                 addSeedToCorpus(corpus, testID2Seed,
@@ -2301,79 +2294,72 @@ public class FuzzingServer {
                 "============================================================"
                         + "=================================================================");
         System.out.format("|%30s|%30s|%30s|%30s|\n",
-                "queue size : " + corpus.getSize(
+                "BC queue size : " + corpus.getSize(
                         Corpus.QueueType.BRANCH_COVERAGE_BEFORE_VERSION_CHANGE),
-                "round : " + round,
+                "BC index : "
+                        + corpus.getIndex(
+                                Corpus.QueueType.BRANCH_COVERAGE_BEFORE_VERSION_CHANGE),
                 "cur testID : " + testID,
                 "total exec : " + finishedTestID);
-        System.out.format("|%30s|%30s|%30s|%30s|\n",
-                "fullstop crash : " + fullStopCrashNum,
-                "event crash : " + eventCrashNum,
-                "inconsistency : " + inconsistencyNum,
-                "error log : " + errorLogNum);
         if (Config.getConf().testSingleVersion) {
             System.out.format("|%30s|%30s|\n",
                     "run time : " + timeElapsed + "s",
-                    "Cov : " + originalCoveredBranches + "/"
+                    "BC : " + originalCoveredBranches + "/"
                             + originalProbeNum);
         } else {
-            System.out.format("|%30s|%30s|%30s|\n",
+            System.out.format("|%30s|%30s|%30s|%30s|\n",
                     "run time : " + timeElapsed + "s",
-                    "ori cov : " + originalCoveredBranches + "/"
+                    "round : " + round,
+                    "ori BC : " + originalCoveredBranches + "/"
                             + originalProbeNum,
-                    "up cov : " + upgradedCoveredBranches + "/"
+                    "up BC : " + upgradedCoveredBranches + "/"
                             + upgradedProbeNum);
         }
-
+        // Format Coverage Info
         if (Config.getConf().useFormatCoverage
                 && (Config.getConf().formatCoverageChoiceProb > 0)) {
-            System.out.format("|%30s|%30s|\n",
-                    "format coverage queue size : "
+            System.out.format("|%30s|%30s|%30s|%30s|\n",
+                    "FC queue size : "
                             + corpus.getSize(Corpus.QueueType.FORMAT_COVERAGE),
-                    "new format num : " + newFormatNum);
+                    "FC index : "
+                            + corpus.getIndex(Corpus.QueueType.FORMAT_COVERAGE),
+                    "ori new format num : " + oriNewFormatNum,
+                    "up new format num : " + upNewFormatNum);
         }
-
+        // Version Delta Info
         if (Config.getConf().useVersionDelta
                 && (Config.getConf().branchVersionDeltaChoiceProb > 0)) {
-            System.out.format("|%30s|%30s|\n",
-                    "exec group 1 : " + finishedTestIdAgentGroup1,
-                    "exec group 2 : " + finishedTestIdAgentGroup2);
             System.out.format("|%30s|%30s|%30s|%30s|\n",
-                    "branch delta queue size : " + corpus.getSize(
+                    "exec group 1 : " + finishedTestIdAgentGroup1,
+                    "exec group 2 : " + finishedTestIdAgentGroup2,
+                    "BC delta queue size : " + corpus.getSize(
                             Corpus.QueueType.BRANCH_COVERAGE_VERSION_DELTA),
-                    "format delta queue size : " + corpus.getSize(
-                            Corpus.QueueType.FORMAT_COVERAGE_VERSION_DELTA),
-                    "branch cov queue size : " + corpus.getSize(
-                            Corpus.QueueType.BRANCH_COVERAGE_BEFORE_VERSION_CHANGE),
-                    "format cov queue size : "
-                            + corpus.getSize(Corpus.QueueType.FORMAT_COVERAGE));
+                    "FC delta queue size : " + corpus.getSize(
+                            Corpus.QueueType.FORMAT_COVERAGE_VERSION_DELTA));
             System.out.format("|%30s|%30s|%30s|%30s|\n",
                     "post upg queue size : " + corpus.getSize(
                             Corpus.QueueType.NEW_BRANCH_COVERAGE_NEW_VERSION_AFTER_UPGRADE),
                     "post downg queue size : " + corpus.getSize(
                             Corpus.QueueType.NEW_BRANCH_COVERAGE_OLD_VERSION_AFTER_DOWNGRADE),
-                    "only new branch delta : "
+                    "only new BC delta : "
                             + executionCountWithOnlyNewBranchDelta,
-                    "only new format delta : "
+                    "only new FC delta : "
                             + executionCountWithOnlyNewFormatDelta);
-            System.out.format("|%30s|%30s|%30s|\n",
+            System.out.format("|%30s|%30s|%30s|%30s|\n",
                     "both version delta : "
                             + (newVersionDeltaCountForBranchCoverage
                                     - executionCountWithOnlyNewBranchDelta),
                     "exec with branch cov : "
                             + executionCountWithOnlyNewBranchCoverage,
                     "exec with format cov : "
-                            + executionCountWithOnlyNewFormatCoverage);
+                            + executionCountWithOnlyNewFormatCoverage,
+                    "");
         }
 
         if (Config.getConf().debug)
             System.out.format("|%30s|%30s|\n",
                     "testID2Seed size : " + testID2Seed.size(),
                     "stackedTestPackets size : " + stackedTestPackets.size());
-        System.out.println(
-                "------------------------------------------------------------"
-                        + "-----------------------------------------------------------------");
-
         if (Config.getConf().debug) {
             logger.info("[HKLOG] insignificant inconsistencies in: "
                     + insignificantInconsistenciesIn.toString());
@@ -2382,6 +2368,19 @@ public class FuzzingServer {
             logger.info("[HKLOG] buffer details: ");
             testBatchCorpus.printCache();
         }
+
+        System.out.println(
+                "------------------------------------------------------------"
+                        + "-----------------------------------------------------------------");
+        // Failures
+        System.out.format("|%30s|%30s|%30s|%30s|\n",
+                "fullstop crash : " + fullStopCrashNum,
+                "event crash : " + eventCrashNum,
+                "inconsistency : " + inconsistencyNum,
+                "error log : " + errorLogNum);
+        System.out.println(
+                "------------------------------------------------------------"
+                        + "-----------------------------------------------------------------");
         System.out.println();
     }
 
