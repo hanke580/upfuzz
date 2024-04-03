@@ -21,7 +21,6 @@ public class FeedbackPacket extends Packet {
     public int nodeNum;
     public int testPacketID;
 
-    // public FeedBack feedBack; // It should contain each node
     public FeedBack[] feedBacks;
 
     public boolean isInconsistent = false; // true if inconsistent
@@ -29,10 +28,6 @@ public class FeedbackPacket extends Packet {
     public String inconsistencyReport;
 
     public List<String> validationReadResults;
-
-    // inv status
-    public boolean breakNewInv = false;
-    public int[] brokenInvs;
 
     // format coverage
     public ObjectGraphCoverage formatCoverage;

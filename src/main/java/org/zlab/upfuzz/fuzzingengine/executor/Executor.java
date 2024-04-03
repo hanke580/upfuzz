@@ -104,8 +104,8 @@ public abstract class Executor implements IExecutor {
         }
     }
 
-    public ObjectGraphCoverage getFormatCoverage() {
-        return dockerCluster.getFormatCoverage();
+    public ObjectGraphCoverage getFormatCoverage(Path formatInfoFolder) {
+        return dockerCluster.getFormatCoverage(formatInfoFolder);
     }
 
     // likely invariant support

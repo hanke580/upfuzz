@@ -1,5 +1,7 @@
 package org.zlab.upfuzz.fuzzingengine;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -137,9 +139,16 @@ class VersionDeltaStackedTestThread implements Callable<StackedFeedbackPacket> {
 
                 if (Config.getConf().useFormatCoverage) {
                     // logger.info("[HKLOG] format coverage checking");
+                    Path formatInfoFolder;
+                    if (direction == 0)
+                        formatInfoFolder = Paths
+                                .get(Config.getConf().oriFormatInfoFolder);
+                    else
+                        formatInfoFolder = Paths
+                                .get(Config.getConf().upFormatInfoFolder);
                     testID2FeedbackPacket
                             .get(tp.testPacketID).formatCoverage = executor
-                                    .getFormatCoverage();
+                                    .getFormatCoverage(formatInfoFolder);
                 }
             } else {
                 logger.info(j + "th testPacket null? "

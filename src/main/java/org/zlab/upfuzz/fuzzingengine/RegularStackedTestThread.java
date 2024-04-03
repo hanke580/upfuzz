@@ -1,5 +1,6 @@
 package org.zlab.upfuzz.fuzzingengine;
 
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -140,7 +141,8 @@ class RegularStackedTestThread implements Callable<StackedFeedbackPacket> {
                     // logger.info("[HKLOG] format coverage checking");
                     testID2FeedbackPacket
                             .get(tp.testPacketID).formatCoverage = executor
-                                    .getFormatCoverage();
+                                    .getFormatCoverage(Paths.get(Config
+                                            .getConf().oriFormatInfoFolder));
                 }
             }
         }

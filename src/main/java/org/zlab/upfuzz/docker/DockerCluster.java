@@ -262,13 +262,12 @@ public abstract class DockerCluster implements IDockerCluster {
         return ret;
     }
 
-    public ObjectGraphCoverage getFormatCoverage() {
+    public ObjectGraphCoverage getFormatCoverage(Path formatInfoFolder) {
         assert dockers.length > 0;
         ObjectGraphCoverage coverageMap = new ObjectGraphCoverage(
-                Paths.get(Config.getConf().formatInfoFolder,
-                        Config.getConf().baseClassInfoFileName),
-                Paths.get(Config.getConf().formatInfoFolder,
-                        Config.getConf().topObjectsFileName));
+                formatInfoFolder
+                        .resolve(Config.getConf().baseClassInfoFileName),
+                formatInfoFolder.resolve(Config.getConf().topObjectsFileName));
         for (int i = 0; i < dockers.length; i++) {
             // merge
             try {

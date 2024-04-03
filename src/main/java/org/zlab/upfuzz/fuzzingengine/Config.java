@@ -213,7 +213,8 @@ public class Config {
 
         public int formatCoveragePort = 62000;
 
-        public String formatInfoFolder = null;
+        public String oriFormatInfoFolder = null;
+        public String upFormatInfoFolder = null;
 
         public String baseClassInfoFileName = "serializedFields_alg1.json";
         public String topObjectsFileName = "topObjects.json";
@@ -223,7 +224,7 @@ public class Config {
         public boolean useVersionDelta = false;
         public double branchVersionDeltaChoiceProb = 0.7;
         public double formatVersionDeltaChoiceProb = 0.0;
-        public double codeCoverageChoiceProb = 0.3;
+        public double branchCoverageChoiceProb = 0.3;
 
         public double branchCovSeedChoiceProb = 0.1;
         public double formatCovSeedChoiceProb = 0.15;

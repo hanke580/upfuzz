@@ -197,23 +197,33 @@ public class FuzzingServer {
 
         if (Config.getConf().useFormatCoverage) {
             // FIXME: add isSerialized path
-            if (Config.getConf().formatInfoFolder == null) {
+            if (Config.getConf().oriFormatInfoFolder == null
+                    || Config.getConf().upFormatInfoFolder == null) {
                 throw new RuntimeException(
-                        "formatInfoFolder is not specified in the configuration file"
+                        "oriFormatInfoFolder or upFormatInfoFolder is not specified in the configuration file"
                                 +
                                 "while format coverage is enabled");
             }
             oriObjCoverage = new ObjectGraphCoverage(
-                    Paths.get(Config.getConf().formatInfoFolder,
+                    Paths.get(Config.getConf().oriFormatInfoFolder,
                             Config.getConf().baseClassInfoFileName),
-                    Paths.get(Config.getConf().formatInfoFolder,
+                    Paths.get(Config.getConf().oriFormatInfoFolder,
                             Config.getConf().topObjectsFileName),
-                    Paths.get(Config.getConf().formatInfoFolder,
+                    Paths.get(Config.getConf().oriFormatInfoFolder,
                             Config.getConf().comparableClassesFileName),
                     null,
                     null,
-                    Paths.get(Config.getConf().formatInfoFolder,
-                            Config.getConf().branch2CollectionFileName));
+                    null);
+            upObjCoverage = new ObjectGraphCoverage(
+                    Paths.get(Config.getConf().upFormatInfoFolder,
+                            Config.getConf().baseClassInfoFileName),
+                    Paths.get(Config.getConf().upFormatInfoFolder,
+                            Config.getConf().topObjectsFileName),
+                    Paths.get(Config.getConf().upFormatInfoFolder,
+                            Config.getConf().comparableClassesFileName),
+                    null,
+                    null,
+                    null);
             Runtime.initWriter();
         }
 
@@ -235,7 +245,7 @@ public class FuzzingServer {
         startTime = TimeUnit.SECONDS.convert(System.nanoTime(),
                 TimeUnit.NANOSECONDS);
 
-        branchCovProbability = Config.getConf().codeCoverageChoiceProb;
+        branchCovProbability = Config.getConf().branchCoverageChoiceProb;
         formatCovProbability = Config.getConf().formatCoverageChoiceProb;
         branchVersionDeltaProbability = Config
                 .getConf().branchVersionDeltaChoiceProb;
@@ -1698,8 +1708,8 @@ public class FuzzingServer {
                     || hasFeedbackInducedNewFormatCoverage;
 
             if (Config.getConf().debug) {
-                logger.info("[HKLOG] code coverage choice probability: "
-                        + Config.getConf().codeCoverageChoiceProb);
+                logger.info("[HKLOG] branch coverage choice probability: "
+                        + Config.getConf().branchCoverageChoiceProb);
                 logger.info("[HKLOG] version delta choice probability: "
                         + Config.getConf().branchVersionDeltaChoiceProb);
                 logger.info("[HKLOG] format coverage choice probability: "
@@ -1707,7 +1717,7 @@ public class FuzzingServer {
             }
 
             if (Config.getConf().useBranchCoverage
-                    && (Config.getConf().codeCoverageChoiceProb > 0)) {
+                    && (Config.getConf().branchCoverageChoiceProb > 0)) {
                 if (hasFeedbackInducedBranchVersionDelta) {
                     logger.info("Adding to code coverage corpus: "
                             + versionDeltaFeedbackPacketUp.testPacketID);
@@ -2040,7 +2050,7 @@ public class FuzzingServer {
                     .merge(fbDowngrade.downgradedCodeCoverage);
 
             if (Config.getConf().useBranchCoverage
-                    && (Config.getConf().codeCoverageChoiceProb > 0)) {
+                    && (Config.getConf().branchCoverageChoiceProb > 0)) {
                 if (newNewVersionBranchCoverageAfterUpgrade) {
                     System.out.println(
                             "Adding to code coverage corpus after upgrade: "
