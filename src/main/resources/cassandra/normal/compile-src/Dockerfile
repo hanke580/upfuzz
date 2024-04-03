@@ -21,7 +21,7 @@ RUN apt install apt-transport-https ca-certificates
 #RUN apt-get update && apt-get install -y --allow-unauthenticated openssh-server supervisor
 RUN apt-get update && apt-get install -y openssh-server iproute2 net-tools iputils-ping supervisor vim ant maven python python3 python3-pip python-six psmisc
 
-RUN pip3 install six
+RUN pip3 install six wcwidth
 RUN apt-get install iptables -y
 
 ADD general-setup.sh /usr/local/bin/general-setup.sh

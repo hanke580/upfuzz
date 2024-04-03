@@ -32,7 +32,6 @@ from cqlshlib.cqlshmain import (
     DEFAULT_CQLSHRC,
     setup_cqlruleset,
     setup_cqldocs,
-    init_history,
     Shell,
     read_options,
     CQL_ERRORS,
@@ -50,7 +49,6 @@ def get_shell(options, hostname, port):
     
     setup_cqlruleset(options.cqlmodule)
     setup_cqldocs(options.cqlmodule)
-    init_history()
     
     csv.field_size_limit(options.field_size_limit)
 
@@ -164,6 +162,7 @@ def get_shell(options, hostname, port):
 
         signal.signal(signal.SIGHUP, handle_sighup)
 
+    shell.init_history()
     return shell
 
 
