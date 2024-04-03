@@ -30,7 +30,6 @@ import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.packet.FeedbackPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.StackedFeedbackPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacket;
-// import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacketSerializable;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPlanPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPlanFeedbackPacket;

@@ -93,7 +93,6 @@ public class FuzzingServer {
     public static int eventCrashNum = 0;
     public static int inconsistencyNum = 0;
     public static int errorLogNum = 0;
-    private int ineterestingTestBatchId = 0;
     boolean isFullStopUpgrade = true;
     private int finishedTestIdAgentGroup1 = 0;
     private int finishedTestIdAgentGroup2 = 0;
@@ -313,11 +312,6 @@ public class FuzzingServer {
         testChoiceProbabilities.put(2, formatCovProbability);
         testChoiceProbabilities.put(3, branchCovProbability);
 
-        List<Map.Entry<Integer, Double>> seedChoiceEntries = new ArrayList<>(
-                seedChoiceProbabilities.entrySet());
-        List<Map.Entry<Integer, Double>> testChoiceEntries = new ArrayList<>(
-                testChoiceProbabilities.entrySet());
-
         cumulativeSeedChoiceProbabilities[0] = seedChoiceProbabilities.get(0);
         for (int i = 1; i < seedChoiceProbabilities.keySet().size(); i++) {
             cumulativeSeedChoiceProbabilities[i] = cumulativeSeedChoiceProbabilities[i
@@ -391,6 +385,10 @@ public class FuzzingServer {
             }
             assert !stackedTestPackets.isEmpty();
             StackedTestPacket stackedTestPacket = stackedTestPackets.poll();
+            if (Config.getConf().useVersionDelta
+                    && (Config.getConf().versionDeltaApproach == 2)) {
+                stackedTestPacket.clientGroupForVersionDelta = 1;
+            }
 
             // Debug: use the fixed command
             if (Config.getConf().useFixedCommand) {

@@ -33,7 +33,6 @@ import org.json.simple.parser.JSONParser;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.fuzzingengine.FeedBack;
 import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacket;
-// import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacketSerializable;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPacket;
 
 public class Utilities {

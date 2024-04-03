@@ -376,21 +376,6 @@ public class FuzzingClient {
                 stackedTestPacket.configFileName);
         logger.info("[HKLOG] configPath = " + configPath);
 
-        // StackedTestPacketSerializable stackedTestPacket = new
-        // StackedTestPacketSerializable(
-        // stackedTestPacketUnser.nodeNum,
-        // stackedTestPacketUnser.configFileName,
-        // stackedTestPacketUnser.getTestPacketList(), group);
-        // config verification - do we really want this?, maybe just skip config
-        // verification TODO
-        // if (Config.getConf().verifyConfig) {
-        // boolean validConfig = verifyConfig(configPath);
-        // if (!validConfig) {
-        // logger.error(
-        // "problem with configuration! system cannot start up");
-        // return null;
-        // }
-        // }
         // TODO write a compare method
         boolean sameConfigAsLastTime = false;
         if (this.previousConfigPath != null) {
@@ -770,11 +755,6 @@ public class FuzzingClient {
                 stackedTestPacket.configFileName);
         logger.info("[HKLOG] configPath = " + configPath);
 
-        // StackedTestPacketSerializable stackedTestPacket = new
-        // StackedTestPacketSerializable(
-        // stackedTestPacketUnser.nodeNum,
-        // stackedTestPacketUnser.configFileName,
-        // stackedTestPacketUnser.getTestPacketList(), group);
         // config verification
         if (Config.getConf().verifyConfig) {
             boolean validConfig = verifyConfig(configPath);
@@ -1076,6 +1056,13 @@ public class FuzzingClient {
 
     public VersionDeltaFeedbackPacket executeStackedTestPacketRegularVersionDeltaApproach2(
             StackedTestPacket stackedTestPacket) {
+
+        if (Config.getConf().debug) {
+            logger.info("Version delta testing for group: "
+                    + stackedTestPacket.clientGroupForVersionDelta);
+            logger.info("This client is in group: " + group);
+        }
+
         ExecutorService executorService = Executors.newFixedThreadPool(20);
         Path configPath = Paths.get(configDirPath.toString(),
                 stackedTestPacket.configFileName);
@@ -1837,11 +1824,6 @@ public class FuzzingClient {
         StackedTestPacket stackedTestPacket = mixedTestPacket.stackedTestPacket;
         TestPlanPacket testPlanPacket = mixedTestPacket.testPlanPacket;
 
-        // StackedTestPacketSerializable stackedTestPacket = new
-        // StackedTestPacketSerializable(
-        // stackedTestPacketUnser.nodeNum,
-        // stackedTestPacketUnser.configFileName,
-        // stackedTestPacketUnser.getTestPacketList(), group);
         String testPlanPacketStr = recordTestPlanPacket(testPlanPacket);
         String mixedTestPacketStr = recordMixedTestPacket(mixedTestPacket);
 

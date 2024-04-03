@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.packet.*;
 import org.zlab.upfuzz.fuzzingengine.packet.Packet.PacketType;
 import org.zlab.upfuzz.fuzzingengine.Config;
+import org.zlab.upfuzz.fuzzingengine.server.InterestingTestsCorpus;
 
 public class FuzzingServerHandler implements Runnable {
     static Logger logger = LogManager.getLogger(FuzzingServerHandler.class);
@@ -88,20 +89,38 @@ public class FuzzingServerHandler implements Runnable {
                 } else {
                     if (this.clientGroup == 1) {
                         testPacket = fuzzingServer.getOneTest();
+                        logger.info(
+                                "[HKLOG: server handler] client group for version delta: "
+                                        + ((StackedTestPacket) testPacket).clientGroupForVersionDelta);
                         assert testPacket != null;
                         testPacket.write(out);
                         readFeedbackPacket();
 
                         synchronized (fuzzingServer.testBatchCorpus) {
-                            logger.info("Branch coverage queue size: " +
-                                    fuzzingServer.testBatchCorpus.queues[0]
-                                            .size());
-                            logger.info("Format coverage queue size: " +
-                                    fuzzingServer.testBatchCorpus.queues[1]
-                                            .size());
-                            logger.info("Version delta coverage queue size: " +
-                                    fuzzingServer.testBatchCorpus.queues[2]
-                                            .size());
+                            logger.info(
+                                    "Tests inducing Branch coverage in both versions: "
+                                            +
+                                            fuzzingServer.testBatchCorpus.queues[InterestingTestsCorpus.TestType.BRANCH_COVERAGE_BEFORE_VERSION_CHANGE
+                                                    .ordinal()]
+                                                            .size());
+                            logger.info(
+                                    "Tests inducing Format coverage in both versions: "
+                                            +
+                                            fuzzingServer.testBatchCorpus.queues[InterestingTestsCorpus.TestType.FORMAT_COVERAGE
+                                                    .ordinal()]
+                                                            .size());
+                            logger.info(
+                                    "Tests inducing version delta in branch coverage: "
+                                            +
+                                            fuzzingServer.testBatchCorpus.queues[InterestingTestsCorpus.TestType.BRANCH_COVERAGE_VERSION_DELTA
+                                                    .ordinal()]
+                                                            .size());
+                            logger.info(
+                                    "Tests inducing version delta in format coverage: "
+                                            +
+                                            fuzzingServer.testBatchCorpus.queues[InterestingTestsCorpus.TestType.FORMAT_COVERAGE_VERSION_DELTA
+                                                    .ordinal()]
+                                                            .size());
                         }
                     } else {
                         StackedTestPacket stackedTestPacketForGroup2 = null;
