@@ -186,7 +186,7 @@ public class HBaseDocker extends Docker {
     public void upgrade() throws Exception {
         prepareUpgradeEnv();
         String restartCommand;
-        restartCommand = "supervisorctl restart upfuzz_hbase:";
+        restartCommand = "/usr/bin/supervisorctl restart upfuzz_hbase:";
         Process restart = runInContainer(
                 new String[] { "/bin/bash", "-c", restartCommand }, env);
         int ret = restart.waitFor();
