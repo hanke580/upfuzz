@@ -2375,14 +2375,6 @@ public class FuzzingServer {
             System.out.format("|%30s|%30s|\n",
                     "testID2Seed size : " + testID2Seed.size(),
                     "stackedTestPackets size : " + stackedTestPackets.size());
-        if (Config.getConf().debug) {
-            logger.info("[HKLOG] insignificant inconsistencies in: "
-                    + insignificantInconsistenciesIn.toString());
-            logger.info("[HKLOG: Seed tracker] Mutated Seed IDs: "
-                    + mutatedSeedIds.toString());
-            logger.info("[HKLOG] buffer details: ");
-            testBatchCorpus.printCache();
-        }
 
         System.out.println(
                 "------------------------------------------------------------"
@@ -2396,6 +2388,16 @@ public class FuzzingServer {
         System.out.println(
                 "------------------------------------------------------------"
                         + "-----------------------------------------------------------------");
+        System.out.println();
+        
+        if (Config.getConf().debug) {
+            logger.info("[HKLOG] insignificant inconsistencies in: "
+                    + insignificantInconsistenciesIn.toString());
+            logger.info("[HKLOG: Seed tracker] Mutated Seed IDs: "
+                    + mutatedSeedIds.toString());
+            logger.info("[HKLOG] buffer details: ");
+            testBatchCorpus.printCache();
+        }
         System.out.println();
     }
 
