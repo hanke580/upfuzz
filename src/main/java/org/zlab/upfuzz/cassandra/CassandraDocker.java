@@ -119,6 +119,34 @@ public class CassandraDocker extends Docker {
         fw.close();
     }
 
+    private String[] constructEnv(String curVersion, String cassandraHome,
+            String cassandraConf) {
+        String[] spStrings = curVersion.split("-");
+        String pythonVersion = "python2";
+        String jdkPath = "/usr/local/openjdk-8/";
+        try {
+            int main_version = Integer
+                    .parseInt(spStrings[spStrings.length - 1].substring(0, 1));
+            logger.debug("[HKLOG] original main version = " + main_version);
+            if (main_version > 3)
+                pythonVersion = "python3";
+            if (main_version >= 5)
+                jdkPath = "/usr/lib/jvm/java-11-openjdk-amd64";
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        env = new String[] {
+                "CASSANDRA_HOME=\"" + cassandraHome + "\"",
+                "CASSANDRA_CONF=\"" + cassandraConf + "\"", javaToolOpts,
+                "CQLSH_DAEMON_PORT=\"" + cqlshDaemonPort + "\"",
+                "PYTHON=" + pythonVersion,
+                "JAVA_HOME=" + jdkPath,
+                "PATH=$JAVA_HOME/bin:$PATH"
+        };
+        return env;
+    }
+
     @Override
     public void teardown() {
     }
@@ -141,6 +169,7 @@ public class CassandraDocker extends Docker {
                 "\"";
 
         String pythonVersion = "python2";
+        String jdkPath = "/usr/local/openjdk-8/";
 
         String[] spStrings = originalVersion.split("-");
         try {
@@ -149,6 +178,8 @@ public class CassandraDocker extends Docker {
             logger.debug("[HKLOG] original main version = " + main_version);
             if (main_version > 3)
                 pythonVersion = "python3";
+            if (main_version >= 5)
+                jdkPath = "/usr/lib/jvm/java-11-openjdk-amd64";
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -157,7 +188,10 @@ public class CassandraDocker extends Docker {
                 "CASSANDRA_HOME=\"" + cassandraHome + "\"",
                 "CASSANDRA_CONF=\"" + cassandraConf + "\"", javaToolOpts,
                 "CQLSH_DAEMON_PORT=\"" + cqlshDaemonPort + "\"",
-                "PYTHON=" + pythonVersion };
+                "PYTHON=" + pythonVersion,
+                "JAVA_HOME=" + jdkPath,
+                "PATH=$JAVA_HOME/bin:$PATH"
+        };
 
         setEnvironment();
 
@@ -228,12 +262,16 @@ public class CassandraDocker extends Docker {
         cqlshDaemonPort ^= 1;
 
         String pythonVersion = "python2";
+        String jdkPath = "/usr/local/openjdk-8/";
+
         String[] spStrings = upgradedVersion.split("-");
         try {
             int main_version = Integer
                     .parseInt(spStrings[spStrings.length - 1].substring(0, 1));
             if (main_version > 3)
                 pythonVersion = "python3";
+            if (main_version >= 5)
+                jdkPath = "/usr/lib/jvm/java-11-openjdk-amd64";
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -241,8 +279,10 @@ public class CassandraDocker extends Docker {
                 "CASSANDRA_HOME=\"" + cassandraHome + "\"",
                 "CASSANDRA_CONF=\"" + cassandraConf + "\"", javaToolOpts,
                 "CQLSH_DAEMON_PORT=\"" + cqlshDaemonPort + "\"",
-                "PYTHON=" + pythonVersion };
-        logger.info("[HKLOG] Calling from CassandraDocker.upgrade");
+                "PYTHON=" + pythonVersion,
+                "JAVA_HOME=" + jdkPath,
+                "PATH=$JAVA_HOME/bin:$PATH"
+        };
         setEnvironment();
     }
 
@@ -270,6 +310,7 @@ public class CassandraDocker extends Docker {
         cqlshDaemonPort ^= 1;
 
         String pythonVersion = "python2";
+        String jdkPath = "/usr/local/openjdk-8/";
         logger.info("Downgrading from original version: " + originalVersion);
 
         String[] spStrings = (!Config.getConf().useVersionDelta)
@@ -282,6 +323,8 @@ public class CassandraDocker extends Docker {
             logger.debug("[HKLOG] original main version = " + main_version);
             if (main_version > 3)
                 pythonVersion = "python3";
+            if (main_version >= 5)
+                jdkPath = "/usr/lib/jvm/java-11-openjdk-amd64";
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -290,9 +333,11 @@ public class CassandraDocker extends Docker {
                 "CASSANDRA_HOME=\"" + cassandraHome + "\"",
                 "CASSANDRA_CONF=\"" + cassandraConf + "\"", javaToolOpts,
                 "CQLSH_DAEMON_PORT=\"" + cqlshDaemonPort + "\"",
-                "PYTHON=" + pythonVersion };
+                "PYTHON=" + pythonVersion,
+                "JAVA_HOME=" + jdkPath,
+                "PATH=$JAVA_HOME/bin:$PATH"
+        };
 
-        logger.info("[HKLOG] Calling from CassandraDocker.downgrade");
         setEnvironment();
 
         String removeCassandraLibCommand = "rm -R /var/lib/cassandra";

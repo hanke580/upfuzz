@@ -9,6 +9,7 @@ import time
 import csv
 import codecs
 import socket
+import struct
 
 from six import StringIO
 
@@ -31,7 +32,6 @@ from cqlshlib.cqlshmain import (
     DEFAULT_CQLSHRC,
     setup_cqlruleset,
     setup_cqldocs,
-    init_history,
     Shell,
     read_options,
     CQL_ERRORS,
@@ -49,7 +49,6 @@ def get_shell(options, hostname, port):
     
     setup_cqlruleset(options.cqlmodule)
     setup_cqldocs(options.cqlmodule)
-    init_history()
     
     csv.field_size_limit(options.field_size_limit)
 
@@ -163,6 +162,7 @@ def get_shell(options, hostname, port):
 
         signal.signal(signal.SIGHUP, handle_sighup)
 
+    shell.init_history()
     return shell
 
 
@@ -208,30 +208,59 @@ class TCPHandler(socketserver.BaseRequestHandler):
         # self.request is the TCP socket connected to the client
         try:
             while True:
-                self.data = self.request.recv(MESSAGE_SIZE).strip()
+                # First, read the length of the incoming message (4 bytes for int)
+                # self.stdout_buffer.origin.write("[HKLOG] waiting\n")
+
+                length_bytes = self.request.recv(4)
+
+                # Unpack the 4 bytes to an integer specifying the command length
+                length = struct.unpack('>I', length_bytes)[0]
+
+                # self.stdout_buffer.origin.write("[HKLOG] len = " + str(length) + "\n")
+
+                # Now, read 'length' bytes for the actual command
+                data = b''
+                while len(data) < length:
+                    packet = self.request.recv(length - len(data))
+                    data += packet
+
+                self.data = data.strip()
+
                 if not self.data:
                     return
 
                 cmd = self.data.decode("ascii")
 
+                self.stdout_buffer.origin.write("executing command: " + cmd + "\n")
+
                 start_time = time.time()
                 ret = self.shell.onecmd(cmd)
                 end_time = time.time()
-                
-                terminal_output = self.stdout_buffer.getvalue()
-                message_bytes = terminal_output.encode('ascii')
-                base64_bytes = base64.b64encode(message_bytes)
-                base64_message = base64_bytes.decode('ascii')
+
+                self.stdout_buffer.flush()
+                self.stderr_buffer.flush()
+
+                out_data = self.stdout_buffer.getvalue().replace('\0', '')
+                out_bytes = out_data.encode('ascii')
+                out_base64_bytes = base64.b64encode(out_bytes)
+                out_base64_message = out_base64_bytes.decode('ascii')
+
+                err_data = self.stderr_buffer.getvalue().replace('\0', '')
+                err_bytes = err_data.encode('ascii')
+                err_base64_bytes = base64.b64encode(err_bytes)
+                err_base64_message = err_base64_bytes.decode('ascii')
+
+                self.stdout_buffer.truncate(0)
+                self.stderr_buffer.truncate(0)
 
                 resp = {
                     "cmd": cmd,
                     "exitValue": 0 if ret == True else 1,
                     "timeUsage": end_time - start_time,
-                    "message": base64_message,
-                    "error": self.stderr_buffer.getvalue(),
+                    "message": out_base64_message,
+                    "error": err_base64_message,
                 }
-                self.stdout_buffer.truncate(0)
-                self.stderr_buffer.truncate(0)
+
                 msg = json.dumps(resp).encode("ascii")
                 if len(msg) > MESSAGE_SIZE:
                     # Create a error resp
@@ -240,11 +269,18 @@ class TCPHandler(socketserver.BaseRequestHandler):
                         "cmd": cmd,
                         "exitValue": 0 if ret == True else 1,
                         "timeUsage": end_time - start_time,
-                        "message": "message too large to send: here's the first 10000 Bytes:\n" + base64_message[:10000] + "\n...",
-                        "error": "message too large to send: here's the first 10000 Bytes:\n" + base64_message[:10000] + "\n..."
+                        "message": "message too large to send: here's the first 10000 Bytes:\n" + out_base64_message[:10000] + "\n...",
+                        "error": "message too large to send: here's the first 10000 Bytes:\n" + err_base64_message[:10000] + "\n..."
                     }
                     msg = json.dumps(resp).encode("ascii")
-                self.request.sendall(msg)
+                
+                
+                # Prefix the message with its length
+                # '!I' denotes big-endian format for an unsigned int
+                length_prefix = struct.pack('!I', len(msg))
+
+                # Send the length followed by the actual message
+                self.request.sendall(length_prefix + msg)
         except BrokenPipeError as e:
             print(e)
             exit(1)

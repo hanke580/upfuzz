@@ -163,7 +163,7 @@ sed -i 's/num_tokens: 16/num_tokens: 256/' apache-cassandra-"$UP_VERSION"/conf/c
 
 cd ${UPFUZZ_DIR}
 cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
-cp src/main/resources/cqlsh_daemon3_4.0.5_4.1.0.py  prebuild/cassandra/apache-cassandra-"$UP_VERSION"/bin/cqlsh_daemon.py
+cp src/main/resources/cqlsh_daemon4.py  prebuild/cassandra/apache-cassandra-"$UP_VERSION"/bin/cqlsh_daemon.py
 
 cd src/main/resources/cassandra/normal/compile-src/
 sed -i "s/ORI_VERSION=apache-cassandra-.*$/ORI_VERSION=apache-cassandra-$ORI_VERSION/" cassandra-clusternode.sh
@@ -203,7 +203,7 @@ sed -i 's/num_tokens: 16/num_tokens: 256/' apache-cassandra-"$UP_VERSION"/conf/c
 
 cd ${UPFUZZ_DIR}
 cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
-cp src/main/resources/cqlsh_daemon3_4.0.5_4.1.0.py  prebuild/cassandra/apache-cassandra-"$UP_VERSION"/bin/cqlsh_daemon.py
+cp src/main/resources/cqlsh_daemon4.py  prebuild/cassandra/apache-cassandra-"$UP_VERSION"/bin/cqlsh_daemon.py
 
 cd src/main/resources/cassandra/normal/compile-src/
 docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"_apache-cassandra-"$UP_VERSION"
@@ -432,7 +432,7 @@ prebuild
 E.g. If you are testing Cassandra 3.11 (pwd=/path/to/upfuzz/)
 ```bash
 cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-3.11.15/bin/cqlsh_daemon.py
-cp src/main/resources/cqlsh_daemon3_4.0.5_4.1.0.py  prebuild/cassandra/apache-cassandra-4.1.3/bin/cqlsh_daemon.py
+cp src/main/resources/cqlsh_daemon4.py  prebuild/cassandra/apache-cassandra-4.1.3/bin/cqlsh_daemon.py
 ```
 
 > Cassandra document notification: If you are upgrading from 3.x to 4.x, you also need to modify the
@@ -591,9 +591,11 @@ launch_service()
     cassandra_parms="$cassandra_parms -Dcassandra.logdir=$CASSANDRA_LOG_DIR"
 ```
 
-### cqlsh daemon to version
-* [cqlsh_daemon2](src/main/resources/cqlsh_daemon2_cass2.1.py): cassandra 2.1
-* [cqlsh_daemon2.py](src/main/resources/cqlsh_daemon2.py): cassandra-2.2.8, cassandra-3.0.15/16/17,  (Old 3.x version)
-* [cqlsh_daemon3.py](src/main/resources/cqlsh_daemon3.py): 3.11 (TO verify...)
+### cqlsh daemon to the compatible version
+* [cqlsh_daemon2_1.py](src/main/resources/cqlsh_daemon2_1.py): cassandra 2.1
+* [cqlsh_daemon2.py](src/main/resources/cqlsh_daemon2.py): cassandra-2.2.8, cassandra-3.0.15/16/17, **cassandra-3.11.16**
+* [cqlsh_daemon3.py](src/main/resources/cqlsh_daemon3.py): N/A
+* [cqlsh_daemon4.py] (src/main/resources/cqlsh_daemon4.py): 4.0.5, **4.0.12**, 4.1.0, **4.1.4**
+* [cqlsh_daemon5.py](src/main/resources/cqlsh_daemon5.py): 5.0-beta
 
 ### hdfs daemon to version

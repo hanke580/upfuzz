@@ -1665,7 +1665,8 @@ public class FuzzingServer {
                         versionDeltaFeedbackPacketUp.formatCoverage,
                         versionDeltaFeedbackPacketUp.testPacketID)) {
                     // learned format is updated
-                    logger.info("New format!");
+                    logger.info("oriNewFormatNum: "
+                            + versionDeltaFeedbackPacketUp.testPacketID);
                     oriNewFormatNum++;
                     oriNewFormat = true;
                 }
@@ -1673,7 +1674,8 @@ public class FuzzingServer {
                         versionDeltaFeedbackPacketDown.formatCoverage,
                         versionDeltaFeedbackPacketDown.testPacketID)) {
                     // learned format is updated
-                    logger.info("New format!");
+                    logger.info("upNewFormat: "
+                            + versionDeltaFeedbackPacketUp.testPacketID);
                     upNewFormatNum++;
                     upNewFormat = true;
                 }
@@ -2299,25 +2301,21 @@ public class FuzzingServer {
                                 Corpus.QueueType.BRANCH_COVERAGE_BEFORE_VERSION_CHANGE),
                 "cur testID : " + testID,
                 "total exec : " + finishedTestID);
-        System.out.format("|%30s|%30s|%30s|%30s|\n",
-                "fullstop crash : " + fullStopCrashNum,
-                "event crash : " + eventCrashNum,
-                "inconsistency : " + inconsistencyNum,
-                "error log : " + errorLogNum);
         if (Config.getConf().testSingleVersion) {
             System.out.format("|%30s|%30s|\n",
                     "run time : " + timeElapsed + "s",
-                    "Cov : " + originalCoveredBranches + "/"
+                    "BC : " + originalCoveredBranches + "/"
                             + originalProbeNum);
         } else {
             System.out.format("|%30s|%30s|%30s|%30s|\n",
                     "run time : " + timeElapsed + "s",
-                    "ori cov : " + originalCoveredBranches + "/"
+                    "round : " + round,
+                    "ori BC : " + originalCoveredBranches + "/"
                             + originalProbeNum,
-                    "up cov : " + upgradedCoveredBranches + "/"
-                            + upgradedProbeNum,
-                    "round : " + round);
+                    "up BC : " + upgradedCoveredBranches + "/"
+                            + upgradedProbeNum);
         }
+        // Format Coverage Info
         if (Config.getConf().useFormatCoverage
                 && (Config.getConf().formatCoverageChoiceProb > 0)) {
             System.out.format("|%30s|%30s|%30s|%30s|\n",
@@ -2328,7 +2326,7 @@ public class FuzzingServer {
                     "ori new format num : " + oriNewFormatNum,
                     "up new format num : " + upNewFormatNum);
         }
-
+        // Version Delta Info
         if (Config.getConf().useVersionDelta
                 && (Config.getConf().branchVersionDeltaChoiceProb > 0)) {
             System.out.format("|%30s|%30s|%30s|%30s|\n",
@@ -2343,28 +2341,25 @@ public class FuzzingServer {
                             Corpus.QueueType.NEW_BRANCH_COVERAGE_NEW_VERSION_AFTER_UPGRADE),
                     "post downg queue size : " + corpus.getSize(
                             Corpus.QueueType.NEW_BRANCH_COVERAGE_OLD_VERSION_AFTER_DOWNGRADE),
-                    "only new branch delta : "
+                    "only new BC delta : "
                             + executionCountWithOnlyNewBranchDelta,
-                    "only new format delta : "
+                    "only new FC delta : "
                             + executionCountWithOnlyNewFormatDelta);
-            System.out.format("|%30s|%30s|%30s|\n",
+            System.out.format("|%30s|%30s|%30s|%30s|\n",
                     "both version delta : "
                             + (newVersionDeltaCountForBranchCoverage
                                     - executionCountWithOnlyNewBranchDelta),
                     "exec with branch cov : "
                             + executionCountWithOnlyNewBranchCoverage,
                     "exec with format cov : "
-                            + executionCountWithOnlyNewFormatCoverage);
+                            + executionCountWithOnlyNewFormatCoverage,
+                    "");
         }
 
         if (Config.getConf().debug)
             System.out.format("|%30s|%30s|\n",
                     "testID2Seed size : " + testID2Seed.size(),
                     "stackedTestPackets size : " + stackedTestPackets.size());
-        System.out.println(
-                "------------------------------------------------------------"
-                        + "-----------------------------------------------------------------");
-
         if (Config.getConf().debug) {
             logger.info("[HKLOG] insignificant inconsistencies in: "
                     + insignificantInconsistenciesIn.toString());
@@ -2373,6 +2368,19 @@ public class FuzzingServer {
             logger.info("[HKLOG] buffer details: ");
             testBatchCorpus.printCache();
         }
+
+        System.out.println(
+                "------------------------------------------------------------"
+                        + "-----------------------------------------------------------------");
+        // Failures
+        System.out.format("|%30s|%30s|%30s|%30s|\n",
+                "fullstop crash : " + fullStopCrashNum,
+                "event crash : " + eventCrashNum,
+                "inconsistency : " + inconsistencyNum,
+                "error log : " + errorLogNum);
+        System.out.println(
+                "------------------------------------------------------------"
+                        + "-----------------------------------------------------------------");
         System.out.println();
     }
 

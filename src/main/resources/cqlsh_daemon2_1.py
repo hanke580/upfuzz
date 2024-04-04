@@ -1,22 +1,24 @@
-#!/usr/bin/env python3
-# support cassandra-(2<x)
+#!/usr/bin/env python2
+# support cassandra-(x<=2)
+# compatible with cassandra-2.1
 
 import json
 import optparse
 import os
-import socketserver
 import sys
+import subprocess
 import time
 import csv
 import codecs
+import SocketServer as socketserver
 import socket
+import struct
 
 import base64
 
 from six import StringIO
 
 from cqlsh import (
-    # DEFAULT_CQLSHRC,
     setup_cqlruleset,
     setup_cqldocs,
     init_history,
@@ -26,11 +28,7 @@ from cqlsh import (
     VersionNotSupported,
 )
 
-from cqlshlib import cql3handling, pylexotron, sslhandling, cqlshhandling
 from cqlshlib.util import get_file_encoding_bomsize, trim_if_present
-from cqlshlib.formatting import (
-    DEFAULT_TIMESTAMP_FORMAT,
-)
 import cassandra
 
 MESSAGE_SIZE = 51200
@@ -46,110 +44,76 @@ def get_shell(options, hostname, port):
     else:
         try:
             encoding, bom_size = get_file_encoding_bomsize(options.file)
-            stdin = codecs.open(options.file, "r", encoding)
+            stdin = codecs.open(options.file, 'r', encoding)
             stdin.seek(bom_size)
-        except IOError as e:
+        except IOError, e:
             sys.exit("Can't open %r: %s" % (options.file, e))
 
     if options.debug:
         sys.stderr.write("Using CQL driver: %s\n" % (cassandra,))
-        sys.stderr.write(
-            "Using connect timeout: %s seconds\n" % (options.connect_timeout,)
-        )
+        sys.stderr.write("Using connect timeout: %s seconds\n" % (options.connect_timeout,))
         sys.stderr.write("Using '%s' encoding\n" % (options.encoding,))
-        sys.stderr.write("Using ssl: %s\n" % (options.ssl,))
 
     # create timezone based on settings, environment or auto-detection
     timezone = None
-    if options.timezone or "TZ" in os.environ:
-        try:
-            import pytz
-
-            if options.timezone:
-                try:
-                    timezone = pytz.timezone(options.timezone)
-                except Exception:
-                    sys.stderr.write(
-                        "Warning: could not recognize timezone '%s' specified in cqlshrc\n\n"
-                        % (options.timezone)
-                    )
-            if "TZ" in os.environ:
-                try:
-                    timezone = pytz.timezone(os.environ["TZ"])
-                except Exception:
-                    sys.stderr.write(
-                        "Warning: could not recognize timezone '%s' from environment value TZ\n\n"
-                        % (os.environ["TZ"])
-                    )
-        except ImportError:
-            sys.stderr.write(
-                "Warning: Timezone defined and 'pytz' module for timezone conversion not installed. Timestamps will be displayed in UTC timezone.\n\n"
-            )
+    if hasattr(options, 'timezone'):
+        if options.timezone or 'TZ' in os.environ:
+            try:
+                import pytz
+                if options.timezone:
+                    try:
+                        timezone = pytz.timezone(options.timezone)
+                    except Exception:
+                        sys.stderr.write("Warning: could not recognize timezone '%s' specified in cqlshrc\n\n" % (options.timezone))
+                if 'TZ' in os.environ:
+                    try:
+                        timezone = pytz.timezone(os.environ['TZ'])
+                    except Exception:
+                        sys.stderr.write("Warning: could not recognize timezone '%s' from environment value TZ\n\n" % (os.environ['TZ']))
+            except ImportError:
+                sys.stderr.write("Warning: Timezone defined and 'pytz' module for timezone conversion not installed. Timestamps will be displayed in UTC timezone.\n\n")
 
     # try auto-detect timezone if tzlocal is installed
     if not timezone:
         try:
             from tzlocal import get_localzone
-
             timezone = get_localzone()
         except ImportError:
             # we silently ignore and fallback to UTC unless a custom timestamp format (which likely
             # does contain a TZ part) was specified
-            if options.time_format != DEFAULT_TIMESTAMP_FORMAT:
-                sys.stderr.write(
-                    "Warning: custom timestamp format specified in cqlshrc, "
-                    + "but local timezone could not be detected.\n"
-                    + "Either install Python 'tzlocal' module for auto-detection "
-                    + "or specify client timezone in your cqlshrc.\n\n"
-                )
+            pass
 
     try:
         shell = Shell(hostname,
                       port,
                       color=options.color,
                       username=options.username,
+                      password=options.password,
                       stdin=stdin,
                       tty=options.tty,
                       completekey=options.completekey,
-                      browser=options.browser,
-                      protocol_version=options.protocol_version,
                       cqlver=options.cqlversion,
                       keyspace=options.keyspace,
-                      display_timestamp_format=options.time_format,
-                      display_nanotime_format=options.nanotime_format,
-                      display_date_format=options.date_format,
                       display_float_precision=options.float_precision,
-                      display_double_precision=options.double_precision,
-                      display_timezone=timezone,
                       max_trace_wait=options.max_trace_wait,
                       ssl=options.ssl,
                       single_statement=options.execute,
                       request_timeout=30,
                       connect_timeout=options.connect_timeout,
                       encoding=options.encoding)
-
     except KeyboardInterrupt:
-        sys.exit("Connection aborted.")
-    except CQL_ERRORS as e:
-        sys.exit("Connection error: %s" % (e,))
-    except VersionNotSupported as e:
-        sys.exit("Unsupported CQL version: %s" % (e,))
+        sys.exit('Connection aborted.')
+    except CQL_ERRORS, e:
+        sys.exit('Connection error: %s' % (e,))
+    except VersionNotSupported, e:
+        sys.exit('Unsupported CQL version: %s' % (e,))
     if options.debug:
         shell.debug = True
-    if options.coverage:
-        shell.coverage = True
-        import signal
 
-        def handle_sighup():
-            shell.stop_coverage()
-            shell.do_exit()
-
-        signal.signal(signal.SIGHUP, handle_sighup)
 
     return shell
 
-
-class TCPHandler(socketserver.BaseRequestHandler):
+class TCPHandler(object):
     """
     The request handler class for our server.
 
@@ -157,7 +121,6 @@ class TCPHandler(socketserver.BaseRequestHandler):
     override the handle() method to implement communication to the
     client.
     """
-
     shell = None
     origin_stdout = sys.stdout
     origin_stderr = sys.stderr
@@ -179,41 +142,64 @@ class TCPHandler(socketserver.BaseRequestHandler):
         finally:
             self.finish()
 
-        # self.log_stream = StringIO()
-        # self.origin_stdout = sys.stdout
-        # self.origin_stderr = sys.stderr
-        # sys.stdout = sys.stderr = self.log_stream
-        # self.shell = get_shell(*read_options(sys.argv[1:], os.environ))
-        # super(TCPHandlere, self).__init__(request, client_address, server)
-
     def handle(self):
         # self.request is the TCP socket connected to the client
+        # print("handler")
         try:
             while True:
-                self.data = self.request.recv(MESSAGE_SIZE).strip()
+                # First, read the length of the incoming message (4 bytes for int)
+                # self.stdout_buffer.origin.write("[HKLOG] waiting\n")
+
+                length_bytes = self.request.recv(4)
+
+                # Unpack the 4 bytes to an integer specifying the command length
+                length = struct.unpack('>I', length_bytes)[0]
+
+                # self.stdout_buffer.origin.write("[HKLOG] len = " + str(length) + "\n")
+
+                # Now, read 'length' bytes for the actual command
+                data = b''
+                while len(data) < length:
+                    packet = self.request.recv(length - len(data))
+                    data += packet
+
+                self.data = data.strip()
+
                 if not self.data:
                     return
 
                 cmd = self.data.decode("ascii")
 
+                self.stdout_buffer.origin.write("executing command: " + cmd + "\n")
+
                 start_time = time.time()
                 ret = self.shell.onecmd(cmd)
                 end_time = time.time()
-                
-                terminal_output = self.stdout_buffer.getvalue().replace('\0', '')
-                message_bytes = terminal_output.encode('ascii')
-                base64_bytes = base64.b64encode(message_bytes)
-                base64_message = base64_bytes.decode('ascii')
-                
+
+                self.stdout_buffer.flush()
+                self.stderr_buffer.flush()
+
+                out_data = self.stdout_buffer.getvalue().replace('\0', '')
+                out_bytes = out_data.encode('ascii')
+                out_base64_bytes = base64.b64encode(out_bytes)
+                out_base64_message = out_base64_bytes.decode('ascii')
+
+                err_data = self.stderr_buffer.getvalue().replace('\0', '')
+                err_bytes = err_data.encode('ascii')
+                err_base64_bytes = base64.b64encode(err_bytes)
+                err_base64_message = err_base64_bytes.decode('ascii')
+
+                self.stdout_buffer.truncate(0)
+                self.stderr_buffer.truncate(0)
+
                 resp = {
                     "cmd": cmd,
                     "exitValue": 0 if ret == True else 1,
                     "timeUsage": end_time - start_time,
-                    "message": base64_message,
-                    "error": self.stderr_buffer.getvalue(),
+                    "message": out_base64_message,
+                    "error": err_base64_message,
                 }
-                self.stdout_buffer.truncate(0)
-                self.stderr_buffer.truncate(0)
+
                 msg = json.dumps(resp).encode("ascii")
                 if len(msg) > MESSAGE_SIZE:
                     # Create a error resp
@@ -222,14 +208,28 @@ class TCPHandler(socketserver.BaseRequestHandler):
                         "cmd": cmd,
                         "exitValue": 0 if ret == True else 1,
                         "timeUsage": end_time - start_time,
-                        "message": "message too large to send: here's the first 10000 Bytes:\n" + base64_message[:10000] + "\n...",
-                        "error": "message too large to send: here's the first 10000 Bytes:\n" + base64_message[:10000] + "\n..."
+                        "message": "message too large to send: here's the first 10000 Bytes:\n" + out_base64_message[:10000] + "\n...",
+                        "error": "message too large to send: here's the first 10000 Bytes:\n" + err_base64_message[:10000] + "\n..."
                     }
                     msg = json.dumps(resp).encode("ascii")
-                self.request.sendall(msg)
-        except BrokenPipeError as e:
+                
+                
+                # Prefix the message with its length
+                # '!I' denotes big-endian format for an unsigned int
+                length_prefix = struct.pack('!I', len(msg))
+
+                # Send the length followed by the actual message
+                self.request.sendall(length_prefix + msg)
+        except Exception as e:
             print(e)
             exit(1)
+
+    def setup(self):
+        pass
+
+    def finish(self):
+        pass
+
 
 class Tee(object):
     """
@@ -261,12 +261,10 @@ class Tee(object):
         return self.buffer.getvalue()
 
     def truncate(self, index):
-        self.buffer.seek(index)
         return self.buffer.truncate(index)
 
     def isatty(self):
         return True
-
 
 if __name__ == "__main__":
     port = os.getenv("CQLSH_DAEMON_PORT")
@@ -286,8 +284,5 @@ if __name__ == "__main__":
         except socket.error as e:
             time.sleep(5)
             print(e)
-        except Exception as e:
-            print(e)
+        except:
             exit()
-
-
