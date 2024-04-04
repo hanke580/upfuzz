@@ -345,36 +345,50 @@ public class FuzzingServer {
     }
 
     public synchronized StackedTestPacket getOneBatch() {
-        String configFileName = testBatchCorpus.getConfigFile();
+        int randomIndex = rand.nextInt(testBatchCorpus.configFiles.size());
+        String configFileName = testBatchCorpus
+                .getConfigFileByIndex(randomIndex);
         StackedTestPacket stackedTestPacket = new StackedTestPacket(
                 Config.getConf().nodeNum, configFileName);
-        logger.info("[HKLOG] config file name: " + configFileName);
+        // logger.info("[HKLOG] config file name: " + configFileName);
         for (int i = 0; i < (int) (Config.getConf().batchSizePortionInGroup2
                 * Config.getConf().STACKED_TESTS_NUM); i++) {
-            if (!testBatchCorpus.noInterestingTests()) {
-                int testType = getSeedOrTestType(
+            if (!testBatchCorpus
+                    .noInterestingTestsForThisConfig(configFileName)) {
+                int testTypeInt = getSeedOrTestType(
                         cumulativeTestChoiceProbabilities);
-                if (testBatchCorpus.queues[testType].size() == 0) {
-                    testType = getNextBestType(testChoiceProbabilities, 1);
+                if (!testBatchCorpus.intermediateBuffer[testTypeInt]
+                        .containsKey(configFileName)) {
+                    testTypeInt = getNextBestTestType(testChoiceProbabilities,
+                            configFileName);
                 }
-                TestPacket testPacket = testBatchCorpus.getPacket(
-                        InterestingTestsCorpus.TestType.values()[testType]);
+                TestPacket testPacket = null;
+                if (testTypeInt != -1) {
+                    testPacket = testBatchCorpus.getPacket(
+                            InterestingTestsCorpus.TestType
+                                    .values()[testTypeInt],
+                            configFileName);
+                }
                 if (testPacket != null) {
                     stackedTestPacket.addTestPacket(testPacket);
                 }
             } else {
                 TestPacket testPacket = testBatchCorpus.getPacket(
-                        InterestingTestsCorpus.TestType.LOW_PRIORITY);
+                        InterestingTestsCorpus.TestType.LOW_PRIORITY,
+                        configFileName);
                 try {
                     if (testPacket != null) {
                         stackedTestPacket
                                 .addTestPacket(testPacket);
                     }
                 } catch (Exception e) {
-                    logger.error(
-                            "Not enough test packets in the buffer yet, trying with a smaller batch in this execution");
+                    logger.debug(
+                            "Not enough test packets in the buffer yet for this config, trying with a smaller batch in this execution");
                 }
             }
+        }
+        if (testBatchCorpus.areAllQueuesEmptyForThisConfig(configFileName)) {
+            testBatchCorpus.configFiles.remove(configFileName);
         }
         stackedTestPacket.curOriCoverage = curOriCoverage;
         stackedTestPacket.curUpCoverage = curUpCoverage;
@@ -493,7 +507,7 @@ public class FuzzingServer {
             logger.info(corpus.getSize(Corpus.QueueType.values()[corpusType]));
             if (corpus.getSize(Corpus.QueueType.values()[corpusType]) == 0
                     && !corpus.areAllQueuesEmpty()) {
-                corpusType = getNextBestType(seedChoiceProbabilities, 0);
+                corpusType = getNextBestSeedType(seedChoiceProbabilities);
             }
             if (Config.getConf().debug) {
                 logger.info("Before getting seed from the corpus: ");
@@ -1704,15 +1718,6 @@ public class FuzzingServer {
             boolean isFeedbackInteresting = hasFeedbackInducedNewBranchCoverage
                     || hasFeedbackInducedNewFormatCoverage;
 
-            if (Config.getConf().debug) {
-                logger.info("[HKLOG] branch coverage choice probability: "
-                        + Config.getConf().branchCoverageChoiceProb);
-                logger.info("[HKLOG] version delta choice probability: "
-                        + Config.getConf().branchVersionDeltaChoiceProb);
-                logger.info("[HKLOG] format coverage choice probability: "
-                        + Config.getConf().formatCoverageChoiceProb);
-            }
-
             if (Config.getConf().useBranchCoverage
                     && (Config.getConf().branchCoverageChoiceProb > 0)) {
                 if (hasFeedbackInducedBranchVersionDelta) {
@@ -1751,12 +1756,14 @@ public class FuzzingServer {
                     ^ hasFeedbackInducedFormatVersionDelta) {
                 if (hasFeedbackInducedBranchVersionDelta) {
                     testBatchCorpus.addPacket(testPacket,
-                            InterestingTestsCorpus.TestType.BRANCH_COVERAGE_VERSION_DELTA);
+                            InterestingTestsCorpus.TestType.BRANCH_COVERAGE_VERSION_DELTA,
+                            versionDeltaFeedbackPacket.configFileName);
                     branchVersionDeltaInducedTpIds
                             .add(versionDeltaFeedbackPacket.testIDs.get(i));
                 } else {
                     testBatchCorpus.addPacket(testPacket,
-                            InterestingTestsCorpus.TestType.FORMAT_COVERAGE_VERSION_DELTA);
+                            InterestingTestsCorpus.TestType.FORMAT_COVERAGE_VERSION_DELTA,
+                            versionDeltaFeedbackPacket.configFileName);
                     formatVersionDeltaInducedTpIds
                             .add(versionDeltaFeedbackPacket.testIDs.get(i));
                 }
@@ -1764,7 +1771,8 @@ public class FuzzingServer {
                 if (hasFeedbackInducedBranchVersionDelta
                         && hasFeedbackInducedFormatVersionDelta) {
                     testBatchCorpus.addPacket(testPacket,
-                            InterestingTestsCorpus.TestType.FORMAT_COVERAGE_VERSION_DELTA);
+                            InterestingTestsCorpus.TestType.FORMAT_COVERAGE_VERSION_DELTA,
+                            versionDeltaFeedbackPacket.configFileName);
                     versionDeltaInducedTpIds
                             .add(versionDeltaFeedbackPacket.testIDs.get(i));
                 } else {
@@ -1772,12 +1780,14 @@ public class FuzzingServer {
                             ^ hasFeedbackInducedNewFormatCoverage) {
                         if (hasFeedbackInducedNewFormatCoverage) {
                             testBatchCorpus.addPacket(testPacket,
-                                    InterestingTestsCorpus.TestType.FORMAT_COVERAGE);
+                                    InterestingTestsCorpus.TestType.FORMAT_COVERAGE,
+                                    versionDeltaFeedbackPacket.configFileName);
                             onlyNewFormatCoverageInducedTpIds.add(
                                     versionDeltaFeedbackPacket.testIDs.get(i));
                         } else {
                             testBatchCorpus.addPacket(testPacket,
-                                    InterestingTestsCorpus.TestType.BRANCH_COVERAGE_BEFORE_VERSION_CHANGE);
+                                    InterestingTestsCorpus.TestType.BRANCH_COVERAGE_BEFORE_VERSION_CHANGE,
+                                    versionDeltaFeedbackPacket.configFileName);
                             onlyNewBranchCoverageInducedTpIds.add(
                                     versionDeltaFeedbackPacket.testIDs.get(i));
                         }
@@ -1785,14 +1795,16 @@ public class FuzzingServer {
                         if (hasFeedbackInducedNewBranchCoverage
                                 && hasFeedbackInducedNewFormatCoverage) {
                             testBatchCorpus.addPacket(testPacket,
-                                    InterestingTestsCorpus.TestType.FORMAT_COVERAGE);
+                                    InterestingTestsCorpus.TestType.FORMAT_COVERAGE,
+                                    versionDeltaFeedbackPacket.configFileName);
                             onlyNewFormatCoverageInducedTpIds.add(
                                     versionDeltaFeedbackPacket.testIDs.get(i));
                             onlyNewBranchCoverageInducedTpIds.add(
                                     versionDeltaFeedbackPacket.testIDs.get(i));
                         } else {
                             testBatchCorpus.addPacket(testPacket,
-                                    InterestingTestsCorpus.TestType.LOW_PRIORITY);
+                                    InterestingTestsCorpus.TestType.LOW_PRIORITY,
+                                    versionDeltaFeedbackPacket.configFileName);
                             nonInterestingTpIds.add(
                                     versionDeltaFeedbackPacket.testIDs.get(i));
                         }
@@ -1895,8 +1907,11 @@ public class FuzzingServer {
             lastTimePoint = timeElapsed;
         }
 
-        testBatchCorpus
-                .addConfigFile(versionDeltaFeedbackPacket.configFileName);
+        if (!testBatchCorpus.configFiles
+                .contains(versionDeltaFeedbackPacket.configFileName)) {
+            testBatchCorpus
+                    .addConfigFile(versionDeltaFeedbackPacket.configFileName);
+        }
         printInfo();
         System.out.println();
 
@@ -2315,7 +2330,6 @@ public class FuzzingServer {
                     "up BC : " + upgradedCoveredBranches + "/"
                             + upgradedProbeNum);
         }
-        // Format Coverage Info
         if (Config.getConf().useFormatCoverage
                 && (Config.getConf().formatCoverageChoiceProb > 0)) {
             System.out.format("|%30s|%30s|%30s|%30s|\n",
@@ -2368,19 +2382,6 @@ public class FuzzingServer {
             logger.info("[HKLOG] buffer details: ");
             testBatchCorpus.printCache();
         }
-
-        System.out.println(
-                "------------------------------------------------------------"
-                        + "-----------------------------------------------------------------");
-        // Failures
-        System.out.format("|%30s|%30s|%30s|%30s|\n",
-                "fullstop crash : " + fullStopCrashNum,
-                "event crash : " + eventCrashNum,
-                "inconsistency : " + inconsistencyNum,
-                "error log : " + errorLogNum);
-        System.out.println(
-                "------------------------------------------------------------"
-                        + "-----------------------------------------------------------------");
         System.out.println();
     }
 
@@ -2442,7 +2443,29 @@ public class FuzzingServer {
         throw new IllegalStateException("Invalid probabilities");
     }
 
-    public int getNextBestType(Map<Integer, Double> probabilities, int type) {
+    public int getNextBestTestType(Map<Integer, Double> probabilities,
+            String configFileName) {
+        List<Map.Entry<Integer, Double>> sortedProbabilities = new ArrayList<>(
+                probabilities.entrySet());
+        sortedProbabilities.sort((entry1, entry2) -> Double
+                .compare(entry2.getValue(), entry1.getValue()));
+
+        // Iterate through sorted probabilities
+        for (Map.Entry<Integer, Double> entry : sortedProbabilities) {
+            int elementIndex = entry.getKey();
+            if (!testBatchCorpus.isEmpty(InterestingTestsCorpus.TestType
+                    .values()[elementIndex])
+                    && testBatchCorpus.intermediateBuffer[elementIndex]
+                            .containsKey(configFileName)) {
+                return elementIndex; // Return the index of the non-empty
+                                     // list which has a key for the
+                                     // configFileName
+            }
+        }
+        return -1;
+    }
+
+    public int getNextBestSeedType(Map<Integer, Double> probabilities) {
         // Sort probabilities in descending order
         List<Map.Entry<Integer, Double>> sortedProbabilities = new ArrayList<>(
                 probabilities.entrySet());
@@ -2452,17 +2475,10 @@ public class FuzzingServer {
         // Iterate through sorted probabilities
         for (Map.Entry<Integer, Double> entry : sortedProbabilities) {
             int elementIndex = entry.getKey();
-            if (type == 0) {
-                if (!corpus.isEmpty(Corpus.QueueType.values()[elementIndex])) {
-                    return elementIndex; // Return the index of the non-empty
-                                         // list
-                }
-            } else {
-                if (!testBatchCorpus.isEmpty(InterestingTestsCorpus.TestType
-                        .values()[elementIndex])) {
-                    return elementIndex; // Return the index of the non-empty
-                                         // list
-                }
+
+            if (!corpus.isEmpty(Corpus.QueueType.values()[elementIndex])) {
+                return elementIndex; // Return the index of the non-empty
+                                     // list
             }
         }
 

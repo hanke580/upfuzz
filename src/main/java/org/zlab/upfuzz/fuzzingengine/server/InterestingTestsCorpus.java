@@ -11,8 +11,11 @@ import org.zlab.upfuzz.utils.Utilities;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
@@ -23,13 +26,15 @@ import java.util.Iterator;
 public class InterestingTestsCorpus {
     static Logger logger = LogManager.getLogger(InterestingTestsCorpus.class);
 
-    public BlockingQueue<TestPacket>[] queues = new LinkedBlockingQueue[5];
+    // public BlockingQueue<Pair<String,TestPacket>>[] queues = new
+    // LinkedBlockingQueue[5];
+    public HashMap<String, BlockingQueue<TestPacket>>[] intermediateBuffer = new HashMap[5];
     public BlockingQueue<String> configFiles = new LinkedBlockingQueue<>();
 
     // LinkedList<StackedTestPacket>[] queues = new LinkedList[3];
     {
-        for (int i = 0; i < queues.length; i++) {
-            queues[i] = new LinkedBlockingQueue<>();
+        for (int i = 0; i < intermediateBuffer.length; i++) {
+            intermediateBuffer[i] = new HashMap<String, BlockingQueue<TestPacket>>();
         }
     }
 
@@ -40,44 +45,76 @@ public class InterestingTestsCorpus {
     public String getConfigFile() {
         if (configFiles.isEmpty())
             return null;
-        return configFiles.poll();
+        return configFiles.peek();
+    }
+
+    public String getConfigFileByIndex(int i) {
+        List<String> configFileList = new ArrayList<>(configFiles);
+        return configFileList.get(i);
     }
 
     public void addConfigFile(String configFileName) {
         configFiles.add(configFileName);
     }
 
-    public TestPacket getPacket(TestType type) {
-        if (queues[type.ordinal()].isEmpty())
+    public TestPacket getPacket(TestType type, String configFileName) {
+        if (intermediateBuffer[type.ordinal()].isEmpty())
             return null;
-        return queues[type.ordinal()].poll();
+        else {
+            HashMap<String, BlockingQueue<TestPacket>> bufferForThisConfig = intermediateBuffer[type
+                    .ordinal()];
+            if (bufferForThisConfig.keySet().contains(configFileName)) {
+                BlockingQueue<TestPacket> listOfTests = bufferForThisConfig
+                        .get(configFileName);
+                TestPacket tp = listOfTests.poll();
+                if (listOfTests.size() == 0) {
+                    intermediateBuffer[type.ordinal()].remove(configFileName);
+                }
+                return tp;
+            }
+            return null;
+        }
     }
 
-    public TestPacket peekPacket(TestType type) {
-        if (queues[type.ordinal()].isEmpty())
+    public TestPacket peekPacket(TestType type, String configFileName) {
+        if (intermediateBuffer[type.ordinal()].isEmpty())
             return null;
-        return queues[type.ordinal()].peek();
+        else {
+            HashMap<String, BlockingQueue<TestPacket>> bufferForThisConfig = intermediateBuffer[type
+                    .ordinal()];
+            if (bufferForThisConfig.keySet().contains(configFileName)) {
+                BlockingQueue<TestPacket> listOfTests = bufferForThisConfig
+                        .get(configFileName);
+                TestPacket tp = listOfTests.peek();
+                return tp;
+            }
+            return null;
+        }
     }
 
-    public void addPacket(TestPacket packet, TestType type) {
-        queues[type.ordinal()].add(packet);
-    }
-
-    public TestPacket getPacket(int type) {
-        if (queues[type].isEmpty())
-            return null;
-        return queues[type].poll();
-    }
-
-    public TestPacket peekPacket(int type) {
-        if (queues[type].isEmpty())
-            return null;
-        return queues[type].peek();
+    public void addPacket(TestPacket packet, TestType type,
+            String configFileName) {
+        HashMap<String, BlockingQueue<TestPacket>> bufferForThisConfig = intermediateBuffer[type
+                .ordinal()];
+        if (!bufferForThisConfig.keySet().contains(configFileName)) {
+            intermediateBuffer[type.ordinal()].put(configFileName,
+                    new LinkedBlockingQueue<TestPacket>());
+        }
+        intermediateBuffer[type.ordinal()].get(configFileName).add(packet);
     }
 
     public boolean areAllQueuesEmpty() {
-        for (BlockingQueue<TestPacket> queue : queues) {
-            if (!queue.isEmpty()) {
+        for (HashMap<String, BlockingQueue<TestPacket>> bufferEntry : intermediateBuffer) {
+            if (!bufferEntry.isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean areAllQueuesEmptyForThisConfig(String configFileName) {
+        for (int i = 0; i < intermediateBuffer.length; i++) {
+            if (intermediateBuffer[i].containsKey(configFileName)) {
                 return false;
             }
         }
@@ -85,22 +122,37 @@ public class InterestingTestsCorpus {
     }
 
     public boolean noInterestingTests() {
-        for (int i = 0; i < queues.length - 1; i++) {
-            if (!queues[i].isEmpty()) {
+        for (int i = 0; i < intermediateBuffer.length - 1; i++) {
+            if (!intermediateBuffer[i].isEmpty()) {
                 return false;
             }
         }
         return true;
     }
 
-    public void removePacket(int targetPacketId, int type) {
+    public boolean noInterestingTestsForThisConfig(String configFileName) {
+        for (int i = 0; i < intermediateBuffer.length - 1; i++) {
+            if (intermediateBuffer[i].containsKey(configFileName)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void removePacket(int targetPacketId, int type,
+            String configFileName) {
         // Iterate through the queue using an iterator to avoid
         // ConcurrentModificationException
-        Iterator<TestPacket> iterator = queues[type].iterator();
+        BlockingQueue<TestPacket> packetsQueue = intermediateBuffer[type]
+                .get(configFileName);
+        Iterator<TestPacket> iterator = packetsQueue.iterator();
         while (iterator.hasNext()) {
             TestPacket nextPacket = iterator.next();
             if (nextPacket.testPacketID == targetPacketId) {
-                iterator.remove();
+                intermediateBuffer[type].get(configFileName).remove(nextPacket);
+                if (intermediateBuffer[type].get(configFileName).size() == 0) {
+                    intermediateBuffer[type].remove(configFileName);
+                }
                 break; // Since there's only one packet with the target ID, we
                        // can
                        // break after removal
@@ -109,12 +161,16 @@ public class InterestingTestsCorpus {
     }
 
     public boolean isEmpty(TestType type) {
-        return queues[type.ordinal()].isEmpty();
+        return intermediateBuffer[type.ordinal()].isEmpty();
     }
 
     public void printCache() {
-        for (int i = 0; i < queues.length; i++) {
-            logger.info("[HKLOG] Queue " + i + " size: " + queues[i].size());
+        for (int i = 0; i < intermediateBuffer.length; i++) {
+            for (String configFileName : intermediateBuffer[i].keySet()) {
+                logger.info("[HKLOG] Queue " + i + ", config file: "
+                        + configFileName + ", size: "
+                        + intermediateBuffer[i].get(configFileName).size());
+            }
         }
         logger.info("[HKLOG] Config file queue size: " + configFiles.size());
     }

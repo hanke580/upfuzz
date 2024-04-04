@@ -96,31 +96,59 @@ public class FuzzingServerHandler implements Runnable {
                         testPacket.write(out);
                         readFeedbackPacket();
 
-                        synchronized (fuzzingServer.testBatchCorpus) {
-                            logger.info(
-                                    "Tests inducing Branch coverage in both versions: "
-                                            +
-                                            fuzzingServer.testBatchCorpus.queues[InterestingTestsCorpus.TestType.BRANCH_COVERAGE_BEFORE_VERSION_CHANGE
-                                                    .ordinal()]
-                                                            .size());
-                            logger.info(
-                                    "Tests inducing Format coverage in both versions: "
-                                            +
-                                            fuzzingServer.testBatchCorpus.queues[InterestingTestsCorpus.TestType.FORMAT_COVERAGE
-                                                    .ordinal()]
-                                                            .size());
-                            logger.info(
-                                    "Tests inducing version delta in branch coverage: "
-                                            +
-                                            fuzzingServer.testBatchCorpus.queues[InterestingTestsCorpus.TestType.BRANCH_COVERAGE_VERSION_DELTA
-                                                    .ordinal()]
-                                                            .size());
-                            logger.info(
-                                    "Tests inducing version delta in format coverage: "
-                                            +
-                                            fuzzingServer.testBatchCorpus.queues[InterestingTestsCorpus.TestType.FORMAT_COVERAGE_VERSION_DELTA
-                                                    .ordinal()]
-                                                            .size());
+                        if (Config.getConf().debug) {
+                            synchronized (fuzzingServer.testBatchCorpus) {
+                                int queueSizeQueue0 = 0;
+                                int queueSizeQueue1 = 0;
+                                int queueSizeQueue2 = 0;
+                                int queueSizeQueue3 = 0;
+                                int queueSizeQueue4 = 0;
+
+                                for (String key : fuzzingServer.testBatchCorpus.intermediateBuffer[InterestingTestsCorpus.TestType.BRANCH_COVERAGE_BEFORE_VERSION_CHANGE
+                                        .ordinal()].keySet()) {
+                                    queueSizeQueue3 += fuzzingServer.testBatchCorpus.intermediateBuffer[InterestingTestsCorpus.TestType.BRANCH_COVERAGE_BEFORE_VERSION_CHANGE
+                                            .ordinal()].get(key).size();
+                                }
+
+                                for (String key : fuzzingServer.testBatchCorpus.intermediateBuffer[InterestingTestsCorpus.TestType.FORMAT_COVERAGE
+                                        .ordinal()].keySet()) {
+                                    queueSizeQueue2 += fuzzingServer.testBatchCorpus.intermediateBuffer[InterestingTestsCorpus.TestType.FORMAT_COVERAGE
+                                            .ordinal()].get(key).size();
+                                }
+
+                                for (String key : fuzzingServer.testBatchCorpus.intermediateBuffer[InterestingTestsCorpus.TestType.BRANCH_COVERAGE_VERSION_DELTA
+                                        .ordinal()].keySet()) {
+                                    queueSizeQueue1 += fuzzingServer.testBatchCorpus.intermediateBuffer[InterestingTestsCorpus.TestType.BRANCH_COVERAGE_VERSION_DELTA
+                                            .ordinal()].get(key).size();
+                                }
+
+                                for (String key : fuzzingServer.testBatchCorpus.intermediateBuffer[InterestingTestsCorpus.TestType.FORMAT_COVERAGE_VERSION_DELTA
+                                        .ordinal()].keySet()) {
+                                    queueSizeQueue0 += fuzzingServer.testBatchCorpus.intermediateBuffer[InterestingTestsCorpus.TestType.FORMAT_COVERAGE_VERSION_DELTA
+                                            .ordinal()].get(key).size();
+                                }
+
+                                for (String key : fuzzingServer.testBatchCorpus.intermediateBuffer[InterestingTestsCorpus.TestType.LOW_PRIORITY
+                                        .ordinal()].keySet()) {
+                                    queueSizeQueue4 += fuzzingServer.testBatchCorpus.intermediateBuffer[InterestingTestsCorpus.TestType.LOW_PRIORITY
+                                            .ordinal()].get(key).size();
+                                }
+
+                                logger.info(
+                                        "Tests inducing Branch coverage in both versions: "
+                                                + queueSizeQueue3);
+                                logger.info(
+                                        "Tests inducing Format coverage in both versions: "
+                                                + queueSizeQueue2);
+                                logger.info(
+                                        "Tests inducing version delta in branch coverage: "
+                                                + queueSizeQueue1);
+                                logger.info(
+                                        "Tests inducing version delta in format coverage: "
+                                                + queueSizeQueue0);
+                                logger.info("Tests inducing no new coverage: "
+                                        + queueSizeQueue4);
+                            }
                         }
                     } else {
                         StackedTestPacket stackedTestPacketForGroup2 = null;
