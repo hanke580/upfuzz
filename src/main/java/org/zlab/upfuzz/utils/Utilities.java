@@ -69,79 +69,79 @@ public class Utilities {
         return commandSequencePair;
     }
 
-    // public static boolean isEqualCoverage(ExecutionDataStore curCoverage,
-    // ExecutionDataStore testSequenceCoverage) {
-    // // Return true if two coverage is identical
-    // if (testSequenceCoverage == null && curCoverage != null)
-    // return false;
+    public static boolean isEqualCoverage(ExecutionDataStore curCoverage,
+            ExecutionDataStore testSequenceCoverage) {
+        // Return true if two coverage is identical
+        if (testSequenceCoverage == null && curCoverage != null)
+            return false;
 
-    // if (testSequenceCoverage != null && curCoverage == null)
-    // return false;
+        if (testSequenceCoverage != null && curCoverage == null)
+            return false;
 
-    // for (final ExecutionData testSequenceData : testSequenceCoverage
-    // .getContents()) {
+        for (final ExecutionData testSequenceData : testSequenceCoverage
+                .getContents()) {
 
-    // final Long id = Long.valueOf(testSequenceData.getId());
-    // final ExecutionData curData = curCoverage.get(id);
+            final Long id = Long.valueOf(testSequenceData.getId());
+            final ExecutionData curData = curCoverage.get(id);
 
-    // // For one class, merge the coverage
-    // if (curData != null) {
-    // assertCompatibility(curData, testSequenceData);
-    // boolean[] curProbes = curData.getProbes();
-    // final int[] testSequenceProbes = testSequenceData.getProbes();
-    // for (int i = 0; i < curProbes.length; i++) {
-    // // Now only try with the boolean first
-    // if ((curProbes[i] == 0 && testSequenceProbes[i] != 0) ||
-    // (curProbes[i] != 0 && testSequenceProbes[i] == 0)) {
-    // // logger.debug("cur probes: ");
-    // // for (int j = 0; j < curProbes.length; j++) {
-    // // logger.debug(curProbes[j] + " ");
-    // // }
-    // // logger.debug("test probes: ");
-    // // for (int j = 0; j < testSequenceProbes.length; j++) {
-    // // logger.debug(testSequenceProbes[j] + " ");
-    // // }
+            // For one class, merge the coverage
+            if (curData != null) {
+                assertCompatibility(curData, testSequenceData);
+                int[] curProbes = curData.getProbes();
+                final int[] testSequenceProbes = testSequenceData.getProbes();
+                for (int i = 0; i < curProbes.length; i++) {
+                    // Now only try with the boolean first
+                    if ((curProbes[i] == 0 && testSequenceProbes[i] != 0) ||
+                            (curProbes[i] != 0 && testSequenceProbes[i] == 0)) {
+                        // logger.debug("cur probes: ");
+                        // for (int j = 0; j < curProbes.length; j++) {
+                        // logger.debug(curProbes[j] + " ");
+                        // }
+                        // logger.debug("test probes: ");
+                        // for (int j = 0; j < testSequenceProbes.length; j++) {
+                        // logger.debug(testSequenceProbes[j] + " ");
+                        // }
 
-    // // logger.debug("probe len = " + curProbes.length);
-    // // logger.debug("Class " + testSequenceData.getName() +
-    // // " id: [" + i + "]"
-    // // + " is different!");
-    // return false;
-    // }
-    // }
-    // } else {
-    // logger.debug("curData not triggered " +
-    // testSequenceData.getName());
-    // return false;
-    // }
-    // }
-    // return true;
-    // }
+                        // logger.debug("probe len = " + curProbes.length);
+                        // logger.debug("Class " + testSequenceData.getName() +
+                        // " id: [" + i + "]"
+                        // + " is different!");
+                        return false;
+                    }
+                }
+            } else {
+                logger.debug("curData not triggered " +
+                        testSequenceData.getName());
+                return false;
+            }
+        }
+        return true;
+    }
 
-    // public static void printCoverages(int testId, FeedBack[] feedBacks,
-    // String type) {
-    // FeedBack fb = new FeedBack();
-    // int i = 0;
-    // for (FeedBack feedBack : feedBacks) {
-    // for (ExecutionData curData : feedBack.originalCodeCoverage
-    // .getContents()) {
-    // final Long id = Long.valueOf(curData.getId());
-    // final String name = curData.getName();
-    // int[] curProbes = curData.getProbes();
-    // System.out.println();
-    // logger.info(
-    // "printing coverages for testId: " + testId + ", " +
-    // "feedback probe " + id + ", class " + name
-    // + " from " + type + ": ");
-    // String probeDetails = "";
-    // for (int j = 0; j < curProbes.length; j++) {
-    // probeDetails += (curProbes[j] + " ");
-    // }
-    // logger.info(probeDetails);
-    // i += 1;
-    // }
-    // }
-    // }
+    public static void printCoverages(int testId, FeedBack[] feedBacks,
+            String type) {
+        FeedBack fb = new FeedBack();
+        int i = 0;
+        for (FeedBack feedBack : feedBacks) {
+            for (ExecutionData curData : feedBack.originalCodeCoverage
+                    .getContents()) {
+                final Long id = Long.valueOf(curData.getId());
+                final String name = curData.getName();
+                int[] curProbes = curData.getProbes();
+                System.out.println();
+                logger.info(
+                        "printing coverages for testId: " + testId + ", " +
+                                "feedback probe " + id + ", class " + name
+                                + " from " + type + ": ");
+                String probeDetails = "";
+                for (int j = 0; j < curProbes.length; j++) {
+                    probeDetails += (curProbes[j] + " ");
+                }
+                logger.info(probeDetails);
+                i += 1;
+            }
+        }
+    }
 
     public static boolean hasNewBits(ExecutionDataStore curCoverage,
             ExecutionDataStore testSequenceCoverage) {
@@ -161,13 +161,12 @@ public class Utilities {
                 // For one class, merge the coverage
                 if (curData != null) {
                     assertCompatibility(curData, testSequenceData);
-                    boolean[] curProbes = curData.getProbes();
-                    final boolean[] testSequenceProbes = testSequenceData
+                    int[] curProbes = curData.getProbes();
+                    final int[] testSequenceProbes = testSequenceData
                             .getProbes();
                     for (int i = 0; i < curProbes.length; i++) {
                         // Now only try with the boolean first
-                        if (curProbes[i] == false
-                                && testSequenceProbes[i] != false) {
+                        if (curProbes[i] == 0 && testSequenceProbes[i] != 0) {
                             // System.out.println();
                             // System.out.print("cur probes: ");
                             // for (int j = 0; j < curProbes.length; j++) {
@@ -216,13 +215,12 @@ public class Utilities {
                 // For one class, merge the coverage
                 if (curData != null) {
                     assertCompatibility(curData, testSequenceData);
-                    boolean[] curProbes = curData.getProbes();
-                    final boolean[] testSequenceProbes = testSequenceData
+                    int[] curProbes = curData.getProbes();
+                    final int[] testSequenceProbes = testSequenceData
                             .getProbes();
                     for (int i = 0; i < curProbes.length; i++) {
                         // Now only try with the boolean first
-                        if (curProbes[i] == true
-                                && testSequenceProbes[i] != true) {
+                        if (curProbes[i] == 0 && testSequenceProbes[i] != 0) {
                             logger.debug("[Coverage] class "
                                     + testSequenceData.getName()
                                     + " has a new coverage");
@@ -281,130 +279,130 @@ public class Utilities {
         return result;
     }
 
-    // public static boolean hasNewBitsAccum(ExecutionDataStore curCoverage,
-    // ExecutionDataStore testSequenceCoverage) {
+    public static boolean hasNewBitsAccum(ExecutionDataStore curCoverage,
+            ExecutionDataStore testSequenceCoverage) {
 
-    // if (testSequenceCoverage == null)
-    // return false;
+        if (testSequenceCoverage == null)
+            return false;
 
-    // if (curCoverage == null) {
-    // return true;
-    // } else {
-    // for (final ExecutionData testSequenceData : testSequenceCoverage
-    // .getContents()) {
+        if (curCoverage == null) {
+            return true;
+        } else {
+            for (final ExecutionData testSequenceData : testSequenceCoverage
+                    .getContents()) {
 
-    // final Long id = Long.valueOf(testSequenceData.getId());
-    // final ExecutionData curData = curCoverage.get(id);
+                final Long id = Long.valueOf(testSequenceData.getId());
+                final ExecutionData curData = curCoverage.get(id);
 
-    // // For one class, merge the coverage
-    // if (curData != null) {
-    // assertCompatibility(curData, testSequenceData);
-    // int[] curProbes = curData.getProbes();
-    // final int[] testSequenceProbes = testSequenceData
-    // .getProbes();
-    // for (int i = 0; i < curProbes.length; i++) {
-    // if (curProbes[i] < testSequenceProbes[i]) {
-    // return true;
-    // }
-    // }
-    // } else {
-    // return true;
-    // }
-    // }
-    // return false;
-    // }
-    // }
+                // For one class, merge the coverage
+                if (curData != null) {
+                    assertCompatibility(curData, testSequenceData);
+                    int[] curProbes = curData.getProbes();
+                    final int[] testSequenceProbes = testSequenceData
+                            .getProbes();
+                    for (int i = 0; i < curProbes.length; i++) {
+                        if (curProbes[i] < testSequenceProbes[i]) {
+                            return true;
+                        }
+                    }
+                } else {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
 
-    // public static int mergeMax(ExecutionDataStore curCoverage,
-    // ExecutionDataStore testSequenceCoverage) {
-    // int score = 0;
+    public static int mergeMax(ExecutionDataStore curCoverage,
+            ExecutionDataStore testSequenceCoverage) {
+        int score = 0;
 
-    // if (testSequenceCoverage == null)
-    // return score;
+        if (testSequenceCoverage == null)
+            return score;
 
-    // if (curCoverage == null) {
-    // throw new RuntimeException("Please initialize curCoverage");
-    // }
+        if (curCoverage == null) {
+            throw new RuntimeException("Please initialize curCoverage");
+        }
 
-    // for (final ExecutionData testSequenceData : testSequenceCoverage
-    // .getContents()) {
+        for (final ExecutionData testSequenceData : testSequenceCoverage
+                .getContents()) {
 
-    // final long id = testSequenceData.getId();
-    // final ExecutionData curData = curCoverage.get(id);
+            final long id = testSequenceData.getId();
+            final ExecutionData curData = curCoverage.get(id);
 
-    // // For one class, merge the coverage
-    // if (curData != null) {
-    // assertCompatibility(curData, testSequenceData);
-    // int[] curProbes = curData.getProbes();
-    // final int[] testSequenceProbes = testSequenceData
-    // .getProbes();
-    // for (int i = 0; i < curProbes.length; i++) {
-    // if (curProbes[i] < testSequenceProbes[i]) {
-    // score += testSequenceProbes[i] - curProbes[i];
-    // curProbes[i] = testSequenceProbes[i];
-    // }
-    // }
-    // } else {
-    // final int[] testSequenceProbes = testSequenceData
-    // .getProbes();
-    // for (int i = 0; i < testSequenceProbes.length; i++) {
-    // score += testSequenceProbes[i];
-    // }
-    // }
-    // curCoverage.merge(testSequenceData);
-    // }
-    // return score;
-    // }
+            // For one class, merge the coverage
+            if (curData != null) {
+                assertCompatibility(curData, testSequenceData);
+                int[] curProbes = curData.getProbes();
+                final int[] testSequenceProbes = testSequenceData
+                        .getProbes();
+                for (int i = 0; i < curProbes.length; i++) {
+                    if (curProbes[i] < testSequenceProbes[i]) {
+                        score += testSequenceProbes[i] - curProbes[i];
+                        curProbes[i] = testSequenceProbes[i];
+                    }
+                }
+            } else {
+                final int[] testSequenceProbes = testSequenceData
+                        .getProbes();
+                for (int i = 0; i < testSequenceProbes.length; i++) {
+                    score += testSequenceProbes[i];
+                }
+            }
+            curCoverage.merge(testSequenceData);
+        }
+        return score;
+    }
 
     // Overwrite the merge function
     // use max instead of merge
     // compute the new bits bring by testSequenceCoverage
-    // public static boolean computeDelta(ExecutionDataStore curCoverage,
-    // ExecutionDataStore testSequenceCoverage) {
+    public static boolean computeDelta(ExecutionDataStore curCoverage,
+            ExecutionDataStore testSequenceCoverage) {
 
-    // System.out.println("Computing Delta");
+        System.out.println("Computing Delta");
 
-    // if (testSequenceCoverage == null)
-    // return false;
+        if (testSequenceCoverage == null)
+            return false;
 
-    // if (curCoverage == null) {
-    // return true;
-    // } else {
-    // for (final ExecutionData testSequenceData : testSequenceCoverage
-    // .getContents()) {
+        if (curCoverage == null) {
+            return true;
+        } else {
+            for (final ExecutionData testSequenceData : testSequenceCoverage
+                    .getContents()) {
 
-    // boolean findNewBit = false;
-    // final Long id = Long.valueOf(testSequenceData.getId());
-    // final ExecutionData curData = curCoverage.get(id);
+                boolean findNewBit = false;
+                final Long id = Long.valueOf(testSequenceData.getId());
+                final ExecutionData curData = curCoverage.get(id);
 
-    // // For one class, merge the coverage
-    // if (curData != null) {
-    // assertCompatibility(curData, testSequenceData);
-    // int[] curProbes = curData.getProbes();
-    // final int[] testSequenceProbes = testSequenceData
-    // .getProbes();
-    // for (int i = 0; i < curProbes.length; i++) {
-    // // Now only try with the boolean first
-    // if (curProbes[i] == 0 && testSequenceProbes[i] != 0) {
-    // continue;
-    // } else {
-    // findNewBit = true;
-    // testSequenceProbes[i] = 0;
-    // }
-    // }
-    // // if (findNewBit) {
-    // // System.out.println(
-    // // "new bit class: " + testSequenceData.getName());
-    // // }
-    // } else {
-    // // System.out.println(
-    // // "new bit class: " + testSequenceData.getName());
-    // continue;
-    // }
-    // }
-    // return false;
-    // }
-    // }
+                // For one class, merge the coverage
+                if (curData != null) {
+                    assertCompatibility(curData, testSequenceData);
+                    int[] curProbes = curData.getProbes();
+                    final int[] testSequenceProbes = testSequenceData
+                            .getProbes();
+                    for (int i = 0; i < curProbes.length; i++) {
+                        // Now only try with the boolean first
+                        if (curProbes[i] == 0 && testSequenceProbes[i] != 0) {
+                            continue;
+                        } else {
+                            findNewBit = true;
+                            testSequenceProbes[i] = 0;
+                        }
+                    }
+                    // if (findNewBit) {
+                    // System.out.println(
+                    // "new bit class: " + testSequenceData.getName());
+                    // }
+                } else {
+                    // System.out.println(
+                    // "new bit class: " + testSequenceData.getName());
+                    continue;
+                }
+            }
+            return false;
+        }
+    }
 
     public static Pair<Integer, Integer> getCoverageStatus(
             ExecutionDataStore curCoverage) {
@@ -416,10 +414,10 @@ public class Utilities {
         int probeNum = 0;
 
         for (final ExecutionData curData : curCoverage.getContents()) {
-            boolean[] curProbes = curData.getProbes();
+            int[] curProbes = curData.getProbes();
             probeNum += curProbes.length;
             for (int i = 0; i < curProbes.length; i++) {
-                if (curProbes[i] != false)
+                if (curProbes[i] != 0)
                     coveredProbes++;
             }
         }

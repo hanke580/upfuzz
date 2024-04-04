@@ -35,7 +35,7 @@ dependencies {
 	implementation 'com.google.code.gson:gson:2.9.0'
 	implementation group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
 	implementation 'info.debatty:java-string-similarity:2.0.0'
-	implementation 'com.github.hanke580.jacoco:jacoco:revert-SNAPSHOT'
+	implementation 'com.github.hanke580.jacoco:jacoco:1c01d8328d'
 	implementation 'org.codehaus.plexus:plexus-utils:1.5.12'
 
 	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
