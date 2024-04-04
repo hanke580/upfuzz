@@ -126,7 +126,7 @@ public class Config {
         public String targetSystemStateFile = "states.json";
 
         public int STACKED_TESTS_NUM = 50;
-        public double batchSizePortionInGroup2 = 1.0;
+        public int batchSizeInGroup2 = 30;
         public long timeInterval = 600; // seconds, record time
         public boolean keepDir = true; // set to false if start a long running
                                        // test
