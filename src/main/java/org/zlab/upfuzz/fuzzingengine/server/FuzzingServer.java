@@ -2389,7 +2389,7 @@ public class FuzzingServer {
                 "------------------------------------------------------------"
                         + "-----------------------------------------------------------------");
         System.out.println();
-        
+
         if (Config.getConf().debug) {
             logger.info("[HKLOG] insignificant inconsistencies in: "
                     + insignificantInconsistenciesIn.toString());
