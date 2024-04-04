@@ -545,8 +545,9 @@ docker build . -t upfuzz_hdfs:hadoop-2.10.2_hadoop-3.3.0
 8. Start testing (Same as the command in Cassandra set up)
 
 
-### Debug related
+### Debug
 
+#### Check container
 If the tool runs into problems, you can enter the container to check the log.
 
 ```bash
@@ -560,10 +561,24 @@ upfuzz_cassandra:cqlsh           RUNNING   pid 10, uptime 0:01:03
 
 There could be several reasons (1) System starts up but the daemon in container cannot start up (2) The target system cannot start up due to configuration problem or jacoco agent instrumentation problem.
 
+#### OOM
+Check memory usage of fuzzing server
+```bash
+cat /proc/$(pgrep -f "upfuzz_server")/status | grep Vm
+```
 
-### Notes
+### JACOCO
 - If jacoco jar is modified, make sure put the runtime jar into the compile/ so that it can be put into the container.
+- Make sure the old jacoco jars are removed in `dependencies` folder.
 - If we want to test with functions with weight, use diffchecker to generate a diff_func.txt and put it in the cassandra folder, like `Cassandra-2.2.8/diff_func.txt`.
+
+
+The two jacoco jars are
+* org.jacoco.core-1c01d8328d.jar
+* org.jacoco.agent-1c01d8328d-runtime.jar
+
+Use `dependencies/org.jacoco.agent-1c01d8328d-runtime.jar` to replace all `org.jacoco.agent.rt.jar`
+
 
 ### Speed up Cassandra start up
 
