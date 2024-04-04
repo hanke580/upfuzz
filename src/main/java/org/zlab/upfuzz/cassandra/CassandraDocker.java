@@ -231,7 +231,7 @@ public class CassandraDocker extends Docker {
     @Override
     public void upgrade() throws Exception {
         prepareUpgradeEnv();
-        String restartCommand = "supervisorctl restart upfuzz_cassandra:";
+        String restartCommand = "/usr/bin/supervisorctl restart upfuzz_cassandra:";
         Process restart = runInContainer(
                 new String[] { "/bin/bash", "-c", restartCommand }, env);
         int ret = restart.waitFor();
@@ -341,7 +341,7 @@ public class CassandraDocker extends Docker {
         setEnvironment();
 
         String removeCassandraLibCommand = "rm -R /var/lib/cassandra";
-        String restartCommand = "supervisorctl restart upfuzz_cassandra:";
+        String restartCommand = "/usr/bin/supervisorctl restart upfuzz_cassandra:";
         // TODO remove the env arguments, we already have /usr/bin/set_env
         if (Integer.parseInt(
                 spStrings[spStrings.length - 1].substring(0, 1)) == 2) {

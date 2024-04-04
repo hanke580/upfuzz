@@ -350,7 +350,7 @@ public class FuzzingServer {
                 .getConfigFileByIndex(randomIndex);
         StackedTestPacket stackedTestPacket = new StackedTestPacket(
                 Config.getConf().nodeNum, configFileName);
-        // logger.info("[HKLOG] config file name: " + configFileName);
+        logger.info("[HKLOG] config file name: " + configFileName);
         for (int i = 0; i < (int) (Config.getConf().batchSizePortionInGroup2
                 * Config.getConf().STACKED_TESTS_NUM); i++) {
             if (!testBatchCorpus
@@ -2330,6 +2330,7 @@ public class FuzzingServer {
                     "up BC : " + upgradedCoveredBranches + "/"
                             + upgradedProbeNum);
         }
+        // Format Coverage Info
         if (Config.getConf().useFormatCoverage
                 && (Config.getConf().formatCoverageChoiceProb > 0)) {
             System.out.format("|%30s|%30s|%30s|%30s|\n",
@@ -2382,6 +2383,19 @@ public class FuzzingServer {
             logger.info("[HKLOG] buffer details: ");
             testBatchCorpus.printCache();
         }
+
+        System.out.println(
+                "------------------------------------------------------------"
+                        + "-----------------------------------------------------------------");
+        // Failures
+        System.out.format("|%30s|%30s|%30s|%30s|\n",
+                "fullstop crash : " + fullStopCrashNum,
+                "event crash : " + eventCrashNum,
+                "inconsistency : " + inconsistencyNum,
+                "error log : " + errorLogNum);
+        System.out.println(
+                "------------------------------------------------------------"
+                        + "-----------------------------------------------------------------");
         System.out.println();
     }
 

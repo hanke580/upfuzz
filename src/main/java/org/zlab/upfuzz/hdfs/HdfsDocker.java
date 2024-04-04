@@ -211,7 +211,7 @@ public class HdfsDocker extends Docker {
     @Override
     public void upgrade() throws Exception {
         prepareUpgradeEnv();
-        String restartCommand = "supervisorctl restart upfuzz_hdfs:";
+        String restartCommand = "/usr/bin/supervisorctl restart upfuzz_hdfs:";
         // Seems the env doesn't really matter...
         Process restart = runInContainer(
                 new String[] { "/bin/bash", "-c", restartCommand });
@@ -253,7 +253,7 @@ public class HdfsDocker extends Docker {
                 "HDFS_SHELL_DAEMON_PORT=\"" + hdfsDaemonPort + "\"",
                 "PYTHON=python3" };
         setEnvironment();
-        String restartCommand = "supervisorctl restart upfuzz_hdfs:";
+        String restartCommand = "/usr/bin/supervisorctl restart upfuzz_hdfs:";
         // Seems the env doesn't really matter...
         Process restart = runInContainer(
                 new String[] { "/bin/bash", "-c", restartCommand });
