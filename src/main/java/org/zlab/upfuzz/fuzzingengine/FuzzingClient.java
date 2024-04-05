@@ -631,7 +631,7 @@ public class FuzzingClient {
             logger.info("Not for this group of client");
             return null;
         } else {
-            ExecutorService executorService = Executors.newFixedThreadPool(20);
+            ExecutorService executorService = Executors.newFixedThreadPool(2);
             Path configPath = Paths.get(configDirPath.toString(),
                     stackedTestPacket.configFileName);
             logger.info("[HKLOG] configPath = " + configPath);
@@ -782,16 +782,16 @@ public class FuzzingClient {
             logger.info("[Fuzzing Client] started up executor");
         }
 
-        if (Config.getConf().startUpClusterForDebugging) {
-            logger.info("[Debugging Mode] Start up the cluster only");
-            try {
-                Thread.sleep(36000 * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            logger.info("[Debugging Mode] System exit");
-            System.exit(1);
-        }
+        // if (Config.getConf().startUpClusterForDebugging) {
+        // logger.info("[Debugging Mode] Start up the cluster only");
+        // try {
+        // Thread.sleep(36000 * 1000);
+        // } catch (InterruptedException e) {
+        // e.printStackTrace();
+        // }
+        // logger.info("[Debugging Mode] System exit");
+        // System.exit(1);
+        // }
 
         if (Config.getConf().debug) {
             logger.info("[Fuzzing Client] Call to run the tests");
@@ -1063,7 +1063,7 @@ public class FuzzingClient {
             logger.info("This client is in group: " + group);
         }
 
-        ExecutorService executorService = Executors.newFixedThreadPool(20);
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
         Path configPath = Paths.get(configDirPath.toString(),
                 stackedTestPacket.configFileName);
         logger.info("[HKLOG] configPath = " + configPath);

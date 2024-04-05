@@ -28,13 +28,13 @@ public class InterestingTestsCorpus {
 
     // public BlockingQueue<Pair<String,TestPacket>>[] queues = new
     // LinkedBlockingQueue[5];
-    public HashMap<String, BlockingQueue<TestPacket>>[] intermediateBuffer = new HashMap[5];
-    public BlockingQueue<String> configFiles = new LinkedBlockingQueue<>();
+    public HashMap<String, Queue<TestPacket>>[] intermediateBuffer = new HashMap[5];
+    public List<String> configFiles = new ArrayList<>();
 
     // LinkedList<StackedTestPacket>[] queues = new LinkedList[3];
     {
         for (int i = 0; i < intermediateBuffer.length; i++) {
-            intermediateBuffer[i] = new HashMap<String, BlockingQueue<TestPacket>>();
+            intermediateBuffer[i] = new HashMap<String, Queue<TestPacket>>();
         }
     }
 
@@ -45,7 +45,7 @@ public class InterestingTestsCorpus {
     public String getConfigFile() {
         if (configFiles.isEmpty())
             return null;
-        return configFiles.peek();
+        return configFiles.get(configFiles.size() - 1);
     }
 
     public String getConfigFileByIndex(int i) {
@@ -61,10 +61,10 @@ public class InterestingTestsCorpus {
         if (intermediateBuffer[type.ordinal()].isEmpty())
             return null;
         else {
-            HashMap<String, BlockingQueue<TestPacket>> bufferForThisConfig = intermediateBuffer[type
+            HashMap<String, Queue<TestPacket>> bufferForThisConfig = intermediateBuffer[type
                     .ordinal()];
             if (bufferForThisConfig.keySet().contains(configFileName)) {
-                BlockingQueue<TestPacket> listOfTests = bufferForThisConfig
+                Queue<TestPacket> listOfTests = bufferForThisConfig
                         .get(configFileName);
                 TestPacket tp = listOfTests.poll();
                 if (listOfTests.size() == 0) {
@@ -80,10 +80,10 @@ public class InterestingTestsCorpus {
         if (intermediateBuffer[type.ordinal()].isEmpty())
             return null;
         else {
-            HashMap<String, BlockingQueue<TestPacket>> bufferForThisConfig = intermediateBuffer[type
+            HashMap<String, Queue<TestPacket>> bufferForThisConfig = intermediateBuffer[type
                     .ordinal()];
             if (bufferForThisConfig.keySet().contains(configFileName)) {
-                BlockingQueue<TestPacket> listOfTests = bufferForThisConfig
+                Queue<TestPacket> listOfTests = bufferForThisConfig
                         .get(configFileName);
                 TestPacket tp = listOfTests.peek();
                 return tp;
@@ -94,17 +94,17 @@ public class InterestingTestsCorpus {
 
     public void addPacket(TestPacket packet, TestType type,
             String configFileName) {
-        HashMap<String, BlockingQueue<TestPacket>> bufferForThisConfig = intermediateBuffer[type
+        HashMap<String, Queue<TestPacket>> bufferForThisConfig = intermediateBuffer[type
                 .ordinal()];
         if (!bufferForThisConfig.keySet().contains(configFileName)) {
             intermediateBuffer[type.ordinal()].put(configFileName,
-                    new LinkedBlockingQueue<TestPacket>());
+                    new LinkedList<TestPacket>());
         }
         intermediateBuffer[type.ordinal()].get(configFileName).add(packet);
     }
 
     public boolean areAllQueuesEmpty() {
-        for (HashMap<String, BlockingQueue<TestPacket>> bufferEntry : intermediateBuffer) {
+        for (HashMap<String, Queue<TestPacket>> bufferEntry : intermediateBuffer) {
             if (!bufferEntry.isEmpty()) {
                 return false;
             }
@@ -143,7 +143,7 @@ public class InterestingTestsCorpus {
             String configFileName) {
         // Iterate through the queue using an iterator to avoid
         // ConcurrentModificationException
-        BlockingQueue<TestPacket> packetsQueue = intermediateBuffer[type]
+        Queue<TestPacket> packetsQueue = intermediateBuffer[type]
                 .get(configFileName);
         Iterator<TestPacket> iterator = packetsQueue.iterator();
         while (iterator.hasNext()) {
