@@ -233,7 +233,7 @@ public abstract class DockerCluster implements IDockerCluster {
                 this.networkID = results.get(0).split(" ")[0];
             }
 
-            System.out.println("network ID = " + this.networkID);
+            // System.out.println("network ID = " + this.networkID);
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }

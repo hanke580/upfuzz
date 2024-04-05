@@ -279,7 +279,8 @@ public class FuzzingServerHandler implements Runnable {
                             versionDeltaFeedbackPacket);
                 }
             } else {
-                fuzzingServer.analyzeFeedbackFromVersionDeltaGroup2(
+                assert Config.getConf().versionDeltaApproach == 1;
+                fuzzingServer.analyzeFeedbackFromVersionDelta(
                         versionDeltaFeedbackPacket);
             }
         } else if (intType == -1) {

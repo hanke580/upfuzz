@@ -67,9 +67,7 @@ public class MiniClientMain {
 
     public static void setTestType(int type) {
         testExecutionLog += "invoked set test type: " + type;
-        synchronized (lock) {
-            testType = type;
-        }
+        testType = type;
     }
 
     public static String startUpExecutor(Executor executor, int type) {

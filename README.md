@@ -2,6 +2,10 @@
 
 > A tool to detect upgrade bugs of distributed systems
 
+## TODOs
+* Update Graph in `analyzeFeedbackFromVersionDelta`
+* Graph: support version delta tracking
+
 ## Feature
 * Coverage-guided structural fuzz testing
   * upfuzz collects the code coverage of the cluster to guide the testing

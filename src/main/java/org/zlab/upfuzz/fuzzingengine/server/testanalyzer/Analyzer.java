@@ -36,8 +36,7 @@ public class Analyzer {
     private void traverseNode(TestNode node, String prefix,
             BufferedWriter writer)
             throws IOException {
-        if (node.newOldVersionBranchCoverage || node.newNewVersionBranchCoverage
-                || node.newFormatCoverage) {
+        if (node.baseNode.hasNewCoverage()) {
             // Only print the new coverage nodes
             boolean check = false;
             switch (state) {
@@ -51,10 +50,8 @@ public class Analyzer {
                 check = checker2(node);
                 break;
             }
-            writer.write(prefix + node.nodeId
-                    + ": NOVC = " + node.newOldVersionBranchCoverage
-                    + ", NNVC = " + node.newNewVersionBranchCoverage
-                    + ", NFC = " + node.newFormatCoverage
+            writer.write(prefix + node.baseNode.nodeId + ": "
+                    + node.baseNode.printCovInfo()
                     + ", checker = " + check + "\n");
         }
 
@@ -68,7 +65,7 @@ public class Analyzer {
 
     public boolean checker0(TestNode testNode) {
         // create + insert
-        List<String> writeCommands = testNode.writeCommands;
+        List<String> writeCommands = testNode.baseNode.writeCommands;
         // It should contain (1) Create table + set (2) INSERT (3) DROP Table
 
         boolean createTable = false;
@@ -91,7 +88,7 @@ public class Analyzer {
     }
 
     public boolean checker1(TestNode testNode) {
-        List<String> writeCommands = testNode.writeCommands;
+        List<String> writeCommands = testNode.baseNode.writeCommands;
         // It should contain (1) Create table + set (2) INSERT (3) DROP Table
 
         boolean createTable = false;
@@ -114,7 +111,7 @@ public class Analyzer {
     }
 
     public boolean checker2(TestNode testNode) {
-        List<String> writeCommands = testNode.writeCommands;
+        List<String> writeCommands = testNode.baseNode.writeCommands;
         // It should contain (1) Create table + set (2) INSERT (3) DROP Table
         // (4) Add another column
 

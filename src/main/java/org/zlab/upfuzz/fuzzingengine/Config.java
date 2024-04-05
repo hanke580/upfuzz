@@ -7,12 +7,12 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
+/**
+ * Configuration for the fuzzing engine
+ * - Do not modify the default configurations!
+ * - Modify it in the config.json file to override them
+ */
 public class Config {
-
-    static Logger logger = LogManager.getLogger(Config.class);
 
     public static Configuration instance;
 
@@ -64,7 +64,7 @@ public class Config {
         public String nyxFuzzSH = null;
 
         // -------------- GC --------------
-        public int gcInterval = 10; // minutes
+        public int gcInterval = 5; // minutes
 
         // ------------ Input Generation ------------
         // Debug use the same command sequence
@@ -145,7 +145,6 @@ public class Config {
         public float noRecoverProb = 0.5f;
 
         public int rebuildConnectionSecs = 5;
-        public int versionDeltaApproach = 1;
 
         // ------------Configuration Testing-------------
         public boolean verifyConfig = false;
@@ -221,7 +220,15 @@ public class Config {
         public String comparableClassesFileName = "comparableClasses.json";
         public String branch2CollectionFileName = "branch2Collection.json";
 
+        // ---------------Version Delta-----------------
         public boolean useVersionDelta = false;
+
+        public int versionDeltaApproach = 1;
+
+        // Single group mechanism: versionDeltaApproach = 1
+        // public boolean skipUpgradeOrDowngrade = false;
+
+        // Probabilities for different choices
         public double branchVersionDeltaChoiceProb = 0.7;
         public double formatVersionDeltaChoiceProb = 0.0;
         public double branchCoverageChoiceProb = 0.3;
@@ -238,10 +245,12 @@ public class Config {
          * To avoid FPs
          * If a command is supported only in the new/old version,
          * this can cause FP when comparing the read results.
+         *
+         * Do not modify these default configurations!
          */
         // == cassandra ==
         public boolean eval_CASSANDRA13939 = false;
-        public boolean eval_CASSANDRA14912 = true;
+        public boolean eval_CASSANDRA14912 = false;
         public int CASSANDRA_LIST_TYPE_MAX_SIZE = 10;
         public boolean CASSANDRA_ENABLE_SPECULATIVE_RETRY = true;
 

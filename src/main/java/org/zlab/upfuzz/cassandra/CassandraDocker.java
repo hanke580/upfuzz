@@ -87,10 +87,6 @@ public class CassandraDocker extends Docker {
         formatMap.put("executorID", executorID);
         formatMap.put("serviceName", serviceName);
 
-        // format coverage
-        formatMap.put("collectFormatCoverage",
-                Config.getConf().useFormatCoverage ? "true" : "false");
-
         StringSubstitutor sub = new StringSubstitutor(formatMap);
         if (Config.getConf().testSingleVersion)
             this.composeYaml = sub.replace(singleVersionTemplate);
@@ -105,7 +101,7 @@ public class CassandraDocker extends Docker {
         return 0;
     }
 
-    private synchronized void setEnvironment() throws IOException {
+    private void setEnvironment() throws IOException {
         File envFile = new File(workdir,
                 "./persistent/node_" + index + "/env.sh");
 
@@ -113,14 +109,17 @@ public class CassandraDocker extends Docker {
         envFile.getParentFile().mkdirs();
         fw = new FileWriter(envFile, false);
         for (String s : env) {
-            logger.info("env to be written: " + s);
+            if (Config.getConf().debug)
+                logger.info("env to be written: " + s);
             fw.write("export " + s + "\n");
         }
         fw.close();
     }
 
-    private String[] constructEnv(String curVersion, String cassandraHome,
-            String cassandraConf) {
+    private void handleEnv(String curVersion, String cassandraHome,
+            String cassandraConf, boolean useFormatCoverage)
+            throws IOException {
+        // Set up /usr/bin/set_env
         String[] spStrings = curVersion.split("-");
         String pythonVersion = "python2";
         String jdkPath = "/usr/local/openjdk-8/";
@@ -136,15 +135,28 @@ public class CassandraDocker extends Docker {
             e.printStackTrace();
         }
 
-        env = new String[] {
-                "CASSANDRA_HOME=\"" + cassandraHome + "\"",
-                "CASSANDRA_CONF=\"" + cassandraConf + "\"", javaToolOpts,
-                "CQLSH_DAEMON_PORT=\"" + cqlshDaemonPort + "\"",
-                "PYTHON=" + pythonVersion,
-                "JAVA_HOME=" + jdkPath,
-                "PATH=$JAVA_HOME/bin:$PATH"
-        };
-        return env;
+        if (useFormatCoverage) {
+            env = new String[] {
+                    "CASSANDRA_HOME=\"" + cassandraHome + "\"",
+                    "CASSANDRA_CONF=\"" + cassandraConf + "\"", javaToolOpts,
+                    "CQLSH_DAEMON_PORT=\"" + cqlshDaemonPort + "\"",
+                    "PYTHON=" + pythonVersion,
+                    "JAVA_HOME=" + jdkPath,
+                    "PATH=$JAVA_HOME/bin:$PATH",
+                    "ENABLE_FORMAT_COVERAGE=true"
+            };
+        } else {
+            env = new String[] {
+                    "CASSANDRA_HOME=\"" + cassandraHome + "\"",
+                    "CASSANDRA_CONF=\"" + cassandraConf + "\"", javaToolOpts,
+                    "CQLSH_DAEMON_PORT=\"" + cqlshDaemonPort + "\"",
+                    "PYTHON=" + pythonVersion,
+                    "JAVA_HOME=" + jdkPath,
+                    "PATH=$JAVA_HOME/bin:$PATH",
+                    "ENABLE_FORMAT_COVERAGE=false"
+            };
+        }
+        setEnvironment();
     }
 
     @Override
@@ -167,32 +179,9 @@ public class CassandraDocker extends Docker {
                 + type + "-" + index +
                 "\"";
 
-        String pythonVersion = "python2";
-        String jdkPath = "/usr/local/openjdk-8/";
-
-        String[] spStrings = originalVersion.split("-");
-        try {
-            int main_version = Integer
-                    .parseInt(spStrings[spStrings.length - 1].substring(0, 1));
-            logger.debug("[HKLOG] original main version = " + main_version);
-            if (main_version > 3)
-                pythonVersion = "python3";
-            if (main_version >= 5)
-                jdkPath = "/usr/lib/jvm/java-11-openjdk-amd64";
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        env = new String[] {
-                "CASSANDRA_HOME=\"" + cassandraHome + "\"",
-                "CASSANDRA_CONF=\"" + cassandraConf + "\"", javaToolOpts,
-                "CQLSH_DAEMON_PORT=\"" + cqlshDaemonPort + "\"",
-                "PYTHON=" + pythonVersion,
-                "JAVA_HOME=" + jdkPath,
-                "PATH=$JAVA_HOME/bin:$PATH"
-        };
-
-        setEnvironment();
+        // Only enable format coverage before version change
+        handleEnv(originalVersion, cassandraHome, cassandraConf,
+                Config.getConf().useFormatCoverage);
 
         // Copy the cassandra-ori.yaml and cassandra-up.yaml
         if (configPath != null) {
@@ -259,33 +248,10 @@ public class CassandraDocker extends Docker {
                 "\"";
         cqlshDaemonPort ^= 1;
 
-        String pythonVersion = "python2";
-        String jdkPath = "/usr/local/openjdk-8/";
-
-        String[] spStrings = upgradedVersion.split("-");
-        try {
-            int main_version = Integer
-                    .parseInt(spStrings[spStrings.length - 1].substring(0, 1));
-            if (main_version > 3)
-                pythonVersion = "python3";
-            if (main_version >= 5)
-                jdkPath = "/usr/lib/jvm/java-11-openjdk-amd64";
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        env = new String[] {
-                "CASSANDRA_HOME=\"" + cassandraHome + "\"",
-                "CASSANDRA_CONF=\"" + cassandraConf + "\"", javaToolOpts,
-                "CQLSH_DAEMON_PORT=\"" + cqlshDaemonPort + "\"",
-                "PYTHON=" + pythonVersion,
-                "JAVA_HOME=" + jdkPath,
-                "PATH=$JAVA_HOME/bin:$PATH"
-        };
-        setEnvironment();
+        handleEnv(upgradedVersion, cassandraHome, cassandraConf, false);
     }
 
-    @Override
-    public void downgrade() throws Exception {
+    public void prepareDowngradeEnv() throws IOException {
         type = "original";
         String cassandraHome;
         String cassandraConf;
@@ -306,82 +272,39 @@ public class CassandraDocker extends Docker {
                 "\"";
         cqlshDaemonPort ^= 1;
 
-        String pythonVersion = "python2";
-        String jdkPath = "/usr/local/openjdk-8/";
-        logger.info("Downgrading from original version: " + originalVersion);
+        // Special for version delta
+        String curVersion = (!Config.getConf().useVersionDelta)
+                ? originalVersion
+                : upgradedVersion;
+        logger.info("Downgrading to: " + curVersion);
+        handleEnv(curVersion, cassandraHome, cassandraConf, false);
+    }
 
-        String[] spStrings = (!Config.getConf().useVersionDelta)
-                ? originalVersion.split("-")
-                : upgradedVersion.split("-");
+    @Override
+    public void downgrade() throws Exception {
+        prepareDowngradeEnv();
 
-        try {
-            int main_version = Integer
-                    .parseInt(spStrings[spStrings.length - 1].substring(0, 1));
-            logger.debug("[HKLOG] original main version = " + main_version);
-            if (main_version > 3)
-                pythonVersion = "python3";
-            if (main_version >= 5)
-                jdkPath = "/usr/lib/jvm/java-11-openjdk-amd64";
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // Why removing the data??? Now make sense
+        // String removeCassandraLibCommand = "rm -R /var/lib/cassandra";
+        // // TODO remove the env arguments, we already have /usr/bin/set_env
+        // if (Integer.parseInt(
+        // spStrings[spStrings.length - 1].substring(0, 1)) == 2) {
+        // Process removeCassandraLib = runInContainer(
+        // new String[] { "/bin/bash", "-c",
+        // removeCassandraLibCommand });
+        // removeCassandraLib.waitFor();
+        // logger.info(
+        // "[HKLOG] /var/lib/cassandra removed successfully, now the daemon
+        // should start");
+        // }
 
-        env = new String[] {
-                "CASSANDRA_HOME=\"" + cassandraHome + "\"",
-                "CASSANDRA_CONF=\"" + cassandraConf + "\"", javaToolOpts,
-                "CQLSH_DAEMON_PORT=\"" + cqlshDaemonPort + "\"",
-                "PYTHON=" + pythonVersion,
-                "JAVA_HOME=" + jdkPath,
-                "PATH=$JAVA_HOME/bin:$PATH"
-        };
-
-        setEnvironment();
-
-        String removeCassandraLibCommand = "rm -R /var/lib/cassandra";
         String restartCommand = "/usr/bin/supervisorctl restart upfuzz_cassandra:";
-        // TODO remove the env arguments, we already have /usr/bin/set_env
-        if (Integer.parseInt(
-                spStrings[spStrings.length - 1].substring(0, 1)) == 2) {
-            Process removeCassandraLib = runInContainer(
-                    new String[] { "/bin/bash", "-c",
-                            removeCassandraLibCommand });
-            removeCassandraLib.waitFor();
-            logger.info(
-                    "[HKLOG] /var/lib/cassandra removed successfully, now the daemon should start");
-        }
         Process restart = runInContainer(
                 new String[] { "/bin/bash", "-c", restartCommand }, env);
         int ret = restart.waitFor();
         String message = Utilities.readProcess(restart);
         logger.debug("downgrade version start: " + ret + "\n" + message);
         cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort, this);
-    }
-
-    public boolean invChecker() throws IOException, InterruptedException {
-        // use daikon checker to monitor invariants
-        String checkInvCmd = "java -cp /daikon.jar daikon.tools.InvariantChecker --verbose --output /broken_inv /targetInv.inv.gz /CassandraDaemon.dtrace.gz";
-        Process checkInvProcess = runInContainer(
-                new String[] { "/bin/bash", "-c", checkInvCmd });
-        checkInvProcess.waitFor();
-        String message = Utilities.readProcess(checkInvProcess);
-
-        String regexPattern = "(\\d+)\\s+errors";
-
-        Pattern pattern = Pattern.compile(regexPattern);
-        Matcher matcher = pattern.matcher(message);
-
-        if (matcher.find()) {
-            String res = matcher.group();
-            logger.info("find res = " + res);
-            String[] strs = res.split(" ");
-            if (strs.length == 2) {
-                int errorNum = Integer.valueOf(strs[0]);
-                logger.info("error num = " + res);
-                if (errorNum > 0)
-                    return true;
-            }
-        }
-        return false;
     }
 
     @Override
@@ -495,7 +418,6 @@ public class CassandraDocker extends Docker {
             + "            - CASSANDRA_LOGGING_LEVEL=DEBUG\n"
             + "            - CQLSH_HOST=${networkIP}\n"
             + "            - CASSANDRA_LOG_DIR=/var/log/cassandra\n"
-            + "            - ENABLE_FORMAT_COVERAGE=${collectFormatCoverage}\n"
             + "        expose:\n"
             + "            - ${agentPort}\n"
             + "            - 7000\n"

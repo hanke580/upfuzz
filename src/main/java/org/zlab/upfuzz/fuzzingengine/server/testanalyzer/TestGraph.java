@@ -3,7 +3,8 @@ package org.zlab.upfuzz.fuzzingengine.server.testanalyzer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.Config;
-import org.zlab.upfuzz.fuzzingengine.server.testtracker.TestTrackerNode;
+import org.zlab.upfuzz.fuzzingengine.server.testtracker.BaseNode;
+import org.zlab.upfuzz.fuzzingengine.server.testtracker.TestTrackerUpgradeNode;
 
 import java.io.*;
 import java.nio.file.DirectoryStream;
@@ -13,6 +14,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 /**
+ * == Offline analysis ==
  * Graph for the seed evolution
  */
 public class TestGraph implements Serializable {
@@ -63,9 +65,13 @@ public class TestGraph implements Serializable {
                 if (i % 1000 == 0)
                     System.out.println("Processing file: " + file.getName());
                 try {
-                    TestTrackerNode testTrackerNode = TestTrackerNode
+                    BaseNode baseNode = BaseNode
                             .deserializeNodeFromDisk(file);
-                    addNode(testTrackerNode);
+
+                    // Currently Only Support TestTrackerNode
+                    // TODO: support version delta node
+
+                    addNode((TestTrackerUpgradeNode) baseNode);
                 } catch (Exception e) {
                     logger.error(
                             "Error loading graph file: " + file.getName() + " "
@@ -89,14 +95,14 @@ public class TestGraph implements Serializable {
         }
     }
 
-    public void addNode(TestTrackerNode testTrackerNode) {
-        TestNode node = new TestNode(testTrackerNode);
-        if (node.pNodeId == -1)
+    public void addNode(BaseNode baseNode) {
+        TestNode node = new TestNode(baseNode);
+        if (baseNode.pNodeId == -1)
             rootNodes.add(node);
-        nodeMap.put(node.nodeId, node);
+        nodeMap.put(baseNode.nodeId, node);
 
         // double pointer
-        TestNode pNode = nodeMap.get(node.pNodeId);
+        TestNode pNode = nodeMap.get(baseNode.pNodeId);
         if (pNode != null) {
             pNode.addChild(node);
         }
@@ -110,15 +116,13 @@ public class TestGraph implements Serializable {
 
     private void printNode(TestNode node, String prefix, BufferedWriter writer)
             throws IOException {
-        if (node.newOldVersionBranchCoverage || node.newNewVersionBranchCoverage
-                || node.newFormatCoverage)
-            writer.write(prefix + node.nodeId
-                    + ": NOVC = " + node.newOldVersionBranchCoverage
-                    + ", NNVC = " + node.newNewVersionBranchCoverage
-                    + ", NFC = " + node.newFormatCoverage
+
+        if (node.baseNode.hasNewCoverage())
+            writer.write(prefix + node.baseNode.nodeId + ":"
+                    + node.baseNode.printCovInfo()
                     + "\n");
         else
-            writer.write(prefix + node.nodeId + "\n");
+            writer.write(prefix + node.baseNode.nodeId + "\n");
 
         List<TestNode> children = node.getChildren();
         if (children != null && !children.isEmpty()) {

@@ -1,27 +1,19 @@
 package org.zlab.upfuzz.fuzzingengine.server.testanalyzer;
 
-import org.zlab.upfuzz.fuzzingengine.server.testtracker.TestTrackerNode;
+import org.zlab.upfuzz.fuzzingengine.server.testtracker.BaseNode;
+import org.zlab.upfuzz.fuzzingengine.server.testtracker.TestTrackerUpgradeNode;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class TestNode extends TestTrackerNode {
+public class TestNode {
 
     private List<TestNode> children = new ArrayList<>();
 
-    public TestNode(int nodeId, int pNodeId, List<String> writeCommands,
-            List<String> readCommands, int configId) {
-        super(nodeId, pNodeId, writeCommands, readCommands, configId);
-    }
+    public BaseNode baseNode;
 
-    public TestNode(TestTrackerNode testTrackerNode) {
-        super(testTrackerNode.nodeId, testTrackerNode.pNodeId,
-                testTrackerNode.writeCommands, testTrackerNode.readCommands,
-                testTrackerNode.configId);
-        // this.newCoverage = testTrackerNode.newCoverage;
-        this.newOldVersionBranchCoverage = testTrackerNode.newOldVersionBranchCoverage;
-        this.newNewVersionBranchCoverage = testTrackerNode.newNewVersionBranchCoverage;
-        this.newFormatCoverage = testTrackerNode.newFormatCoverage;
+    public TestNode(BaseNode baseNode) {
+        this.baseNode = baseNode;
     }
 
     public List<TestNode> getChildren() {
