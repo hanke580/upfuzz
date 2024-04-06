@@ -169,20 +169,7 @@ public class FuzzingServer {
 
     // Calculate cumulative probabilities
     double[] cumulativeSeedChoiceProbabilities = new double[6];
-
-    double newCovAfterUpgSeedChoiceProb;
-    double newCovAfterDowngSeedChoiceProb;
-    double branchDeltaSeedChoiceProb;
-    double formatDeltaSeedChoiceProb;
-    double branchCovSeedChoiceProb;
-    double formatCovSeedChoiceProb;
-
     double[] cumulativeTestChoiceProbabilities = new double[4];
-
-    double branchCovProbability;
-    double formatCovProbability;
-    double branchVersionDeltaProbability;
-    double formatVersionDeltaProbability;
 
     Set<Integer> mutatedSeedIds = new HashSet<>();
     Set<Integer> insignificantInconsistenciesIn = new HashSet<>();
@@ -196,6 +183,7 @@ public class FuzzingServer {
     List<Integer> onlyNewFormatCoverageInducedTpIds = new ArrayList<>();
     List<Integer> newCoverageAfterUpgradeInducedTpIds = new ArrayList<>();
     List<Integer> newCoverageAfterDowngradeInducedTpIds = new ArrayList<>();
+
     List<Integer> nonInterestingTpIds = new ArrayList<>();
 
     public FuzzingServer() {
@@ -259,21 +247,6 @@ public class FuzzingServer {
         startTime = TimeUnit.SECONDS.convert(System.nanoTime(),
                 TimeUnit.NANOSECONDS);
 
-        branchCovProbability = Config.getConf().branchCoverageChoiceProb;
-        formatCovProbability = Config.getConf().formatCoverageChoiceProb;
-        branchVersionDeltaProbability = Config
-                .getConf().branchVersionDeltaChoiceProb;
-        formatVersionDeltaProbability = Config
-                .getConf().formatVersionDeltaChoiceProb;
-
-        branchCovSeedChoiceProb = Config.getConf().branchCovSeedChoiceProb;
-        formatCovSeedChoiceProb = Config.getConf().formatCovSeedChoiceProb;
-        branchDeltaSeedChoiceProb = Config.getConf().branchDeltaSeedChoiceProb;
-        formatDeltaSeedChoiceProb = Config.getConf().formatDeltaSeedChoiceProb;
-        newCovAfterUpgSeedChoiceProb = Config
-                .getConf().branchCovAfterUpgSeedChoiceProb;
-        newCovAfterDowngSeedChoiceProb = Config
-                .getConf().branchCovAfterDowngSeedChoiceProb;
     }
 
     private void init() {
@@ -323,18 +296,28 @@ public class FuzzingServer {
         }
 
         seedChoiceProbabilities = new HashMap<>();
-        seedChoiceProbabilities.put(0, formatDeltaSeedChoiceProb);
-        seedChoiceProbabilities.put(1, branchDeltaSeedChoiceProb);
-        seedChoiceProbabilities.put(2, formatCovSeedChoiceProb);
-        seedChoiceProbabilities.put(3, branchCovSeedChoiceProb);
-        seedChoiceProbabilities.put(4, newCovAfterUpgSeedChoiceProb);
-        seedChoiceProbabilities.put(5, newCovAfterUpgSeedChoiceProb);
+        seedChoiceProbabilities.put(0,
+                Config.getConf().formatDeltaSeedChoiceProb);
+        seedChoiceProbabilities.put(1,
+                Config.getConf().branchDeltaSeedChoiceProb);
+        seedChoiceProbabilities.put(2,
+                Config.getConf().formatCovSeedChoiceProb);
+        seedChoiceProbabilities.put(3,
+                Config.getConf().branchCovSeedChoiceProb);
+        seedChoiceProbabilities.put(4,
+                Config.getConf().branchCovAfterUpgSeedChoiceProb);
+        seedChoiceProbabilities.put(5,
+                Config.getConf().branchCovAfterDowngSeedChoiceProb);
 
         testChoiceProbabilities = new HashMap<>();
-        testChoiceProbabilities.put(0, formatVersionDeltaProbability);
-        testChoiceProbabilities.put(1, branchVersionDeltaProbability);
-        testChoiceProbabilities.put(2, formatCovProbability);
-        testChoiceProbabilities.put(3, branchCovProbability);
+        testChoiceProbabilities.put(0,
+                Config.getConf().formatVersionDeltaChoiceProb);
+        testChoiceProbabilities.put(1,
+                Config.getConf().branchVersionDeltaChoiceProb);
+        testChoiceProbabilities.put(2,
+                Config.getConf().formatCoverageChoiceProb);
+        testChoiceProbabilities.put(3,
+                Config.getConf().branchCoverageChoiceProb);
 
         cumulativeSeedChoiceProbabilities[0] = seedChoiceProbabilities.get(0);
         for (int i = 1; i < seedChoiceProbabilities.keySet().size(); i++) {
@@ -505,11 +488,12 @@ public class FuzzingServer {
         // if (rand.nextDouble() < Config.getConf().getSeedFromCorpusRatio)
         // seed = corpus.getSeed();
         int corpusType = getSeedOrTestType(cumulativeSeedChoiceProbabilities);
-        if ((branchCovSeedChoiceProb > 0) || (formatCovSeedChoiceProb > 0)
-                || (branchDeltaSeedChoiceProb > 0)
-                || (formatDeltaSeedChoiceProb > 0)
-                || (newCovAfterUpgSeedChoiceProb > 0)
-                || (newCovAfterDowngSeedChoiceProb > 0)) {
+        if ((Config.getConf().branchCovSeedChoiceProb > 0)
+                || (Config.getConf().formatCovSeedChoiceProb > 0)
+                || (Config.getConf().branchDeltaSeedChoiceProb > 0)
+                || (Config.getConf().formatDeltaSeedChoiceProb > 0)
+                || (Config.getConf().branchCovAfterUpgSeedChoiceProb > 0)
+                || (Config.getConf().branchCovAfterDowngSeedChoiceProb > 0)) {
             if (Config.getConf().debug) {
                 logger.debug("[HKLOG] Chosen seed of coverage type: "
                         + (corpusType == 2 ? "version delta" : "format/code"));
