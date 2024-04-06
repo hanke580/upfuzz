@@ -68,7 +68,9 @@ public class TestTrackerGraph implements Serializable {
         // Runtime tracking, it removes the node from memory
         // long startTime = System.nanoTime();
 
-        assert !Config.getConf().useVersionDelta;
+        if (!Config.getConf().useVersionDelta)
+            throw new RuntimeException(
+                    "This function is only for non-version delta testing");
 
         BaseNode baseNode = nodeMap.get(nodeId);
         assert baseNode instanceof TestTrackerUpgradeNode;
@@ -119,7 +121,9 @@ public class TestTrackerGraph implements Serializable {
         // Runtime tracking, it removes the node from memory
         // long startTime = System.nanoTime();
 
-        assert Config.getConf().useVersionDelta;
+        if (!Config.getConf().useVersionDelta)
+            throw new RuntimeException(
+                    "This function is only for version delta testing");
 
         BaseNode baseNode = nodeMap.get(nodeId);
         assert baseNode instanceof TestTrackerVersionDeltaNode;

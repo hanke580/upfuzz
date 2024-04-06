@@ -2067,8 +2067,10 @@ public class FuzzingServer {
             System.out.println(versionDeltaFeedbackPacketUp.testPacketID);
             graph.updateNodeCoverage(versionDeltaFeedbackPacketUp.testPacketID,
                     newOldVersionBranchCoverageBeforeUpgrade,
+                    false,
                     newNewVersionBranchCoverageBeforeDowngrade,
-                    oriNewFormat);
+                    false,
+                    oriNewFormat, upNewFormat);
 
             if (addToCorpus) {
                 addSeedToCorpus(corpus, testID2Seed,
