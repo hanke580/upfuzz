@@ -233,11 +233,17 @@ public class Config {
         public double formatVersionDeltaChoiceProb = 0.0;
         public double branchCoverageChoiceProb = 0.3;
 
+        // Seeds that trigger new coverage before version change
         public double branchCovSeedChoiceProb = 0.1;
+        // Seeds that trigger new format before version change
         public double formatCovSeedChoiceProb = 0.15;
+        // Seeds that trigger version delta before version change
         public double branchDeltaSeedChoiceProb = 0.25;
+        // Seeds that trigger format delta before version change
         public double formatDeltaSeedChoiceProb = 0.3;
+        // Seeds that trigger new coverage after upgrade
         public double branchCovAfterUpgSeedChoiceProb = 0.1;
+        // Seeds that trigger new coverage after downgrade
         public double branchCovAfterDowngSeedChoiceProb = 0.1;
 
         /**
