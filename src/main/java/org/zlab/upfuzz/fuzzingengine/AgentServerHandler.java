@@ -82,8 +82,9 @@ public class AgentServerHandler
             // fileWriter.flush();
             // }
         } catch (final IOException e) {
+            logger.error("Error while handling agent connection: " + sessionId);
             e.printStackTrace();
-            // client.agentHandler.remove(sessionId);
+            executor.agentHandler.remove(sessionId);
         }
     }
 
