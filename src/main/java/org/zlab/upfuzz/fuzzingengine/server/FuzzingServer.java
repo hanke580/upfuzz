@@ -479,14 +479,8 @@ public class FuzzingServer {
 
     }
 
-    public void fuzzOne() {
-        // Pick one test case from the corpus, fuzz it for mutationEpoch
-        // Add the new tests into the stackedTestPackets
-        // All packets have been dispatched, now fuzz next seed
-
+    public Seed getSeedVersionDelta() {
         Seed seed = null;
-        // if (rand.nextDouble() < Config.getConf().getSeedFromCorpusRatio)
-        // seed = corpus.getSeed();
         int corpusType = getSeedOrTestType(cumulativeSeedChoiceProbabilities);
         if ((Config.getConf().branchCovSeedChoiceProb > 0)
                 || (Config.getConf().formatCovSeedChoiceProb > 0)
@@ -522,9 +516,24 @@ public class FuzzingServer {
                                     + corpusType);
                 }
             }
-        } else {
-            seed = null;
         }
+        return seed;
+    }
+
+    public void fuzzOne() {
+        // Pick one test case from the corpus, fuzz it for mutationEpoch
+        // Add the new tests into the stackedTestPackets
+        // All packets have been dispatched, now fuzz next seed
+
+        Seed seed = null;
+        if (Config.getConf().useVersionDelta) {
+            seed = getSeedVersionDelta();
+        } else {
+            // 95% to pick a seed, 5% generate a new one
+            if (rand.nextDouble() < Config.getConf().getSeedFromCorpusRatio)
+                seed = corpus.getSeed();
+        }
+
         round++;
         StackedTestPacket stackedTestPacket;
 
