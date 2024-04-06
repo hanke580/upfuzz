@@ -11,6 +11,7 @@ import csv
 import codecs
 import socket
 import tempfile
+import struct
 
 from six import StringIO
 
@@ -55,7 +56,14 @@ class TCPHandler(socketserver.BaseRequestHandler):
         # executing using subprocess
         try:
             while True:
-                self.data = self.request.recv(MESSAGE_SIZE).strip()
+                length_bytes = self.request.recv(4)
+                length = struct.unpack('>I', length_bytes)[0]
+                data = b''
+                while len(data) < length:
+                    packet = self.request.recv(length - len(data))
+                    data += packet
+                self.data = data.strip()
+
                 if not self.data:
                     print("stop current TCP")
                     output_file.write("stop current TCP\n")
@@ -152,7 +160,10 @@ class TCPHandler(socketserver.BaseRequestHandler):
                         "error": "message too large to send: here's the first 10000 Bytes:\n" + ret_err[:10000] + "\n..."
                     }
                     msg = json.dumps(resp).encode("ascii")
-                self.request.sendall(msg)
+
+                length_prefix = struct.pack('!I', len(msg))
+                self.request.sendall(length_prefix + msg)
+
         except Exception as e:
             print("exception1 pipe: " + str(e))
 

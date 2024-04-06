@@ -168,23 +168,9 @@ public class CassandraCqlshDaemon {
         }
 
         // Convert the command string to bytes to accurately measure its length
-        byte[] cmdBytes = cmd.getBytes(StandardCharsets.UTF_8);
-        int cmdLen = cmdBytes.length;
-        OutputStream os = socket.getOutputStream();
-        ByteBuffer buffer = ByteBuffer.allocate(4); // Integer.SIZE / Byte.SIZE
-        buffer.putInt(cmdLen);
-        byte[] lengthBytes = buffer.array();
-        os.write(lengthBytes);
-        os.write(cmdBytes);
-
-        // Make sure to flush the output stream to ensure data is sent
-        os.flush();
-
-        DataInputStream dis = new DataInputStream(socket.getInputStream());
-        int readLength = dis.readInt();
-        byte[] messageBytes = new byte[readLength];
-        dis.readFully(messageBytes);
-        String cqlshMessage = new String(messageBytes);
+        Utilities.serializeSingleCommand(cmd, socket.getOutputStream());
+        String cqlshMessage = Utilities.deserializeSingleCommandResult(
+                new DataInputStream(socket.getInputStream()));
 
         // Convert JSON string back to object
         Gson gson = new GsonBuilder().setLenient().create();

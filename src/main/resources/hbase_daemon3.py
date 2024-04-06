@@ -11,12 +11,14 @@ import csv
 import codecs
 import socket
 import tempfile
+import struct
 
 from six import StringIO
 
 import os
 from subprocess import Popen, PIPE
 
+MESSAGE_SIZE = 51200
 
 output_file = open('/var/log/supervisor/hbase_daemon.log', 'a', encoding='utf-8')
 output_file.write("test\n")
@@ -54,7 +56,14 @@ class TCPHandler(socketserver.BaseRequestHandler):
         # executing using subprocess
         try:
             while True:
-                self.data = self.request.recv(51200).strip()
+                length_bytes = self.request.recv(4)
+                length = struct.unpack('>I', length_bytes)[0]
+                data = b''
+                while len(data) < length:
+                    packet = self.request.recv(length - len(data))
+                    data += packet
+                self.data = data.strip()
+
                 if not self.data:
                     print("stop current TCP")
                     output_file.write("stop current TCP\n")
@@ -140,7 +149,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
 
                 # Handle message exceeding limit problem
                 msg = json.dumps(resp).encode("ascii")
-                if len(msg) > 51200:
+                if len(msg) > MESSAGE_SIZE:
                     # Create a error resp
                     print("Message too large to send!")
                     resp = {
@@ -151,7 +160,10 @@ class TCPHandler(socketserver.BaseRequestHandler):
                         "error": "message too large to send: here's the first 10000 Bytes:\n" + ret_err[:10000] + "\n..."
                     }
                     msg = json.dumps(resp).encode("ascii")
-                self.request.sendall(msg)
+
+                length_prefix = struct.pack('!I', len(msg))
+                self.request.sendall(length_prefix + msg)
+
         except Exception as e:
             print("exception1 pipe: " + str(e))
 

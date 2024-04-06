@@ -125,7 +125,7 @@ public class HdfsDocker extends Docker {
                 + "=append=false"
                 + ",includes=" + includes + ",excludes=" + excludes +
                 ",output=dfe,address=" + hostIP + ",port=" + agentPort +
-                ",weights=" + hdfsHome + "/diff_func.txt" +
+                // ",weights=" + hdfsHome + "/diff_func.txt" +
                 ",sessionid=" + system + "-" + executorID + "_"
                 + type + "-" + index +
                 "\"";
@@ -181,7 +181,7 @@ public class HdfsDocker extends Docker {
                 + "=append=false"
                 + ",includes=" + includes + ",excludes=" + excludes +
                 ",output=dfe,address=" + hostIP + ",port=" + agentPort +
-                ",weights=" + hdfsHome + "/diff_func.txt" +
+                // ",weights=" + hdfsHome + "/diff_func.txt" +
                 ",sessionid=" + system + "-" + executorID + "_"
                 + type + "-" + index +
                 "\"";
@@ -241,7 +241,7 @@ public class HdfsDocker extends Docker {
                 + "=append=false"
                 + ",includes=" + includes + ",excludes=" + excludes +
                 ",output=dfe,address=" + hostIP + ",port=" + agentPort +
-                ",weights=" + hdfsHome + "/diff_func.txt" +
+                // ",weights=" + hdfsHome + "/diff_func.txt" +
                 ",sessionid=" + system + "-" + executorID + "_"
                 + type + "-" + index +
                 "\"";

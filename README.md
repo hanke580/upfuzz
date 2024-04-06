@@ -618,3 +618,6 @@ launch_service()
 * [cqlsh_daemon5.py](src/main/resources/cqlsh_daemon5.py): 5.0-beta
 
 ### hdfs daemon to version
+* FsShellDaemon2.java: hadoop-2.10.2
+* FsShellDaemon3.java: ?
+* FsShellDaemon_trunk.java: hadoop-3.3.6
