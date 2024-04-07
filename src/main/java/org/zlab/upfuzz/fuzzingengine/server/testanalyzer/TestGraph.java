@@ -4,7 +4,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.server.testtracker.BaseNode;
-import org.zlab.upfuzz.fuzzingengine.server.testtracker.TestTrackerUpgradeNode;
 
 import java.io.*;
 import java.nio.file.DirectoryStream;
@@ -71,7 +70,7 @@ public class TestGraph implements Serializable {
                     // Currently Only Support TestTrackerNode
                     // TODO: support version delta node
 
-                    addNode((TestTrackerUpgradeNode) baseNode);
+                    addNode(baseNode);
                 } catch (Exception e) {
                     logger.error(
                             "Error loading graph file: " + file.getName() + " "

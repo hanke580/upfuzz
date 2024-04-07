@@ -66,6 +66,11 @@ public class Config {
         // -------------- GC --------------
         public int gcInterval = 5; // minutes
 
+        // ------------ Corpus ------------
+        /**
+         * 0: 6 queues (reuse bishal's implementation)
+         * 1: 4 queues (ke's implementation)
+         */
         // ------------ Input Generation ------------
         // Debug use the same command sequence
         public boolean useFixedCommand = false;
@@ -208,7 +213,10 @@ public class Config {
         // whether to use format coverage to guide the test (add to corpus)
         // If disabled, we also won't collect format coverage
         public boolean useFormatCoverage = false;
-        public double formatCoverageChoiceProb = 0.8;
+
+        // NonVerisonDeltaMode
+        // 70% fuzz FC, 30% fuzz BC
+        public double FC_CorpusNonVersionDelta = 0.7;
 
         public int formatCoveragePort = 62000;
 
@@ -225,14 +233,20 @@ public class Config {
 
         public int versionDeltaApproach = 1;
 
-        // Single group mechanism: versionDeltaApproach = 1
-        // public boolean skipUpgradeOrDowngrade = false;
+        // Approach 1: Four Queue Implementation
+        public double BC_VD_PROB_CorpusVersionDeltaFourQueue = 0.2;
+        public double BC_PROB_CorpusVersionDeltaFourQueue = 0.1;
+        public double FC_VD_PROB_CorpusVersionDeltaFourQueue = 0.4;
+        public double FC_PROB_CorpusVersionDeltaFourQueue = 0.3;
 
-        // Probabilities for different choices
+        // Approach 2: Six Queue Implementation
+        // Group1
         public double branchVersionDeltaChoiceProb = 0.7;
         public double formatVersionDeltaChoiceProb = 0.0;
         public double branchCoverageChoiceProb = 0.3;
+        public double formatCoverageChoiceProb = 0.8;
 
+        // Group2
         // Seeds that trigger new coverage before version change
         public double branchCovSeedChoiceProb = 0.1;
         // Seeds that trigger new format before version change

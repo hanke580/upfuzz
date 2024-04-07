@@ -1038,4 +1038,16 @@ public class Utilities {
         return new String(messageBytes);
     }
 
+    public static int pickWeightedRandomChoice(double[] cumulativeProbabilities,
+            double r) {
+        // Determine which choice to pick
+        for (int i = 0; i < cumulativeProbabilities.length; i++) {
+            if (r <= cumulativeProbabilities[i]) {
+                return i;
+            }
+        }
+        // Fallback (should never happen if probabilities sum to 1)
+        assert false : "the accumulated probability should sum to 1.0.";
+        return cumulativeProbabilities.length - 1;
+    }
 }

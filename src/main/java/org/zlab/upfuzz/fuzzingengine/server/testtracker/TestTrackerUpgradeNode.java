@@ -5,6 +5,8 @@ import java.nio.file.Path;
 import java.util.List;
 
 public class TestTrackerUpgradeNode extends BaseNode {
+    private static final long serialVersionUID = 20240407L;
+
     private boolean newOriBC = false;
     private boolean newUpBC = false;
     private boolean newFC = false;

@@ -13,10 +13,7 @@ import org.zlab.upfuzz.cassandra.CassandraConfigGen;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.docker.DockerCluster;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPlanPacket;
-import org.zlab.upfuzz.fuzzingengine.server.Corpus;
-import org.zlab.upfuzz.fuzzingengine.server.FullStopSeed;
-import org.zlab.upfuzz.fuzzingengine.server.FuzzingServer;
-import org.zlab.upfuzz.fuzzingengine.server.Seed;
+import org.zlab.upfuzz.fuzzingengine.server.*;
 import org.zlab.upfuzz.fuzzingengine.configgen.ConfigGen;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
@@ -148,11 +145,11 @@ public class FuzzingServerTest extends AbstractTest {
         assert seed1 != null;
         assert seed2 != null;
 
-        Corpus corpus = new Corpus();
-        corpus.addSeed(seed1,
-                Corpus.QueueType.BRANCH_COVERAGE_BEFORE_VERSION_CHANGE);
-        corpus.addSeed(seed2,
-                Corpus.QueueType.BRANCH_COVERAGE_BEFORE_VERSION_CHANGE);
+        Config.instance.formatCoverageChoiceProb = 0;
+
+        CorpusDefault corpus = new CorpusDefault();
+        corpus.addSeed(seed1, true, false, false);
+        corpus.addSeed(seed2, true, false, false);
 
         assert corpus.getSeed() == seed1;
         assert corpus.getSeed() == seed2;
@@ -179,10 +176,8 @@ public class FuzzingServerTest extends AbstractTest {
         Method initMethod = FuzzingServer.class.getDeclaredMethod("init");
         initMethod.setAccessible(true);
         initMethod.invoke(fuzzingServer);
-        fuzzingServer.corpus.addSeed(seed1,
-                Corpus.QueueType.BRANCH_COVERAGE_BEFORE_VERSION_CHANGE);
+        fuzzingServer.corpus.addSeed(seed1, true, false, false);
         fuzzingServer.fuzzOne();
-
     }
 
 //    @Test

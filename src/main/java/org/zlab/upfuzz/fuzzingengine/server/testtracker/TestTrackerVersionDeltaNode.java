@@ -7,12 +7,14 @@ import java.nio.file.Path;
 import java.util.List;
 
 public class TestTrackerVersionDeltaNode extends BaseNode {
+    private static final long serialVersionUID = 20240407L;
+
     private boolean newOriBC;
     private boolean newUpBCAfterUpgrade;
     private boolean newUpBC;
     private boolean newOriBCAfterDowngrade;
     private boolean newOriFC;
-    private boolean newUpF;
+    private boolean newUpFC;
 
     public TestTrackerVersionDeltaNode(int nodeId, int pNodeId,
             List<String> writeCommands,
@@ -23,7 +25,7 @@ public class TestTrackerVersionDeltaNode extends BaseNode {
     @Override
     public boolean hasNewCoverage() {
         return newOriBC || newUpBCAfterUpgrade || newUpBC
-                || newOriBCAfterDowngrade || newOriFC || newUpF;
+                || newOriBCAfterDowngrade || newOriFC || newUpFC;
     }
 
     @Override
@@ -34,7 +36,7 @@ public class TestTrackerVersionDeltaNode extends BaseNode {
                 + newUpBCAfterUpgrade + ", " +
                 "newUpBC: " + newUpBC + ", " + "newOriBCAfterDowngrade: "
                 + newOriBCAfterDowngrade + ", " +
-                "newOriFC: " + newOriFC + ", " + "newUpF: " + newUpF + ", ";
+                "newOriFC: " + newOriFC + ", " + "newUpF: " + newUpFC + ", ";
     }
 
     public void updateCoverage(boolean newOriBC, boolean newUpBCAfterUpgrade,
@@ -45,7 +47,7 @@ public class TestTrackerVersionDeltaNode extends BaseNode {
         this.newUpBC = newUpBC;
         this.newOriBCAfterDowngrade = newOriBCAfterDowngrade;
         this.newOriFC = newOriFC;
-        this.newUpF = newUpF;
+        this.newUpFC = newUpF;
     }
 
     @Override
@@ -61,7 +63,7 @@ public class TestTrackerVersionDeltaNode extends BaseNode {
                         + newOriBCAfterDowngrade
                         + "\n");
         coverageInfoBuilder.append(
-                "newOriFC: " + newOriFC + ", newUpF: " + newUpF + "\n");
+                "newOriFC: " + newOriFC + ", newUpF: " + newUpFC + "\n");
         return coverageInfoBuilder.toString() + basicInfo;
     }
 
