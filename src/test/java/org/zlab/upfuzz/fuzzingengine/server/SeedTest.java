@@ -6,7 +6,7 @@ import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.cassandra.CassandraCommandPool;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.fuzzingengine.Config;
-import org.zlab.upfuzz.fuzzingengine.server.Corpus.QueueType;
+import org.zlab.upfuzz.fuzzingengine.server.CorpusVersionDeltaSixQueue.QueueType;
 
 public class SeedTest extends AbstractTest {
     @Test
@@ -16,9 +16,9 @@ public class SeedTest extends AbstractTest {
         Seed seed1 = generateSeed(commandPool, CassandraState.class, -1);
         Seed seed2 = generateSeed(commandPool, CassandraState.class, -1);
 
-        Corpus corpus = new Corpus();
-        corpus.addSeed(seed1, QueueType.BRANCH_COVERAGE_BEFORE_VERSION_CHANGE);
-        corpus.addSeed(seed2, QueueType.BRANCH_COVERAGE_BEFORE_VERSION_CHANGE);
+        CorpusDefault corpus = new CorpusDefault();
+        corpus.addSeed(seed1, false, false, true);
+        corpus.addSeed(seed2, false, false, true);
 
         assert corpus.getSeed().equals(seed1);
         assert corpus.getSeed().equals(seed2);

@@ -66,6 +66,14 @@ public class Config {
         // -------------- GC --------------
         public int gcInterval = 5; // minutes
 
+        // ------------ Corpus ------------
+        /**
+         * 0: 6 queues (reuse bishal's implementation)
+         * 1: 4 queues (ke's implementation)
+         */
+
+        public int versionDeltaCorpusChoice = 0;
+
         // ------------ Input Generation ------------
         // Debug use the same command sequence
         public boolean useFixedCommand = false;
