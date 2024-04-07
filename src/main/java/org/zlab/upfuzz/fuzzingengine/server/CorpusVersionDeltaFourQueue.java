@@ -1,5 +1,7 @@
 package org.zlab.upfuzz.fuzzingengine.server;
 
+import org.zlab.upfuzz.fuzzingengine.Config;
+
 public class CorpusVersionDeltaFourQueue extends Corpus {
     /**
      * 0: FC-VD: 40%
@@ -8,7 +10,11 @@ public class CorpusVersionDeltaFourQueue extends Corpus {
      * 3: BC: 15%
      */
     public CorpusVersionDeltaFourQueue() {
-        super(4, new double[] { 0.4, 0.2, 0.25, 0.15 });
+        super(4, new double[] {
+                Config.getConf().FC_VD_PROB_CorpusVersionDeltaFourQueue,
+                Config.getConf().FC_PROB_CorpusVersionDeltaFourQueue,
+                Config.getConf().BC_VD_PROB_CorpusVersionDeltaFourQueue,
+                Config.getConf().BC_PROB_CorpusVersionDeltaFourQueue });
     }
 
     private enum QueueType {

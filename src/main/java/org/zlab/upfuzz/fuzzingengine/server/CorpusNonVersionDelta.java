@@ -4,12 +4,13 @@ import org.zlab.upfuzz.fuzzingengine.Config;
 
 public class CorpusNonVersionDelta extends Corpus {
     /**
+     * Suppose FC is enabled
      * 1: FC: 80%
      * 3: BC: 20%
      */
     public CorpusNonVersionDelta() {
-        super(2, new double[] { Config.getConf().formatCoverageChoiceProb,
-                1 - Config.getConf().formatCoverageChoiceProb });
+        super(2, new double[] { Config.getConf().FC_CorpusNonVersionDelta,
+                1 - Config.getConf().FC_CorpusNonVersionDelta });
         assert Config.getConf().useFormatCoverage;
     }
 
