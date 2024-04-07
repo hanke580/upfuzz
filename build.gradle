@@ -176,7 +176,7 @@ task analyzeTestGraph(type: JavaExec) {
 }
 
 task printNode(type: JavaExec) {
-	mainClass.set('org.zlab.upfuzz.fuzzingengine.server.testtracker.TestTrackerNode')
+	mainClass.set('org.zlab.upfuzz.fuzzingengine.server.testtracker.BaseNode')
 	classpath = sourceSets.main.runtimeClasspath
 
 	// Use the filename property directly if available
