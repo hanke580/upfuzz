@@ -59,7 +59,7 @@ public class CorpusVersionDeltaSixQueue extends Corpus {
             boolean newOriFC, boolean newUpFC, boolean newBCAfterUpgrade,
             boolean newBCAfterDowngrade) {
         // TODO
-        // Currently, this class is not well wrapped
+        throw new RuntimeException("Not implemented yet");
     }
 
     @Override
@@ -67,7 +67,7 @@ public class CorpusVersionDeltaSixQueue extends Corpus {
         // Print all six queues
         for (int i = 0; i < cycleQueues.length; i++) {
             System.out.format("|%30s|%30s|%30s|%30s|\n",
-                    QueueType.values()[i],
+                    "QueueType : " + QueueType.values()[i],
                     "queue size : "
                             + cycleQueues[i].size(),
                     "index : "

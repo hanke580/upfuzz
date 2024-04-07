@@ -41,6 +41,12 @@ public abstract class Corpus implements ICorpus {
     }
 
     public Seed getSeed() {
+        // Not support CorpusVersionDetlaSixQueue
+        // if current class is CorpusVersionDetlaSixQueue, throw exception
+        if (this instanceof CorpusVersionDeltaSixQueue) {
+            throw new RuntimeException(
+                    "CorpusVersionDeltaSixQueue does not support getSeed()");
+        }
         if (cumulativeProbabilities.length != cycleQueues.length) {
             throw new RuntimeException(
                     "cumulativeProbabilities and cycleQueues have different lengths");

@@ -35,7 +35,7 @@ public class CorpusNonVersionDelta extends Corpus {
         // Print all queues
         for (int i = 0; i < cycleQueues.length; i++) {
             System.out.format("|%30s|%30s|%30s|%30s|\n",
-                    QueueType.values()[i],
+                    "QueueType : " + QueueType.values()[i],
                     "queue size : "
                             + cycleQueues[i].size(),
                     "index : "

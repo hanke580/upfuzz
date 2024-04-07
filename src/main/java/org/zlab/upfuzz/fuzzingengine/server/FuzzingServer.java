@@ -160,13 +160,6 @@ public class FuzzingServer {
 
     TestTrackerGraph graph = new TestTrackerGraph();
 
-    // ----------------- Evaluation -----------------
-    /**
-     * We start mutate boundary config after 20 tests, see what will happen,
-     * use fixed command sequence
-     */
-    public static boolean startMutateBoundaryConfig = false;
-
     // Calculate cumulative probabilities
     double[] cumulativeSeedChoiceProbabilities = new double[6];
     double[] cumulativeTestChoiceProbabilities = new double[4];
@@ -181,14 +174,12 @@ public class FuzzingServer {
     List<Integer> formatVersionDeltaInducedTpIds = new ArrayList<>();
     List<Integer> onlyNewBranchCoverageInducedTpIds = new ArrayList<>();
     List<Integer> onlyNewFormatCoverageInducedTpIds = new ArrayList<>();
-    List<Integer> newCoverageAfterUpgradeInducedTpIds = new ArrayList<>();
-    List<Integer> newCoverageAfterDowngradeInducedTpIds = new ArrayList<>();
 
     List<Integer> nonInterestingTpIds = new ArrayList<>();
 
     public FuzzingServer() {
         if (Config.getConf().useVersionDelta) {
-            if (Config.getConf().versionDeltaCorpusChoice == 0) {
+            if (Config.getConf().versionDeltaApproach == 2) {
                 corpus = new CorpusVersionDeltaSixQueue();
             } else {
                 corpus = new CorpusVersionDeltaFourQueue();
@@ -540,9 +531,13 @@ public class FuzzingServer {
 
         Seed seed = null;
         if (Config.getConf().useVersionDelta) {
-            seed = getSeedVersionDelta((CorpusVersionDeltaSixQueue) corpus,
-                    cumulativeSeedChoiceProbabilities,
-                    seedChoiceProbabilities);
+            if (Config.getConf().versionDeltaApproach == 2) {
+                seed = getSeedVersionDelta((CorpusVersionDeltaSixQueue) corpus,
+                        cumulativeSeedChoiceProbabilities,
+                        seedChoiceProbabilities);
+            } else {
+                seed = corpus.getSeed();
+            }
         } else {
             // 95% to pick a seed, 5% generate a new one
             if (rand.nextDouble() < Config.getConf().getSeedFromCorpusRatio)
