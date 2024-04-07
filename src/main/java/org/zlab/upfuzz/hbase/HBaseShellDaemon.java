@@ -48,22 +48,10 @@ public class HBaseShellDaemon {
 
     public HBasePacket execute(String cmd)
             throws IOException {
-        BufferedWriter bw = new BufferedWriter(
-                new OutputStreamWriter(socket.getOutputStream()));
 
-        bw.write(cmd);
-        bw.flush();
-        // System.out.println("executor write " + cmd);
-        BufferedReader br = new BufferedReader(
-                new InputStreamReader(socket.getInputStream()));
-
-        char[] chars = new char[51200];
-        int cnt = br.read(chars);
-        if (cnt == -1) {
-            throw new IllegalStateException("cqlsh daemon crashed");
-        }
-        // logger.debug("ret len = " + cnt);
-        String hbaseMessage = new String(chars, 0, cnt);
+        Utilities.serializeSingleCommand(cmd, socket.getOutputStream());
+        String hbaseMessage = Utilities.deserializeSingleCommandResult(
+                new DataInputStream(socket.getInputStream()));
 
         Gson gson = new GsonBuilder()
                 .setLenient()

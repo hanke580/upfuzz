@@ -192,6 +192,12 @@ public class FuzzingClient {
 
     public void start() throws InterruptedException {
         System.out.println("Starting fuzzing client of group: " + group);
+        // Schedule GC here
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+            System.gc();
+            logger.info("[GC] Client Garbage Collection invoked");
+        }, Config.getConf().gcInterval, Config.getConf().gcInterval,
+                TimeUnit.MINUTES);
         Thread clientThread = new Thread(new FuzzingClientSocket(this, group));
         clientThread.start();
         clientThread.join();

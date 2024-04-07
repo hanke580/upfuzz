@@ -2,21 +2,12 @@ package org.zlab.upfuzz.utils;
 
 import static java.lang.String.format;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.*;
 
 import org.zlab.upfuzz.Parameter;
+
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -1025,4 +1016,26 @@ public class Utilities {
         // .asList(commandSequenceList);
         return null;
     }
+
+    public static void serializeSingleCommand(String cmd, OutputStream os)
+            throws IOException {
+        byte[] cmdBytes = cmd.getBytes(StandardCharsets.UTF_8);
+        int cmdLen = cmdBytes.length;
+        ByteBuffer buffer = ByteBuffer.allocate(4); // Integer.SIZE / Byte.SIZE
+        buffer.putInt(cmdLen);
+        byte[] lengthBytes = buffer.array();
+        os.write(lengthBytes);
+        os.write(cmdBytes);
+
+        os.flush();
+    }
+
+    public static String deserializeSingleCommandResult(DataInputStream dis)
+            throws IOException {
+        int readLength = dis.readInt();
+        byte[] messageBytes = new byte[readLength];
+        dis.readFully(messageBytes);
+        return new String(messageBytes);
+    }
+
 }
