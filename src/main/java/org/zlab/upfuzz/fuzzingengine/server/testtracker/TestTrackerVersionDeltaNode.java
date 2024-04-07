@@ -7,6 +7,8 @@ import java.nio.file.Path;
 import java.util.List;
 
 public class TestTrackerVersionDeltaNode extends BaseNode {
+    private static final long serialVersionUID = 20240407L;
+
     private boolean newOriBC;
     private boolean newUpBCAfterUpgrade;
     private boolean newUpBC;

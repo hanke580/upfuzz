@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TestNode implements Serializable {
+    private static final long serialVersionUID = 20240407L;
 
     private List<TestNode> children = new ArrayList<>();
 
@@ -24,5 +25,4 @@ public class TestNode implements Serializable {
     public void addChild(TestNode child) {
         children.add(child);
     }
-
 }
