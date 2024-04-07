@@ -17,7 +17,7 @@ public class CorpusVersionDeltaSixQueue extends Corpus {
     }
 
     public enum QueueType {
-        FORMAT_COVERAGE_VERSION_DELTA, BRANCH_COVERAGE_VERSION_DELTA, FORMAT_COVERAGE, BRANCH_COVERAGE_BEFORE_VERSION_CHANGE, NEW_BRANCH_COVERAGE_NEW_VERSION_AFTER_UPGRADE, NEW_BRANCH_COVERAGE_OLD_VERSION_AFTER_DOWNGRADE
+        FC_VD, BC_VD, FC, BC, BC_After_Upgrade, BC_After_Downgrade
     }
 
     public Seed getSeed(QueueType type) {

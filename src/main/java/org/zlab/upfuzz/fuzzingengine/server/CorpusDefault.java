@@ -9,8 +9,8 @@ public class CorpusDefault extends Corpus {
         super(1, new double[] { 1 });
     }
 
-    public enum QueueType {
-        FORMAT_COVERAGE, BRANCH_COVERAGE
+    private enum QueueType {
+        BC
     }
 
     @Override
@@ -26,7 +26,7 @@ public class CorpusDefault extends Corpus {
     public void printInfo() {
         for (int i = 0; i < cycleQueues.length; i++) {
             System.out.format("|%30s|%30s|%30s|%30s|\n",
-                    CorpusVersionDeltaSixQueue.QueueType.values()[i],
+                    QueueType.values()[i],
                     "queue size : "
                             + cycleQueues[i].size(),
                     "index : "

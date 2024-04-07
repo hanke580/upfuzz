@@ -11,8 +11,8 @@ public class CorpusVersionDeltaFourQueue extends Corpus {
         super(4, new double[] { 0.4, 0.2, 0.25, 0.15 });
     }
 
-    public enum QueueType {
-        FORMAT_COVERAGE_VERSION_DELTA, FORMAT_COVERAGE, BRANCH_COVERAGE_VERSION_DELTA, BRANCH_COVERAGE
+    private enum QueueType {
+        FC_VD, FC, BC_VD, BC
     }
 
     @Override
@@ -45,7 +45,7 @@ public class CorpusVersionDeltaFourQueue extends Corpus {
     public void printInfo() {
         for (int i = 0; i < cycleQueues.length; i++) {
             System.out.format("|%30s|%30s|%30s|%30s|\n",
-                    CorpusVersionDeltaSixQueue.QueueType.values()[i],
+                    QueueType.values()[i],
                     "queue size : "
                             + cycleQueues[i].size(),
                     "index : "

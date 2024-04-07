@@ -13,8 +13,8 @@ public class CorpusNonVersionDelta extends Corpus {
         assert Config.getConf().useFormatCoverage;
     }
 
-    public enum QueueType {
-        FORMAT_COVERAGE, BRANCH_COVERAGE
+    private enum QueueType {
+        FC, BC
     }
 
     @Override
@@ -35,7 +35,7 @@ public class CorpusNonVersionDelta extends Corpus {
         // Print all queues
         for (int i = 0; i < cycleQueues.length; i++) {
             System.out.format("|%30s|%30s|%30s|%30s|\n",
-                    CorpusVersionDeltaSixQueue.QueueType.values()[i],
+                    QueueType.values()[i],
                     "queue size : "
                             + cycleQueues[i].size(),
                     "index : "

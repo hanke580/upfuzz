@@ -6,7 +6,6 @@ import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.cassandra.CassandraCommandPool;
 import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.fuzzingengine.Config;
-import org.zlab.upfuzz.fuzzingengine.server.CorpusVersionDeltaSixQueue.QueueType;
 
 public class SeedTest extends AbstractTest {
     @Test

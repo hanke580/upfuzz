@@ -2034,25 +2034,25 @@ public class FuzzingServer {
                 addSeedToCorpus((CorpusVersionDeltaSixQueue) corpus,
                         testID2Seed,
                         versionDeltaFeedbackPacketUp.testPacketID, score,
-                        CorpusVersionDeltaSixQueue.QueueType.BRANCH_COVERAGE_BEFORE_VERSION_CHANGE);
+                        CorpusVersionDeltaSixQueue.QueueType.BC);
             }
             if (addToFormatCoverageCorpus) {
                 addSeedToCorpus((CorpusVersionDeltaSixQueue) corpus,
                         testID2Seed,
                         versionDeltaFeedbackPacketUp.testPacketID, score,
-                        CorpusVersionDeltaSixQueue.QueueType.FORMAT_COVERAGE);
+                        CorpusVersionDeltaSixQueue.QueueType.FC);
             }
             if (addToVersionDeltaCorpusForBranchCoverage) {
                 addSeedToCorpus((CorpusVersionDeltaSixQueue) corpus,
                         testID2Seed,
                         versionDeltaFeedbackPacketUp.testPacketID, score,
-                        CorpusVersionDeltaSixQueue.QueueType.BRANCH_COVERAGE_VERSION_DELTA);
+                        CorpusVersionDeltaSixQueue.QueueType.BC_VD);
             }
             if (addToVersionDeltaCorpusForFormatCoverage) {
                 addSeedToCorpus((CorpusVersionDeltaSixQueue) corpus,
                         testID2Seed,
                         versionDeltaFeedbackPacketUp.testPacketID, score,
-                        CorpusVersionDeltaSixQueue.QueueType.FORMAT_COVERAGE_VERSION_DELTA);
+                        CorpusVersionDeltaSixQueue.QueueType.FC_VD);
             }
         }
         // update testid2Seed, no use anymore
@@ -2285,13 +2285,13 @@ public class FuzzingServer {
                 addSeedToCorpus((CorpusVersionDeltaSixQueue) corpus,
                         testID2Seed,
                         versionDeltaFeedbackPacketUp.testPacketID, score,
-                        CorpusVersionDeltaSixQueue.QueueType.NEW_BRANCH_COVERAGE_NEW_VERSION_AFTER_UPGRADE);
+                        CorpusVersionDeltaSixQueue.QueueType.BC_After_Upgrade);
             }
             if (addToCorpusAfterDowngrade) {
                 addSeedToCorpus((CorpusVersionDeltaSixQueue) corpus,
                         testID2Seed,
                         versionDeltaFeedbackPacketDown.testPacketID, score,
-                        CorpusVersionDeltaSixQueue.QueueType.NEW_BRANCH_COVERAGE_OLD_VERSION_AFTER_DOWNGRADE);
+                        CorpusVersionDeltaSixQueue.QueueType.BC_After_Downgrade);
             }
         }
         // update testid2Seed, no use anymore
