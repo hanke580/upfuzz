@@ -219,16 +219,18 @@ public class FuzzingServer {
                     null,
                     null,
                     null);
-            upObjCoverage = new ObjectGraphCoverage(
-                    Paths.get(Config.getConf().upFormatInfoFolder,
-                            Config.getConf().baseClassInfoFileName),
-                    Paths.get(Config.getConf().upFormatInfoFolder,
-                            Config.getConf().topObjectsFileName),
-                    Paths.get(Config.getConf().upFormatInfoFolder,
-                            Config.getConf().comparableClassesFileName),
-                    null,
-                    null,
-                    null);
+            if (Config.getConf().useVersionDelta) {
+                upObjCoverage = new ObjectGraphCoverage(
+                        Paths.get(Config.getConf().upFormatInfoFolder,
+                                Config.getConf().baseClassInfoFileName),
+                        Paths.get(Config.getConf().upFormatInfoFolder,
+                                Config.getConf().topObjectsFileName),
+                        Paths.get(Config.getConf().upFormatInfoFolder,
+                                Config.getConf().comparableClassesFileName),
+                        null,
+                        null,
+                        null);
+            }
             Runtime.initWriter();
         }
 
