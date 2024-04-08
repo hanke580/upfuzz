@@ -16,6 +16,14 @@ mkdir -p /var/log/hdfs
 mkdir -p /var/lib/hdfs
 
 if [[ ! -f "/var/log/.setup_conf" ]]; then
+    if [ "$ENABLE_FORMAT_COVERAGE" = "true" ]; then
+        # Copy the file to /tmp
+        echo "Enable format coverage"
+        cp "$CASSANDRA_HOME/topObjects.json" /tmp/
+        cp "$CASSANDRA_HOME/serializedFields_alg1.json" /tmp/
+        # cp "$CASSANDRA_HOME/comparableClasses.json" /tmp/
+    fi
+
     echo "copy hadoop dir and format configurations"
     for VERSION in ${ORG_VERSION} ${UPG_VERSION}; do
         mkdir /etc/${VERSION}
