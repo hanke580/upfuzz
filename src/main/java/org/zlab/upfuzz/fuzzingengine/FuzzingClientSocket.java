@@ -68,9 +68,19 @@ class FuzzingClientSocket implements Runnable {
                                 .executeStackedTestPacket(stackedTestPacket);
                     } else {
                         logger.info("Version Delta testing");
-                        feedBackPacket = fuzzingClient
-                                .executeStackedTestPacketVersionDelta(
-                                        stackedTestPacket);
+                        if (Config.getConf().versionDeltaApproach == 2) {
+                            feedBackPacket = fuzzingClient
+                                    .executeStackedTestPacketVersionDelta(
+                                            stackedTestPacket);
+                        } else if (Config.getConf().versionDeltaApproach == 1) {
+                            feedBackPacket = fuzzingClient
+                                    .executeStackedTestPacketVersionDeltaApproach1(
+                                            stackedTestPacket);
+                        } else {
+                            // runtime exception
+                            throw new RuntimeException(
+                                    "Invalid version delta approach");
+                        }
                     }
                     break;
                 }

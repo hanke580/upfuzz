@@ -1618,57 +1618,49 @@ public class FuzzingServer {
 
     // Used for single group mechanism: always upgrade
     public synchronized void analyzeFeedbackFromVersionDelta(
-            VersionDeltaFeedbackPacket versionDeltaFeedbackPacket) {
+            VersionDeltaFeedbackPacketApproach1 versionDeltaFeedbackPacket) {
         logger.debug("analyzeFeedbackFromVersionDelta");
         Path failureDir = null;
 
         int startTestID = 0;
         int endTestID = 0;
-        if (versionDeltaFeedbackPacket.getFpList("up").size() > 0) {
-            startTestID = versionDeltaFeedbackPacket.getFpList("up")
+
+        List<FeedbackPacket> versionDeltaFeedbackPacketsUp = versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.fpList;
+        List<FeedbackPacket> versionDeltaFeedbackPacketsDown = versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.fpList;
+        String configFileName = versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.configFileName;
+        String fullSequence = versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.fullSequence;
+
+        if (versionDeltaFeedbackPacketsUp.size() > 0) {
+            startTestID = versionDeltaFeedbackPacketsUp
                     .get(0).testPacketID;
-            endTestID = versionDeltaFeedbackPacket.getFpList("up")
-                    .get(versionDeltaFeedbackPacket.getFpList("up").size()
+            endTestID = versionDeltaFeedbackPacketsUp
+                    .get(versionDeltaFeedbackPacketsUp.size()
                             - 1).testPacketID;
         }
 
-        if (versionDeltaFeedbackPacket.isUpgradeProcessFailed) {
+        if (versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.isUpgradeProcessFailed) {
             failureDir = createFailureDir(
-                    versionDeltaFeedbackPacket.configFileName);
-            saveFullSequence(failureDir,
-                    versionDeltaFeedbackPacket.fullSequence);
+                    configFileName);
+            saveFullSequence(failureDir, fullSequence);
             saveFullStopCrashReport(failureDir,
-                    versionDeltaFeedbackPacket.upgradeFailureReport,
+                    versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.upgradeFailureReport,
                     startTestID,
                     endTestID);
-            if (versionDeltaFeedbackPacket.isDowngradeProcessFailed) {
-                saveFullStopCrashReport(failureDir,
-                        versionDeltaFeedbackPacket.downgradeFailureReport,
-                        startTestID,
-                        endTestID);
-            }
             finishedTestID++;
             finishedTestIdAgentGroup2++;
         }
 
-        if (versionDeltaFeedbackPacket.isDowngradeProcessFailed) {
-            failureDir = createFailureDir(
-                    versionDeltaFeedbackPacket.configFileName);
-            saveFullSequence(failureDir,
-                    versionDeltaFeedbackPacket.fullSequence);
+        if (versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.isDowngradeProcessFailed) {
+            failureDir = createFailureDir(configFileName);
+            saveFullSequence(failureDir, fullSequence);
             saveFullStopCrashReport(failureDir,
-                    versionDeltaFeedbackPacket.downgradeFailureReport,
+                    versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.downgradeFailureReport,
                     startTestID,
                     endTestID);
             finishedTestID++;
             finishedTestIdAgentGroup2++;
         }
         FuzzingServerHandler.printClientNum();
-
-        List<FeedbackPacket> versionDeltaFeedbackPacketsUp = versionDeltaFeedbackPacket
-                .getFpList("up");
-        List<FeedbackPacket> versionDeltaFeedbackPacketsDown = versionDeltaFeedbackPacket
-                .getFpList("down");
 
         for (FeedbackPacket fp : versionDeltaFeedbackPacketsUp) {
             if (fp.isInconsistencyInsignificant) {
@@ -1774,9 +1766,9 @@ public class FuzzingServer {
             if (versionDeltaFeedbackPacketUp.isInconsistent) {
                 if (failureDir == null) {
                     failureDir = createFailureDir(
-                            versionDeltaFeedbackPacket.configFileName);
+                            configFileName);
                     saveFullSequence(failureDir,
-                            versionDeltaFeedbackPacket.fullSequence);
+                            fullSequence);
                 }
                 saveInconsistencyReport(failureDir,
                         testPacketID,
@@ -1788,19 +1780,30 @@ public class FuzzingServer {
                     newUpBCAfterUpgrade, newOriBCAfterDowngrade);
         }
         // update testid2Seed, no use anymore
-        for (int testID : versionDeltaFeedbackPacket.testIDs) {
+        for (int testID : versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.testIDs) {
             testID2Seed.remove(testID);
         }
-        if (versionDeltaFeedbackPacket.hasERRORLog) {
+
+        // process upgrade failure report
+        if (versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.hasERRORLog) {
             if (failureDir == null) {
-                failureDir = createFailureDir(
-                        versionDeltaFeedbackPacket.configFileName);
-                saveFullSequence(failureDir,
-                        versionDeltaFeedbackPacket.fullSequence);
+                failureDir = createFailureDir(configFileName);
+                saveFullSequence(failureDir, fullSequence);
             }
             saveErrorReport(failureDir,
-                    versionDeltaFeedbackPacket.errorLogReport, startTestID,
-                    endTestID);
+                    versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.errorLogReport,
+                    startTestID,
+                    endTestID, true);
+        }
+        if (versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.hasERRORLog) {
+            if (failureDir == null) {
+                failureDir = createFailureDir(configFileName);
+                saveFullSequence(failureDir, fullSequence);
+            }
+            saveErrorReport(failureDir,
+                    versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.errorLogReport,
+                    startTestID,
+                    endTestID, false);
         }
         logger.debug(
                 "analyzeFeedbackFromVersionDelta done, prepare to printInfo");
@@ -2440,6 +2443,18 @@ public class FuzzingServer {
         Path reportPath = Paths.get(
                 errorSubDir.toString(),
                 String.format("error_%d.report", testID));
+        Utilities.write2TXT(reportPath.toFile(), report, false);
+        errorLogNum++;
+    }
+
+    // For version delta, since might need two error log files
+    private void saveErrorReport(Path failureDir, String report,
+            int startTestID, int endTestID, boolean isUpgrade) {
+        Path errorSubDir = createErrorSubDir(failureDir);
+        Path reportPath = Paths.get(
+                errorSubDir.toString(),
+                String.format("error_%d_%d_%s.report", startTestID, endTestID,
+                        isUpgrade ? "upgrade" : "downgrade"));
         Utilities.write2TXT(reportPath.toFile(), report, false);
         errorLogNum++;
     }

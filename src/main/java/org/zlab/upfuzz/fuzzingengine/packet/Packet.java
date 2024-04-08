@@ -107,7 +107,8 @@ public abstract class Packet {
                                 6), MixedFeedbackPacket(7), FullStopPacket(
                                         8), FullStopFeedbackPacket(
                                                 9), VersionDeltaFeedbackPacket(
-                                                        10);
+                                                        10), VersionDeltaFeedbackPacketApproach1(
+                                                                11);
 
         public int value;
 
