@@ -25,8 +25,6 @@ public class VersionDeltaFeedbackPacket extends Packet implements Serializable {
     // include all testIDs (either executed or not)
     // we should remove them from testID2Seed for oom problem
     public final List<Integer> testIDs;
-    // TODO: Handle brokenInv for configurations (start up)
-    // public Set<Integer> brokenInv; // configuration broken invariants!
 
     public String fullSequence = ""; // for reproducing
     public String configFileName;
@@ -42,9 +40,6 @@ public class VersionDeltaFeedbackPacket extends Packet implements Serializable {
 
     public boolean hasERRORLog = false;
     public String errorLogReport = "";
-
-    public boolean breakNewInvUp = false;
-    public boolean breakNewInvDown = false;
 
     public int nodeNum;
 

@@ -886,9 +886,11 @@ public class FuzzingClient {
                     .get();
             stackedFeedbackPacketDown = futureStackedFeedbackPacketDown
                     .get();
-            if (Config.getConf().debug) {
-                logger.info("Result from Thread 1: ");
-                logger.info("Result from Thread 2: ");
+            // Both shouldn't be null!
+            if (stackedFeedbackPacketUp == null
+                    || stackedFeedbackPacketDown == null) {
+                executorService.shutdown();
+                return null;
             }
             for (FeedbackPacket fp : stackedFeedbackPacketUp.getFpList())
                 versionDeltaFeedbackPacket.addToFpList(fp, "up");
@@ -899,9 +901,7 @@ public class FuzzingClient {
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
-
         versionDeltaFeedbackPacket.clientGroup = 0;
-        // clearData();
         executorService.shutdown();
         return versionDeltaFeedbackPacket;
     }
@@ -967,6 +967,7 @@ public class FuzzingClient {
             // Process results for operations before version change
             if (stackedFeedbackPacketUp == null
                     || stackedFeedbackPacketDown == null) {
+                executorService.shutdown();
                 return null;
             }
             logger.info("[HKLOG] fplist versions, fp1: "

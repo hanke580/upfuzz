@@ -3,7 +3,6 @@ package org.zlab.upfuzz.fuzzingengine;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -14,21 +13,16 @@ import org.zlab.upfuzz.fuzzingengine.packet.*;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
-import org.zlab.upfuzz.fuzzingengine.LogInfo;
-
-import static org.zlab.upfuzz.nyx.MiniClientMain.runTheTestsBeforeChangingVersion;
-import static org.zlab.upfuzz.nyx.MiniClientMain.changeVersionAndRunTheTests;
 
 class RegularStackedTestThread implements Callable<StackedFeedbackPacket> {
 
     static Logger logger = LogManager.getLogger(RegularStackedTestThread.class);
 
-    private FuzzingClient fuzzingClient;
     private StackedFeedbackPacket stackedFeedbackPacket;
-    private Executor executor;
-    private int direction;
-    private StackedTestPacket stackedTestPacket;
-    private boolean isDowngradeSupported;
+    private final Executor executor;
+    private final int direction;
+    private final StackedTestPacket stackedTestPacket;
+    private final boolean isDowngradeSupported;
 
     // If the cluster cannot start up for 3 times, it's serious
     int CLUSTER_START_RETRY = 3; // stop retry for now
