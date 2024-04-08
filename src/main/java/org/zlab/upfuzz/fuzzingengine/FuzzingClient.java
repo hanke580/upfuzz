@@ -601,27 +601,16 @@ public class FuzzingClient {
 
     public VersionDeltaFeedbackPacket executeStackedTestPacketVersionDelta(
             StackedTestPacket stackedTestPacket) {
-
-        if (Config.getConf().versionDeltaApproach == 1) {
+        if (Config.getConf().nyxMode) {
+            return executeStackedTestPacketNyxVersionDelta(
+                    stackedTestPacket);
+        } else {
             try {
-                return executeStackedTestPacketVersionDeltaApproach1(
+                return executeStackedTestPacketRegularVersionDeltaApproach2(
                         stackedTestPacket);
             } catch (Exception e) {
                 e.printStackTrace();
                 return null;
-            }
-        } else {
-            if (Config.getConf().nyxMode) {
-                return executeStackedTestPacketNyxVersionDelta(
-                        stackedTestPacket);
-            } else {
-                try {
-                    return executeStackedTestPacketRegularVersionDeltaApproach2(
-                            stackedTestPacket);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return null;
-                }
             }
         }
     }
@@ -843,7 +832,7 @@ public class FuzzingClient {
      *
      * This is only used for execution.
      */
-    public VersionDeltaFeedbackPacket executeStackedTestPacketVersionDeltaApproach1(
+    public VersionDeltaFeedbackPacketApproach1 executeStackedTestPacketVersionDeltaApproach1(
             StackedTestPacket stackedTestPacket) {
         ExecutorService executorService = Executors.newFixedThreadPool(2);
         Path configPath = Paths.get(configDirPath.toString(),
@@ -873,37 +862,28 @@ public class FuzzingClient {
                 .submit(new RegularStackedTestThread(executors[1], 1,
                         stackedTestPacket, isDowngradeSupported));
 
-        VersionDeltaFeedbackPacket versionDeltaFeedbackPacket = new VersionDeltaFeedbackPacket(
-                stackedTestPacket.configFileName,
-                Utilities.extractTestIDs(stackedTestPacket), 0,
-                stackedTestPacket.nodeNum);
-
         // Retrieve and check the result of thread 1
-        StackedFeedbackPacket stackedFeedbackPacketUp;
-        StackedFeedbackPacket stackedFeedbackPacketDown;
         try {
-            stackedFeedbackPacketUp = futureStackedFeedbackPacketUp
+            StackedFeedbackPacket stackedFeedbackPacketUp = futureStackedFeedbackPacketUp
                     .get();
-            stackedFeedbackPacketDown = futureStackedFeedbackPacketDown
+            StackedFeedbackPacket stackedFeedbackPacketDown = futureStackedFeedbackPacketDown
                     .get();
-            // Both shouldn't be null!
             if (stackedFeedbackPacketUp == null
                     || stackedFeedbackPacketDown == null) {
                 executorService.shutdown();
                 return null;
             }
-            for (FeedbackPacket fp : stackedFeedbackPacketUp.getFpList())
-                versionDeltaFeedbackPacket.addToFpList(fp, "up");
-            for (FeedbackPacket fp : stackedFeedbackPacketDown.getFpList())
-                versionDeltaFeedbackPacket.addToFpList(fp, "down");
-
-            versionDeltaFeedbackPacket.fullSequence = stackedFeedbackPacketUp.fullSequence;
-        } catch (InterruptedException | ExecutionException e) {
+            VersionDeltaFeedbackPacketApproach1 versionDeltaFeedbackPacketApproach1 = new VersionDeltaFeedbackPacketApproach1(
+                    stackedFeedbackPacketUp, stackedFeedbackPacketDown);
+            executorService.shutdown();
+            return versionDeltaFeedbackPacketApproach1;
+        } catch (Exception e) {
+            logger.info(
+                    "[HKLOG] Exception in executeStackedTestPacketVersionDeltaApproach1");
             e.printStackTrace();
+            executorService.shutdown();
+            return null;
         }
-        versionDeltaFeedbackPacket.clientGroup = 0;
-        executorService.shutdown();
-        return versionDeltaFeedbackPacket;
     }
 
     public VersionDeltaFeedbackPacket executeStackedTestPacketRegularVersionDeltaApproach2(

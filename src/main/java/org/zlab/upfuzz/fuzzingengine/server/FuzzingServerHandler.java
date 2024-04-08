@@ -279,10 +279,15 @@ public class FuzzingServerHandler implements Runnable {
                             versionDeltaFeedbackPacket);
                 }
             } else {
-                assert Config.getConf().versionDeltaApproach == 1;
-                fuzzingServer.analyzeFeedbackFromVersionDelta(
-                        versionDeltaFeedbackPacket);
+                throw new RuntimeException(
+                        "Invalid version delta approach");
             }
+        } else if (intType == PacketType.VersionDeltaFeedbackPacketApproach1.value) {
+            assert Config.getConf().versionDeltaApproach == 1;
+            VersionDeltaFeedbackPacketApproach1 versionDeltaFeedbackPacket = VersionDeltaFeedbackPacketApproach1
+                    .read(in);
+            fuzzingServer.analyzeFeedbackFromVersionDelta(
+                    versionDeltaFeedbackPacket);
         } else if (intType == -1) {
             // do nothing, null packet
             // TODO: We should avoid using that configuration!
