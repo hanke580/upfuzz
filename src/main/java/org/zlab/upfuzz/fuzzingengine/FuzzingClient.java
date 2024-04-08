@@ -926,6 +926,10 @@ public class FuzzingClient {
             versionDeltaFeedbackPacketApproach2.clientGroup = group;
             executorService.shutdown();
             assert versionDeltaFeedbackPacketApproach2 != null;
+            if (group == 1) {
+                versionDeltaFeedbackPacketApproach2.stackedFeedbackPacketUpgrade.skipped = true;
+                versionDeltaFeedbackPacketApproach2.stackedFeedbackPacketDowngrade.skipped = true;
+            }
             return versionDeltaFeedbackPacketApproach2;
         } catch (Exception e) {
             logger.info("[HKLOG] Caught Exception!!! " + e);
