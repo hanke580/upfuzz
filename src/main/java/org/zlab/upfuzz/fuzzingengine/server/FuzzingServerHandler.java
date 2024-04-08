@@ -29,7 +29,7 @@ public class FuzzingServerHandler implements Runnable {
     DataOutputStream outGroup2;
 
     public void addBatchesToInterestingTestCorpus(
-            VersionDeltaFeedbackPacket versionDeltaFeedbackPacket) {
+            VersionDeltaFeedbackPacketApproach2 versionDeltaFeedbackPacket) {
         fuzzingServer.analyzeFeedbackFromVersionDeltaGroup1(
                 versionDeltaFeedbackPacket);
         if (Config.getConf().debug) {
@@ -226,19 +226,19 @@ public class FuzzingServerHandler implements Runnable {
             FullStopFeedbackPacket fullStopFeedbackPacket = FullStopFeedbackPacket
                     .read(in);
             fuzzingServer.updateStatus(fullStopFeedbackPacket);
-        } else if (intType == PacketType.VersionDeltaFeedbackPacket.value) {
+        } else if (intType == PacketType.VersionDeltaFeedbackPacketApproach2.value) {
             logger.info("read version delta fb packet");
-            VersionDeltaFeedbackPacket versionDeltaFeedbackPacket = VersionDeltaFeedbackPacket
+            VersionDeltaFeedbackPacketApproach2 versionDeltaFeedbackPacketApproach2 = VersionDeltaFeedbackPacketApproach2
                     .read(in);
             if (Config.getConf().debug) {
                 logger.info("Sent from group: "
-                        + versionDeltaFeedbackPacket.clientGroup);
+                        + versionDeltaFeedbackPacketApproach2.clientGroup);
             }
             if (Config.getConf().versionDeltaApproach == 2) {
                 logger.info("Got version delta feedback packet from group: "
-                        + versionDeltaFeedbackPacket.clientGroup);
+                        + versionDeltaFeedbackPacketApproach2.clientGroup);
                 if (this.clientGroup == 2
-                        && versionDeltaFeedbackPacket.clientGroup == 1) {
+                        && versionDeltaFeedbackPacketApproach2.clientGroup == 1) {
                     try {
                         if (Config.getConf().debug) {
                             logger.info(
@@ -253,7 +253,7 @@ public class FuzzingServerHandler implements Runnable {
                         e.printStackTrace();
                     }
                 } else if (this.clientGroup == 1
-                        && versionDeltaFeedbackPacket.clientGroup == 1) {
+                        && versionDeltaFeedbackPacketApproach2.clientGroup == 1) {
                     try {
                         if (Config.getConf().debug) {
                             logger.info(
@@ -262,21 +262,19 @@ public class FuzzingServerHandler implements Runnable {
 
                         logger.info("Going to call update corpus for group 1");
                         addBatchesToInterestingTestCorpus(
-                                versionDeltaFeedbackPacket);
+                                versionDeltaFeedbackPacketApproach2);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 } else if (this.clientGroup == 2
-                        && versionDeltaFeedbackPacket.clientGroup == 2) {
+                        && versionDeltaFeedbackPacketApproach2.clientGroup == 2) {
                     if (Config.getConf().debug) {
                         logger.info(
-                                "MATCHED THIS CONDITION: clientGroup 2, got feedback packet from group 2, now update status! Induced new version delta coverage? "
-                                        + versionDeltaFeedbackPacket.inducedNewVersionDeltaCoverage);
+                                "MATCHED THIS CONDITION: clientGroup 2, got feedback packet from group 2, now update status! Induced new version delta coverage? ");
                     }
                     logger.info("Calling update status");
-                    versionDeltaFeedbackPacket.inducedNewVersionDeltaCoverage = true;
                     fuzzingServer.analyzeFeedbackFromVersionDeltaGroup2(
-                            versionDeltaFeedbackPacket);
+                            versionDeltaFeedbackPacketApproach2);
                 }
             } else {
                 throw new RuntimeException(

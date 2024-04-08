@@ -1812,23 +1812,27 @@ public class FuzzingServer {
     }
 
     public synchronized void analyzeFeedbackFromVersionDeltaGroup1(
-            VersionDeltaFeedbackPacket versionDeltaFeedbackPacket) {
+            VersionDeltaFeedbackPacketApproach2 versionDeltaFeedbackPacket) {
         int startTestID = 0;
         int endTestID = 0;
-        if (versionDeltaFeedbackPacket.getFpList("up").size() > 0) {
-            startTestID = versionDeltaFeedbackPacket.getFpList("up")
+        if (versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.getFpList()
+                .size() > 0) {
+            startTestID = versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade
+                    .getFpList()
                     .get(0).testPacketID;
-            endTestID = versionDeltaFeedbackPacket.getFpList("up")
-                    .get(versionDeltaFeedbackPacket.getFpList("up").size()
+            endTestID = versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade
+                    .getFpList()
+                    .get(versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade
+                            .getFpList().size()
                             - 1).testPacketID;
         }
 
         FuzzingServerHandler.printClientNum();
 
-        List<FeedbackPacket> versionDeltaFeedbackPacketsUp = versionDeltaFeedbackPacket
-                .getFpList("up");
-        List<FeedbackPacket> versionDeltaFeedbackPacketsDown = versionDeltaFeedbackPacket
-                .getFpList("down");
+        List<FeedbackPacket> versionDeltaFeedbackPacketsUp = versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade
+                .getFpList();
+        List<FeedbackPacket> versionDeltaFeedbackPacketsDown = versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade
+                .getFpList();
 
         int feedbackLength = versionDeltaFeedbackPacketsUp.size();
         System.out.println("feedback length: " + feedbackLength);
@@ -1837,8 +1841,7 @@ public class FuzzingServer {
 
         for (int i = 0; i < feedbackLength; i++) {
             // handle invariant
-            TestPacket testPacket = versionDeltaFeedbackPacket.versionDeltaInducedTestPackets
-                    .get(i);
+            TestPacket testPacket = versionDeltaFeedbackPacket.tpList.get(i);
             FeedbackPacket versionDeltaFeedbackPacketUp = versionDeltaFeedbackPacketsUp
                     .get(i);
             FeedbackPacket versionDeltaFeedbackPacketDown = versionDeltaFeedbackPacketsDown
@@ -1965,56 +1968,64 @@ public class FuzzingServer {
                 if (hasFeedbackInducedBranchVersionDelta) {
                     testBatchCorpus.addPacket(testPacket,
                             InterestingTestsCorpus.TestType.BRANCH_COVERAGE_VERSION_DELTA,
-                            versionDeltaFeedbackPacket.configFileName);
+                            versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.configFileName);
                     branchVersionDeltaInducedTpIds
-                            .add(versionDeltaFeedbackPacket.testIDs.get(i));
+                            .add(versionDeltaFeedbackPacket.tpList
+                                    .get(i).testPacketID);
                 } else {
                     testBatchCorpus.addPacket(testPacket,
                             InterestingTestsCorpus.TestType.FORMAT_COVERAGE_VERSION_DELTA,
-                            versionDeltaFeedbackPacket.configFileName);
+                            versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.configFileName);
                     formatVersionDeltaInducedTpIds
-                            .add(versionDeltaFeedbackPacket.testIDs.get(i));
+                            .add(versionDeltaFeedbackPacket.tpList
+                                    .get(i).testPacketID);
                 }
             } else {
                 if (hasFeedbackInducedBranchVersionDelta
                         && hasFeedbackInducedFormatVersionDelta) {
                     testBatchCorpus.addPacket(testPacket,
                             InterestingTestsCorpus.TestType.FORMAT_COVERAGE_VERSION_DELTA,
-                            versionDeltaFeedbackPacket.configFileName);
+                            versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.configFileName);
                     versionDeltaInducedTpIds
-                            .add(versionDeltaFeedbackPacket.testIDs.get(i));
+                            .add(versionDeltaFeedbackPacket.tpList
+                                    .get(i).testPacketID);
                 } else {
                     if (hasFeedbackInducedNewBranchCoverage
                             ^ hasFeedbackInducedNewFormatCoverage) {
                         if (hasFeedbackInducedNewFormatCoverage) {
                             testBatchCorpus.addPacket(testPacket,
                                     InterestingTestsCorpus.TestType.FORMAT_COVERAGE,
-                                    versionDeltaFeedbackPacket.configFileName);
+                                    versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.configFileName);
                             onlyNewFormatCoverageInducedTpIds.add(
-                                    versionDeltaFeedbackPacket.testIDs.get(i));
+                                    versionDeltaFeedbackPacket.tpList
+                                            .get(i).testPacketID);
                         } else {
                             testBatchCorpus.addPacket(testPacket,
                                     InterestingTestsCorpus.TestType.BRANCH_COVERAGE_BEFORE_VERSION_CHANGE,
-                                    versionDeltaFeedbackPacket.configFileName);
+                                    versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.configFileName);
                             onlyNewBranchCoverageInducedTpIds.add(
-                                    versionDeltaFeedbackPacket.testIDs.get(i));
+                                    versionDeltaFeedbackPacket.tpList
+                                            .get(i).testPacketID);
                         }
                     } else {
                         if (hasFeedbackInducedNewBranchCoverage
                                 && hasFeedbackInducedNewFormatCoverage) {
                             testBatchCorpus.addPacket(testPacket,
                                     InterestingTestsCorpus.TestType.FORMAT_COVERAGE,
-                                    versionDeltaFeedbackPacket.configFileName);
+                                    versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.configFileName);
                             onlyNewFormatCoverageInducedTpIds.add(
-                                    versionDeltaFeedbackPacket.testIDs.get(i));
+                                    versionDeltaFeedbackPacket.tpList
+                                            .get(i).testPacketID);
                             onlyNewBranchCoverageInducedTpIds.add(
-                                    versionDeltaFeedbackPacket.testIDs.get(i));
+                                    versionDeltaFeedbackPacket.tpList
+                                            .get(i).testPacketID);
                         } else {
                             testBatchCorpus.addPacket(testPacket,
                                     InterestingTestsCorpus.TestType.LOW_PRIORITY,
-                                    versionDeltaFeedbackPacket.configFileName);
+                                    versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.configFileName);
                             nonInterestingTpIds.add(
-                                    versionDeltaFeedbackPacket.testIDs.get(i));
+                                    versionDeltaFeedbackPacket.tpList
+                                            .get(i).testPacketID);
                         }
                     }
                 }
@@ -2060,16 +2071,30 @@ public class FuzzingServer {
         // }
         // }
 
-        if (versionDeltaFeedbackPacket.hasERRORLog) {
+        if (versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.hasERRORLog) {
             if (failureDir == null) {
                 failureDir = createFailureDir(
-                        versionDeltaFeedbackPacket.configFileName);
+                        versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.configFileName);
                 saveFullSequence(failureDir,
-                        versionDeltaFeedbackPacket.fullSequence);
+                        versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.fullSequence);
             }
             saveErrorReport(failureDir,
-                    versionDeltaFeedbackPacket.errorLogReport, startTestID,
-                    endTestID);
+                    versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.errorLogReport,
+                    startTestID,
+                    endTestID, true);
+        }
+
+        if (versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.hasERRORLog) {
+            if (failureDir == null) {
+                failureDir = createFailureDir(
+                        versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.configFileName);
+                saveFullSequence(failureDir,
+                        versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.fullSequence);
+            }
+            saveErrorReport(failureDir,
+                    versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.errorLogReport,
+                    startTestID,
+                    endTestID, false);
         }
 
         Integer[] branchVersionDeltaInducedArray = branchVersionDeltaInducedTpIds
@@ -2096,22 +2121,27 @@ public class FuzzingServer {
         System.out.println();
 
         if (!testBatchCorpus.configFiles
-                .contains(versionDeltaFeedbackPacket.configFileName)) {
+                .contains(
+                        versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.configFileName)) {
             testBatchCorpus
-                    .addConfigFile(versionDeltaFeedbackPacket.configFileName);
+                    .addConfigFile(
+                            versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.configFileName);
         }
         printInfo();
         System.out.println();
 
-        StackedTestPacket stackedTestPacketVersionDelta = new StackedTestPacket(
-                versionDeltaFeedbackPacket.nodeNum,
-                versionDeltaFeedbackPacket.configFileName);
-        StackedTestPacket stackedTestPacketBranchCoverage = new StackedTestPacket(
-                versionDeltaFeedbackPacket.nodeNum,
-                versionDeltaFeedbackPacket.configFileName);
-        StackedTestPacket stackedTestPacketFormatCoverage = new StackedTestPacket(
-                versionDeltaFeedbackPacket.nodeNum,
-                versionDeltaFeedbackPacket.configFileName);
+        // StackedTestPacket stackedTestPacketVersionDelta = new
+        // StackedTestPacket(
+        // versionDeltaFeedbackPacket.nodeNum,
+        // versionDeltaFeedbackPacket.configFileName);
+        // StackedTestPacket stackedTestPacketBranchCoverage = new
+        // StackedTestPacket(
+        // versionDeltaFeedbackPacket.nodeNum,
+        // versionDeltaFeedbackPacket.configFileName);
+        // StackedTestPacket stackedTestPacketFormatCoverage = new
+        // StackedTestPacket(
+        // versionDeltaFeedbackPacket.nodeNum,
+        // versionDeltaFeedbackPacket.configFileName);
 
         if (Config.getConf().debug) {
             String reportDir = "fullSequences/lessPriority";
@@ -2128,20 +2158,20 @@ public class FuzzingServer {
             String reportName = "fullSequence_" + endTestID + ".txt";
 
             saveFullSequenceBasedOnType(reportDir, reportName,
-                    versionDeltaFeedbackPacket.fullSequence);
+                    versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.fullSequence);
         }
         // addOneBatchToSharedQueue(versionDeltaFeedbackPacket);
     }
 
     public synchronized void analyzeFeedbackFromVersionDeltaGroup2(
-            VersionDeltaFeedbackPacket versionDeltaFeedbackPacket) {
+            VersionDeltaFeedbackPacketApproach2 versionDeltaFeedbackPacket) {
 
-        if (versionDeltaFeedbackPacket.skippedUpgrade) {
+        if (versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.skipped) {
             // upgrade process is skipped
             logger.info("upgrade process is skipped");
         }
 
-        if (versionDeltaFeedbackPacket.skippedDowngrade) {
+        if (versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.skipped) {
             // upgrade process is skipped
             logger.info("downgrade process is skipped");
         }
@@ -2150,49 +2180,53 @@ public class FuzzingServer {
 
         int startTestID = 0;
         int endTestID = 0;
-        if (versionDeltaFeedbackPacket.getFpList("up").size() > 0) {
-            startTestID = versionDeltaFeedbackPacket.getFpList("up")
+        if (versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.getFpList()
+                .size() > 0) {
+            startTestID = versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade
+                    .getFpList()
                     .get(0).testPacketID;
-            endTestID = versionDeltaFeedbackPacket.getFpList("up")
-                    .get(versionDeltaFeedbackPacket.getFpList("up").size()
+            endTestID = versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade
+                    .getFpList()
+                    .get(versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade
+                            .getFpList().size()
                             - 1).testPacketID;
         }
 
-        if (versionDeltaFeedbackPacket.isUpgradeProcessFailed) {
+        if (versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.isUpgradeProcessFailed) {
             failureDir = createFailureDir(
-                    versionDeltaFeedbackPacket.configFileName);
+                    versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.configFileName);
             saveFullSequence(failureDir,
-                    versionDeltaFeedbackPacket.fullSequence);
+                    versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.fullSequence);
             saveFullStopCrashReport(failureDir,
-                    versionDeltaFeedbackPacket.upgradeFailureReport,
+                    versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.upgradeFailureReport,
                     startTestID,
-                    endTestID);
-            if (versionDeltaFeedbackPacket.isDowngradeProcessFailed) {
+                    endTestID, true);
+            if (versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.isDowngradeProcessFailed) {
                 saveFullStopCrashReport(failureDir,
-                        versionDeltaFeedbackPacket.downgradeFailureReport,
+                        versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.downgradeFailureReport,
                         startTestID,
-                        endTestID);
+                        endTestID, false);
             }
             finishedTestID++;
             finishedTestIdAgentGroup2++;
-        } else if (versionDeltaFeedbackPacket.isDowngradeProcessFailed) {
+        } else if (versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.isDowngradeProcessFailed) {
             failureDir = createFailureDir(
-                    versionDeltaFeedbackPacket.configFileName);
+                    versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.configFileName);
             saveFullSequence(failureDir,
-                    versionDeltaFeedbackPacket.fullSequence);
+                    versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.fullSequence);
             saveFullStopCrashReport(failureDir,
-                    versionDeltaFeedbackPacket.downgradeFailureReport,
+                    versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.downgradeFailureReport,
                     startTestID,
-                    endTestID);
+                    endTestID, false);
             finishedTestID++;
             finishedTestIdAgentGroup2++;
         }
         FuzzingServerHandler.printClientNum();
 
-        List<FeedbackPacket> versionDeltaFeedbackPacketsUp = versionDeltaFeedbackPacket
-                .getFpList("up");
-        List<FeedbackPacket> versionDeltaFeedbackPacketsDown = versionDeltaFeedbackPacket
-                .getFpList("down");
+        List<FeedbackPacket> versionDeltaFeedbackPacketsUp = versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade
+                .getFpList();
+        List<FeedbackPacket> versionDeltaFeedbackPacketsDown = versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade
+                .getFpList();
 
         for (FeedbackPacket fp : versionDeltaFeedbackPacketsUp) {
             if (fp.isInconsistencyInsignificant) {
@@ -2270,9 +2304,20 @@ public class FuzzingServer {
             if (versionDeltaFeedbackPacketUp.isInconsistent) {
                 if (failureDir == null) {
                     failureDir = createFailureDir(
-                            versionDeltaFeedbackPacket.configFileName);
+                            versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.configFileName);
                     saveFullSequence(failureDir,
-                            versionDeltaFeedbackPacket.fullSequence);
+                            versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.fullSequence);
+                }
+                saveInconsistencyReport(failureDir,
+                        versionDeltaFeedbackPacketUp.testPacketID,
+                        versionDeltaFeedbackPacketUp.inconsistencyReport);
+            }
+            if (versionDeltaFeedbackPacketUp.isInconsistent) {
+                if (failureDir == null) {
+                    failureDir = createFailureDir(
+                            versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.configFileName);
+                    saveFullSequence(failureDir,
+                            versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.fullSequence);
                 }
                 saveInconsistencyReport(failureDir,
                         versionDeltaFeedbackPacketUp.testPacketID,
@@ -2293,19 +2338,32 @@ public class FuzzingServer {
             }
         }
         // update testid2Seed, no use anymore
-        for (int testID : versionDeltaFeedbackPacket.testIDs) {
-            testID2Seed.remove(testID);
+        for (TestPacket tp : versionDeltaFeedbackPacket.tpList) {
+            testID2Seed.remove(tp.testPacketID);
         }
-        if (versionDeltaFeedbackPacket.hasERRORLog) {
+        if (versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.hasERRORLog) {
             if (failureDir == null) {
                 failureDir = createFailureDir(
-                        versionDeltaFeedbackPacket.configFileName);
+                        versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.configFileName);
                 saveFullSequence(failureDir,
-                        versionDeltaFeedbackPacket.fullSequence);
+                        versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.fullSequence);
             }
             saveErrorReport(failureDir,
-                    versionDeltaFeedbackPacket.errorLogReport, startTestID,
-                    endTestID);
+                    versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.errorLogReport,
+                    startTestID,
+                    endTestID, true);
+        }
+        if (versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.hasERRORLog) {
+            if (failureDir == null) {
+                failureDir = createFailureDir(
+                        versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.configFileName);
+                saveFullSequence(failureDir,
+                        versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.fullSequence);
+            }
+            saveErrorReport(failureDir,
+                    versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.errorLogReport,
+                    startTestID,
+                    endTestID, false);
         }
 
         printInfo();
@@ -2418,6 +2476,17 @@ public class FuzzingServer {
         fullStopCrashNum++;
     }
 
+    private void saveFullStopCrashReport(Path failureDir,
+            String report, int startTestID, int endTestID, boolean isUpgrade) {
+        Path subDir = createFullStopCrashSubDir(failureDir);
+        Path crashReportPath = Paths.get(
+                subDir.toString(),
+                String.format("fullstop_%d_%d_%s_crash.report", startTestID,
+                        endTestID, isUpgrade ? "upgrade" : "downgrade"));
+        Utilities.write2TXT(crashReportPath.toFile(), report, false);
+        fullStopCrashNum++;
+    }
+
     private void saveEventCrashReport(Path failureDir, int testID,
             String report) {
         Path subDir = createEventCrashSubDir(failureDir);
@@ -2434,6 +2503,17 @@ public class FuzzingServer {
         Path crashReportPath = Paths.get(
                 inconsistencySubDir.toString(),
                 "inconsistency_" + testID + ".report");
+        Utilities.write2TXT(crashReportPath.toFile(), report, false);
+        inconsistencyNum++;
+    }
+
+    private void saveInconsistencyReport(Path failureDir, int testID,
+            String report, boolean isUpgrade) {
+        Path inconsistencySubDir = createInconsistencySubDir(failureDir);
+        Path crashReportPath = Paths.get(
+                inconsistencySubDir.toString(),
+                "inconsistency_" + testID + "_"
+                        + (isUpgrade ? "upgrade" : "downgrade") + ".report");
         Utilities.write2TXT(crashReportPath.toFile(), report, false);
         inconsistencyNum++;
     }

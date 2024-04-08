@@ -599,7 +599,7 @@ public class FuzzingClient {
         return stackedFeedbackPacket;
     }
 
-    public VersionDeltaFeedbackPacket executeStackedTestPacketVersionDelta(
+    public VersionDeltaFeedbackPacketApproach2 executeStackedTestPacketVersionDelta(
             StackedTestPacket stackedTestPacket) {
         if (Config.getConf().nyxMode) {
             return executeStackedTestPacketNyxVersionDelta(
@@ -615,7 +615,7 @@ public class FuzzingClient {
         }
     }
 
-    public VersionDeltaFeedbackPacket executeStackedTestPacketNyxVersionDelta(
+    public VersionDeltaFeedbackPacketApproach2 executeStackedTestPacketNyxVersionDelta(
             StackedTestPacket stackedTestPacket) {
         if (Config.getConf().debug) {
             logger.info("Version delta testing for group: "
@@ -683,53 +683,22 @@ public class FuzzingClient {
                         .get();
                 StackedFeedbackPacket stackedFeedbackPacketDown = futureStackedFeedbackPacketDown
                         .get();
-
-                VersionDeltaFeedbackPacket versionDeltaFeedbackPacket = new VersionDeltaFeedbackPacket(
-                        stackedTestPacket.configFileName,
-                        Utilities.extractTestIDs(stackedTestPacket), group,
-                        stackedTestPacket.nodeNum);
-
-                // Process results for operations before version change
-                List<FeedbackPacket> fpListBeforeUpgrade = stackedFeedbackPacketUp
-                        .getFpList();
-                List<FeedbackPacket> fpListBeforeDowngrade = stackedFeedbackPacketDown
-                        .getFpList();
-
-                int feedbackLength = fpListBeforeUpgrade.size();
-                boolean inducedNewVersionDelta = false;
-                boolean inducedNewVersionDeltaCoverage = false;
-
-                for (int i = 0; i < feedbackLength; i++) {
-                    versionDeltaFeedbackPacket.addToTpList(
-                            stackedTestPacket.getTestPacketList().get(i));
+                if (stackedFeedbackPacketUp == null
+                        || stackedFeedbackPacketDown == null) {
+                    executorService.shutdown();
+                    return null;
                 }
-
-                for (FeedbackPacket fp : stackedFeedbackPacketUp
-                        .getFpList()) {
-                    // logger.info("[HKLOG] coverage tracker upgrade: "
-                    // + fp.testPacketID);
-                    // Utilities.printCoverages(fp.testPacketID, fp.feedBacks,
-                    // "upgrade");
-                    versionDeltaFeedbackPacket.addToFpList(fp, "up");
-                }
-
-                for (FeedbackPacket fp : stackedFeedbackPacketDown
-                        .getFpList()) {
-                    // logger.info("[HKLOG] coverage tracker downgrade: "
-                    // + fp.testPacketID);
-                    // Utilities.printCoverages(fp.testPacketID, fp.feedBacks,
-                    // "downgrade");
-                    versionDeltaFeedbackPacket.addToFpList(fp, "down");
-                }
-
-                versionDeltaFeedbackPacket.fullSequence = stackedFeedbackPacketUp.fullSequence;
+                List<TestPacket> tpList = stackedTestPacket.getTestPacketList();
+                VersionDeltaFeedbackPacketApproach2 versionDeltaFeedbackPacketApproach2 = new VersionDeltaFeedbackPacketApproach2(
+                        stackedFeedbackPacketUp, stackedFeedbackPacketDown,
+                        tpList);
                 if (group == 1) {
-                    versionDeltaFeedbackPacket.skippedUpgrade = true;
-                    versionDeltaFeedbackPacket.skippedDowngrade = true;
+                    versionDeltaFeedbackPacketApproach2.stackedFeedbackPacketUpgrade.skipped = true;
+                    versionDeltaFeedbackPacketApproach2.stackedFeedbackPacketDowngrade.skipped = true;
                 }
-                versionDeltaFeedbackPacket.clientGroup = group;
+                versionDeltaFeedbackPacketApproach2.clientGroup = group;
                 executorService.shutdown();
-                return versionDeltaFeedbackPacket;
+                return versionDeltaFeedbackPacketApproach2;
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -886,7 +855,7 @@ public class FuzzingClient {
         }
     }
 
-    public VersionDeltaFeedbackPacket executeStackedTestPacketRegularVersionDeltaApproach2(
+    public VersionDeltaFeedbackPacketApproach2 executeStackedTestPacketRegularVersionDeltaApproach2(
             StackedTestPacket stackedTestPacket) {
 
         if (Config.getConf().debug) {
@@ -950,55 +919,14 @@ public class FuzzingClient {
                 executorService.shutdown();
                 return null;
             }
-            logger.info("[HKLOG] fplist versions, fp1: "
-                    + stackedFeedbackPacketUp.getVersion());
-            logger.info("[HKLOG] fplist versions, fp2: "
-                    + stackedFeedbackPacketDown.getVersion());
+            List<TestPacket> tpList = stackedTestPacket.getTestPacketList();
+            VersionDeltaFeedbackPacketApproach2 versionDeltaFeedbackPacketApproach2 = new VersionDeltaFeedbackPacketApproach2(
+                    stackedFeedbackPacketUp, stackedFeedbackPacketDown, tpList);
 
-            List<FeedbackPacket> fpListUpgrade = stackedFeedbackPacketUp
-                    .getFpList();
-            List<FeedbackPacket> fpListDowngrade = stackedFeedbackPacketDown
-                    .getFpList();
-
-            int feedbackLength = fpListUpgrade.size();
-
-            VersionDeltaFeedbackPacket versionDeltaFeedbackPacket = new VersionDeltaFeedbackPacket(
-                    stackedTestPacket.configFileName,
-                    Utilities.extractTestIDs(stackedTestPacket), group,
-                    stackedTestPacket.nodeNum);
-
-            for (int i = 0; i < feedbackLength; i++) {
-                versionDeltaFeedbackPacket.addToTpList(
-                        stackedTestPacket.getTestPacketList().get(i));
-            }
-
-            for (FeedbackPacket fp : stackedFeedbackPacketUp
-                    .getFpList()) {
-                versionDeltaFeedbackPacket.addToFpList(fp, "up");
-            }
-
-            for (FeedbackPacket fp : stackedFeedbackPacketDown
-                    .getFpList()) {
-                versionDeltaFeedbackPacket.addToFpList(fp, "down");
-            }
-
-            versionDeltaFeedbackPacket.fullSequence = stackedFeedbackPacketUp.fullSequence;
-            if (group == 1) {
-                versionDeltaFeedbackPacket.skippedUpgrade = true;
-                versionDeltaFeedbackPacket.skippedDowngrade = true;
-            }
-            versionDeltaFeedbackPacket.clientGroup = group;
-            // clearData();
-            if (Config.getConf().debug) {
-                logger.info("[HKLOG: profiler] " + threadIdGroup
-                        + ": group " + group
-                        + ": finished version delta execution, time spent: "
-                        + (System.currentTimeMillis()
-                                - startTimeVersionDeltaExecution));
-            }
+            versionDeltaFeedbackPacketApproach2.clientGroup = group;
             executorService.shutdown();
-            assert versionDeltaFeedbackPacket != null;
-            return versionDeltaFeedbackPacket;
+            assert versionDeltaFeedbackPacketApproach2 != null;
+            return versionDeltaFeedbackPacketApproach2;
         } catch (Exception e) {
             logger.info("[HKLOG] Caught Exception!!! " + e);
             e.printStackTrace();

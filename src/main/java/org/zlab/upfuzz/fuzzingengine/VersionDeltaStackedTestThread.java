@@ -358,7 +358,7 @@ class VersionDeltaStackedTestThread implements Callable<StackedFeedbackPacket> {
                     }
                 }
             } else {
-                stackedFeedbackPacket.isDowngradeProcessFailed = true;
+                stackedFeedbackPacket.isDowngradeProcessFailed = false;
                 return stackedFeedbackPacket;
             }
         }
