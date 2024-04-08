@@ -19,9 +19,9 @@ if [[ ! -f "/var/log/.setup_conf" ]]; then
     if [ "$ENABLE_FORMAT_COVERAGE" = "true" ]; then
         # Copy the file to /tmp
         echo "Enable format coverage"
-        cp "$CASSANDRA_HOME/topObjects.json" /tmp/
-        cp "$CASSANDRA_HOME/serializedFields_alg1.json" /tmp/
-        # cp "$CASSANDRA_HOME/comparableClasses.json" /tmp/
+        cp "$HADOOP_HOME/topObjects.json" /tmp/
+        cp "$HADOOP_HOME/serializedFields_alg1.json" /tmp/
+        # cp "$HADOOP_HOME/comparableClasses.json" /tmp/
     fi
 
     echo "copy hadoop dir and format configurations"
