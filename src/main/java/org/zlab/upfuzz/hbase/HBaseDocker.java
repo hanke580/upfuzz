@@ -164,7 +164,9 @@ public class HBaseDocker extends Docker {
                 "HBASE_CONF=\"" + HBaseConf + "\"", javaToolOpts,
                 "HBASE_SHELL_DAEMON_PORT=\"" + HBaseDaemonPort + "\"",
                 "CUR_STATUS=ORI",
-                "PYTHON=" + pythonVersion };
+                "PYTHON=" + pythonVersion,
+                "ENABLE_FORMAT_COVERAGE=" + Config.getConf().useFormatCoverage
+        };
 
         setEnvironment();
 
@@ -231,7 +233,8 @@ public class HBaseDocker extends Docker {
                 "HBASE_CONF=\"" + HBaseConf + "\"", javaToolOpts,
                 "HBASE_SHELL_DAEMON_PORT=\"" + HBaseDaemonPort + "\"",
                 "CUR_STATUS=UP",
-                "PYTHON=" + pythonVersion };
+                "PYTHON=" + pythonVersion,
+                "ENABLE_FORMAT_COVERAGE=false" };
         setEnvironment();
     }
 

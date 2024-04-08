@@ -134,7 +134,9 @@ public class HdfsDocker extends Docker {
                 "HADOOP_HOME=" + hdfsHome,
                 "HADOOP_CONF_DIR=" + hdfsConf, javaToolOpts,
                 "HDFS_SHELL_DAEMON_PORT=\"" + hdfsDaemonPort + "\"",
-                "PYTHON=python3" };
+                "PYTHON=python3",
+                "ENABLE_FORMAT_COVERAGE=" + Config.getConf().useFormatCoverage
+        };
         setEnvironment();
 
         // Copy the cassandra-ori.yaml and cassandra-up.yaml
@@ -191,7 +193,9 @@ public class HdfsDocker extends Docker {
                 "HADOOP_HOME=" + hdfsHome,
                 "HADOOP_CONF_DIR=" + hdfsConf, javaToolOpts,
                 "HDFS_SHELL_DAEMON_PORT=\"" + hdfsDaemonPort + "\"",
-                "PYTHON=python3" };
+                "PYTHON=python3",
+                "ENABLE_FORMAT_COVERAGE=false"
+        };
         setEnvironment();
     }
 
@@ -251,7 +255,8 @@ public class HdfsDocker extends Docker {
                 "HADOOP_HOME=" + hdfsHome,
                 "HADOOP_CONF_DIR=" + hdfsConf, javaToolOpts,
                 "HDFS_SHELL_DAEMON_PORT=\"" + hdfsDaemonPort + "\"",
-                "PYTHON=python3" };
+                "PYTHON=python3",
+                "ENABLE_FORMAT_COVERAGE=false" };
         setEnvironment();
         String restartCommand = "/usr/bin/supervisorctl restart upfuzz_hdfs:";
         // Seems the env doesn't really matter...
