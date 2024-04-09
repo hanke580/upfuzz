@@ -322,7 +322,8 @@ class RegularStackedTestThread implements Callable<StackedFeedbackPacket> {
                                 .get(tp.testPacketID);
                     }
                 } else {
-                    stackedFeedbackPacket.isDowngradeProcessFailed = true;
+                    // do nothing...
+                    // stackedFeedbackPacket.isDowngradeProcessFailed = true;
                     return stackedFeedbackPacket;
                 }
             }

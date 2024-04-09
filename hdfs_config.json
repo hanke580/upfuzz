@@ -12,6 +12,8 @@
   "useFormatCoverage": false,
   "oriFormatInfoFolder": "configInfo/hadoop-2.10.2_hadoop-3.3.6",
   "upFormatInfoFolder": "configInfo/hadoop-3.3.6_hadoop-2.10.2",
+  "useVersionDelta": false,
+  "versionDeltaApproach": 1,
   "verifyConfig": false,
   "testAddedConfig": false,
   "testDeletedConfig": false,
