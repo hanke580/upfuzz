@@ -62,10 +62,14 @@ git pull
 * Start from setting the ORI_VERSION and the UP_VERSION
 
 ## Data format guided testing
-* Infer data format likely invariants during testing.
-* Reward the test case if it improves the existing learned format likely invariants.
+**Make sure** the system with data-format instrumentation contains the following files in its dir. Format instrumentation need to run normally with these files. (system won't start up otherwise)
+* topObjects.json
+* serializedFields_alg1.json
 
-Need instrumented tar for running
+### Setup
+1. Use format instrumented system
+2. Enable `useFormatCoverage` in the config file
+The rest steps are the same as the minimal setup.
 
 ```bash
 git clone git@github.com:zlab-purdue/upfuzz.git
@@ -93,16 +97,14 @@ docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"_apache-cassan
 # Also make sure these files occur in the prebuild/cassandra/apache-cassandra-2.2.8/ folder
 cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.17/serializedFields_alg1.json prebuild/cassandra/apache-cassandra-2.2.8/
 cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.17/topObjects.json prebuild/cassandra/apache-cassandra-2.2.8/
-cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.17/comparableClasses.json prebuild/cassandra/apache-cassandra-2.2.8/
-cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.17/branch2Collection.json prebuild/cassandra/apache-cassandra-2.2.8/
+# cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.17/comparableClasses.json prebuild/cassandra/apache-cassandra-2.2.8/
+# cp configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.17/branch2Collection.json prebuild/cassandra/apache-cassandra-2.2.8/
 
 cd ${UPFUZZ_DIR}
 ./gradlew copyDependencies
 ./gradlew :spotlessApply build
 
-# open terminal1: start server
 bin/start_server.sh format_example_config.json
-# open terminal2: start 4 clients
 bin/start_clients.sh 4 format_example_config.json
 
 # stop testing
