@@ -217,7 +217,7 @@ git clone git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
 export UPFUZZ_DIR=$PWD
 export ORI_VERSION=2.4.17
-export UP_VERSION=2.5.5
+export UP_VERSION=2.5.8
 
 mkdir -p $UPFUZZ_DIR/prebuild/hadoop
 cd $UPFUZZ_DIR/prebuild/hadoop
@@ -238,7 +238,6 @@ docker build . -t upfuzz_hdfs:hadoop-2.10.2
 
 cd $UPFUZZ_DIR/src/main/resources/hbase/compile-src/
 docker build . -t upfuzz_hbase:hbase-"$ORI_VERSION"_hbase-"$UP_VERSION"
-# reverse the ori and up version
 docker build . -t upfuzz_hbase:hbase-"$UP_VERSION"_hbase-"$ORI_VERSION"
 
 cd $UPFUZZ_DIR
