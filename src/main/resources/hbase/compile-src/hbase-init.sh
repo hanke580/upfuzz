@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Copy format coverage files
+if [ "$ENABLE_FORMAT_COVERAGE" = "true" ]; then
+    # Copy the file to /tmp
+    echo "Enable format coverage"
+    cp "$HBASE_HOME/topObjects.json" /tmp/
+    cp "$HBASE_HOME/serializedFields_alg1.json" /tmp/
+    # cp "$HBASE_HOME/comparableClasses.json" /tmp/
+fi
+
 if [[ -z $(grep -F "master" "/etc/hosts") ]];
 then
         if [ -e "/etc/tmp_hosts" ]; then
