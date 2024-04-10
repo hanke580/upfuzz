@@ -1,6 +1,6 @@
 {
   "originalVersion" : "hbase-2.4.17",
-  "upgradedVersion" : "hbase-2.5.5",
+  "upgradedVersion" : "hbase-2.5.8",
   "system" : "hbase",
   "depSystem": "hadoop",
   "depVersion": "hadoop-2.10.2",
@@ -10,8 +10,8 @@
   "STACKED_TESTS_NUM" : "1",
   "nodeNum": 3,
   "useFormatCoverage": false,
-  "oriFormatInfoFolder": "configInfo/hbase-2.4.17_hbase-2.5.5",
-  "upFormatInfoFolder": "configInfo/hbase-2.5.5_hbase-2.4.17",
+  "oriFormatInfoFolder": "configInfo/hbase-2.4.17_hbase-2.5.8",
+  "upFormatInfoFolder": "configInfo/hbase-2.5.8_hbase-2.4.17",
   "useVersionDelta": false,
   "versionDeltaApproach": 1,
   "faultMaxNum": 2,
