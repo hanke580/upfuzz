@@ -202,30 +202,41 @@ public class FuzzingServer {
 
         if (Config.getConf().useFormatCoverage) {
             // FIXME: add isSerialized path
-            if (Config.getConf().oriFormatInfoFolder == null
-                    || Config.getConf().upFormatInfoFolder == null) {
+            // Now: only support testing upgrade!
+
+            // Construct info folder:
+            // there should 3 folder
+            Path oriFormatInfoFolder = Paths.get("configInfo")
+                    .resolve(Config.getConf().originalVersion + "_"
+                            + Config.getConf().upgradedVersion);
+            Path upFormatInfoFolder = Paths.get("configInfo")
+                    .resolve(Config.getConf().upgradedVersion + "_"
+                            + Config.getConf().originalVersion);
+
+            if (oriFormatInfoFolder.toFile().exists()
+                    || !upFormatInfoFolder.toFile().exists()) {
                 throw new RuntimeException(
                         "oriFormatInfoFolder or upFormatInfoFolder is not specified in the configuration file "
                                 +
                                 "while format coverage is enabled");
             }
             oriObjCoverage = new ObjectGraphCoverage(
-                    Paths.get(Config.getConf().oriFormatInfoFolder,
+                    oriFormatInfoFolder.resolve(
                             Config.getConf().baseClassInfoFileName),
-                    Paths.get(Config.getConf().oriFormatInfoFolder,
+                    oriFormatInfoFolder.resolve(
                             Config.getConf().topObjectsFileName),
-                    Paths.get(Config.getConf().oriFormatInfoFolder,
+                    oriFormatInfoFolder.resolve(
                             Config.getConf().comparableClassesFileName),
                     null,
                     null,
                     null);
             if (Config.getConf().useVersionDelta) {
                 upObjCoverage = new ObjectGraphCoverage(
-                        Paths.get(Config.getConf().upFormatInfoFolder,
+                        upFormatInfoFolder.resolve(
                                 Config.getConf().baseClassInfoFileName),
-                        Paths.get(Config.getConf().upFormatInfoFolder,
+                        upFormatInfoFolder.resolve(
                                 Config.getConf().topObjectsFileName),
-                        Paths.get(Config.getConf().upFormatInfoFolder,
+                        upFormatInfoFolder.resolve(
                                 Config.getConf().comparableClassesFileName),
                         null,
                         null,

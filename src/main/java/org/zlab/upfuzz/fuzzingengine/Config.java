@@ -220,9 +220,6 @@ public class Config {
 
         public int formatCoveragePort = 62000;
 
-        public String oriFormatInfoFolder = null;
-        public String upFormatInfoFolder = null;
-
         public String baseClassInfoFileName = "serializedFields_alg1.json";
         public String topObjectsFileName = "topObjects.json";
         public String comparableClassesFileName = "comparableClasses.json";

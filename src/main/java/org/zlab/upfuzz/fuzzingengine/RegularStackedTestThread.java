@@ -1,5 +1,6 @@
 package org.zlab.upfuzz.fuzzingengine;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.*;
@@ -124,10 +125,21 @@ class RegularStackedTestThread implements Callable<StackedFeedbackPacket> {
 
             if (Config.getConf().useFormatCoverage) {
                 // logger.info("[HKLOG] format coverage checking");
-                testID2FeedbackPacket
-                        .get(tp.testPacketID).formatCoverage = executor
-                                .getFormatCoverage(Paths.get(Config
-                                        .getConf().oriFormatInfoFolder));
+                Path oriFormatInfoFolder = Paths.get("configInfo")
+                        .resolve(Config.getConf().originalVersion + "_"
+                                + Config.getConf().upgradedVersion);
+                Path upFormatInfoFolder = Paths.get("configInfo")
+                        .resolve(Config.getConf().upgradedVersion + "_"
+                                + Config.getConf().originalVersion);
+                if (direction == 0) {
+                    testID2FeedbackPacket
+                            .get(tp.testPacketID).formatCoverage = executor
+                                    .getFormatCoverage(oriFormatInfoFolder);
+                } else {
+                    testID2FeedbackPacket
+                            .get(tp.testPacketID).formatCoverage = executor
+                                    .getFormatCoverage(upFormatInfoFolder);
+                }
             }
         }
 

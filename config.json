@@ -10,8 +10,6 @@
   "testSingleVersion": false,
   "testingMode": 0,
   "useFormatCoverage": false,
-  "oriFormatInfoFolder": "configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.17",
-  "upFormatInfoFolder": "configInfo/apache-cassandra-3.0.17_apache-cassandra-2.2.8",
   "branchCoverageChoiceProb": 0.3,
   "useVersionDelta": false,
   "versionDeltaChoiceProb": 0.7,

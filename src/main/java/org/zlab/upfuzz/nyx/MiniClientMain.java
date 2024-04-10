@@ -483,12 +483,16 @@ public class MiniClientMain {
             if (Config.getConf().useFormatCoverage) {
                 // logger.info("[HKLOG] format coverage checking");
                 Path formatInfoFolder;
+                Path oriFormatInfoFolder = Paths.get("configInfo")
+                        .resolve(Config.getConf().originalVersion + "_"
+                                + Config.getConf().upgradedVersion);
+                Path upFormatInfoFolder = Paths.get("configInfo")
+                        .resolve(Config.getConf().upgradedVersion + "_"
+                                + Config.getConf().originalVersion);
                 if (direction == 0)
-                    formatInfoFolder = Paths
-                            .get(Config.getConf().oriFormatInfoFolder);
+                    formatInfoFolder = oriFormatInfoFolder;
                 else
-                    formatInfoFolder = Paths
-                            .get(Config.getConf().upFormatInfoFolder);
+                    formatInfoFolder = upFormatInfoFolder;
                 testID2FeedbackPacket
                         .get(tp.testPacketID).formatCoverage = executor
                                 .getFormatCoverage(formatInfoFolder);
@@ -782,10 +786,12 @@ public class MiniClientMain {
 
             if (Config.getConf().useFormatCoverage) {
                 // logger.info("[HKLOG] format coverage checking");
+                Path oriFormatInfoFolder = Paths.get("configInfo")
+                        .resolve(Config.getConf().originalVersion + "_"
+                                + Config.getConf().upgradedVersion);
                 testID2FeedbackPacket
                         .get(tp.testPacketID).formatCoverage = executor
-                                .getFormatCoverage(Paths.get(
-                                        Config.getConf().oriFormatInfoFolder));
+                                .getFormatCoverage(oriFormatInfoFolder);
             }
         }
 
