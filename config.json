@@ -13,7 +13,7 @@
   "oriFormatInfoFolder": "configInfo/apache-cassandra-2.2.8_apache-cassandra-3.0.17",
   "upFormatInfoFolder": "configInfo/apache-cassandra-3.0.17_apache-cassandra-2.2.8",
   "branchCoverageChoiceProb": 0.3,
-  "useVersionDelta": true,
+  "useVersionDelta": false,
   "versionDeltaChoiceProb": 0.7,
   "versionDeltaApproach": 2,
   "branchCovSeedChoiceProb": 0.1,
