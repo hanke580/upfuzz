@@ -213,7 +213,13 @@ public class FuzzingServer {
                     .resolve(Config.getConf().upgradedVersion + "_"
                             + Config.getConf().originalVersion);
 
-            if (oriFormatInfoFolder.toFile().exists()
+            // logger.info("ori format info folder: " +
+            // oriFormatInfoFolder.toString() + ", exists? " +
+            // oriFormatInfoFolder.toFile().exists());
+            // logger.info("up format info folder: " +
+            // upFormatInfoFolder.toString() + ", exists? " +
+            // upFormatInfoFolder.toFile().exists());
+            if (!oriFormatInfoFolder.toFile().exists()
                     || !upFormatInfoFolder.toFile().exists()) {
                 throw new RuntimeException(
                         "oriFormatInfoFolder or upFormatInfoFolder is not specified in the configuration file "
