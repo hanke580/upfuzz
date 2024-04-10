@@ -130,6 +130,13 @@ public abstract class DockerMeta {
         oriConfigPathDocker.toFile().mkdirs();
         upConfigPathDocker.toFile().mkdirs();
 
+        if (!oriConfigPath.toFile().exists()
+                || !upConfigPath.toFile().exists()) {
+            throw new RuntimeException("Config path does not exist! ori = "
+                    + oriConfigPath + ", up = " + upConfigPath +
+                    ", please make sure the config file is correctly generated");
+        }
+
         for (File file : oriConfigPath.toFile().listFiles()) {
             Files.copy(file.toPath(),
                     oriConfigPathDocker.resolve(file.getName()),
