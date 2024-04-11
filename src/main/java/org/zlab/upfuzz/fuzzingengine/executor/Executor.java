@@ -447,7 +447,6 @@ public abstract class Executor implements IExecutor {
             for (String agentId : agentIdList) {
                 if (agentId.split("-")[3].equals("null"))
                     continue;
-                logger.info("collect conn " + agentId);
                 if (Config.getConf().debug) {
                     logger.info(
                             "[Executor] Going to get connection for agent server handler");
@@ -474,7 +473,6 @@ public abstract class Executor implements IExecutor {
                 // logger.info("collect conn " + agentId);
                 if (agentId.split("-")[3].equals("null"))
                     continue;
-                logger.info("get coverage from " + agentId);
                 ExecutionDataStore astore = agentStore.get(agentId);
                 if (astore == null) {
                     // logger.info("no data");

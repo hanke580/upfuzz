@@ -101,9 +101,9 @@ public class CassandraExecutor extends Executor {
             logger.error("docker cluster start up failed", e);
             return false;
         }
-        logger.info("cassandra " + executorID + " started");
         cqlsh = ((CassandraDocker) dockerCluster.getDocker(0)).cqlsh;
-        logger.info("cqlsh daemon connected");
+        logger.info(
+                "cassandra " + executorID + " started, cqlsh daemon connected");
         return true;
     }
 
