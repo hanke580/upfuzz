@@ -73,14 +73,6 @@ public class Main {
         }
         Config.getConf().checkNull();
 
-        if (Config.getConf().corpusDir == null) {
-            // create a corpus dir in the folder
-            Path corpusPath = Paths.get(System.getProperty("user.dir"))
-                    .resolve("corpus");
-            corpusPath.toFile().mkdir();
-            Config.instance.corpusDir = corpusPath.toString();
-        }
-
         // construct failure folder
         if (Config.getConf().failureDir == null) {
             // create a corpus dir in the folder

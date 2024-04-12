@@ -1,6 +1,6 @@
 #!/bin/bash
 
-pgrep -u $(id -u) -f config.json | xargs sudo kill -9
+pgrep -u $(id -u) -f config.json | xargs kill -9
 pgrep --euid $USER qemu | xargs kill -9 # kill all lurking qemu instances
 
 docker rm -f $(docker ps -a -q)

@@ -4,12 +4,15 @@ import static java.lang.String.format;
 
 import java.io.*;
 
+import org.apache.commons.io.FileUtils;
 import org.zlab.upfuzz.Parameter;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
@@ -1049,5 +1052,24 @@ public class Utilities {
         // Fallback (should never happen if probabilities sum to 1)
         assert false : "the accumulated probability should sum to 1.0.";
         return cumulativeProbabilities.length - 1;
+    }
+
+    public static void copyDir(Path sourceDir, Path targetDir)
+            throws IOException {
+        try {
+            FileUtils.copyDirectory(sourceDir.toFile(), targetDir.toFile());
+        } catch (IOException e) {
+            System.err.println("Error occurred: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public static void createDirIfNotExist(Path dir) {
+        if (!dir.toFile().exists()) {
+            boolean status = dir.toFile().mkdirs();
+            if (!status) {
+                throw new RuntimeException("Cannot create corpusDir: " + dir);
+            }
+        }
     }
 }

@@ -1,11 +1,13 @@
 package org.zlab.upfuzz.fuzzingengine.server;
 
 import org.zlab.upfuzz.CommandSequence;
+import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
-import java.io.File;
+import java.io.*;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
@@ -41,7 +43,7 @@ public abstract class Corpus implements ICorpus {
     }
 
     public Seed getSeed() {
-        // Not support CorpusVersionDetlaSixQueue
+        // Not support CorpusVersionDeltaSixQueue
         // if current class is CorpusVersionDetlaSixQueue, throw exception
         if (this instanceof CorpusVersionDeltaSixQueue) {
             throw new RuntimeException(
@@ -56,29 +58,100 @@ public abstract class Corpus implements ICorpus {
         return cycleQueues[i].getNextSeed();
     }
 
-    public boolean initCorpus(Path initSeedDirPath) {
-        // Add to both queue
-        if (!initSeedDirPath.toFile().exists())
-            return true;
-        File initSeedDir = initSeedDirPath.toFile();
-        if (!initSeedDir.isDirectory()) {
-            throw new IllegalArgumentException(
-                    "initSeedDirPath is not a directory");
+    public abstract int initCorpus();
+
+    public static void saveSeedQueueOnDisk(Seed seed, String queueName,
+            int seedID) {
+        // Serialize the seed of the queue in to disk
+        if (Config.getConf().corpus == null || queueName == null) {
+            throw new RuntimeException(
+                    "Config.getConf().corpusDir is null, cannot save seed");
         }
-        for (File seedFile : Objects.requireNonNull(initSeedDir.listFiles())) {
-            if (!seedFile.isDirectory()) {
-                Pair<CommandSequence, CommandSequence> commandSequencePair = Utilities
-                        .deserializeCommandSequence(seedFile.toPath());
-                if (commandSequencePair != null) {
-                    Seed seed = new Seed(commandSequencePair.left,
-                            commandSequencePair.right, -1, -1);
-                    seed.score = 10;
-                    for (CycleQueue cycleQueue : cycleQueues) {
-                        cycleQueue.addSeed(seed);
-                    }
-                }
+
+        Path queueDirPath = Paths.get(Config.getConf().corpus)
+                .resolve(queueName);
+        Utilities.createDirIfNotExist(queueDirPath);
+
+        Path seedDirPath = queueDirPath.resolve("seed_" + seedID);
+        Utilities.createDirIfNotExist(seedDirPath);
+
+        // Serialize the seed
+        Path filePath = seedDirPath.resolve("seed");
+        try {
+            FileOutputStream fileOut = new FileOutputStream(filePath.toFile());
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(seed);
+            out.close();
+            fileOut.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        // Copy the config folder
+        if (seed.configIdx == -1) // test
+            return;
+        String configDirName = "test" + seed.configIdx;
+
+        Path configDir = Paths.get(System.getProperty("user.dir"),
+                Config.getConf().configDir, Config.getConf().originalVersion
+                        + "_" + Config.getConf().upgradedVersion)
+                .resolve(configDirName);
+        if (!configDir.toFile().exists()) {
+            throw new RuntimeException(
+                    "Config folder does not exist: " + configDir);
+        }
+        try {
+            Utilities.copyDir(configDir, seedDirPath.resolve("config"));
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(
+                    "Cannot copy config folder: " + configDir);
+        }
+    }
+
+    public static int loadSeedIntoQueue(CycleQueue cycleQueue, File queueDir,
+            int initTestId) {
+        if (queueDir == null || !queueDir.exists())
+            return initTestId;
+
+        assert queueDir.isDirectory();
+
+        int testId = initTestId;
+
+        for (File seedDir : Objects.requireNonNull(queueDir.listFiles())) {
+            // there's a file called "seed" under seedDir, deserailize it
+            File seedFile = new File(seedDir, "seed");
+            if (!seedFile.exists())
+                continue;
+            Seed seed;
+            try {
+                FileInputStream fileIn = new FileInputStream(seedFile);
+                ObjectInputStream in = new ObjectInputStream(fileIn);
+                seed = (Seed) in.readObject();
+                in.close();
+                fileIn.close();
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+                continue;
             }
+            if (seed == null)
+                continue;
+
+            if (!Config.getConf().reuseInitSeedConfig) {
+                /**
+                 * The config might not be compatible across versions.
+                 */
+                seed.configIdx = -1;
+            } else {
+                // copy over the config folder and increase the configIdx
+                throw new RuntimeException("Not supported copy config");
+            }
+
+            // Handle the test id... need to avoid the conflicts
+            seed.testID = testId++;
+            cycleQueue.addSeed(seed);
         }
-        return true;
+        return testId;
     }
 }

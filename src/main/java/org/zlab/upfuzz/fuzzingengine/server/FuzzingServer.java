@@ -84,7 +84,6 @@ public class FuzzingServer {
     // Fuzzing Status
     public int firstMutationSeedNum = 0;
 
-    private static int seedID = 0;
     private int testID = 0;
     private int finishedTestID = 0;
     public static int round = 0;
@@ -278,9 +277,10 @@ public class FuzzingServer {
         }, Config.getConf().gcInterval, Config.getConf().gcInterval,
                 TimeUnit.MINUTES);
 
-        if (Config.getConf().initSeedDir != null) {
-            corpus.initCorpus(Paths.get(Config.getConf().initSeedDir));
+        if (Config.getConf().loadInitCorpus) {
+            testID = corpus.initCorpus();
         }
+
         stackedTestPacketsQueueVersionDelta = new LinkedBlockingQueue<>();
         testBatchCorpus = new InterestingTestsCorpus();
 
@@ -1440,16 +1440,16 @@ public class FuzzingServer {
                 newBCAfterUpgrade, newBCAfterDowngrade);
     }
 
-    // Deprecated soon
-    public static void addSeedToCorpus(CorpusVersionDeltaSixQueue corpus,
-            Map<Integer, Seed> testID2Seed, int testPacketID,
-            int score, CorpusVersionDeltaSixQueue.QueueType queueType) {
-        Seed seed = testID2Seed.get(testPacketID);
-        seed.score = score;
-        assert testPacketID == seed.testID;
-        logger.debug("Add seed " + testPacketID + " to queue " + queueType);
-        corpus.addSeed(seed, queueType);
-    }
+    // // Deprecated soon
+    // public static void addSeedToCorpus(CorpusVersionDeltaSixQueue corpus,
+    // Map<Integer, Seed> testID2Seed, int testPacketID,
+    // int score, CorpusVersionDeltaSixQueue.QueueType queueType) {
+    // Seed seed = testID2Seed.get(testPacketID);
+    // seed.score = score;
+    // assert testPacketID == seed.testID;
+    // logger.debug("Add seed " + testPacketID + " to queue " + queueType);
+    // corpus.addSeed(seed, queueType);
+    // }
 
     public synchronized void updateStatus(
             TestPlanFeedbackPacket testPlanFeedbackPacket) {
@@ -1866,13 +1866,8 @@ public class FuzzingServer {
             finishedTestIdAgentGroup1++;
             int score = 0;
 
-            boolean addToCorpus = false;
-            boolean addToFormatCoverageCorpus = false;
-            boolean addToVersionDeltaCorpusForBranchCoverage = false;
-            boolean addToVersionDeltaCorpusForFormatCoverage = false;
-
-            boolean newOldVersionBranchCoverageBeforeUpgrade = false;
-            boolean newNewVersionBranchCoverageBeforeDowngrade = false;
+            boolean newOriBC = false;
+            boolean newUpBC = false;
             boolean oriNewFormat = false;
             boolean upNewFormat = false;
 
@@ -1890,14 +1885,14 @@ public class FuzzingServer {
                 // Write Seed to Disk + Add to Corpus
                 curOriCoverage.merge(
                         fbUpgrade.originalCodeCoverage);
-                newOldVersionBranchCoverageBeforeUpgrade = true;
+                newOriBC = true;
             }
             // logger.info("Checking new bits for downgrade feedback");
             if (Utilities.hasNewBits(curUpCoverage,
                     fbDowngrade.originalCodeCoverage)) {
                 curUpCoverage.merge(
                         fbDowngrade.originalCodeCoverage);
-                newNewVersionBranchCoverageBeforeDowngrade = true;
+                newUpBC = true;
             }
 
             // format coverage
@@ -1922,46 +1917,28 @@ public class FuzzingServer {
                 }
             }
 
-            if (Config.getConf().debug) {
-                logger.info("[HKLOG] newOldVersionBranchCoverageBeforeUpgrade: "
-                        + newOldVersionBranchCoverageBeforeUpgrade);
-                logger.info(
-                        "[HKLOG] newNewVersionBranchCoverageBeforeDowngrade: "
-                                + newNewVersionBranchCoverageBeforeDowngrade);
-                logger.info("[HKLOG] oriNewFormat: "
-                        + oriNewFormat);
-                logger.info("[HKLOG] upNewFormat: "
-                        + upNewFormat);
-            }
-
-            boolean hasFeedbackInducedBranchVersionDelta = newOldVersionBranchCoverageBeforeUpgrade
-                    ^ newNewVersionBranchCoverageBeforeDowngrade;
+            boolean hasFeedbackInducedBranchVersionDelta = newOriBC
+                    ^ newUpBC;
             boolean hasFeedbackInducedFormatVersionDelta = oriNewFormat
                     ^ upNewFormat;
-            boolean hasFeedbackInducedNewBranchCoverage = newOldVersionBranchCoverageBeforeUpgrade
-                    || newNewVersionBranchCoverageBeforeDowngrade;
+            boolean hasFeedbackInducedNewBranchCoverage = newOriBC
+                    || newUpBC;
             boolean hasFeedbackInducedNewFormatCoverage = oriNewFormat
                     || upNewFormat;
-            boolean isFeedbackInteresting = hasFeedbackInducedNewBranchCoverage
-                    || hasFeedbackInducedNewFormatCoverage;
 
             if (Config.getConf().useBranchCoverage
                     && (Config.getConf().branchCoverageChoiceProb > 0)) {
                 if (hasFeedbackInducedBranchVersionDelta) {
-                    if (Config.getConf().debug) {
-                        logger.info("Adding to code coverage corpus: "
-                                + versionDeltaFeedbackPacketUp.testPacketID);
-                        logger.info(
-                                "new old version branch coverage before upgrade: "
-                                        + newOldVersionBranchCoverageBeforeUpgrade);
-                        logger.info(
-                                "new new version branch coverage before downgrade: "
-                                        + newNewVersionBranchCoverageBeforeDowngrade);
-                    }
-                    addToVersionDeltaCorpusForBranchCoverage = true;
+                    logger.info("Adding to code coverage corpus: "
+                            + versionDeltaFeedbackPacketUp.testPacketID);
+                    logger.info(
+                            "new old version branch coverage before upgrade: "
+                                    + newOriBC);
+                    logger.info(
+                            "new new version branch coverage before downgrade: "
+                                    + newUpBC);
                     newVersionDeltaCountForBranchCoverage += 1;
                 } else if (hasFeedbackInducedNewBranchCoverage) {
-                    addToCorpus = true;
                     executionCountWithOnlyNewBranchCoverage += 1;
                 }
             }
@@ -1969,16 +1946,12 @@ public class FuzzingServer {
             if (Config.getConf().useFormatCoverage
                     && (Config.getConf().formatCoverageChoiceProb > 0)) {
                 if (hasFeedbackInducedFormatVersionDelta) {
-                    if (Config.getConf().debug) {
-                        logger.debug("Add test "
-                                + versionDeltaFeedbackPacketUp.testPacketID
-                                + " to format coverage corpus " + "oriNewFormat = "
-                                + oriNewFormat + " upNewFormat = " + upNewFormat);
-                    }
-                    addToVersionDeltaCorpusForFormatCoverage = true;
+                    logger.debug("Add test "
+                            + versionDeltaFeedbackPacketUp.testPacketID
+                            + " to format coverage corpus " + "oriNewFormat = "
+                            + oriNewFormat + " upNewFormat = " + upNewFormat);
                     newVersionDeltaCountForFormatCoverage += 1;
                 } else if (hasFeedbackInducedNewFormatCoverage) {
-                    addToFormatCoverageCorpus = true;
                     executionCountWithOnlyNewFormatCoverage += 1;
                 }
             }
@@ -2067,44 +2040,20 @@ public class FuzzingServer {
             }
 
             System.out.println(versionDeltaFeedbackPacketUp.testPacketID);
-            graph.updateNodeCoverage(versionDeltaFeedbackPacketUp.testPacketID,
-                    newOldVersionBranchCoverageBeforeUpgrade,
-                    false,
-                    newNewVersionBranchCoverageBeforeDowngrade,
-                    false,
-                    oriNewFormat, upNewFormat);
 
-            if (addToCorpus) {
-                addSeedToCorpus((CorpusVersionDeltaSixQueue) corpus,
-                        testID2Seed,
-                        versionDeltaFeedbackPacketUp.testPacketID, score,
-                        CorpusVersionDeltaSixQueue.QueueType.BC);
-            }
-            if (addToFormatCoverageCorpus) {
-                addSeedToCorpus((CorpusVersionDeltaSixQueue) corpus,
-                        testID2Seed,
-                        versionDeltaFeedbackPacketUp.testPacketID, score,
-                        CorpusVersionDeltaSixQueue.QueueType.FC);
-            }
-            if (addToVersionDeltaCorpusForBranchCoverage) {
-                addSeedToCorpus((CorpusVersionDeltaSixQueue) corpus,
-                        testID2Seed,
-                        versionDeltaFeedbackPacketUp.testPacketID, score,
-                        CorpusVersionDeltaSixQueue.QueueType.BC_VD);
-            }
-            if (addToVersionDeltaCorpusForFormatCoverage) {
-                addSeedToCorpus((CorpusVersionDeltaSixQueue) corpus,
-                        testID2Seed,
-                        versionDeltaFeedbackPacketUp.testPacketID, score,
-                        CorpusVersionDeltaSixQueue.QueueType.FC_VD);
-            }
+            addSeedToCorpus(corpus,
+                    testID2Seed.get(versionDeltaFeedbackPacketUp.testPacketID),
+                    score,
+                    newOriBC,
+                    newUpBC,
+                    oriNewFormat, upNewFormat, false, false);
+
+            graph.updateNodeCoverageGroup1(
+                    versionDeltaFeedbackPacketUp.testPacketID,
+                    newOriBC,
+                    newUpBC,
+                    oriNewFormat, upNewFormat);
         }
-        // update testid2Seed, no use anymore
-        // for (int testID : versionDeltaFeedbackPacket.testIDs) {
-        // if (!versionDeltaInducedTpIds.contains(testID)) {
-        // testID2Seed.remove(testID);
-        // }
-        // }
 
         if (versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.hasERRORLog) {
             if (failureDir == null) {
@@ -2287,10 +2236,8 @@ public class FuzzingServer {
             finishedTestIdAgentGroup2++;
             int score = 0;
 
-            boolean addToCorpusAfterUpgrade = false;
-            boolean addToCorpusAfterDowngrade = false;
-            boolean newNewVersionBranchCoverageAfterUpgrade = false;
-            boolean newOldVersionBranchCoverageAfterDowngrade = false;
+            boolean newBCAfterUpgrade = false;
+            boolean newBCAfterDowngrade = false;
 
             // Merge all the feedbacks
             FeedBack fbUpgrade = mergeCoverage(
@@ -2303,39 +2250,17 @@ public class FuzzingServer {
                     curUpCoverageAfterUpgrade,
                     fbUpgrade.upgradedCodeCoverage)) {
                 // Write Seed to Disk + Add to Corpus
-                newNewVersionBranchCoverageAfterUpgrade = true;
+                newBCAfterUpgrade = true;
             }
             if (Utilities.hasNewBits(curOriCoverageAfterDowngrade,
                     fbDowngrade.downgradedCodeCoverage)) {
-                newOldVersionBranchCoverageAfterDowngrade = true;
+                newBCAfterDowngrade = true;
             }
 
             curUpCoverageAfterUpgrade.merge(fbUpgrade.upgradedCodeCoverage);
             curOriCoverageAfterDowngrade
                     .merge(fbDowngrade.downgradedCodeCoverage);
 
-            if (Config.getConf().useBranchCoverage
-                    && (Config.getConf().branchCoverageChoiceProb > 0)) {
-                if (newNewVersionBranchCoverageAfterUpgrade) {
-                    System.out.println(
-                            "Adding to code coverage corpus after upgrade: "
-                                    + versionDeltaFeedbackPacketUp.testPacketID);
-                    System.out.println(
-                            "new new version branch coverage after upgrade: "
-                                    + newNewVersionBranchCoverageAfterUpgrade);
-                    addToCorpusAfterUpgrade = true;
-                }
-                if (newOldVersionBranchCoverageAfterDowngrade) {
-                    System.out.println(
-                            "Adding to code coverage corpus after upgrade: "
-                                    + versionDeltaFeedbackPacketUp.testPacketID);
-                    System.out.println(
-                            "new old version branch coverage after downgrade: "
-                                    + newOldVersionBranchCoverageAfterDowngrade);
-                    addToCorpusAfterDowngrade = true;
-                }
-            }
-
             if (versionDeltaFeedbackPacketUp.isInconsistent) {
                 if (failureDir == null) {
                     failureDir = createFailureDir(
@@ -2359,18 +2284,16 @@ public class FuzzingServer {
                         versionDeltaFeedbackPacketUp.inconsistencyReport);
             }
 
-            if (addToCorpusAfterUpgrade) {
-                addSeedToCorpus((CorpusVersionDeltaSixQueue) corpus,
-                        testID2Seed,
-                        versionDeltaFeedbackPacketUp.testPacketID, score,
-                        CorpusVersionDeltaSixQueue.QueueType.BC_After_Upgrade);
-            }
-            if (addToCorpusAfterDowngrade) {
-                addSeedToCorpus((CorpusVersionDeltaSixQueue) corpus,
-                        testID2Seed,
-                        versionDeltaFeedbackPacketDown.testPacketID, score,
-                        CorpusVersionDeltaSixQueue.QueueType.BC_After_Downgrade);
-            }
+            addSeedToCorpus(corpus,
+                    testID2Seed.get(versionDeltaFeedbackPacketUp.testPacketID),
+                    score, false, false, false, false, newBCAfterUpgrade,
+                    newBCAfterDowngrade);
+            // FIXME: it's already updated in Group1, do we update it again in
+            // group2?
+            graph.updateNodeCoverageGroup2(
+                    versionDeltaFeedbackPacketUp.testPacketID,
+                    newBCAfterUpgrade, newBCAfterDowngrade);
+
         }
         // update testid2Seed, no use anymore
         for (TestPacket tp : versionDeltaFeedbackPacket.tpList) {
@@ -2891,35 +2814,5 @@ public class FuzzingServer {
             }
         }
         return states;
-    }
-
-    public static void saveSeed(CommandSequence commandSequence,
-            CommandSequence validationCommandSequence) {
-        // Serialize the seed of the queue in to disk
-        if (Config.getConf().corpusDir == null) {
-            logger.debug("corpusDir is not provided, not saving seeds");
-        } else {
-            File corpusDir = new File(Config.getConf().corpusDir);
-            if (!corpusDir.exists()) {
-                corpusDir.mkdirs();
-            }
-            StringBuilder sb = new StringBuilder();
-            sb.append("Seed Id = ").append(seedID).append("\n");
-            sb.append("Command Sequence\n");
-            for (String commandStr : commandSequence.getCommandStringList()) {
-                sb.append(commandStr);
-                sb.append("\n");
-            }
-            sb.append("Read Command Sequence\n");
-            for (String commandStr : validationCommandSequence
-                    .getCommandStringList()) {
-                sb.append(commandStr);
-                sb.append("\n");
-            }
-            Path crashReportPath = Paths.get(Config.getConf().corpusDir,
-                    "seed_" + seedID + ".txt");
-            Utilities.write2TXT(crashReportPath.toFile(), sb.toString(), false);
-            seedID++;
-        }
     }
 }

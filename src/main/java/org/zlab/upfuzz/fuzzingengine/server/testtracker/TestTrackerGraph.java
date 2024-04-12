@@ -17,22 +17,17 @@ import java.util.Map;
  * Lightweight tracking for test node during the testing
  */
 public class TestTrackerGraph implements Serializable {
-    private Map<Integer, BaseNode> nodeMap = new HashMap<>();
-    private List<BaseNode> rootNodes = new ArrayList<>();
+    private static final Path graphDirPath = Paths
+            .get(Config.getConf().testGraphDirPath);
+
+    private final Map<Integer, BaseNode> nodeMap = new HashMap<>();
+    private final List<BaseNode> rootNodes = new ArrayList<>();
 
     public TestTrackerGraph() {
         // create a dir for node storage
-        File graphDir = Paths.get(Config.getConf().testGraphDirPath).toFile();
-        if (!graphDir.exists()) {
-            graphDir.mkdirs();
+        if (!graphDirPath.toFile().exists()) {
+            graphDirPath.toFile().mkdirs();
         }
-    }
-
-    public static Path getSubDirPath(int nodeId) {
-        int subDirId = nodeId / 10000;
-        Path subTestDir = Paths.get(Config.getConf().testGraphDirPath)
-                .resolve(subDirId + "");
-        return subTestDir;
     }
 
     private void addNode(BaseNode node) {
@@ -85,12 +80,10 @@ public class TestTrackerGraph implements Serializable {
             rootNodes.remove(node);
         BaseNode nodeToSerialize = nodeMap.remove(nodeId);
 
-        Path graphDir = Paths.get(Config.getConf().testGraphDirPath);
-
         try {
             // create a folder according to its testId
             int subDirId = nodeId / 10000;
-            File subTestDir = graphDir.resolve(subDirId + "").toFile();
+            File subTestDir = graphDirPath.resolve(subDirId + "").toFile();
             if (!subTestDir.exists()) {
                 subTestDir.mkdirs();
             }
@@ -102,15 +95,11 @@ public class TestTrackerGraph implements Serializable {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        // Takes around 3.3 ms for each node
-        // long endTime = System.nanoTime();
-        // // Calculate the duration in milliseconds
-        // double durationInMilliseconds = (endTime - startTime) / 1_000_000.0;
-        // System.out.println("Function execution time: " +
-        // durationInMilliseconds + " ms");
     }
 
-    // Version delta testing mode
+    // --------- Version delta testing mode (1-group) ---------
+
+    // Update coverage group1
     public void updateNodeCoverage(int nodeId,
             boolean newOriBC,
             boolean newUpBCAfterUpgrade,
@@ -119,8 +108,6 @@ public class TestTrackerGraph implements Serializable {
             boolean newOriFC,
             boolean newUpFC) {
         // Runtime tracking, it removes the node from memory
-        // long startTime = System.nanoTime();
-
         if (!Config.getConf().useVersionDelta)
             throw new RuntimeException(
                     "This function is only for version delta testing");
@@ -138,32 +125,99 @@ public class TestTrackerGraph implements Serializable {
             rootNodes.remove(node);
         BaseNode nodeToSerialize = nodeMap.remove(nodeId);
 
-        Path graphDir = Paths.get(Config.getConf().testGraphDirPath);
+        Path subDir = createSubDir(nodeId);
 
         try {
-            // create a folder according to its testId
-            int subDirId = nodeId / 10000;
-            File subTestDir = graphDir.resolve(subDirId + "").toFile();
-            if (!subTestDir.exists()) {
-                subTestDir.mkdirs();
-            }
             BaseNode
                     .serializeNodeToDisk(
-                            subTestDir.toPath()
-                                    .resolve(nodeId + ".ser"),
+                            subDir.resolve(nodeId + ".ser"),
                             nodeToSerialize);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        // Takes around 3.3 ms for each node
-        // long endTime = System.nanoTime();
-        // // Calculate the duration in milliseconds
-        // double durationInMilliseconds = (endTime - startTime) / 1_000_000.0;
-        // System.out.println("Function execution time: " +
-        // durationInMilliseconds + " ms");
+    }
+
+    // --------- Version delta testing mode (2-group) ---------
+
+    // Update coverage group1
+    public void updateNodeCoverageGroup1(int nodeId,
+            boolean newOriBC,
+            boolean newUpBC,
+            boolean newOriFC,
+            boolean newUpFC) {
+        // Runtime tracking, it removes the node from memory
+        if (!Config.getConf().useVersionDelta)
+            throw new RuntimeException(
+                    "This function is only for version delta testing");
+
+        BaseNode baseNode = nodeMap.get(nodeId);
+        assert baseNode instanceof TestTrackerVersionDeltaNode;
+        TestTrackerVersionDeltaNode node = (TestTrackerVersionDeltaNode) baseNode;
+        node.updateCoverageGroup1(newOriBC, newUpBC, newOriFC, newUpFC);
+
+        // serialize this node to disk, remove it from map
+        assert nodeMap.containsKey(nodeId);
+
+        if (node.pNodeId == -1)
+            rootNodes.remove(node);
+        BaseNode nodeToSerialize = nodeMap.remove(nodeId);
+
+        Path subDirPath = createSubDir(nodeId);
+        try {
+            BaseNode.serializeNodeToDisk(
+                    subDirPath.resolve(nodeId + ".ser"), nodeToSerialize);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // Version delta testing mode: Group2 update
+    public void updateNodeCoverageGroup2(int nodeId,
+            boolean newUpBCAfterUpgrade,
+            boolean newOriBCAfterDowngrade) {
+        // Runtime tracking, it removes the node from memory
+        if (!Config.getConf().useVersionDelta)
+            throw new RuntimeException(
+                    "This function is only for version delta testing");
+
+        // load baseNode from disk...
+        int subDirId = nodeId / 10000;
+        Path baseNodePath = Paths.get(Config.getConf().testGraphDirPath)
+                .resolve(String.valueOf(subDirId)).resolve((nodeId + ".ser"));
+        try {
+            BaseNode baseNode = BaseNode
+                    .deserializeNodeFromDisk(baseNodePath.toFile());
+            TestTrackerVersionDeltaNode node = (TestTrackerVersionDeltaNode) baseNode;
+            node.updateCoverageGroup2(newUpBCAfterUpgrade,
+                    newOriBCAfterDowngrade);
+            // Double check to make sure node not exist anymore
+            if (node.pNodeId == -1)
+                rootNodes.remove(node);
+            nodeMap.remove(nodeId);
+            BaseNode.serializeNodeToDisk(baseNodePath, node);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public BaseNode getNode(int nodeId) {
         return nodeMap.get(nodeId);
     }
+
+    public Path createSubDir(int nodeId) {
+        int subDirId = nodeId / 10000;
+        Path subTestDirPath = graphDirPath.resolve(subDirId + "");
+        if (!subTestDirPath.toFile().exists()) {
+            subTestDirPath.toFile().mkdirs();
+        }
+        return subTestDirPath;
+    }
+
+    public static Path getSubDirPath(int nodeId) {
+        int subDirId = nodeId / 10000;
+        Path subTestDir = Paths.get(Config.getConf().testGraphDirPath)
+                .resolve(subDirId + "");
+        return subTestDir;
+    }
+
 }

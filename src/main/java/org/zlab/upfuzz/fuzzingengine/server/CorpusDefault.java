@@ -1,10 +1,18 @@
 package org.zlab.upfuzz.fuzzingengine.server;
 
+import org.zlab.upfuzz.fuzzingengine.Config;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 public class CorpusDefault extends Corpus {
-    /**
-     * 1: FC: 80%
-     * 3: BC: 20%
-     */
+
+    private static final String queueName = "CorpusDefault_BC";
+    private static final Path queuePath = Paths.get(Config.getConf().corpus)
+            .resolve(queueName);
+
+    private int diskSeedId = 0;
+
     public CorpusDefault() {
         super(1, new double[] { 1 });
     }
@@ -19,6 +27,13 @@ public class CorpusDefault extends Corpus {
             boolean newBCAfterDowngrade) {
         if (newOriBC || newBCAfterUpgrade) {
             cycleQueues[0].addSeed(seed);
+            if (Config.getConf().saveCorpusToDisk) {
+                while (queuePath
+                        .resolve("seed_" + diskSeedId).toFile().exists()) {
+                    diskSeedId++;
+                }
+                Corpus.saveSeedQueueOnDisk(seed, queueName, diskSeedId);
+            }
         }
     }
 
@@ -33,5 +48,21 @@ public class CorpusDefault extends Corpus {
                             + cycleQueues[i].getCurrentIndex(),
                     "");
         }
+    }
+
+    @Override
+    public int initCorpus() {
+        Path corpusPath = Paths.get(Config.getConf().corpus);
+        if (!corpusPath.toFile().exists())
+            return 0;
+        if (!corpusPath.toFile().isDirectory()) {
+            throw new RuntimeException(
+                    "corpusPath is not a directory: " + corpusPath);
+        }
+        // process each queues
+        int testId = 0;
+        testId = Corpus.loadSeedIntoQueue(cycleQueues[QueueType.BC.ordinal()],
+                queuePath.toFile(), testId);
+        return testId;
     }
 }

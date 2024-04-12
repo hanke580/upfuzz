@@ -58,7 +58,6 @@ public class Config {
         public String initSeedDir = null;
 
         public String failureDir = null;
-        public String corpusDir = null;
 
         public boolean nyxMode = false;
         public String nyxFuzzSH = null;
@@ -71,6 +70,11 @@ public class Config {
          * 0: 6 queues (reuse bishal's implementation)
          * 1: 4 queues (ke's implementation)
          */
+        public String corpus = "corpus";
+        public boolean saveCorpusToDisk = true;
+        public boolean loadInitCorpus = false;
+        public boolean reuseInitSeedConfig = false;
+
         // ------------ Input Generation ------------
         // Debug use the same command sequence
         public boolean useFixedCommand = false;

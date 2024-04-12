@@ -9,12 +9,12 @@ import java.util.List;
 public class TestTrackerVersionDeltaNode extends BaseNode {
     private static final long serialVersionUID = 20240407L;
 
-    private boolean newOriBC;
-    private boolean newUpBCAfterUpgrade;
-    private boolean newUpBC;
-    private boolean newOriBCAfterDowngrade;
-    private boolean newOriFC;
-    private boolean newUpFC;
+    private Boolean newOriBC = null;
+    private Boolean newUpBCAfterUpgrade = null;
+    private Boolean newUpBC = null;
+    private Boolean newOriBCAfterDowngrade = null;
+    private Boolean newOriFC = null;
+    private Boolean newUpFC = null;
 
     public TestTrackerVersionDeltaNode(int nodeId, int pNodeId,
             List<String> writeCommands,
@@ -41,13 +41,28 @@ public class TestTrackerVersionDeltaNode extends BaseNode {
 
     public void updateCoverage(boolean newOriBC, boolean newUpBCAfterUpgrade,
             boolean newUpBC,
-            boolean newOriBCAfterDowngrade, boolean newOriFC, boolean newUpF) {
+            boolean newOriBCAfterDowngrade, boolean newOriFC, boolean newUpFC) {
         this.newOriBC = newOriBC;
         this.newUpBCAfterUpgrade = newUpBCAfterUpgrade;
         this.newUpBC = newUpBC;
         this.newOriBCAfterDowngrade = newOriBCAfterDowngrade;
         this.newOriFC = newOriFC;
-        this.newUpFC = newUpF;
+        this.newUpFC = newUpFC;
+    }
+
+    public void updateCoverageGroup1(boolean newOriBC,
+            boolean newUpBC,
+            boolean newOriFC, boolean newUpFC) {
+        this.newOriBC = newOriBC;
+        this.newUpBC = newUpBC;
+        this.newOriFC = newOriFC;
+        this.newUpFC = newUpFC;
+    }
+
+    public void updateCoverageGroup2(boolean newUpBCAfterUpgrade,
+            boolean newOriBCAfterDowngrade) {
+        this.newUpBCAfterUpgrade = newUpBCAfterUpgrade;
+        this.newOriBCAfterDowngrade = newOriBCAfterDowngrade;
     }
 
     @Override
@@ -65,14 +80,5 @@ public class TestTrackerVersionDeltaNode extends BaseNode {
         coverageInfoBuilder.append(
                 "newOriFC: " + newOriFC + ", newUpF: " + newUpFC + "\n");
         return coverageInfoBuilder.toString() + basicInfo;
-    }
-
-    public static void serializeNodeToDisk(Path filePath,
-            TestTrackerUpgradeNode node)
-            throws IOException {
-        try (ObjectOutputStream oos = new ObjectOutputStream(
-                new FileOutputStream(filePath.toFile()))) {
-            oos.writeObject(node);
-        }
     }
 }
