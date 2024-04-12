@@ -42,6 +42,9 @@ sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
 ## Data Format Testing
 > Check out dinv-monitor about how to create an instrumented tarball
+> 
+> Instrumented tarball is stored `khan@mufasa:/home/khan/format_inst_binary/`
+> 
 
 1. Use a format instrumented tarball.
 2. Make sure the `configInfo/system-x.x.x` contain `serializedFields_alg1.json` and `topObjects.json` file. (They should be the same as the one under the instrumented system binary).
