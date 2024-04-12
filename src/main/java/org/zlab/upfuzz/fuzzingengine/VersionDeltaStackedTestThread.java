@@ -141,11 +141,9 @@ class VersionDeltaStackedTestThread implements Callable<StackedFeedbackPacket> {
                     // logger.info("[HKLOG] format coverage checking");
                     Path formatInfoFolder;
                     Path oriFormatInfoFolder = Paths.get("configInfo")
-                            .resolve(Config.getConf().originalVersion + "_"
-                                    + Config.getConf().upgradedVersion);
+                            .resolve(Config.getConf().originalVersion);
                     Path upFormatInfoFolder = Paths.get("configInfo")
-                            .resolve(Config.getConf().upgradedVersion + "_"
-                                    + Config.getConf().originalVersion);
+                            .resolve(Config.getConf().upgradedVersion);
                     if (direction == 0)
                         formatInfoFolder = oriFormatInfoFolder;
                     else

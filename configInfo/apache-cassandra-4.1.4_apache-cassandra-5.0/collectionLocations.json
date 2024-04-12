@@ -1,1 +1,0 @@
-{"org.apache.cassandra.db.Columns":{"316":3},"org.apache.cassandra.db.commitlog.CommitLogReader":{"233":6},"org.apache.cassandra.db.compaction.LeveledCompactionStrategy":{"324":0,"317":1},"org.apache.cassandra.dht.tokenallocator.NoReplicationTokenAllocator":{"170":5,"190":4},"org.apache.cassandra.io.sstable.Downsampling":{"69":2}}

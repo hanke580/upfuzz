@@ -207,18 +207,13 @@ public class FuzzingServer {
             // Construct info folder:
             // there should 3 folder
             Path oriFormatInfoFolder = Paths.get("configInfo")
-                    .resolve(Config.getConf().originalVersion + "_"
-                            + Config.getConf().upgradedVersion);
+                    .resolve(Config.getConf().originalVersion);
             Path upFormatInfoFolder = Paths.get("configInfo")
-                    .resolve(Config.getConf().upgradedVersion + "_"
-                            + Config.getConf().originalVersion);
+                    .resolve(Config.getConf().upgradedVersion);
 
-            // logger.info("ori format info folder: " +
-            // oriFormatInfoFolder.toString() + ", exists? " +
-            // oriFormatInfoFolder.toFile().exists());
-            // logger.info("up format info folder: " +
-            // upFormatInfoFolder.toString() + ", exists? " +
-            // upFormatInfoFolder.toFile().exists());
+            // We will also have another folder to provide information between
+            // versions
+
             if (!oriFormatInfoFolder.toFile().exists()
                     || !upFormatInfoFolder.toFile().exists()) {
                 throw new RuntimeException(
