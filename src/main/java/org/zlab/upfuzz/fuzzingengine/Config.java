@@ -242,10 +242,10 @@ public class Config {
 
         // Approach 2: Six Queue Implementation
         // Group1
-        public double branchVersionDeltaChoiceProb = 0.7;
-        public double formatVersionDeltaChoiceProb = 0.0;
-        public double branchCoverageChoiceProb = 0.3;
-        public double formatCoverageChoiceProb = 0.8;
+        public double branchVersionDeltaChoiceProb = 0.25;
+        public double formatVersionDeltaChoiceProb = 0.45;
+        public double branchCoverageChoiceProb = 0.1;
+        public double formatCoverageChoiceProb = 0.2;
         public double nonInterestingTestsUpgradeProb = 0.6;
 
         // Group2
@@ -256,11 +256,11 @@ public class Config {
         // Seeds that trigger version delta before version change
         public double branchDeltaSeedChoiceProb = 0.25;
         // Seeds that trigger format delta before version change
-        public double formatDeltaSeedChoiceProb = 0.3;
+        public double formatDeltaSeedChoiceProb = 0.4;
         // Seeds that trigger new coverage after upgrade
         public double branchCovAfterUpgSeedChoiceProb = 0.1;
         // Seeds that trigger new coverage after downgrade
-        public double branchCovAfterDowngSeedChoiceProb = 0.1;
+        public double branchCovAfterDowngSeedChoiceProb = 0;
 
         /**
          * ---------------Version Specific-----------------
