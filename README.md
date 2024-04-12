@@ -469,5 +469,3 @@ launch_service()
 * FsShellDaemon2.java: hadoop-2.10.2
 * FsShellDaemon3.java: (> 3)
 * FsShellDaemon_trunk.java: (>=3.3.4) hadoop-3.3.6
-
-
