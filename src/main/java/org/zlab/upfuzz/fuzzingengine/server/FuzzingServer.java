@@ -513,8 +513,10 @@ public class FuzzingServer {
                         + (corpusType == 2 ? "version delta" : "format/code"));
             }
 
-            logger.info(corpusVersionDeltaSixQueue.getSize(
-                    CorpusVersionDeltaSixQueue.QueueType.values()[corpusType]));
+            if (Config.getConf().debug) {
+                logger.info(corpusVersionDeltaSixQueue.getSize(
+                        CorpusVersionDeltaSixQueue.QueueType.values()[corpusType]));
+            }
             if (corpusVersionDeltaSixQueue
                     .getSize(CorpusVersionDeltaSixQueue.QueueType
                             .values()[corpusType]) == 0
@@ -1946,14 +1948,16 @@ public class FuzzingServer {
             if (Config.getConf().useBranchCoverage
                     && (Config.getConf().branchCoverageChoiceProb > 0)) {
                 if (hasFeedbackInducedBranchVersionDelta) {
-                    logger.info("Adding to code coverage corpus: "
-                            + versionDeltaFeedbackPacketUp.testPacketID);
-                    logger.info(
-                            "new old version branch coverage before upgrade: "
-                                    + newOldVersionBranchCoverageBeforeUpgrade);
-                    logger.info(
-                            "new new version branch coverage before downgrade: "
-                                    + newNewVersionBranchCoverageBeforeDowngrade);
+                    if (Config.getConf().debug) {
+                        logger.info("Adding to code coverage corpus: "
+                                + versionDeltaFeedbackPacketUp.testPacketID);
+                        logger.info(
+                                "new old version branch coverage before upgrade: "
+                                        + newOldVersionBranchCoverageBeforeUpgrade);
+                        logger.info(
+                                "new new version branch coverage before downgrade: "
+                                        + newNewVersionBranchCoverageBeforeDowngrade);
+                    }
                     addToVersionDeltaCorpusForBranchCoverage = true;
                     newVersionDeltaCountForBranchCoverage += 1;
                 } else if (hasFeedbackInducedNewBranchCoverage) {
@@ -1965,10 +1969,12 @@ public class FuzzingServer {
             if (Config.getConf().useFormatCoverage
                     && (Config.getConf().formatCoverageChoiceProb > 0)) {
                 if (hasFeedbackInducedFormatVersionDelta) {
-                    logger.debug("Add test "
-                            + versionDeltaFeedbackPacketUp.testPacketID
-                            + " to format coverage corpus " + "oriNewFormat = "
-                            + oriNewFormat + " upNewFormat = " + upNewFormat);
+                    if (Config.getConf().debug) {
+                        logger.debug("Add test "
+                                + versionDeltaFeedbackPacketUp.testPacketID
+                                + " to format coverage corpus " + "oriNewFormat = "
+                                + oriNewFormat + " upNewFormat = " + upNewFormat);
+                    }
                     addToVersionDeltaCorpusForFormatCoverage = true;
                     newVersionDeltaCountForFormatCoverage += 1;
                 } else if (hasFeedbackInducedNewFormatCoverage) {
@@ -2037,16 +2043,20 @@ public class FuzzingServer {
                             if (addNonInterestingTestsToBuffer(
                                     rand.nextDouble(),
                                     Config.getConf().nonInterestingTestsUpgradeProb)) {
-                                logger.info("non interesting test packet "
-                                        + testPacket.testPacketID
-                                        + " chosen to be upgraded");
+                                if (Config.getConf().debug) {
+                                    logger.info("non interesting test packet "
+                                            + testPacket.testPacketID
+                                            + " chosen to be upgraded");
+                                }
                                 testBatchCorpus.addPacket(testPacket,
                                         InterestingTestsCorpus.TestType.LOW_PRIORITY,
                                         versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.configFileName);
                             } else {
-                                logger.info("non interesting test packet "
-                                        + testPacket.testPacketID
-                                        + " will not be upgraded");
+                                if (Config.getConf().debug) {
+                                    logger.info("non interesting test packet "
+                                            + testPacket.testPacketID
+                                            + " will not be upgraded");
+                                }
                             }
                             nonInterestingTpIds.add(
                                     versionDeltaFeedbackPacket.tpList
