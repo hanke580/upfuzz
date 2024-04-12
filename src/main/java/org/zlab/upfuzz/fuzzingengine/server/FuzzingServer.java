@@ -2034,9 +2034,20 @@ public class FuzzingServer {
                                     versionDeltaFeedbackPacket.tpList
                                             .get(i).testPacketID);
                         } else {
-                            testBatchCorpus.addPacket(testPacket,
-                                    InterestingTestsCorpus.TestType.LOW_PRIORITY,
-                                    versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.configFileName);
+                            if (addNonInterestingTestsToBuffer(
+                                    rand.nextDouble(),
+                                    Config.getConf().nonInterestingTestsUpgradeProb)) {
+                                logger.info("non interesting test packet "
+                                        + testPacket.testPacketID
+                                        + " chosen to be upgraded");
+                                testBatchCorpus.addPacket(testPacket,
+                                        InterestingTestsCorpus.TestType.LOW_PRIORITY,
+                                        versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.configFileName);
+                            } else {
+                                logger.info("non interesting test packet "
+                                        + testPacket.testPacketID
+                                        + " will not be upgraded");
+                            }
                             nonInterestingTpIds.add(
                                     versionDeltaFeedbackPacket.tpList
                                             .get(i).testPacketID);
@@ -2811,6 +2822,11 @@ public class FuzzingServer {
             }
         }
         return events;
+    }
+
+    public synchronized boolean addNonInterestingTestsToBuffer(
+            double randomNumber, double probabilityThreshold) {
+        return randomNumber >= probabilityThreshold;
     }
 
     /**

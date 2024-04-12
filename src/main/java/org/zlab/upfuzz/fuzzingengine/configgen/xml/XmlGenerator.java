@@ -167,7 +167,7 @@ public class XmlGenerator extends ConfigFileGenerator {
         }
         Document doc = docBuilder.newDocument();
 
-        Element rootElement = doc.createElement("Configuration");
+        Element rootElement = doc.createElement("configuration");
         doc.appendChild(rootElement);
 
         for (String key : key2val.keySet()) {

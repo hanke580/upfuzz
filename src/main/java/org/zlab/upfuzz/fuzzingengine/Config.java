@@ -242,6 +242,7 @@ public class Config {
         public double formatVersionDeltaChoiceProb = 0.0;
         public double branchCoverageChoiceProb = 0.3;
         public double formatCoverageChoiceProb = 0.8;
+        public double nonInterestingTestsUpgradeProb = 0.6;
 
         // Group2
         // Seeds that trigger new coverage before version change
