@@ -202,6 +202,10 @@ public class HdfsExecutor extends Executor {
                         Utilities.maskTimeStampHHSS(oriResult.get(i)));
                 String str2 = Utilities.maskTimeStampYYYYMMDD(
                         Utilities.maskTimeStampHHSS(upResult.get(i)));
+                // Mask all spaces
+                str1 = str1.replaceAll("\\s", "");
+                str2 = str2.replaceAll("\\s", "");
+
                 if (str1.compareTo(str2) != 0) {
                     String errorMsg = "Result inconsistency at read id: " + i
                             + "\n";
