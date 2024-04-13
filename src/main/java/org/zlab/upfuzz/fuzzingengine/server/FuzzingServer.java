@@ -281,7 +281,9 @@ public class FuzzingServer {
          */
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
             System.gc();
-            logger.info("[GC] Server Garbage Collection invoked");
+            if (Config.getConf().debug) {
+                logger.debug("[GC] Server Garbage Collection invoked");
+            }
         }, Config.getConf().gcInterval, Config.getConf().gcInterval,
                 TimeUnit.MINUTES);
 

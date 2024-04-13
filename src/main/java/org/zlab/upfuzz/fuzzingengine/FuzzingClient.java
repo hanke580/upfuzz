@@ -195,7 +195,9 @@ public class FuzzingClient {
         // Schedule GC here
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
             System.gc();
-            logger.info("[GC] Client Garbage Collection invoked");
+            if (Config.getConf().debug) {
+                logger.debug("[GC] Client Garbage Collection invoked");
+            }
         }, Config.getConf().gcInterval, Config.getConf().gcInterval,
                 TimeUnit.MINUTES);
         Thread clientThread = new Thread(new FuzzingClientSocket(this, group));
