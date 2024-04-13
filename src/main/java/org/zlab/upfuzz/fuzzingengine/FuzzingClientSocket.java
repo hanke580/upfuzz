@@ -131,7 +131,7 @@ class FuzzingClientSocket implements Runnable {
                 logger.debug("intType = " + intType);
                 logger.error("client break because of exception: ", e);
                 closeResources();
-                break;
+                return;
             }
         }
     }
