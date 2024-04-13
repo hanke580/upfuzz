@@ -515,7 +515,8 @@ public class FuzzingServer {
 
             if (Config.getConf().debug) {
                 logger.info(corpusVersionDeltaSixQueue.getSize(
-                        CorpusVersionDeltaSixQueue.QueueType.values()[corpusType]));
+                        CorpusVersionDeltaSixQueue.QueueType
+                                .values()[corpusType]));
             }
             if (corpusVersionDeltaSixQueue
                     .getSize(CorpusVersionDeltaSixQueue.QueueType
