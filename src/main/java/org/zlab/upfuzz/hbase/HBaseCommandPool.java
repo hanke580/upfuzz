@@ -60,8 +60,8 @@ public class HBaseCommandPool extends CommandPool {
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(SCAN.class, DML_WIGHT));
         // general
-        readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(STATUS.class, 5));
+        // readCommandClassList.add(
+        // new AbstractMap.SimpleImmutableEntry<>(STATUS.class, 5));
         // readCommandClassList.add(
         // new AbstractMap.SimpleImmutableEntry<>(TABLE_HELP.class, 5));
         // readCommandClassList.add(
@@ -101,9 +101,9 @@ public class HBaseCommandPool extends CommandPool {
         // readCommandClassList.add(
         // new AbstractMap.SimpleImmutableEntry<>(LIST_GROUPS.class, 5));
         // snapshot
-        readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(LIST_SNAPSHOTS.class,
-                        5));
+        // readCommandClassList.add(
+        // new AbstractMap.SimpleImmutableEntry<>(LIST_SNAPSHOTS.class,
+        // 5));
         // tools
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(BALANCE_SWITCH_R.class,
