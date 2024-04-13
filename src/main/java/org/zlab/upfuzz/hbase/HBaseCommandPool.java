@@ -31,8 +31,11 @@ public class HBaseCommandPool extends CommandPool {
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(IS_DISABLED.class,
                         DDL_WIGHT));
-        readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(LIST.class, DDL_WIGHT));
+
+        // This command leads to lots of FP if BATCH_SIZE is not one
+        // readCommandClassList.add(
+        // new AbstractMap.SimpleImmutableEntry<>(LIST.class, DDL_WIGHT));
+
         // readCommandClassList.add(
         // new AbstractMap.SimpleImmutableEntry<>(LIST_REGIONS.class,
         // DDL_WIGHT));
