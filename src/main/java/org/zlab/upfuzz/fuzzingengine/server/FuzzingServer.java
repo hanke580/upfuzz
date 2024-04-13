@@ -73,6 +73,16 @@ public class FuzzingServer {
 
     public TestPlanCorpus testPlanCorpus = new TestPlanCorpus();
     public FullStopCorpus fullStopCorpus = new FullStopCorpus();
+
+    /**
+     * FIXME
+     * These structure might keep the tests that are not finished yet.
+     * However, if the server start up fails, we still want to figure out
+     * a way to update their information
+     * * Remove from memory
+     * * Update the information in the disk (graph)
+     */
+    TestTrackerGraph graph = new TestTrackerGraph();
     private final Map<Integer, Seed> testID2Seed;
     private final Map<Integer, TestPlan> testID2TestPlan;
 
@@ -156,8 +166,6 @@ public class FuzzingServer {
     ExecutionDataStore curUpCoverage;
     // Coverage after downgrade to old version
     ExecutionDataStore curOriCoverageAfterDowngrade;
-
-    TestTrackerGraph graph = new TestTrackerGraph();
 
     // Calculate cumulative probabilities
     double[] cumulativeSeedChoiceProbabilities = new double[6];
