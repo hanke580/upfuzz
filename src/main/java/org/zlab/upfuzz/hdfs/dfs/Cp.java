@@ -63,14 +63,20 @@ public class Cp extends Dfs {
     @Override
     public void updateState(State state) {
         HdfsState hdfsState = (HdfsState) state;
-        for (String dir : hdfsState.dfs.getDirs(params.get(6).toString())) {
-            String newDir = dir.replace(params.get(6).toString(),
-                    params.get(7).toString());
+        for (String dir : hdfsState.dfs.getDirs(params.get(4).toString())) {
+            String newDir = dir.replaceFirst(params.get(4).toString(),
+                    params.get(5).toString());
             hdfsState.dfs.createDir(newDir);
         }
-        for (String file : hdfsState.dfs.getFiles(params.get(6).toString())) {
-            String newFile = file.replace(params.get(6).toString(),
-                    params.get(7).toString());
+        /**
+         * Fixme: if folder name is the same as the file name, the file name will also be replaced
+         * From: /QRRcNMCmcmFTZSXg/QRRcNMCmcmFTZSXg.xml
+         * TO: //.xml
+         */
+        for (String file : hdfsState.dfs.getFiles(params.get(4).toString())) {
+            // This is not correct!
+            String newFile = file.replaceFirst(params.get(4).toString(),
+                    params.get(5).toString());
             hdfsState.dfs.createFile(newFile);
         }
     }
