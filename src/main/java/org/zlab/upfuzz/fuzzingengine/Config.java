@@ -242,7 +242,16 @@ public class Config {
         public double BC_VD_PROB_CorpusVersionDeltaFourQueue = 0.2;
         public double BC_PROB_CorpusVersionDeltaFourQueue = 0.1;
 
-        // Approach 1: Six Queue Implementation with boundary
+        // Approach 1: Five Queue Implementation with boundary: no boundary
+        // delta
+        public double FC_VD_PROB_CorpusVersionDeltaFiveQueueWithBoundary = 0.3;
+        public double FC_PROB_CorpusVersionDeltaFiveQueueWithBoundary = 0.2;
+        public double BC_VD_PROB_CorpusVersionDeltaFiveQueueWithBoundary = 0.1;
+        public double BC_PROB_CorpusVersionDeltaFiveQueueWithBoundary = 0.1;
+        public double BoundaryChange_PROB_CorpusVersionDeltaFiveQueueWithBoundary = 0.3;
+
+        // Approach 1: Six Queue Implementation with boundary: compute boundary
+        // delta
         public double FC_VD_PROB_CorpusVersionDeltaSixQueueWithBoundary = 0.25;
         public double FC_PROB_CorpusVersionDeltaSixQueueWithBoundary = 0.15;
         public double BC_VD_PROB_CorpusVersionDeltaSixQueueWithBoundary = 0.1;
