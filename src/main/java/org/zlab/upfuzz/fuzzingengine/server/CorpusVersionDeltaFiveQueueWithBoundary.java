@@ -54,7 +54,7 @@ public class CorpusVersionDeltaFiveQueueWithBoundary extends Corpus {
         // However, for one coverage, it can only exist in either vd or non-vd
         // queue
         if (newOriFC ^ newUpFC) {
-            cycleQueues[0].addSeed(seed);
+            cycleQueues[QueueType.FC_VD.ordinal()].addSeed(seed);
 
             if (Config.getConf().saveCorpusToDisk) {
                 while (queuePathFC_VD
@@ -67,7 +67,7 @@ public class CorpusVersionDeltaFiveQueueWithBoundary extends Corpus {
 
         } else {
             if (newOriFC && newUpFC) {
-                cycleQueues[1].addSeed(seed);
+                cycleQueues[QueueType.FC.ordinal()].addSeed(seed);
 
                 if (Config.getConf().saveCorpusToDisk) {
                     while (queuePathFC
@@ -82,7 +82,7 @@ public class CorpusVersionDeltaFiveQueueWithBoundary extends Corpus {
         }
 
         if (newOriBC ^ newUpBC) {
-            cycleQueues[2].addSeed(seed);
+            cycleQueues[QueueType.BC_VD.ordinal()].addSeed(seed);
 
             if (Config.getConf().saveCorpusToDisk) {
                 while (queuePathBC_VD
@@ -96,7 +96,7 @@ public class CorpusVersionDeltaFiveQueueWithBoundary extends Corpus {
             // examine whether any new coverage is reached
             if (newOriBC || newUpBC || newBCAfterUpgrade
                     || newBCAfterDowngrade) {
-                cycleQueues[3].addSeed(seed);
+                cycleQueues[QueueType.BC.ordinal()].addSeed(seed);
 
                 if (Config.getConf().saveCorpusToDisk) {
                     while (queuePathBC
@@ -110,7 +110,7 @@ public class CorpusVersionDeltaFiveQueueWithBoundary extends Corpus {
         }
 
         if (newOriBoundaryChange || newUpBoundaryChange) {
-            cycleQueues[5].addSeed(seed);
+            cycleQueues[QueueType.BoundaryChange.ordinal()].addSeed(seed);
 
             if (Config.getConf().saveCorpusToDisk) {
                 while (queuePathBoundaryChange
