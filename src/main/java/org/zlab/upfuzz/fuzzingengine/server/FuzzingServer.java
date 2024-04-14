@@ -19,6 +19,7 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionDataStore;
+import org.zlab.ocov.tracker.FormatCoverageStatus;
 import org.zlab.ocov.tracker.ObjectGraphCoverage;
 import org.zlab.ocov.tracker.Runtime;
 import org.zlab.upfuzz.CommandPool;
@@ -106,9 +107,6 @@ public class FuzzingServer {
     private int finishedTestIdAgentGroup1 = 0;
     private int finishedTestIdAgentGroup2 = 0;
 
-    private int oriNewFormatNum = 0;
-    private int upNewFormatNum = 0;
-
     // This can be replaced by queue size
     private int newVersionDeltaCountForBranchCoverage = 0;
     private int newVersionDeltaCountForFormatCoverage = 0;
@@ -189,7 +187,8 @@ public class FuzzingServer {
             if (Config.getConf().versionDeltaApproach == 2) {
                 corpus = new CorpusVersionDeltaSixQueue();
             } else {
-                corpus = new CorpusVersionDeltaFourQueue();
+                // Consider the boundary change...
+                corpus = new CorpusVersionDeltaSixQueueWithBoundary();
             }
         } else {
             if (Config.getConf().useFormatCoverage)
@@ -1445,22 +1444,13 @@ public class FuzzingServer {
             Seed seed, int score,
             boolean newOriBC, boolean newUpBC, boolean newOriFC,
             boolean newUpFC, boolean newBCAfterUpgrade,
-            boolean newBCAfterDowngrade) {
+            boolean newBCAfterDowngrade, boolean newOriBoundaryChange,
+            boolean newUpBoundaryChange) {
         seed.score = score;
         corpus.addSeed(seed, newOriBC, newUpBC, newOriFC, newUpFC,
-                newBCAfterUpgrade, newBCAfterDowngrade);
+                newBCAfterUpgrade, newBCAfterDowngrade, newOriBoundaryChange,
+                newUpBoundaryChange);
     }
-
-    // // Deprecated soon
-    // public static void addSeedToCorpus(CorpusVersionDeltaSixQueue corpus,
-    // Map<Integer, Seed> testID2Seed, int testPacketID,
-    // int score, CorpusVersionDeltaSixQueue.QueueType queueType) {
-    // Seed seed = testID2Seed.get(testPacketID);
-    // seed.score = score;
-    // assert testPacketID == seed.testID;
-    // logger.debug("Add seed " + testPacketID + " to queue " + queueType);
-    // corpus.addSeed(seed, queueType);
-    // }
 
     public synchronized void updateStatus(
             TestPlanFeedbackPacket testPlanFeedbackPacket) {
@@ -1551,7 +1541,9 @@ public class FuzzingServer {
 
             boolean newOldVersionBranchCoverage = false;
             boolean newNewVersionBranchCoverage = false;
+
             boolean newFormatCoverage = false;
+            boolean newBoundaryChange = false;
 
             // Merge all the feedbacks
             FeedBack fb = mergeCoverage(feedbackPacket.feedBacks);
@@ -1590,13 +1582,18 @@ public class FuzzingServer {
             // format coverage
             if (Config.getConf().useFormatCoverage) {
                 if (feedbackPacket.formatCoverage != null) {
-                    if (oriObjCoverage.merge(feedbackPacket.formatCoverage,
-                            feedbackPacket.testPacketID)) {
-                        // learned format is updated
+                    FormatCoverageStatus oriFormatCoverageStatus = oriObjCoverage
+                            .merge(feedbackPacket.formatCoverage,
+                                    feedbackPacket.testPacketID);
+                    if (oriFormatCoverageStatus.newFormat) {
                         logger.info("New format coverage for test "
                                 + feedbackPacket.testPacketID);
-                        oriNewFormatNum++;
                         newFormatCoverage = true;
+                    }
+                    if (oriFormatCoverageStatus.boundaryChange) {
+                        logger.info("Boundary change for test "
+                                + feedbackPacket.testPacketID);
+                        newBoundaryChange = true;
                     }
                 } else {
                     logger.info("Null format coverage");
@@ -1723,7 +1720,9 @@ public class FuzzingServer {
             boolean newOriBCAfterDowngrade = false;
             // Format coverage
             boolean newOriFC = false;
+            boolean newOriBoundaryChange = false;
             boolean newUpFC = false;
+            boolean newUpBoundaryChange = false;
 
             // Merge all the feedbacks
             FeedBack fbUpgrade = mergeCoverage(
@@ -1758,28 +1757,26 @@ public class FuzzingServer {
             }
             if (Config.getConf().useFormatCoverage) {
                 if (versionDeltaFeedbackPacketUp.formatCoverage != null) {
-                    if (oriObjCoverage.merge(
-                            versionDeltaFeedbackPacketUp.formatCoverage,
-                            testPacketID)) {
-                        // learned format is updated
-                        logger.info("New format coverage for test "
-                                + testPacketID);
-                        oriNewFormatNum++;
+                    FormatCoverageStatus oriFormatCoverageStatus = oriObjCoverage
+                            .merge(
+                                    versionDeltaFeedbackPacketUp.formatCoverage,
+                                    testPacketID);
+                    if (oriFormatCoverageStatus.newFormat)
                         newOriFC = true;
-                    }
+                    if (oriFormatCoverageStatus.boundaryChange)
+                        newOriBoundaryChange = true;
                 } else {
                     logger.info("Null format coverage");
                 }
                 if (versionDeltaFeedbackPacketDown.formatCoverage != null) {
-                    if (upObjCoverage.merge(
-                            versionDeltaFeedbackPacketDown.formatCoverage,
-                            testPacketID)) {
-                        // learned format is updated
-                        logger.info("New format coverage for test "
-                                + testPacketID);
-                        upNewFormatNum++;
+                    FormatCoverageStatus upFormatCoverageStatus = upObjCoverage
+                            .merge(
+                                    versionDeltaFeedbackPacketDown.formatCoverage,
+                                    testPacketID);
+                    if (upFormatCoverageStatus.newFormat)
                         newUpFC = true;
-                    }
+                    if (upFormatCoverageStatus.boundaryChange)
+                        newUpBoundaryChange = true;
                 } else {
                     logger.info("Null format coverage");
                 }
@@ -1804,7 +1801,8 @@ public class FuzzingServer {
 
             addSeedToCorpus(corpus, testID2Seed.get(testPacketID),
                     score, newOriBC, newUpBC, newOriFC, newUpFC,
-                    newUpBCAfterUpgrade, newOriBCAfterDowngrade);
+                    newUpBCAfterUpgrade, newOriBCAfterDowngrade,
+                    newOriBoundaryChange, newUpBoundaryChange);
         }
         // update testid2Seed, no use anymore
         for (int testID : versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.testIDs) {
@@ -1880,7 +1878,9 @@ public class FuzzingServer {
             boolean newOriBC = false;
             boolean newUpBC = false;
             boolean oriNewFormat = false;
+            boolean oriBoundaryChange = false;
             boolean upNewFormat = false;
+            boolean upBoundaryChange = false;
 
             // Merge all the feedbacks
             FeedBack fbUpgrade = mergeCoverage(
@@ -1908,24 +1908,24 @@ public class FuzzingServer {
 
             // format coverage
             if (Config.getConf().useFormatCoverage) {
-                if (oriObjCoverage.merge(
-                        versionDeltaFeedbackPacketUp.formatCoverage,
-                        versionDeltaFeedbackPacketUp.testPacketID)) {
-                    // learned format is updated
-                    logger.info("oriNewFormatNum: "
-                            + versionDeltaFeedbackPacketUp.testPacketID);
-                    oriNewFormatNum++;
+                FormatCoverageStatus oriFormatCoverageStatus = oriObjCoverage
+                        .merge(
+                                versionDeltaFeedbackPacketUp.formatCoverage,
+                                versionDeltaFeedbackPacketUp.testPacketID);
+
+                if (oriFormatCoverageStatus.newFormat)
                     oriNewFormat = true;
-                }
-                if (upObjCoverage.merge(
-                        versionDeltaFeedbackPacketDown.formatCoverage,
-                        versionDeltaFeedbackPacketDown.testPacketID)) {
-                    // learned format is updated
-                    logger.info("upNewFormat: "
-                            + versionDeltaFeedbackPacketUp.testPacketID);
-                    upNewFormatNum++;
+                if (oriFormatCoverageStatus.boundaryChange)
+                    oriBoundaryChange = true;
+
+                FormatCoverageStatus upFormatCoverageStatus = upObjCoverage
+                        .merge(
+                                versionDeltaFeedbackPacketDown.formatCoverage,
+                                versionDeltaFeedbackPacketDown.testPacketID);
+                if (upFormatCoverageStatus.newFormat)
                     upNewFormat = true;
-                }
+                if (upFormatCoverageStatus.boundaryChange)
+                    upBoundaryChange = true;
             }
 
             boolean hasFeedbackInducedBranchVersionDelta = newOriBC
@@ -2057,7 +2057,8 @@ public class FuzzingServer {
                     score,
                     newOriBC,
                     newUpBC,
-                    oriNewFormat, upNewFormat, false, false);
+                    oriNewFormat, upNewFormat, false, false, oriBoundaryChange,
+                    upBoundaryChange);
 
             graph.updateNodeCoverageGroup1(
                     versionDeltaFeedbackPacketUp.testPacketID,
@@ -2298,7 +2299,7 @@ public class FuzzingServer {
             addSeedToCorpus(corpus,
                     testID2Seed.get(versionDeltaFeedbackPacketUp.testPacketID),
                     score, false, false, false, false, newBCAfterUpgrade,
-                    newBCAfterDowngrade);
+                    newBCAfterDowngrade, false, false);
             // FIXME: it's already updated in Group1, do we update it again in
             // group2?
             graph.updateNodeCoverageGroup2(
@@ -2561,13 +2562,6 @@ public class FuzzingServer {
         // Print queue info...
         corpus.printInfo();
 
-        // Format Coverage Info...
-        if (Config.getConf().useFormatCoverage
-                && (Config.getConf().formatCoverageChoiceProb > 0)) {
-            System.out.format("|%30s|%30s|\n",
-                    "ori new format num : " + oriNewFormatNum,
-                    "up new format num : " + upNewFormatNum);
-        }
         // Version Delta Info
         if (Config.getConf().useVersionDelta
                 && (Config.getConf().branchVersionDeltaChoiceProb > 0)) {

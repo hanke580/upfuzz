@@ -24,7 +24,8 @@ public class CorpusDefault extends Corpus {
     @Override
     public void addSeed(Seed seed, boolean newOriBC, boolean newUpBC,
             boolean newOriFC, boolean newUpFC, boolean newBCAfterUpgrade,
-            boolean newBCAfterDowngrade) {
+            boolean newBCAfterDowngrade, boolean newOriBoundaryChange,
+            boolean newUpBoundaryChange) {
         if (newOriBC || newBCAfterUpgrade) {
             cycleQueues[0].addSeed(seed);
             if (Config.getConf().saveCorpusToDisk) {

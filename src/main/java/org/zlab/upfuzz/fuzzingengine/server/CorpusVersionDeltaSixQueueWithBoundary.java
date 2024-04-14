@@ -5,12 +5,14 @@ import org.zlab.upfuzz.fuzzingengine.Config;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class CorpusVersionDeltaFourQueue extends Corpus {
+public class CorpusVersionDeltaSixQueueWithBoundary extends Corpus {
 
     private static final String queueNameBC = "CorpusNonVersionDelta_BC";
     private static final String queueNameBC_VD = "CorpusNonVersionDelta_BC_VD";
     private static final String queueNameFC = "CorpusNonVersionDelta_FC";
     private static final String queueNameFC_VD = "CorpusNonVersionDelta_FC_VD";
+    private static final String queueNameBoundaryChange = "CorpusNonVersionDelta_BoundaryChange";
+    private static final String queueNameBoundaryChange_VD = "CorpusNonVersionDelta_BoundaryChange_VD";
 
     private static final Path queuePathBC = Paths.get(Config.getConf().corpus)
             .resolve(queueNameBC);
@@ -20,28 +22,40 @@ public class CorpusVersionDeltaFourQueue extends Corpus {
             .resolve(queueNameFC);
     private static final Path queuePathFC_VD = Paths
             .get(Config.getConf().corpus).resolve(queueNameFC_VD);
+    private static final Path queuePathBoundaryChange = Paths
+            .get(Config.getConf().corpus)
+            .resolve(queueNameBoundaryChange);
+    private static final Path queuePathBoundaryChange_VD = Paths
+            .get(Config.getConf().corpus).resolve(queueNameBoundaryChange_VD);
 
     private int diskSeedIdBC = 0;
     private int diskSeedIdBC_VD = 0;
     private int diskSeedIdFC = 0;
     private int diskSeedIdFC_VD = 0;
+    private int diskSeedIdBoundaryChange = 0;
+    private int diskSeedIdBoundaryChange_VD = 0;
 
     /**
      * 0: FC-VD: 40%
      * 1: FC: 20%
      * 2: BC-VD: 25%
      * 3: BC: 15%
+     * 4: BoundaryChange-VD: ?%
+     * 5: BoundaryChange: ?%
      */
-    public CorpusVersionDeltaFourQueue() {
-        super(4, new double[] {
-                Config.getConf().FC_VD_PROB_CorpusVersionDeltaFourQueue,
-                Config.getConf().FC_PROB_CorpusVersionDeltaFourQueue,
-                Config.getConf().BC_VD_PROB_CorpusVersionDeltaFourQueue,
-                Config.getConf().BC_PROB_CorpusVersionDeltaFourQueue });
+    public CorpusVersionDeltaSixQueueWithBoundary() {
+        super(6, new double[] {
+                Config.getConf().FC_VD_PROB_CorpusVersionDeltaSixQueueWithBoundary,
+                Config.getConf().FC_PROB_CorpusVersionDeltaSixQueueWithBoundary,
+                Config.getConf().BC_VD_PROB_CorpusVersionDeltaSixQueueWithBoundary,
+                Config.getConf().BC_PROB_CorpusVersionDeltaSixQueueWithBoundary,
+                Config.getConf().BoundaryChange_VD_PROB_CorpusVersionDeltaSixQueueWithBoundary,
+                Config.getConf().BoundaryChange_PROB_CorpusVersionDeltaSixQueueWithBoundary
+        });
     }
 
     private enum QueueType {
-        FC_VD, FC, BC_VD, BC
+        FC_VD, FC, BC_VD, BC, BoundaryChange_VD, BoundaryChange
     }
 
     @Override
@@ -107,6 +121,37 @@ public class CorpusVersionDeltaFourQueue extends Corpus {
                 }
             }
         }
+
+        if (newOriBoundaryChange ^ newUpBoundaryChange) {
+            cycleQueues[4].addSeed(seed);
+
+            if (Config.getConf().saveCorpusToDisk) {
+                while (queuePathBoundaryChange_VD
+                        .resolve("seed_" + diskSeedIdBoundaryChange_VD).toFile()
+                        .exists()) {
+                    diskSeedIdBoundaryChange_VD++;
+                }
+                Corpus.saveSeedQueueOnDisk(seed, queueNameBoundaryChange_VD,
+                        diskSeedIdBoundaryChange_VD);
+            }
+        } else {
+            // examine whether any new coverage is reached
+            if (newOriBoundaryChange || newUpBoundaryChange) {
+                cycleQueues[5].addSeed(seed);
+
+                if (Config.getConf().saveCorpusToDisk) {
+                    while (queuePathBoundaryChange
+                            .resolve("seed_" + diskSeedIdBoundaryChange)
+                            .toFile()
+                            .exists()) {
+                        diskSeedIdBoundaryChange++;
+                    }
+                    Corpus.saveSeedQueueOnDisk(seed, queueNameBoundaryChange,
+                            diskSeedIdBoundaryChange);
+                }
+            }
+        }
+
     }
 
     @Override
@@ -130,6 +175,12 @@ public class CorpusVersionDeltaFourQueue extends Corpus {
                 queuePathBC_VD.toFile(), testID);
         testID = Corpus.loadSeedIntoQueue(cycleQueues[QueueType.BC.ordinal()],
                 queuePathBC.toFile(), testID);
+        testID = Corpus.loadSeedIntoQueue(
+                cycleQueues[QueueType.BoundaryChange_VD.ordinal()],
+                queuePathBoundaryChange_VD.toFile(), testID);
+        testID = Corpus.loadSeedIntoQueue(
+                cycleQueues[QueueType.BoundaryChange.ordinal()],
+                queuePathBoundaryChange.toFile(), testID);
         return testID;
     }
 

@@ -34,12 +34,14 @@ public abstract class Corpus implements ICorpus {
 
     public abstract void addSeed(Seed seed, boolean newOriBC, boolean newUpBC,
             boolean newOriFC, boolean newUpFC, boolean newBCAfterUpgrade,
-            boolean newBCAfterDowngrade);
+            boolean newBCAfterDowngrade, boolean newOriBoundaryChange,
+            boolean newUpBoundaryChange);
 
+    // FIXME: verify whether this is correct
     public void addSeed(Seed seed, boolean newOriBC, boolean newOriFC,
             boolean newBCAfterUpgrade) {
         addSeed(seed, newOriBC, false, newOriFC, false, newBCAfterUpgrade,
-                false);
+                false, false, false);
     }
 
     public Seed getSeed() {

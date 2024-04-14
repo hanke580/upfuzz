@@ -235,10 +235,18 @@ public class Config {
         public int versionDeltaApproach = 1;
 
         // Approach 1: Four Queue Implementation
-        public double BC_VD_PROB_CorpusVersionDeltaFourQueue = 0.2;
-        public double BC_PROB_CorpusVersionDeltaFourQueue = 0.1;
         public double FC_VD_PROB_CorpusVersionDeltaFourQueue = 0.4;
         public double FC_PROB_CorpusVersionDeltaFourQueue = 0.3;
+        public double BC_VD_PROB_CorpusVersionDeltaFourQueue = 0.2;
+        public double BC_PROB_CorpusVersionDeltaFourQueue = 0.1;
+
+        // Approach 1: Six Queue Implementation with boundary
+        public double FC_VD_PROB_CorpusVersionDeltaSixQueueWithBoundary = 0.25;
+        public double FC_PROB_CorpusVersionDeltaSixQueueWithBoundary = 0.15;
+        public double BC_VD_PROB_CorpusVersionDeltaSixQueueWithBoundary = 0.1;
+        public double BC_PROB_CorpusVersionDeltaSixQueueWithBoundary = 0.1;
+        public double BoundaryChange_VD_PROB_CorpusVersionDeltaSixQueueWithBoundary = 0.25;
+        public double BoundaryChange_PROB_CorpusVersionDeltaSixQueueWithBoundary = 0.15;
 
         // Approach 2: Six Queue Implementation
         // Group1
@@ -261,6 +269,25 @@ public class Config {
         public double branchCovAfterUpgSeedChoiceProb = 0.1;
         // Seeds that trigger new coverage after downgrade
         public double branchCovAfterDowngSeedChoiceProb = 0;
+
+        // Approach 2: Eight Queue Implementation with boundary
+        // Group1
+        public double FC_VD_PROB_CorpusVersionDeltaEightQueueWithBoundary_G1 = 0.25;
+        public double FC_PROB_CorpusVersionDeltaEightQueueWithBoundary_G1 = 0.15;
+        public double BC_VD_PROB_CorpusVersionDeltaEightQueueWithBoundary_G1 = 0.1;
+        public double BC_PROB_CorpusVersionDeltaEightQueueWithBoundary_G1 = 0.1;
+        public double BoundaryChange_VD_PROB_CorpusVersionDeltaEightQueueWithBoundary_G1 = 0.25;
+        public double BoundaryChange_PROB_CorpusVersionDeltaEightQueueWithBoundary_G1 = 0.15;
+
+        // Group2
+        public double FC_VD_PROB_CorpusVersionDeltaEightQueueWithBoundary_G2 = 0.2;
+        public double FC_PROB_CorpusVersionDeltaEightQueueWithBoundary_G2 = 0.15;
+        public double BC_VD_PROB_CorpusVersionDeltaEightQueueWithBoundary_G2 = 0.15;
+        public double BC_PROB_CorpusVersionDeltaEightQueueWithBoundary_G2 = 0.05;
+        public double BC_After_Upgrade_PROB_CorpusVersionDeltaEightQueueWithBoundary_G2 = 0.05;
+        public double BC_After_Downgrade_PROB_CorpusVersionDeltaEightQueueWithBoundary_G2 = 0.05;
+        public double BoundaryChange_VD_PROB_CorpusVersionDeltaEightQueueWithBoundary_G2 = 0.2;
+        public double BoundaryChange_PROB_CorpusVersionDeltaEightQueueWithBoundary_G2 = 0.15;
 
         /**
          * ---------------Version Specific-----------------
