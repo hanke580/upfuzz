@@ -24,7 +24,7 @@ public class CassandraCqlshDaemon {
     public static String cqlshPython2Script;
     public static String cqlshPython3Script;
 
-    public static final int CASSANDRA_RETRY_TIMEOUT = 720; // seconds
+    public static final int CASSANDRA_RETRY_TIMEOUT = 180; // seconds
 
     // Check the process num after WAIT_INTERVAL time to
     // reduce the FP since the process might not start yet
