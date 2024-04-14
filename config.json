@@ -5,6 +5,7 @@
   "serverPort" : "6399",
   "clientPort" : "6400",
   "STACKED_TESTS_NUM" : "1",
+  "sequenceMutationEpoch" : 800,
   "nodeNum": 1,
   "faultMaxNum": 2,
   "loadInitCorpus": false,
