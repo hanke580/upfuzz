@@ -70,8 +70,7 @@ public class CommandSequence implements Serializable {
         }
     }
 
-    public boolean mutate()
-            throws Exception {
+    public boolean mutate() throws Exception {
         // Choice
         // 0: Mutate the command (Call command.mutate) // 2/3
         // 1: Insert a command 1/3
@@ -293,10 +292,10 @@ public class CommandSequence implements Serializable {
 
         assert commandClassList != null;
 
-        int len = rand
-                .nextInt(Config.getConf().MAX_CMD_SEQ_LEN
-                        - Config.getConf().MIN_CMD_SEQ_LEN)
-                + Config.getConf().MIN_CMD_SEQ_LEN;
+        int len = Utilities.generateExponentialRandom(rand,
+                Config.getConf().CMD_SEQ_LEN_LAMBDA,
+                Config.getConf().MIN_CMD_SEQ_LEN,
+                Config.getConf().MAX_CMD_SEQ_LEN);
 
         Constructor<?> constructor = stateClass.getConstructor();
         if (state == null)

@@ -9,10 +9,8 @@ import org.zlab.upfuzz.Parameter;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
@@ -25,6 +23,7 @@ import org.jacoco.core.data.ExecutionDataStore;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.zlab.upfuzz.CommandSequence;
+import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.FeedBack;
 import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPacket;
@@ -689,6 +688,15 @@ public class Utilities {
         double rf = nf * (kf / 2 + 1) * rand.nextFloat();
         double bf = (-1 + Math.sqrt(1 + 2 * kf * rf / nf)) * nf / kf;
         return (int) bf;
+    }
+
+    public static int generateExponentialRandom(Random rand, double lambda,
+            int lowerBound, int upperBound) {
+        double randomExponential = Math.log(1 - rand.nextDouble()) / (-lambda);
+        // Scale and shift to fit the range [lowerBound, upperBound]
+        int scaledValue = (int) (randomExponential + lowerBound);
+        // Ensure it does not exceed the upperBound
+        return Math.min(scaledValue, upperBound);
     }
 
     public static <T> T[] concatArray(T[] array1, T[] array2) {

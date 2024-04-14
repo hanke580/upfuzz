@@ -81,7 +81,12 @@ public class Config {
 
         // Sequence Generation
         public int MIN_CMD_SEQ_LEN = 15;
-        public int MAX_CMD_SEQ_LEN = 30;
+        public int MAX_CMD_SEQ_LEN = 100;
+
+        // Expected len = ~20
+        // Base for the exponential function
+        // Skew model of command sequence length
+        public double CMD_SEQ_LEN_LAMBDA = 0.2;
 
         public int SET_TYPE_MAX_SIZE = 10;
 
