@@ -1435,9 +1435,11 @@ public class FuzzingServer {
 
     public static void addSeedToCorpus(Corpus corpus,
             Seed seed, int score, boolean newOriBC,
-            boolean newOriFC, boolean newBCAfterUpgrade) {
+            boolean newOriFC, boolean newBCAfterUpgrade,
+            boolean newOriBoundaryChange) {
         seed.score = score;
-        corpus.addSeed(seed, newOriBC, newOriFC, newBCAfterUpgrade);
+        corpus.addSeed(seed, newOriBC, newOriFC, newBCAfterUpgrade,
+                newOriBoundaryChange);
     }
 
     public static void addSeedToCorpus(Corpus corpus,
@@ -1603,8 +1605,10 @@ public class FuzzingServer {
             addSeedToCorpus(corpus,
                     testID2Seed.get(feedbackPacket.testPacketID),
                     score, newOldVersionBranchCoverage,
-                    newFormatCoverage, newNewVersionBranchCoverage);
+                    newFormatCoverage, newNewVersionBranchCoverage,
+                    newBoundaryChange);
 
+            // FIXME: record boundary in graph
             graph.updateNodeCoverage(feedbackPacket.testPacketID,
                     newOldVersionBranchCoverage, newNewVersionBranchCoverage,
                     newFormatCoverage);

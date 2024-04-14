@@ -220,7 +220,9 @@ public class Config {
 
         // NonVerisonDeltaMode
         // 70% fuzz FC, 30% fuzz BC
-        public double FC_CorpusNonVersionDelta = 0.7;
+        public double BC_CorpusNonVersionDelta = 0.2;
+        public double FC_CorpusNonVersionDelta = 0.4;
+        public double BoundaryChange_CorpusNonVersionDelta = 0.4;
 
         public int formatCoveragePort = 62000;
 

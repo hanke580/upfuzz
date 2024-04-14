@@ -9,27 +9,34 @@ public class CorpusNonVersionDelta extends Corpus {
 
     private static final String queueNameBC = "CorpusNonVersionDelta_BC";
     private static final String queueNameFC = "CorpusNonVersionDelta_FC";
+    private static final String queueNameBoundaryChange = "CorpusNonVersionDelta_BoundaryChange";
 
     private static final Path queuePathBC = Paths.get(Config.getConf().corpus)
             .resolve(queueNameBC);
     private static final Path queuePathFC = Paths.get(Config.getConf().corpus)
             .resolve(queueNameFC);
+    private static final Path queuePathBoundaryChange = Paths
+            .get(Config.getConf().corpus)
+            .resolve(queueNameBoundaryChange);
+
     private int diskSeedIdBC = 0;
     private int diskSeedIdFC = 0;
+    private int diskSeedIdBoundaryChange = 0;
 
-    /**
-     * Suppose FC is enabled
-     * 1: FC: 80%
-     * 3: BC: 20%
-     */
     public CorpusNonVersionDelta() {
-        super(2, new double[] { Config.getConf().FC_CorpusNonVersionDelta,
-                1 - Config.getConf().FC_CorpusNonVersionDelta });
+        super(3, new double[] { Config.getConf().FC_CorpusNonVersionDelta,
+                Config.getConf().BC_CorpusNonVersionDelta,
+                Config.getConf().BoundaryChange_CorpusNonVersionDelta });
+        // sum of probabilities should be 1
+        if (Config.getConf().FC_CorpusNonVersionDelta
+                + Config.getConf().BC_CorpusNonVersionDelta
+                + Config.getConf().BoundaryChange_CorpusNonVersionDelta != 1)
+            throw new RuntimeException("Sum of probabilities should be 1");
         assert Config.getConf().useFormatCoverage;
     }
 
     private enum QueueType {
-        FC, BC
+        FC, BC, BoundaryChange
     }
 
     @Override
@@ -60,6 +67,19 @@ public class CorpusNonVersionDelta extends Corpus {
                 Corpus.saveSeedQueueOnDisk(seed, queueNameBC, diskSeedIdBC);
             }
         }
+        if (newOriBoundaryChange) {
+            cycleQueues[2].addSeed(seed);
+
+            if (Config.getConf().saveCorpusToDisk) {
+                while (queuePathBoundaryChange
+                        .resolve("seed_" + diskSeedIdBoundaryChange).toFile()
+                        .exists()) {
+                    diskSeedIdBoundaryChange++;
+                }
+                Corpus.saveSeedQueueOnDisk(seed, queueNameBoundaryChange,
+                        diskSeedIdBoundaryChange);
+            }
+        }
     }
 
     @Override
@@ -77,6 +97,9 @@ public class CorpusNonVersionDelta extends Corpus {
                 queuePathFC.toFile(), testID);
         testID = Corpus.loadSeedIntoQueue(cycleQueues[QueueType.BC.ordinal()],
                 queuePathBC.toFile(), testID);
+        testID = Corpus.loadSeedIntoQueue(
+                cycleQueues[QueueType.BoundaryChange.ordinal()],
+                queuePathBoundaryChange.toFile(), testID);
         return testID;
     }
 

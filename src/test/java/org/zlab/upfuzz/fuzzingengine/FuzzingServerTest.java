@@ -148,8 +148,8 @@ public class FuzzingServerTest extends AbstractTest {
         Config.instance.formatCoverageChoiceProb = 0;
 
         CorpusDefault corpus = new CorpusDefault();
-        corpus.addSeed(seed1, true, false, false);
-        corpus.addSeed(seed2, true, false, false);
+        corpus.addSeed(seed1, true, false, false, false);
+        corpus.addSeed(seed2, true, false, false, false);
 
         assert corpus.getSeed() == seed1;
         assert corpus.getSeed() == seed2;
@@ -176,7 +176,7 @@ public class FuzzingServerTest extends AbstractTest {
         Method initMethod = FuzzingServer.class.getDeclaredMethod("init");
         initMethod.setAccessible(true);
         initMethod.invoke(fuzzingServer);
-        fuzzingServer.corpus.addSeed(seed1, true, false, false);
+        fuzzingServer.corpus.addSeed(seed1, true, false, false, false);
         fuzzingServer.fuzzOne();
     }
 
