@@ -39,4 +39,9 @@ public class CLONE_TABLE_SCHEMA extends HBaseCommand {
                 ((HBaseState) state).table2families
                         .get(params.get(0).toString()));
     }
+
+    @Override
+    public void separate(State state) {
+        this.params.get(1).regenerate(null, this);
+    }
 }
