@@ -180,7 +180,6 @@ public class Config {
         // failureOver = true: if the seed node in the distributed is dead
         // another node can keep executing commands
         public boolean failureOver = false;
-        public boolean cassandraEnableTimeoutCheck = false;
 
         // 0: only full-stop test using StackedTestPacket
         // 1: Bug Reproduction: Full-Stop Test
@@ -309,6 +308,8 @@ public class Config {
          * Do not modify these default configurations!
          */
         // == cassandra ==
+        public boolean cassandraEnableTimeoutCheck = true;
+
         public boolean eval_CASSANDRA13939 = false;
         public boolean eval_CASSANDRA14912 = false;
         public int CASSANDRA_LIST_TYPE_MAX_SIZE = 10;

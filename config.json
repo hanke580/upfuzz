@@ -37,5 +37,5 @@
   "debug": false,
   "useExampleTestPlan": false,
   "startUpClusterForDebugging": false,
-  "cassandraEnableTimeoutCheck": false
+  "cassandraEnableTimeoutCheck": true
 }
