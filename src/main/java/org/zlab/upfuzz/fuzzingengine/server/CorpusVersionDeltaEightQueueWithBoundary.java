@@ -7,21 +7,21 @@ import java.nio.file.Paths;
 
 public class CorpusVersionDeltaEightQueueWithBoundary extends Corpus {
 
-    private static final String queueNameFC_VD = "CorpusNonVersionDelta_"
+    private static final String queueNameFC_VD = "CorpusVersionDeltaEightQueueWithBoundary_"
             + QueueType.FC_VD;
-    private static final String queueNameBC_VD = "CorpusNonVersionDelta_"
+    private static final String queueNameBC_VD = "CorpusVersionDeltaEightQueueWithBoundary_"
             + QueueType.BC_VD;
-    private static final String queueNameFC = "CorpusNonVersionDelta_"
+    private static final String queueNameFC = "CorpusVersionDeltaEightQueueWithBoundary_"
             + QueueType.FC;
-    private static final String queueNameBC = "CorpusNonVersionDelta_"
+    private static final String queueNameBC = "CorpusVersionDeltaEightQueueWithBoundary_"
             + QueueType.BC;
-    private static final String queueNameBC_After_Upgrade = "CorpusNonVersionDelta_"
+    private static final String queueNameBC_After_Upgrade = "CorpusVersionDeltaEightQueueWithBoundary_"
             + QueueType.BC_After_Upgrade;
-    private static final String queueNameBC_After_Downgrade = "CorpusNonVersionDelta_"
+    private static final String queueNameBC_After_Downgrade = "CorpusVersionDeltaEightQueueWithBoundary_"
             + QueueType.BC_After_Downgrade;
-    private static final String queueNameBoundaryChange_VD = "CorpusNonVersionDelta_"
+    private static final String queueNameBoundaryChange_VD = "CorpusVersionDeltaEightQueueWithBoundary_"
             + QueueType.BoundaryChange_VD;
-    private static final String queueNameBoundaryChange = "CorpusNonVersionDelta_"
+    private static final String queueNameBoundaryChange = "CorpusVersionDeltaEightQueueWithBoundary_"
             + QueueType.BoundaryChange;
 
     private static final Path queuePathBC = Paths.get(Config.getConf().corpus)
