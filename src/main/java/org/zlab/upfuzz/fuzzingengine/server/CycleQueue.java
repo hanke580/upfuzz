@@ -13,6 +13,10 @@ public class CycleQueue {
 
     // Adds a seed to the queue
     public void addSeed(Seed seed) {
+        // avoid add duplicate seed
+        if (queue.contains(seed)) {
+            return;
+        }
         queue.add(seed);
     }
 
