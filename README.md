@@ -192,7 +192,7 @@ bin/hbase_cl.sh
 ```
 
 ## Minimal Set up for Cassandra (Try upfuzz quickly!)
-Requirement: java11, docker (Docker version 23.0.1, build a5ee5b1)
+Requirement: java11, docker (Docker version 26.0.0, build a5ee5b1)
 > - Not test configurations.
 > - single Cassandra node upgrade: 3.11.15 => 4.1.3
 > - If using Nyx Mode, please clone the upfuzz repo at first and then follow the guide at `nyx_mode/README.md` before continuing.
@@ -200,12 +200,9 @@ Requirement: java11, docker (Docker version 23.0.1, build a5ee5b1)
 ### Test single version
 
 ```bash
-# ssh-keygen -t ed25519 -C "kehan5800@gmail.com"
-# cat ~/.ssh/id_ed25519.pub
 ssh-keyscan github.com >> ~/.ssh/known_hosts
 git clone git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
-git checkout implement_nyx
 
 export UPFUZZ_DIR=$PWD
 export ORI_VERSION=3.11.15
@@ -228,7 +225,7 @@ bin/start_server.sh config.json
 # open terminal2: start one client
 bin/start_clients.sh 1 config.json
 
-# stop testing:
+# stop testing
 bin/cass_cl.sh
 
 # Check failures
@@ -275,7 +272,7 @@ bin/cass_cl.sh
 ```
 
 ## Minimal Set up for HDFS (Try upfuzz quickly!)
-Requirement: jdk8, jdk11, docker (Docker version 23.0.1, build a5ee5b1)
+Requirement: jdk8, jdk11, docker (Docker version 26.0.0)
 > - Not test configurations.
 > - 4 Nodes upgrade (NN, SNN, 2DN) ORI_VERSION => UP_VERSION
 
