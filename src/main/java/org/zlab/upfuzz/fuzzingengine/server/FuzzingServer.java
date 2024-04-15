@@ -185,7 +185,8 @@ public class FuzzingServer {
     public FuzzingServer() {
         if (Config.getConf().useVersionDelta) {
             if (Config.getConf().versionDeltaApproach == 2) {
-                corpus = new CorpusVersionDeltaSixQueue();
+                // corpus = new CorpusVersionDeltaSixQueue();
+                corpus = new CorpusVersionDeltaFiveQueueWithBoundary();
             } else {
                 // Consider the boundary change...
                 corpus = new CorpusVersionDeltaFiveQueueWithBoundary();
