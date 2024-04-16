@@ -18,20 +18,4 @@ public class TestChoiceProbabilitiesVersionDeltaTwoGroups
         probabilitiesHashMap.put(3,
                 Config.getConf().branchCoverageChoiceProb);
     }
-
-    // @Override
-    // public double[] getCumulativeProbabilities() {
-    // double[] cumulativeSeedChoiceProbabilities = new
-    // double[probabilitiesCount];
-    // cumulativeSeedChoiceProbabilities[0] = probabilitiesHashMap.get(0);
-
-    // for (int i = 1; i < probabilitiesCount; i++) {
-    // cumulativeSeedChoiceProbabilities[i] =
-    // cumulativeSeedChoiceProbabilities[i
-    // - 1]
-    // + probabilitiesHashMap.get(i);
-    // }
-
-    // return cumulativeSeedChoiceProbabilities;
-    // }
 }
