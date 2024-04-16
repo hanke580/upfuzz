@@ -44,7 +44,7 @@ public class CorpusVersionDeltaFiveQueueWithBoundary extends Corpus {
     private enum QueueType {
         FC_VD, FC, BC_VD, BC, BoundaryChange
     }
-    
+
     @Override
     public void addSeed(Seed seed, boolean newOriBC, boolean newUpBC,
             boolean newOriFC, boolean newUpFC, boolean newBCAfterUpgrade,
