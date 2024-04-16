@@ -322,43 +322,58 @@ public class FuzzingServer {
             System.exit(1);
         }
 
-        seedChoiceProbabilities = new HashMap<>();
-        seedChoiceProbabilities.put(0,
-                Config.getConf().formatDeltaSeedChoiceProb);
-        seedChoiceProbabilities.put(1,
-                Config.getConf().branchDeltaSeedChoiceProb);
-        seedChoiceProbabilities.put(2,
-                Config.getConf().formatCovSeedChoiceProb);
-        seedChoiceProbabilities.put(3,
-                Config.getConf().branchCovSeedChoiceProb);
-        seedChoiceProbabilities.put(4,
-                Config.getConf().branchCovAfterUpgSeedChoiceProb);
-        seedChoiceProbabilities.put(5,
-                Config.getConf().branchCovAfterDowngSeedChoiceProb);
+        // seedChoiceProbabilities = new HashMap<>();
+        // seedChoiceProbabilities.put(0,
+        // Config.getConf().formatDeltaSeedChoiceProb);
+        // seedChoiceProbabilities.put(1,
+        // Config.getConf().branchDeltaSeedChoiceProb);
+        // seedChoiceProbabilities.put(2,
+        // Config.getConf().formatCovSeedChoiceProb);
+        // seedChoiceProbabilities.put(3,
+        // Config.getConf().branchCovSeedChoiceProb);
+        // seedChoiceProbabilities.put(4,
+        // Config.getConf().branchCovAfterUpgSeedChoiceProb);
+        // seedChoiceProbabilities.put(5,
+        // Config.getConf().branchCovAfterDowngSeedChoiceProb);
 
-        testChoiceProbabilities = new HashMap<>();
-        testChoiceProbabilities.put(0,
-                Config.getConf().formatVersionDeltaChoiceProb);
-        testChoiceProbabilities.put(1,
-                Config.getConf().branchVersionDeltaChoiceProb);
-        testChoiceProbabilities.put(2,
-                Config.getConf().formatCoverageChoiceProb);
-        testChoiceProbabilities.put(3,
-                Config.getConf().branchCoverageChoiceProb);
+        // testChoiceProbabilities = new HashMap<>();
+        // testChoiceProbabilities.put(0,
+        // Config.getConf().formatVersionDeltaChoiceProb);
+        // testChoiceProbabilities.put(1,
+        // Config.getConf().branchVersionDeltaChoiceProb);
+        // testChoiceProbabilities.put(2,
+        // Config.getConf().formatCoverageChoiceProb);
+        // testChoiceProbabilities.put(3,
+        // Config.getConf().branchCoverageChoiceProb);
 
-        cumulativeSeedChoiceProbabilities[0] = seedChoiceProbabilities.get(0);
-        for (int i = 1; i < seedChoiceProbabilities.keySet().size(); i++) {
-            cumulativeSeedChoiceProbabilities[i] = cumulativeSeedChoiceProbabilities[i
-                    - 1]
-                    + seedChoiceProbabilities.get(i);
-        }
+        // cumulativeSeedChoiceProbabilities[0] =
+        // seedChoiceProbabilities.get(0);
+        // for (int i = 1; i < seedChoiceProbabilities.keySet().size(); i++) {
+        // cumulativeSeedChoiceProbabilities[i] =
+        // cumulativeSeedChoiceProbabilities[i
+        // - 1]
+        // + seedChoiceProbabilities.get(i);
+        // }
 
-        cumulativeTestChoiceProbabilities[0] = testChoiceProbabilities.get(0);
-        for (int i = 1; i < testChoiceProbabilities.keySet().size(); i++) {
-            cumulativeTestChoiceProbabilities[i] = cumulativeTestChoiceProbabilities[i
-                    - 1]
-                    + testChoiceProbabilities.get(i);
-        }
+        // cumulativeTestChoiceProbabilities[0] =
+        // testChoiceProbabilities.get(0);
+        // for (int i = 1; i < testChoiceProbabilities.keySet().size(); i++) {
+        // cumulativeTestChoiceProbabilities[i] =
+        // cumulativeTestChoiceProbabilities[i
+        // - 1]
+        // + testChoiceProbabilities.get(i);
+        // }
+
+        SeedChoiceProbabilitiesFiveQueues seedChoiceProbabilitiesFiveQueues = new SeedChoiceProbabilitiesFiveQueues();
+        TestChoiceProbabilitiesVersionDeltaTwoGroups testChoiceProbabilitiesVersionDeltaTwoGroups = new TestChoiceProbabilitiesVersionDeltaTwoGroups();
+
+        seedChoiceProbabilities = seedChoiceProbabilitiesFiveQueues.probabilitiesHashMap;
+        cumulativeSeedChoiceProbabilities = seedChoiceProbabilitiesFiveQueues
+                .getCumulativeProbabilities();
+
+        testChoiceProbabilities = testChoiceProbabilitiesVersionDeltaTwoGroups.probabilitiesHashMap;
+        cumulativeTestChoiceProbabilities = testChoiceProbabilitiesVersionDeltaTwoGroups
+                .getCumulativeProbabilities();
     }
 
     public void start() {
@@ -551,6 +566,52 @@ public class FuzzingServer {
         return seed;
     }
 
+    public static Seed getSeedVersionDelta(
+            CorpusVersionDeltaFiveQueueWithBoundary corpusVersionDeltaFiveQueue,
+            double[] cumulativeSeedChoiceProbabilities,
+            Map<Integer, Double> seedChoiceProbabilities) {
+        Seed seed = null;
+        int corpusType = getSeedOrTestType(cumulativeSeedChoiceProbabilities);
+        if ((Config.getConf().branchCovSeedChoiceProb > 0)
+                || (Config.getConf().formatCovSeedChoiceProb > 0)
+                || (Config.getConf().branchDeltaSeedChoiceProb > 0)
+                || (Config.getConf().formatDeltaSeedChoiceProb > 0)
+                || (Config.getConf().branchCovAfterUpgSeedChoiceProb > 0)
+                || (Config.getConf().branchCovAfterDowngSeedChoiceProb > 0)) {
+            if (Config.getConf().debug) {
+                logger.debug("[HKLOG] Chosen seed of coverage type: "
+                        + (corpusType == 2 ? "version delta" : "format/code"));
+            }
+
+            if (Config.getConf().debug) {
+                logger.info(corpusVersionDeltaFiveQueue.getSize(
+                        CorpusVersionDeltaFiveQueueWithBoundary.QueueType
+                                .values()[corpusType]));
+            }
+            if (corpusVersionDeltaFiveQueue
+                    .getSize(CorpusVersionDeltaFiveQueueWithBoundary.QueueType
+                            .values()[corpusType]) == 0
+                    && !corpusVersionDeltaFiveQueue.areAllQueuesEmpty()) {
+                corpusType = getNextBestSeedType(corpusVersionDeltaFiveQueue,
+                        seedChoiceProbabilities);
+            }
+            seed = corpusVersionDeltaFiveQueue.getSeed(
+                    CorpusVersionDeltaFiveQueueWithBoundary.QueueType
+                            .values()[corpusType]);
+            if (seed != null) {
+                // logger.info("From corpus type: " + corpusType
+                // + ", obtained seed id: " + seed.testID);
+                if (Config.getConf().debug) {
+                    logger.debug(
+                            "[HKLOG] Got seed id " + seed.testID
+                                    + " from corpus type: "
+                                    + corpusType);
+                }
+            }
+        }
+        return seed;
+    }
+
     public void fuzzOne() {
         // Pick one test case from the corpus, fuzz it for mutationEpoch
         // Add the new tests into the stackedTestPackets
@@ -559,7 +620,8 @@ public class FuzzingServer {
         Seed seed = null;
         if (Config.getConf().useVersionDelta) {
             if (Config.getConf().versionDeltaApproach == 2) {
-                seed = getSeedVersionDelta((CorpusVersionDeltaSixQueue) corpus,
+                seed = getSeedVersionDelta(
+                        (CorpusVersionDeltaFiveQueueWithBoundary) corpus,
                         cumulativeSeedChoiceProbabilities,
                         seedChoiceProbabilities);
             } else {
@@ -2717,6 +2779,32 @@ public class FuzzingServer {
 
             if (!corpusVersionDeltaSixQueue
                     .isEmpty(CorpusVersionDeltaSixQueue.QueueType
+                            .values()[elementIndex])) {
+                return elementIndex; // Return the index of the non-empty
+                                     // list
+            }
+        }
+
+        // Throw exception if no non-empty list found
+        throw new NoSuchElementException(
+                "No non-empty list found based on probabilities");
+    }
+
+    public static int getNextBestSeedType(
+            CorpusVersionDeltaFiveQueueWithBoundary corpusVersionDeltaFiveQueue,
+            Map<Integer, Double> probabilities) {
+        // Sort probabilities in descending order
+        List<Map.Entry<Integer, Double>> sortedProbabilities = new ArrayList<>(
+                probabilities.entrySet());
+        sortedProbabilities.sort((entry1, entry2) -> Double
+                .compare(entry2.getValue(), entry1.getValue()));
+
+        // Iterate through sorted probabilities
+        for (Map.Entry<Integer, Double> entry : sortedProbabilities) {
+            int elementIndex = entry.getKey();
+
+            if (!corpusVersionDeltaFiveQueue
+                    .isEmpty(CorpusVersionDeltaFiveQueueWithBoundary.QueueType
                             .values()[elementIndex])) {
                 return elementIndex; // Return the index of the non-empty
                                      // list

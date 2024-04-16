@@ -41,8 +41,33 @@ public class CorpusVersionDeltaFiveQueueWithBoundary extends Corpus {
         });
     }
 
-    private enum QueueType {
+    public enum QueueType {
         FC_VD, FC, BC_VD, BC, BoundaryChange
+    }
+
+    public int getSize(QueueType type) {
+        return cycleQueues[type.ordinal()].size();
+    }
+
+    public int getIndex(QueueType type) {
+        return cycleQueues[type.ordinal()].getCurrentIndex();
+    }
+
+    public boolean areAllQueuesEmpty() {
+        for (CycleQueue queue : cycleQueues) {
+            if (!queue.isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean isEmpty(QueueType type) {
+        return cycleQueues[type.ordinal()].isEmpty();
+    }
+
+    public Seed getSeed(QueueType type) {
+        return cycleQueues[type.ordinal()].getNextSeed();
     }
 
     @Override
