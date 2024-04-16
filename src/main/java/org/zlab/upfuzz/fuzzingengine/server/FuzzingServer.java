@@ -2624,58 +2624,6 @@ public class FuzzingServer {
         return -1;
     }
 
-    public static int getNextBestSeedType(
-            CorpusVersionDeltaSixQueue corpusVersionDeltaSixQueue,
-            Map<Integer, Double> probabilities) {
-        // Sort probabilities in descending order
-        List<Map.Entry<Integer, Double>> sortedProbabilities = new ArrayList<>(
-                probabilities.entrySet());
-        sortedProbabilities.sort((entry1, entry2) -> Double
-                .compare(entry2.getValue(), entry1.getValue()));
-
-        // Iterate through sorted probabilities
-        for (Map.Entry<Integer, Double> entry : sortedProbabilities) {
-            int elementIndex = entry.getKey();
-
-            if (!corpusVersionDeltaSixQueue
-                    .isEmpty(CorpusVersionDeltaSixQueue.QueueType
-                            .values()[elementIndex])) {
-                return elementIndex; // Return the index of the non-empty
-                                     // list
-            }
-        }
-
-        // Throw exception if no non-empty list found
-        throw new NoSuchElementException(
-                "No non-empty list found based on probabilities");
-    }
-
-    public static int getNextBestSeedType(
-            CorpusVersionDeltaFiveQueueWithBoundary corpusVersionDeltaFiveQueue,
-            Map<Integer, Double> probabilities) {
-        // Sort probabilities in descending order
-        List<Map.Entry<Integer, Double>> sortedProbabilities = new ArrayList<>(
-                probabilities.entrySet());
-        sortedProbabilities.sort((entry1, entry2) -> Double
-                .compare(entry2.getValue(), entry1.getValue()));
-
-        // Iterate through sorted probabilities
-        for (Map.Entry<Integer, Double> entry : sortedProbabilities) {
-            int elementIndex = entry.getKey();
-
-            if (!corpusVersionDeltaFiveQueue
-                    .isEmpty(CorpusVersionDeltaFiveQueueWithBoundary.QueueType
-                            .values()[elementIndex])) {
-                return elementIndex; // Return the index of the non-empty
-                                     // list
-            }
-        }
-
-        // Throw exception if no non-empty list found
-        throw new NoSuchElementException(
-                "No non-empty list found based on probabilities");
-    }
-
     public List<Event> interleaveWithOrder(List<Event> events1,
             List<Event> events2) {
         // Merge two lists but still maintain the inner order
