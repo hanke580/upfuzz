@@ -482,8 +482,8 @@ public class FuzzingServer {
         Seed seed = null;
         if (Config.getConf().useVersionDelta) {
             if (Config.getConf().versionDeltaApproach == 2) {
-                seed = ((CorpusVersionDeltaFiveQueueWithBoundary) corpus)
-                        .getSeed();
+                assert seed instanceof CorpusVersionDeltaFiveQueueWithBoundary;
+                seed = corpus.getSeed();
             } else {
                 seed = corpus.getSeed();
             }
