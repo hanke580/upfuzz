@@ -481,25 +481,27 @@ public class MiniClientMain {
             testID2oriResults.put(tp.testPacketID, oriResult);
 
             if (Config.getConf().useFormatCoverage) {
-                // logger.info("[HKLOG] format coverage checking");
-                Path formatInfoFolder;
-                Path oriFormatInfoFolder = Paths.get("configInfo")
-                        .resolve(Config.getConf().originalVersion);
-                Path upFormatInfoFolder = Paths.get("configInfo")
-                        .resolve(Config.getConf().upgradedVersion);
-                if (!oriFormatInfoFolder.toFile().exists()
-                        || !upFormatInfoFolder
-                                .toFile().exists()) {
-                    throw new RuntimeException(
-                            "Format info folder does not exist");
+                if (stackedTestPacket.clientGroupForVersionDelta != 2) {
+                    // logger.info("[HKLOG] format coverage checking");
+                    Path formatInfoFolder;
+                    Path oriFormatInfoFolder = Paths.get("configInfo")
+                            .resolve(Config.getConf().originalVersion);
+                    Path upFormatInfoFolder = Paths.get("configInfo")
+                            .resolve(Config.getConf().upgradedVersion);
+                    if (!oriFormatInfoFolder.toFile().exists()
+                            || !upFormatInfoFolder
+                                    .toFile().exists()) {
+                        throw new RuntimeException(
+                                "Format info folder does not exist");
+                    }
+                    if (direction == 0)
+                        formatInfoFolder = oriFormatInfoFolder;
+                    else
+                        formatInfoFolder = upFormatInfoFolder;
+                    testID2FeedbackPacket
+                            .get(tp.testPacketID).formatCoverage = executor
+                                    .getFormatCoverage(formatInfoFolder);
                 }
-                if (direction == 0)
-                    formatInfoFolder = oriFormatInfoFolder;
-                else
-                    formatInfoFolder = upFormatInfoFolder;
-                testID2FeedbackPacket
-                        .get(tp.testPacketID).formatCoverage = executor
-                                .getFormatCoverage(formatInfoFolder);
             }
         }
 
