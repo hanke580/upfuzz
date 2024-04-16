@@ -156,13 +156,4 @@ public abstract class Corpus implements ICorpus {
         }
         return testId;
     }
-
-    public boolean areAllQueuesEmpty() {
-        for (CycleQueue queue : cycleQueues) {
-            if (!queue.isEmpty()) {
-                return false;
-            }
-        }
-        return true;
-    }
 }
