@@ -2060,6 +2060,136 @@ public class FuzzingServer {
 
     public synchronized void analyzeFeedbackFromVersionDeltaGroup2(
             VersionDeltaFeedbackPacketApproach2 versionDeltaFeedbackPacket) {
+        if (versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade == null) {
+            analyzeFeedbackFromVersionDeltaGroup2WithoutDowngrade(
+                    versionDeltaFeedbackPacket);
+        } else {
+            analyzeFeedbackFromVersionDeltaGroup2WithDowngrade(
+                    versionDeltaFeedbackPacket);
+        }
+    }
+
+    public synchronized void analyzeFeedbackFromVersionDeltaGroup2WithoutDowngrade(
+            VersionDeltaFeedbackPacketApproach2 versionDeltaFeedbackPacket) {
+        if (versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.skipped) {
+            // upgrade process is skipped
+            logger.info("upgrade process is skipped");
+        }
+
+        Path failureDir = null;
+
+        int startTestID = 0;
+        int endTestID = 0;
+        if (versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.getFpList()
+                .size() > 0) {
+            startTestID = versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade
+                    .getFpList()
+                    .get(0).testPacketID;
+            endTestID = versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade
+                    .getFpList()
+                    .get(versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade
+                            .getFpList().size()
+                            - 1).testPacketID;
+        }
+
+        if (versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.isUpgradeProcessFailed) {
+            failureDir = createFailureDir(
+                    versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.configFileName);
+            saveFullSequence(failureDir,
+                    versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.fullSequence);
+            saveFullStopCrashReport(failureDir,
+                    versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.upgradeFailureReport,
+                    startTestID,
+                    endTestID, true);
+
+            finishedTestID++;
+            finishedTestIdAgentGroup2++;
+        }
+
+        FuzzingServerHandler.printClientNum();
+
+        List<FeedbackPacket> versionDeltaFeedbackPacketsUp = versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade
+                .getFpList();
+
+        for (FeedbackPacket fp : versionDeltaFeedbackPacketsUp) {
+            if (fp.isInconsistencyInsignificant) {
+                insignificantInconsistenciesIn.add(fp.testPacketID);
+            }
+        }
+
+        int feedbackLength = versionDeltaFeedbackPacketsUp.size();
+        System.out.println("feedback length: " + feedbackLength);
+        for (int i = 0; i < feedbackLength; i++) {
+            // handle invariant
+            FeedbackPacket versionDeltaFeedbackPacketUp = versionDeltaFeedbackPacketsUp
+                    .get(i);
+
+            finishedTestID++;
+            finishedTestIdAgentGroup2++;
+            int score = 0;
+
+            boolean newBCAfterUpgrade = false;
+
+            // Merge all the feedbacks
+            FeedBack fbUpgrade = mergeCoverage(
+                    versionDeltaFeedbackPacketUp.feedBacks);
+
+            // priority feature is disabled
+            if (Utilities.hasNewBits(
+                    curUpCoverageAfterUpgrade,
+                    fbUpgrade.upgradedCodeCoverage)) {
+                // Write Seed to Disk + Add to Corpus
+                newBCAfterUpgrade = true;
+            }
+
+            curUpCoverageAfterUpgrade.merge(fbUpgrade.upgradedCodeCoverage);
+
+            if (versionDeltaFeedbackPacketUp.isInconsistent) {
+                if (failureDir == null) {
+                    failureDir = createFailureDir(
+                            versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.configFileName);
+                    saveFullSequence(failureDir,
+                            versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.fullSequence);
+                }
+                saveInconsistencyReport(failureDir,
+                        versionDeltaFeedbackPacketUp.testPacketID,
+                        versionDeltaFeedbackPacketUp.inconsistencyReport);
+            }
+
+            addSeedToCorpus(corpus,
+                    testID2Seed.get(versionDeltaFeedbackPacketUp.testPacketID),
+                    score, false, false, false, false, newBCAfterUpgrade,
+                    false, false, false);
+            // FIXME: it's already updated in Group1, do we update it again in
+            // group2?
+            graph.updateNodeCoverageGroup2(
+                    versionDeltaFeedbackPacketUp.testPacketID,
+                    newBCAfterUpgrade, false);
+
+        }
+        // update testid2Seed, no use anymore
+        for (TestPacket tp : versionDeltaFeedbackPacket.tpList) {
+            testID2Seed.remove(tp.testPacketID);
+        }
+        if (versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.hasERRORLog) {
+            if (failureDir == null) {
+                failureDir = createFailureDir(
+                        versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.configFileName);
+                saveFullSequence(failureDir,
+                        versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.fullSequence);
+            }
+            saveErrorReport(failureDir,
+                    versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.errorLogReport,
+                    startTestID,
+                    endTestID, true);
+        }
+
+        printInfo();
+        System.out.println();
+    }
+
+    public synchronized void analyzeFeedbackFromVersionDeltaGroup2WithDowngrade(
+            VersionDeltaFeedbackPacketApproach2 versionDeltaFeedbackPacket) {
 
         if (versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.skipped) {
             // upgrade process is skipped
@@ -2183,16 +2313,16 @@ public class FuzzingServer {
                         versionDeltaFeedbackPacketUp.testPacketID,
                         versionDeltaFeedbackPacketUp.inconsistencyReport);
             }
-            if (versionDeltaFeedbackPacketUp.isInconsistent) {
+            if (versionDeltaFeedbackPacketDown.isInconsistent) {
                 if (failureDir == null) {
                     failureDir = createFailureDir(
-                            versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.configFileName);
+                            versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.configFileName);
                     saveFullSequence(failureDir,
-                            versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.fullSequence);
+                            versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.fullSequence);
                 }
                 saveInconsistencyReport(failureDir,
-                        versionDeltaFeedbackPacketUp.testPacketID,
-                        versionDeltaFeedbackPacketUp.inconsistencyReport);
+                        versionDeltaFeedbackPacketDown.testPacketID,
+                        versionDeltaFeedbackPacketDown.inconsistencyReport);
             }
 
             addSeedToCorpus(corpus,
