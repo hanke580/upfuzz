@@ -138,19 +138,21 @@ class VersionDeltaStackedTestThread implements Callable<StackedFeedbackPacket> {
                 testID2oriResults.put(tp.testPacketID, oriResult);
 
                 if (Config.getConf().useFormatCoverage) {
-                    // logger.info("[HKLOG] format coverage checking");
-                    Path formatInfoFolder;
-                    Path oriFormatInfoFolder = Paths.get("configInfo")
-                            .resolve(Config.getConf().originalVersion);
-                    Path upFormatInfoFolder = Paths.get("configInfo")
-                            .resolve(Config.getConf().upgradedVersion);
-                    if (direction == 0)
-                        formatInfoFolder = oriFormatInfoFolder;
-                    else
-                        formatInfoFolder = upFormatInfoFolder;
-                    testID2FeedbackPacket
-                            .get(tp.testPacketID).formatCoverage = executor
-                                    .getFormatCoverage(formatInfoFolder);
+                    if (stackedTestPacket.clientGroupForVersionDelta != 2) {
+                        // logger.info("[HKLOG] format coverage checking");
+                        Path formatInfoFolder;
+                        Path oriFormatInfoFolder = Paths.get("configInfo")
+                                .resolve(Config.getConf().originalVersion);
+                        Path upFormatInfoFolder = Paths.get("configInfo")
+                                .resolve(Config.getConf().upgradedVersion);
+                        if (direction == 0)
+                            formatInfoFolder = oriFormatInfoFolder;
+                        else
+                            formatInfoFolder = upFormatInfoFolder;
+                        testID2FeedbackPacket
+                                .get(tp.testPacketID).formatCoverage = executor
+                                        .getFormatCoverage(formatInfoFolder);
+                    }
                 }
             } else {
                 logger.info(j + "th testPacket null? "
