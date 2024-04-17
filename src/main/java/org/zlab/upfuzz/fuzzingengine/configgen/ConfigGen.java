@@ -108,8 +108,12 @@ public abstract class ConfigGen {
         Path deletedConfigPath = configInfoPath
                 .resolve("deletedClassConfig.json");
         try {
-            boundaryConfig = mapper.readValue(boundaryConfigPath.toFile(),
-                    HashSet.class);
+            // Special for boundary Config (this might not exist)
+            if (boundaryConfigPath.toFile().exists())
+                boundaryConfig = mapper.readValue(boundaryConfigPath.toFile(),
+                        HashSet.class);
+            else
+                boundaryConfig = new HashSet<>();
             commonConfig = mapper.readValue(commonConfigPath.toFile(),
                     HashSet.class);
             addedConfig = mapper.readValue(addedConfigPath.toFile(),
