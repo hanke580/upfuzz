@@ -1,0 +1,1 @@
+{"dfs.client.mark.slownode.as.badnode.threshold":"10","dfs.client.rbf.observer.read.enable":"false","dfs.client.congestion.backoff.max.time":"DFS_CLIENT_CONGESTION_BACKOFF_MEAN_TIME_DEFAULT * 10","dfs.client.congestion.backoff.mean.time":"5000","dfs.client.pipeline.recovery.max-retries":"5"}
