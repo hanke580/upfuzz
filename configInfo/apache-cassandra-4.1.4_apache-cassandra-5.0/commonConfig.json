@@ -1,0 +1,1 @@
+["repair_command_pool_size","page_size_fail_threshold","initial_range_tombstone_list_allocation_size","native_transport_allow_older_protocols","column_index_cache_size","max_top_size_partition_count","memtable","page_size_warn_threshold","repair_state_size","endpoint_snitch"]
