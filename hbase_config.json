@@ -6,6 +6,7 @@
   "depVersion": "hadoop-2.10.2",
   "serverPort" : "6399",
   "clientPort" : "6400",
+  "configDir" : "configtests",
   "STACKED_TESTS_NUM" : "1",
   "nodeNum": 3,
   "loadInitCorpus": false,

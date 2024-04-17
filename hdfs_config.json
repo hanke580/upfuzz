@@ -4,6 +4,7 @@
   "system" : "hdfs",
   "serverPort" : "6499",
   "clientPort" : "6500",
+  "configDir" : "configtests",
   "STACKED_TESTS_NUM" : "1",
   "nodeNum": 4,
   "faultMaxNum": 0,

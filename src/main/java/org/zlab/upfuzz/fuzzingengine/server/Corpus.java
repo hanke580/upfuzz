@@ -95,7 +95,7 @@ public abstract class Corpus implements ICorpus {
             return;
         String configDirName = "test" + seed.configIdx;
 
-        Path configDir = Paths.get(System.getProperty("user.dir"),
+        Path configDir = Paths.get(
                 Config.getConf().configDir, Config.getConf().originalVersion
                         + "_" + Config.getConf().upgradedVersion)
                 .resolve(configDirName);

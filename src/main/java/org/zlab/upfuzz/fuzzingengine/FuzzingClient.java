@@ -58,19 +58,19 @@ public class FuzzingClient {
 
     FuzzingClient() {
         if (Config.getConf().testSingleVersion) {
-            configDirPath = Paths.get(System.getProperty("user.dir"),
+            configDirPath = Paths.get(
                     Config.getConf().configDir,
                     Config.getConf().originalVersion);
         } else {
-            configDirPath = Paths.get(System.getProperty("user.dir"),
+            configDirPath = Paths.get(
                     Config.getConf().configDir, Config.getConf().originalVersion
                             + "_" + Config.getConf().upgradedVersion);
             if (Config.getConf().useVersionDelta) {
-                configDirPathUp = Paths.get(System.getProperty("user.dir"),
+                configDirPathUp = Paths.get(
                         Config.getConf().configDir,
                         Config.getConf().originalVersion
                                 + "_" + Config.getConf().upgradedVersion);
-                configDirPathDown = Paths.get(System.getProperty("user.dir"),
+                configDirPathDown = Paths.get(
                         Config.getConf().configDir,
                         Config.getConf().upgradedVersion
                                 + "_" + Config.getConf().originalVersion);

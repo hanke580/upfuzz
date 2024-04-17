@@ -83,7 +83,7 @@ public abstract class ConfigGen {
                     "prebuild", Config.getConf().depSystem,
                     Config.getConf().depVersion);
         }
-        generateFolderPath = Paths.get(System.getProperty("user.dir"),
+        generateFolderPath = Paths.get(
                 Config.getConf().configDir,
                 Config.getConf().originalVersion + "_"
                         + Config.getConf().upgradedVersion);
@@ -143,7 +143,7 @@ public abstract class ConfigGen {
                     "prebuild", Config.getConf().depSystem,
                     Config.getConf().depVersion);
         }
-        generateFolderPath = Paths.get(System.getProperty("user.dir"),
+        generateFolderPath = Paths.get(
                 Config.getConf().configDir,
                 Config.getConf().originalVersion);
     }

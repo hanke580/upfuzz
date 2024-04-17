@@ -259,11 +259,11 @@ public class FuzzingServer {
          */
 
         if (Config.getConf().testSingleVersion) {
-            configDirPath = Paths.get(System.getProperty("user.dir"),
+            configDirPath = Paths.get(
                     Config.getConf().configDir,
                     Config.getConf().originalVersion);
         } else {
-            configDirPath = Paths.get(System.getProperty("user.dir"),
+            configDirPath = Paths.get(
                     Config.getConf().configDir, Config.getConf().originalVersion
                             + "_" + Config.getConf().upgradedVersion);
         }
