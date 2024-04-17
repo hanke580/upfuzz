@@ -60,7 +60,7 @@ public class RmFile extends Dfs {
 
     @Override
     public void updateState(State state) {
-        ((HdfsState) state).dfs.removeFile(params.get(5).toString());
+        ((HdfsState) state).dfs.removeFile(params.get(4).toString());
 
     }
 }
