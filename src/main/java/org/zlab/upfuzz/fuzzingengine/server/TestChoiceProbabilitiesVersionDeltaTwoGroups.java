@@ -8,7 +8,7 @@ public class TestChoiceProbabilitiesVersionDeltaTwoGroups
         extends Probabilities {
 
     public TestChoiceProbabilitiesVersionDeltaTwoGroups() {
-        super(4);
+        super(5);
         probabilitiesHashMap.put(0,
                 Config.getConf().formatVersionDeltaChoiceProb);
         probabilitiesHashMap.put(1,
@@ -17,5 +17,7 @@ public class TestChoiceProbabilitiesVersionDeltaTwoGroups
                 Config.getConf().formatCoverageChoiceProb);
         probabilitiesHashMap.put(3,
                 Config.getConf().branchCoverageChoiceProb);
+        probabilitiesHashMap.put(4,
+                Config.getConf().boundaryRelatedSeedsChoiceProb);
     }
 }

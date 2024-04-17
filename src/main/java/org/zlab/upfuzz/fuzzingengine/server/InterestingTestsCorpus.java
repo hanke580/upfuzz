@@ -28,7 +28,7 @@ public class InterestingTestsCorpus {
 
     // public BlockingQueue<Pair<String,TestPacket>>[] queues = new
     // LinkedBlockingQueue[5];
-    public HashMap<String, Queue<TestPacket>>[] intermediateBuffer = new HashMap[5];
+    public HashMap<String, Queue<TestPacket>>[] intermediateBuffer = new HashMap[6];
     public List<String> configFiles = new ArrayList<>();
 
     // LinkedList<StackedTestPacket>[] queues = new LinkedList[3];
@@ -39,7 +39,7 @@ public class InterestingTestsCorpus {
     }
 
     public enum TestType {
-        FORMAT_COVERAGE_VERSION_DELTA, BRANCH_COVERAGE_VERSION_DELTA, FORMAT_COVERAGE, BRANCH_COVERAGE_BEFORE_VERSION_CHANGE, LOW_PRIORITY
+        FORMAT_COVERAGE_VERSION_DELTA, BRANCH_COVERAGE_VERSION_DELTA, FORMAT_COVERAGE, BRANCH_COVERAGE_BEFORE_VERSION_CHANGE, LOW_PRIORITY, BOUNDARY_BROKEN
     }
 
     public String getConfigFile() {
