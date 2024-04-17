@@ -859,6 +859,95 @@ public class FuzzingClient {
 
     public VersionDeltaFeedbackPacketApproach2 executeStackedTestPacketRegularVersionDeltaApproach2(
             StackedTestPacket stackedTestPacket) {
+        if (isDowngradeSupported) {
+            return executeStackedTestPacketRegularVersionDeltaApproach2WithDowngrade(
+                    stackedTestPacket);
+        } else {
+            if (group != 2) {
+                return executeStackedTestPacketRegularVersionDeltaApproach2WithDowngrade(
+                        stackedTestPacket);
+            } else {
+                return executeStackedTestPacketRegularVersionDeltaApproach2WithoutDowngrade(
+                        stackedTestPacket);
+            }
+        }
+    }
+
+    public VersionDeltaFeedbackPacketApproach2 executeStackedTestPacketRegularVersionDeltaApproach2WithoutDowngrade(
+            StackedTestPacket stackedTestPacket) {
+        if (Config.getConf().debug) {
+            logger.info("Version delta testing for group: "
+                    + stackedTestPacket.clientGroupForVersionDelta);
+            logger.info("This client is in group: " + group);
+        }
+
+        ExecutorService executorService = Executors.newFixedThreadPool(1);
+        Path configPath = Paths.get(configDirPath.toString(),
+                stackedTestPacket.configFileName);
+        logger.info("[HKLOG] executing without downgrade configPath = "
+                + configPath);
+
+        // config verification
+        if (Config.getConf().verifyConfig) {
+            boolean validConfig = verifyConfig(configPath);
+            if (!validConfig) {
+                logger.error(
+                        "problem with configuration! system cannot start up");
+                return null;
+            }
+        }
+
+        if (Config.getConf().debug) {
+            logger.info("[Fuzzing Client] Call to initialize executor");
+        }
+        Executor[] executors = initExecutorVersionDelta(
+                stackedTestPacket.nodeNum, null, configPath);
+
+        String threadIdGroup = "group" + group + "_"
+                + String.valueOf(Thread.currentThread().getId());
+        long startTimeVersionDeltaExecution = System.currentTimeMillis();
+        if (Config.getConf().debug) {
+            logger.info("[HKLOG: profiler] " + threadIdGroup + ": group "
+                    + group + ": started version delta execution");
+        }
+
+        logger.info("[HKLOG] Downgrade supported: " + isDowngradeSupported);
+        // Submitting two Callable tasks
+        StackedTestPacket stackedTestPacketUp = stackedTestPacket;
+        Future<StackedFeedbackPacket> futureStackedFeedbackPacketUp = executorService
+                .submit(new VersionDeltaStackedTestThread(executors[0], 0,
+                        stackedTestPacketUp, isDowngradeSupported, group));
+
+        // Retrieve results for operation 1
+        // StackedFeedbackPacket stackedFeedbackPacketUp = null;
+        // StackedFeedbackPacket stackedFeedbackPacketDown = null;
+        try {
+            StackedFeedbackPacket stackedFeedbackPacketUp = futureStackedFeedbackPacketUp
+                    .get();
+
+            // Process results for operations before version change
+            if (stackedFeedbackPacketUp == null) {
+                executorService.shutdown();
+                return null;
+            }
+            List<TestPacket> tpList = stackedTestPacket.getTestPacketList();
+            VersionDeltaFeedbackPacketApproach2 versionDeltaFeedbackPacketApproach2 = new VersionDeltaFeedbackPacketApproach2(
+                    stackedFeedbackPacketUp, null, tpList);
+
+            versionDeltaFeedbackPacketApproach2.clientGroup = group;
+            executorService.shutdown();
+            assert versionDeltaFeedbackPacketApproach2 != null;
+
+            return versionDeltaFeedbackPacketApproach2;
+        } catch (Exception e) {
+            logger.info("[HKLOG] Caught Exception!!! " + e);
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public VersionDeltaFeedbackPacketApproach2 executeStackedTestPacketRegularVersionDeltaApproach2WithDowngrade(
+            StackedTestPacket stackedTestPacket) {
 
         if (Config.getConf().debug) {
             logger.info("Version delta testing for group: "
