@@ -42,9 +42,9 @@ sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
 ## Data Format Testing
 > Check out dinv-monitor about how to create an instrumented tarball
-> 
+>
 > Instrumented tarball is stored `khan@mufasa:/home/khan/format_inst_binary/`
-> 
+>
 
 1. Use a format instrumented tarball.
 2. Make sure the `configInfo/system-x.x.x` contain `serializedFields_alg1.json` and `topObjects.json` file. (They should be the same as the one under the instrumented system binary).
@@ -417,6 +417,7 @@ There could be several reasons (1) System starts up but the daemon in container 
 Check memory usage of fuzzing server
 ```bash
 cat /proc/$(pgrep -f "upfuzz_server")/status | grep Vm
+# if it's killed by system, use dmsg to check the reason
 ```
 
 ### JACOCO
@@ -431,6 +432,20 @@ The two jacoco jars are
 
 Use `dependencies/org.jacoco.agent-1c01d8328d-runtime.jar` to replace all `org.jacoco.agent.rt.jar`
 
+### Distributed testing mode
+FuzzingServer config.json: listening to all IPs
+```json
+"serverHost" : "0.0.0.0",
+"configDir" : "/PATH/TO/SHARED_FOLDER/",
+
+```
+
+FuzzingClient config.json
+```json
+"serverHost" : "x.x.x.x",
+"configDir" : "/PATH/TO/SHARED_FOLDER/",
+```
+Set up a shared folder (NFS) between servers to share the configuration file.
 
 ### Speed up Cassandra start up
 
