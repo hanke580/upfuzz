@@ -265,10 +265,12 @@ public class Config {
 
         // Approach 2: Six Queue Implementation
         // Group1
-        public double branchVersionDeltaChoiceProb = 0.25;
-        public double formatVersionDeltaChoiceProb = 0.45;
+        public double branchVersionDeltaChoiceProb = 0.2;
+        public double formatVersionDeltaChoiceProb = 0.4;
         public double branchCoverageChoiceProb = 0.1;
         public double formatCoverageChoiceProb = 0.2;
+        public double boundaryRelatedSeedsChoiceProb = 0.1;
+
         public double nonInterestingTestsUpgradeProb = 0.6;
 
         // Group2
