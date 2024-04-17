@@ -272,7 +272,6 @@ public class FuzzingServerHandler implements Runnable {
                         logger.info(
                                 "MATCHED THIS CONDITION: clientGroup 2, got feedback packet from group 2, now update status! Induced new version delta coverage? ");
                     }
-                    logger.info("Calling update status");
                     fuzzingServer.analyzeFeedbackFromVersionDeltaGroup2(
                             versionDeltaFeedbackPacketApproach2);
                 }

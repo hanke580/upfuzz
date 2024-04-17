@@ -1625,7 +1625,7 @@ public class FuzzingServer {
         }
 
         int feedbackLength = versionDeltaFeedbackPacketsUp.size();
-        System.out.println("feedback length: " + feedbackLength);
+        logger.debug("feedback length: " + feedbackLength);
 
         for (int i = 0; i < feedbackLength; i++) {
             FeedbackPacket versionDeltaFeedbackPacketUp = versionDeltaFeedbackPacketsUp
@@ -1787,7 +1787,7 @@ public class FuzzingServer {
                 .getFpList();
 
         int feedbackLength = versionDeltaFeedbackPacketsUp.size();
-        System.out.println("feedback length: " + feedbackLength);
+        logger.debug("feedback length: " + feedbackLength);
 
         Path failureDir = null;
 
@@ -1950,8 +1950,6 @@ public class FuzzingServer {
                         versionDeltaFeedbackPacket.tpList
                                 .get(i).testPacketID);
             }
-
-            System.out.println(versionDeltaFeedbackPacketUp.testPacketID);
 
             addSeedToCorpus(corpus,
                     testID2Seed.get(versionDeltaFeedbackPacketUp.testPacketID),
@@ -2138,7 +2136,7 @@ public class FuzzingServer {
         }
 
         int feedbackLength = versionDeltaFeedbackPacketsUp.size();
-        System.out.println("feedback length: " + feedbackLength);
+        logger.debug("feedback length: " + feedbackLength);
         for (int i = 0; i < feedbackLength; i++) {
             // handle invariant
             FeedbackPacket versionDeltaFeedbackPacketUp = versionDeltaFeedbackPacketsUp
