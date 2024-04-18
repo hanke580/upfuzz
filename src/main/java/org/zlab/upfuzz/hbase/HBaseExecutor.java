@@ -184,6 +184,11 @@ public class HBaseExecutor extends Executor {
                 str2 = Utilities.maskRubyObject(str2);
 
                 if (str1.compareTo(str2) != 0) {
+                    // Handle FP
+                    if (str1.contains("NoSuchColumnFamilyException:") &&
+                            str2.contains("NoSuchColumnFamilyException:")) {
+                        continue;
+                    }
                     String errorMsg = "Result inconsistency at read id: " + i
                             + "\n";
                     if (compareOldAndNew) {
