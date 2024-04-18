@@ -380,10 +380,6 @@ public class FuzzingServer {
         if (testBatchCorpus.areAllQueuesEmptyForThisConfig(configFileName)) {
             testBatchCorpus.configFiles.remove(configFileName);
         }
-        stackedTestPacket.curOriCoverage = curOriCoverage;
-        stackedTestPacket.curUpCoverage = curUpCoverage;
-        stackedTestPacket.curOriObjCoverage = oriObjCoverage;
-        stackedTestPacket.curUpObjCoverage = upObjCoverage;
         stackedTestPacket.clientGroupForVersionDelta = 2;
 
         logger.info("[HKLOG] sending batch size to agent group 2: "
