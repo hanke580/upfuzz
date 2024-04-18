@@ -55,6 +55,8 @@ public class HBaseDocker extends Docker {
         excludes = HBaseDockerCluster.excludes;
         executorID = dockerCluster.executorID;
         serviceName = "DC3N" + index;
+
+        collectFormatCoverage = dockerCluster.collectFormatCoverage;
         targetSystemStates = dockerCluster.targetSystemStates;
         configPath = dockerCluster.configpath;
 
@@ -165,7 +167,8 @@ public class HBaseDocker extends Docker {
                 "HBASE_SHELL_DAEMON_PORT=\"" + HBaseDaemonPort + "\"",
                 "CUR_STATUS=ORI",
                 "PYTHON=" + pythonVersion,
-                "ENABLE_FORMAT_COVERAGE=" + Config.getConf().useFormatCoverage
+                "ENABLE_FORMAT_COVERAGE=" + (Config.getConf().useFormatCoverage
+                        && collectFormatCoverage)
         };
 
         setEnvironment();

@@ -40,11 +40,9 @@ public abstract class Docker extends DockerMeta implements IDocker {
         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
         out.println("collect format coverage"); // send a command to the server
 
-        logger.debug("collect format coverage");
         ObjectGraphCoverage response = (ObjectGraphCoverage) in.readObject();
-
         logger.debug(
-                "Received object coverage top object size: "
+                "Received format coverage top object size: "
                         + response.objCoverage.keySet().size());
         // clean up resources
         out.close();

@@ -137,10 +137,13 @@ public class MiniClientMain {
             System.err.println("verifying configuration");
             if (!Config.getConf().useVersionDelta) {
                 executor = FuzzingClient.initExecutor(
-                        1, null, defaultConfigPath);
+                        1, Config.getConf().useFormatCoverage, null,
+                        defaultConfigPath);
             } else {
+                // FIXME: Why in nyx, direction is always 0?
                 executor = FuzzingClient.initExecutor(
-                        1, null, defaultConfigPath, 0);
+                        1, Config.getConf().useFormatCoverage, null,
+                        defaultConfigPath, 0);
             }
             boolean startUpStatus = executor.startup();
 
@@ -162,11 +165,13 @@ public class MiniClientMain {
                         .readObjectFromFile(defaultTestPath.toFile());
                 if (!Config.getConf().useVersionDelta) {
                     executor = FuzzingClient.initExecutor(
-                            defaultStackedTestPacket.nodeNum, null,
+                            defaultStackedTestPacket.nodeNum,
+                            Config.getConf().useFormatCoverage, null,
                             defaultConfigPath, 0);
                 } else {
                     executor = FuzzingClient.initExecutor(
-                            defaultStackedTestPacket.nodeNum, null,
+                            defaultStackedTestPacket.nodeNum,
+                            Config.getConf().useFormatCoverage, null,
                             defaultConfigPath,
                             defaultStackedTestPacket.testDirection);
                 }
@@ -176,11 +181,13 @@ public class MiniClientMain {
                         .readObjectFromFile(defaultTestPath.toFile());
                 if (!Config.getConf().useVersionDelta) {
                     executor = FuzzingClient.initExecutor(
-                            defaultTestPlanPacket.getNodeNum(), null,
+                            defaultTestPlanPacket.getNodeNum(),
+                            Config.getConf().useFormatCoverage, null,
                             defaultConfigPath);
                 } else {
                     executor = FuzzingClient.initExecutor(
-                            defaultTestPlanPacket.getNodeNum(), null,
+                            defaultTestPlanPacket.getNodeNum(),
+                            Config.getConf().useFormatCoverage, null,
                             defaultConfigPath,
                             defaultTestPlanPacket.testDirection);
                 }

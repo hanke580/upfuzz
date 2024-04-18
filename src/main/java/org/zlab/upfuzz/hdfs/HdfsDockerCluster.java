@@ -29,9 +29,11 @@ public class HdfsDockerCluster extends DockerCluster {
     };
 
     HdfsDockerCluster(HdfsExecutor executor, String version,
-            int nodeNum, Set<String> targetSystemStates, Path configPath,
+            int nodeNum, boolean collectFormatCoverage,
+            Set<String> targetSystemStates, Path configPath,
             int direction) {
-        super(executor, version, nodeNum, targetSystemStates, direction);
+        super(executor, version, nodeNum, collectFormatCoverage,
+                targetSystemStates, direction);
 
         this.dockers = new HdfsDocker[nodeNum];
         this.namenodeIP = DockerCluster.getKthIP(hostIP, 0); // 2 means the

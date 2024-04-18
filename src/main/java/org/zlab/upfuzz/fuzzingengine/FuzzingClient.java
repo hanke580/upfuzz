@@ -206,6 +206,7 @@ public class FuzzingClient {
     }
 
     public static Executor[] initExecutorVersionDelta(int nodeNum,
+            boolean collectFormatCoverage,
             Set<String> targetSystemStates,
             Path configPath) {
         String system = Config.getConf().system;
@@ -214,6 +215,7 @@ public class FuzzingClient {
 
             for (int i = 0; i < cassandraExecutors.length; i++) {
                 cassandraExecutors[i] = new CassandraExecutor(nodeNum,
+                        collectFormatCoverage,
                         targetSystemStates,
                         configPath, i);
             }
@@ -223,7 +225,8 @@ public class FuzzingClient {
             HdfsExecutor[] hdfsExecutors = new HdfsExecutor[2];
 
             for (int i = 0; i < hdfsExecutors.length; i++) {
-                hdfsExecutors[i] = new HdfsExecutor(nodeNum, targetSystemStates,
+                hdfsExecutors[i] = new HdfsExecutor(nodeNum,
+                        collectFormatCoverage, targetSystemStates,
                         configPath, i);
             }
 
@@ -233,6 +236,7 @@ public class FuzzingClient {
 
             for (int i = 0; i < hbaseExecutors.length; i++) {
                 hbaseExecutors[i] = new HBaseExecutor(nodeNum,
+                        collectFormatCoverage,
                         targetSystemStates,
                         configPath, i);
             }
@@ -245,17 +249,21 @@ public class FuzzingClient {
     }
 
     public static Executor initExecutor(int nodeNum,
+            boolean collectFormatCoverage,
             Set<String> targetSystemStates,
             Path configPath) {
         String system = Config.getConf().system;
         if (system.equals("cassandra")) {
-            return new CassandraExecutor(nodeNum, targetSystemStates,
+            return new CassandraExecutor(nodeNum, collectFormatCoverage,
+                    targetSystemStates,
                     configPath, 0);
         } else if (system.equals("hdfs")) {
-            return new HdfsExecutor(nodeNum, targetSystemStates,
+            return new HdfsExecutor(nodeNum, collectFormatCoverage,
+                    targetSystemStates,
                     configPath, 0);
         } else if (system.equals("hbase")) {
-            return new HBaseExecutor(nodeNum, targetSystemStates,
+            return new HBaseExecutor(nodeNum, collectFormatCoverage,
+                    targetSystemStates,
                     configPath, 0);
         }
         throw new RuntimeException(String.format(
@@ -264,17 +272,21 @@ public class FuzzingClient {
     }
 
     public static Executor initExecutor(int nodeNum,
+            boolean collectFormatCoverage,
             Set<String> targetSystemStates,
             Path configPath, int testDirection) {
         String system = Config.getConf().system;
         if (system.equals("cassandra")) {
-            return new CassandraExecutor(nodeNum, targetSystemStates,
+            return new CassandraExecutor(nodeNum, collectFormatCoverage,
+                    targetSystemStates,
                     configPath, testDirection);
         } else if (system.equals("hdfs")) {
-            return new HdfsExecutor(nodeNum, targetSystemStates,
+            return new HdfsExecutor(nodeNum, collectFormatCoverage,
+                    targetSystemStates,
                     configPath, testDirection);
         } else if (system.equals("hbase")) {
-            return new HBaseExecutor(nodeNum, targetSystemStates,
+            return new HBaseExecutor(nodeNum, collectFormatCoverage,
+                    targetSystemStates,
                     configPath, testDirection);
         }
         throw new RuntimeException(String.format(
@@ -734,7 +746,8 @@ public class FuzzingClient {
         if (Config.getConf().debug) {
             logger.info("[Fuzzing Client] Call to initialize executor");
         }
-        executor = initExecutor(stackedTestPacket.nodeNum, null, configPath);
+        executor = initExecutor(stackedTestPacket.nodeNum,
+                Config.getConf().useFormatCoverage, null, configPath);
         if (Config.getConf().debug) {
             logger.info("[Fuzzing Client] Call to start up executor");
         }
@@ -821,7 +834,8 @@ public class FuzzingClient {
         }
 
         Executor[] executors = initExecutorVersionDelta(
-                stackedTestPacket.nodeNum, null, configPath);
+                stackedTestPacket.nodeNum, Config.getConf().useFormatCoverage,
+                null, configPath);
 
         // Submitting two Callable tasks
         // direction 0 means original --> upgraded
@@ -860,19 +874,25 @@ public class FuzzingClient {
     public VersionDeltaFeedbackPacketApproach2 executeStackedTestPacketRegularVersionDeltaApproach2(
             StackedTestPacket stackedTestPacket) {
         if (isDowngradeSupported) {
+            // if downgrade is supported, always start up 2 clusters
             return executeStackedTestPacketRegularVersionDeltaApproach2WithDowngrade(
                     stackedTestPacket);
         } else {
             if (group != 2) {
+                // group 1: 2 clusters
                 return executeStackedTestPacketRegularVersionDeltaApproach2WithDowngrade(
                         stackedTestPacket);
             } else {
+                // group 2: 1 cluster if downgrade is not supported
                 return executeStackedTestPacketRegularVersionDeltaApproach2WithoutDowngrade(
                         stackedTestPacket);
             }
         }
     }
 
+    /**
+     * Only start up 1 thread (1 cluster). No downgrade direction.
+     */
     public VersionDeltaFeedbackPacketApproach2 executeStackedTestPacketRegularVersionDeltaApproach2WithoutDowngrade(
             StackedTestPacket stackedTestPacket) {
         if (Config.getConf().debug) {
@@ -900,8 +920,15 @@ public class FuzzingClient {
         if (Config.getConf().debug) {
             logger.info("[Fuzzing Client] Call to initialize executor");
         }
+
+        boolean collectFormatCoverage = false;
+        // only collect format coverage in group1
+        if (group == 1 && Config.getConf().useFormatCoverage) {
+            collectFormatCoverage = true;
+        }
         Executor[] executors = initExecutorVersionDelta(
-                stackedTestPacket.nodeNum, null, configPath);
+                stackedTestPacket.nodeNum, collectFormatCoverage, null,
+                configPath);
 
         String threadIdGroup = "group" + group + "_"
                 + String.valueOf(Thread.currentThread().getId());
@@ -946,6 +973,9 @@ public class FuzzingClient {
         }
     }
 
+    /**
+     * 2 threads (2 clusters) are started up
+     */
     public VersionDeltaFeedbackPacketApproach2 executeStackedTestPacketRegularVersionDeltaApproach2WithDowngrade(
             StackedTestPacket stackedTestPacket) {
 
@@ -973,12 +1003,14 @@ public class FuzzingClient {
         if (Config.getConf().debug) {
             logger.info("[Fuzzing Client] Call to initialize executor");
         }
+
         Executor[] executors = initExecutorVersionDelta(
-                stackedTestPacket.nodeNum, null, configPath);
+                stackedTestPacket.nodeNum,
+                group == 1 && Config.getConf().useFormatCoverage, null,
+                configPath);
 
         String threadIdGroup = "group" + group + "_"
                 + String.valueOf(Thread.currentThread().getId());
-        long startTimeVersionDeltaExecution = System.currentTimeMillis();
         if (Config.getConf().debug) {
             logger.info("[HKLOG: profiler] " + threadIdGroup + ": group "
                     + group + ": started version delta execution");
@@ -1061,7 +1093,7 @@ public class FuzzingClient {
         }
 
         // start up
-        executor = initExecutor(nodeNum,
+        executor = initExecutor(nodeNum, Config.getConf().useFormatCoverage,
                 fullStopPacket.fullStopUpgrade.targetSystemStates, configPath);
         boolean startUpStatus = startUpExecutor();
         if (!startUpStatus) {
@@ -1469,7 +1501,8 @@ public class FuzzingClient {
         if (Config.getConf().debug) {
             logger.info("[Fuzzing Client] Call to initialize executor");
         }
-        executor = initExecutor(testPlanPacket.getNodeNum(), targetSystemStates,
+        executor = initExecutor(testPlanPacket.getNodeNum(),
+                Config.getConf().useFormatCoverage, targetSystemStates,
                 configPath);
 
         if (Config.getConf().debug) {
@@ -1701,7 +1734,8 @@ public class FuzzingClient {
         }
 
         // start up cluster
-        executor = initExecutor(nodeNum, null, configPath);
+        executor = initExecutor(nodeNum, Config.getConf().useFormatCoverage,
+                null, configPath);
 
         boolean startUpStatus = startUpExecutor();
         if (!startUpStatus) {
@@ -1878,7 +1912,7 @@ public class FuzzingClient {
         // start up one node in old version, verify old version config file
         // start up one node in new version, verify new version config file
         logger.info("verifying configuration");
-        Executor executor = initExecutor(1, null, configPath);
+        Executor executor = initExecutor(1, false, null, configPath);
         boolean startUpStatus = executor.startup();
 
         if (!startUpStatus) {

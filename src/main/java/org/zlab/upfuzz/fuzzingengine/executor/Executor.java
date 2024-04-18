@@ -38,6 +38,9 @@ public abstract class Executor implements IExecutor {
     public String executorID;
     public String systemID = "UnknowDS";
     public int nodeNum;
+
+    // By default, we enable collection
+    public boolean collectFormatCoverage = false;
     public Set<String> targetSystemStates;
     public Path configPath;
     public String testPlanExecutionLog = "";

@@ -47,6 +47,7 @@ public abstract class DockerCluster implements IDockerCluster {
     public Path configpath;
     public int direction;
 
+    public boolean collectFormatCoverage;
     public Set<String> targetSystemStates;
     public Set<String> blackListErrorLog = new HashSet<>();
 
@@ -60,7 +61,8 @@ public abstract class DockerCluster implements IDockerCluster {
     }
 
     public DockerCluster(Executor executor, String version,
-            int nodeNum, Set<String> targetSystemStates, int direction) {
+            int nodeNum, boolean collectFormatCoverage,
+            Set<String> targetSystemStates, int direction) {
         // replace subnet
         // rename services
 
@@ -132,6 +134,7 @@ public abstract class DockerCluster implements IDockerCluster {
         }
 
         this.network = new Network();
+        this.collectFormatCoverage = collectFormatCoverage;
         this.targetSystemStates = targetSystemStates;
 
         // Init docker states

@@ -52,6 +52,8 @@ public class CassandraDocker extends Docker {
         excludes = CassandraDockerCluster.excludes;
         executorID = dockerCluster.executorID;
         serviceName = "DC3N" + index;
+
+        collectFormatCoverage = dockerCluster.collectFormatCoverage;
         targetSystemStates = dockerCluster.targetSystemStates;
         configPath = dockerCluster.configpath;
         if (Config.getConf().testSingleVersion)
@@ -181,7 +183,7 @@ public class CassandraDocker extends Docker {
 
         // Only enable format coverage before version change
         handleEnv(originalVersion, cassandraHome, cassandraConf,
-                Config.getConf().useFormatCoverage);
+                Config.getConf().useFormatCoverage && collectFormatCoverage);
 
         // Copy the cassandra-ori.yaml and cassandra-up.yaml
         if (configPath != null) {

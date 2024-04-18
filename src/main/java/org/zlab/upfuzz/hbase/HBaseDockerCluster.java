@@ -43,18 +43,11 @@ public class HBaseDockerCluster extends DockerCluster {
     };
 
     HBaseDockerCluster(HBaseExecutor executor, String version,
-            int nodeNum, int direction) {
-        super(executor, version, nodeNum, null, direction);
-
-        this.dockers = new HBaseDocker[nodeNum];
-        this.extranodes = new HBaseHDFSDocker[1];
-        this.seedIP = DockerCluster.getKthIP(hostIP, 0);
-    }
-
-    HBaseDockerCluster(HBaseExecutor executor, String version,
-            int nodeNum, Set<String> targetSystemStates, Path configPath,
+            int nodeNum, boolean collectFormatCoverage,
+            Set<String> targetSystemStates, Path configPath,
             int direction) {
-        super(executor, version, nodeNum, targetSystemStates, direction);
+        super(executor, version, nodeNum, collectFormatCoverage,
+                targetSystemStates, direction);
 
         this.dockers = new HBaseDocker[nodeNum];
         this.extranodes = new HBaseHDFSDocker[1];
