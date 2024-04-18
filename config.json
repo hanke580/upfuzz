@@ -11,7 +11,7 @@
   "nodeNum": 1,
   "nonInterestingTestsUpgradeProb": 0.6,
   "faultMaxNum": 2,
-  "loadInitCorpus": false,
+  "loadInitCorpus": true,
   "testSingleVersion": false,
   "testingMode": 0,
   "useFormatCoverage": false,

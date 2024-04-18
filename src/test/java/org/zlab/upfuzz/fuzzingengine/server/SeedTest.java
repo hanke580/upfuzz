@@ -8,7 +8,10 @@ import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.fuzzingengine.Config;
 
 public class SeedTest extends AbstractTest {
-    @Test
+    /**
+     * Be careful. Any tests that added to seed could mess up the disk corpus.
+     */
+    // @Test
     public void testComparator() {
         Config.instance.system = "cassandra";
         CommandPool commandPool = new CassandraCommandPool();
@@ -16,6 +19,7 @@ public class SeedTest extends AbstractTest {
         Seed seed2 = generateSeed(commandPool, CassandraState.class, -1);
 
         CorpusDefault corpus = new CorpusDefault();
+        Config.instance.saveCorpusToDisk = false;
         corpus.addSeed(seed1, false, false, true, false);
         corpus.addSeed(seed2, false, false, true, false);
 

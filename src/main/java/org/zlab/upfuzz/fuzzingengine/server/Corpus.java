@@ -69,8 +69,9 @@ public abstract class Corpus implements ICorpus {
             throw new RuntimeException(
                     "Config.getConf().corpusDir is null, cannot save seed");
         }
-
+        // corpus/system/queueName/seed_seedID/seed
         Path queueDirPath = Paths.get(Config.getConf().corpus)
+                .resolve(Config.getConf().system)
                 .resolve(queueName);
         Utilities.createDirIfNotExist(queueDirPath);
 
@@ -152,8 +153,10 @@ public abstract class Corpus implements ICorpus {
 
             // Handle the test id... need to avoid the conflicts
             seed.testID = testId++;
+            System.out.println("testId1: " + testId);
             cycleQueue.addSeed(seed);
         }
+        System.out.println("return testId1: " + testId);
         return testId;
     }
 }

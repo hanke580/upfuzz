@@ -9,6 +9,7 @@ public class CorpusDefault extends Corpus {
 
     private static final String queueName = "CorpusDefault_BC";
     private static final Path queuePath = Paths.get(Config.getConf().corpus)
+            .resolve(Config.getConf().system)
             .resolve(queueName);
 
     private int diskSeedId = 0;
@@ -53,7 +54,9 @@ public class CorpusDefault extends Corpus {
 
     @Override
     public int initCorpus() {
-        Path corpusPath = Paths.get(Config.getConf().corpus);
+        Path corpusPath = Paths.get(Config.getConf().corpus)
+                .resolve(Config.getConf().system);
+        System.out.println("corpusPath: " + corpusPath);
         if (!corpusPath.toFile().exists())
             return 0;
         if (!corpusPath.toFile().isDirectory()) {
@@ -64,6 +67,7 @@ public class CorpusDefault extends Corpus {
         int testId = 0;
         testId = Corpus.loadSeedIntoQueue(cycleQueues[QueueType.BC.ordinal()],
                 queuePath.toFile(), testId);
+        System.out.println("init testId: " + testId);
         return testId;
     }
 }

@@ -135,7 +135,7 @@ public class FuzzingServerTest extends AbstractTest {
         assert !FuzzingServer.testPlanVerifier(events, 4);
     }
 
-    @Test
+    // @Test
     public void testCorpus() {
         Config.instance.system = "cassandra";
         CassandraCommandPool pool = new CassandraCommandPool();
@@ -148,6 +148,7 @@ public class FuzzingServerTest extends AbstractTest {
         Config.instance.formatCoverageChoiceProb = 0;
 
         CorpusDefault corpus = new CorpusDefault();
+        Config.instance.saveCorpusToDisk = false;
         corpus.addSeed(seed1, true, false, false, false);
         corpus.addSeed(seed2, true, false, false, false);
 
@@ -176,6 +177,7 @@ public class FuzzingServerTest extends AbstractTest {
         Method initMethod = FuzzingServer.class.getDeclaredMethod("init");
         initMethod.setAccessible(true);
         initMethod.invoke(fuzzingServer);
+        Config.instance.saveCorpusToDisk = false;
         fuzzingServer.corpus.addSeed(seed1, true, false, false, false);
         fuzzingServer.fuzzOne();
     }

@@ -12,11 +12,13 @@ public class CorpusNonVersionDelta extends Corpus {
     private static final String queueNameBoundaryChange = "CorpusNonVersionDelta_BoundaryChange";
 
     private static final Path queuePathBC = Paths.get(Config.getConf().corpus)
+            .resolve(Config.getConf().system)
             .resolve(queueNameBC);
     private static final Path queuePathFC = Paths.get(Config.getConf().corpus)
+            .resolve(Config.getConf().system)
             .resolve(queueNameFC);
     private static final Path queuePathBoundaryChange = Paths
-            .get(Config.getConf().corpus)
+            .get(Config.getConf().corpus).resolve(Config.getConf().system)
             .resolve(queueNameBoundaryChange);
 
     private int diskSeedIdBC = 0;
@@ -84,7 +86,8 @@ public class CorpusNonVersionDelta extends Corpus {
 
     @Override
     public int initCorpus() {
-        Path corpusPath = Paths.get(Config.getConf().corpus);
+        Path corpusPath = Paths.get(Config.getConf().corpus)
+                .resolve(Config.getConf().system);
         if (!corpusPath.toFile().exists())
             return 0;
         if (!corpusPath.toFile().isDirectory()) {

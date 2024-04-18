@@ -21,17 +21,23 @@ public class CorpusVersionDeltaSixQueue extends Corpus {
             + QueueType.BC_After_Downgrade;
 
     private static final Path queuePathBC = Paths.get(Config.getConf().corpus)
+            .resolve(Config.getConf().system)
             .resolve(queueNameBC);
     private static final Path queuePathBC_VD = Paths
-            .get(Config.getConf().corpus).resolve(queueNameBC_VD);
+            .get(Config.getConf().corpus).resolve(Config.getConf().system)
+            .resolve(queueNameBC_VD);
     private static final Path queuePathBC_After_Upgrade = Paths
-            .get(Config.getConf().corpus).resolve(queueNameBC_After_Upgrade);
+            .get(Config.getConf().corpus).resolve(Config.getConf().system)
+            .resolve(queueNameBC_After_Upgrade);
     private static final Path queuePathBC_After_Downgrade = Paths
-            .get(Config.getConf().corpus).resolve(queueNameBC_After_Downgrade);
+            .get(Config.getConf().corpus).resolve(Config.getConf().system)
+            .resolve(queueNameBC_After_Downgrade);
     private static final Path queuePathFC = Paths.get(Config.getConf().corpus)
+            .resolve(Config.getConf().system)
             .resolve(queueNameFC);
     private static final Path queuePathFC_VD = Paths
-            .get(Config.getConf().corpus).resolve(queueNameFC_VD);
+            .get(Config.getConf().corpus).resolve(Config.getConf().system)
+            .resolve(queueNameFC_VD);
 
     private int diskSeedIdBC = 0;
     private int diskSeedIdBC_VD = 0;
@@ -175,7 +181,8 @@ public class CorpusVersionDeltaSixQueue extends Corpus {
 
     @Override
     public int initCorpus() {
-        Path corpusPath = Paths.get(Config.getConf().corpus);
+        Path corpusPath = Paths.get(Config.getConf().corpus)
+                .resolve(Config.getConf().system);
         if (!corpusPath.toFile().exists())
             return 0;
         if (!corpusPath.toFile().isDirectory()) {
