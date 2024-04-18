@@ -38,7 +38,6 @@ public class RegisterPacket extends Packet {
                 int size = in.read(bytes, len, packetLength - len);
                 len += size;
             }
-            logger.debug("get packet length " + len);
             return new Gson().fromJson(new String(bytes, 0, len),
                     RegisterPacket.class);
         } catch (IOException e) {
