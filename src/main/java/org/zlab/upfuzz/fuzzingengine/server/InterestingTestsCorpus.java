@@ -182,7 +182,7 @@ public class InterestingTestsCorpus {
             for (String configFileName : intermediateBuffer[i].keySet()) {
                 totalSize += intermediateBuffer[i].get(configFileName).size();
             }
-            System.out.format("|%30s|%60s|%30s|\n",
+            System.out.format("|%30s|%61s|%30s|\n",
                     "Buffer Corpus",
                     "QueueType : " + TestType.values()[i],
                     "queue size : " + totalSize);
