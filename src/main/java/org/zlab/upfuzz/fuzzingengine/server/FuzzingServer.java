@@ -2590,10 +2590,13 @@ public class FuzzingServer {
         }
         // Print queue info...
         corpus.printInfo();
+        if (Config.getConf().useVersionDelta
+                && Config.getConf().versionDeltaApproach == 2) {
+            testBatchCorpus.printInfo();
+        }
 
         // Version Delta Info
-        if (Config.getConf().useVersionDelta
-                && (Config.getConf().branchVersionDeltaChoiceProb > 0)) {
+        if (Config.getConf().useVersionDelta) {
             System.out.format("|%30s|%30s|%30s|%30s|\n",
                     "exec group 1 : " + finishedTestIdAgentGroup1,
                     "exec group 2 : " + finishedTestIdAgentGroup2,

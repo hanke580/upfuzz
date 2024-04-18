@@ -174,4 +174,18 @@ public class InterestingTestsCorpus {
         }
         logger.info("[HKLOG] Config file queue size: " + configFiles.size());
     }
+
+    public void printInfo() {
+        // Print all six queues
+        for (int i = 0; i < intermediateBuffer.length; i++) {
+            int totalSize = 0;
+            for (String configFileName : intermediateBuffer[i].keySet()) {
+                totalSize += intermediateBuffer[i].get(configFileName).size();
+            }
+            System.out.format("|%30s|%60s|%30s|\n",
+                    "Buffer Corpus",
+                    "QueueType : " + TestType.values()[i],
+                    "queue size : " + totalSize);
+        }
+    }
 }
