@@ -153,10 +153,8 @@ public abstract class Corpus implements ICorpus {
 
             // Handle the test id... need to avoid the conflicts
             seed.testID = testId++;
-            System.out.println("testId1: " + testId);
             cycleQueue.addSeed(seed);
         }
-        System.out.println("return testId1: " + testId);
         return testId;
     }
 }
