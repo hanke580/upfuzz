@@ -482,5 +482,5 @@ launch_service()
 
 ### hdfs daemon to version
 * FsShellDaemon2.java: hadoop-2.10.2
-* FsShellDaemon3.java: (> 3)
+* FsShellDaemon3.java: (> 3): 3.2.4
 * FsShellDaemon_trunk.java: (>=3.3.4) hadoop-3.3.6
