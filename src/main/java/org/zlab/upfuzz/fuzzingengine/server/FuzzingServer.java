@@ -342,7 +342,7 @@ public class FuzzingServer {
         StackedTestPacket stackedTestPacket = new StackedTestPacket(
                 Config.getConf().nodeNum, configFileName);
         logger.info("[HKLOG] config file name: " + configFileName);
-        for (int i = 0; i < (int) Config.getConf().batchSizeInGroup2; i++) {
+        for (int i = 0; i < Config.getConf().batchSizeInGroup2; i++) {
             if (!testBatchCorpus
                     .noInterestingTestsForThisConfig(configFileName)) {
                 int testTypeInt = getSeedOrTestType(
