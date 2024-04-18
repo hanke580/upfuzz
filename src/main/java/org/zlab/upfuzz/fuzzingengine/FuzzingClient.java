@@ -323,6 +323,7 @@ public class FuzzingClient {
     }
 
     private Path previousConfigPath = null;
+    private boolean previousVerificationResult = false;
 
     // Helper move it into utils later
     private static boolean isSameConfig(Path configPath1, Path configPath2) {
@@ -1827,20 +1828,46 @@ public class FuzzingClient {
         // start up one node in old version, verify old version config file
         // start up one node in new version, verify new version config file
         logger.info("verifying configuration");
-        Executor executor = initExecutor(1, false, null, configPath);
-        boolean startUpStatus = executor.startup();
 
-        if (!startUpStatus) {
-            logger.error("config cannot start up old version");
+        boolean sameConfigAsLastTime = false;
+        if (this.previousConfigPath != null) {
+            sameConfigAsLastTime = isSameConfig(this.previousConfigPath,
+                    configPath);
+        } else {
+            sameConfigAsLastTime = false;
+        }
+        this.previousConfigPath = configPath;
+
+        if (sameConfigAsLastTime) {
+            return previousVerificationResult;
+        } else {
+            String system = Config.getConf().system;
+            Executor executor;
+            if (system.equals("hdfs")) {
+                executor = initExecutor(4, false, null, configPath);
+            } else if (system.equals("hbase")) {
+                executor = initExecutor(3, false, null, configPath);
+            } else {
+                executor = initExecutor(1, false, null, configPath);
+            }
+            boolean startUpStatus = executor.startup();
+
+            if (!startUpStatus) {
+                logger.error("config cannot start up old version");
+                executor.teardown();
+                previousVerificationResult = false;
+                return false;
+            }
+            startUpStatus = executor.freshStartNewVersion();
             executor.teardown();
-            return false;
+            if (!startUpStatus) {
+                previousVerificationResult = false;
+                logger.error("config cannot start up new version");
+            } else {
+                previousVerificationResult = true;
+            }
+            return startUpStatus;
         }
-        startUpStatus = executor.freshStartNewVersion();
-        executor.teardown();
-        if (!startUpStatus) {
-            logger.error("config cannot start up new version");
-        }
-        return startUpStatus;
     }
 
     private String genTestPlanFailureReport(int failEventIdx, String executorID,

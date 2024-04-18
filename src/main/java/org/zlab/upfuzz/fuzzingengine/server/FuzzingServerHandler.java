@@ -36,7 +36,9 @@ public class FuzzingServerHandler implements Runnable {
             logger.info("Added element to shared queue. ");
         }
         synchronized (fuzzingServer.testBatchCorpus) {
-            fuzzingServer.testBatchCorpus.notifyAll();
+            if (!fuzzingServer.testBatchCorpus.areAllQueuesEmpty()) {
+                fuzzingServer.testBatchCorpus.notifyAll();
+            }
         }
     }
 
