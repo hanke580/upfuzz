@@ -12,7 +12,7 @@
   "nonInterestingTestsUpgradeProb": 0.6,
   "faultMaxNum": 0,
   "loadInitCorpus": false,
-  "saveCorpusToDisk": false,
+  "saveCorpusToDisk": true,
   "testSingleVersion": false,
   "testingMode": 0,
   "useFormatCoverage": false,
