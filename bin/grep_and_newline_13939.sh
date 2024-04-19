@@ -17,17 +17,23 @@ process_file() {
 
     local number=$(echo "$input_line" | awk -F': ' '{print $NF}' | tr -d '\r\n')
     
-    echo "column_index_size = $number"
-
     # Check if n is less than 10
-    if [[ "$number" -lt 5 ]]; then
-      echo "n is smaller than 5"
+    if [[ "$number" -lt 3 ]]; then
+      echo "column_index_size = $number"
     else
       return
     fi
 
 
     echo DROP num = $(grep -r "ALTER TABLE " $file | grep "DROP" | wc -l)
+    insert_num=$(grep -r "INSERT INTO " $file | wc -l)
+    echo INSERT num = $insert_num
+
+    if [[ "$insert_num" -eq 1 ]]; then
+      return
+    fi
+
+
     grep "CREATE TABLE" $file
     grep -r "ALTER TABLE " $file | grep "DROP"
 
@@ -42,7 +48,7 @@ process_file() {
         # For the second line in a pair, compare it with the first
         if ((count % 2 == 0)); then
             echo
-            if ((prev_value < current_value)); then
+            if (( prev_value < current_value && current_value <= $insert_num )); then
                 echo "FOUND!"
             fi
         else
