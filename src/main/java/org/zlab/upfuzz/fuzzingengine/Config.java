@@ -177,8 +177,10 @@ public class Config {
         public boolean testDeletedConfig = false;
         // marked "deprecated"
         public boolean testCommonConfig = false;
+        public boolean testRemainConfig = false;
         // Mutate 40% of the upgrade configs
         public double testUpgradeConfigRatio = 0.4;
+        public double testRemainUpgradeConfigRatio = 0.2;
 
         // ------------Test Mode-------------
         public boolean testDowngrade = false;

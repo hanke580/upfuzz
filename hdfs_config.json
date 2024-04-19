@@ -21,6 +21,7 @@
   "testAddedConfig": false,
   "testDeletedConfig": false,
   "testCommonConfig": false,
+  "testRemainConfig": false,
   "nyxMode": false,
   "nyxFuzzSH": "nyx_mode/fuzz_no_pt.sh",
   "debug": false,

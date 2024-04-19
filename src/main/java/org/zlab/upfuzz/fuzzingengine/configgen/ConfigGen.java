@@ -33,6 +33,11 @@ public abstract class ConfigGen {
     public ConfigValGenerator addedConfigValGenerator;
     public Set<String> deletedConfig;
     public ConfigValGenerator deletedConfigValGenerator;
+    public Set<String> remainOriConfig;
+    public ConfigValGenerator remainOriConfigValGenerator;
+    public Set<String> remainUpConfig;
+    public ConfigValGenerator remainUpConfigValGenerator;
+
     public ConfigInfo oriConfigInfo;
     public ConfigInfo upConfigInfo;
 
@@ -120,6 +125,7 @@ public abstract class ConfigGen {
                     HashSet.class);
             deletedConfig = mapper.readValue(deletedConfigPath.toFile(),
                     HashSet.class);
+
             oriConfigInfo = ConfigInfo.constructConfigInfo(
                     configInfoPath.resolve("oriConfig2Type.json"),
                     configInfoPath.resolve("oriConfig2Init.json"),
@@ -128,6 +134,10 @@ public abstract class ConfigGen {
                     configInfoPath.resolve("upConfig2Type.json"),
                     configInfoPath.resolve("upConfig2Init.json"),
                     configInfoPath.resolve("upEnum2Constant.json"));
+
+            // extract remaining configs
+            remainOriConfig = extractRemainOriConfig();
+            remainUpConfig = extractRemainUpConfig();
         } catch (IOException e) {
             throw new RuntimeException(
                     "missing configuration test files!" + e);
@@ -192,6 +202,10 @@ public abstract class ConfigGen {
         deletedConfigValGenerator = new ConfigValGenerator(
                 deletedConfig,
                 oriConfigInfo);
+        remainOriConfigValGenerator = new ConfigValGenerator(remainOriConfig,
+                oriConfigInfo);
+        remainUpConfigValGenerator = new ConfigValGenerator(remainUpConfig,
+                upConfigInfo);
     }
 
     public void initSingleValGenerator() {
@@ -273,7 +287,7 @@ public abstract class ConfigGen {
 
         if (Config.getConf().testCommonConfig) {
             Map<String, String> filteredConfigTest = filteredConfigTestGen(
-                    commonConfigValGenerator, true,
+                    commonConfigValGenerator, false,
                     Config.getConf().testUpgradeConfigRatio);
             oriConfigtest.putAll(filteredConfigTest);
             upConfigtest.putAll(filteredConfigTest);
@@ -281,7 +295,7 @@ public abstract class ConfigGen {
 
         if (Config.getConf().testAddedConfig) {
             Map<String, String> filteredConfigTest = filteredConfigTestGen(
-                    addedConfigValGenerator, true,
+                    addedConfigValGenerator, false,
                     Config.getConf().testUpgradeConfigRatio);
             upConfigtest.putAll(filteredConfigTest);
         }
@@ -291,6 +305,18 @@ public abstract class ConfigGen {
                     deletedConfigValGenerator, true,
                     Config.getConf().testUpgradeConfigRatio);
             oriConfigtest.putAll(filteredConfigTest);
+        }
+
+        if (Config.getConf().testRemainConfig) {
+            Map<String, String> filteredConfigTest = filteredConfigTestGen(
+                    remainOriConfigValGenerator, false,
+                    Config.getConf().testRemainUpgradeConfigRatio);
+            oriConfigtest.putAll(filteredConfigTest);
+
+            filteredConfigTest = filteredConfigTestGen(
+                    remainUpConfigValGenerator, false,
+                    Config.getConf().testRemainUpgradeConfigRatio);
+            upConfigtest.putAll(filteredConfigTest);
         }
 
         for (int i = 1; i < configFileGenerator.length; i++) {
@@ -342,5 +368,43 @@ public abstract class ConfigGen {
             }
         }
         return filteredConfigTest;
+    }
+
+    public Set<String> extractRemainOriConfig() {
+        // extract remaining configs
+        Set<String> tmpOriConfigs = new HashSet<>(
+                oriConfigInfo.config2type.keySet());
+        tmpOriConfigs.removeAll(deletedConfig);
+        tmpOriConfigs.removeAll(commonConfig);
+        tmpOriConfigs.removeAll(boundaryConfig);
+        return tmpOriConfigs;
+    }
+
+    public Set<String> extractRemainUpConfig() {
+        // extract remaining configs
+        Set<String> tmpUpConfigs = new HashSet<>(
+                upConfigInfo.config2type.keySet());
+        // remove the above configs
+        tmpUpConfigs.removeAll(addedConfig);
+        tmpUpConfigs.removeAll(commonConfig);
+        tmpUpConfigs.removeAll(boundaryConfig);
+        return tmpUpConfigs;
+    }
+
+    public void extractRemainConfigForUpgrade(Set<String> remainOriConfig,
+            Set<String> remainUpConfig) {
+        // extract remaining configs
+        Set<String> tmpOriConfigs = new HashSet<>(
+                oriConfigInfo.config2type.keySet());
+        Set<String> tmpUpConfigs = new HashSet<>(
+                upConfigInfo.config2type.keySet());
+        // remove the above configs
+        tmpOriConfigs.removeAll(deletedConfig);
+        tmpUpConfigs.removeAll(addedConfig);
+        // remove the common configs
+        tmpOriConfigs.removeAll(commonConfig);
+        tmpUpConfigs.removeAll(commonConfig);
+        tmpOriConfigs.removeAll(boundaryConfig);
+        tmpUpConfigs.removeAll(boundaryConfig);
     }
 }

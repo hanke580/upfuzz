@@ -69,6 +69,10 @@ public class CassandraConfigGen extends ConfigGen {
         deletedConfigValGenerator = new CassandraConfigValGenerator(
                 deletedConfig,
                 oriConfigInfo);
+        remainOriConfigValGenerator = new CassandraConfigValGenerator(
+                remainOriConfig, oriConfigInfo);
+        remainUpConfigValGenerator = new CassandraConfigValGenerator(
+                remainUpConfig, upConfigInfo);
     }
 
     @Override
