@@ -456,7 +456,7 @@ only test single node
 cassandra_parms="$cassandra_parms -Dcassandra.ring_delay_ms=1 -Dcassandra.skip_wait_for_gossip_to_settle=0"
 ```
 
-### Add cassandra log config for 3.0.x/2.0.x
+### Add cassandra log config for 3.0.x/2.2.x (3.0.15/2.2.8)
 Old version cassandra cannot use env var to adjust log dir, so we add a few scripts to handle this.
 ```bash
 if [ -z "$CASSANDRA_LOG_DIR" ]; then
