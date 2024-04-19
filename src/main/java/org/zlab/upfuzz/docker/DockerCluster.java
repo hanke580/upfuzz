@@ -290,6 +290,21 @@ public abstract class DockerCluster implements IDockerCluster {
         return coverageMap;
     }
 
+    public void clearFormatCoverage() {
+        assert dockers.length > 0;
+        for (int i = 0; i < dockers.length; i++) {
+            try {
+                dockers[i].clearFormatCoverage();
+            } catch (Exception e) {
+                logger.error("Exception occur when clear" +
+                        " format coverage of docker  " + i
+                        + ", executorID = " + executorID
+                        + ", exception = "
+                        + e);
+            }
+        }
+    }
+
     public boolean fullStopCluster() throws Exception {
         logger.info("Full stop cluster...");
         prepareUpgrade();

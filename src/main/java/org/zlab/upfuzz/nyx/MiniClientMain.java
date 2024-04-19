@@ -446,8 +446,12 @@ public class MiniClientMain {
         Map<Integer, LogInfo> logInfoBeforeVersionChange = new HashMap<>();
         Map<Integer, List<String>> testID2oriResults = new HashMap<>();
 
-        int[] lastBrokenInv = null;
         System.out.println("Invoked with direction: " + direction);
+
+        if (Config.getConf().useFormatCoverage
+                && stackedTestPacket.clientGroupForVersionDelta != 2) {
+            executor.clearFormatCoverage();
+        }
 
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             executedTestNum++;
@@ -467,13 +471,9 @@ public class MiniClientMain {
                     : executor
                             .collectCoverageSeparate("upgraded");
 
-            boolean hasNewOriCoverage = false;
             if (oriCoverages != null) {
                 for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
-                    // feedBacks[nodeIdx]
-                    // .setOriginalCodeCoverage(oriCoverages[nodeIdx]);
                     feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
-                    // feedBacks[nodeIdx].upgradedCodeCoverage = null;
                 }
             }
             testID2FeedbackPacket.put(
@@ -481,8 +481,6 @@ public class MiniClientMain {
                     new FeedbackPacket(tp.systemID, stackedTestPacket.nodeNum,
                             tp.testPacketID, feedBacks, null));
 
-            // List<String> oriResult =
-            // executor.executeCommands(Arrays.asList(validationCommandsList));
             List<String> oriResult = executor
                     .executeCommands(tp.validationCommandSequenceList);
             testID2oriResults.put(tp.testPacketID, oriResult);
@@ -763,7 +761,9 @@ public class MiniClientMain {
         int executedTestNum = 0;
         boolean breakNewInv = false;
 
-        int[] lastBrokenInv = null;
+        if (Config.getConf().useFormatCoverage) {
+            executor.clearFormatCoverage();
+        }
 
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             executedTestNum++;

@@ -28,6 +28,8 @@ public interface IDocker {
 
     ObjectGraphCoverage getFormatCoverage() throws Exception;
 
+    void clearFormatCoverage() throws Exception;
+
     // remove all system data (data/ in cassandra)
     boolean clear();
 

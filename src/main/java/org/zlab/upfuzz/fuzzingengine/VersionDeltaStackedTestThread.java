@@ -86,8 +86,12 @@ class VersionDeltaStackedTestThread implements Callable<StackedFeedbackPacket> {
         Map<Integer, LogInfo> logInfoBeforeVersionChange = new HashMap<>();
         Map<Integer, List<String>> testID2oriResults = new HashMap<>();
 
-        int[] lastBrokenInv = null;
         System.out.println("Invoked with direction: " + direction);
+
+        if (Config.getConf().useFormatCoverage
+                && stackedTestPacket.clientGroupForVersionDelta != 2) {
+            executor.clearFormatCoverage();
+        }
 
         int j = 0;
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {

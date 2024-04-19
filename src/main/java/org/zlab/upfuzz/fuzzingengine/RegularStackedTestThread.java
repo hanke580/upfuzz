@@ -81,6 +81,10 @@ class RegularStackedTestThread implements Callable<StackedFeedbackPacket> {
 
         // System.out.println("Invoked with direction: " + direction);
 
+        if (Config.getConf().useFormatCoverage) {
+            executor.clearFormatCoverage();
+        }
+
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             executedTestNum++;
 
@@ -425,6 +429,9 @@ class RegularStackedTestThread implements Callable<StackedFeedbackPacket> {
             if (Config.getConf().debug) {
                 logger.info("[Fuzzing Client] Call to run the tests");
             }
+
+            // Clear the format here...
+
             StackedFeedbackPacket stackedFeedbackPacketBeforeVersionChange = runTestBatchBeforeChangingTheVersion(
                     executor,
                     stackedTestPacket, direction);

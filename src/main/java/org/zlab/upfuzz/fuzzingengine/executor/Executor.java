@@ -111,6 +111,11 @@ public abstract class Executor implements IExecutor {
         return dockerCluster.getFormatCoverage(formatInfoFolder);
     }
 
+    // Invoke after system is up
+    public void clearFormatCoverage() {
+        dockerCluster.clearFormatCoverage();
+    }
+
     // likely invariant support
     public boolean fullStopCluster() {
         try {
