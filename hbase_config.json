@@ -13,6 +13,7 @@
   "nodeNum": 3,
   "nonInterestingTestsUpgradeProb": 0.6,
   "loadInitCorpus": false,
+  "saveCorpusToDisk": false,
   "useFormatCoverage": false,
   "useVersionDelta": false,
   "versionDeltaApproach": 2,
