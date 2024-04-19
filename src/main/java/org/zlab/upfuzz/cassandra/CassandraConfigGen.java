@@ -26,7 +26,11 @@ public class CassandraConfigGen extends ConfigGen {
             // setting this to 1 prevents system from starting up
             "truncate_request_timeout_in_ms",
             // new feature: usually not enabled during upgrade
-            "partition_denylist_enabled"
+            "partition_denylist_enabled",
+            // Encryption must be enabled in client_encryption_options for
+            // native_transport_port_ssl
+            "native_transport_port_ssl"
+
     };
 
     @Override
