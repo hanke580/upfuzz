@@ -13,8 +13,23 @@ process_file() {
 
     echo "failure_dir = $failure_dir"
 
-    grep -ir "column_index" "$failure_dir"
+    input_line=$(grep -ir "column_index" "$failure_dir" | head -n 1)
+
+    local number=$(echo "$input_line" | awk -F': ' '{print $NF}' | tr -d '\r\n')
+    
+    echo "column_index_size = $number"
+
+    # Check if n is less than 10
+    if [[ "$number" -lt 5 ]]; then
+      echo "n is smaller than 5"
+    else
+      return
+    fi
+
+
     echo DROP num = $(grep -r "ALTER TABLE " $file | grep "DROP" | wc -l)
+    grep "CREATE TABLE" $file
+    grep -r "ALTER TABLE " $file | grep "DROP"
 
     # Use grep with -n to include line numbers for easier processing
     grep -n " rows)" "$file" | while IFS= read -r line; do
