@@ -29,8 +29,8 @@ public class CassandraConfigGen extends ConfigGen {
             "partition_denylist_enabled",
             // Encryption must be enabled in client_encryption_options for
             // native_transport_port_ssl
-            "native_transport_port_ssl"
-
+            "native_transport_port_ssl",
+            "native_transport_max_negotiable_version"
     };
 
     @Override
