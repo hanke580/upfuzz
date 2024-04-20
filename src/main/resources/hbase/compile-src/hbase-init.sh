@@ -7,7 +7,9 @@ if [ "$ENABLE_FORMAT_COVERAGE" = "true" ]; then
     echo "Enable format coverage"
     cp "$HBASE_HOME/topObjects.json" /tmp/
     cp "$HBASE_HOME/serializedFields_alg1.json" /tmp/
-    # cp "$HBASE_HOME/comparableClasses.json" /tmp/
+    cp "$HBASE_HOME/comparableClasses.json" /tmp/ || true
+    cp "$HBASE_HOME/modifiedEnums.json" /tmp/ || true
+    cp "$HBASE_HOME/modifiedFields.json" /tmp/ || true
 fi
 
 if [[ -z $(grep -F "master" "/etc/hosts") ]];

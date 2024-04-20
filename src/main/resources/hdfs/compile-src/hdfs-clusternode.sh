@@ -21,7 +21,9 @@ if [[ ! -f "/var/log/.setup_conf" ]]; then
         echo "Enable format coverage"
         cp "$HADOOP_HOME/topObjects.json" /tmp/
         cp "$HADOOP_HOME/serializedFields_alg1.json" /tmp/
-        # cp "$HADOOP_HOME/comparableClasses.json" /tmp/
+        cp "$HADOOP_HOME/comparableClasses.json" /tmp/ || true
+        cp "$HADOOP_HOME/modifiedEnums.json" /tmp/ || true
+        cp "$HADOOP_HOME/modifiedFields.json" /tmp/ || true
     fi
 
     echo "copy hadoop dir and format configurations"

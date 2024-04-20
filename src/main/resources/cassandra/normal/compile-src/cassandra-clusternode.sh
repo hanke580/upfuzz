@@ -27,7 +27,9 @@ if [[ ! -f "/tmp/.setup_conf" ]]; then
         echo "Enable format coverage"
         cp "$CASSANDRA_HOME/topObjects.json" /tmp/
         cp "$CASSANDRA_HOME/serializedFields_alg1.json" /tmp/
-	cp "$CASSANDRA_HOME/comparableClasses.json" /tmp/ || true
+	      cp "$CASSANDRA_HOME/comparableClasses.json" /tmp/ || true
+        cp "$CASSANDRA_HOME/modifiedEnums.json" /tmp/ || true
+        cp "$CASSANDRA_HOME/modifiedFields.json" /tmp/ || true
     fi
 
     echo "copy and format configurations"
