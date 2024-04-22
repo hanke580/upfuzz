@@ -26,12 +26,7 @@ public class StackedTestPacket extends Packet implements Serializable {
     public int nodeNum;
     public String configFileName;
     private List<TestPacket> tpList;
-    public transient ExecutionDataStore curOriCoverage;
-    public transient ExecutionDataStore curUpCoverage;
-    public transient ObjectGraphCoverage curOriObjCoverage;
-    public transient ObjectGraphCoverage curUpObjCoverage;
     public int clientGroupForVersionDelta;
-    public int batchId;
     public int testDirection;
     public boolean isDowngradeSupported;
 
@@ -40,38 +35,6 @@ public class StackedTestPacket extends Packet implements Serializable {
         this.configFileName = configFileName;
         this.type = PacketType.StackedTestPacket;
         tpList = new LinkedList<>();
-    }
-
-    public void setCurOriCoverage(ExecutionDataStore curOriCoverage) {
-        this.curOriCoverage = curOriCoverage;
-    }
-
-    public void setCurUpCoverage(ExecutionDataStore curUpCoverage) {
-        this.curUpCoverage = curUpCoverage;
-    }
-
-    public void setCurOriObjCoverage(ObjectGraphCoverage curOriObjCoverage) {
-        this.curOriObjCoverage = curOriObjCoverage;
-    }
-
-    public void setCurUpObjCoverage(ObjectGraphCoverage curUpObjCoverage) {
-        this.curUpObjCoverage = curUpObjCoverage;
-    }
-
-    public ExecutionDataStore getCurOriCoverage() {
-        return curOriCoverage;
-    }
-
-    public ExecutionDataStore getCurUpCoverage() {
-        return curUpCoverage;
-    }
-
-    public ObjectGraphCoverage getCurOriObjCoverage() {
-        return curOriObjCoverage;
-    }
-
-    public ObjectGraphCoverage getCurUpObjCoverage() {
-        return curOriObjCoverage;
     }
 
     public void addTestPacket(Seed seed, int testID) {
@@ -121,5 +84,4 @@ public class StackedTestPacket extends Packet implements Serializable {
         }
         return null;
     }
-
 }

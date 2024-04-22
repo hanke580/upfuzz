@@ -505,10 +505,6 @@ public class FuzzingServer {
                     && Config.getConf().versionDeltaApproach == 2) {
                 stackedTestPacket.clientGroupForVersionDelta = 1;
             }
-            stackedTestPacket.setCurOriCoverage(curOriCoverage);
-            stackedTestPacket.setCurUpCoverage(curUpCoverage);
-            stackedTestPacket.setCurOriObjCoverage(oriObjCoverage);
-            stackedTestPacket.setCurUpObjCoverage(upObjCoverage);
             for (int i = 0; i < Config.getConf().STACKED_TESTS_NUM; i++) {
                 seed = Executor.generateSeed(commandPool, stateClass,
                         configIdx, testID);
@@ -570,10 +566,6 @@ public class FuzzingServer {
                     && Config.getConf().versionDeltaApproach == 2) {
                 stackedTestPacket.clientGroupForVersionDelta = 1;
             }
-            stackedTestPacket.setCurOriCoverage(curOriCoverage);
-            stackedTestPacket.setCurUpCoverage(curUpCoverage);
-            stackedTestPacket.setCurOriObjCoverage(oriObjCoverage);
-            stackedTestPacket.setCurUpObjCoverage(upObjCoverage);
             for (int i = 0; i < mutationEpoch; i++) {
                 if (i != 0 && i % Config.getConf().STACKED_TESTS_NUM == 0) {
                     stackedTestPackets.add(stackedTestPacket);
@@ -584,10 +576,6 @@ public class FuzzingServer {
                             && Config.getConf().versionDeltaApproach == 2) {
                         stackedTestPacket.clientGroupForVersionDelta = 1;
                     }
-                    stackedTestPacket.setCurOriCoverage(curOriCoverage);
-                    stackedTestPacket.setCurUpCoverage(curUpCoverage);
-                    stackedTestPacket.setCurOriObjCoverage(oriObjCoverage);
-                    stackedTestPacket.setCurUpObjCoverage(upObjCoverage);
                 }
                 Seed mutateSeed = SerializationUtils.clone(seed);
                 if (mutateSeed.mutate(commandPool, stateClass)) {
@@ -651,10 +639,6 @@ public class FuzzingServer {
                             && Config.getConf().versionDeltaApproach == 2) {
                         stackedTestPacket.clientGroupForVersionDelta = 1;
                     }
-                    stackedTestPacket.setCurOriCoverage(curOriCoverage);
-                    stackedTestPacket.setCurUpCoverage(curUpCoverage);
-                    stackedTestPacket.setCurOriObjCoverage(oriObjCoverage);
-                    stackedTestPacket.setCurUpObjCoverage(upObjCoverage);
                     // put the seed into it
                     Seed mutateSeed = SerializationUtils.clone(seed);
                     mutateSeed.configIdx = configIdx;
