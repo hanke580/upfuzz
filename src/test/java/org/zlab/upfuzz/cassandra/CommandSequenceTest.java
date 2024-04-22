@@ -12,18 +12,16 @@ public class CommandSequenceTest extends AbstractTest {
 
     @Test
     public void testSequenceGeneration() {
-
         CassandraCommandPool cassandraCommandPool = new CassandraCommandPool();
-
         Config.getConf().system = "cassandra";
         Seed seed = generateSeed(cassandraCommandPool, CassandraState.class,
                 -1);
         assert seed != null;
-        printSeed(seed);
+        // printSeed(seed);
         boolean status = seed.mutate(cassandraCommandPool,
                 CassandraState.class);
-        System.out.println("mutate status = " + status);
-        printSeed(seed);
+        assert status;
+        // printSeed(seed);
     }
 
     // @Test

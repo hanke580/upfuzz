@@ -492,7 +492,7 @@ public class FuzzingServer {
         round++;
         StackedTestPacket stackedTestPacket;
 
-        int configIdx = 0;
+        int configIdx;
         if (seed == null) {
             logger.debug("[fuzzOne] generate a random seed");
             configIdx = configGen.generateConfig();
@@ -566,7 +566,20 @@ public class FuzzingServer {
                     && Config.getConf().versionDeltaApproach == 2) {
                 stackedTestPacket.clientGroupForVersionDelta = 1;
             }
+
+            // Avoid infinite mutation problem: if the mutation keeps failing,
+            // need to jump out of this loop
+            int maxMutationLimit = 3 * mutationEpoch;
+            int mutationCount = 0;
             for (int i = 0; i < mutationEpoch; i++) {
+                if (mutationCount >= maxMutationLimit) {
+                    logger.debug(
+                            "Mutation out of limit for seed " + seed.testID
+                                    + ": should mutate " + mutationEpoch
+                                    + ", not finished after "
+                                    + mutationCount + " times");
+                    break;
+                }
                 if (i != 0 && i % Config.getConf().STACKED_TESTS_NUM == 0) {
                     stackedTestPackets.add(stackedTestPacket);
                     stackedTestPacket = new StackedTestPacket(
@@ -579,8 +592,6 @@ public class FuzzingServer {
                 }
                 Seed mutateSeed = SerializationUtils.clone(seed);
                 if (mutateSeed.mutate(commandPool, stateClass)) {
-                    // logger.info("[HKLOG] Mutated seed of id: " + testID);
-                    // mutatedSeedIds.add(testID);
                     mutateSeed.testID = testID; // update testID after mutation
                     graph.addNode(seed.testID, mutateSeed);
                     testID2Seed.put(testID, mutateSeed);
@@ -589,6 +600,7 @@ public class FuzzingServer {
                     logger.debug("Mutation failed");
                     i--;
                 }
+                mutationCount++;
             }
             // last test packet
             if (stackedTestPacket.size() != 0) {

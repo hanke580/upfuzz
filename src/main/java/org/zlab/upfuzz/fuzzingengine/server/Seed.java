@@ -2,13 +2,14 @@ package org.zlab.upfuzz.fuzzingengine.server;
 
 import java.io.Serializable;
 import java.util.Random;
+import java.util.concurrent.*;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.fuzzingengine.Config;
-import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacket;
 import org.zlab.upfuzz.utils.Utilities;
 
 public class Seed implements Serializable, Comparable<Seed> {
@@ -66,26 +67,35 @@ public class Seed implements Serializable, Comparable<Seed> {
     private boolean mutateImpl(CommandSequence commandSequence) {
         boolean ret = false;
         for (int i = 0; i < MAX_STACK_MUTATION; i++) {
-            try {
-                // At least one mutation succeeds
-                if (commandSequence.mutate())
-                    ret = true;
-                else
-                    continue;
-                // FIXME: Enable the stacked mutation
-                // 1/3 prob stop mutation, 2/3 prob keep stacking mutations
-                if (Utilities.oneOf(rand, 3))
-                    break;
-            } catch (Exception e) {
-                logger.error("Mutation error", e);
-                return false;
-            }
+            if (mutateWithTimeoutCheck(commandSequence))
+                ret = true;
+            else
+                continue;
+            // FIXME: Enable the stacked mutation
+            // 1/3 prob stop mutation, 2/3 prob keep stacking mutations
+            if (Utilities.oneOf(rand, 3))
+                break;
         }
         return ret;
     }
 
-    public StackedTestPacket toPacket() {
-        return null;
+    private boolean mutateWithTimeoutCheck(CommandSequence commandSequence) {
+        Boolean ret = false;
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Callable<Boolean> task = commandSequence::mutate;
+        Future<Boolean> future = null;
+        try {
+            future = executor.submit(task);
+            ret = future.get(2, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            logger.error("Mutation did not complete within the time limit.");
+            future.cancel(true);
+        } catch (Exception e) {
+            logger.error("Mutation error", e);
+        } finally {
+            executor.shutdownNow();
+        }
+        return ret;
     }
 
     public void setTimestamp(long timestamp) {
