@@ -48,8 +48,8 @@ class FuzzingClientSocket implements Runnable {
             int intType = -1;
             try {
                 intType = in.readInt();
-                System.out.println("intType = " + intType);
                 Packet.PacketType type = Packet.PacketType.values()[intType];
+                logger.info("Packet val = " + intType + ", type = " + type);
                 Packet feedBackPacket = null;
                 int requestedGroupForVersionDelta = 0;
 

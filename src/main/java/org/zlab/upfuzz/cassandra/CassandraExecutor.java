@@ -44,7 +44,6 @@ public class CassandraExecutor extends Executor {
     public CassandraExecutor(int nodeNum, boolean collectFormatCoverage,
             Set<String> targetSystemStates, Path configPath, int direction) {
         super("cassandra", nodeNum);
-        System.out.println("Starting with node number: " + nodeNum);
         timestamp = System.currentTimeMillis();
 
         this.collectFormatCoverage = collectFormatCoverage;
@@ -68,7 +67,7 @@ public class CassandraExecutor extends Executor {
             return false;
         }
 
-        logger.info("[HKLOG] Got direction: " + direction);
+        logger.info("[HKLOG] executor direction: " + direction);
         if (direction == 0) {
             logger.info("[HKLOG] Docker Cluster startup, original version: "
                     + Config.getConf().originalVersion);
