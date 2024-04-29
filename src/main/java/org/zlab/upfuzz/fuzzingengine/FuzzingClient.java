@@ -49,11 +49,6 @@ public class FuzzingClient {
     private LibnyxInterface libnyx = null;
     private LibnyxInterface libnyxSibling = null;
     public boolean isDowngradeSupported;
-    // public BlockingQueue<StackedFeedbackPacket>
-    // feedbackPacketQueueBeforeVersionChange = new LinkedBlockingQueue<>();
-    // private ExecutorService executorService =
-    // Executors.newFixedThreadPool(20);
-    // If the cluster cannot start up for 3 times, it's serious
     int CLUSTER_START_RETRY = 3; // stop retry for now
 
     FuzzingClient() {
@@ -76,8 +71,6 @@ public class FuzzingClient {
                                 + "_" + Config.getConf().originalVersion);
             }
         }
-
-        this.group = group;
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             executor.teardown();
             executor.upgradeTeardown();
@@ -322,7 +315,7 @@ public class FuzzingClient {
     }
 
     public StackedFeedbackPacket executeStackedTestPacket(
-            StackedTestPacket stackedTestPacket) throws InterruptedException {
+            StackedTestPacket stackedTestPacket) {
         if (Config.getConf().nyxMode) {
             return executeStackedTestPacketNyx(stackedTestPacket);
         } else {
@@ -742,10 +735,6 @@ public class FuzzingClient {
                 return null;
             }
         }
-
-        if (Config.getConf().debug) {
-            logger.info("[Fuzzing Client] Call to initialize executor");
-        }
         executor = initExecutor(stackedTestPacket.nodeNum,
                 Config.getConf().useFormatCoverage, null, configPath);
         if (Config.getConf().debug) {
@@ -753,56 +742,27 @@ public class FuzzingClient {
         }
         boolean startUpStatus = startUpExecutor();
         if (!startUpStatus) {
-            // old version **cluster** start up problem, this won't be upgrade
-            // bugs
             return null;
         }
         if (Config.getConf().debug) {
             logger.info("[Fuzzing Client] started up executor");
         }
 
-        // if (Config.getConf().startUpClusterForDebugging) {
-        // logger.info("[Debugging Mode] Start up the cluster only");
-        // try {
-        // Thread.sleep(36000 * 1000);
-        // } catch (InterruptedException e) {
-        // e.printStackTrace();
-        // }
-        // logger.info("[Debugging Mode] System exit");
-        // System.exit(1);
-        // }
-
-        if (Config.getConf().debug) {
-            logger.info("[Fuzzing Client] Call to run the tests");
+        if (Config.getConf().startUpClusterForDebugging) {
+            logger.info("[Debugging Mode] Start up the cluster only");
+            try {
+                Thread.sleep(36000 * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            logger.info("[Debugging Mode] System exit");
+            System.exit(1);
         }
+
         StackedFeedbackPacket stackedFeedbackPacket = runTheTests(executor,
                 stackedTestPacket, 0);
-        if (Config.getConf().debug) {
-            logger.info("[Fuzzing Client] completed the testing");
-        }
-
-        if (Config.getConf().debug) {
-            logger.info("[Fuzzing Client] Call to teardown executor");
-        }
         tearDownExecutor();
-        if (Config.getConf().debug) {
-            logger.info("[Fuzzing Client] Executor torn down");
-        }
         return stackedFeedbackPacket;
-    }
-
-    public FeedBack mergeCoverage(FeedBack[] feedBacks) {
-        FeedBack fb = new FeedBack();
-        if (feedBacks == null) {
-            return fb;
-        }
-        for (FeedBack feedBack : feedBacks) {
-            if (feedBack.originalCodeCoverage != null)
-                fb.originalCodeCoverage.merge(feedBack.originalCodeCoverage);
-            if (feedBack.upgradedCodeCoverage != null)
-                fb.upgradedCodeCoverage.merge(feedBack.upgradedCodeCoverage);
-        }
-        return fb;
     }
 
     /**

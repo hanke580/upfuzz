@@ -54,16 +54,7 @@ public class MiniClientMain {
     static final int CLUSTER_START_RETRY = 3;
 
     static int testType;
-    // static int testDirection;
-    static boolean inducedNewVersionDelta = false;
-    // static int clientGroup;
-    // static boolean isDowngradeSupported = false;
     static String testExecutionLog = "";
-    static boolean hasNewOriCoverage = false;
-    static boolean hasNewUpCoverage = false;
-    static boolean analyzedOriFeedback = false;
-    static boolean analyzedUpFeedback = false;
-    private static final Object lock = new Object();
 
     public static void setTestType(int type) {
         testExecutionLog += "invoked set test type: " + type;
@@ -91,7 +82,7 @@ public class MiniClientMain {
 
         String logMessages = "setting stream, ";
         PrintStream nullStream = new PrintStream(new OutputStream() {
-            public void write(int b) throws IOException {
+            public void write(int b) {
             }
         });
         PrintStream cAgent = System.out;
@@ -731,7 +722,6 @@ public class MiniClientMain {
 
         // LOG checking2
         if (Config.getConf().enableLogCheck) {
-            // logger.info("[HKLOG] error log checking: merge logs");
             assert logInfoBeforeVersionChange != null;
             Map<Integer, LogInfo> logInfo = FuzzingClient
                     .extractErrorLog(executor, logInfoBeforeVersionChange);
@@ -744,9 +734,6 @@ public class MiniClientMain {
                                 logInfo);
             }
         }
-        // teardown is teardown in a higher loop
-        // testID2FeedbackPacket = new HashMap<>();
-        // testID2oriResults = new HashMap<>();
         return stackedFeedbackPacket;
     }
 
@@ -756,8 +743,7 @@ public class MiniClientMain {
         Map<Integer, List<String>> testID2oriResults = new HashMap<>();
         Map<Integer, List<String>> testID2upResults = new HashMap<>();
         Map<Integer, List<String>> testID2downResults = new HashMap<>();
-        // if the middle of test has already broken an invariant
-        // we stop executing.
+
         int executedTestNum = 0;
         boolean breakNewInv = false;
 
@@ -767,10 +753,6 @@ public class MiniClientMain {
 
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             executedTestNum++;
-
-            // if you want to run fixed command sequence, remove the comments
-            // from the following lines
-            // Moved the commented code to Utilities.createExampleCommands();
             executor.executeCommands(tp.originalCommandSequenceList);
             testExecutionLog += executor.getTestPlanExecutionLog();
             FeedBack[] feedBacks = new FeedBack[stackedTestPacket.nodeNum];
@@ -791,14 +773,11 @@ public class MiniClientMain {
                     new FeedbackPacket(tp.systemID, stackedTestPacket.nodeNum,
                             tp.testPacketID, feedBacks, null));
 
-            // List<String> oriResult =
-            // executor.executeCommands(Arrays.asList(validationCommandsList));
             List<String> oriResult = executor
                     .executeCommands(tp.validationCommandSequenceList);
             testID2oriResults.put(tp.testPacketID, oriResult);
 
             if (Config.getConf().useFormatCoverage) {
-                // logger.info("[HKLOG] format coverage checking");
                 Path oriFormatInfoFolder = Paths.get("configInfo")
                         .resolve(Config.getConf().originalVersion);
                 testID2FeedbackPacket
@@ -815,10 +794,8 @@ public class MiniClientMain {
                         stackedTestPacket);
         stackedFeedbackPacket.breakNewInv = breakNewInv;
 
-        // LOG checking1
         Map<Integer, LogInfo> logInfoBeforeUpgrade = null;
         if (Config.getConf().enableLogCheck) {
-            // logger.info("[HKLOG] error log checking");
             logInfoBeforeUpgrade = executor.grepLogInfo();
         }
 
@@ -840,8 +817,6 @@ public class MiniClientMain {
                         .get(tp.testPacketID);
                 stackedFeedbackPacket.addFeedbackPacket(feedbackPacket);
             }
-            testID2FeedbackPacket = new HashMap<>();
-            testID2oriResults = new HashMap<>();
             return stackedFeedbackPacket;
         }
 
