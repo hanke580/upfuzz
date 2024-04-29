@@ -60,6 +60,8 @@ public abstract class Packet {
                 .registerSubtype(NullOnce.class, "NullOnce")
                 .registerSubtype(OneOnce.class, "OneOnce")
                 .registerSubtype(ZeroOnce.class, "ZeroOnce")
+                .registerSubtype(PreservedStringOnce.class,
+                        "PreservedStringOnce")
                 .registerSubtype(RestStringSizeOnce.class, "RestStringSizeOnce")
                 .registerSubtype(EnumConstant.class, "EnumConstant")
                 .registerSubtype(LongLowerBound.class, "LongLowerBound")
