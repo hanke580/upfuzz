@@ -745,6 +745,8 @@ public class MiniClientMain {
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             executedTestNum++;
             executor.executeCommands(tp.originalCommandSequenceList);
+            if (Config.getConf().flushAfterTest)
+                executor.flush();
             testExecutionLog += executor.getTestPlanExecutionLog();
             FeedBack[] feedBacks = new FeedBack[stackedTestPacket.nodeNum];
             for (int i = 0; i < stackedTestPacket.nodeNum; i++) {

@@ -325,8 +325,9 @@ public class Config {
         public boolean CASSANDRA_ENABLE_SPECULATIVE_RETRY = true;
 
         // Three choices: disable, flush or drain
-        public boolean enableFlushOrDrain = true;
-        public boolean useFlush = true; // flush or drain
+        public boolean flushAfterTest = true;
+        // Drain: remove all commit logs
+        public boolean drain = true;
 
         // == hdfs ==
         // If true: first create fsimage, then execute some commands

@@ -15,4 +15,6 @@ public interface IExecutor {
     boolean fullStopUpgrade();
 
     boolean downgrade();
+
+    void flush();
 }

@@ -304,33 +304,12 @@ public abstract class DockerCluster implements IDockerCluster {
         }
     }
 
-    public boolean fullStopCluster() throws Exception {
-        logger.info("Full stop cluster...");
-        prepareUpgrade();
-        for (int i = 0; i < dockers.length; i++) {
-            dockers[i].flush();
-            dockers[i].shutdown();
-        }
-        logger.info("Cluster full stopped");
-        return true;
-    }
-
-    public boolean upgradeCluster() throws Exception {
-        logger.info("upgrade full stopped cluster...");
-        for (int i = 0; i < dockers.length; i++) {
-            dockers[i].upgrade();
-        }
-        logger.info("Full stopped cluster upgraded");
-        return true;
-    }
-
     @Override
     public boolean fullStopUpgrade() throws Exception {
         // FIXME: prepareUpgrade() might be put after shutdown?
         logger.info("Cluster full-stop upgrading...");
         prepareUpgrade();
         for (int i = 0; i < dockers.length; i++) {
-            dockers[i].flush();
             dockers[i].shutdown();
         }
         for (int i = 0; i < dockers.length; i++) {
@@ -348,7 +327,6 @@ public abstract class DockerCluster implements IDockerCluster {
         logger.info("Cluster upgrading...");
         prepareUpgrade();
         for (int i = 0; i < dockers.length; ++i) {
-            dockers[i].flush();
             dockers[i].shutdown();
             dockers[i].upgrade();
         }
@@ -361,12 +339,18 @@ public abstract class DockerCluster implements IDockerCluster {
         logger.info("Cluster downgrading...");
         // downgrade in reverse order
         for (int i = dockers.length - 1; i >= 0; i--) {
-            dockers[i].flush();
             dockers[i].shutdown();
             dockers[i].downgrade();
         }
         logger.info("Cluster downgraded");
         return true;
+    }
+
+    @Override
+    public void flush() throws Exception {
+        for (int i = 0; i < dockers.length; i++) {
+            dockers[i].flush();
+        }
     }
 
     @Override
@@ -413,7 +397,7 @@ public abstract class DockerCluster implements IDockerCluster {
     /**
      * Some preparation before upgrading nodes
      * - prepare FSImage in HDFS
-     * - flush memTable in Cassandra
+     * - Drain in Cassandra to remove commit logs
      */
     public abstract void prepareUpgrade() throws Exception;
 
@@ -424,7 +408,6 @@ public abstract class DockerCluster implements IDockerCluster {
     public void upgrade(int nodeIndex) throws Exception {
         if (dockerStates[nodeIndex].alive) {
             logger.info(String.format("Upgrade Node[%d]", nodeIndex));
-            dockers[nodeIndex].flush();
             dockers[nodeIndex].shutdown();
             dockers[nodeIndex].upgrade();
             dockerStates[nodeIndex].dockerVersion = DockerMeta.DockerVersion.upgraded;
@@ -442,7 +425,6 @@ public abstract class DockerCluster implements IDockerCluster {
     public void downgrade(int nodeIndex) throws Exception {
         // upgrade a specific node
         logger.info(String.format("Downgrade Node[%d]", nodeIndex));
-        dockers[nodeIndex].flush();
         dockers[nodeIndex].shutdown();
         dockers[nodeIndex].downgrade();
         dockerStates[nodeIndex].dockerVersion = DockerMeta.DockerVersion.original;

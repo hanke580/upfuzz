@@ -41,5 +41,6 @@
   "debug": false,
   "useExampleTestPlan": false,
   "startUpClusterForDebugging": false,
+  "drain": true,
   "cassandraEnableTimeoutCheck": true
 }

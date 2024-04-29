@@ -315,7 +315,6 @@ public class HBaseDocker extends Docker {
     }
 
     @Override
-    // TODO
     public boolean clear() {
         int ret = runProcessInContainer(new String[] {
                 "rm", "-rf", "/var/lib/hbase/*"

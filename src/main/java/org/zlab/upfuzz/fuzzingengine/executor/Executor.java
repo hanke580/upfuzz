@@ -116,25 +116,6 @@ public abstract class Executor implements IExecutor {
         dockerCluster.clearFormatCoverage();
     }
 
-    // likely invariant support
-    public boolean fullStopCluster() {
-        try {
-            return dockerCluster.fullStopCluster();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    public boolean upgradeCluster() {
-        try {
-            return dockerCluster.upgradeCluster();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
     public boolean fullStopUpgrade() {
         try {
             return dockerCluster.fullStopUpgrade();
@@ -159,6 +140,14 @@ public abstract class Executor implements IExecutor {
         } catch (Exception e) {
             e.printStackTrace();
             return false;
+        }
+    }
+
+    public void flush() {
+        try {
+            dockerCluster.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

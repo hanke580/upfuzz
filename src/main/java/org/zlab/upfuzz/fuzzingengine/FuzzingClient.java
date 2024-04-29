@@ -713,8 +713,7 @@ public class FuzzingClient {
         logger.info("[HKLOG] configPath = " + configPath);
 
         if (Config.getConf().verifyConfig && !verifyConfig(configPath)) {
-            logger.error(
-                    "Configuration problem: System cannot start up");
+            logger.error("Configuration problem: System cannot start up");
             return null;
         }
         executor = initExecutor(stackedTestPacket.nodeNum,

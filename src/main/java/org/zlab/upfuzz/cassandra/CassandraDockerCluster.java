@@ -192,6 +192,11 @@ public class CassandraDockerCluster extends DockerCluster {
 
     @Override
     public void prepareUpgrade() throws Exception {
+        if (!Config.getConf().drain)
+            return;
+        for (Docker docker : dockers) {
+            ((CassandraDocker) docker).drain();
+        }
     }
 
     @Override

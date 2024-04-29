@@ -247,5 +247,4 @@ public class CassandraExecutor extends Executor {
             return new Pair<>(ret, failureInfo.toString());
         }
     }
-
 }

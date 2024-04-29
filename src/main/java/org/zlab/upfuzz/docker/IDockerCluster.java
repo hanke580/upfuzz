@@ -22,6 +22,8 @@ public interface IDockerCluster {
 
     boolean downgrade() throws Exception;
 
+    void flush() throws Exception;
+
     boolean freshStartNewVersion() throws Exception;
 
     void upgrade(int nodeIndex) throws Exception;
