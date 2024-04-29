@@ -41,7 +41,8 @@ public abstract class Docker extends DockerMeta implements IDocker {
         ObjectGraphCoverage response = (ObjectGraphCoverage) in.readObject();
         logger.debug(
                 "Received format coverage dump Id size: "
-                        + response.dumpId2ObjCoverage.keySet().size());
+                        + response.dumpId2ObjCoverageWithContext.keySet()
+                                .size());
         // clean up resources
         out.close();
         in.close();
