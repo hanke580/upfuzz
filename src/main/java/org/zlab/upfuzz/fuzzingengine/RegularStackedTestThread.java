@@ -417,13 +417,7 @@ class RegularStackedTestThread implements Callable<StackedFeedbackPacket> {
 
             if (Config.getConf().startUpClusterForDebugging) {
                 logger.info("[Debugging Mode] Start up the cluster only");
-                try {
-                    Thread.sleep(36000 * 1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                logger.info("[Debugging Mode] System exit");
-                System.exit(1);
+                Utilities.sleepAndExit(36000);
             }
 
             if (Config.getConf().debug) {

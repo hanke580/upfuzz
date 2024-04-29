@@ -18,20 +18,16 @@ import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.LogInfo;
 
 class VersionDeltaStackedTestThread implements Callable<StackedFeedbackPacket> {
-
     static Logger logger = LogManager
             .getLogger(VersionDeltaStackedTestThread.class);
 
-    private FuzzingClient fuzzingClient;
-    private StackedFeedbackPacket stackedFeedbackPacket;
-    private Executor executor;
-    private int direction;
-    private StackedTestPacket stackedTestPacket;
-    private boolean isDowngradeSupported;
-    private int group; // Shared decision variable
+    private final Executor executor;
+    private final int direction;
+    private final StackedTestPacket stackedTestPacket;
+    private final boolean isDowngradeSupported;
+    private final int group; // Shared decision variable
 
-    // If the cluster cannot start up for 3 times, it's serious
-    int CLUSTER_START_RETRY = 3; // stop retry for now
+    int CLUSTER_START_RETRY = 3;
 
     public VersionDeltaStackedTestThread(Executor executor, int direction,
             StackedTestPacket stackedTestPacket, boolean isDowngradeSupported,
@@ -65,10 +61,6 @@ class VersionDeltaStackedTestThread implements Callable<StackedFeedbackPacket> {
         return false;
     }
 
-    public StackedFeedbackPacket getStackedFeedbackPacket() {
-        return stackedFeedbackPacket;
-    }
-
     public void tearDownExecutor() {
         executor.upgradeTeardown();
         executor.clearState();
@@ -98,12 +90,6 @@ class VersionDeltaStackedTestThread implements Callable<StackedFeedbackPacket> {
             j += 1;
             if (tp != null) {
                 executedTestNum++;
-
-                // if you want to run fixed command sequence, remove the
-                // comments
-                // from the following lines
-                // Moved the commented code to
-                // Utilities.createExampleCommands();
                 logger.info(j + "th testPacket null? "
                         + ((tp == null) ? " YES" : (tp.testPacketID)));
                 executor.executeCommands(tp.originalCommandSequenceList);
@@ -112,21 +98,14 @@ class VersionDeltaStackedTestThread implements Callable<StackedFeedbackPacket> {
                 for (int i = 0; i < stackedTestPacket.nodeNum; i++) {
                     feedBacks[i] = new FeedBack();
                 }
-                // logger.info("[HKLOG] Got direction in miniclient: " +
-                // direction);
                 ExecutionDataStore[] oriCoverages = (direction == 0)
                         ? executor
                                 .collectCoverageSeparate("original")
                         : executor
                                 .collectCoverageSeparate("upgraded");
-
-                boolean hasNewOriCoverage = false;
                 if (oriCoverages != null) {
                     for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
-                        // feedBacks[nodeIdx]
-                        // .setOriginalCodeCoverage(oriCoverages[nodeIdx]);
                         feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
-                        // feedBacks[nodeIdx].upgradedCodeCoverage = null;
                     }
                 }
                 testID2FeedbackPacket.put(
@@ -135,15 +114,12 @@ class VersionDeltaStackedTestThread implements Callable<StackedFeedbackPacket> {
                                 stackedTestPacket.nodeNum,
                                 tp.testPacketID, feedBacks, null));
 
-                // List<String> oriResult =
-                // executor.executeCommands(Arrays.asList(validationCommandsList));
                 List<String> oriResult = executor
                         .executeCommands(tp.validationCommandSequenceList);
                 testID2oriResults.put(tp.testPacketID, oriResult);
 
                 if (Config.getConf().useFormatCoverage) {
                     if (stackedTestPacket.clientGroupForVersionDelta != 2) {
-                        // logger.info("[HKLOG] format coverage checking");
                         Path formatInfoFolder;
                         Path oriFormatInfoFolder = Paths.get("configInfo")
                                 .resolve(Config.getConf().originalVersion);
@@ -280,8 +256,6 @@ class VersionDeltaStackedTestThread implements Callable<StackedFeedbackPacket> {
                                     testID2modifiedVersionResults
                                             .get(tp.testPacketID),
                                     true);
-                    // Update FeedbackPacket
-                    // logger.info("[HKLOG: miniclient] Inconsistency checked");
                     FeedbackPacket feedbackPacket = testID2FeedbackPacket
                             .get(tp.testPacketID);
                     if (!compareRes.left) {
@@ -293,13 +267,9 @@ class VersionDeltaStackedTestThread implements Callable<StackedFeedbackPacket> {
                                         FuzzingClient
                                                 .recordSingleTestPacket(tp));
                         feedbackPacket.isInconsistent = true;
-                        // logger.info("Inconsistency: " + compareRes.right);
                         if (compareRes.right
                                 .contains(
                                         "Insignificant Result inconsistency")) {
-                            // logger.info(
-                            // "YES! Insignificant Result inconsistency at: "
-                            // + tp.testPacketID);
                             feedbackPacket.isInconsistencyInsignificant = true;
                         }
                         feedbackPacket.inconsistencyReport = failureReport;
@@ -399,7 +369,6 @@ class VersionDeltaStackedTestThread implements Callable<StackedFeedbackPacket> {
 
         // LOG checking2
         if (Config.getConf().enableLogCheck) {
-            // logger.info("[HKLOG] error log checking: merge logs");
             assert logInfoBeforeVersionChange != null;
             Map<Integer, LogInfo> logInfo = FuzzingClient
                     .extractErrorLog(executor, logInfoBeforeVersionChange);
@@ -412,9 +381,6 @@ class VersionDeltaStackedTestThread implements Callable<StackedFeedbackPacket> {
                                 logInfo);
             }
         }
-        // teardown is teardown in a higher loop
-        // testID2FeedbackPacket = new HashMap<>();
-        // testID2oriResults = new HashMap<>();
         return stackedFeedbackPacket;
     }
 
@@ -431,63 +397,25 @@ class VersionDeltaStackedTestThread implements Callable<StackedFeedbackPacket> {
             // bugs
             logger.info("[Fuzzing Client] Cluster startup problem: "
                     + (direction == 0 ? "upgrade" : "downgrade"));
-            stackedFeedbackPacket = null;
             return null;
         } else {
-            if (Config.getConf().debug) {
-                logger.info("[Fuzzing Client] started up executor");
-            }
-
             if (Config.getConf().startUpClusterForDebugging) {
                 logger.info("[Debugging Mode] Start up the cluster only");
-                try {
-                    Thread.sleep(36000 * 1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                logger.info("[Debugging Mode] System exit");
-                System.exit(1);
+                Utilities.sleepAndExit(36000);
             }
-
-            if (Config.getConf().debug) {
-                logger.info("[Fuzzing Client] Call to run the tests");
-            }
-
             StackedFeedbackPacket stackedFeedbackPacketBeforeVersionChange = runTestBatchBeforeChangingTheVersion(
                     executor,
                     stackedTestPacket, direction);
 
             if (this.group == 1) {
-                if (Config.getConf().debug) {
-                    logger.info("[Fuzzing Client] completed the testing");
-                }
-
-                if (Config.getConf().debug) {
-                    logger.info(
-                            "[Fuzzing Client] Call to teardown executor");
-                }
                 tearDownExecutor();
-                if (Config.getConf().debug) {
-                    logger.info("[Fuzzing Client] Executor torn down");
-                }
                 return stackedFeedbackPacketBeforeVersionChange;
             } else {
                 StackedFeedbackPacket stackedFeedbackPacket = changeVersionAndRunTheTestBatch(
                         executor, stackedTestPacket, direction,
                         isDowngradeSupported,
                         stackedFeedbackPacketBeforeVersionChange);
-                if (Config.getConf().debug) {
-                    logger.info("[Fuzzing Client] completed the testing");
-                }
-
-                if (Config.getConf().debug) {
-                    logger.info(
-                            "[Fuzzing Client] Call to teardown executor");
-                }
                 tearDownExecutor();
-                if (Config.getConf().debug) {
-                    logger.info("[Fuzzing Client] Executor torn down");
-                }
                 return stackedFeedbackPacket;
             }
         }

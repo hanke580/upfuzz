@@ -706,49 +706,26 @@ public class FuzzingClient {
         }
     }
 
-    /**
-     * start the old version system, execute and count the coverage of all
-     * test cases of stackedFeedbackPacket, perform an upgrade process, check
-     * the (1) upgrade process failed (2) result inconsistency
-     * @param stackedTestPacket the stacked test packets from server
-     */
     public StackedFeedbackPacket executeStackedTestPacketRegular(
             StackedTestPacket stackedTestPacket) {
         Path configPath = Paths.get(configDirPath.toString(),
                 stackedTestPacket.configFileName);
         logger.info("[HKLOG] configPath = " + configPath);
 
-        // config verification
-        if (Config.getConf().verifyConfig) {
-            boolean validConfig = verifyConfig(configPath);
-            if (!validConfig) {
-                logger.error(
-                        "problem with configuration! system cannot start up");
-                return null;
-            }
+        if (Config.getConf().verifyConfig && !verifyConfig(configPath)) {
+            logger.error(
+                    "Configuration problem: System cannot start up");
+            return null;
         }
         executor = initExecutor(stackedTestPacket.nodeNum,
                 Config.getConf().useFormatCoverage, null, configPath);
-        if (Config.getConf().debug) {
-            logger.info("[Fuzzing Client] Call to start up executor");
-        }
-        boolean startUpStatus = startUpExecutor();
-        if (!startUpStatus) {
+
+        if (!startUpExecutor())
             return null;
-        }
-        if (Config.getConf().debug) {
-            logger.info("[Fuzzing Client] started up executor");
-        }
 
         if (Config.getConf().startUpClusterForDebugging) {
             logger.info("[Debugging Mode] Start up the cluster only");
-            try {
-                Thread.sleep(36000 * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            logger.info("[Debugging Mode] System exit");
-            System.exit(1);
+            Utilities.sleepAndExit(36000);
         }
 
         StackedFeedbackPacket stackedFeedbackPacket = runTheTests(executor,
@@ -758,15 +735,10 @@ public class FuzzingClient {
     }
 
     /**
-     * Given one test, execute it in both old version and new verison, then
+     * Given one test, start up 2 clusters, execute the test in both verisons, then
      * perform upgrade and downgrade.
      * After receiving the feedback, calculate the version delta information
      * and send this information back.
-     *
-     * Actually, there's no need to calculate the version delta here, we can do
-     * it in the fuzzing server side.
-     *
-     * This is only used for execution.
      */
     public VersionDeltaFeedbackPacketApproach1 executeStackedTestPacketVersionDeltaApproach1(
             StackedTestPacket stackedTestPacket) {
@@ -1054,13 +1026,7 @@ public class FuzzingClient {
 
         if (Config.getConf().startUpClusterForDebugging) {
             logger.info("[Debugging Mode] Start up the cluster only");
-            try {
-                Thread.sleep(36000 * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            logger.info("[Debugging Mode] System exit");
-            System.exit(1);
+            Utilities.sleepAndExit(36000);
         }
 
         // Execute

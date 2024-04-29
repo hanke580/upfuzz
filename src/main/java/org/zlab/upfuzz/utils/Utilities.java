@@ -1080,4 +1080,14 @@ public class Utilities {
             }
         }
     }
+
+    public static void sleepAndExit(int sleepTime) {
+        try {
+            Thread.sleep(sleepTime * 1000L);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        logger.info("[Debugging Mode] System exit");
+        System.exit(1);
+    }
 }
