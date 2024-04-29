@@ -11,15 +11,7 @@ import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.BufferedReader;
-import java.io.StringWriter;
-import java.io.PrintWriter;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.zlab.ocov.tracker.ObjectGraphCoverage;
 import org.zlab.upfuzz.fuzzingengine.Config.Configuration;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.fuzzingengine.Config;
@@ -33,7 +25,6 @@ import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPlanPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPlanFeedbackPacket;
-import org.zlab.upfuzz.fuzzingengine.packet.Packet.PacketType;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 

@@ -2,7 +2,6 @@ package org.zlab.upfuzz.docker;
 
 import java.io.*;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;

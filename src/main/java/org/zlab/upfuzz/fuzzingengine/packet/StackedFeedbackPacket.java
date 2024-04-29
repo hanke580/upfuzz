@@ -1,6 +1,5 @@
 package org.zlab.upfuzz.fuzzingengine.packet;
 
-import com.google.gson.Gson;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.Serializable;
@@ -21,11 +20,9 @@ public class StackedFeedbackPacket extends Packet implements Serializable {
     public List<List<String>> oriResults;
     public List<LogInfo> logInfos;
 
-    // include all testIDs (either executed or not)
-    // we should remove them from testID2Seed for oom problem
+    // Include all testIDs (Either executed or not)
+    // Need to remove them from testID2Seed for oom problem
     public final List<Integer> testIDs;
-    // TODO: Handle brokenInv for configurations (start up)
-    // public Set<Integer> brokenInv; // configuration broken invariants!
 
     public String fullSequence = ""; // for reproducing
     public String configFileName;
