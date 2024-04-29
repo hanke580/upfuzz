@@ -127,7 +127,8 @@ public class HdfsExecutor extends Executor {
 
     @Override
     public void teardown() {
-        dockerCluster.teardown();
+        if (dockerCluster != null)
+            dockerCluster.teardown();
     }
 
     @Override
