@@ -41,7 +41,7 @@ public class FuzzingClient {
     private LibnyxInterface libnyx = null;
     private LibnyxInterface libnyxSibling = null;
     public boolean isDowngradeSupported;
-    int CLUSTER_START_RETRY = 3; // stop retry for now
+    int CLUSTER_START_RETRY = 3;
 
     FuzzingClient() {
         if (Config.getConf().testSingleVersion) {

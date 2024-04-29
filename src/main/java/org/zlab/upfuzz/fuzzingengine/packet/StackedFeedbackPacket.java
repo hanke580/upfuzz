@@ -42,10 +42,6 @@ public class StackedFeedbackPacket extends Packet implements Serializable {
 
     private String version;
 
-    // public int nodeNum;
-    // (1) Failed Upgrade Process: Report all command sequences
-    // (2) Result Inconsistency: Report the target seed's inconsistency
-
     public StackedFeedbackPacket(String configFileName, List<Integer> testIDs) {
         this.configFileName = configFileName;
         this.testIDs = testIDs;
@@ -106,5 +102,4 @@ public class StackedFeedbackPacket extends Packet implements Serializable {
         }
         return null;
     }
-
 }

@@ -478,5 +478,4 @@ public class CassandraDocker extends Docker {
         constructLogInfo(logInfo, filePath, blackListErrorLog);
         return logInfo;
     }
-
 }
