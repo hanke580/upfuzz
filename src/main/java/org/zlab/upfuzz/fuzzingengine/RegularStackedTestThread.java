@@ -79,22 +79,12 @@ class RegularStackedTestThread implements Callable<StackedFeedbackPacket> {
         Map<Integer, LogInfo> logInfoBeforeVersionChange = new HashMap<>();
         Map<Integer, List<String>> testID2oriResults = new HashMap<>();
 
-        // System.out.println("Invoked with direction: " + direction);
-
-        if (Config.getConf().useFormatCoverage) {
-            executor.clearFormatCoverage();
-        }
-
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             executedTestNum++;
 
-            // if you want to run fixed command sequence, remove the
-            // comments
-            // from the following lines
-            // Moved the commented code to
-            // Utilities.createExampleCommands();
-
             executor.executeCommands(tp.originalCommandSequenceList);
+            if (Config.getConf().flushAfterTest)
+                executor.flush();
 
             FeedBack[] feedBacks = new FeedBack[stackedTestPacket.nodeNum];
             for (int i = 0; i < stackedTestPacket.nodeNum; i++) {

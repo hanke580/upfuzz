@@ -80,11 +80,6 @@ class VersionDeltaStackedTestThread implements Callable<StackedFeedbackPacket> {
 
         System.out.println("Invoked with direction: " + direction);
 
-        if (Config.getConf().useFormatCoverage
-                && stackedTestPacket.clientGroupForVersionDelta != 2) {
-            executor.clearFormatCoverage();
-        }
-
         int j = 0;
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             j += 1;
@@ -92,7 +87,10 @@ class VersionDeltaStackedTestThread implements Callable<StackedFeedbackPacket> {
                 executedTestNum++;
                 logger.info(j + "th testPacket null? "
                         + ((tp == null) ? " YES" : (tp.testPacketID)));
+
                 executor.executeCommands(tp.originalCommandSequenceList);
+                if (Config.getConf().flushAfterTest)
+                    executor.flush();
 
                 FeedBack[] feedBacks = new FeedBack[stackedTestPacket.nodeNum];
                 for (int i = 0; i < stackedTestPacket.nodeNum; i++) {

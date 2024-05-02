@@ -420,7 +420,7 @@ public class MiniClientMain {
     public static StackedFeedbackPacket runTheTestsBeforeChangingVersion(
             Executor executor,
             StackedTestPacket stackedTestPacket, int direction) {
-        // if the middle of test has already broken an invariant
+        // If the middle of test has already broken an invariant
         // we stop executing.
         int executedTestNum = 0;
         boolean breakNewInv = false;
@@ -429,11 +429,6 @@ public class MiniClientMain {
         Map<Integer, List<String>> testID2oriResults = new HashMap<>();
 
         System.out.println("Invoked with direction: " + direction);
-
-        if (Config.getConf().useFormatCoverage
-                && stackedTestPacket.clientGroupForVersionDelta != 2) {
-            executor.clearFormatCoverage();
-        }
 
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             executedTestNum++;
@@ -738,15 +733,13 @@ public class MiniClientMain {
         int executedTestNum = 0;
         boolean breakNewInv = false;
 
-        if (Config.getConf().useFormatCoverage) {
-            executor.clearFormatCoverage();
-        }
-
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             executedTestNum++;
+
             executor.executeCommands(tp.originalCommandSequenceList);
             if (Config.getConf().flushAfterTest)
                 executor.flush();
+
             testExecutionLog += executor.getTestPlanExecutionLog();
             FeedBack[] feedBacks = new FeedBack[stackedTestPacket.nodeNum];
             for (int i = 0; i < stackedTestPacket.nodeNum; i++) {
