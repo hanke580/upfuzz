@@ -62,7 +62,6 @@ class VersionDeltaStackedTestThread implements Callable<StackedFeedbackPacket> {
     }
 
     public void tearDownExecutor() {
-        executor.upgradeTeardown();
         executor.clearState();
         executor.teardown();
     }

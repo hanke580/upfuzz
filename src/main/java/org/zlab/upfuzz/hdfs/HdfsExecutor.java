@@ -126,16 +126,6 @@ public class HdfsExecutor extends Executor {
     }
 
     @Override
-    public void teardown() {
-        if (dockerCluster != null)
-            dockerCluster.teardown();
-    }
-
-    @Override
-    public void upgradeTeardown() {
-    }
-
-    @Override
     public String execShellCommand(ShellCommand command) {
         // execute with HDFS
         String ret = "null cp message";
@@ -230,5 +220,4 @@ public class HdfsExecutor extends Executor {
             return new Pair<>(ret, failureInfo.toString());
         }
     }
-
 }

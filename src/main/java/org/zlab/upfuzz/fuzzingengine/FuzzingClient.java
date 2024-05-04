@@ -65,7 +65,6 @@ public class FuzzingClient {
         }
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             executor.teardown();
-            executor.upgradeTeardown();
         }));
         if (Config.getConf().nyxMode) {
             this.libnyx = createLibnyxInterface();
@@ -301,7 +300,6 @@ public class FuzzingClient {
     }
 
     public void tearDownExecutor() {
-        executor.upgradeTeardown();
         executor.clearState();
         executor.teardown();
     }

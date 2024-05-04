@@ -58,12 +58,7 @@ class RegularStackedTestThread implements Callable<StackedFeedbackPacket> {
         return false;
     }
 
-    public StackedFeedbackPacket getStackedFeedbackPacket() {
-        return stackedFeedbackPacket;
-    }
-
     public void tearDownExecutor() {
-        executor.upgradeTeardown();
         executor.clearState();
         executor.teardown();
     }

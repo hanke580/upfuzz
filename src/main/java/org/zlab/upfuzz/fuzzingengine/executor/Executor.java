@@ -39,14 +39,13 @@ public abstract class Executor implements IExecutor {
     public String systemID = "UnknowDS";
     public int nodeNum;
 
-    // By default, we enable collection
     public boolean collectFormatCoverage = false;
     public Set<String> targetSystemStates;
     public Path configPath;
     public String testPlanExecutionLog = "";
     public int direction;
 
-    // Use for test plan coverage collection
+    // Test plan coverage collection
     public ExecutionDataStore[] oriCoverage;
 
     public DockerCluster dockerCluster;
@@ -82,6 +81,12 @@ public abstract class Executor implements IExecutor {
         this.oriCoverage = new ExecutionDataStore[nodeNum];
     }
 
+    public void teardown() {
+        if (dockerCluster != null)
+            dockerCluster.teardown();
+        agentSocket.stopServer();
+    }
+
     public void setConfigPath(Path ConfigPath) {
         this.configPath = ConfigPath;
         if (this.dockerCluster != null) {
@@ -111,7 +116,6 @@ public abstract class Executor implements IExecutor {
         return dockerCluster.getFormatCoverage(formatInfoFolder);
     }
 
-    // Invoke after system is up
     public void clearFormatCoverage() {
         dockerCluster.clearFormatCoverage();
     }
@@ -152,8 +156,6 @@ public abstract class Executor implements IExecutor {
             e.printStackTrace();
         }
     }
-
-    public abstract void upgradeTeardown();
 
     public List<String> executeCommands(List<String> commandList) {
         // TODO: Use Event here, since not all commands are executed
@@ -645,5 +647,4 @@ public abstract class Executor implements IExecutor {
     public Map<Integer, LogInfo> grepLogInfo() {
         return dockerCluster.grepLogInfo();
     }
-
 }

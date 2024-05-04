@@ -111,16 +111,6 @@ public class HBaseExecutor extends Executor {
     }
 
     @Override
-    public void teardown() {
-        if (dockerCluster != null)
-            dockerCluster.teardown();
-    }
-
-    @Override
-    public void upgradeTeardown() {
-    }
-
-    @Override
     public String execShellCommand(ShellCommand command) {
         // execute with HBase
         String ret = "null cp message";
@@ -214,5 +204,4 @@ public class HBaseExecutor extends Executor {
             return new Pair<>(ret, failureInfo.toString());
         }
     }
-
 }

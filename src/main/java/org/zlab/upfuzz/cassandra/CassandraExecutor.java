@@ -3,7 +3,6 @@ package org.zlab.upfuzz.cassandra;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 import org.zlab.upfuzz.cassandra.CassandraCqlshDaemon.CqlshPacket;
 import org.zlab.upfuzz.fuzzingengine.AgentServerSocket;
@@ -12,17 +11,7 @@ import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
 import org.zlab.upfuzz.utils.Pair;
 
-/**
- * validity procedure
- *
- * 1. execute original command sequence
- * 2. execute validation command sequence
- * 3. upgrade
- * 4. execute upgraded command sequence(NOT NOW)
- * 5. execute validation command sequence
- */
 public class CassandraExecutor extends Executor {
-
     CassandraCqlshDaemon cqlsh = null;
     static final String jacocoOptions = "=append=false";
     static final String classToIns = Config.getConf().instClassFilePath;
@@ -112,16 +101,6 @@ public class CassandraExecutor extends Executor {
     }
 
     @Override
-    public void teardown() {
-        if (dockerCluster != null)
-            dockerCluster.teardown();
-    }
-
-    @Override
-    public void upgradeTeardown() {
-    }
-
-    @Override
     public String execShellCommand(ShellCommand command) {
         String ret = "null cp message";
         if (command.getCommand().isEmpty())
@@ -132,7 +111,6 @@ public class CassandraExecutor extends Executor {
             // (2) When the cqlsh daemon crash, we catch this
             // exception, log it's test plan, report to the
             // server, and keep testing
-            // TODO: If the cqlsh daemon crash
             int cqlshNodeIndex = 0;
             for (int i = 0; i < dockerCluster.nodeNum; i++) {
                 if (dockerCluster.dockerStates[i].alive) {
