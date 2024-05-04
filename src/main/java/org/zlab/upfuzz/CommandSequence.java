@@ -102,9 +102,9 @@ public class CommandSequence implements Serializable {
                     } else {
                         pos = rand.nextInt(commands.size());
                     }
-                    logger.trace("\t\tMutate Command Pos " + pos);
                     // Compute the state up to the position
                     for (int i = 0; i < pos; i++) {
+                        assert i < commands.size();
                         commands.get(i).updateState(state);
                     }
                     boolean mutateStatus = commands.get(pos).mutate(state);
@@ -131,10 +131,10 @@ public class CommandSequence implements Serializable {
                         pos = org.zlab.upfuzz.utils.Utilities.biasRand(
                                 rand, commands.size() + 1, 5);
                     }
-                    logger.trace("\t\tMutate Command Pos " + pos);
 
                     // Compute the state up to the position
                     for (int i = 0; i < pos; i++) {
+                        assert i < commands.size();
                         commands.get(i).updateState(state);
                     }
 

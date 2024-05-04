@@ -105,9 +105,15 @@ public class ALTER_TABLE_DROP extends CassandraCommand {
 
     @Override
     public void updateState(State state) {
-        ((CassandraState) state).getTable(this.params.get(0).toString(),
-                this.params.get(1).toString()) // Get the table to modify
-                        .colName2Type.removeIf(value -> value.toString()
-                                .equals(this.params.get(2).toString()));
+        CassandraTable table = ((CassandraState) state).getTable(
+                this.params.get(0).toString(),
+                this.params.get(1).toString());
+        if (table == null) {
+            throw new RuntimeException(
+                    "Table not found: ks = " + this.params.get(0).toString()
+                            + ", table = " + this.params.get(1).toString());
+        }
+        table.colName2Type.removeIf(value -> value.toString()
+                .equals(this.params.get(2).toString()));
     }
 }

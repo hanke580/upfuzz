@@ -16,7 +16,7 @@ public class STRINGType extends ParameterType.BasicConcreteType {
 
     public int MAX_LEN = 256; // Probably need refactor
 
-    public static Set<String> stringPool = new HashSet<>();
+    public static final Set<String> stringPool = new HashSet<>();
     public static final String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     public static final STRINGType instance = new STRINGType();
@@ -85,8 +85,10 @@ public class STRINGType extends ParameterType.BasicConcreteType {
                 // 80%: it will pick from the Pool
 
                 // Try 3 times see whether it can get a valid String
-                List<String> stringPoolList = new ArrayList<>(stringPool);
-
+                List<String> stringPoolList;
+                synchronized (stringPool) {
+                    stringPoolList = new ArrayList<>(stringPool);
+                }
                 for (int i = 0; i < 3; i++) {
                     int idx = rand.nextInt(stringPoolList.size());
                     ret = new Parameter(this,

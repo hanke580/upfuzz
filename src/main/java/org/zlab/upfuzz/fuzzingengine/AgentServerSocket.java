@@ -4,7 +4,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
-import java.net.UnknownHostException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionDataWriter;
@@ -18,7 +17,7 @@ public class AgentServerSocket extends Thread {
     final ExecutionDataWriter fileWriter;
 
     public AgentServerSocket(Executor executor)
-            throws UnknownHostException, IOException {
+            throws IOException {
         this.executor = executor;
         this.server = new ServerSocket(0, 0, InetAddress.getByName("0.0.0.0"));
         logger.info("Executor: " + executor.executorID

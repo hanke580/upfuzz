@@ -28,5 +28,5 @@ echo "CLIENT_NUM: $CLIENT_NUM";
 
 for i in $(seq $CLIENT_NUM)
 do
-  java -Dlogfile="logs/upfuzz_client.log" -cp "build/classes/java/main/:dependencies/*:dependencies/:build/resources/main" org/zlab/upfuzz/fuzzingengine/Main -class client -config "$CONFIG" &
+  java -ea -Dlogfile="logs/upfuzz_client.log" -cp "build/classes/java/main/:dependencies/*:dependencies/:build/resources/main" org/zlab/upfuzz/fuzzingengine/Main -class client -config "$CONFIG" &
 done
