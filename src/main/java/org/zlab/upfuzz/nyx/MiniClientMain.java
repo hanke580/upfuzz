@@ -428,8 +428,6 @@ public class MiniClientMain {
         Map<Integer, LogInfo> logInfoBeforeVersionChange = new HashMap<>();
         Map<Integer, List<String>> testID2oriResults = new HashMap<>();
 
-        System.out.println("Invoked with direction: " + direction);
-
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             executedTestNum++;
 
@@ -582,8 +580,6 @@ public class MiniClientMain {
             for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
                 TestPacket tp = stackedTestPacket.getTestPacketList()
                         .get(testPacketIdx);
-                System.out.println(testID2FeedbackPacket.get(tp.testPacketID));
-
                 List<String> upResult = executor
                         .executeCommands(tp.validationCommandSequenceList);
                 testID2modifiedVersionResults.put(tp.testPacketID, upResult);
@@ -643,9 +639,6 @@ public class MiniClientMain {
                                 .collectCoverageSeparate("original");
                         if (downCoverages != null) {
                             for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
-                                System.out.println(
-                                        testID2FeedbackPacket
-                                                .get(tp.testPacketID));
                                 testID2FeedbackPacket.get(
                                         tp.testPacketID).feedBacks[nodeIdx].downgradedCodeCoverage = downCoverages[nodeIdx];
                             }
