@@ -125,7 +125,6 @@ public class HBaseExecutor extends Executor {
             HBaseShell = ((HBaseDocker) dockerCluster
                     .getDocker(nodeIndex)).HBaseShell;
 
-            logger.trace("HBase shell execute: " + command);
             long startTime = System.currentTimeMillis();
             HBasePacket cp = HBaseShell
                     .execute(command.getCommand());

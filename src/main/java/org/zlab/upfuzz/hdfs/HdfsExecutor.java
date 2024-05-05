@@ -140,7 +140,6 @@ public class HdfsExecutor extends Executor {
             hdfsShell = ((HdfsDocker) dockerCluster
                     .getDocker(nodeIndex)).hdfsShell;
 
-            logger.trace("hdfs shell execute: " + command);
             long startTime = System.currentTimeMillis();
             HdfsPacket cp = hdfsShell
                     .execute(command.getCommand());

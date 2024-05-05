@@ -120,8 +120,6 @@ public class CassandraExecutor extends Executor {
                     break;
                 }
             }
-            // cqlsh = ((CassandraDocker) dockerCluster.getDocker(0)).cqlsh;
-            logger.trace("cqlsh execute: " + command);
             long startTime = System.currentTimeMillis();
             CqlshPacket cp = cqlsh.execute(command.getCommand());
             long endTime = System.currentTimeMillis();
