@@ -306,6 +306,64 @@ public abstract class ParameterType implements Serializable {
         }
     }
 
+    public static class NotStartWithNumber extends ConfigurableType {
+
+        public NotStartWithNumber(ConcreteType t) {
+            super(t, null);
+        }
+
+        public NotStartWithNumber(ConcreteType t, Object configuration) {
+            super(t, null);
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c,
+                Object init) {
+            if (init == null) {
+                return generateRandomParameter(s, c);
+            }
+            Parameter ret = t.generateRandomParameter(s, c, init);
+            return new Parameter(this, ret);
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c) {
+            Parameter ret = t.generateRandomParameter(s, c);
+            while (t.isEmpty(s, c, ret)) {
+                ret = t.generateRandomParameter(s, c);
+            }
+            return new Parameter(this, ret);
+        }
+
+        @Override
+        public String generateStringValue(Parameter p) {
+            return t.generateStringValue((Parameter) p.value);
+        }
+
+        @Override
+        public boolean isValid(State s, Command c, Parameter p) {
+            assert p.getValue() instanceof String;
+            String value = (String) p.getValue();
+            return !Character.isDigit(value.charAt(0));
+        }
+
+        @Override
+        public void regenerate(State s, Command c, Parameter p) {
+            Parameter ret = generateRandomParameter(s, c);
+            p.value = ret.value;
+        }
+
+        @Override
+        public boolean isEmpty(State s, Command c, Parameter p) {
+            return t.isEmpty(s, c, (Parameter) p.value);
+        }
+
+        @Override
+        public boolean mutate(State s, Command c, Parameter p) {
+            return t.mutate(s, c, (Parameter) p.value);
+        }
+    }
+
     public static class SubsetType<T, U> extends ConfigurableType {
 
         public SerializableFunction<T, U> mapFunc;

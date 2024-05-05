@@ -1,7 +1,6 @@
 package org.zlab.upfuzz.cassandra;
 
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -9,13 +8,12 @@ import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.zlab.upfuzz.*;
 import org.zlab.upfuzz.cassandra.cqlcommands.*;
-import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.utils.INTType;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.SETType;
 import org.zlab.upfuzz.utils.Utilities;
 
-public class CommandTests extends AbstractTest {
+public class CommandTest extends AbstractTest {
     @Test
     public void testSerializable() {
         CassandraState s = new CassandraState();
@@ -840,9 +838,7 @@ public class CommandTests extends AbstractTest {
     }
 
     @Test
-    public void testReadCommandSequence()
-            throws InvocationTargetException, NoSuchMethodException,
-            InstantiationException, IllegalAccessException {
+    public void testReadCommandSequence() {
         List<Command> l = new LinkedList<>();
 
         CassandraState s = new CassandraState();
@@ -1880,5 +1876,32 @@ public class CommandTests extends AbstractTest {
         ProcessBuilder pb = new ProcessBuilder(
                 "/bin/sh", "-c", "rm -rf /Users/hanke/Desktop/dd");
         pb.start();
+    }
+
+    @Test
+    public void testCreateTable() {
+        CassandraState s = new CassandraState();
+
+        // cmd1
+        CREATE_KEYSPACE cmd0 = new CREATE_KEYSPACE(
+                s, "myKS", 2, false);
+        cmd0.updateState(s);
+
+        // cmd2
+        List<Pair<String, ParameterType.ConcreteType>> columns = new ArrayList<>();
+        columns.add(new Pair<>("species", CassandraTypes.TEXTType.instance));
+        columns.add(new Pair<>("common_name", new INTType()));
+        columns.add(new Pair<>("50ms", new INTType()));
+        columns.add(
+                new Pair<>("average_size", CassandraTypes.TEXTType.instance));
+
+        List<String> primaryColumns = new ArrayList<>();
+        primaryColumns.add("species TEXT");
+        primaryColumns.add("common_name INT");
+
+        CREATE_TABLE cmd1 = new CREATE_TABLE(
+                s, "myKS", "monkey_species", columns, primaryColumns, null);
+
+        assert !cmd1.isValid(s);
     }
 }

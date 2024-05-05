@@ -8,14 +8,13 @@ import org.zlab.upfuzz.*;
 import org.zlab.upfuzz.hbase.ddl.*;
 import org.zlab.upfuzz.hbase.dml.*;
 import org.zlab.upfuzz.fuzzingengine.Config;
-import org.zlab.upfuzz.hbase.rsgroup.ADD_RSGROUP;
 import org.zlab.upfuzz.hbase.rsgroup.GET_TABLE_RSGROUP;
 import org.zlab.upfuzz.hbase.snapshot.*;
 import org.zlab.upfuzz.hbase.tools.*;
 import org.zlab.upfuzz.utils.Utilities;
 
-public class CommandTests extends AbstractTest {
-    static Logger logger = LogManager.getLogger(CommandTests.class);
+public class CommandTest extends AbstractTest {
+    static Logger logger = LogManager.getLogger(CommandTest.class);
 
     @BeforeAll
     public static void setUp() {

@@ -51,7 +51,7 @@ public abstract class Command implements Serializable {
 
     public boolean regenerateIfNotValid(State s) {
         // Run check on each existing parameters in order.
-        // It will includes
+        // It includes
         // - Parameter.isValid()
         // - Parameter.fixIfNotValid()
         // Two functions
@@ -62,6 +62,15 @@ public abstract class Command implements Serializable {
                 }
             } catch (Exception e) {
                 // This parameter cannot be fixed
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean isValid(State s) {
+        for (Parameter param : params) {
+            if (!param.isValid(s, this)) {
                 return false;
             }
         }

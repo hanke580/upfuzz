@@ -64,7 +64,9 @@ public class CREATE_TABLE extends CassandraCommand {
                                         .constructConcreteGenericType(
                                                 PAIRType.instance,
                                                 new ParameterType.NotEmpty(
-                                                        new STRINGType(20)),
+                                                        new ParameterType.NotStartWithNumber(
+                                                                new STRINGType(
+                                                                        20))),
                                                 CassandraTypes.TYPEType.instance)));
         Parameter columns = columnsType
                 .generateRandomParameter(state, this, init2);
@@ -121,7 +123,9 @@ public class CREATE_TABLE extends CassandraCommand {
                                         .constructConcreteGenericType(
                                                 PAIRType.instance,
                                                 new ParameterType.NotEmpty(
-                                                        new STRINGType(20)),
+                                                        new ParameterType.NotStartWithNumber(
+                                                                new STRINGType(
+                                                                        20))),
                                                 CassandraTypes.TYPEType.instance)));
 
         Parameter columns = columnsType

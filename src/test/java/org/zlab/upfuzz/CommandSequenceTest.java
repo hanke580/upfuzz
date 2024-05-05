@@ -58,7 +58,7 @@ public class CommandSequenceTest extends AbstractTest {
     @Test
     public void testMutation()
             throws Exception {
-        CommandSequence commandSequence = CommandTests
+        CommandSequence commandSequence = CommandTest
                 .cass13939CommandSequence();
 
         System.out.println("Ready to execute mutation!");
@@ -88,7 +88,7 @@ public class CommandSequenceTest extends AbstractTest {
 
     @Test
     public void testTypeIsValidCheck() {
-        CommandSequence commandSequence = CommandTests
+        CommandSequence commandSequence = CommandTest
                 .cass13939CommandSequence();
 
         try {
