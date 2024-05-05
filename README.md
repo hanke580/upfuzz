@@ -3,21 +3,18 @@
 > A tool to detect upgrade bugs of distributed systems
 
 ## Feature
-* Coverage-guided structural fuzz testing
-  * upfuzz collects the code coverage of the cluster to guide the testing
+* Coverage-guided fuzz testing
+  * upfuzz collects branch coverage of the cluster to guide the testing
   process.
   * upfuzz implements a type system for mutation. Users only need to
       implement their command via the given types, and upfuzz can
       generate/mutate valid command sequence.
 * Fault Injection
 * Inconsistency Detector
-    * upfuzz use inconsistency detector to extract a list of system states and
-    compare the value between (1) rolling upgrade and (2) full-stop upgrade to
-    detect transient bugs.
-* Configuration Generator
-    * upfuzz utilizes static analysis to focus on testing a set of configurations.
-* Data format likely invariants
-* Nyx-snapshot to avoid the startup time
+    * Compare read results between different versions.
+* Configuration Testing
+* Format Coverage
+* Nyx-snapshot for system start up
 
 ## Prerequisite
 ```bash
@@ -44,7 +41,6 @@ sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 > Check out dinv-monitor about how to create an instrumented tarball
 >
 > Instrumented tarball is stored `khan@mufasa:/home/khan/format_inst_binary/`
->
 
 1. Use a format instrumented tarball.
 2. Make sure the `configInfo/system-x.x.x` contain `serializedFields_alg1.json` and `topObjects.json` file. (They should be the same as the one under the instrumented system binary).
@@ -57,7 +53,6 @@ The other steps are the same as the normal testing.
 ```bash
 git clone git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
-git checkout feature/version_delta
 export UPFUZZ_DIR=$PWD
 export ORI_VERSION=3.11.15
 export UP_VERSION=4.1.3
@@ -97,7 +92,6 @@ bin/cass_cl.sh 4.1.3 3.11.15
 # Check failures
 # python3 proc_failure.py cassandra &> /dev/null | python3 proc_failure.py read
 ```
-
 
 ### HDFS
 
@@ -180,10 +174,9 @@ cd $UPFUZZ_DIR
 ./gradlew copyDependencies
 ./gradlew :spotlessApply build
 
-# Enable verison delta testing mechanism in hbase_config.json
+# Enable version delta testing mechanism in hbase_config.json
 # open terminal1: start server
 bin/start_server.sh hbase_config.json
-
 # open terminal2: start one client
 bin/start_clients.sh 1 hbase_config.json
 
@@ -358,10 +351,9 @@ cd $UPFUZZ_DIR
 ./gradlew copyDependencies
 ./gradlew :spotlessApply build
 
-# open terminal1: start server
+# open terminal1: start server (this runs in foreground)
 bin/start_server.sh hbase_config.json
-
-# open terminal2: start one client
+# open terminal2: start one client (this runs in background)
 bin/start_clients.sh 1 hbase_config.json
 
 # stop testing:
@@ -437,7 +429,6 @@ FuzzingServer config.json: listening to all IPs
 ```json
 "serverHost" : "0.0.0.0",
 "configDir" : "/PATH/TO/SHARED_FOLDER/",
-
 ```
 
 FuzzingClient config.json
