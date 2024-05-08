@@ -54,8 +54,8 @@ The other steps are the same as the normal testing.
 git clone git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
 export UPFUZZ_DIR=$PWD
-export ORI_VERSION=3.11.15
-export UP_VERSION=4.1.3
+export ORI_VERSION=3.11.17
+export UP_VERSION=4.1.4
 
 mkdir -p "$UPFUZZ_DIR"/prebuild/cassandra
 cd prebuild/cassandra
@@ -85,12 +85,9 @@ bin/start_server.sh config.json
 # open terminal2: start two groups of agents: 3 agents in group 1, 2 agents in group 2
 bin/start_version_delta_clients.sh 3 2 config.json
 
-# stop testing:
-bin/cass_cl.sh 3.11.15 4.1.3
-bin/cass_cl.sh 4.1.3 3.11.15
-
-# Check failures
-# python3 proc_failure.py cassandra &> /dev/null | python3 proc_failure.py read
+# stop testing
+bin/cass_cl.sh 3.11.17 4.1.4
+bin/cass_cl.sh 4.1.4 3.11.17
 ```
 
 ### HDFS
@@ -137,7 +134,7 @@ bin/start_server.sh hdfs_config.json
 # open terminal2: start one client
 bin/start_clients.sh 1 hdfs_config.json
 
-# stop testing:
+# stop testing
 bin/hdfs_cl.sh
 ```
 
@@ -180,14 +177,14 @@ bin/start_server.sh hbase_config.json
 # open terminal2: start one client
 bin/start_clients.sh 1 hbase_config.json
 
-# stop testing:
+# stop testing
 bin/hbase_cl.sh
 ```
 
 ## Minimal Set up for Cassandra (Try upfuzz quickly!)
 Requirement: java11, docker (Docker version 26.0.0, build a5ee5b1)
 > - Not test configurations.
-> - single Cassandra node upgrade: 3.11.15 => 4.1.3
+> - Single Cassandra node upgrade: 3.11.17 => 4.1.4
 > - If using Nyx Mode, please clone the upfuzz repo at first and then follow the guide at `nyx_mode/README.md` before continuing.
 
 ### Test single version
@@ -198,7 +195,7 @@ git clone git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
 
 export UPFUZZ_DIR=$PWD
-export ORI_VERSION=3.11.15
+export ORI_VERSION=3.11.17
 mkdir -p ${UPFUZZ_DIR}/prebuild/cassandra
 cd ${UPFUZZ_DIR}/prebuild/cassandra
 wget https://archive.apache.org/dist/cassandra/"$ORI_VERSION"/apache-cassandra-"$ORI_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$ORI_VERSION"-bin.tar.gz
@@ -220,9 +217,6 @@ bin/start_clients.sh 1 config.json
 
 # stop testing
 bin/cass_cl.sh
-
-# Check failures
-# python3 proc_failure.py cassandra &> /dev/null | python3 proc_failure.py read
 ```
 
 ### Test upgrade process
@@ -230,8 +224,8 @@ bin/cass_cl.sh
 git clone git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
 export UPFUZZ_DIR=$PWD
-export ORI_VERSION=3.11.15
-export UP_VERSION=4.1.3
+export ORI_VERSION=3.11.17
+export UP_VERSION=4.1.4
 
 mkdir -p "$UPFUZZ_DIR"/prebuild/cassandra
 cd prebuild/cassandra
@@ -257,11 +251,8 @@ bin/start_server.sh config.json
 # open terminal2: start one client
 bin/start_clients.sh 1 config.json
 
-# stop testing:
+# stop testing
 bin/cass_cl.sh
-
-# Check failures
-# python3 proc_failure.py cassandra &> /dev/null | python3 proc_failure.py read
 ```
 
 ## Minimal Set up for HDFS (Try upfuzz quickly!)
@@ -305,11 +296,8 @@ bin/start_server.sh hdfs_config.json
 # open terminal2: start one client
 bin/start_clients.sh 1 hdfs_config.json
 
-# stop testing:
+# stop testing
 bin/hdfs_cl.sh
-
-# Check failures
-# python3 proc_failure.py hdfs &> /dev/null | python3 proc_failure.py read
 ```
 
 **Critical configuration** setting which affects the hdfs upgrade process. Normally `prepareImageFirst` should be false. But to test log replay, we need to set it to true.
@@ -356,7 +344,7 @@ bin/start_server.sh hbase_config.json
 # open terminal2: start one client (this runs in background)
 bin/start_clients.sh 1 hbase_config.json
 
-# stop testing:
+# stop testing
 bin/hbase_cl.sh
 ```
 
@@ -447,8 +435,16 @@ only test single node
 cassandra_parms="$cassandra_parms -Dcassandra.ring_delay_ms=1 -Dcassandra.skip_wait_for_gossip_to_settle=0"
 ```
 
+### Process failure reports
+```bash
+# Aggregate the failure logs: python3 proc_failure.py system
+python3 proc_failure.py cassandra
+# Read the failure stat
+python3 proc_failure.py read
+```
+
 ### Add cassandra log config for 3.0.x/2.2.x (3.0.15/2.2.8)
-Old version cassandra cannot use env var to adjust log dir, so we add a few scripts to handle this.
+Old version cassandra cannot use env var to adjust log dir, so we add a few scripts to save log separately.
 ```bash
 if [ -z "$CASSANDRA_LOG_DIR" ]; then
   CASSANDRA_LOG_DIR=$CASSANDRA_HOME/logs
