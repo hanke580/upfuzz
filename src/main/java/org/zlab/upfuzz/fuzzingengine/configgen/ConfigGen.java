@@ -220,6 +220,12 @@ public abstract class ConfigGen {
                 configBlackList);
         deletedConfig = removeBlacklistConfig(deletedConfig,
                 configBlackList);
+        boundaryConfig = removeBlacklistConfig(boundaryConfig,
+                configBlackList);
+        remainOriConfig = removeBlacklistConfig(remainOriConfig,
+                configBlackList);
+        remainUpConfig = removeBlacklistConfig(remainUpConfig,
+                configBlackList);
     }
 
     public void removeSingleBlackListConfigs() {
