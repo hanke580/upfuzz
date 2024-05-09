@@ -162,6 +162,8 @@ public class HBaseExecutor extends Executor {
             boolean ret = true;
             for (int i = 0; i < oriResult.size(); i++) {
                 // Mask timestamp
+                logger.info("oriResult: " + oriResult.get(i));
+                logger.info("upResult: " + upResult.get(i));
                 String str1 = Utilities.maskTimeStampYYYYMMDD(
                         Utilities.maskTimeStampHHSS(oriResult.get(i)));
                 String str2 = Utilities.maskTimeStampYYYYMMDD(

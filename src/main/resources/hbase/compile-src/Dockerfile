@@ -41,7 +41,7 @@ RUN chmod +777 /usr/local/bin/rolling-upgrade.sh
 # COPY cassandra /cassandra
 # WORKDIR /cassandra
 # RUN ant
-COPY hbase_daemon3.py /hbase/hbase_daemon.py
+# COPY hbase_daemon3.py /hbase/hbase_daemon.py
 
 # TODO: copy hshell init
 # when the system has started up, we start up the hshell

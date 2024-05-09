@@ -31,4 +31,5 @@ while true; do
 done
 
 echo "Starting HBase Daemon"
-python3 /hbase/hbase_daemon.py
+# python3 /hbase/hbase_daemon.py
+python3 ${HBASE_HOME}/bin/hbase_daemon.py

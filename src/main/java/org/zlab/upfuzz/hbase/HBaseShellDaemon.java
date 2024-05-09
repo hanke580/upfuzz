@@ -19,7 +19,7 @@ public class HBaseShellDaemon {
 
     public HBaseShellDaemon(String ipAddress, int port, String executorID,
             Docker docker) {
-        int retry = 30;
+        int retry = 100;
         logger.info("[HKLOG] executor ID = " + executorID + "  "
                 + "Connect to hbase shell daemon:" + ipAddress + "...");
         for (int i = 0; i < retry; ++i) {

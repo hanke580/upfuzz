@@ -12,10 +12,13 @@ import codecs
 import socket
 import tempfile
 import struct
+import fcntl
+import re
 
 from six import StringIO
 
 import os
+import subprocess
 from subprocess import Popen, PIPE
 
 MESSAGE_SIZE = 51200
@@ -36,8 +39,8 @@ class TCPHandler(socketserver.BaseRequestHandler):
     """
 
     shell = None
-    origin_stdout = sys.stdout
-    origin_stderr = sys.stderr
+    # origin_stdout = sys.stdout
+    # origin_stderr = sys.stderr
 
     def __init__(self, request, client_address, server):
 
@@ -86,10 +89,11 @@ class TCPHandler(socketserver.BaseRequestHandler):
                     global command_count
 
                     print('here2')
+                    # process.stdout.read()
                     process.stdin.write(self.data+b'\n')
                     process.stdin.flush()
                     print('here3')
-                    next_shell_out = 'hbase:' + \
+                    next_shell_out = 'hbase(main):' + \
                         '{:0>3d}'.format(command_count) + ':0> '
                     print('next_out:', next_shell_out)
                     output_file.write('next_out: ' + next_shell_out + '\n')
@@ -103,9 +107,13 @@ class TCPHandler(socketserver.BaseRequestHandler):
                             if err_out is not None and len(err_out) != 0:
                                 ret_err += err_out.decode("utf-8")
                                 output_file.write('stderr: ' + ret_err)
+                            # if seconds_count == 1:
+                            #     seconds_count = 0
+                            #     break
                             continue
                         newline = newline.decode("utf-8")
-                        ret_out += newline
+                        if not newline == cmd:
+                            ret_out += newline
                         # print(newline, end='')
                         output_file.write('stdout: ' + newline)
                         output_file.flush()
@@ -113,11 +121,29 @@ class TCPHandler(socketserver.BaseRequestHandler):
                         if err_out is not None and len(err_out) != 0:
                             ret_err += err_out.decode("utf-8")
                             output_file.write('stderr: ' + ret_err)
-                        if ret_out.endswith(next_shell_out) or ret_out.endswith(next_shell_out+'\n'):
+                        if "syntax error" in ret_out:
                             break
+                        if ret_out.endswith("seconds") or ret_out.endswith("seconds\n"):
+                            break
+                        # seconds_count += 1
+                        # if "=>" in ret_out:
+                        #     break
+
+                        # if process.poll() is not None:
+                        #     break
                     print("stdout of process: " + ret_out)
+                    while True:
+                        newline = process.stdout.read()
+                        if newline:
+                            ret_out += newline.decode('utf-8')
+                        else:
+                            break
+                    # newline = process.stdout.read()
+                    # if newline:
+                    #     ret_out += newline.decode('utf-8')
+                    # process.stdout.read()
                     ret_out = '\n'.join(ret_out.split('\n')[1:-1])
-                    # ret_out = process.stdout.read()
+                    # ret_out = process.stdout.read() 
                     # ret_out, ret_err = process.communicate(input=cmd.encode(), timeout=5)
                     # exit_code = process.returncode
                     # print("exit code = " + str(exit_code))
@@ -151,6 +177,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
                 msg = json.dumps(resp).encode("ascii")
                 if len(msg) > MESSAGE_SIZE:
                     # Create a error resp
+                    print("Message too large to send!")
                     resp = {
                         "cmd": cmd,
                         "exitValue": exit_code,
@@ -223,7 +250,13 @@ if __name__ == "__main__":
     global command_count
 
     hbase_path = os.environ['HBASE_HOME'] + "/bin/hbase"
-    process = Popen([hbase_path, 'shell'], stdout=PIPE, stdin=PIPE, stderr=PIPE)
+    process = Popen([hbase_path, "shell"], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    # process.stdin.close()
+    # output = process.stdout.read()  # Read entire output
+    # print(output.decode())
+
+    # outputInit = subprocess.check_output([hbase_path, 'shell'])
+    # print(outputInit.decode())
     
     '''
     hbase_path = os.environ['HBASE_HOME'] + "/bin"
@@ -251,7 +284,7 @@ if __name__ == "__main__":
     ]
 
     # process = Popen(["hbase", 'shell'], stdout=PIPE, stdin=PIPE, stderr=PIPE)
-    process = Popen(run_cmds, stdout=PIPE, stdin=PIPE, stderr=PIPE)
+    # process = Popen(run_cmds, stdout=PIPE, stdin=PIPE, stderr=PIPE)
     # output = process.communicate(input=b'version\n')[0]
     # print(output)
     '''
@@ -261,30 +294,98 @@ if __name__ == "__main__":
     os.set_blocking(process.stdin.fileno(), False)
 
     command_count = 1
-    next_shell_out = 'hbase:' + '{:0>3d}'.format(command_count) + ':0> '
+
+    # Send an empty command (newline) to the HBase shell
+    # process.stdin.write(b"list_namespace\n")
+    # process.stdin.flush()
+
+    # command_count += 1
+    next_shell_out = 'hbase(main):' + '{:0>3d}'.format(command_count) + ':0> '
+    exec_end = ' seconds'
+    exec_end_2 = ' seconds\n'
 
     output = ''
     errout = ''
+    buffer = b""
+    
     while True:
         newline = process.stdout.read()
+        # newline2 = process.stderr.readline()
+        # char = process.stdout.read(1)
+        
+        # if not char:
+        #     continue
+        # buffer += char
+        # if char == b"\n" or char == b">":  # Check for newline or '>'
+        #     print("Buffer content:", buffer.decode().strip())  # Print or process the buffer
+        #     buffer = b""  # Clear the buffer after flushing
+            
         if newline is None or len(newline) == 0:
             continue
+        
+        # print(newline)
         newline = newline.decode("utf-8")
+        # print(newline)
+        
+        # process.stdout.flush()
         output += newline
         err_out = process.stderr.read()
+        print(output)
         if err_out is not None and len(err_out) != 0:
             errout += err_out.decode("utf-8")
-        if output.endswith(next_shell_out):
+            # errout += err_out
+
+        # if output.endswith(next_shell_out):
+        #     break
+        
+        if output.endswith(exec_end) or output.endswith(exec_end_2):
             break
+            
+    # with Popen([hbase_path, 'shell'], stdout=PIPE, stdin=PIPE, stderr=PIPE, universal_newlines=True) as p:
+    #     for line in p.stdout:
+    #         print(line, end='') # process line here
+    #         sys.stdout.flush()
+    #         if (line == next_shell_out):
+    #             print("GOTCHAAAA")
+    # Open a file to write the output
+
+    # output_file_path = "shell_output.txt"
+    # with open(output_file_path, "w") as output_file:
+    #     # Start the subprocess with stdout redirected to the file
+    #     with subprocess.Popen(['hbase/hbase-2.3.7/bin/hbase shell'], stdout=output_file, universal_newlines=True, shell=True) as p:
+    #         p.wait()  # Wait for the subprocess to finish
+    
+    # os.system(hbase_path + ' shell > ' + output_file_path)
+
+    # Read the output file and print its contents
+    # with open(output_file, "r") as file:
+    #     print(file.read())
     # process._stdin_write(b'version\n')
     # process.stdin.write(b'version\n')
     # process.stdin.write(b'version\n')
     # process.stdin.write(b'version\n')
+    print("outside while loop")
     print(output)
     output_file.write(output + '\n')
     print(errout)
     output_file.write(errout + '\n')
     command_count += 1
+
+    # Get the file descriptor of the stdin PIPE
+    # stdin_fd = process.stdin.fileno()
+    
+    # Create a pipe
+    # read_end, write_end = os.pipe()
+
+    # Set the write end of the pipe as the stdin of the process
+    # os.dup2(write_end, process.stdin.fileno())
+
+    # fcntl.fcntl(write_end, fcntl.F_SETFL, os.O_NONBLOCK)
+
+    # os.write(write_end, b"Input data to be sent to the process\n")
+
+    # Set the stdin PIPE to non-blocking mode
+    # os.set_blocking(stdin_fd, False)
 
     while True:
         try:
@@ -304,3 +405,25 @@ if __name__ == "__main__":
         except Exception as e:
             print("exit exception: " + e)
             exit()
+
+
+    # hbase_path = os.environ['HBASE_HOME'] + "/bin/hbase"
+    # output_file_path = "shell_output.txt"
+
+    # # Open the output file for writing
+    # with open(output_file_path, "w") as output_file:
+    #     process = Popen([hbase_path, 'shell'], stdout=output_file, stdin=PIPE, stderr=output_file, universal_newlines=True)
+
+    #     os.set_blocking(process.stdin.fileno(), False)
+
+    #     # Send an empty command (newline) to the HBase shell
+    #     # process.stdin.write('\n')
+    #     # process.stdin.flush()
+
+    #     while True:
+    #         # Check if the process has finished
+    #         if process.poll() is not None:
+    #             break
+
+    #     # Close the output file
+    #     output_file.close()
