@@ -138,7 +138,7 @@ bin/start_clients.sh 1 hdfs_config.json
 bin/hdfs_cl.sh
 ```
 
-### HBase (not finished yet)
+### HBase
 ```bash
 git clone git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
