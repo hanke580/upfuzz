@@ -34,5 +34,5 @@
   "nyxFuzzSH": "nyx_mode/fuzz_no_pt.sh",
   "debug": true,
   "collUpFeedBack": true,
-  "startUpClusterForDebugging": true
+  "startUpClusterForDebugging": false
 }
