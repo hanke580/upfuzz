@@ -340,6 +340,12 @@ wget https://archive.apache.org/dist/hbase/"$UP_VERSION"/hbase-"$UP_VERSION"-bin
 cp $UPFUZZ_DIR/src/main/resources/hbase/compile-src/hbase-env.sh $UPFUZZ_DIR/prebuild/hbase/hbase-$ORI_VERSION/conf/ -f
 cp $UPFUZZ_DIR/src/main/resources/hbase/compile-src/hbase-env.sh $UPFUZZ_DIR/prebuild/hbase/hbase-$UP_VERSION/conf/ -f
 
+# for hbase version >= 2.4.0, use hbase_daemon3.py
+# for hbase version < 2.4.0, use hbase_daemon2.py
+cp $UPFUZZ_DIR/src/main/resources/hbase/compile-src/hbase_daemon2.py $UPFUZZ_DIR/prebuild/hbase/hbase-$ORI_VERSION/bin/hbase_daemon.py
+cp $UPFUZZ_DIR/src/main/resources/hbase/compile-src/hbase_daemon2.py $UPFUZZ_DIR/prebuild/hbase/hbase-$UP_VERSION/bin/hbase_daemon.py
+
+
 cd $UPFUZZ_DIR/src/main/resources/hdfs/hbase-pure/
 docker build . -t upfuzz_hdfs:hadoop-2.10.2
 
