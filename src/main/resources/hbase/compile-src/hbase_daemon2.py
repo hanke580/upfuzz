@@ -89,7 +89,8 @@ class TCPHandler(socketserver.BaseRequestHandler):
                     global command_count
 
                     print('here2')
-                    # process.stdout.read()
+                    process.stdout.read()
+                    process.stdout.flush()
                     process.stdin.write(self.data+b'\n')
                     process.stdin.flush()
                     print('here3')
@@ -132,17 +133,29 @@ class TCPHandler(socketserver.BaseRequestHandler):
                         # if process.poll() is not None:
                         #     break
                     print("stdout of process: " + ret_out)
-                    while True:
-                        newline = process.stdout.read()
-                        if newline:
+                    # ret_out += process.stdout.read().decode('utf-8')
+                    # newline = process.stdin.read()
+                    # if newline:
+                    #     ret_out += newline.decode('utf-8')
+                    newline = process.stdout.read()
+                    if newline:
+                        try:
                             ret_out += newline.decode('utf-8')
-                        else:
-                            break
+                        except:
+                            ret_out += "non-decodable character"
                     # newline = process.stdout.read()
                     # if newline:
                     #     ret_out += newline.decode('utf-8')
                     # process.stdout.read()
-                    ret_out = '\n'.join(ret_out.split('\n')[1:-1])
+                    # while True:
+                        
+                    #     else:
+                    #         break
+                    # newline = process.stdout.read()
+                    # if newline:
+                    #     ret_out += newline.decode('utf-8')
+                    # process.stdout.read()
+                    ret_out = '\n'.join(ret_out.split('\n')[0:])
                     # ret_out = process.stdout.read() 
                     # ret_out, ret_err = process.communicate(input=cmd.encode(), timeout=5)
                     # exit_code = process.returncode
@@ -337,7 +350,8 @@ if __name__ == "__main__":
 
         # if output.endswith(next_shell_out):
         #     break
-        
+        # if newline == "\n":
+        #     break
         if output.endswith(exec_end) or output.endswith(exec_end_2):
             break
             
