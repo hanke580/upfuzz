@@ -99,8 +99,8 @@ public class HBaseCommandPool extends CommandPool {
             readCommandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(LIST_NAMESPACE.class,
                             5));
-            readCommandClassList.add(
-                    new AbstractMap.SimpleImmutableEntry<>(STATUS.class, 5));
+            // readCommandClassList.add(
+            // new AbstractMap.SimpleImmutableEntry<>(STATUS.class, 5));
             readCommandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(LIST_SNAPSHOTS.class,
                             5));
