@@ -285,6 +285,8 @@ cd $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$UP_VERSION"/
 sed -i "s/  case \${subcmd} in/&\n    dfsdaemon)\n      HADOOP_CLASSNAME=\"org.apache.hadoop.fs.FsShellDaemon\"\n    ;;/" bin/hdfs
 
 cd $UPFUZZ_DIR/src/main/resources/hdfs/compile-src/
+sed -i "s/ORG_VERSION=hadoop-.*$/ORG_VERSION=hadoop-$ORI_VERSION/" hdfs-clusternode.sh
+sed -i "s/UPG_VERSION=hadoop-.*$/UPG_VERSION=hadoop-$UP_VERSION/" hdfs-clusternode.sh
 docker build . -t upfuzz_hdfs:hadoop-"$ORI_VERSION"_hadoop-"$UP_VERSION"
 
 cd $UPFUZZ_DIR
@@ -469,5 +471,5 @@ launch_service()
 
 ### hdfs daemon to version
 * FsShellDaemon2.java: hadoop-2.10.2
-* FsShellDaemon3.java: (> 3): 3.2.4
-* FsShellDaemon_trunk.java: (>=3.3.4) hadoop-3.3.6
+* FsShellDaemon3.java: (> 3): 3.2.4, 3.3.0
+* FsShellDaemon_trunk.java: (>=3.3.4) hadoop-3.3.6, 3.4.0
