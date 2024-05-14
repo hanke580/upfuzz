@@ -55,10 +55,11 @@ public class CommandSequence implements Serializable {
         List<Command> validCommands = new LinkedList<>();
 
         for (int i = 0; i < commands.size(); i++) {
-            boolean fixable = checkAndUpdateCommand(commands.get(i), state);
+            Command command = commands.get(i);
+            boolean fixable = checkAndUpdateCommand(command, state);
             if (fixable) {
-                validCommands.add(commands.get(i));
-                updateState(commands.get(i), state);
+                validCommands.add(command);
+                updateState(command, state);
             }
         }
         this.commands = validCommands;
