@@ -48,6 +48,15 @@ sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
 The other steps are the same as the normal testing.
 
+## Note: avoid conflict with other upfuzz users
+If multiple upfuzz users are using the same server, the default port may conflict.
+
+Solution: Set the `serverPort` and `clientPort` in the configuration file to avoid conflict with other users.
+```json
+"serverPort" : "?",
+"clientPort" : "?",
+```
+
 ## Version Delta Testing
 ### Cassandra
 ```bash
