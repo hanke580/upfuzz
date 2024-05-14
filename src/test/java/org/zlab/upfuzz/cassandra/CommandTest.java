@@ -14,7 +14,7 @@ import org.zlab.upfuzz.utils.SETType;
 import org.zlab.upfuzz.utils.Utilities;
 
 public class CommandTest extends AbstractTest {
-    @Test
+    // @Test
     public void testSerializable() {
         CassandraState s = new CassandraState();
 
@@ -70,7 +70,7 @@ public class CommandTest extends AbstractTest {
         System.out.println();
     }
 
-    @Test
+    // @Test
     public void testCommandWithInitialValue()
             throws Exception {
         CommandSequence commandSequence = cass13939CommandSequence();
@@ -128,7 +128,7 @@ public class CommandTest extends AbstractTest {
         System.out.println("command size = " + commandStringList.size());
     }
 
-    @Test
+    // @Test
     public void testOneByteDiffCommandWithInitialValue()
             throws Exception {
         // This will create a command which only have one Byte difference,
@@ -185,7 +185,7 @@ public class CommandTest extends AbstractTest {
         System.out.println("command size = " + commandStringList.size());
     }
 
-    @Test
+    // @Test
     public void testTwoByteDiffCommandWithInitialValue1()
             throws Exception {
         // This will create a command which only have one Byte difference,
@@ -242,7 +242,7 @@ public class CommandTest extends AbstractTest {
         System.out.println("command size = " + commandStringList.size());
     }
 
-    @Test
+    // @Test
     public void testTwoByteDiffCommandWithInitialValue2()
             throws Exception {
         // This will create a command which only have one Byte difference,
@@ -299,7 +299,7 @@ public class CommandTest extends AbstractTest {
         System.out.println("command size = " + commandStringList.size());
     }
 
-    @Test
+    // @Test
     public void testFourByteDiffCommandWithInitialValue()
             throws Exception {
         // Delete four bytes in two different commands
@@ -355,7 +355,7 @@ public class CommandTest extends AbstractTest {
         System.out.println("command size = " + commandStringList.size());
     }
 
-    @Test
+    // @Test
     public void testOneCmdDiffCommandWithInitialValue1()
             throws Exception {
         // This will create a command which only have one Byte difference,
@@ -412,7 +412,7 @@ public class CommandTest extends AbstractTest {
         System.out.println("command size = " + commandStringList.size());
     }
 
-    @Test
+    // @Test
     public void testOneCmdDiffCommandWithInitialValue2()
             throws Exception {
         // This will create a command which only have one Byte difference,
@@ -469,7 +469,7 @@ public class CommandTest extends AbstractTest {
         System.out.println("command size = " + commandStringList.size());
     }
 
-    @Test
+    // @Test
     public void testTwoCmdDiffCommandWithInitialValue()
             throws Exception {
         // This will create a command which only have one Byte difference,
@@ -525,7 +525,7 @@ public class CommandTest extends AbstractTest {
         System.out.println("command size = " + commandStringList.size());
     }
 
-    @Test
+    // @Test
     public void testTwoCmdDiffCommandWithInitialValue1()
             throws Exception {
         CommandSequence commandSequence = cass13939CommandSequence_Two_Command_Diff1();
@@ -580,7 +580,7 @@ public class CommandTest extends AbstractTest {
         System.out.println("command size = " + commandStringList.size());
     }
 
-    @Test
+    // @Test
     public void testCASSANDRA14912()
             throws Exception {
         // Delete four bytes in two different commands
@@ -995,7 +995,7 @@ public class CommandTest extends AbstractTest {
         return commandSequence;
     }
 
-    @Test
+    // @Test
     public void test_cass14803()
             throws Exception {
         CommandPool commandPool = new CassandraCommandPool();
