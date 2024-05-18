@@ -14,7 +14,6 @@ import org.zlab.ocov.tracker.graph.structure.OutDegreeConstraint;
 import org.zlab.ocov.tracker.graph.structure.StructureConstraint;
 import org.zlab.ocov.tracker.inv.Invariant;
 import org.zlab.ocov.tracker.inv.unary.*;
-import org.zlab.ocov.tracker.type.*;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -24,22 +23,6 @@ public abstract class Packet {
 
     static Gson gson;
     static {
-        RuntimeTypeAdapterFactory<TypeInfo> typeFactory = RuntimeTypeAdapterFactory
-                .of(TypeInfo.class, "type") // "type" is a field in JSON that
-                                            // tells us what the
-                // actual type is
-                .registerSubtype(ArrayType.class, "array")
-                .registerSubtype(BooleanType.class, "boolean")
-                .registerSubtype(CollectionType.class, "collection")
-                .registerSubtype(MapType.class, "map")
-                .registerSubtype(DoubleType.class, "double")
-                .registerSubtype(FloatType.class, "float")
-                .registerSubtype(IntegerType.class, "integer")
-                .registerSubtype(LongType.class, "long")
-                .registerSubtype(ObjectType.class, "object")
-                .registerSubtype(ShortType.class, "short")
-                .registerSubtype(StringType.class, "string");
-
         RuntimeTypeAdapterFactory<LabelConstraint> typeFactory1 = RuntimeTypeAdapterFactory
                 .of(LabelConstraint.class, "LabelConstraint")
                 .registerSubtype(ValueConstraint.class, "ValueConstraint");
@@ -75,7 +58,6 @@ public abstract class Packet {
                         "AccumulatedSizeConstraint");
 
         gson = new GsonBuilder()
-                .registerTypeAdapterFactory(typeFactory)
                 .registerTypeAdapterFactory(typeFactory1)
                 .registerTypeAdapterFactory(typeFactory2)
                 .registerTypeAdapterFactory(typeFactory3)
