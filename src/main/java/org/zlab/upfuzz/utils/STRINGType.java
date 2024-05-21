@@ -14,7 +14,7 @@ import org.apache.logging.log4j.Logger;
 public class STRINGType extends ParameterType.BasicConcreteType {
     static Logger logger = LogManager.getLogger(STRINGType.class);
 
-    public int MAX_LEN = 256; // Probably need refactor
+    public int MAX_LEN = 2048; // Probably need refactor
 
     public static final Set<String> stringPool = new HashSet<>();
     public static final String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
