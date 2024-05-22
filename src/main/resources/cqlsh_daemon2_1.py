@@ -203,7 +203,6 @@ class TCPHandler(object):
                 msg = json.dumps(resp).encode("ascii")
                 if len(msg) > MESSAGE_SIZE:
                     # Create a error resp
-                    print("Message too large to send!")
                     resp = {
                         "cmd": cmd,
                         "exitValue": 0 if ret == True else 1,

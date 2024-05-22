@@ -151,7 +151,6 @@ class TCPHandler(socketserver.BaseRequestHandler):
                 msg = json.dumps(resp).encode("ascii")
                 if len(msg) > MESSAGE_SIZE:
                     # Create a error resp
-                    print("Message too large to send!")
                     resp = {
                         "cmd": cmd,
                         "exitValue": exit_code,
