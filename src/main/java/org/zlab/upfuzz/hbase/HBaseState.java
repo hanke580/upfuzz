@@ -22,6 +22,8 @@ public class HBaseState extends State {
     public Map<String, Set<String>> table2rowKeys = new HashMap<>();
 
     public void addRowKeyTable(String tableName) {
+        if (table2rowKeys.containsKey(tableName))
+            return;
         table2rowKeys.put(tableName, new HashSet<>());
     }
 
@@ -30,14 +32,21 @@ public class HBaseState extends State {
     }
 
     public Set<Parameter> getRowKey(String tableName) {
-        return Utilities.strings2Parameters(table2rowKeys.get(tableName));
+        Set<String> result = new HashSet<>();
+        if (table2rowKeys.containsKey(tableName))
+            result.addAll(table2rowKeys.get(tableName));
+        return Utilities.strings2Parameters(result);
     }
 
     public void addRowKey(String tableName, String rowKey) {
+        if (!table2rowKeys.containsKey(tableName))
+            return;
         table2rowKeys.get(tableName).add(rowKey);
     }
 
     public void deleteRowKey(String tableName, String rowKey) {
+        if (!table2rowKeys.containsKey(tableName))
+            return;
         table2rowKeys.get(tableName).remove(rowKey);
     }
 
@@ -55,10 +64,22 @@ public class HBaseState extends State {
 
     public void addColumnFamily(String tableName, String columnFamilyName,
             HBaseColumnFamily columnFamily) {
+        if (!table2families.containsKey(tableName))
+            return;
+        if (table2families.get(tableName) == null) {
+            table2families.put(tableName,
+                    new HashMap<String, HBaseColumnFamily>());
+        }
         table2families.get(tableName).put(columnFamilyName, columnFamily);
     }
 
     public void deleteColumnFamily(String tableName, String columnFamilyName) {
+        if (!table2families.containsKey(tableName))
+            return;
+        if (table2families.get(tableName) == null) {
+            table2families.remove(tableName);
+            return;
+        }
         table2families.get(tableName).remove(columnFamilyName);
     }
 

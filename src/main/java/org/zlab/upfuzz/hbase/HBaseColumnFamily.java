@@ -29,7 +29,19 @@ public class HBaseColumnFamily implements Serializable {
         indexes = new HashSet<>();
     }
 
+    // add a column 'colName2Type' to the column family
     public void addColName2Type(Parameter colName2Type) {
-        this.colName2Type.add(colName2Type);
+        if (!this.colName2Type.contains(colName2Type))
+            this.colName2Type.add(colName2Type);
+    }
+
+    // get a random column from the column family
+    public Parameter getRandomQualifier() {
+        int size = this.colName2Type.size();
+        if (size == 0) {
+            return null;
+        }
+        int idx = (int) (Math.random() * size);
+        return this.colName2Type.get(idx);
     }
 }

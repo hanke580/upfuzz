@@ -13,21 +13,9 @@ public class APPEND extends PUT_MODIFY {
 
     @Override
     public String constructCommandString() {
-        Parameter tableName = params.get(0);
-        Parameter columnFamilyName = params.get(1);
-        Parameter rowKey = params.get(2);
-        Parameter columnName = params.get(3);
-        String colNameStr = columnName.toString();
-        colNameStr = colNameStr.substring(0, colNameStr.indexOf(" "));
-        Parameter insertValues = params.get(4);
-        String valueStr = insertValues.toString();
-
-        return "append "
-                + "'" + tableName.toString() + "', "
-                + "'" + rowKey.toString() + "', "
-                + "'" + columnFamilyName.toString() + ":"
-                + colNameStr + "', "
-                + valueStr;
+        // the output of the super's method is 'put ....', replace 'put' with
+        // 'append'
+        return "append" + super.constructCommandString().substring(3);
     }
 
     @Override

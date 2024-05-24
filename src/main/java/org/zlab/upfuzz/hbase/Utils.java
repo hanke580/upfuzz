@@ -3,7 +3,7 @@ package org.zlab.upfuzz.hbase;
 import org.apache.commons.lang3.SerializationUtils;
 import org.zlab.upfuzz.Parameter;
 
-import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 

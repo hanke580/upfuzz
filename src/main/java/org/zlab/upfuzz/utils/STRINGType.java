@@ -265,13 +265,22 @@ public class STRINGType extends ParameterType.BasicConcreteType {
 
     private String addByte(String str) {
         // Add a char
-        StringBuilder sb = new StringBuilder(str);
+        try {
+            StringBuilder sb = new StringBuilder(str);
 
-        Random rand = new Random();
-        int insertPos = rand.nextInt(sb.length());
-        char insertChar = alphabet.charAt(rand.nextInt(alphabet.length()));
-        sb.insert(insertPos, insertChar);
-        return sb.toString();
+            Random rand = new Random();
+            int insertPos = rand.nextInt(sb.length());
+            char insertChar = alphabet.charAt(rand.nextInt(alphabet.length()));
+            sb.insert(insertPos, insertChar);
+            return sb.toString();
+        }
+        // if str was empty, rand.nextInt(sb.length()); will throw the
+        // StringIndex exception
+        catch (IllegalArgumentException e) {
+            Random rand = new Random();
+            return String
+                    .valueOf(alphabet.charAt(rand.nextInt(alphabet.length())));
+        }
     }
 
     private String deleteByte(String str) {

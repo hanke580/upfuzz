@@ -5,9 +5,10 @@ import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hbase.HBaseCommand;
 import org.zlab.upfuzz.hbase.HBaseState;
-import org.zlab.upfuzz.utils.INTType;
+import org.zlab.upfuzz.utils.*;
 
 public class COUNT extends HBaseCommand {
+
     public COUNT(HBaseState state) {
         super(state);
         Parameter tableName = chooseTable(state, this, null);
@@ -24,7 +25,19 @@ public class COUNT extends HBaseCommand {
                         .generateRandomParameter(state, this);
         params.add(cache);
 
-        // TODO: Add Filter
+        Parameter cacheBlocks = new ParameterType.OptionalType(
+                new ParameterType.InCollectionType(
+                        CONSTANTSTRINGType.instance,
+                        (s, c) -> Utilities
+                                .strings2Parameters(
+                                        CACHE_BLOCKS_TYPES),
+                        null),
+                null).generateRandomParameter(state, this);
+        params.add(cacheBlocks);
+
+//        Parameter filter = new ParameterType.OptionalType(new FILTERType(),
+//                null).generateRandomParameter(state, this);
+//        params.add(filter);
     }
 
     @Override
@@ -34,10 +47,23 @@ public class COUNT extends HBaseCommand {
                 : ", INTERVAL => " + params.get(1);
         String cache = params.get(2).toString().isEmpty() ? ""
                 : ", CACHE => " + params.get(2);
-        return "count '" + params.get(0) + "'" + interval + cache;
+        String cacheBlocks = params.get(3).toString().isEmpty() ? ""
+                : ", CACHE_BLOCKS => " + params.get(3);
+        return "count '" + params.get(0) + "'" + interval + cache + cacheBlocks;
     }
 
     @Override
     public void updateState(State state) {
+
+    }
+
+    @Override
+    public boolean mutate(State s) throws Exception {
+        try {
+            super.mutate(s);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
