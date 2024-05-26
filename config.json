@@ -39,5 +39,6 @@
   "startUpClusterForDebugging": false,
   "drain": false,
   "useFixedCommand": false,
+  "eval_CASSANDRA13939": false,
   "cassandraEnableTimeoutCheck": true
 }
