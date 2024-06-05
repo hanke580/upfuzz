@@ -267,19 +267,49 @@ public class HBaseDockerCluster extends DockerCluster {
     public boolean fullStopUpgrade() throws Exception {
         logger.info("Cluster full-stop upgrading...");
         // Shutdown all rs
-        for (int i = 0; i < dockers.length; i++) {
-            ((HBaseDocker) dockers[i])
-                    .shutdownWithType(HBaseDocker.NodeType.REGIONSERVER);
-        }
-        // Shutdown all masters
-        for (int i = 0; i < dockers.length; i++) {
-            ((HBaseDocker) dockers[i])
-                    .shutdownWithType(HBaseDocker.NodeType.MASTER);
-        }
-        // Shutdown all zk
-        for (int i = 0; i < dockers.length; i++) {
-            ((HBaseDocker) dockers[i])
-                    .shutdownWithType(HBaseDocker.NodeType.ZOOKEEPER);
+        if (!Config.getConf().testSingleVersion) {
+            String[] versionPartsOriginal = Config.getConf().originalVersion
+                    .substring(originalVersion.indexOf("-") + 1)
+                    .split("\\.");
+            String[] versionPartsUpgraded = Config.getConf().upgradedVersion
+                    .substring(upgradedVersion.indexOf("-") + 1)
+                    .split("\\.");
+
+            if ((Integer.parseInt(versionPartsOriginal[0]) == 2
+                    && Integer.parseInt(versionPartsOriginal[1]) < 2)
+                    && (Integer.parseInt(versionPartsUpgraded[0]) >= 2
+                            && Integer.parseInt(
+                                    versionPartsUpgraded[1]) >= 2)) {
+                for (int i = 0; i < dockers.length; i++) {
+                    ((HBaseDocker) dockers[i])
+                            .prepareUpgradeTo2_2(HBaseDocker.NodeType.MASTER,
+                                    originalVersion);
+                }
+            }
+            for (int i = 0; i < dockers.length; i++) {
+                ((HBaseDocker) dockers[i])
+                        .shutdownWithType(HBaseDocker.NodeType.REGIONSERVER);
+            }
+            // Shutdown all zk
+            for (int i = 0; i < dockers.length; i++) {
+                ((HBaseDocker) dockers[i])
+                        .shutdownWithType(HBaseDocker.NodeType.ZOOKEEPER);
+            }
+        } else {
+            for (int i = 0; i < dockers.length; i++) {
+                ((HBaseDocker) dockers[i])
+                        .shutdownWithType(HBaseDocker.NodeType.REGIONSERVER);
+            }
+            // Shutdown all masters
+            for (int i = 0; i < dockers.length; i++) {
+                ((HBaseDocker) dockers[i])
+                        .shutdownWithType(HBaseDocker.NodeType.MASTER);
+            }
+            // Shutdown all zk
+            for (int i = 0; i < dockers.length; i++) {
+                ((HBaseDocker) dockers[i])
+                        .shutdownWithType(HBaseDocker.NodeType.ZOOKEEPER);
+            }
         }
         prepareUpgrade();
         for (int i = 0; i < dockers.length; i++) {

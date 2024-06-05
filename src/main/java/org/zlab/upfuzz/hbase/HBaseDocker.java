@@ -191,7 +191,31 @@ public class HBaseDocker extends Docker {
     public void upgrade() throws Exception {
         prepareUpgradeEnv();
         String restartCommand;
+        String createEmptySnapshotCommand;
+        String deleteLogCommand;
+
+        String[] versionParts = originalVersion
+                .substring(originalVersion.indexOf("-") + 1).split("\\.");
+
         restartCommand = "/usr/bin/supervisorctl restart upfuzz_hbase:";
+        deleteLogCommand = "rm -rf /usr/local/zookeeper/version-2/log.*";
+        if ((Integer.parseInt(versionParts[0]) == 2
+                && Integer.parseInt(versionParts[1]) < 3)
+                || (Integer.parseInt(versionParts[0]) == 1)) {
+            logger.info(
+                    "Hbase docker: going to add empty snapshot.0 file for zookeeper");
+            Process copyToHbaseContainer = copyToContainer("snapshot.0",
+                    "/usr/local/zookeeper/version-2/");
+            int copyToContainerRet = copyToHbaseContainer.waitFor();
+
+            logger.debug("Node " + index + " empty snapshot creation returned: "
+                    + copyToContainerRet);
+        }
+        // Process deleteLog = runInContainer(
+        // new String[] { "/bin/bash", "-c",
+        // deleteLogCommand },
+        // env);
+        // int deleteLogRet = deleteLog.waitFor();
         Process restart = runInContainer(
                 new String[] { "/bin/bash", "-c", restartCommand }, env);
         int ret = restart.waitFor();
@@ -226,7 +250,7 @@ public class HBaseDocker extends Docker {
         try {
             int main_version = Integer
                     .parseInt(spStrings[spStrings.length - 1].substring(0, 1));
-            if (main_version > 3)
+            if (main_version >= 3)
                 pythonVersion = "python3";
         } catch (Exception e) {
             e.printStackTrace();
@@ -245,11 +269,58 @@ public class HBaseDocker extends Docker {
     public void downgrade() throws Exception {
     }
 
+    public void prepareUpgradeTo2_2(NodeType nodeType, String version)
+            throws Exception {
+        if (nodeType == NodeType.MASTER) {
+            if (index == 0) {
+                String hbaseDaemonPath = "/" + system + "/" + version + "/"
+                        + "bin/hbase-daemon.sh";
+                // N0: hbase master, zookeeper
+                String[] stopHMaster = new String[] {
+                        hbaseDaemonPath, "--config", "/etc/" + version,
+                        "stop", "master" };
+                int ret = runProcessInContainer(stopHMaster, env);
+                logger.debug("shutdown " + "hmaster" + " ret = " + ret);
+
+                String newConfigurationEntry = "/<\\/configuration>/i\\\n" +
+                        "    <property>\\\n" +
+                        "        <name>hbase.procedure.upgrade-to-2-2</name>\\\n"
+                        +
+                        "        <value>true</value>\\\n" +
+                        "    </property>";
+                String hbaseConfigPath = "/etc/" + version + "/hbase-site.xml";
+                String modifyHbaseSiteCommand = "sed -i '" +
+                        newConfigurationEntry + "' ";
+
+                // Process envForUpgradeTo2_2 =
+                // runInContainer(modifyHbaseSiteCommand);
+                // int ret = envForUpgradeTo2_2.waitFor();
+
+                Process envForUpgradeTo2_2 = updateFileInContainer(
+                        hbaseConfigPath,
+                        modifyHbaseSiteCommand);
+                ret = envForUpgradeTo2_2.waitFor();
+                logger.debug(
+                        "prepare upgrade environment " + " to 2.2 for hmaster"
+                                + " ret = " + ret);
+
+                String[] startHMaster = new String[] { "/bin/bash", "-c",
+                        "\"" + hbaseDaemonPath, "--config", "/etc/" + version,
+                        "start", "master\"" };
+
+                Process upgradeTo2_2_start = runInContainer(startHMaster);
+                ret = upgradeTo2_2_start.waitFor();
+                logger.debug("upgrade " + "hmaster to 2.2" + " ret = " + ret);
+            }
+        }
+    }
+
     public void shutdownWithType(NodeType nodeType) {
         // The reason this code is like this is that
         // the zk and master/rs are in the same node
         String curVersion = type.equals("upgraded") ? upgradedVersion
                 : originalVersion;
+        logger.info("[HBaseDocker] Current version: " + curVersion);
         String hbaseDaemonPath = "/" + system + "/" + curVersion + "/"
                 + "bin/hbase-daemon.sh";
         if (nodeType == NodeType.REGIONSERVER) {

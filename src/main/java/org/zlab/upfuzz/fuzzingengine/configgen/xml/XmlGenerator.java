@@ -81,8 +81,32 @@ public class XmlGenerator extends ConfigFileGenerator {
                 && defaultXMLPath.getFileName().toString()
                         .equals("hbase-site.xml")) {
             // logger.debug("set hbase cluster config");
+            String originalVersionHbase = Config.getConf().originalVersion;
+            String upgradedVersionHbase = Config.getConf().upgradedVersion;
+            String[] versionPartsOriginal = originalVersionHbase
+                    .substring(originalVersionHbase.indexOf("-") + 1)
+                    .split("\\.");
+            String[] versionPartsUpgraded = upgradedVersionHbase
+                    .substring(upgradedVersionHbase.indexOf("-") + 1)
+                    .split("\\.");
+            int curMajorVersion = Integer.parseInt(versionPartsOriginal[0]);
+            int curMinorVersion = Integer.parseInt(versionPartsOriginal[1]);
+
+            int upMajorVersion = Integer.parseInt(versionPartsUpgraded[0]);
+            int upMinorVersion = Integer.parseInt(versionPartsUpgraded[1]);
+
             HBaseClusterSetting(configurations);
             HBaseClusterSetting(newConfigurations);
+            if (((curMajorVersion == 2 && curMinorVersion < 3)
+                    || (curMajorVersion < 2))
+                    || ((upMajorVersion == 2 && upMinorVersion < 3)
+                            || (upMajorVersion < 2))) {
+                HBaseClusterSetting(configurations, 1);
+                HBaseClusterSetting(newConfigurations, 1);
+            }
+            // newConfigurations.put("hbase.procedure.upgrade-to-2-2", "true");
+            // HBaseClusterSetting(configurations, 1);
+            // HBaseClusterSetting(newConfigurations, 1);
         }
     }
 
@@ -120,12 +144,31 @@ public class XmlGenerator extends ConfigFileGenerator {
                 "hdfs://master:8020/hbase");
         curConfigurations.put("hbase.zookeeper.property.dataDir",
                 "/usr/local/zookeeper");
+        curConfigurations.put("hbase.coprocessor.master.classes",
+                "org.apache.hadoop.hbase.security.access.AccessController");
+        curConfigurations.put("hbase.coprocessor.region.classes",
+                "org.apache.hadoop.hbase.security.access.AccessController");
+        curConfigurations.put("hbase.security.authorization", "true");
+        // curConfigurations.put("zookeeper.snapshot.trust.empty",
+        // "true");
+        // curConfigurations.put("hbase.unsafe.stream.capability.enforce",
+        // "false");
+        // curConfigurations.put("hbase.procedure.upgrade-to-2-2", "true");
         curConfigurations.put("hbase.zookeeper.quorum",
                 "hmaster,hregion1,hregion2");
+        // curConfigurations.put("hbase.rpc.engine",
+        // "org.apache.hadoop.hbase.ipc.SecureRpcEngine");
+        // curConfigurations.put("hbase.procedure.store.wal.use.hsync",
+        // "false");
         // Enable quota setting
         if (Config.getConf().enableQuota)
             curConfigurations.put("hbase.quota.enabled",
                     "true");
+    }
+
+    public void HBaseClusterSetting(Map<String, String> curConfigurations,
+            int version) {
+        curConfigurations.put("zookeeper.snapshot.trust.empty", "true");
     }
 
     public static Map<String, String> parseXmlFile(Path filePath) {

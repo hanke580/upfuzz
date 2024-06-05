@@ -122,9 +122,11 @@ class TCPHandler(socketserver.BaseRequestHandler):
                         if err_out is not None and len(err_out) != 0:
                             ret_err += err_out.decode("utf-8")
                             output_file.write('stderr: ' + ret_err)
-                        if "syntax error" in ret_out or "NameError" in ret_out or "NoMethodError" in ret_out:
+                        if "syntax error" in ret_out or "NameError" in ret_out or "NoMethodError" in ret_out or "ERROR:" in ret_out:
                             break
-                        if ret_out.endswith("seconds") or ret_out.endswith("seconds\n"):
+                        # if newline == "\n":
+                        #     break
+                        if ret_out.endswith("seconds") or ret_out.endswith("seconds\n") or ret_out.endswith("seconds\n\n") or ret_out.endswith("average load\n") or ret_out.endswith("\n\n"):
                             break
                         # seconds_count += 1
                         # if "=>" in ret_out:
@@ -350,10 +352,10 @@ if __name__ == "__main__":
 
         # if output.endswith(next_shell_out):
         #     break
-        # if newline == "\n":
-        #     break
-        if output.endswith(exec_end) or output.endswith(exec_end_2):
+        if newline == "\n":
             break
+        # if output.endswith(exec_end) or output.endswith(exec_end_2):
+        #     break
             
     # with Popen([hbase_path, 'shell'], stdout=PIPE, stdin=PIPE, stderr=PIPE, universal_newlines=True) as p:
     #     for line in p.stdout:
@@ -378,7 +380,6 @@ if __name__ == "__main__":
     # process.stdin.write(b'version\n')
     # process.stdin.write(b'version\n')
     # process.stdin.write(b'version\n')
-    process.stdout.read()
     print("outside while loop")
     print(output)
     output_file.write(output + '\n')

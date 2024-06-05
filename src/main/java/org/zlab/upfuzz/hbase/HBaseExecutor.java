@@ -126,6 +126,9 @@ public class HBaseExecutor extends Executor {
                     .getDocker(nodeIndex)).HBaseShell;
 
             long startTime = System.currentTimeMillis();
+            if (Config.getConf().debug) {
+                logger.trace("Execute command " + command.getCommand());
+            }
             HBasePacket cp = HBaseShell
                     .execute(command.getCommand());
             long endTime = System.currentTimeMillis();
@@ -174,11 +177,20 @@ public class HBaseExecutor extends Executor {
                 // HBase unique: Ruby objects
                 str1 = Utilities.maskRubyObject(str1);
                 str2 = Utilities.maskRubyObject(str2);
+                logger.info("oriResult: " + str1);
+                logger.info("upResult: " + str2);
 
                 if (str1.compareTo(str2) != 0) {
                     // Handle FP
                     if (str1.contains("NoSuchColumnFamilyException:") &&
                             str2.contains("NoSuchColumnFamilyException:")) {
+                        continue;
+                    }
+                    if (str1.contains(str2) || str2.contains(str1)) {
+                        continue;
+                    }
+                    if (str1.contains("wrong number of arguments")
+                            && str2.contains("wrong number of arguments")) {
                         continue;
                     }
                     String errorMsg = "Result inconsistency at read id: " + i

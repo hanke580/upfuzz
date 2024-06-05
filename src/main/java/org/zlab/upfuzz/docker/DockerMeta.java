@@ -72,6 +72,47 @@ public abstract class DockerMeta {
         return Utilities.exec(cmds.toArray(new String[] {}), workdir);
     }
 
+    public Process copyToContainer(String filename, String destinationDirectory)
+            throws IOException {
+        ArrayList<String> cmds = new ArrayList<>();
+        cmds.add("docker");
+        cmds.add("cp");
+        cmds.add(filename);
+        String copyDirectory = containerName
+                + ":" + destinationDirectory;
+        cmds.add(copyDirectory);
+
+        ProcessBuilder pb = new ProcessBuilder(cmds).redirectErrorStream(true);
+
+        for (String cmd : cmds) {
+            logger.info("exec cmd: " + cmd);
+        }
+        return pb.start();
+    }
+
+    public Process updateFileInContainer(String filename,
+            String modificationCommand) throws IOException {
+        ArrayList<String> cmds = new ArrayList<>();
+        cmds.add("docker");
+        cmds.add("exec");
+        cmds.add(containerName);
+
+        cmds.add("sh");
+        cmds.add("-c");
+
+        // Construct the complete sed command with the filename at the end
+        String fullCommand = modificationCommand + " " + filename;
+        cmds.add(fullCommand);
+
+        ProcessBuilder pb = new ProcessBuilder(cmds).redirectErrorStream(true);
+
+        for (String cmd : cmds) {
+            logger.info("exec cmd: " + cmd);
+        }
+
+        return pb.start();
+    }
+
     public int runProcessInContainer(String[] cmd, String[] env) {
         try {
             Process p = runInContainer(cmd, env);
@@ -97,6 +138,8 @@ public abstract class DockerMeta {
         String[] dockerCMD = Utilities.concatArray(
                 new String[] { "docker", "exec", containerName }, cmd);
         // logger.debug(String.join(" ", dockerCMD));
+        if (Config.getConf().debug)
+            logger.debug(String.join(" ", dockerCMD));
         return Utilities.exec(dockerCMD, workdir);
     }
 
