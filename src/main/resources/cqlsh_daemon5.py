@@ -268,8 +268,8 @@ class TCPHandler(socketserver.BaseRequestHandler):
                         "cmd": cmd,
                         "exitValue": 0 if ret == True else 1,
                         "timeUsage": end_time - start_time,
-                        "message": "message too large to send: here's the first 10000 Bytes:\n" + out_base64_message[:10000] + "\n...",
-                        "error": "message too large to send: here's the first 10000 Bytes:\n" + err_base64_message[:10000] + "\n..."
+                        "message": out_base64_message[:1000],
+                        "error": err_base64_message[:1000]
                     }
                     msg = json.dumps(resp).encode("ascii")
                 
