@@ -19,9 +19,10 @@ public class CassandraCommandPool extends CommandPool {
                         writeCommandRate));
         commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
                 CREATE_KEYSPACE.class, writeCommandRate));
-        commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(CREATE_TABLE.class,
-                        writeCommandRate));
+        // limit to only one table for each test
+        // commandClassList.add(
+        // new AbstractMap.SimpleImmutableEntry<>(CREATE_TABLE.class,
+        // writeCommandRate));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(INSERT.class,
                         writeCommandRate));

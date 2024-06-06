@@ -27,34 +27,33 @@ public class CommandTest extends AbstractTest {
 
         CREATE cmd01 = new CREATE(s);
         String cmd01str = cmd01.constructCommandString();
-        System.out.println(cmd01str);
+        // System.out.println(cmd01str);
         cmd01.updateState(s);
 
         ALTER_ADD_FAMILY cmd02 = new ALTER_ADD_FAMILY(s);
         String cmd02str = cmd02.constructCommandString();
-        System.out.println(cmd02str);
+        // System.out.println(cmd02str);
         cmd02.updateState(s);
 
         ALTER_DELETE_FAMILY cmd03 = new ALTER_DELETE_FAMILY(s);
         String cmd03str = cmd03.constructCommandString();
-        System.out.println(cmd03str);
+        // System.out.println(cmd03str);
         cmd03.updateState(s);
 
         PUT_NEW cmd07 = new PUT_NEW(s);
         String cmd07str = cmd07.constructCommandString();
-        System.out.println(cmd07str);
+        // System.out.println(cmd07str);
         cmd07.updateState(s);
 
         PUT_NEW cmd04 = new PUT_NEW(s);
         String cmd04str = cmd04.constructCommandString();
-        System.out.println(cmd04str);
+        // System.out.println(cmd04str);
         cmd04.updateState(s);
 
         // PUT_NEW_ITEM cmd05 = new PUT_NEW_ITEM(s);
         // String cmd05str = cmd05.constructCommandString();
         // System.out.println(cmd05str);
         // cmd05.updateState(s);
-
     }
 
     @Test
