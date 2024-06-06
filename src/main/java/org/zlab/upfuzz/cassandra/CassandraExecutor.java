@@ -17,8 +17,6 @@ public class CassandraExecutor extends Executor {
     static final String classToIns = Config.getConf().instClassFilePath;
     static final String excludes = "org.apache.cassandra.metrics.*:org.apache.cassandra.net.*:org.apache.cassandra.io.sstable.format.SSTableReader.*:org.apache.cassandra.service.*";
 
-    static final String irrelevantPrompt = "WARNING: cqlsh was built against 5.0-beta1, but this server is 5.0.  All features may not work!\n";
-
     public CassandraExecutor() {
         super("cassandra", Config.getConf().nodeNum);
         timestamp = System.currentTimeMillis();
@@ -174,17 +172,6 @@ public class CassandraExecutor extends Executor {
             for (int i = 0; i < oriResult.size(); i++) {
                 String ori = oriResult.get(i);
                 String up = upResult.get(i);
-                // sanitize: specially handle 5.1-beta version
-                if (Config.getConf().originalVersion.contains("5.0")) {
-                    if (ori.contains(irrelevantPrompt)) {
-                        ori = ori.replace(irrelevantPrompt, "").strip();
-                    }
-                }
-                if (Config.getConf().upgradedVersion.contains("5.0")) {
-                    if (up.contains(irrelevantPrompt)) {
-                        up = up.replace(irrelevantPrompt, "").strip();
-                    }
-                }
 
                 if (ori.compareTo(up) != 0) {
                     // SyntaxException
