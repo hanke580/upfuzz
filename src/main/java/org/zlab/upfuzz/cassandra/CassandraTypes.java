@@ -95,43 +95,15 @@ public class CassandraTypes {
 
     public static class TEXTType extends STRINGType {
         /**
-         * The difference between TEXTType and STRINGType is generateStringValue
-         * func, For TEXT, it needs to be enclosed by ''.
-         *
-         * Also TEXT cannot be empty.
+         * Differences between TEXTType and STRINGType:
+         * (1) TEXT needs to be enclosed by ''.
+         * (2) TEXT cannot be empty.
          */
         public static final TEXTType instance = new TEXTType();
-        public static final String signature = ""; // TODO: Choose the right
-                                                   // signature
+        public static final String signature = "";
 
         public TEXTType() {
             super();
-        }
-
-        public TEXTType(int MAX_LEN) {
-            super(MAX_LEN);
-        }
-
-        @Override
-        public Parameter generateRandomParameter(State s, Command c) {
-            String str = generateRandomString();
-
-            while (str.isEmpty()) {
-                str = generateRandomString();
-            }
-
-            return new Parameter(this, str);
-        }
-
-        @Override
-        public Parameter generateRandomParameter(State s, Command c,
-                Object init) {
-            if (init == null) {
-                return generateRandomParameter(s, c);
-            }
-            assert init instanceof String;
-            String initValue = (String) init;
-            return new Parameter(this, initValue);
         }
 
         @Override
@@ -145,11 +117,21 @@ public class CassandraTypes {
             Parameter tmpParam = new Parameter(this, p.value);
             super.mutate(s, c, tmpParam);
             // Make sure after the mutation, the value is still not empty
-            while (tmpParam.isEmpty(s, c) == true) {
+            while (tmpParam.isEmpty(s, c)) {
                 tmpParam.value = p.value;
                 super.mutate(s, c, tmpParam);
             }
             p.value = tmpParam.value;
+            return true;
+        }
+
+        @Override
+        public boolean isValid(State s, Command c, Parameter p) {
+            if (p == null || !(p.type instanceof TEXTType))
+                return false;
+            String value = (String) p.value;
+            if (value == null || value.isEmpty() || value.length() > MAX_LEN)
+                return false;
             return true;
         }
 

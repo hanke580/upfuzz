@@ -321,6 +321,8 @@ public class Config {
 
         public boolean eval_CASSANDRA13939 = false;
         public boolean eval_CASSANDRA14912 = false;
+
+        public int CASSANDRA_COLUMN_NAME_MAX_SIZE = 20;
         public int CASSANDRA_LIST_TYPE_MAX_SIZE = 10;
         public boolean CASSANDRA_ENABLE_SPECULATIVE_RETRY = true;
 

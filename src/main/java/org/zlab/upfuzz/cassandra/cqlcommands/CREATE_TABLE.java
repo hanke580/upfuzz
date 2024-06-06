@@ -66,7 +66,7 @@ public class CREATE_TABLE extends CassandraCommand {
                                                 new ParameterType.NotEmpty(
                                                         new ParameterType.NotStartWithNumber(
                                                                 new STRINGType(
-                                                                        20))),
+                                                                        Config.getConf().CASSANDRA_COLUMN_NAME_MAX_SIZE))),
                                                 CassandraTypes.TYPEType.instance)));
         Parameter columns = columnsType
                 .generateRandomParameter(state, this, init2);

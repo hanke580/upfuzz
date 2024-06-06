@@ -80,9 +80,9 @@ public class STRINGType extends ParameterType.BasicConcreteType {
         // Count a possibility for fetching from the pool
         if (!stringPool.isEmpty()) {
             Random rand = new Random();
-            int choice = rand.nextInt(5);
-            if (choice <= 3) {
-                // 80%: it will pick from the Pool
+            int choice = rand.nextInt(6);
+            if (choice <= 2) {
+                // 50%: it will pick from the Pool
 
                 // Try 3 times see whether it can get a valid String
                 List<String> stringPoolList;

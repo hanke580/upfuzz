@@ -5,6 +5,7 @@ import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.cassandra.CassandraCommand;
 import org.zlab.upfuzz.cassandra.CassandraState;
+import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.STRINGType;
 
@@ -37,7 +38,7 @@ public class ALTER_TABLE_RENAME extends CassandraCommand {
         params.add(targetColumn);
 
         Parameter newColumnName = new ParameterType.NotInCollectionType(
-                new STRINGType(),
+                new STRINGType(Config.getConf().CASSANDRA_COLUMN_NAME_MAX_SIZE),
                 (s, c) -> ((CassandraState) s).getTable(
                         c.params.get(0).toString(),
                         c.params.get(1).toString()).colName2Type,
