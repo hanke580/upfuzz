@@ -7,25 +7,26 @@ import org.zlab.upfuzz.cassandra.cqlcommands.*;
 import org.zlab.upfuzz.fuzzingengine.Config;
 
 public class CassandraCommandPool extends CommandPool {
-    // public static int boundaryWriteCommandRate = 10;
-    public static int writeCommandRate = 5;
+    public static int boundaryWriteCommandRate = 15;
     public static int createCommandRate = 5;
+    public static int writeCommandRate = 5;
     public static int readCommandRate = 5;
     public static int deleteLargeDateRate = 1;
 
     public void eval_CASSANDRA13939() {
-        commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(ALTER_TABLE_DROP.class,
-                        writeCommandRate));
-        commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
-                CREATE_KEYSPACE.class, writeCommandRate));
         // limit to only one table for each test
+        // commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
+        // CREATE_KEYSPACE.class, writeCommandRate));
         // commandClassList.add(
         // new AbstractMap.SimpleImmutableEntry<>(CREATE_TABLE.class,
         // writeCommandRate));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(INSERT.class,
+                        boundaryWriteCommandRate));
+        commandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(ALTER_TABLE_DROP.class,
                         writeCommandRate));
+
         createCommandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
                 CREATE_KEYSPACE.class, createCommandRate));
         createCommandClassList.add(
@@ -35,7 +36,7 @@ public class CassandraCommandPool extends CommandPool {
 
     public void eval_CASSANDRA14912() {
         eval_CASSANDRA13939();
-        // only need a ALTER_TABLE_ADD command
+        // Only need a ALTER_TABLE_ADD command
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(ALTER_TABLE_ADD.class,
                         writeCommandRate));
