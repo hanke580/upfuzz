@@ -17,6 +17,8 @@ public class CassandraExecutor extends Executor {
     static final String classToIns = Config.getConf().instClassFilePath;
     static final String excludes = "org.apache.cassandra.metrics.*:org.apache.cassandra.net.*:org.apache.cassandra.io.sstable.format.SSTableReader.*:org.apache.cassandra.service.*";
 
+    static final String irrelevantPrompt = "WARNING: cqlsh was built against 5.0-beta1, but this server is 5.0.  All features may not work!\n";
+
     public CassandraExecutor() {
         super("cassandra", Config.getConf().nodeNum);
         timestamp = System.currentTimeMillis();
@@ -162,37 +164,51 @@ public class CassandraExecutor extends Executor {
         }
 
         StringBuilder failureInfo = new StringBuilder("");
+        assert oriResult != null;
+        assert upResult != null;
         if (oriResult.size() != upResult.size()) {
             failureInfo.append("The result size is different\n");
             return new Pair<>(false, failureInfo.toString());
         } else {
             boolean ret = true;
             for (int i = 0; i < oriResult.size(); i++) {
-                // What should we do if
-                if (oriResult.get(i).compareTo(upResult.get(i)) != 0) {
+                String ori = oriResult.get(i);
+                String up = upResult.get(i);
+                // sanitize: specially handle 5.1-beta version
+                if (Config.getConf().originalVersion.contains("5.0")) {
+                    if (ori.contains(irrelevantPrompt)) {
+                        ori = ori.replace(irrelevantPrompt, "").strip();
+                    }
+                }
+                if (Config.getConf().upgradedVersion.contains("5.0")) {
+                    if (up.contains(irrelevantPrompt)) {
+                        up = up.replace(irrelevantPrompt, "").strip();
+                    }
+                }
 
+                if (ori.compareTo(up) != 0) {
                     // SyntaxException
-                    if (oriResult.get(i).contains("SyntaxException") &&
-                            upResult.get(i).contains("SyntaxException")) {
+                    if (ori.contains("SyntaxException") &&
+                            up.contains("SyntaxException")) {
                         continue;
                     }
 
                     // InvalidRequest
-                    if (oriResult.get(i).contains("InvalidRequest") &&
-                            upResult.get(i).contains("InvalidRequest")) {
+                    if (ori.contains("InvalidRequest") &&
+                            up.contains("InvalidRequest")) {
                         continue;
                     }
 
-                    if (oriResult.get(i).contains("0 rows") &&
-                            upResult.get(i).contains("0 rows")) {
+                    if (ori.contains("0 rows") &&
+                            up.contains("0 rows")) {
                         continue;
                     }
 
                     String errorMsg;
-                    if (((oriResult.get(i).contains("InvalidRequest")) &&
-                            !(upResult.get(i).contains("InvalidRequest")))
-                            || ((upResult.get(i).contains("InvalidRequest")) &&
-                                    !(oriResult.get(i)
+                    if (((ori.contains("InvalidRequest")) &&
+                            !(up.contains("InvalidRequest")))
+                            || ((up.contains("InvalidRequest")) &&
+                                    !(ori
                                             .contains("InvalidRequest")))) {
                         errorMsg = "Insignificant Result inconsistency at read id: "
                                 + i
@@ -203,17 +219,17 @@ public class CassandraExecutor extends Executor {
                     }
                     if (compareOldAndNew) {
                         errorMsg += "Old Version Result: "
-                                + oriResult.get(i).strip()
+                                + ori.strip()
                                 + "\n"
                                 + "New Version Result: "
-                                + upResult.get(i).strip()
+                                + up.strip()
                                 + "\n";
                     } else {
                         errorMsg += "Full Stop Result:\n"
-                                + oriResult.get(i).strip()
+                                + ori.strip()
                                 + "\n"
                                 + "Rolling Upgrade Result:\n"
-                                + upResult.get(i).strip()
+                                + up.strip()
                                 + "\n";
                     }
                     failureInfo.append(errorMsg);
