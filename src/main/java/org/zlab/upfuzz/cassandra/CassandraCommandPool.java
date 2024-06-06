@@ -35,8 +35,25 @@ public class CassandraCommandPool extends CommandPool {
     }
 
     public void eval_CASSANDRA14912() {
-        eval_CASSANDRA13939();
-        // Only need a ALTER_TABLE_ADD command
+        // Create commands
+        createCommandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
+                CREATE_KEYSPACE.class, createCommandRate));
+        createCommandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(CREATE_TABLE.class,
+                        createCommandRate));
+
+        // Write commands
+        commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
+                CREATE_KEYSPACE.class, writeCommandRate));
+        commandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(CREATE_TABLE.class,
+                        writeCommandRate));
+        commandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(INSERT.class,
+                        writeCommandRate));
+        commandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(ALTER_TABLE_DROP.class,
+                        writeCommandRate));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(ALTER_TABLE_ADD.class,
                         writeCommandRate));
@@ -114,7 +131,7 @@ public class CassandraCommandPool extends CommandPool {
                         writeCommandRate));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(INSERT.class,
-                        boundaryWriteCommandRate));
+                        writeCommandRate));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(TRUNCATE.class,
                         deleteLargeDateRate));
