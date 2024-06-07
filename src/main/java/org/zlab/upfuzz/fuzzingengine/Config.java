@@ -320,6 +320,8 @@ public class Config {
         public boolean cassandraEnableTimeoutCheck = true;
 
         public boolean eval_CASSANDRA13939 = false;
+        public boolean enable_ORDERBY_IN_SELECT = true;
+
         public boolean eval_CASSANDRA14912 = false;
 
         public int CASSANDRA_COLUMN_NAME_MAX_SIZE = 20;

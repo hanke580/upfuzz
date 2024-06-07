@@ -5,6 +5,7 @@ import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.cassandra.CassandraCommand;
 import org.zlab.upfuzz.cassandra.CassandraState;
+import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.utils.BOOLType;
 import org.zlab.upfuzz.utils.Pair;
 
@@ -103,18 +104,20 @@ public class SELECT extends CassandraCommand {
                 .generateRandomParameter(state, this);
         this.params.add(insertValues); // Param4
 
-        // Whether use the last columns from where Columns for ORDER BY
-        ParameterType.ConcreteType useOrderType = new BOOLType();
-        Parameter useOrder = useOrderType.generateRandomParameter(state,
-                this);
-        this.params.add(useOrder); // Param 5
+        if (Config.getConf().enable_ORDERBY_IN_SELECT) {
+            // Whether use the last columns from where Columns for ORDER BY
+            ParameterType.ConcreteType useOrderType = new BOOLType();
+            Parameter useOrder = useOrderType.generateRandomParameter(state,
+                    this);
+            this.params.add(useOrder); // Param 5
 
-        // Use ASC or DESC
-        // true: ASC, false: DESC
-        ParameterType.ConcreteType ascOrdescType = new BOOLType();
-        Parameter ascOrdesc = ascOrdescType.generateRandomParameter(state,
-                this);
-        this.params.add(ascOrdesc); // Param 6
+            // Use ASC or DESC
+            // true: ASC, false: DESC
+            ParameterType.ConcreteType ascOrdescType = new BOOLType();
+            Parameter ascOrdesc = ascOrdescType.generateRandomParameter(state,
+                    this);
+            this.params.add(ascOrdesc); // Param 6
+        }
     }
 
     @Override
@@ -163,15 +166,19 @@ public class SELECT extends CassandraCommand {
                         sb.append(" AND ");
                     }
                 }
-                String order = (Boolean) params.get(6).getValue() ? "ASC"
-                        : "DESC";
 
-                // Pick the 1th column in the primary key since currently we do
-                // not support composite partition key, so the second column is
-                // always the first clustering column
-                sb.append(" ORDER BY ")
-                        .append(whereColumns.get(1).toString()).append(" ")
-                        .append(order);
+                if (Config.getConf().enable_ORDERBY_IN_SELECT) {
+                    String order = (Boolean) params.get(6).getValue() ? "ASC"
+                            : "DESC";
+                    // Pick the 1th column in the primary key since currently we
+                    // do
+                    // not support composite partition key, so the second column
+                    // is
+                    // always the first clustering column
+                    sb.append(" ORDER BY ")
+                            .append(whereColumns.get(1).toString()).append(" ")
+                            .append(order);
+                }
             } else {
                 for (int i = 0; i < whereColumns.size(); i++) {
                     sb.append(whereColumns.get(i).toString() + " = "

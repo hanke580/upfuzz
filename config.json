@@ -40,5 +40,6 @@
   "drain": false,
   "useFixedCommand": false,
   "eval_CASSANDRA13939": false,
+  "enable_ORDERBY_IN_SELECT": true,
   "cassandraEnableTimeoutCheck": true
 }
