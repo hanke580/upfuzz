@@ -323,6 +323,7 @@ public class Config {
         public boolean enable_ORDERBY_IN_SELECT = true;
 
         public boolean eval_CASSANDRA14912 = false;
+        public boolean eval_CASSANDRA15970 = false;
 
         public int CASSANDRA_COLUMN_NAME_MAX_SIZE = 20;
         public int CASSANDRA_LIST_TYPE_MAX_SIZE = 10;

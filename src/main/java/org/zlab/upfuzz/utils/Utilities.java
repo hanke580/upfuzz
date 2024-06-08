@@ -723,6 +723,16 @@ public class Utilities {
         return ret;
     }
 
+    public static Set<String> parameters2Strings(
+            Collection<Parameter> parameters) {
+        Set<String> ret = new HashSet<>();
+        for (Parameter parameter : parameters) {
+            assert parameter.getValue() instanceof String;
+            ret.add((String) parameter.getValue());
+        }
+        return ret;
+    }
+
     public static void saveSeed(CommandSequence commandSequence,
             CommandSequence validationCommandSequence, Path filePath) {
         try {
@@ -1089,5 +1099,17 @@ public class Utilities {
         }
         logger.info("[Debugging Mode] System exit");
         System.exit(1);
+    }
+
+    public static <T> Set<T> subSet(Set<T> targetSet) {
+        List<T> targetSetList = new ArrayList<>(targetSet);
+        int numItems = rand.nextInt(targetSetList.size());
+        Set<T> subSet = new HashSet<>();
+        for (int i = 0; i < numItems; i++) {
+            int randomIndex = rand.nextInt(targetSetList.size());
+            subSet.add(targetSetList.get(randomIndex));
+            targetSetList.remove(randomIndex);
+        }
+        return subSet;
     }
 }

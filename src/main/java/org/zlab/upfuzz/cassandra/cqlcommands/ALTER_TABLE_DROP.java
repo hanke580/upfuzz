@@ -38,12 +38,10 @@ public class ALTER_TABLE_DROP extends CassandraCommand {
                         (s, c) -> ((CassandraState) s).getTable(
                                 c.params.get(0).toString(),
                                 c.params.get(1).toString()).colName2Type,
-                        // p -> ((Pair) ((Parameter) p).value).left
                         null, predicate),
                 (s, c) -> ((CassandraState) s).getTable(
                         c.params.get(0).toString(),
                         c.params.get(1).toString()).primaryColName2Type,
-                // p -> ((Pair) ((Parameter) p).value).left
                 null);
         Parameter dropColumn = dropColumnType
                 .generateRandomParameter(cassandraState, this, init2);

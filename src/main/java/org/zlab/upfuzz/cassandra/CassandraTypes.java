@@ -491,6 +491,116 @@ public class CassandraTypes {
         }
     }
 
+    /**
+     * A subset of regular columns (could be empty)
+     * toString: column1,column2,column3
+     */
+    public static class RegColumnType extends ParameterType.ConcreteType {
+
+        private Set<String> computeRegColumn(CassandraState s,
+                CassandraCommand c) {
+            Set<String> regColumns = new HashSet<>();
+            CassandraTable table = s.getTable(c.params.get(0).toString(),
+                    c.params.get(1).toString());
+            List<String> primaryColumns = new LinkedList<>();
+            for (Parameter column : table.primaryColName2Type) {
+                Object obj = column.getValue();
+                assert obj instanceof Pair;
+                String columnName = ((Pair<Parameter, Parameter>) obj).left
+                        .toString();
+                primaryColumns.add(columnName);
+            }
+            for (Parameter column : table.colName2Type) {
+                Object obj = column.getValue();
+                assert obj instanceof Pair;
+                String columnName = ((Pair<Parameter, Parameter>) obj).left
+                        .toString();
+                if (!primaryColumns.contains(columnName))
+                    regColumns.add(columnName);
+            }
+            return regColumns;
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c,
+                Object init) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c) {
+            assert s instanceof CassandraState;
+            assert c instanceof CassandraCommand;
+            assert c.params.size() >= 2;
+            CassandraState cassandraState = (CassandraState) s;
+            Set<String> regColumns = computeRegColumn(cassandraState,
+                    (CassandraCommand) c);
+            Set<String> subSet = Utilities.subSet(regColumns);
+            return new Parameter(this, Utilities.strings2Parameters(subSet));
+        }
+
+        @Override
+        public String generateStringValue(Parameter p) {
+            assert p.type instanceof RegColumnType;
+            Set<String> regColumns = Utilities
+                    .parameters2Strings((Set<Parameter>) p.value);
+            StringBuilder sb = new StringBuilder();
+            List<String> regColumnsList = new ArrayList<>(regColumns);
+            for (int i = 0; i < regColumnsList.size(); i++) {
+                sb.append(regColumnsList.get(i));
+                if (i < regColumnsList.size() - 1)
+                    sb.append(",");
+            }
+            return sb.toString();
+        }
+
+        @Override
+        public boolean isValid(State s, Command c, Parameter p) {
+            assert p.type instanceof RegColumnType;
+            Set<String> regColumns = Utilities
+                    .parameters2Strings((Set<Parameter>) p.value);
+            // it needs to still be reg column and still exist
+            Set<String> newRegColumns = computeRegColumn((CassandraState) s,
+                    (CassandraCommand) c);
+            for (String column : regColumns) {
+                if (!newRegColumns.contains(column))
+                    return false;
+            }
+            return true;
+        }
+
+        @Override
+        public void regenerate(State s, Command c, Parameter p) {
+            if (isValid(s, c, p)) {
+                p.value = generateRandomParameter(s, c).value;
+            }
+        }
+
+        @Override
+        public boolean isEmpty(State s, Command c, Parameter p) {
+            return ((Set<String>) p.value).isEmpty();
+        }
+
+        @Override
+        public boolean mutate(State s, Command c, Parameter p) {
+            // regenerate, but make sure results are different...
+            Set<String> oldValue = (Set<String>) p.value;
+            Set<String> newValue = (Set<String>) (generateRandomParameter(s,
+                    c).value);
+            if (oldValue.equals(newValue)) {
+                return false;
+            } else {
+                p.value = newValue;
+                return true;
+            }
+        }
+
+        @Override
+        public String toString() {
+            return "RegColumnType";
+        }
+    }
+
     public static class PartitionSubsetType<T, U>
             extends ParameterType.SubsetType {
 
@@ -551,5 +661,4 @@ public class CassandraTypes {
             return new Parameter(this, value);
         }
     }
-
 }

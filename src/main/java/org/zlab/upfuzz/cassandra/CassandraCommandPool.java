@@ -59,6 +59,21 @@ public class CassandraCommandPool extends CommandPool {
                         writeCommandRate));
     }
 
+    public void eval_CASSANDRA15970() {
+        commandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(DELETE.class,
+                        writeCommandRate));
+        commandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(ALTER_TABLE_DROP.class,
+                        writeCommandRate));
+
+        createCommandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
+                CREATE_KEYSPACE.class, createCommandRate));
+        createCommandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(CREATE_TABLE.class,
+                        createCommandRate));
+    }
+
     @Override
     public void registerReadCommands() {
         readCommandClassList.add(
@@ -74,6 +89,10 @@ public class CassandraCommandPool extends CommandPool {
         }
         if (Config.getConf().eval_CASSANDRA14912) {
             eval_CASSANDRA14912();
+            return;
+        }
+        if (Config.getConf().eval_CASSANDRA15970) {
+            eval_CASSANDRA15970();
             return;
         }
         commandClassList.add(

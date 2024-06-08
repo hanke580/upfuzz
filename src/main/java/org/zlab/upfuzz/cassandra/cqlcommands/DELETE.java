@@ -5,6 +5,7 @@ import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.cassandra.CassandraCommand;
 import org.zlab.upfuzz.cassandra.CassandraState;
+import org.zlab.upfuzz.cassandra.CassandraTypes;
 import org.zlab.upfuzz.utils.Pair;
 
 import java.util.Collection;
@@ -15,6 +16,8 @@ import java.util.List;
  *   FROM cycling.cyclist_name
  *   USING TIMESTAMP 1318452291034
  *   WHERE lastname = 'VOS';
+ *
+ *   DELETE column_name FROM table_name WHERE partition_key = value [AND clustering_key = value];
  */
 public class DELETE extends CassandraCommand {
 
@@ -31,10 +34,6 @@ public class DELETE extends CassandraCommand {
         // Pick the subset of the primary columns, and make sure it's on the
         // right order
         // First Several Type
-        /**
-         * Subset of primary columns
-         */
-
         ParameterType.ConcreteType whereColumnsType = new ParameterType.NotEmpty(
                 new ParameterType.FrontSubsetType(null,
                         (s, c) -> ((CassandraState) s).getTable(
@@ -52,12 +51,21 @@ public class DELETE extends CassandraCommand {
         Parameter insertValues = whereValuesType
                 .generateRandomParameter(state, this);
         this.params.add(insertValues); // Param3
+
+        Parameter regColumnType = new CassandraTypes.RegColumnType()
+                .generateRandomParameter(state, this);
+        this.params.add(regColumnType); // Param4
     }
 
     @Override
     public String constructCommandString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("DELETE" + " " + "FROM" + " ");
+
+        String deleteCellName = this.params.get(4).toString();
+        sb.append("DELETE" + " ");
+        if (!deleteCellName.isEmpty())
+            sb.append(deleteCellName + " ");
+        sb.append("FROM" + " ");
         sb.append(params.get(0) + "." + params.get(1).toString());
         sb.append(" " + "WHERE" + " ");
 
