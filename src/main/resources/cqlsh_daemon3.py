@@ -241,6 +241,11 @@ class TCPHandler(socketserver.BaseRequestHandler):
                 self.stdout_buffer.truncate(0)
                 self.stderr_buffer.truncate(0)
 
+                if len(out_base64_message) > 10000:
+                    out_base64_message = out_base64_message[:10000]
+                if len(err_base64_message) > 10000:
+                    err_base64_message = err_base64_message[:10000]
+
                 resp = {
                     "cmd": cmd,
                     "exitValue": 0 if ret == True else 1,
@@ -256,8 +261,8 @@ class TCPHandler(socketserver.BaseRequestHandler):
                         "cmd": cmd,
                         "exitValue": 0 if ret == True else 1,
                         "timeUsage": end_time - start_time,
-                        "message": out_base64_message[:1000],
-                        "error": err_base64_message[:1000]
+                        "message": out_base64_message[:5000],
+                        "error": err_base64_message[:5000]
                     }
                     msg = json.dumps(resp).encode("ascii")
                 
