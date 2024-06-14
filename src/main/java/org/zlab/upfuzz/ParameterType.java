@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.cassandra.CassandraCommand;
@@ -364,6 +365,258 @@ public abstract class ParameterType implements Serializable {
         }
     }
 
+    public static class InCollectionType extends ConfigurableType {
+        /**
+         * For conflict options, not test yet.
+         */
+
+        @Override
+        protected Object clone() {
+            InCollectionType clone;
+            clone = (InCollectionType) super.clone();
+            return clone;
+        }
+
+        public int idx;
+        public final SerializableFunction mapFunc;
+
+        public InCollectionType(ConcreteType t,
+                FetchCollectionLambda configuration,
+                SerializableFunction mapFunc) {
+            super(t, configuration);
+            this.mapFunc = mapFunc;
+        }
+
+        public InCollectionType(ConcreteType t,
+                FetchCollectionLambda configuration,
+                SerializableFunction mapFunc,
+                Predicate predicate) {
+            super(t, configuration, predicate);
+            this.mapFunc = mapFunc;
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c,
+                Object init) {
+            /**
+             * InCollectionType
+             * - List<>   {col1, col2, co3}
+             *
+             * return col2
+             *
+             * Add init value col2 (initValue)
+             * for (p : Collection)
+             *      if (initValue.equals(p.toString))
+             *          return p;
+             *
+             *
+             *
+             */
+            if (init == null) {
+                return generateRandomParameter(s, c);
+            }
+            predicateCheck(s, c);
+
+            // Pick one parameter from the collection
+            Object targetCollection = configuration.operate(s, c);
+
+            if (((Collection) targetCollection).isEmpty()) {
+                throw new CustomExceptions.EmptyCollectionException(
+                        "InCollection Type got empty Collection", null);
+            }
+
+            List l;
+            if (mapFunc == null) {
+                l = (List) (((Collection) targetCollection)
+                        .stream()
+                        .collect(Collectors.toList()));
+            } else {
+                l = (List) (((Collection) targetCollection)
+                        .stream()
+                        .map(mapFunc)
+                        .collect(Collectors.toList()));
+            }
+
+            assert init instanceof String;
+            String pString = (String) init;
+
+            int idx = 0;
+            for (; idx < l.size(); idx++) {
+                if (pString.equals(l.get(idx).toString())) {
+                    break;
+                }
+            }
+            assert idx != l.size();
+
+            if (l.get(idx) instanceof Parameter) {
+                return new Parameter(this, l.get(idx));
+            } else {
+                assert t != null;
+                Parameter ret = new Parameter(t, l.get(idx));
+                return new Parameter(this, ret);
+            }
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c) {
+            predicateCheck(s, c);
+
+            // Pick one parameter from the collection
+            Object targetCollection = configuration.operate(s, c);
+
+            if (((Collection) targetCollection).isEmpty() == true) {
+
+                // FIXME: Enable this to check the buggy mutation
+                // logger.info("command: " + c);
+
+                // for (StackTraceElement ste : Thread.currentThread()
+                // .getStackTrace()) {
+                // System.out.println(ste.toString());
+                // }
+                // logger.info("\n");
+
+                throw new CustomExceptions.EmptyCollectionException(
+                        "InCollection Type got empty Collection", null);
+            }
+            Random rand = new Random();
+
+            List l;
+
+            if (mapFunc == null) {
+                l = (List) (((Collection) targetCollection)
+                        .stream()
+                        .collect(Collectors.toList()));
+            } else {
+                l = (List) (((Collection) targetCollection)
+                        .stream()
+                        .map(mapFunc)
+                        .collect(Collectors.toList()));
+            }
+            idx = rand.nextInt(l.size());
+
+            if (l.get(idx) instanceof Parameter) {
+                return new Parameter(this,
+                        SerializationUtils.clone((Parameter) l.get(idx)));
+            } else {
+                // assert t != null;
+                // Parameter ret = new Parameter(t, l.get(idx));
+                // return new Parameter(this, ret);
+                logger.error(
+                        "InCollectionType: The collection should contain Parameter, however it got "
+                                + l.get(idx).getClass() + ", value = "
+                                + l.get(idx));
+                throw new RuntimeException(
+                        "InCollectionType: The collection should contain Parameter");
+            }
+        }
+
+        @Override
+        public String generateStringValue(Parameter p) {
+            return p.value.toString();
+        }
+
+        @Override
+        public boolean isValid(State s, Command c, Parameter p) {
+            predicateCheck(s, c);
+
+            assert p.value instanceof Parameter;
+            List l;
+            Object targetCollection = configuration.operate(s, c);
+
+            if (mapFunc == null) {
+                l = (List) (((Collection) targetCollection)
+                        .stream()
+                        .collect(Collectors.toList()));
+            } else {
+                l = (List) (((Collection) targetCollection)
+                        .stream()
+                        .map(mapFunc)
+                        .collect(Collectors.toList()));
+            }
+            /**
+             * Since we are basically generating the string.
+             * When comparing the parameter, we only care about the value.
+             * Then, what if we directly compare the toString() between
+             * two parameter?
+             */
+            if (l.contains(p) || l.contains(p.getValue())) {
+                // l could be List<Parameter> or List<Object>...
+                return ((Parameter) p.value).isValid(s, c);
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public void regenerate(State s, Command c, Parameter p) {
+            p.value = generateRandomParameter(s, c);
+        }
+
+        @Override
+        public boolean isEmpty(State s, Command c, Parameter p) {
+            return ((Parameter) p.value).type.isEmpty(s, c,
+                    (Parameter) p.value);
+        }
+
+        @Override
+        public boolean mutate(State s, Command c, Parameter p) {
+            /**
+             * Repick one from the set.
+             * If there is only one in the target collection, it means
+             * we cannot pick a different item.
+             * - Return false
+             */
+            predicateCheck(s, c);
+
+            // Pick one parameter from the collection
+            Object targetCollection = configuration.operate(s, c);
+            Random rand = new Random();
+            List l;
+            if (mapFunc == null) {
+                l = (List) (((Collection) targetCollection)
+                        .stream()
+                        .collect(Collectors.toList()));
+            } else {
+                l = (List) (((Collection) targetCollection)
+                        .stream()
+                        .map(mapFunc)
+                        .collect(Collectors.toList()));
+            }
+            if (l.isEmpty()) {
+                // Throw an exception, since the input sequence is already not
+                // correct!
+                throw new RuntimeException(
+                        "[InCollectionType] Mutation: The input collection is already not valid"
+                                + "Run check() before the mutation!");
+            }
+
+            if (l.size() == 1)
+                return false; // Cannot mutate
+
+            List<String> collectionStringList = new LinkedList<>();
+            for (Object item : l) {
+                collectionStringList.add(item.toString());
+            }
+            // pick one that is not the same as the one before
+            List<Integer> idxList = new LinkedList<>();
+            for (int i = 0; i < l.size(); i++) {
+                idxList.add(i);
+            }
+            if (collectionStringList.contains(p.value.toString())) {
+                idxList.remove(
+                        collectionStringList.indexOf(p.value.toString()));
+            }
+            int idx = rand.nextInt(idxList.size());
+            if (l.get(idx) instanceof Parameter) {
+                p.value = l.get(idx);
+            } else {
+                assert t != null;
+                p.value = new Parameter(t, l.get(idx));
+            }
+            return true;
+        }
+    }
+
     public static class SubsetType<T, U> extends ConfigurableType {
 
         public SerializableFunction<T, U> mapFunc;
@@ -455,8 +708,9 @@ public abstract class ParameterType implements Serializable {
                 return new Parameter(this, new ArrayList<>());
             }
 
-            List<Object> targetSet = new ArrayList<Object>(
-                    (Collection<Object>) targetCollection);
+            // Must be parameter type
+            List<Parameter> targetSet = new ArrayList<>(
+                    (Collection<Parameter>) targetCollection);
             List<Object> value = new ArrayList<>();
 
             if (targetSet.size() > 0) {
@@ -470,11 +724,8 @@ public abstract class ParameterType implements Serializable {
                 Collections.shuffle(indexArray);
 
                 for (int i = 0; i < setSize; i++) {
-                    value.add(targetSet.get(indexArray.get(i))); // The
-                                                                 // targetSet
-                                                                 // should also
-                                                                 // store
-                                                                 // Parameter
+                    value.add(SerializationUtils
+                            .clone(targetSet.get(indexArray.get(i))));
                 }
             }
 
@@ -591,8 +842,8 @@ public abstract class ParameterType implements Serializable {
                         .collect(Collectors.toList());
             }
 
-            List<Object> targetSet = new ArrayList<Object>(
-                    (Collection<Object>) targetCollection);
+            List<Parameter> targetSet = new ArrayList<Parameter>(
+                    (Collection<Parameter>) targetCollection);
             List<Object> value = new ArrayList<>();
 
             if (targetSet.size() > 0) {
@@ -606,11 +857,12 @@ public abstract class ParameterType implements Serializable {
                 // Collections.shuffle(indexArray);
 
                 for (int i = 0; i < setSize; i++) {
-                    value.add(targetSet.get(indexArray.get(i))); // The
-                                                                 // targetSet
-                                                                 // should also
-                                                                 // store
-                                                                 // Parameter
+                    value.add(SerializationUtils
+                            .clone(targetSet.get(indexArray.get(i)))); // The
+                    // targetSet
+                    // should also
+                    // store
+                    // Parameter
                 }
             }
 
@@ -644,6 +896,124 @@ public abstract class ParameterType implements Serializable {
                 }
             }
 
+            return true;
+        }
+    }
+
+    public static class SuperSetType extends ConfigurableType {
+        /**
+         * For conflict options, not test yet.
+         */
+        public int idx;
+        public final SerializableFunction mapFunc;
+
+        public SuperSetType(ConcreteType t, FetchCollectionLambda configuration,
+                SerializableFunction mapFunc) {
+            super(t, configuration);
+            this.mapFunc = mapFunc;
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c,
+                Object init) {
+            if (init == null) {
+                return generateRandomParameter(s, c);
+            }
+            assert init instanceof List;
+
+            Parameter p = t.generateRandomParameter(s, c, init);
+            return new Parameter(this, p);
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c) {
+            /**
+             * use ConcreteType t to generate a parameter, it should be a
+             * concreteGenericType. Check whether this parameter contains
+             * everything in the collection. If not, add the rest to the
+             * collection.
+             */
+            Parameter p = t.generateRandomParameter(s, c);
+            // assert p.type instanceof ConcreteGenericTypeOne;
+            List<String> curStrings = new LinkedList<>();
+            List<Parameter> l = (List<Parameter>) p.value;
+            for (Parameter m : l) {
+                curStrings.add(m.toString());
+            }
+
+            Collection targetCollection = configuration.operate(s, c);
+            List<Parameter> targetSet;
+            if (mapFunc != null) {
+                targetSet = (List) (((Collection) targetCollection)
+                        .stream()
+                        .map(mapFunc)
+                        .collect(Collectors.toList()));
+            } else {
+                targetSet = (List) (((Collection) targetCollection));
+            }
+
+            for (Parameter m : targetSet) {
+                if (!curStrings.contains(m.toString())) {
+                    l.add(SerializationUtils.clone(m));
+                }
+            }
+            return new Parameter(this, p);
+        }
+
+        @Override
+        public String generateStringValue(Parameter p) {
+            return p.value.toString();
+        }
+
+        @Override
+        public boolean isValid(State s, Command c, Parameter p) {
+            assert p.value instanceof Parameter;
+            // Make sure it satisfies the super set relation
+            List<String> curStrings = new LinkedList<>();
+            List<Parameter> l = (List<Parameter>) p.getValue();
+            for (Parameter m : l) {
+                curStrings.add(m.toString());
+            }
+
+            Collection targetCollection = configuration.operate(s, c);
+            List<Parameter> targetSet;
+            if (mapFunc != null) {
+                targetSet = (List) (((Collection) targetCollection)
+                        .stream()
+                        .map(mapFunc)
+                        .collect(Collectors.toList()));
+            } else {
+                targetSet = (List) (((Collection) targetCollection));
+            }
+
+            for (Parameter m : targetSet) {
+                if (!curStrings.contains(m.toString())) {
+                    return false;
+                }
+            }
+            return ((Parameter) p.value).isValid(s, c);
+        }
+
+        @Override
+        public void regenerate(State s, Command c, Parameter p) {
+            Parameter ret = generateRandomParameter(s, c);
+            p.value = ret.value;
+        }
+
+        @Override
+        public boolean isEmpty(State s, Command c, Parameter p) {
+            return ((Parameter) p.value).type.isEmpty(s, c,
+                    (Parameter) p.value);
+        }
+
+        @Override
+        public boolean mutate(State s, Command c, Parameter p) {
+            /**
+             * 1. Call value.mutate
+             * 2. Make sure it's still valid
+             */
+            // TODO: Call inside mutate function
+            p.value = generateRandomParameter(s, c).value;
             return true;
         }
     }
@@ -803,251 +1173,6 @@ public abstract class ParameterType implements Serializable {
              */
             assert p.type instanceof OptionalType;
             ((OptionalType) p.type).isEmpty = !((OptionalType) p.type).isEmpty;
-            return true;
-        }
-    }
-
-    public static class InCollectionType extends ConfigurableType {
-        /**
-         * For conflict options, not test yet.
-         */
-
-        @Override
-        protected Object clone() {
-            InCollectionType clone;
-            clone = (InCollectionType) super.clone();
-            return clone;
-        }
-
-        public int idx;
-        public final SerializableFunction mapFunc;
-
-        public InCollectionType(ConcreteType t,
-                FetchCollectionLambda configuration,
-                SerializableFunction mapFunc) {
-            super(t, configuration);
-            this.mapFunc = mapFunc;
-        }
-
-        public InCollectionType(ConcreteType t,
-                FetchCollectionLambda configuration,
-                SerializableFunction mapFunc,
-                Predicate predicate) {
-            super(t, configuration, predicate);
-            this.mapFunc = mapFunc;
-        }
-
-        @Override
-        public Parameter generateRandomParameter(State s, Command c,
-                Object init) {
-            /**
-             * InCollectionType
-             * - List<>   {col1, col2, co3}
-             *
-             * return col2
-             *
-             * Add init value col2 (initValue)
-             * for (p : Collection)
-             *      if (initValue.equals(p.toString))
-             *          return p;
-             *
-             *
-             *
-             */
-            if (init == null) {
-                return generateRandomParameter(s, c);
-            }
-            predicateCheck(s, c);
-
-            // Pick one parameter from the collection
-            Object targetCollection = configuration.operate(s, c);
-
-            if (((Collection) targetCollection).isEmpty()) {
-                throw new CustomExceptions.EmptyCollectionException(
-                        "InCollection Type got empty Collection", null);
-            }
-
-            List l;
-            if (mapFunc == null) {
-                l = (List) (((Collection) targetCollection)
-                        .stream()
-                        .collect(Collectors.toList()));
-            } else {
-                l = (List) (((Collection) targetCollection)
-                        .stream()
-                        .map(mapFunc)
-                        .collect(Collectors.toList()));
-            }
-
-            assert init instanceof String;
-            String pString = (String) init;
-
-            int idx = 0;
-            for (; idx < l.size(); idx++) {
-                if (pString.equals(l.get(idx).toString())) {
-                    break;
-                }
-            }
-            assert idx != l.size();
-
-            if (l.get(idx) instanceof Parameter) {
-                return new Parameter(this, l.get(idx));
-            } else {
-                assert t != null;
-                Parameter ret = new Parameter(t, l.get(idx));
-                return new Parameter(this, ret);
-            }
-        }
-
-        @Override
-        public Parameter generateRandomParameter(State s, Command c) {
-            predicateCheck(s, c);
-
-            // Pick one parameter from the collection
-            Object targetCollection = configuration.operate(s, c);
-
-            if (((Collection) targetCollection).isEmpty() == true) {
-
-                // FIXME: Enable this to check the buggy mutation
-                // logger.info("command: " + c);
-
-                // for (StackTraceElement ste : Thread.currentThread()
-                // .getStackTrace()) {
-                // System.out.println(ste.toString());
-                // }
-                // logger.info("\n");
-
-                throw new CustomExceptions.EmptyCollectionException(
-                        "InCollection Type got empty Collection", null);
-            }
-            Random rand = new Random();
-
-            List l;
-
-            if (mapFunc == null) {
-                l = (List) (((Collection) targetCollection)
-                        .stream()
-                        .collect(Collectors.toList()));
-            } else {
-                l = (List) (((Collection) targetCollection)
-                        .stream()
-                        .map(mapFunc)
-                        .collect(Collectors.toList()));
-            }
-            idx = rand.nextInt(l.size());
-
-            if (l.get(idx) instanceof Parameter) {
-                return new Parameter(this, l.get(idx));
-            } else {
-                assert t != null;
-                Parameter ret = new Parameter(t, l.get(idx));
-                return new Parameter(this, ret);
-            }
-        }
-
-        @Override
-        public String generateStringValue(Parameter p) {
-            return p.value.toString();
-        }
-
-        @Override
-        public boolean isValid(State s, Command c, Parameter p) {
-            predicateCheck(s, c);
-
-            assert p.value instanceof Parameter;
-            List l;
-            Object targetCollection = configuration.operate(s, c);
-
-            if (mapFunc == null) {
-                l = (List) (((Collection) targetCollection)
-                        .stream()
-                        .collect(Collectors.toList()));
-            } else {
-                l = (List) (((Collection) targetCollection)
-                        .stream()
-                        .map(mapFunc)
-                        .collect(Collectors.toList()));
-            }
-            /**
-             * Since we are basically generating the string.
-             * When comparing the parameter, we only care about the value.
-             * Then, what if we directly compare the toString() between
-             * two parameter?
-             */
-            if (l.contains(p) || l.contains(p.getValue())) {
-                // l could be List<Parameter> or List<Object>...
-                return ((Parameter) p.value).isValid(s, c);
-            } else {
-                return false;
-            }
-        }
-
-        @Override
-        public void regenerate(State s, Command c, Parameter p) {
-            p.value = generateRandomParameter(s, c);
-        }
-
-        @Override
-        public boolean isEmpty(State s, Command c, Parameter p) {
-            return ((Parameter) p.value).type.isEmpty(s, c,
-                    (Parameter) p.value);
-        }
-
-        @Override
-        public boolean mutate(State s, Command c, Parameter p) {
-            /**
-             * Repick one from the set.
-             * If there is only one in the target collection, it means
-             * we cannot pick a different item.
-             * - Return false
-             */
-            predicateCheck(s, c);
-
-            // Pick one parameter from the collection
-            Object targetCollection = configuration.operate(s, c);
-            Random rand = new Random();
-            List l;
-            if (mapFunc == null) {
-                l = (List) (((Collection) targetCollection)
-                        .stream()
-                        .collect(Collectors.toList()));
-            } else {
-                l = (List) (((Collection) targetCollection)
-                        .stream()
-                        .map(mapFunc)
-                        .collect(Collectors.toList()));
-            }
-            if (l.isEmpty()) {
-                // Throw an exception, since the input sequence is already not
-                // correct!
-                throw new RuntimeException(
-                        "[InCollectionType] Mutation: The input collection is already not valid"
-                                + "Run check() before the mutation!");
-            }
-
-            if (l.size() == 1)
-                return false; // Cannot mutate
-
-            List<String> collectionStringList = new LinkedList<>();
-            for (Object item : l) {
-                collectionStringList.add(item.toString());
-            }
-            // pick one that is not the same as the one before
-            List<Integer> idxList = new LinkedList<>();
-            for (int i = 0; i < l.size(); i++) {
-                idxList.add(i);
-            }
-            if (collectionStringList.contains(p.value.toString())) {
-                idxList.remove(
-                        collectionStringList.indexOf(p.value.toString()));
-            }
-            int idx = rand.nextInt(idxList.size());
-            if (l.get(idx) instanceof Parameter) {
-                p.value = l.get(idx);
-            } else {
-                assert t != null;
-                p.value = new Parameter(t, l.get(idx));
-            }
             return true;
         }
     }
@@ -1240,125 +1365,6 @@ public abstract class ParameterType implements Serializable {
             }
             // Parameter ret = generateRandomParameter(s, c);
             // p.value = ret.value;
-            return true;
-        }
-    }
-
-    public static class SuperSetType extends ConfigurableType {
-        /**
-         * For conflict options, not test yet.
-         */
-        public int idx;
-        public final SerializableFunction mapFunc;
-
-        public SuperSetType(ConcreteType t, FetchCollectionLambda configuration,
-                SerializableFunction mapFunc) {
-            super(t, configuration);
-            this.mapFunc = mapFunc;
-        }
-
-        @Override
-        public Parameter generateRandomParameter(State s, Command c,
-                Object init) {
-            if (init == null) {
-                return generateRandomParameter(s, c);
-            }
-            assert init instanceof List;
-
-            Parameter p = t.generateRandomParameter(s, c, init);
-            return new Parameter(this, p);
-        }
-
-        @Override
-        public Parameter generateRandomParameter(State s, Command c) {
-            /**
-             * use ConcreteType t to generate a parameter, it should be a
-             * concreteGenericType. Check whether this parameter contains
-             * everything in the collection. If not, add the rest to the
-             * collection.
-             */
-            Parameter p = t.generateRandomParameter(s, c);
-            // assert p.type instanceof ConcreteGenericTypeOne;
-            List<String> curStrings = new LinkedList<>();
-            List<Parameter> l = (List<Parameter>) p.value;
-            for (Parameter m : l) {
-                curStrings.add(m.toString());
-            }
-
-            Collection targetCollection = configuration.operate(s, c);
-            List<Parameter> targetSet;
-            if (mapFunc != null) {
-                targetSet = (List) (((Collection) targetCollection)
-                        .stream()
-                        .map(mapFunc)
-                        .collect(Collectors.toList()));
-            } else {
-                targetSet = (List) (((Collection) targetCollection));
-            }
-
-            for (Parameter m : targetSet) {
-                if (!curStrings.contains(m.toString())) {
-                    l.add(m);
-                }
-            }
-
-            return new Parameter(this, p);
-        }
-
-        @Override
-        public String generateStringValue(Parameter p) {
-            return p.value.toString();
-        }
-
-        @Override
-        public boolean isValid(State s, Command c, Parameter p) {
-            assert p.value instanceof Parameter;
-            // Make sure it satisfies the super set relation
-            List<String> curStrings = new LinkedList<>();
-            List<Parameter> l = (List<Parameter>) p.getValue();
-            for (Parameter m : l) {
-                curStrings.add(m.toString());
-            }
-
-            Collection targetCollection = configuration.operate(s, c);
-            List<Parameter> targetSet;
-            if (mapFunc != null) {
-                targetSet = (List) (((Collection) targetCollection)
-                        .stream()
-                        .map(mapFunc)
-                        .collect(Collectors.toList()));
-            } else {
-                targetSet = (List) (((Collection) targetCollection));
-            }
-
-            for (Parameter m : targetSet) {
-                if (!curStrings.contains(m.toString())) {
-                    return false;
-                }
-            }
-            return ((Parameter) p.value).isValid(s, c);
-        }
-
-        @Override
-        public void regenerate(State s, Command c, Parameter p) {
-            Parameter ret = generateRandomParameter(s, c);
-            p.value = ret.value;
-        }
-
-        @Override
-        public boolean isEmpty(State s, Command c, Parameter p) {
-            return ((Parameter) p.value).type.isEmpty(s, c,
-                    (Parameter) p.value);
-        }
-
-        @Override
-        public boolean mutate(State s, Command c, Parameter p) {
-            /**
-             * 1. Call value.mutate
-             * 2. Make sure it's still valid
-             */
-            // TODO: Call inside mutate function
-            p.value = generateRandomParameter(s, c).value;
             return true;
         }
     }

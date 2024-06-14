@@ -17,11 +17,11 @@ public class CommandSequenceTest extends AbstractTest {
         Seed seed = generateSeed(cassandraCommandPool, CassandraState.class,
                 -1);
         assert seed != null;
-        // printSeed(seed);
+        printSeed(seed);
         boolean status = seed.mutate(cassandraCommandPool,
                 CassandraState.class);
         assert status;
-        // printSeed(seed);
+        printSeed(seed);
     }
 
     // @Test
