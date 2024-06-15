@@ -34,11 +34,12 @@ public abstract class BaseNode implements Serializable {
         sb.append("configId: " + configId + "\n");
         sb.append("writeCommands: size = " + writeCommands.size() + "\n");
         for (String cmd : writeCommands) {
-            sb.append("\t" + cmd + "\n");
+            sb.append(cmd + "\n");
         }
+        sb.append("\n");
         sb.append("readCommands: size = " + readCommands.size() + "\n");
         for (String cmd : readCommands) {
-            sb.append("\t" + cmd + "\n");
+            sb.append(cmd + "\n");
         }
         return sb.toString();
     }
