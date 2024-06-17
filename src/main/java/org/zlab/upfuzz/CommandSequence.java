@@ -99,9 +99,14 @@ public class CommandSequence implements Serializable {
                             && Config.getConf().system != null
                             && Config.getConf().system.equals("hdfs")) {
                         // do not mutate the first command
-                        pos = Utilities.randWithRange(rand, 1, commands.size());
+                        // [1, size - 1]
+                        pos = org.zlab.upfuzz.utils.Utilities.biasRand(
+                                rand, commands.size() - 1, 5) + 1;
                     } else {
-                        pos = rand.nextInt(commands.size());
+                        // [0, size - 1]
+                        pos = org.zlab.upfuzz.utils.Utilities.biasRand(
+                                rand, commands.size(), 5);
+
                     }
                     // Compute the state up to the position
                     for (int i = 0; i < pos; i++) {
