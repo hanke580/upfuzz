@@ -71,9 +71,8 @@ public class Seed implements Serializable, Comparable<Seed> {
                 ret = true;
             else
                 continue;
-            // FIXME: Enable the stacked mutation
-            // 1/3 prob stop mutation, 2/3 prob keep stacking mutations
-            if (Utilities.oneOf(rand, 3))
+            // 2/3 prob stop stacking mutation
+            if (!Utilities.oneOf(rand, 3))
                 break;
         }
         return ret;
