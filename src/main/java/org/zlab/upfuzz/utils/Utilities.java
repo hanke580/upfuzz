@@ -1038,6 +1038,71 @@ public class Utilities {
         return null;
     }
 
+    public static List<List<String>> createExampleHbaseCommands() {
+        String[] originalCommandSequence = {
+                "create 'uuid40199938b7974c3fa73809905c796040', {NAME => 'uuid13ca032f27c347c58360951111a2cf44', VERSIONS => 3, COMPRESSION => 'GZ', BLOOMFILTER => 'ROWCOL', IN_MEMORY => 'true'}, {NAME => 'uuid383fbc0575e44bc0b1b6c904f1baf7aa', VERSIONS => 3, COMPRESSION => 'GZ', BLOOMFILTER => 'NONE', IN_MEMORY => 'false'}, {NAME => 'uuidd4302963ab75484eada3b82bd5c6f5c5', VERSIONS => 3, COMPRESSION => 'GZ', BLOOMFILTER => 'ROWCOL', IN_MEMORY => 'true'}, {NAME => 'uuid1f5bbeebb39f4976a2aa31072e63d7a7', VERSIONS => 3, COMPRESSION => 'GZ', BLOOMFILTER => 'ROWCOL', IN_MEMORY => 'false'}, {NAME => 'uuid72e1e39b18974a1fb79e9eeed04307c4', VERSIONS => 3, COMPRESSION => 'NONE', BLOOMFILTER => 'ROW', IN_MEMORY => 'false'}, {NAME => 'uuidbb9598272e4241c699b542ed55d24f6b', VERSIONS => 3, COMPRESSION => 'GZ', BLOOMFILTER => 'ROW', IN_MEMORY => 'true'}",
+                "create 'uuidb1d2edba9eef4dfc82df56555f05e13f', {NAME => 'uuid5ddbc6fe6ae040fcbf2bba8cf1e3547f', VERSIONS => 3, COMPRESSION => 'NONE', BLOOMFILTER => 'ROWCOL', IN_MEMORY => 'false'}, {NAME => 'uuid53c63b08e452488ab65f1765f22cfa3c', VERSIONS => 3, COMPRESSION => 'NONE', BLOOMFILTER => 'ROWCOL', IN_MEMORY => 'false'}, {NAME => 'uuid578f1550ce9540d39ef6929d8a50394f', VERSIONS => 3, COMPRESSION => 'NONE', BLOOMFILTER => 'ROWCOL', IN_MEMORY => 'true'}, {NAME => 'uuidd9f725cef4634ee2b3e0d29ad028627c', VERSIONS => 3, COMPRESSION => 'NONE', BLOOMFILTER => 'NONE', IN_MEMORY => 'false'}, {NAME => 'uuida044b7c92e9c405dbed9120e1e4a56ce', VERSIONS => 1, COMPRESSION => 'GZ', BLOOMFILTER => 'ROW', IN_MEMORY => 'true'}, {NAME => 'uuid16a2fe69618c44ff91f156971c9c5693', VERSIONS => 1, COMPRESSION => 'NONE', BLOOMFILTER => 'ROW', IN_MEMORY => 'true'}",
+                "create 'uuid8d085b3437c34e049fadf77f6942c612', {NAME => 'uuid05b02fd6c1904b639ff773648ea01bc2', VERSIONS => 3, COMPRESSION => 'NONE', BLOOMFILTER => 'ROWCOL', IN_MEMORY => 'true'}, {NAME => 'uuidfa6a5a65a34a463daf3e3af680997a65', VERSIONS => 1, COMPRESSION => 'NONE', BLOOMFILTER => 'NONE', IN_MEMORY => 'true'}, {NAME => 'uuid669521c776ba4676bf0c451fefafe492', VERSIONS => 1, COMPRESSION => 'GZ', BLOOMFILTER => 'ROWCOL', IN_MEMORY => 'true'}, {NAME => 'uuid5de32a51c3f046ec921099e494a5a210', VERSIONS => 3, COMPRESSION => 'NONE', BLOOMFILTER => 'ROWCOL', IN_MEMORY => 'true'}, {NAME => 'uuid76b359885d2c480c8048b6249f218a13', VERSIONS => 1, COMPRESSION => 'NONE', BLOOMFILTER => 'ROW', IN_MEMORY => 'false'}, {NAME => 'uuid94827bb96409447aa23c008786e718f4', VERSIONS => 1, COMPRESSION => 'GZ', BLOOMFILTER => 'ROWCOL', IN_MEMORY => 'false'}",
+                "clone_table_schema 'uuid8d085b3437c34e049fadf77f6942c612', 'uuidefd27eadbce74e27966ae4d63a7e8d80'",
+                "set_quota TYPE => THROTTLE, THROTTLE_TYPE => READ, TABLE => 'uuidefd27eadbce74e27966ae4d63a7e8d80', LIMIT => '1124M/sec'",
+                "create 'uuidb63ed4017c8947388480f6bb6a77c78d', {NAME => 'uuidb4215f8f99bb4fe9874465e00dd3fb2a', VERSIONS => 3, COMPRESSION => 'GZ', BLOOMFILTER => 'ROW', IN_MEMORY => 'false'}, {NAME => 'uuida2b5150ec6e04ad4b0f084c541131999', VERSIONS => 3, COMPRESSION => 'NONE', BLOOMFILTER => 'ROW', IN_MEMORY => 'false'}, {NAME => 'uuida1bbf0389e7f43e49c8b9c826eb71c0e', VERSIONS => 1, COMPRESSION => 'NONE', BLOOMFILTER => 'NONE', IN_MEMORY => 'false'}, {NAME => 'uuid7f39aa8cbe3747bdba80cf3db95ad40c', VERSIONS => 1, COMPRESSION => 'GZ', BLOOMFILTER => 'NONE', IN_MEMORY => 'false'}, {NAME => 'uuideac7f8f636d641dfb3c81c7e911ce2c9', VERSIONS => 3, COMPRESSION => 'GZ', BLOOMFILTER => 'ROWCOL', IN_MEMORY => 'false'}, {NAME => 'uuid319d8c9fb9324c19a8b164ef946aa744', VERSIONS => 2, COMPRESSION => 'GZ', BLOOMFILTER => 'NONE', IN_MEMORY => 'false'}",
+                "disable_rpc_throttle",
+                "truncate_preserve 'uuid8d085b3437c34e049fadf77f6942c612'",
+                "put 'uuid40199938b7974c3fa73809905c796040', 'uuidf43def325bcf408998b1960edb13a5dd', 'uuidd4302963ab75484eada3b82bd5c6f5c5:ywLPilkA', {'dwQPqYylseMFrVTVnlaYbtZFuqsYYxqAfoeNBxoflOFrVhmXKTuJfcZJpwcwcRvZg','JjkjGGNBecMwhnwYlnltykuWZyShUYGfOrsMDMgbEbYstcrogGLdunbApqQD','UukOakPTtmtowlNJioCwhcvEfHpnzXurGGKYpAPQWYsDPIXKqpxgfcedAsNHfMTyegfbIgTZshVRPFVMHaoDvaWOzeaiQRGDGxGmRJtQGGfXrcytuvkwMknVZuYygjeuMEzyTkdbIpXEEMDTOFMcHMZNgPEMbUtTqxLLMvVZGFPGCrUhSjwP','xaJZpZvdxwxwXdCDyfenLKEMtrxJcFHaeBQUDFmPIXFOQNQEOmMfpyetCOfEsZWLzMzPDpIksMREnLZ','qPSUDzejdtTWThqVBytMrtuJFrbItpuqFytFkSHrAPfSqGbNdPauuBWsydYDaxe'}",
+                "enable_rpc_throttle",
+                "alter 'uuidb63ed4017c8947388480f6bb6a77c78d', {NAME => 'uuid319d8c9fb9324c19a8b164ef946aa744', VERSIONS => 4, IN_MEMORY => true}",
+                "clone_table_schema 'uuid40199938b7974c3fa73809905c796040', 'uuid332c6cd0da6244d0ad4bdeefa0444997'",
+                "disable 'uuid40199938b7974c3fa73809905c796040'",
+                "enable 'uuid8d085b3437c34e049fadf77f6942c612'",
+                "disable 'uuidb63ed4017c8947388480f6bb6a77c78d'",
+                "drop 'uuidb1d2edba9eef4dfc82df56555f05e13f'",
+                "alter 'uuid40199938b7974c3fa73809905c796040', {NAME => 'rGmQNKiPm', VERSIONS => 2, COMPRESSION => 'NONE'}"
+        };
+
+        String[] validationCommandSequence = {
+                "is_disabled 'uuidb63ed4017c8947388480f6bb6a77c78d'",
+                "exists 'uuid40199938b7974c3fa73809905c796040'",
+                "scan 'uuidefd27eadbce74e27966ae4d63a7e8d80'",
+                "exists 'uuid40199938b7974c3fa73809905c796040'",
+                "count 'uuid332c6cd0da6244d0ad4bdeefa0444997', INTERVAL => 225, CACHE => 225",
+                "get_splits 'uuid332c6cd0da6244d0ad4bdeefa0444997'",
+                "scan 'uuid8d085b3437c34e049fadf77f6942c612'",
+                "scan 'uuidefd27eadbce74e27966ae4d63a7e8d80'",
+                "scan 'uuid40199938b7974c3fa73809905c796040'",
+                "list_quota_table_sizes",
+                "get_splits 'uuid40199938b7974c3fa73809905c796040'",
+                "is_disabled 'uuidefd27eadbce74e27966ae4d63a7e8d80'",
+                "is_disabled 'uuidb63ed4017c8947388480f6bb6a77c78d'",
+                "get 'uuid40199938b7974c3fa73809905c796040', 'uuidf43def325bcf408998b1960edb13a5dd', {COLUMN => 'uuidd4302963ab75484eada3b82bd5c6f5c5:ywLPilkA', VERSIONS => 1}",
+                "balance_switch",
+                "balance_switch",
+                "is_disabled 'uuidefd27eadbce74e27966ae4d63a7e8d80'",
+                "get_splits 'uuid40199938b7974c3fa73809905c796040'",
+                "scan 'uuid8d085b3437c34e049fadf77f6942c612'",
+                "get 'uuid40199938b7974c3fa73809905c796040', 'uuidf43def325bcf408998b1960edb13a5dd', {COLUMN => 'uuidd4302963ab75484eada3b82bd5c6f5c5:ywLPilkA', VERSIONS => 1}",
+                "is_disabled 'uuid40199938b7974c3fa73809905c796040'",
+                "scan 'uuidefd27eadbce74e27966ae4d63a7e8d80'",
+                "list_quotas",
+                "get_splits 'uuid40199938b7974c3fa73809905c796040'",
+                "scan 'uuidefd27eadbce74e27966ae4d63a7e8d80'",
+                "exists 'uuid332c6cd0da6244d0ad4bdeefa0444997'",
+                "count 'uuidb63ed4017c8947388480f6bb6a77c78d'",
+                "get_splits 'uuidb63ed4017c8947388480f6bb6a77c78d'",
+                "scan 'uuid332c6cd0da6244d0ad4bdeefa0444997'",
+                "get_splits 'uuidefd27eadbce74e27966ae4d63a7e8d80'"
+        };
+
+        List<String> originalCommandSequenceList = Arrays
+                .asList(originalCommandSequence);
+        List<String> validationCommandSequenceList = Arrays
+                .asList(validationCommandSequence);
+
+        List<List<String>> commandSequencesList = new ArrayList<>();
+        commandSequencesList.add(originalCommandSequenceList);
+        commandSequencesList.add(validationCommandSequenceList);
+        return commandSequencesList;
+    }
+
     public static void serializeSingleCommand(String cmd, OutputStream os)
             throws IOException {
         byte[] cmdBytes = cmd.getBytes(StandardCharsets.UTF_8);

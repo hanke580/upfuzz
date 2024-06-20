@@ -266,29 +266,30 @@ public class HBaseDockerCluster extends DockerCluster {
     @Override
     public boolean fullStopUpgrade() throws Exception {
         logger.info("Cluster full-stop upgrading...");
-        // Shutdown all rs
-        if (!Config.getConf().testSingleVersion) {
-            String[] versionPartsOriginal = Config.getConf().originalVersion
-                    .substring(originalVersion.indexOf("-") + 1)
-                    .split("\\.");
-            String[] versionPartsUpgraded = Config.getConf().upgradedVersion
-                    .substring(upgradedVersion.indexOf("-") + 1)
-                    .split("\\.");
+        String[] versionPartsOriginal = Config.getConf().originalVersion
+                .substring(originalVersion.indexOf("-") + 1)
+                .split("\\.");
+        String[] versionPartsUpgraded = Config.getConf().upgradedVersion
+                .substring(upgradedVersion.indexOf("-") + 1)
+                .split("\\.");
+        boolean upgradeTo2_2 = (!Config.getConf().testSingleVersion) &&
+                (Integer.parseInt(versionPartsOriginal[0]) == 2
+                        && Integer.parseInt(versionPartsOriginal[1]) < 2)
+                &&
+                (Integer.parseInt(versionPartsUpgraded[0]) >= 2
+                        && Integer.parseInt(versionPartsUpgraded[1]) >= 2);
 
-            if ((Integer.parseInt(versionPartsOriginal[0]) == 2
-                    && Integer.parseInt(versionPartsOriginal[1]) < 2)
-                    && (Integer.parseInt(versionPartsUpgraded[0]) >= 2
-                            && Integer.parseInt(
-                                    versionPartsUpgraded[1]) >= 2)) {
-                for (int i = 0; i < dockers.length; i++) {
-                    ((HBaseDocker) dockers[i])
-                            .prepareUpgradeTo2_2(HBaseDocker.NodeType.MASTER,
-                                    originalVersion);
-                }
+        // Shutdown all rs
+        if (upgradeTo2_2) {
+            for (int i = 0; i < dockers.length; i++) {
+                ((HBaseDocker) dockers[i])
+                        .prepareUpgradeTo2_2(HBaseDocker.NodeType.MASTER,
+                                originalVersion);
             }
             for (int i = 0; i < dockers.length; i++) {
                 ((HBaseDocker) dockers[i])
-                        .shutdownWithType(HBaseDocker.NodeType.REGIONSERVER);
+                        .shutdownWithType(
+                                HBaseDocker.NodeType.REGIONSERVER);
             }
             // Shutdown all zk
             for (int i = 0; i < dockers.length; i++) {
