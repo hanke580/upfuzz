@@ -41,9 +41,11 @@ public class CREATE_KEYSPACE extends CassandraCommand {
     public CREATE_KEYSPACE(State state) {
         super();
 
-        ParameterType.ConcreteType keyspaceNameType = new ParameterType.NotInCollectionType(
-                new ParameterType.NotEmpty(UUIDType.instance),
-                (s, c) -> ((CassandraState) s).getKeyspaces(), null);
+        ParameterType.ConcreteType keyspaceNameType = new ParameterType.LessLikelyMutateType(
+                new ParameterType.NotInCollectionType(
+                        new ParameterType.NotEmpty(UUIDType.instance),
+                        (s, c) -> ((CassandraState) s).getKeyspaces(), null),
+                0.1);
         Parameter keyspaceName = keyspaceNameType
                 .generateRandomParameter(state, this);
         this.params.add(keyspaceName); // [0]

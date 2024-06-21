@@ -18,6 +18,7 @@ import org.zlab.upfuzz.utils.STRINGType;
  */
 public abstract class ParameterType implements Serializable {
     static Logger logger = LogManager.getLogger(Command.class);
+    static final Random rand = new Random();
 
     public static abstract class ConcreteType extends ParameterType {
         /**
@@ -1107,6 +1108,57 @@ public abstract class ParameterType implements Serializable {
         public boolean mutate(State s, Command c, Parameter p) {
             // TODO: Impl
             return false;
+        }
+    }
+
+    public static class LessLikelyMutateType extends ConfigurableType {
+        final double probability;
+
+        public LessLikelyMutateType(ConcreteType t, double probability) {
+            super(t, null);
+            this.probability = probability;
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c,
+                Object init) {
+            throw new RuntimeException("Not implemented");
+        }
+
+        @Override
+        public Parameter generateRandomParameter(State s, Command c) {
+            return new Parameter(this, t.generateRandomParameter(s, c));
+        }
+
+        @Override
+        public String generateStringValue(Parameter p) {
+            return ((Parameter) p.value).toString();
+        }
+
+        @Override
+        public boolean isValid(State s, Command c, Parameter p) {
+            assert t != null;
+            return true;
+        }
+
+        @Override
+        public void regenerate(State s, Command c, Parameter p) {
+            Parameter ret = generateRandomParameter(s, c);
+            p.value = ret.value;
+        }
+
+        @Override
+        public boolean isEmpty(State s, Command c, Parameter p) {
+            return t.isEmpty(s, c, p);
+        }
+
+        @Override
+        public boolean mutate(State s, Command c, Parameter p) {
+            if (rand.nextDouble() < probability) {
+                return t.mutate(s, c, (Parameter) p.value);
+            } else {
+                return false;
+            }
         }
     }
 

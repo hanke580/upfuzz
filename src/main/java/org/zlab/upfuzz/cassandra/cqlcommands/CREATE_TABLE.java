@@ -104,12 +104,17 @@ public class CREATE_TABLE extends CassandraCommand {
         Parameter keyspaceName = chooseKeyspace(state, this, null);
         params.add(keyspaceName); // [0]
 
-        ParameterType.ConcreteType tableNameType = new ParameterType.NotInCollectionType(
-                new ParameterType.NotEmpty(new STRINGType(10)),
-                (s, c) -> Utilities
-                        .strings2Parameters(((CassandraState) s).keyspace2tables
-                                .get(this.params.get(0).toString()).keySet()),
-                null);
+        ParameterType.ConcreteType tableNameType = new ParameterType.LessLikelyMutateType(
+                new ParameterType.NotInCollectionType(
+                        new ParameterType.NotEmpty(new STRINGType(10)),
+                        (s, c) -> Utilities
+                                .strings2Parameters(
+                                        ((CassandraState) s).keyspace2tables
+                                                .get(this.params.get(0)
+                                                        .toString())
+                                                .keySet()),
+                        null),
+                0.1);
 
         Parameter tableName = tableNameType
                 .generateRandomParameter(state, this);

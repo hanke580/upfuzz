@@ -73,10 +73,8 @@ public class CommandSequence implements Serializable {
 
     public boolean mutate() throws Exception {
         // Choice
-        // 0: Mutate the command (Call command.mutate) // 2/3
-        // 1: Insert a command 1/3
-        // 2: Replace a command 0
-        // 3: Delete a command 0
+        // 0: Mutate the command 1/3
+        // 1: Insert a command 2/3
         separateFromFormerTest();
         initializeTypePool();
 
@@ -93,7 +91,7 @@ public class CommandSequence implements Serializable {
                 state.clearState();
 
                 int pos;
-                if (choice == 0 || choice == 1) {
+                if (choice == 0) {
                     // Mutate a specific command
                     if (Config.getConf() != null
                             && Config.getConf().system != null
