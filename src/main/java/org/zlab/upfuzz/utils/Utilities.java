@@ -1102,6 +1102,10 @@ public class Utilities {
     }
 
     public static <T> Set<T> subSet(Set<T> targetSet) {
+        // if size is 0, return empty set
+        if (targetSet.size() == 0) {
+            return new HashSet<>();
+        }
         List<T> targetSetList = new ArrayList<>(targetSet);
         int numItems = rand.nextInt(targetSetList.size());
         Set<T> subSet = new HashSet<>();
