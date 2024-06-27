@@ -1,6 +1,6 @@
 {
-  "originalVersion" : "hbase-2.2.7",
-  "upgradedVersion" : "hbase-3.0.0-alpha-1",
+  "originalVersion" : "hbase-2.4.17",
+  "upgradedVersion" : "hbase-2.5.8",
   "system" : "hbase",
   "depSystem": "hadoop",
   "depVersion": "hadoop-2.10.2",
@@ -19,7 +19,10 @@
   "saveCorpusToDisk": false,
   "useFormatCoverage": false,
   "useVersionDelta": false,
-  "versionDeltaApproach": 0,
+  "versionDeltaApproach": 1,
+  "BC_CorpusNonVersionDelta": 0.2,
+  "FC_CorpusNonVersionDelta": 0.6,
+  "BoundaryChange_CorpusNonVersionDelta": 0.2,
   "FC_VD_PROB_CorpusVersionDeltaFiveQueueWithBoundary": 0.4,
   "FC_PROB_CorpusVersionDeltaFiveQueueWithBoundary": 0.3,
   "BC_VD_PROB_CorpusVersionDeltaFiveQueueWithBoundary": 0,
@@ -32,7 +35,6 @@
   "testRemainConfig": false,
   "nyxMode": false,
   "nyxFuzzSH": "nyx_mode/fuzz_no_pt.sh",
-  "debug": true,
-  "collUpFeedBack": true,
+  "debug": false,
   "startUpClusterForDebugging": false
 }

@@ -1,6 +1,6 @@
 {
-  "originalVersion" : "hadoop-3.2.4",
-  "upgradedVersion" : "hadoop-3.4.1",
+  "originalVersion" : "hadoop-2.10.2",
+  "upgradedVersion" : "hadoop-3.3.6",
   "system" : "hdfs",
   "serverPort" : "6499",
   "clientPort" : "6500",
@@ -44,5 +44,5 @@
   "enable_du": false,
   "support_StorageType_NVDIMM": false,
   "support_checksum_v_opt": false,
-  "startUpClusterForDebugging": true
+  "startUpClusterForDebugging": false
 }
