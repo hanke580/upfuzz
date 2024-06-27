@@ -65,5 +65,4 @@ public abstract class Docker extends DockerMeta implements IDocker {
         in.close();
         socket.close();
     }
-
 }
