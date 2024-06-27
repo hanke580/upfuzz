@@ -23,6 +23,11 @@ public abstract class HBaseCommand extends Command {
             "NO_WRITES",
             "NO_WRITES_COMPACTIONS", "NO_INSERTS_NO_WRITES" };
 
+    // READ('R'), WRITE('W'), EXEC('X'), CREATE('C'), ADMIN('A')
+    public static String[] PERMISSION_OPTIONS = {
+            "R", "W", "X", "C", "A"
+    };
+
     public HBaseCommand(HBaseState state) {
     }
 

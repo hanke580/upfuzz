@@ -11,6 +11,7 @@ import org.zlab.upfuzz.hbase.procedures.LIST_LOCKS;
 import org.zlab.upfuzz.hbase.procedures.LIST_PROCEDURES;
 import org.zlab.upfuzz.hbase.quotas.*;
 // import org.zlab.upfuzz.hbase.rsgroup.*;
+import org.zlab.upfuzz.hbase.security.GRANT;
 import org.zlab.upfuzz.hbase.snapshot.*;
 import org.zlab.upfuzz.hbase.tools.*;
 import org.zlab.upfuzz.hbase.ddl.*;
@@ -281,6 +282,10 @@ public class HBaseCommandPool extends CommandPool {
                 new AbstractMap.SimpleImmutableEntry<>(WAL_ROLL.class, 5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(ZK_DUMP.class, 5));
+
+        // security
+        commandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(GRANT.class, 5));
     }
 
     @Override
