@@ -23,8 +23,8 @@ from subprocess import Popen, PIPE
 
 MESSAGE_SIZE = 51200
 
-output_file = open('/var/log/supervisor/hbase_daemon.log', 'a', encoding='utf-8')
-output_file.write("test\n")
+# output_file = open('/var/log/supervisor/hbase_daemon.log', 'a', encoding='utf-8')
+# output_file.write("test\n")
 
 def get_shell_within_docker():
     return os
@@ -69,14 +69,14 @@ class TCPHandler(socketserver.BaseRequestHandler):
 
                 if not self.data:
                     print("stop current TCP")
-                    output_file.write("stop current TCP\n")
+                    # output_file.write("stop current TCP\n")
                     break
                 
                 print(self.data)
-                # output_file.write(self.data + "\n")
+                # # output_file.write(self.data + "\n")
                 cmd = self.data.decode("ascii")+'\n'
-                output_file.write(cmd)
-                output_file.flush()
+                # output_file.write(cmd)
+                # output_file.flush()
                 start_time = time.time()
 
                 ret_out = ""
@@ -97,8 +97,8 @@ class TCPHandler(socketserver.BaseRequestHandler):
                     next_shell_out = 'hbase(main):' + \
                         '{:0>3d}'.format(command_count) + ':0> '
                     print('next_out:', next_shell_out)
-                    output_file.write('next_out: ' + next_shell_out + '\n')
-                    output_file.flush()
+                    # output_file.write('next_out: ' + next_shell_out + '\n')
+                    # output_file.flush()
                     command_count += 1
 
                     while True:
@@ -107,7 +107,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
                             err_out = process.stderr.read()
                             if err_out is not None and len(err_out) != 0:
                                 ret_err += err_out.decode("utf-8")
-                                output_file.write('stderr: ' + ret_err)
+                                # output_file.write('stderr: ' + ret_err)
                             # if seconds_count == 1:
                             #     seconds_count = 0
                             #     break
@@ -116,12 +116,12 @@ class TCPHandler(socketserver.BaseRequestHandler):
                         if not newline == cmd:
                             ret_out += newline
                         # print(newline, end='')
-                        output_file.write('stdout: ' + newline)
-                        output_file.flush()
+                        # output_file.write('stdout: ' + newline)
+                        # output_file.flush()
                         err_out = process.stderr.read()
                         if err_out is not None and len(err_out) != 0:
                             ret_err += err_out.decode("utf-8")
-                            output_file.write('stderr: ' + ret_err)
+                            # output_file.write('stderr: ' + ret_err)
                         if "syntax error" in ret_out or "NameError" in ret_out or "NoMethodError" in ret_out:
                             break
                         if ret_out.endswith("seconds") or ret_out.endswith("seconds\n"):
@@ -257,7 +257,7 @@ if __name__ == "__main__":
     if not isinstance(port, int):
         raise TypeError("port must be an integer")
     print("use " + host + ":" + str(port))
-    output_file.write("use " + host + ":" + str(port) + '\n')
+    # output_file.write("use " + host + ":" + str(port) + '\n')
 
     global process
     global command_count
@@ -363,16 +363,16 @@ if __name__ == "__main__":
     #             print("GOTCHAAAA")
     # Open a file to write the output
 
-    # output_file_path = "shell_output.txt"
-    # with open(output_file_path, "w") as output_file:
+    # # output_file_path = "shell_output.txt"
+    # with open(# output_file_path, "w") as # output_file:
     #     # Start the subprocess with stdout redirected to the file
-    #     with subprocess.Popen(['hbase/hbase-2.3.7/bin/hbase shell'], stdout=output_file, universal_newlines=True, shell=True) as p:
+    #     with subprocess.Popen(['hbase/hbase-2.3.7/bin/hbase shell'], stdout=# output_file, universal_newlines=True, shell=True) as p:
     #         p.wait()  # Wait for the subprocess to finish
     
-    # os.system(hbase_path + ' shell > ' + output_file_path)
+    # os.system(hbase_path + ' shell > ' + # output_file_path)
 
     # Read the output file and print its contents
-    # with open(output_file, "r") as file:
+    # with open(# output_file, "r") as file:
     #     print(file.read())
     # process._stdin_write(b'version\n')
     # process.stdin.write(b'version\n')
@@ -381,9 +381,9 @@ if __name__ == "__main__":
     process.stdout.read()
     print("outside while loop")
     print(output)
-    output_file.write(output + '\n')
+    # output_file.write(output + '\n')
     print(errout)
-    output_file.write(errout + '\n')
+    # output_file.write(errout + '\n')
     command_count += 1
     # Get the file descriptor of the stdin PIPE
     # stdin_fd = process.stdin.fileno()
@@ -409,7 +409,7 @@ if __name__ == "__main__":
             print('test')
             server = socketserver.TCPServer((host, port), TCPHandler)
             print('hbase server created')
-            output_file.write('hbase server created\n')
+            # output_file.write('hbase server created\n')
             server.serve_forever()
             print('hbase server end')
 
@@ -422,11 +422,11 @@ if __name__ == "__main__":
 
 
     # hbase_path = os.environ['HBASE_HOME'] + "/bin/hbase"
-    # output_file_path = "shell_output.txt"
+    # # output_file_path = "shell_output.txt"
 
     # # Open the output file for writing
-    # with open(output_file_path, "w") as output_file:
-    #     process = Popen([hbase_path, 'shell'], stdout=output_file, stdin=PIPE, stderr=output_file, universal_newlines=True)
+    # with open(# output_file_path, "w") as # output_file:
+    #     process = Popen([hbase_path, 'shell'], stdout=# output_file, stdin=PIPE, stderr=# output_file, universal_newlines=True)
 
     #     os.set_blocking(process.stdin.fileno(), False)
 
@@ -440,4 +440,4 @@ if __name__ == "__main__":
     #             break
 
     #     # Close the output file
-    #     output_file.close()
+    #     # output_file.close()
