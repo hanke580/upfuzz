@@ -144,11 +144,11 @@ public class XmlGenerator extends ConfigFileGenerator {
                 "hdfs://master:8020/hbase");
         curConfigurations.put("hbase.zookeeper.property.dataDir",
                 "/usr/local/zookeeper");
-        curConfigurations.put("hbase.coprocessor.master.classes",
-                "org.apache.hadoop.hbase.security.access.AccessController");
-        curConfigurations.put("hbase.coprocessor.region.classes",
-                "org.apache.hadoop.hbase.security.access.AccessController");
-        curConfigurations.put("hbase.security.authorization", "true");
+        // curConfigurations.put("hbase.coprocessor.master.classes",
+        // "org.apache.hadoop.hbase.security.access.AccessController");
+        // curConfigurations.put("hbase.coprocessor.region.classes",
+        // "org.apache.hadoop.hbase.security.access.AccessController");
+        // curConfigurations.put("hbase.security.authorization", "true");
         // curConfigurations.put("zookeeper.snapshot.trust.empty",
         // "true");
         // curConfigurations.put("hbase.unsafe.stream.capability.enforce",
