@@ -2,6 +2,8 @@ package org.zlab.upfuzz.fuzzingengine.configgen;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.zlab.upfuzz.fuzzingengine.Config;
+import org.zlab.upfuzz.hbase.HBaseConfigGen;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
@@ -215,6 +217,17 @@ public class ConfigValGenerator {
             }
             vals.removeAll(Collections.singleton("0.0"));
             break;
+        }
+        case "unknown": {
+            if (Config.getConf().eval_HBASE22503) {
+                if (config.equals("hbase.coprocessor.master.classes")) {
+                    vals.addAll(HBaseConfigGen.SubTypeForMasterCoprocessor);
+                }
+                if (config.equals("hbase.coprocessor.region.classes")) {
+                    // Subset of coprocessors
+                    vals.addAll(HBaseConfigGen.SubTypeForRegionCoprocessor);
+                }
+            }
         }
         }
 

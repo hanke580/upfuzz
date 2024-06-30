@@ -35,6 +35,7 @@
   "testRemainConfig": false,
   "nyxMode": false,
   "nyxFuzzSH": "nyx_mode/fuzz_no_pt.sh",
+  "eval_HBASE22503": false,
   "debug": false,
   "startUpClusterForDebugging": false
 }

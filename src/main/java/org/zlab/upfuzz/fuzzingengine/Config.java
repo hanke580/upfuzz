@@ -358,6 +358,8 @@ public class Config {
         public final String[] SERVERS = { "hmaster", "hregion1", "hregion2" };
         public int REGIONSERVER_PORT = 16020;
 
+        public boolean eval_HBASE22503 = false;
+
         @Override
         public String toString() {
             return new GsonBuilder()

@@ -6,8 +6,47 @@ import org.zlab.upfuzz.fuzzingengine.configgen.xml.XmlGenerator;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 public class HBaseConfigGen extends ConfigGen {
+
+    public static final List<String> SubTypeForMasterCoprocessor = new ArrayList<>();
+    public static final List<String> SubTypeForRegionCoprocessor = new ArrayList<>();
+
+    static {
+        SubTypeForMasterCoprocessor.add(
+                "org.apache.hadoop.hbase.security.access.AccessController");
+        SubTypeForMasterCoprocessor.add(
+                "org.apache.hadoop.hbase.coprocessor.CoprocessorServiceBackwardCompatiblity.MasterCoprocessorService");
+        SubTypeForMasterCoprocessor.add("org.apache.hadoop.hbase.JMXListener");
+        SubTypeForMasterCoprocessor
+                .add("org.apache.hadoop.hbase.quotas.MasterQuotasObserver");
+        SubTypeForMasterCoprocessor.add(
+                "org.apache.hadoop.hbase.security.access.CoprocessorWhitelistMasterObserver");
+        SubTypeForMasterCoprocessor.add(
+                "org.apache.hadoop.hbase.security.visibility.VisibilityController");
+
+        SubTypeForRegionCoprocessor.add(
+                "org.apache.hadoop.hbase.coprocessor.CoprocessorServiceBackwardCompatiblity.RegionCoprocessorService");
+        SubTypeForRegionCoprocessor.add(
+                "org.apache.hadoop.hbase.security.access.AccessController");
+        SubTypeForRegionCoprocessor
+                .add("org.apache.hadoop.hbase.constraint.ConstraintProcessor");
+        SubTypeForRegionCoprocessor
+                .add("org.apache.hadoop.hbase.security.token.TokenProvider");
+        SubTypeForRegionCoprocessor
+                .add("org.apache.hadoop.hbase.tool.WriteSinkCoprocessor");
+        SubTypeForRegionCoprocessor.add(
+                "org.apache.hadoop.hbase.coprocessor.BaseRowProcessorEndpoint");
+        SubTypeForRegionCoprocessor.add(
+                "org.apache.hadoop.hbase.replication.regionserver.ReplicationObserver");
+        SubTypeForRegionCoprocessor.add(
+                "org.apache.hadoop.hbase.security.visibility.VisibilityController");
+        SubTypeForRegionCoprocessor.add(
+                "org.apache.hadoop.hbase.coprocessor.MultiRowMutationEndpoint");
+    }
+
     @Override
     public void updateConfigBlackList() {
     }
