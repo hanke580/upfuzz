@@ -1,8 +1,9 @@
 package org.zlab.upfuzz.fuzzingengine.configgen;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.Config;
-import org.zlab.upfuzz.fuzzingengine.server.FuzzingServer;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -10,6 +11,8 @@ import java.nio.file.Paths;
 import java.util.*;
 
 public abstract class ConfigGen {
+    static Logger logger = LogManager.getLogger(ConfigGen.class);
+
     static Random rand = new Random();
     ObjectMapper mapper = new ObjectMapper();
 
@@ -58,7 +61,8 @@ public abstract class ConfigGen {
         if (Config.getConf().testAddedConfig
                 || Config.getConf().testDeletedConfig
                 || Config.getConf().testCommonConfig
-                || Config.getConf().testBoundaryConfig) {
+                || Config.getConf().testBoundaryConfig
+                || Config.getConf().testRemainConfig) {
             enable = true;
             loadUpgradeConfigInfo();
             initUpgradeValGenerator();
