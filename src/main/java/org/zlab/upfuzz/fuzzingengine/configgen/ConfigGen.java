@@ -341,7 +341,8 @@ public abstract class ConfigGen {
         if (Config.getConf().testAddedConfig
                 || Config.getConf().testDeletedConfig
                 || Config.getConf().testCommonConfig
-                || Config.getConf().testBoundaryConfig) {
+                || Config.getConf().testBoundaryConfig
+                || Config.getConf().testRemainConfig) {
             return configFileGenerator[0].generate(oriConfigtest,
                     oriConfigInfo.config2type,
                     upConfigtest, upConfigInfo.config2type);
