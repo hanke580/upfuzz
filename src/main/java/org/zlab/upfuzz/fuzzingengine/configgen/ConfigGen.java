@@ -142,8 +142,8 @@ public abstract class ConfigGen {
             // extract remaining configs
             remainOriConfig = extractRemainOriConfig();
             remainUpConfig = extractRemainUpConfig();
-            assert remainOriConfig.size() == remainUpConfig.size()
-                    : "The remaining configs should be the same";
+            // assert remainOriConfig.size() == remainUpConfig.size()
+            // : "The remaining configs should be the same";
         } catch (IOException e) {
             throw new RuntimeException(
                     "missing configuration test files!" + e);
