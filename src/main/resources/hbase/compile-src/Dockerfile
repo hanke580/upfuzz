@@ -16,6 +16,7 @@ RUN apt install apt-transport-https ca-certificates -y
 RUN apt-get update && apt-get install -y openssh-server iproute2 net-tools iputils-ping supervisor vim ant maven python python3 python3-pip python-six psmisc
 
 RUN pip3 install six
+RUN pip3 install pexpect
 RUN apt-get install iptables -y
 
 RUN apt-get install openjdk-8-jdk -y
