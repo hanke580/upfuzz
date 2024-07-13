@@ -68,7 +68,20 @@ public class PAIRType extends ParameterType.GenericTypeTwo {
     public boolean mutate(State s, Command c, Parameter p,
             List<ConcreteType> types) {
         p.value = generateRandomParameter(s, c, types).value;
-        return true;
+
+        ConcreteType t1 = types.get(0);
+        ConcreteType t2 = types.get(1);
+
+        assert p.value instanceof Pair;
+        Pair<Parameter, Parameter> value = (Pair<Parameter, Parameter>) p.value;
+
+        // 30% mutate 0, 70% mutate 1
+        int mutateIdx = ParameterType.rand.nextInt(10);
+        if (mutateIdx < 3) {
+            return t1.mutate(s, c, value.left);
+        } else {
+            return t2.mutate(s, c, value.right);
+        }
     }
 
     @Override

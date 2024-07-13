@@ -360,6 +360,9 @@ public class Config {
 
         public boolean eval_HBASE22503 = false;
 
+        // == unit test ==
+        public boolean eval_UnitTest = false;
+
         @Override
         public String toString() {
             return new GsonBuilder()

@@ -221,22 +221,12 @@ public class CassandraTypes {
         @Override
         public boolean mutate(State s, Command c, Parameter p,
                 List<ConcreteType> types) {
-            int choice = rand.nextInt(2);
-            switch (choice) {
-            case 0:
-                // [Dramatic Change] Regenerate the list
-                p.value = generateRandomParameter(s, c, types).value;
-                break;
-            case 1:
-                // Double size of this list
-                List<Parameter> value = (List<Parameter>) p.value;
-                int size = value.size();
-                for (int i = 0; i < size; i++) {
-                    value.add(types.get(0).generateRandomParameter(s, c));
-                }
-                break;
-            }
-            return true;
+            ConcreteType t = types.get(0);
+            assert p.value instanceof Collection;
+            Collection<Parameter> value = (Collection<Parameter>) p.value;
+            // mutate a concrete value of this list
+            int mutateIdx = rand.nextInt(value.size());
+            return t.mutate(s, c, (Parameter) value.toArray()[mutateIdx]);
         }
 
         @Override

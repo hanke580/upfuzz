@@ -1,14 +1,12 @@
 package org.zlab.upfuzz;
 
 import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.zlab.upfuzz.cassandra.CassandraCommand;
 
 /**
  * User need to implement two methods constructCommandString() and

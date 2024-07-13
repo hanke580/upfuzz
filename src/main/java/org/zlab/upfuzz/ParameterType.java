@@ -18,7 +18,7 @@ import org.zlab.upfuzz.utils.STRINGType;
  */
 public abstract class ParameterType implements Serializable {
     static Logger logger = LogManager.getLogger(Command.class);
-    static final Random rand = new Random();
+    public static final Random rand = new Random();
 
     public static abstract class ConcreteType extends ParameterType {
         /**
@@ -1466,9 +1466,7 @@ public abstract class ParameterType implements Serializable {
 
         @Override
         public boolean mutate(State s, Command c, Parameter p) {
-            // TODO: More operations on the list
-            regenerate(s, c, p); // regenerate list
-            return true;
+            return t.mutate(s, c, p, typesInTemplate);
         }
 
         @Override

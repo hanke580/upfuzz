@@ -75,6 +75,8 @@ public class CommandSequence implements Serializable {
         // Choice
         // 0: Mutate the command 1/3
         // 1: Insert a command 2/3
+
+        // We can disable this when eval_UnitTest
         separateFromFormerTest();
         initializeTypePool();
 

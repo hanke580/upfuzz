@@ -14,6 +14,19 @@ public class CassandraCommandPool extends CommandPool {
     public static int readCommandRate = 5;
     public static int deleteLargeDataRate = 1;
 
+    public void eval_UnitTest() {
+        createCommandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
+                CREATE_KEYSPACE.class, createCommandRate));
+        createCommandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(CREATE_TABLE.class,
+                        createCommandRate));
+        commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
+                CREATE_KEYSPACE.class, basicCommandRate));
+        commandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(CREATE_TABLE.class,
+                        writeCommandRate));
+    }
+
     public void eval_CASSANDRA13939() {
         // limit to only one table for each test
         commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
@@ -84,6 +97,10 @@ public class CassandraCommandPool extends CommandPool {
 
     @Override
     public void registerWriteCommands() {
+        if (Config.getConf().eval_UnitTest) {
+            eval_UnitTest();
+            return;
+        }
         if (Config.getConf().eval_CASSANDRA13939) {
             eval_CASSANDRA13939();
             return;
@@ -165,7 +182,8 @@ public class CassandraCommandPool extends CommandPool {
 
     @Override
     public void registerCreateCommands() {
-        if (Config.getConf().eval_CASSANDRA13939
+        if (Config.getConf().eval_UnitTest
+                || Config.getConf().eval_CASSANDRA13939
                 || Config.getConf().eval_CASSANDRA14912) {
             // commands added when registerWriteCommands() is invoked.
             return;
