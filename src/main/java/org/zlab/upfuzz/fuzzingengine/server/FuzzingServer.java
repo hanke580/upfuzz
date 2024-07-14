@@ -237,6 +237,7 @@ public class FuzzingServer {
                             Config.getConf().comparableClassesFileName),
                     null,
                     null,
+                    null,
                     null);
             if (Config.getConf().useVersionDelta) {
                 upObjCoverage = new ObjectGraphCoverage(
@@ -246,6 +247,7 @@ public class FuzzingServer {
                                 Config.getConf().topObjectsFileName),
                         upFormatInfoFolder.resolve(
                                 Config.getConf().comparableClassesFileName),
+                        null,
                         null,
                         null,
                         null);
