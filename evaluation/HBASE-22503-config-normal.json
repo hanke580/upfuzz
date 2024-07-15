@@ -7,7 +7,7 @@
   "serverPort" : "6399",
   "clientPort" : "6400",
   "configDir" : "configtests",
-  "STACKED_TESTS_NUM" : 40,
+  "STACKED_TESTS_NUM" : 10,
   "batchSizeInGroup2" : 1,
   "nonInterestingTestsUpgradeProb": 0.6,
   "sequenceMutationEpoch" : 80,
