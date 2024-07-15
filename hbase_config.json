@@ -37,5 +37,6 @@
   "nyxFuzzSH": "nyx_mode/fuzz_no_pt.sh",
   "eval_HBASE22503": false,
   "debug": false,
+  "useFixedCommand": false,
   "startUpClusterForDebugging": false
 }
