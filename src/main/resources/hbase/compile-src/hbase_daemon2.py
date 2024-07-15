@@ -14,9 +14,50 @@ MESSAGE_SIZE = 51200
 output_file = open('/var/log/supervisor/hbase_daemon.log', 'a', encoding='utf-8')
 output_file.write("test\n")
 
+def check_shell_responsiveness():
+    global hbase_shell
+    hbase_shell.sendline("status")
+    index = hbase_shell.expect([r'hbase\(main\):\d{3}:\d+> ', pexpect.TIMEOUT, pexpect.EOF], timeout=5)
+    if index == 0:
+        return True
+    return False
+
+def restart_shell():
+    global hbase_shell
+    global command_count
+
+    try:
+        hbase_shell.close(force=True)
+    except Exception as e:
+        output_file.write("Exception while closing the shell: " + str(e) + "\n")
+        output_file.flush()
+    
+    hbase_shell = pexpect.spawn(hbase_path + " shell", encoding='utf-8')
+    
+    startup_ready = False
+    while not startup_ready:
+        try:
+            index = hbase_shell.expect([r'hbase\(main\):\d{3}:\d+> ', pexpect.TIMEOUT, pexpect.EOF], timeout=30)
+            if index == 0:
+                startup_ready = True
+            elif index == 1:
+                output_file.write("Timeout waiting for shell startup\n")
+            elif index == 2:
+                output_file.write("EOF encountered during shell startup\n")
+            initial_output = hbase_shell.before
+            output_file.write("Startup output: " + initial_output + "\n")
+            output_file.flush()
+        except Exception as e:
+            output_file.write("Exception during shell startup: " + str(e) + "\n")
+            output_file.flush()
+            time.sleep(5)
+    
+    command_count = 0
+
 class TCPHandler(socketserver.BaseRequestHandler):
     def handle(self):
         global hbase_shell
+        global command_count
 
         try:
             while True:
@@ -42,11 +83,21 @@ class TCPHandler(socketserver.BaseRequestHandler):
                 output_file.flush()
                 start_time = time.time()
 
+                if not check_shell_responsiveness() or command_count >= 500:
+                    output_file.write("Shell is unresponsive or command count exceeded, restarting shell...\n")
+                    restart_shell()
+
                 hbase_shell.before = ""
                 hbase_shell.sendline(cmd)
+                command_count += 1
                 
                 # Capture the intermediate output for debugging
+                start_expect_time = time.time()
                 index = hbase_shell.expect([r'hbase\(main\):\d{3}:\d+> ', pexpect.TIMEOUT, pexpect.EOF], timeout=30)
+                end_expect_time = time.time()
+                output_file.write(f"Expect time taken: {end_expect_time - start_expect_time} seconds\n")
+                output_file.flush()
+
                 if index == 0:
                     ret_out = hbase_shell.before
                     index = ret_out.find("hbase(main)")
@@ -128,11 +179,11 @@ if __name__ == "__main__":
     output_file.write("use " + host + ":" + str(port) + "\n")
 
     global hbase_shell
+    global command_count
 
     hbase_path = os.environ['HBASE_HOME'] + "/bin/hbase"
     hbase_shell = pexpect.spawn(hbase_path + " shell", encoding='utf-8')
 
-    # hbase_shell.expect([r'hbase\(main\):\d{3}:\d+> ', pexpect.TIMEOUT, pexpect.EOF], timeout=30)
     command_count = 1
     startup_ready = False
     while not startup_ready:
@@ -152,9 +203,6 @@ if __name__ == "__main__":
             output_file.flush()
             time.sleep(5)
 
-    # initial_output = hbase_shell.before
-    # output_file.write("Startup output: " + initial_output + "\n")
-    # output_file.flush()
     output_file.write("Started hbase shell \n")
     output_file.flush()
     hbase_shell.before = ""
@@ -171,4 +219,3 @@ if __name__ == "__main__":
             output_file.write("Exit exception: " + str(e) + "\n")
             output_file.flush()
             exit()
-
