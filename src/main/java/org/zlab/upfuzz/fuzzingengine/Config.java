@@ -354,6 +354,8 @@ public class Config {
         public boolean support_checksum_v_opt = false; // > 3.3.x
 
         // == hbase ==
+        // Wait for process to start up for hbaseDaemonRetryTimes * 5 seconds
+        public int hbaseDaemonRetryTimes = 40;
         public boolean enableQuota = true;
         public int MAX_CF_NUM = 7;
         public final String[] REGIONSERVERS = { "hregion1", "hregion2" };

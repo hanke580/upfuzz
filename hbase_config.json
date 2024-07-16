@@ -15,6 +15,7 @@
   "faultMaxNum": 0,
   "testSingleVersion": false,
   "testingMode": 0,
+  "hbaseDaemonRetryTimes": 40,
   "loadInitCorpus": false,
   "saveCorpusToDisk": false,
   "useFormatCoverage": false,
