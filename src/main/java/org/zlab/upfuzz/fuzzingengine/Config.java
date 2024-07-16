@@ -104,6 +104,7 @@ public class Config {
         public int firstConfigMutationEpoch = 3;
         public int limitConfigForVersionDeltaRound = 100;
         public int configMutationEpoch = 20;
+        public int mutationFailLimit = 15;
 
         // Fix config and random generate new command sequences
         // Focus on fuzzing

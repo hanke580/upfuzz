@@ -472,6 +472,39 @@ public class FuzzingServer {
 
     }
 
+    public void generateRandomSeed() {
+        logger.debug("[fuzzOne] generate a random seed");
+        StackedTestPacket stackedTestPacket;
+
+        int configIdx = configGen.generateConfig();
+        String configFileName = "test" + configIdx;
+        // corpus is empty, random generate one test packet and wait
+        stackedTestPacket = new StackedTestPacket(
+                Config.getConf().nodeNum,
+                configFileName);
+        if (Config.getConf().useVersionDelta
+                && Config.getConf().versionDeltaApproach == 2) {
+            stackedTestPacket.clientGroupForVersionDelta = 1;
+        }
+        for (int i = 0; i < Config.getConf().STACKED_TESTS_NUM; i++) {
+            Seed seed = Executor.generateSeed(commandPool, stateClass,
+                    configIdx, testID);
+            if (seed != null) {
+                mutatedSeedIds.add(testID);
+                graph.addNode(-1, seed); // random generate seed
+                testID2Seed.put(testID, seed);
+                stackedTestPacket.addTestPacket(seed, testID++);
+            }
+        }
+        if (stackedTestPacket.size() == 0) {
+            throw new RuntimeException(
+                    "Fuzzing Server failed to generate and tests");
+        }
+        // this must succeed
+        assert stackedTestPacket.size() != 0;
+        stackedTestPackets.add(stackedTestPacket);
+    }
+
     public void fuzzOne() {
         // Pick one test case from the corpus, fuzz it for mutationEpoch
         // Add the new tests into the stackedTestPackets
@@ -491,206 +524,199 @@ public class FuzzingServer {
                 seed = corpus.getSeed();
         }
 
+        if (seed == null) {
+            generateRandomSeed();
+            return;
+        }
+
         round++;
         StackedTestPacket stackedTestPacket;
-
         int configIdx;
-        if (seed == null) {
-            logger.debug("[fuzzOne] generate a random seed");
+
+        mutatedSeedIds.add(seed.testID);
+        logger.debug(
+                "[fuzzOne] fuzz a seed from corpus, stackedTestPackets size = "
+                        + stackedTestPackets.size());
+        /**
+         *  Get a seed from corpus, now fuzz it for an epoch
+         *  The seed contains a specific configuration to trigger new coverage
+         *  1. Fix the config, mutate command sequences
+         *      a. Mutate command sequences
+         *      b. Random generate new command sequences
+         *  2. Fix the command sequence
+         *      a. Mutate the configs (not supported yet)
+         *      b. Random generate new configs
+         *  3. Mutate both config and command sequence (violent, disabled)
+         */
+
+        // 1.a Fix config, mutate command sequences
+        if (seed.configIdx == -1)
             configIdx = configGen.generateConfig();
-            String configFileName = "test" + configIdx;
-            // corpus is empty, random generate one test packet and wait
-            stackedTestPacket = new StackedTestPacket(
-                    Config.getConf().nodeNum,
-                    configFileName);
-            if (Config.getConf().useVersionDelta
-                    && Config.getConf().versionDeltaApproach == 2) {
-                stackedTestPacket.clientGroupForVersionDelta = 1;
-            }
-            for (int i = 0; i < Config.getConf().STACKED_TESTS_NUM; i++) {
-                seed = Executor.generateSeed(commandPool, stateClass,
-                        configIdx, testID);
-                if (seed != null) {
-                    mutatedSeedIds.add(testID);
-                    graph.addNode(-1, seed); // random generate seed
-                    testID2Seed.put(testID, seed);
-                    stackedTestPacket.addTestPacket(seed, testID++);
-                }
-            }
-            if (stackedTestPacket.size() == 0) {
-                throw new RuntimeException(
-                        "Fuzzing Server failed to generate and tests");
-            }
-            stackedTestPackets.add(stackedTestPacket);
+        else
+            configIdx = seed.configIdx;
+
+        int mutationEpoch;
+        int randGenEpoch;
+        if (firstMutationSeedNum < Config
+                .getConf().firstMutationSeedLimit) {
+            mutationEpoch = Config.getConf().firstSequenceMutationEpoch;
+            randGenEpoch = Config.getConf().firstSequenceRandGenEpoch;
         } else {
-            mutatedSeedIds.add(seed.testID);
-            logger.debug(
-                    "[fuzzOne] fuzz a seed from corpus, stackedTestPackets size = "
-                            + stackedTestPackets.size());
-            /**
-             *  Get a seed from corpus, now fuzz it for an epoch
-             *  The seed contains a specific configuration to trigger new coverage
-             *  1. Fix the config, mutate command sequences
-             *      a. Mutate command sequences
-             *      b. Random generate new command sequences
-             *  2. Fix the command sequence
-             *      a. Mutate the configs (not supported yet)
-             *      b. Random generate new configs
-             *  3. Mutate both config and command sequence (violent, disabled)
-             */
+            mutationEpoch = Config.getConf().sequenceMutationEpoch;
+            randGenEpoch = Config.getConf().sequenceRandGenEpoch;
+        }
 
-            // 1.a Fix config, mutate command sequences
-            if (seed.configIdx == -1)
-                configIdx = configGen.generateConfig();
-            else
-                configIdx = seed.configIdx;
+        if (Config.getConf().debug) {
+            logger.debug(String.format(
+                    "mutationEpoch = %s, firstMutationSeedNum = %s",
+                    mutationEpoch, firstMutationSeedNum));
+        }
+        String configFileName = "test" + configIdx;
+        stackedTestPacket = new StackedTestPacket(Config.getConf().nodeNum,
+                configFileName);
+        if (Config.getConf().useVersionDelta
+                && Config.getConf().versionDeltaApproach == 2) {
+            stackedTestPacket.clientGroupForVersionDelta = 1;
+        }
 
-            int mutationEpoch;
-            int randGenEpoch;
-            if (firstMutationSeedNum < Config
-                    .getConf().firstMutationSeedLimit) {
-                mutationEpoch = Config.getConf().firstSequenceMutationEpoch;
-                randGenEpoch = Config.getConf().firstSequenceRandGenEpoch;
+        // Avoid infinite mutation problem: if the mutation keeps failing,
+        // need to jump out of this loop
+        int maxMutationLimit = 3 * mutationEpoch;
+        int mutationCount = 0;
+        int mutationFailCount = 0;
+        for (int i = 0; i < mutationEpoch; i++) {
+            if (mutationCount >= maxMutationLimit) {
+                logger.debug(
+                        "Mutation out of limit for seed " + seed.testID
+                                + ": should mutate " + mutationEpoch
+                                + ", not finished after "
+                                + mutationCount + " times");
+                break;
+            }
+            if (mutationFailCount >= Config.getConf().mutationFailLimit) {
+                logger.debug(
+                        "Mutation fail out of limit for seed " + seed.testID
+                                + ": should mutate " + mutationEpoch
+                                + ", mutation failed "
+                                + mutationFailCount + " times");
+                break;
+            }
+            if (i != 0 && i % Config.getConf().STACKED_TESTS_NUM == 0) {
+                stackedTestPackets.add(stackedTestPacket);
+                stackedTestPacket = new StackedTestPacket(
+                        Config.getConf().nodeNum,
+                        configFileName);
+                if (Config.getConf().useVersionDelta
+                        && Config.getConf().versionDeltaApproach == 2) {
+                    stackedTestPacket.clientGroupForVersionDelta = 1;
+                }
+            }
+            Seed mutateSeed = SerializationUtils.clone(seed);
+            if (mutateSeed.mutate(commandPool, stateClass)) {
+                mutateSeed.testID = testID; // update testID after mutation
+                graph.addNode(seed.testID, mutateSeed);
+                testID2Seed.put(testID, mutateSeed);
+                stackedTestPacket.addTestPacket(mutateSeed, testID++);
             } else {
-                mutationEpoch = Config.getConf().sequenceMutationEpoch;
-                randGenEpoch = Config.getConf().sequenceRandGenEpoch;
+                logger.debug("Mutation failed");
+                i--;
+                mutationFailCount++;
             }
+            mutationCount++;
+        }
+        // last test packet
+        if (stackedTestPacket.size() != 0) {
+            stackedTestPackets.add(stackedTestPacket);
+        }
+        // 1.b Fix config, random generate new command sequences
+        stackedTestPacket = new StackedTestPacket(Config.getConf().nodeNum,
+                configFileName);
+        for (int i = 0; i < randGenEpoch; i++) {
+            if (i != 0 && i % Config.getConf().STACKED_TESTS_NUM == 0) {
+                stackedTestPackets.add(stackedTestPacket);
+                stackedTestPacket = new StackedTestPacket(
+                        Config.getConf().nodeNum, configFileName);
+            }
+            Seed randGenSeed = Executor.generateSeed(commandPool,
+                    stateClass,
+                    configIdx, testID);
+            if (randGenSeed != null) {
+                graph.addNode(seed.testID, randGenSeed);
+                testID2Seed.put(testID, randGenSeed);
+                stackedTestPacket.addTestPacket(randGenSeed, testID++);
+            } else {
+                logger.debug("Random seed generation failed");
+                i--;
+            }
+        }
+        // last test packet
+        if (stackedTestPacket.size() != 0) {
+            stackedTestPackets.add(stackedTestPacket);
+        }
 
-            if (Config.getConf().debug) {
-                logger.debug(String.format(
-                        "mutationEpoch = %s, firstMutationSeedNum = %s",
-                        mutationEpoch, firstMutationSeedNum));
-            }
-            String configFileName = "test" + configIdx;
-            stackedTestPacket = new StackedTestPacket(Config.getConf().nodeNum,
-                    configFileName);
-            if (Config.getConf().useVersionDelta
-                    && Config.getConf().versionDeltaApproach == 2) {
-                stackedTestPacket.clientGroupForVersionDelta = 1;
-            }
+        if (configGen.enable) {
+            int configMutationEpoch;
+            if (firstMutationSeedNum < Config
+                    .getConf().firstMutationSeedLimit)
+                configMutationEpoch = Config
+                        .getConf().firstConfigMutationEpoch;
+            else
+                configMutationEpoch = Config.getConf().configMutationEpoch;
 
-            // Avoid infinite mutation problem: if the mutation keeps failing,
-            // need to jump out of this loop
-            int maxMutationLimit = 3 * mutationEpoch;
-            int mutationCount = 0;
-            for (int i = 0; i < mutationEpoch; i++) {
-                if (mutationCount >= maxMutationLimit) {
-                    logger.debug(
-                            "Mutation out of limit for seed " + seed.testID
-                                    + ": should mutate " + mutationEpoch
-                                    + ", not finished after "
-                                    + mutationCount + " times");
-                    break;
+            for (int configMutationIdx = 0; configMutationIdx < configMutationEpoch; configMutationIdx++) {
+                configIdx = configGen.generateConfig();
+                configFileName = "test" + configIdx;
+                stackedTestPacket = new StackedTestPacket(
+                        Config.getConf().nodeNum,
+                        configFileName);
+                if (Config.getConf().useVersionDelta
+                        && Config.getConf().versionDeltaApproach == 2) {
+                    stackedTestPacket.clientGroupForVersionDelta = 1;
                 }
-                if (i != 0 && i % Config.getConf().STACKED_TESTS_NUM == 0) {
-                    stackedTestPackets.add(stackedTestPacket);
-                    stackedTestPacket = new StackedTestPacket(
-                            Config.getConf().nodeNum,
-                            configFileName);
-                    if (Config.getConf().useVersionDelta
-                            && Config.getConf().versionDeltaApproach == 2) {
-                        stackedTestPacket.clientGroupForVersionDelta = 1;
-                    }
-                }
+                // put the seed into it
                 Seed mutateSeed = SerializationUtils.clone(seed);
-                if (mutateSeed.mutate(commandPool, stateClass)) {
-                    mutateSeed.testID = testID; // update testID after mutation
-                    graph.addNode(seed.testID, mutateSeed);
-                    testID2Seed.put(testID, mutateSeed);
-                    stackedTestPacket.addTestPacket(mutateSeed, testID++);
-                } else {
-                    logger.debug("Mutation failed");
-                    i--;
-                }
-                mutationCount++;
-            }
-            // last test packet
-            if (stackedTestPacket.size() != 0) {
-                stackedTestPackets.add(stackedTestPacket);
-            }
-            // 1.b Fix config, random generate new command sequences
-            stackedTestPacket = new StackedTestPacket(Config.getConf().nodeNum,
-                    configFileName);
-            for (int i = 0; i < randGenEpoch; i++) {
-                if (i != 0 && i % Config.getConf().STACKED_TESTS_NUM == 0) {
-                    stackedTestPackets.add(stackedTestPacket);
-                    stackedTestPacket = new StackedTestPacket(
-                            Config.getConf().nodeNum, configFileName);
-                }
-                Seed randGenSeed = Executor.generateSeed(commandPool,
-                        stateClass,
-                        configIdx, testID);
-                if (randGenSeed != null) {
-                    graph.addNode(seed.testID, randGenSeed);
-                    testID2Seed.put(testID, randGenSeed);
-                    stackedTestPacket.addTestPacket(randGenSeed, testID++);
-                } else {
-                    logger.debug("Random seed generation failed");
-                    i--;
-                }
-            }
-            // last test packet
-            if (stackedTestPacket.size() != 0) {
-                stackedTestPackets.add(stackedTestPacket);
-            }
+                mutateSeed.configIdx = configIdx;
+                mutateSeed.testID = testID; // update testID after mutation
+                graph.addNode(seed.testID, mutateSeed);
+                testID2Seed.put(testID, mutateSeed);
 
-            if (configGen.enable) {
-                int configMutationEpoch;
-                if (firstMutationSeedNum < Config
-                        .getConf().firstMutationSeedLimit)
-                    configMutationEpoch = Config
-                            .getConf().firstConfigMutationEpoch;
-                else
-                    configMutationEpoch = Config.getConf().configMutationEpoch;
-
-                for (int configMutationIdx = 0; configMutationIdx < configMutationEpoch; configMutationIdx++) {
-                    configIdx = configGen.generateConfig();
-                    configFileName = "test" + configIdx;
-                    stackedTestPacket = new StackedTestPacket(
-                            Config.getConf().nodeNum,
-                            configFileName);
-                    if (Config.getConf().useVersionDelta
-                            && Config.getConf().versionDeltaApproach == 2) {
-                        stackedTestPacket.clientGroupForVersionDelta = 1;
-                    }
-                    // put the seed into it
-                    Seed mutateSeed = SerializationUtils.clone(seed);
-                    mutateSeed.configIdx = configIdx;
-                    mutateSeed.testID = testID; // update testID after mutation
-                    graph.addNode(seed.testID, mutateSeed);
-                    testID2Seed.put(testID, mutateSeed);
-
-                    /**
-                     * We shouldn't add more tests for this batch, since it's only
-                     * testing the configuration mutation, this batch would be 1.
-                     * If we add more tests, actually we already think that this
-                     * config is interesting, however, we shouldn't do that.
-                     */
-                    stackedTestPacket.addTestPacket(mutateSeed, testID++);
-                    // add mutated seeds (Mutate sequence&config)
-                    if (Config.getConf().paddingStackedTestPackets) {
-                        for (int i = 1; i < Config
-                                .getConf().STACKED_TESTS_NUM; i++) {
-                            mutateSeed = SerializationUtils.clone(seed);
-                            mutateSeed.configIdx = configIdx;
-                            if (mutateSeed.mutate(commandPool, stateClass)) {
-                                mutateSeed.testID = testID;
-                                graph.addNode(seed.testID, mutateSeed);
-                                testID2Seed.put(testID, mutateSeed);
-                                stackedTestPacket.addTestPacket(mutateSeed,
-                                        testID++);
-                            } else {
-                                logger.debug("Mutation failed");
-                                i--;
-                            }
+                /**
+                 * We shouldn't add more tests for this batch, since it's only
+                 * testing the configuration mutation, this batch would be 1.
+                 * If we add more tests, actually we already think that this
+                 * config is interesting, however, we shouldn't do that.
+                 */
+                stackedTestPacket.addTestPacket(mutateSeed, testID++);
+                // add mutated seeds (Mutate sequence&config)
+                if (Config.getConf().paddingStackedTestPackets) {
+                    for (int i = 1; i < Config
+                            .getConf().STACKED_TESTS_NUM; i++) {
+                        mutateSeed = SerializationUtils.clone(seed);
+                        mutateSeed.configIdx = configIdx;
+                        if (mutateSeed.mutate(commandPool, stateClass)) {
+                            mutateSeed.testID = testID;
+                            graph.addNode(seed.testID, mutateSeed);
+                            testID2Seed.put(testID, mutateSeed);
+                            stackedTestPacket.addTestPacket(mutateSeed,
+                                    testID++);
+                        } else {
+                            logger.debug("Mutation failed");
+                            i--;
                         }
                     }
-                    stackedTestPackets.add(stackedTestPacket);
                 }
+                stackedTestPackets.add(stackedTestPacket);
             }
-            firstMutationSeedNum++;
-            logger.debug("[fuzzOne] mutate done, stackedTestPackets size = "
-                    + stackedTestPackets.size());
+        }
+        firstMutationSeedNum++;
+
+        logger.debug("[fuzzOne] mutate done, stackedTestPackets size = "
+                + stackedTestPackets.size());
+
+        if (stackedTestPackets.isEmpty()) {
+            logger.error(
+                    "No test packets generated, the mutation likely fails, now random generate one");
+            generateRandomSeed();
         }
     }
 

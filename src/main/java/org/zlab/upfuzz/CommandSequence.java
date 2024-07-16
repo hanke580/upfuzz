@@ -114,8 +114,10 @@ public class CommandSequence implements Serializable {
                         commands.get(i).updateState(state);
                     }
                     boolean mutateStatus = commands.get(pos).mutate(state);
-                    if (!mutateStatus)
+                    if (!mutateStatus) {
+                        logger.error("CommandSequence mutation failed");
                         continue;
+                    }
                     boolean fixable = checkAndUpdateCommand(commands.get(pos),
                             state);
                     if (!fixable) {
@@ -162,14 +164,25 @@ public class CommandSequence implements Serializable {
                         pos--;
                     } else {
                         /* Insert one command */
-                        Command command;
-                        command = generateSingleCommand(commandClassList,
+                        Command command = generateSingleCommand(
+                                commandClassList,
                                 state);
+                        int count = 0;
                         while (command == null) {
                             assert !createCommandClassList.isEmpty();
                             command = generateSingleCommand(
                                     createCommandClassList,
                                     state);
+                            count++;
+                            if (count > 100) {
+                                logger.error(
+                                        "generateSingleCommand not finished after counter times");
+                                break;
+                            }
+                        }
+                        if (command == null) {
+                            logger.error("generateSingleCommand failed");
+                            continue;
                         }
                         commands.add(pos, command);
                         // state is already updated in generateSingleCommand!
@@ -202,7 +215,10 @@ public class CommandSequence implements Serializable {
                 return true;
             } catch (Exception e) {
                 logger.error("CommandSequence mutation problem: " + e);
-                e.printStackTrace();
+                // print e using logger
+                for (StackTraceElement ste : e.getStackTrace()) {
+                    logger.error(ste);
+                }
                 // keep retrying!
             }
         }
