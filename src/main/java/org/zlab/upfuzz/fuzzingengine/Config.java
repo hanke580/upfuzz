@@ -179,9 +179,10 @@ public class Config {
         // marked "deprecated"
         public boolean testCommonConfig = false;
         public boolean testRemainConfig = false;
-        // Mutate 40% of the upgrade configs
+
+        // Every config has 0.4 probability to be tested
         public double testUpgradeConfigRatio = 0.4;
-        public double testRemainUpgradeConfigRatio = 0.2;
+        public double testRemainUpgradeConfigRatio = 0.4;
 
         // ------------Test Mode-------------
         public boolean testDowngrade = false;
