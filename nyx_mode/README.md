@@ -70,6 +70,8 @@ rsync --progress -e ssh /home/khan/ubuntu_install/cassandra_build/ubuntu.img ${T
 
 ### Pre-install: install os and related dependencies in VM
 
+3.0 Install VNC in the testing server: check the [VNC_INSTALL.md](../docs/VNC_INSTALL.md) for more details.
+
 3.1 Create a new VM image file (which represents the virtual hard disk of our fuzzing VM)
 ```bash
 # Create a VM image file (30GB in size)
@@ -193,15 +195,18 @@ Open the `../packer/packer/nyx.ini` file and point it to absolute paths of the i
 ```bash
 cd $UPFUZZ_DIR/nyx_mode/ubuntu
 vim ../packer/packer/nyx.ini
+
+# Modify the following lines to point to the correct paths
 default_vm_hda = ../../../nyx_mode/ubuntu/ubuntu.img 
 default_vm_presnapshot = ../../../nyx_mode/ubuntu/nyx_snapshot
 ```
 
-6. Modify the config.ron (_upfuzz/nyx_mode/config.ron_) file's `include_default_config_path` to be an absolute path by changing `<ADD_HERE>` to your respective path.
+6. Modify the config.ron (_upfuzz/nyx_mode/config.ron_) file's `include_default_config_path` to be an absolute path by changing `<ADD_HERE>` to the real path of upfuzz
 ```bash
 cd $UPFUZZ_DIR/nyx_mode
 vim config.ron
-# replace the path with real path <ADD_HERE>
+# Replace the path
+    include_default_config_path: "/PATH_TO_UPFUZZ/upfuzz/nyx_mode/packer/packer/fuzzer_configs/default_config_vm.ron",
 ```
 
 7. Generate default configurations
@@ -226,19 +231,11 @@ python3 ../nyx_config_gen.py tmp Snapshot -m 4096 # generate default configurati
 When the normal build has finished, remember execute the following command to build nyx.
 
 **Test Single Version**
+
+Follow [README.md](README.md) to prepare env.
+
 ```bash
-cd ${UPFUZZ_DIR}
-export ORI_VERSION=3.11.15
-mkdir -p ${UPFUZZ_DIR}/prebuild/cassandra
-cd prebuild/cassandra
-wget https://archive.apache.org/dist/cassandra/"$ORI_VERSION"/apache-cassandra-"$ORI_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$ORI_VERSION"-bin.tar.gz
-
-cd ${UPFUZZ_DIR}
-cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
-
-cd ${UPFUZZ_DIR}
-./gradlew copyDependencies
-./gradlew :spotlessApply build
+# NYX Special
 ./gradlew :spotlessApply nyxBuild
 
 sed -i 's/"testSingleVersion": false,/"testSingleVersion": true,/g' config.json
@@ -251,21 +248,10 @@ bin/start_clients.sh 1 config.json
 ```
 
 **Test Upgrade**
+
+Follow [README.md](README.md) to prepare env.
 ```bash
-cd ${UPFUZZ_DIR}
-export UPFUZZ_DIR=$PWD
-export ORI_VERSION=3.11.15
-export UP_VERSION=4.1.3
-mkdir -p "$UPFUZZ_DIR"/prebuild/cassandra
-cd prebuild/cassandra
-wget https://archive.apache.org/dist/cassandra/"$ORI_VERSION"/apache-cassandra-"$ORI_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$ORI_VERSION"-bin.tar.gz
-wget https://archive.apache.org/dist/cassandra/"$UP_VERSION"/apache-cassandra-"$UP_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$UP_VERSION"-bin.tar.gz
-sed -i 's/num_tokens: 16/num_tokens: 256/' apache-cassandra-"$UP_VERSION"/conf/cassandra.yaml
-cd ${UPFUZZ_DIR}
-cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
-cp src/main/resources/cqlsh_daemon3_4.0.5_4.1.0.py  prebuild/cassandra/apache-cassandra-"$UP_VERSION"/bin/cqlsh_daemon.py
-./gradlew copyDependencies
-./gradlew :spotlessApply build
+# NYX Special
 ./gradlew :spotlessApply nyxBuild
 # Ensure the `$UPFUZZ_DIR/config.json` or `$UPFUZZ_DIR/hdfs_config.json` is set to "nyxMode": true,
 sed -i 's/"testSingleVersion": true,/"testSingleVersion": false,/g' config.json
