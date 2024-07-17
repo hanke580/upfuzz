@@ -57,7 +57,10 @@ cd $UPFUZZ_DIR/nyx_mode/ubuntu
 
 ```bash
 # The prebuild image is put inside mufasa server: /home/khan/ubuntu_install, there's clean state one and also a cassandra prebuild one.
-rsync --progress -e ssh /home/khan/ubuntu_install/cassandra_build/ubuntu.img Tingjia@c220g5-110915.wisc.cloudlab.us:/users/Tingjia/project/upfuzz/nyx_mode/
+# In mufasa server
+# export TESTING_SERVER=
+# export UPFUZZ_DIR=
+rsync --progress -e ssh /home/khan/ubuntu_install/cassandra_build/ubuntu.img ${TESTING_SERVER}:${UPFUZZ_DIR}/nyx_mode/ubuntu/
 ```
 > If you do not have the pre-defined image, unfold the following instructions.
 > Image location: mufasa server: /home/khan/ubuntu_install/ubuntu.img
@@ -122,10 +125,22 @@ git clone git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
 bin/setup_dependency.sh
  
+# Choose one
 # test single version
 bin/cass_nyx_single_test.sh
 # test upgrade version
 bin/cass_nyx_upgrade_test.sh
+
+# Create load.sh file, make it executable and exit
+cd ~
+echo "#\!/bin/bash
+sudo chmod 666 /var/run/docker.sock
+chmod 777 ./loader # or chmod +x ./loader
+sudo ./loader" > load.sh
+
+chmod +x load.sh
+sudo shutdown now
+
 ```
 </details>
 

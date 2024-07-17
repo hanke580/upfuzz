@@ -25,13 +25,3 @@ docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"_apache-cassan
 cd ${UPFUZZ_DIR}
 ./gradlew copyDependencies
 ./gradlew :spotlessApply build
-
-### Create load.sh file and make it executable
-cd ~
-echo "#\!/bin/bash
-sudo chmod 666 /var/run/docker.sock
-chmod 777 ./loader # or chmod +x ./loader
-sudo ./loader" > load.sh
-
-chmod +x load.sh
-sudo shutdown now
