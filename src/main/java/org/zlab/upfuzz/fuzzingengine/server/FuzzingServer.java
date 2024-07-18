@@ -1853,6 +1853,7 @@ public class FuzzingServer {
 
             // format coverage
             if (Config.getConf().useFormatCoverage) {
+                logger.debug("Check ori format coverage");
                 FormatCoverageStatus oriFormatCoverageStatus = oriObjCoverage
                         .merge(
                                 versionDeltaFeedbackPacketUp.formatCoverage,
@@ -1864,6 +1865,9 @@ public class FuzzingServer {
                 if (oriFormatCoverageStatus.boundaryChange)
                     oriBoundaryChange = true;
 
+                logger.debug("Check ori format coverage done");
+
+                logger.debug("Check up format coverage");
                 FormatCoverageStatus upFormatCoverageStatus = upObjCoverage
                         .merge(
                                 versionDeltaFeedbackPacketDown.formatCoverage,
@@ -1873,6 +1877,7 @@ public class FuzzingServer {
                     upNewFormat = true;
                 if (upFormatCoverageStatus.boundaryChange)
                     upBoundaryChange = true;
+                logger.debug("Check up format coverage done");
             }
 
             boolean hasFeedbackInducedBranchVersionDelta = newOriBC

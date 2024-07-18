@@ -124,7 +124,7 @@ class FuzzingClientSocket implements Runnable {
                 } else {
                     feedBackPacket.write(out);
                     logger.debug(
-                            "[HKLOG] Writing feedback packet back to server");
+                            "[HKLOG] feedback packet sent to server");
                 }
                 readHeader();
             } catch (Exception e) {
