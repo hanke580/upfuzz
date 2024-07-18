@@ -1805,7 +1805,7 @@ public class FuzzingServer {
                 .getFpList();
 
         int feedbackLength = versionDeltaFeedbackPacketsUp.size();
-        logger.debug("feedback length: " + feedbackLength);
+        logger.debug("feedback packet num: " + feedbackLength);
 
         Path failureDir = null;
 

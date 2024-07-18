@@ -282,8 +282,10 @@ public abstract class DockerCluster implements IDockerCluster {
                         + ", executorID = " + executorID
                         + ", exception = "
                         + e);
+                for (StackTraceElement ste : e.getStackTrace()) {
+                    logger.error(ste.toString());
+                }
                 // throw new RuntimeException(e);
-                continue;
             }
         }
         return coverageMap;

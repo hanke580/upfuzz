@@ -3,6 +3,8 @@ package org.zlab.upfuzz.fuzzingengine.packet;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jgrapht.graph.DirectedMultigraph;
 import org.zlab.ocov.tracker.graph.GraphDeserializer;
 import org.zlab.ocov.tracker.graph.GraphSerializer;
@@ -19,6 +21,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 public abstract class Packet {
+    static Logger logger = LogManager.getLogger(Packet.class);
+
     PacketType type;
 
     static Gson gson;
@@ -73,7 +77,7 @@ public abstract class Packet {
         out.writeInt(type.value);
         String packetStr = gson.toJson(this);
         byte[] packetByte = packetStr.getBytes();
-        // logger.debug("send stacked test packet size: " + packetByte.length);
+        logger.debug("[Packet] Send packet size: " + packetByte.length);
         out.writeInt(packetByte.length);
         out.write(packetByte);
     }
