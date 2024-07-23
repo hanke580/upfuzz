@@ -615,6 +615,94 @@ public class FuzzingClient {
 
     public VersionDeltaFeedbackPacketApproach2 executeStackedTestPacketNyxVersionDelta(
             StackedTestPacket stackedTestPacket) {
+        if (isDowngradeSupported) {
+            return executeStackedTestPacketNyxVersionDeltaWithDowngrade(
+                    stackedTestPacket);
+        } else {
+            if (group != 2) {
+                return executeStackedTestPacketNyxVersionDeltaWithDowngrade(
+                        stackedTestPacket);
+            } else {
+                return executeStackedTestPacketNyxVersionDeltaWithoutDowngrade(
+                        stackedTestPacket);
+            }
+        }
+    }
+
+    public VersionDeltaFeedbackPacketApproach2 executeStackedTestPacketNyxVersionDeltaWithoutDowngrade(
+            StackedTestPacket stackedTestPacket) {
+        if (Config.getConf().debug) {
+            logger.info("Version delta testing for group: "
+                    + stackedTestPacket.clientGroupForVersionDelta);
+            logger.info("This client is in group: " + group);
+        }
+        if (stackedTestPacket.clientGroupForVersionDelta != group) {
+            logger.info("Not for this group of client");
+            return null;
+        } else {
+            ExecutorService executorService = Executors.newFixedThreadPool(1);
+            Path configPath = Paths.get(configDirPath.toString(),
+                    stackedTestPacket.configFileName);
+            logger.info("[HKLOG] configPath = " + configPath);
+
+            boolean sameConfigAsLastTime = false;
+            if (this.previousConfigPath != null) {
+                sameConfigAsLastTime = isSameConfig(this.previousConfigPath,
+                        configPath);
+            }
+            String threadIdGroup = "group" + group + "_"
+                    + String.valueOf(Thread.currentThread().getId());
+            long startTimeVersionDeltaExecution = System.currentTimeMillis();
+            if (Config.getConf().debug) {
+                logger.info("[HKLOG: profiler] " + threadIdGroup + ": group "
+                        + group
+                        + ": (nyx mode) started version delta execution");
+            }
+
+            StackedTestPacket stackedTestPacket1 = new StackedTestPacket(
+                    stackedTestPacket.nodeNum,
+                    stackedTestPacket.configFileName);
+            for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
+                stackedTestPacket1.addTestPacket(tp);
+            }
+
+            stackedTestPacket1.clientGroupForVersionDelta = this.group;
+            stackedTestPacket1.testDirection = 0;
+            stackedTestPacket1.isDowngradeSupported = isDowngradeSupported;
+
+            Future<StackedFeedbackPacket> futureStackedFeedbackPacketUp = executorService
+                    .submit(new NyxStackedTestThread(0,
+                            stackedTestPacket1, this.libnyx, configPath,
+                            previousConfigPath, sameConfigAsLastTime,
+                            isDowngradeSupported));
+
+            this.previousConfigPath = configPath;
+            // Retrieve results for operation 1
+            try {
+                StackedFeedbackPacket stackedFeedbackPacketUp = futureStackedFeedbackPacketUp
+                        .get();
+                if (stackedFeedbackPacketUp == null) {
+                    executorService.shutdown();
+                    return null;
+                }
+                List<TestPacket> tpList = stackedTestPacket.getTestPacketList();
+                VersionDeltaFeedbackPacketApproach2 versionDeltaFeedbackPacketApproach2 = new VersionDeltaFeedbackPacketApproach2(
+                        stackedFeedbackPacketUp, null,
+                        tpList);
+
+                versionDeltaFeedbackPacketApproach2.clientGroup = group;
+                executorService.shutdown();
+                return versionDeltaFeedbackPacketApproach2;
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+    }
+
+    public VersionDeltaFeedbackPacketApproach2 executeStackedTestPacketNyxVersionDeltaWithDowngrade(
+            StackedTestPacket stackedTestPacket) {
         if (Config.getConf().debug) {
             logger.info("Version delta testing for group: "
                     + stackedTestPacket.clientGroupForVersionDelta);
