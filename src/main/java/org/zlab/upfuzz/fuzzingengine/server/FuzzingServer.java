@@ -1527,6 +1527,7 @@ public class FuzzingServer {
                 if (feedbackPacket.formatCoverage != null) {
                     FormatCoverageStatus oriFormatCoverageStatus = oriObjCoverage
                             .merge(feedbackPacket.formatCoverage,
+                                    "ori",
                                     feedbackPacket.testPacketID, true);
                     if (oriFormatCoverageStatus.newFormat) {
                         logger.info("New format coverage for test "
@@ -1705,6 +1706,7 @@ public class FuzzingServer {
                     FormatCoverageStatus oriFormatCoverageStatus = oriObjCoverage
                             .merge(
                                     versionDeltaFeedbackPacketUp.formatCoverage,
+                                    "ori",
                                     testPacketID, true);
                     if (oriFormatCoverageStatus.newFormat)
                         newOriFC = true;
@@ -1717,6 +1719,7 @@ public class FuzzingServer {
                     FormatCoverageStatus upFormatCoverageStatus = upObjCoverage
                             .merge(
                                     versionDeltaFeedbackPacketDown.formatCoverage,
+                                    "up",
                                     testPacketID, true);
                     if (upFormatCoverageStatus.newFormat)
                         newUpFC = true;
@@ -1857,6 +1860,7 @@ public class FuzzingServer {
                 FormatCoverageStatus oriFormatCoverageStatus = oriObjCoverage
                         .merge(
                                 versionDeltaFeedbackPacketUp.formatCoverage,
+                                "ori",
                                 versionDeltaFeedbackPacketUp.testPacketID,
                                 true);
 
@@ -1871,6 +1875,7 @@ public class FuzzingServer {
                 FormatCoverageStatus upFormatCoverageStatus = upObjCoverage
                         .merge(
                                 versionDeltaFeedbackPacketDown.formatCoverage,
+                                "up",
                                 versionDeltaFeedbackPacketDown.testPacketID,
                                 true);
                 if (upFormatCoverageStatus.newFormat)
