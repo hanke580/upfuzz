@@ -2468,11 +2468,11 @@ public class FuzzingServer {
 
     private void saveFullSequence(Path failureDir,
             String fullSequence) {
-        long timeElapsedInSecond = (TimeUnit.SECONDS.convert(
-                System.nanoTime(), TimeUnit.NANOSECONDS) - startTime) / 1000;
+        long timeElapsed = TimeUnit.SECONDS.convert(
+                System.nanoTime(), TimeUnit.NANOSECONDS) - startTime;
         Path crashReportPath = Paths.get(
                 failureDir.toString(),
-                String.format("fullSequence_%d.report", timeElapsedInSecond));
+                String.format("fullSequence_%d.report", timeElapsed));
         Utilities.write2TXT(crashReportPath.toFile(), fullSequence, false);
     }
 
