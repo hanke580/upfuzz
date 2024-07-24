@@ -602,14 +602,16 @@ public class FuzzingClient {
         if (Config.getConf().nyxMode) {
             return executeStackedTestPacketNyxVersionDelta(
                     stackedTestPacket);
-        } else {
-            try {
-                return executeStackedTestPacketRegularVersionDeltaApproach2(
-                        stackedTestPacket);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
+        }
+        try {
+            return executeStackedTestPacketRegularVersionDeltaApproach2(
+                    stackedTestPacket);
+        } catch (Exception e) {
+            logger.error("An error occurred", e);
+            for (StackTraceElement ste : e.getStackTrace()) {
+                logger.error(ste.toString());
             }
+            return null;
         }
     }
 
@@ -618,12 +620,18 @@ public class FuzzingClient {
         if (isDowngradeSupported) {
             return executeStackedTestPacketNyxVersionDeltaWithDowngrade(
                     stackedTestPacket);
+        }
+        if (group != 2) {
+            // Group 1: 2 clusters
+            return executeStackedTestPacketNyxVersionDeltaWithDowngrade(
+                    stackedTestPacket);
         } else {
-            if (group != 2) {
-                return executeStackedTestPacketNyxVersionDeltaWithDowngrade(
+            // Group 2: 1 cluster if downgrade is not supported
+            if (Config.getConf().enableNyxInGroup2) {
+                return executeStackedTestPacketNyxVersionDeltaWithoutDowngrade(
                         stackedTestPacket);
             } else {
-                return executeStackedTestPacketNyxVersionDeltaWithoutDowngrade(
+                return executeStackedTestPacketRegularVersionDeltaApproach2WithoutDowngrade(
                         stackedTestPacket);
             }
         }
@@ -636,68 +644,65 @@ public class FuzzingClient {
                     + stackedTestPacket.clientGroupForVersionDelta);
             logger.info("This client is in group: " + group);
         }
-        if (stackedTestPacket.clientGroupForVersionDelta != group) {
-            logger.info("Not for this group of client");
-            return null;
-        } else {
-            ExecutorService executorService = Executors.newFixedThreadPool(1);
-            Path configPath = Paths.get(configDirPath.toString(),
-                    stackedTestPacket.configFileName);
-            logger.info("[HKLOG] configPath = " + configPath);
+        assert stackedTestPacket.clientGroupForVersionDelta == group;
 
-            boolean sameConfigAsLastTime = false;
-            if (this.previousConfigPath != null) {
-                sameConfigAsLastTime = isSameConfig(this.previousConfigPath,
-                        configPath);
-            }
-            String threadIdGroup = "group" + group + "_"
-                    + String.valueOf(Thread.currentThread().getId());
-            long startTimeVersionDeltaExecution = System.currentTimeMillis();
-            if (Config.getConf().debug) {
-                logger.info("[HKLOG: profiler] " + threadIdGroup + ": group "
-                        + group
-                        + ": (nyx mode) started version delta execution");
-            }
+        ExecutorService executorService = Executors.newFixedThreadPool(1);
+        Path configPath = Paths.get(configDirPath.toString(),
+                stackedTestPacket.configFileName);
+        logger.info("[HKLOG] configPath = " + configPath);
 
-            StackedTestPacket stackedTestPacket1 = new StackedTestPacket(
-                    stackedTestPacket.nodeNum,
-                    stackedTestPacket.configFileName);
-            for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
-                stackedTestPacket1.addTestPacket(tp);
-            }
+        boolean sameConfigAsLastTime = false;
+        if (this.previousConfigPath != null) {
+            sameConfigAsLastTime = isSameConfig(this.previousConfigPath,
+                    configPath);
+        }
+        String threadIdGroup = "group" + group + "_"
+                + String.valueOf(Thread.currentThread().getId());
+        long startTimeVersionDeltaExecution = System.currentTimeMillis();
+        if (Config.getConf().debug) {
+            logger.info("[HKLOG: profiler] " + threadIdGroup + ": group "
+                    + group
+                    + ": (nyx mode) started version delta execution");
+        }
 
-            stackedTestPacket1.clientGroupForVersionDelta = this.group;
-            stackedTestPacket1.testDirection = 0;
-            stackedTestPacket1.isDowngradeSupported = isDowngradeSupported;
+        StackedTestPacket stackedTestPacket1 = new StackedTestPacket(
+                stackedTestPacket.nodeNum,
+                stackedTestPacket.configFileName);
+        for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
+            stackedTestPacket1.addTestPacket(tp);
+        }
 
-            Future<StackedFeedbackPacket> futureStackedFeedbackPacketUp = executorService
-                    .submit(new NyxStackedTestThread(0,
-                            stackedTestPacket1, this.libnyx, configPath,
-                            previousConfigPath, sameConfigAsLastTime,
-                            isDowngradeSupported));
+        stackedTestPacket1.clientGroupForVersionDelta = this.group;
+        stackedTestPacket1.testDirection = 0;
+        stackedTestPacket1.isDowngradeSupported = isDowngradeSupported;
 
-            this.previousConfigPath = configPath;
-            // Retrieve results for operation 1
-            try {
-                StackedFeedbackPacket stackedFeedbackPacketUp = futureStackedFeedbackPacketUp
-                        .get();
-                if (stackedFeedbackPacketUp == null) {
-                    executorService.shutdown();
-                    return null;
-                }
-                List<TestPacket> tpList = stackedTestPacket.getTestPacketList();
-                VersionDeltaFeedbackPacketApproach2 versionDeltaFeedbackPacketApproach2 = new VersionDeltaFeedbackPacketApproach2(
-                        stackedFeedbackPacketUp, null,
-                        tpList);
+        Future<StackedFeedbackPacket> futureStackedFeedbackPacketUp = executorService
+                .submit(new NyxStackedTestThread(0,
+                        stackedTestPacket1, this.libnyx, configPath,
+                        previousConfigPath, sameConfigAsLastTime,
+                        isDowngradeSupported));
 
-                versionDeltaFeedbackPacketApproach2.clientGroup = group;
+        this.previousConfigPath = configPath;
+        // Retrieve results for operation 1
+        try {
+            StackedFeedbackPacket stackedFeedbackPacketUp = futureStackedFeedbackPacketUp
+                    .get();
+            if (stackedFeedbackPacketUp == null) {
                 executorService.shutdown();
-                return versionDeltaFeedbackPacketApproach2;
-
-            } catch (Exception e) {
-                e.printStackTrace();
                 return null;
             }
+            List<TestPacket> tpList = stackedTestPacket.getTestPacketList();
+            VersionDeltaFeedbackPacketApproach2 versionDeltaFeedbackPacketApproach2 = new VersionDeltaFeedbackPacketApproach2(
+                    stackedFeedbackPacketUp, null,
+                    tpList);
+
+            versionDeltaFeedbackPacketApproach2.clientGroup = group;
+            executorService.shutdown();
+            return versionDeltaFeedbackPacketApproach2;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 
@@ -708,88 +713,83 @@ public class FuzzingClient {
                     + stackedTestPacket.clientGroupForVersionDelta);
             logger.info("This client is in group: " + group);
         }
-        if (stackedTestPacket.clientGroupForVersionDelta != group) {
-            logger.info("Not for this group of client");
-            return null;
-        } else {
-            ExecutorService executorService = Executors.newFixedThreadPool(2);
-            Path configPath = Paths.get(configDirPath.toString(),
-                    stackedTestPacket.configFileName);
-            logger.info("[HKLOG] configPath = " + configPath);
+        assert stackedTestPacket.clientGroupForVersionDelta == group;
 
-            boolean sameConfigAsLastTime = false;
-            if (this.previousConfigPath != null) {
-                sameConfigAsLastTime = isSameConfig(this.previousConfigPath,
-                        configPath);
-            }
-            String threadIdGroup = "group" + group + "_"
-                    + String.valueOf(Thread.currentThread().getId());
-            long startTimeVersionDeltaExecution = System.currentTimeMillis();
-            if (Config.getConf().debug) {
-                logger.info("[HKLOG: profiler] " + threadIdGroup + ": group "
-                        + group
-                        + ": (nyx mode) started version delta execution");
-            }
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
+        Path configPath = Paths.get(configDirPath.toString(),
+                stackedTestPacket.configFileName);
+        logger.info("[HKLOG] configPath = " + configPath);
 
-            StackedTestPacket stackedTestPacket1 = new StackedTestPacket(
-                    stackedTestPacket.nodeNum,
-                    stackedTestPacket.configFileName);
-            StackedTestPacket stackedTestPacket2 = new StackedTestPacket(
-                    stackedTestPacket.nodeNum,
-                    stackedTestPacket.configFileName);
-            for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
-                stackedTestPacket1.addTestPacket(tp);
-                stackedTestPacket2.addTestPacket(tp);
-            }
+        boolean sameConfigAsLastTime = false;
+        if (this.previousConfigPath != null) {
+            sameConfigAsLastTime = isSameConfig(this.previousConfigPath,
+                    configPath);
+        }
+        String threadIdGroup = "group" + group + "_"
+                + String.valueOf(Thread.currentThread().getId());
+        if (Config.getConf().debug) {
+            logger.info("[HKLOG: profiler] " + threadIdGroup + ": group "
+                    + group
+                    + ": (nyx mode) started version delta execution");
+        }
 
-            stackedTestPacket1.clientGroupForVersionDelta = this.group;
-            stackedTestPacket1.testDirection = 0;
-            stackedTestPacket1.isDowngradeSupported = isDowngradeSupported;
+        StackedTestPacket stackedTestPacket1 = new StackedTestPacket(
+                stackedTestPacket.nodeNum,
+                stackedTestPacket.configFileName);
+        StackedTestPacket stackedTestPacket2 = new StackedTestPacket(
+                stackedTestPacket.nodeNum,
+                stackedTestPacket.configFileName);
+        for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
+            stackedTestPacket1.addTestPacket(tp);
+            stackedTestPacket2.addTestPacket(tp);
+        }
 
-            stackedTestPacket2.clientGroupForVersionDelta = this.group;
-            stackedTestPacket2.testDirection = 1;
-            stackedTestPacket2.isDowngradeSupported = isDowngradeSupported;
+        stackedTestPacket1.clientGroupForVersionDelta = this.group;
+        stackedTestPacket1.testDirection = 0;
+        stackedTestPacket1.isDowngradeSupported = isDowngradeSupported;
 
-            Future<StackedFeedbackPacket> futureStackedFeedbackPacketUp = executorService
-                    .submit(new NyxStackedTestThread(0,
-                            stackedTestPacket1, this.libnyx, configPath,
-                            previousConfigPath, sameConfigAsLastTime,
-                            isDowngradeSupported));
-            Future<StackedFeedbackPacket> futureStackedFeedbackPacketDown = executorService
-                    .submit(new NyxStackedTestThread(1,
-                            stackedTestPacket2, this.libnyxSibling,
-                            configPath,
-                            previousConfigPath, sameConfigAsLastTime,
-                            isDowngradeSupported));
+        stackedTestPacket2.clientGroupForVersionDelta = this.group;
+        stackedTestPacket2.testDirection = 1;
+        stackedTestPacket2.isDowngradeSupported = isDowngradeSupported;
 
-            this.previousConfigPath = configPath;
-            // Retrieve results for operation 1
-            try {
-                StackedFeedbackPacket stackedFeedbackPacketUp = futureStackedFeedbackPacketUp
-                        .get();
-                StackedFeedbackPacket stackedFeedbackPacketDown = futureStackedFeedbackPacketDown
-                        .get();
-                if (stackedFeedbackPacketUp == null
-                        || stackedFeedbackPacketDown == null) {
-                    executorService.shutdown();
-                    return null;
-                }
-                List<TestPacket> tpList = stackedTestPacket.getTestPacketList();
-                VersionDeltaFeedbackPacketApproach2 versionDeltaFeedbackPacketApproach2 = new VersionDeltaFeedbackPacketApproach2(
-                        stackedFeedbackPacketUp, stackedFeedbackPacketDown,
-                        tpList);
-                if (group == 1) {
-                    versionDeltaFeedbackPacketApproach2.stackedFeedbackPacketUpgrade.skipped = true;
-                    versionDeltaFeedbackPacketApproach2.stackedFeedbackPacketDowngrade.skipped = true;
-                }
-                versionDeltaFeedbackPacketApproach2.clientGroup = group;
+        Future<StackedFeedbackPacket> futureStackedFeedbackPacketUp = executorService
+                .submit(new NyxStackedTestThread(0,
+                        stackedTestPacket1, this.libnyx, configPath,
+                        previousConfigPath, sameConfigAsLastTime,
+                        isDowngradeSupported));
+        Future<StackedFeedbackPacket> futureStackedFeedbackPacketDown = executorService
+                .submit(new NyxStackedTestThread(1,
+                        stackedTestPacket2, this.libnyxSibling,
+                        configPath,
+                        previousConfigPath, sameConfigAsLastTime,
+                        isDowngradeSupported));
+
+        this.previousConfigPath = configPath;
+        // Retrieve results for operation 1
+        try {
+            StackedFeedbackPacket stackedFeedbackPacketUp = futureStackedFeedbackPacketUp
+                    .get();
+            StackedFeedbackPacket stackedFeedbackPacketDown = futureStackedFeedbackPacketDown
+                    .get();
+            if (stackedFeedbackPacketUp == null
+                    || stackedFeedbackPacketDown == null) {
                 executorService.shutdown();
-                return versionDeltaFeedbackPacketApproach2;
-
-            } catch (Exception e) {
-                e.printStackTrace();
                 return null;
             }
+            List<TestPacket> tpList = stackedTestPacket.getTestPacketList();
+            VersionDeltaFeedbackPacketApproach2 versionDeltaFeedbackPacketApproach2 = new VersionDeltaFeedbackPacketApproach2(
+                    stackedFeedbackPacketUp, stackedFeedbackPacketDown,
+                    tpList);
+            if (group == 1) {
+                versionDeltaFeedbackPacketApproach2.stackedFeedbackPacketUpgrade.skipped = true;
+                versionDeltaFeedbackPacketApproach2.stackedFeedbackPacketDowngrade.skipped = true;
+            }
+            versionDeltaFeedbackPacketApproach2.clientGroup = group;
+            executorService.shutdown();
+            return versionDeltaFeedbackPacketApproach2;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 
@@ -887,16 +887,15 @@ public class FuzzingClient {
             // if downgrade is supported, always start up 2 clusters
             return executeStackedTestPacketRegularVersionDeltaApproach2WithDowngrade(
                     stackedTestPacket);
+        }
+        if (group != 2) {
+            // Group 1: 2 clusters
+            return executeStackedTestPacketRegularVersionDeltaApproach2WithDowngrade(
+                    stackedTestPacket);
         } else {
-            if (group != 2) {
-                // group 1: 2 clusters
-                return executeStackedTestPacketRegularVersionDeltaApproach2WithDowngrade(
-                        stackedTestPacket);
-            } else {
-                // group 2: 1 cluster if downgrade is not supported
-                return executeStackedTestPacketRegularVersionDeltaApproach2WithoutDowngrade(
-                        stackedTestPacket);
-            }
+            // Group 2: 1 cluster if downgrade is not supported
+            return executeStackedTestPacketRegularVersionDeltaApproach2WithoutDowngrade(
+                    stackedTestPacket);
         }
     }
 

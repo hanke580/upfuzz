@@ -140,10 +140,10 @@ public class Config {
         // deprecated
         public String targetSystemStateFile = "states.json";
 
-        public int STACKED_TESTS_NUM = 50;
-        public int batchSizeInGroup2 = 30;
+        public int STACKED_TESTS_NUM = 1;
+        public int STACKED_TESTS_NUM_G2 = 30;
         public long timeInterval = 600; // seconds, record time
-        public boolean keepDir = true; // set to false if start a long running
+        public boolean keepDir = true; // set to false if start a long-running
                                        // test
         public int nodeNum = 3;
 
@@ -242,7 +242,10 @@ public class Config {
         // ---------------Version Delta-----------------
         public boolean useVersionDelta = false;
 
-        public int versionDeltaApproach = 1;
+        public int versionDeltaApproach = 2;
+
+        // Approach 2
+        public boolean enableNyxInGroup2 = false;
 
         // Approach 1: Four Queue Implementation
         public double FC_VD_PROB_CorpusVersionDeltaFourQueue = 0.4;
