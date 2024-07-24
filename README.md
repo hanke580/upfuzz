@@ -393,7 +393,12 @@ git pull
 * You can avoid setting up UPFUZZ_DIR again if you test through this image
 * Start from setting the ORI_VERSION and the UP_VERSION
 
-
+### Failure
+The failures are stored under the `failure` folder. The number in `fullSequence_TIME.report` denotes the elapsed time to detect the failure. For example, the following failure is detected at 121 seconds.
+```bash
+node1:upfuzz (main*) $ ls failure/failure_0/
+archive.tar.gz  errorLog  fullSequence_121.report  oriconfig  upconfig
+```
 ### Debug
 
 #### Check container
