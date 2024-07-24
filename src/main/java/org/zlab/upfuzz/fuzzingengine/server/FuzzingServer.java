@@ -1966,7 +1966,7 @@ public class FuzzingServer {
                                 .get(i).testPacketID);
             } else {
                 if (addNonInterestingTestsToBuffer(rand.nextDouble(),
-                        Config.getConf().nonInterestingTestsUpgradeProb)) {
+                        Config.getConf().DROP_TEST_PROB_G2)) {
                     if (Config.getConf().debug) {
                         logger.info("non interesting test packet "
                                 + testPacket.testPacketID

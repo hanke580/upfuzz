@@ -278,7 +278,7 @@ public class Config {
         public double formatCoverageChoiceProb = 0.2;
         public double boundaryRelatedSeedsChoiceProb = 0.1;
 
-        public double nonInterestingTestsUpgradeProb = 0.2;
+        public double DROP_TEST_PROB_G2 = 0.1;
 
         // Group2
         // Seeds that trigger new coverage before version change
