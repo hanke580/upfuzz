@@ -44,6 +44,8 @@ from cqlshlib.formatting import (
 )
 
 MESSAGE_SIZE = 51200
+SINGLE_MESSAGE_MAX_SIZE1 = 20000
+SINGLE_MESSAGE_MAX_SIZE2 = 10000
 
 def get_shell(options, hostname, port):
     
@@ -253,10 +255,10 @@ class TCPHandler(socketserver.BaseRequestHandler):
                 self.stdout_buffer.truncate(0)
                 self.stderr_buffer.truncate(0)
 
-                if len(out_base64_message) > 10000:
-                    out_base64_message = out_base64_message[:10000]
-                if len(err_base64_message) > 10000:
-                    err_base64_message = err_base64_message[:10000]
+                if len(out_base64_message) > SINGLE_MESSAGE_MAX_SIZE1:
+                    out_base64_message = out_base64_message[:SINGLE_MESSAGE_MAX_SIZE1]
+                if len(err_base64_message) > SINGLE_MESSAGE_MAX_SIZE1:
+                    err_base64_message = err_base64_message[:SINGLE_MESSAGE_MAX_SIZE1]
 
                 resp = {
                     "cmd": cmd,
@@ -273,8 +275,8 @@ class TCPHandler(socketserver.BaseRequestHandler):
                         "cmd": cmd,
                         "exitValue": 0 if ret == True else 1,
                         "timeUsage": end_time - start_time,
-                        "message": out_base64_message[:5000],
-                        "error": err_base64_message[:5000]
+                        "message": out_base64_message[:SINGLE_MESSAGE_MAX_SIZE2],
+                        "error": err_base64_message[:SINGLE_MESSAGE_MAX_SIZE2]
                     }
                     msg = json.dumps(resp).encode("ascii")
                 
