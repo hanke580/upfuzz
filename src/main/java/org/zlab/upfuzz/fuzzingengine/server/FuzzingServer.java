@@ -341,9 +341,15 @@ public class FuzzingServer {
         int randomIndex = rand.nextInt(testBatchCorpus.configFiles.size());
         String configFileName = testBatchCorpus
                 .getConfigFileByIndex(randomIndex);
+        while (testBatchCorpus.areAllQueuesEmptyForThisConfig(configFileName)) {
+            logger.info("[HKLOG] no test with config file: " + configFileName);
+            testBatchCorpus.configFiles.remove(configFileName);
+            randomIndex = rand.nextInt(testBatchCorpus.configFiles.size());
+            configFileName = testBatchCorpus.getConfigFileByIndex(randomIndex);
+        }
         StackedTestPacket stackedTestPacket = new StackedTestPacket(
                 Config.getConf().nodeNum, configFileName);
-        logger.info("[HKLOG] config file name: " + configFileName);
+        logger.info("[HKLOG] non empty config file name: " + configFileName);
         for (int i = 0; i < Config.getConf().batchSizeInGroup2; i++) {
             if (!testBatchCorpus
                     .noInterestingTestsForThisConfig(configFileName)) {
