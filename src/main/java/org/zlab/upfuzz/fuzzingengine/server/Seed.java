@@ -48,6 +48,7 @@ public class Seed implements Serializable, Comparable<Seed> {
         try {
             if (mutateImpl(originalCommandSequence)) {
                 originalCommandSequence.initializeTypePool();
+                // FIXME: duplicated read commands could be generated
                 validationCommandSequence = CommandSequence.generateSequence(
                         commandPool.readCommandClassList,
                         null,

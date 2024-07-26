@@ -39,7 +39,7 @@ public class TestTrackerVersionDeltaNode extends BaseNode {
                 + newUpBCAfterUpgrade + ", " +
                 "newUpBC: " + newUpBC + ", " + "newOriBCAfterDowngrade: "
                 + newOriBCAfterDowngrade + ", " +
-                "newOriFC: " + newOriFC + ", " + "newUpF: " + newUpFC + ", ";
+                "newOriFC: " + newOriFC + ", " + "newUpFC: " + newUpFC + ", ";
     }
 
     public void updateCoverage(boolean newOriBC, boolean newUpBCAfterUpgrade,
@@ -81,7 +81,7 @@ public class TestTrackerVersionDeltaNode extends BaseNode {
                         + newOriBCAfterDowngrade
                         + "\n");
         coverageInfoBuilder.append(
-                "newOriFC: " + newOriFC + ", newUpF: " + newUpFC + "\n");
+                "newOriFC: " + newOriFC + ", newUpFC: " + newUpFC + "\n");
         return coverageInfoBuilder.toString() + basicInfo;
     }
 }
