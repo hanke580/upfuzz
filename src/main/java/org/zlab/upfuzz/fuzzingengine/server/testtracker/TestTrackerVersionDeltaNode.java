@@ -24,8 +24,11 @@ public class TestTrackerVersionDeltaNode extends BaseNode {
 
     @Override
     public boolean hasNewCoverage() {
-        return newOriBC || newUpBCAfterUpgrade || newUpBC
-                || newOriBCAfterDowngrade || newOriFC || newUpFC;
+        if (newUpBCAfterUpgrade != null && newOriBCAfterDowngrade != null) {
+            return newOriBC || newUpBC || newOriFC || newUpFC
+                    || newUpBCAfterUpgrade || newOriBCAfterDowngrade;
+        }
+        return newOriBC || newUpBC || newOriFC || newUpFC;
     }
 
     @Override

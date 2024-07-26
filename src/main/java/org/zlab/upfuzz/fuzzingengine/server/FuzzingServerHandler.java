@@ -21,12 +21,11 @@ public class FuzzingServerHandler implements Runnable {
     private static int group1ClientCount = 0;
     private static int group2ClientCount = 0;
 
-    private FuzzingServer fuzzingServer;
-    private Socket socket;
+    private final FuzzingServer fuzzingServer;
+    private final Socket socket;
     private int clientGroup;
     DataInputStream in;
     DataOutputStream out;
-    DataOutputStream outGroup2;
 
     public void addBatchesToInterestingTestCorpus(
             VersionDeltaFeedbackPacketApproach2 versionDeltaFeedbackPacket) {
@@ -91,10 +90,10 @@ public class FuzzingServerHandler implements Runnable {
                 } else {
                     if (this.clientGroup == 1) {
                         testPacket = fuzzingServer.getOneTest();
+                        assert testPacket != null;
                         logger.info(
                                 "[HKLOG: server handler] client group for version delta: "
                                         + ((StackedTestPacket) testPacket).clientGroupForVersionDelta);
-                        assert testPacket != null;
                         testPacket.write(out);
                         readFeedbackPacket();
 
@@ -178,11 +177,15 @@ public class FuzzingServerHandler implements Runnable {
                             }
                         }
                         try {
-                            Packet testPacketForGroup2 = (Packet) stackedTestPacketForGroup2;
-                            testPacketForGroup2.write(out);
+                            assert stackedTestPacketForGroup2 != null;
+                            stackedTestPacketForGroup2.write(out);
                             readFeedbackPacket();
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            logger.error("Error while writing test packet: ",
+                                    e);
+                            for (StackTraceElement ste : e.getStackTrace()) {
+                                logger.error(ste);
+                            }
                         }
                     }
                 }
@@ -197,7 +200,9 @@ public class FuzzingServerHandler implements Runnable {
             synchronized (FuzzingServerHandler.class) {
                 clientNum--;
                 logger.info(
-                        "one client crash with exception, current live clients: "
+                        "one client crash with exception, client group = "
+                                + clientGroup +
+                                ", current live clients: "
                                 + clientNum);
             }
             // if this thread stops, the client should also stop
@@ -233,6 +238,7 @@ public class FuzzingServerHandler implements Runnable {
             VersionDeltaFeedbackPacketApproach2 versionDeltaFeedbackPacketApproach2 = VersionDeltaFeedbackPacketApproach2
                     .read(in);
             if (Config.getConf().debug) {
+                assert versionDeltaFeedbackPacketApproach2 != null;
                 logger.info("Sent from group: "
                         + versionDeltaFeedbackPacketApproach2.clientGroup);
             }
@@ -248,8 +254,7 @@ public class FuzzingServerHandler implements Runnable {
                         }
                         StackedTestPacket stackedTestPacketForGroup2 = fuzzingServer.stackedTestPacketsQueueVersionDelta
                                 .take();
-                        Packet testPacketForGroup2 = (Packet) stackedTestPacketForGroup2;
-                        testPacketForGroup2.write(out);
+                        stackedTestPacketForGroup2.write(out);
                     } catch (Exception e) {
                         // Handle interruption gracefully
                         e.printStackTrace();
@@ -302,8 +307,7 @@ public class FuzzingServerHandler implements Runnable {
         int intType = in.readInt();
         assert intType == PacketType.RegisterPacket.value;
         RegisterPacket registerPacket = RegisterPacket.read(in);
-        int clientGroup = registerPacket.group;
-        return clientGroup;
+        return registerPacket.group;
     }
 
     public static void printClientNum() {
