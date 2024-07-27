@@ -1535,12 +1535,12 @@ public class FuzzingServer {
                             .merge(feedbackPacket.formatCoverage,
                                     "ori",
                                     feedbackPacket.testPacketID, true);
-                    if (oriFormatCoverageStatus.newFormat) {
+                    if (oriFormatCoverageStatus.isNewFormat()) {
                         logger.info("New format coverage for test "
                                 + feedbackPacket.testPacketID);
                         newFormatCoverage = true;
                     }
-                    if (oriFormatCoverageStatus.boundaryChange) {
+                    if (oriFormatCoverageStatus.isBoundaryChange()) {
                         logger.info("Boundary change for test "
                                 + feedbackPacket.testPacketID);
                         newBoundaryChange = true;
@@ -1714,9 +1714,9 @@ public class FuzzingServer {
                                     versionDeltaFeedbackPacketUp.formatCoverage,
                                     "ori",
                                     testPacketID, true);
-                    if (oriFormatCoverageStatus.newFormat)
+                    if (oriFormatCoverageStatus.isNewFormat())
                         newOriFC = true;
-                    if (oriFormatCoverageStatus.boundaryChange)
+                    if (oriFormatCoverageStatus.isBoundaryChange())
                         newOriBoundaryChange = true;
                 } else {
                     logger.info("Null format coverage");
@@ -1727,9 +1727,9 @@ public class FuzzingServer {
                                     versionDeltaFeedbackPacketDown.formatCoverage,
                                     "up",
                                     testPacketID, true);
-                    if (upFormatCoverageStatus.newFormat)
+                    if (upFormatCoverageStatus.isNewFormat())
                         newUpFC = true;
-                    if (upFormatCoverageStatus.boundaryChange)
+                    if (upFormatCoverageStatus.isBoundaryChange())
                         newUpBoundaryChange = true;
                 } else {
                     logger.info("Null format coverage");
@@ -1870,9 +1870,9 @@ public class FuzzingServer {
                                 versionDeltaFeedbackPacketUp.testPacketID,
                                 true);
 
-                if (oriFormatCoverageStatus.newFormat)
+                if (oriFormatCoverageStatus.isNewFormat())
                     oriNewFormat = true;
-                if (oriFormatCoverageStatus.boundaryChange)
+                if (oriFormatCoverageStatus.isBoundaryChange())
                     oriBoundaryChange = true;
 
                 logger.debug("Check ori format coverage done");
@@ -1884,9 +1884,9 @@ public class FuzzingServer {
                                 "up",
                                 versionDeltaFeedbackPacketDown.testPacketID,
                                 true);
-                if (upFormatCoverageStatus.newFormat)
+                if (upFormatCoverageStatus.isNewFormat())
                     upNewFormat = true;
-                if (upFormatCoverageStatus.boundaryChange)
+                if (upFormatCoverageStatus.isBoundaryChange())
                     upBoundaryChange = true;
                 logger.debug("Check up format coverage done");
             }
