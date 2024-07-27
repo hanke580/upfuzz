@@ -492,21 +492,42 @@ public class FuzzingServer {
                 && Config.getConf().versionDeltaApproach == 2) {
             stackedTestPacket.clientGroupForVersionDelta = 1;
         }
-        for (int i = 0; i < Config.getConf().STACKED_TESTS_NUM; i++) {
-            Seed seed = Executor.generateSeed(commandPool, stateClass,
-                    configIdx, testID);
-            if (seed != null) {
-                mutatedSeedIds.add(testID);
-                graph.addNode(-1, seed); // random generate seed
-                testID2Seed.put(testID, seed);
-                stackedTestPacket.addTestPacket(seed, testID++);
+
+        if (Config.getConf().paddingStackedTestPackets) {
+            for (int i = 0; i < Config.getConf().STACKED_TESTS_NUM; i++) {
+                Seed seed = Executor.generateSeed(commandPool, stateClass,
+                        configIdx, testID);
+                if (seed != null) {
+                    mutatedSeedIds.add(testID);
+                    graph.addNode(-1, seed); // random generate seed
+                    testID2Seed.put(testID, seed);
+                    stackedTestPacket.addTestPacket(seed, testID++);
+                }
             }
+        } else {
+            Seed seed = null;
+            int maxGenLimit = 100;
+            int genCount = 0;
+            while (seed == null) {
+                if (genCount >= maxGenLimit) {
+                    throw new RuntimeException(
+                            "Random seed generation out of limit: should generate "
+                                    + maxGenLimit + ", not finished after "
+                                    + genCount + " times");
+                }
+                seed = Executor.generateSeed(commandPool, stateClass,
+                        configIdx, testID);
+                genCount++;
+            }
+            mutatedSeedIds.add(testID);
+            graph.addNode(-1, seed); // random generate seed
+            testID2Seed.put(testID, seed);
+            stackedTestPacket.addTestPacket(seed, testID++);
         }
         if (stackedTestPacket.size() == 0) {
             throw new RuntimeException(
                     "Fuzzing Server failed to generate and tests");
         }
-        // this must succeed
         assert stackedTestPacket.size() != 0;
         stackedTestPackets.add(stackedTestPacket);
     }
@@ -517,18 +538,8 @@ public class FuzzingServer {
         // All packets have been dispatched, now fuzz next seed
 
         Seed seed = null;
-        if (Config.getConf().useVersionDelta) {
-            if (Config.getConf().versionDeltaApproach == 2) {
-                assert corpus instanceof CorpusVersionDeltaFiveQueueWithBoundary;
-                seed = corpus.getSeed();
-            } else {
-                seed = corpus.getSeed();
-            }
-        } else {
-            // 95% to pick a seed, 5% generate a new one
-            if (rand.nextDouble() < Config.getConf().getSeedFromCorpusRatio)
-                seed = corpus.getSeed();
-        }
+        if (rand.nextDouble() < Config.getConf().getSeedFromCorpusRatio)
+            seed = corpus.getSeed();
 
         if (seed == null) {
             generateRandomSeed();
