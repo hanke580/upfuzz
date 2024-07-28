@@ -1,1 +1,26 @@
-["org.apache.cassandra.db.filter.SliceQueryFilter","org.apache.cassandra.db.ColumnFamilyStore$Flush","org.apache.cassandra.db.SliceFromReadCommand","org.apache.cassandra.db.index.AbstractSimplePerColumnSecondaryIndex","org.apache.cassandra.db.ArrayBackedSortedColumns","org.apache.cassandra.db.BufferCounterCell","org.apache.cassandra.io.sstable.format.SSTableReader","org.apache.cassandra.streaming.StreamEvent$SessionCompleteEvent","org.apache.cassandra.db.AtomicBTreeColumns","org.apache.cassandra.db.Mutation","org.apache.cassandra.utils.Pair","org.apache.cassandra.db.index.keys.KeysIndex","org.apache.cassandra.db.index.composites.CompositesIndex","org.apache.cassandra.io.sstable.format.big.BigTableReader","org.apache.cassandra.db.ColumnFamily","org.apache.cassandra.db.Keyspace","org.apache.cassandra.db.filter.QueryFilter","org.apache.cassandra.utils.btree.Cursor","org.apache.cassandra.db.commitlog.CommitLogReplayer","org.apache.cassandra.config.CFMetaData","org.apache.cassandra.db.RowIndexEntry","org.apache.cassandra.streaming.StreamWriter","org.apache.cassandra.db.ColumnIndex$Builder","org.apache.cassandra.streaming.compress.CompressedStreamWriter","org.apache.cassandra.db.RowIndexEntry$IndexedEntry","org.apache.cassandra.io.sstable.IndexSummary"]
+[
+    "org.apache.cassandra.db.filter.SliceQueryFilter",
+    "org.apache.cassandra.db.ColumnFamilyStore$Flush",
+    "org.apache.cassandra.db.SliceFromReadCommand",
+    "org.apache.cassandra.db.index.AbstractSimplePerColumnSecondaryIndex",
+    "org.apache.cassandra.db.ArrayBackedSortedColumns",
+    "org.apache.cassandra.db.BufferCounterCell",
+    "org.apache.cassandra.io.sstable.format.SSTableReader",
+    "org.apache.cassandra.streaming.StreamEvent$SessionCompleteEvent",
+    "org.apache.cassandra.db.AtomicBTreeColumns",
+    "org.apache.cassandra.db.Mutation",
+    "org.apache.cassandra.utils.Pair",
+    "org.apache.cassandra.db.index.keys.KeysIndex",
+    "org.apache.cassandra.db.index.composites.CompositesIndex",
+    "org.apache.cassandra.io.sstable.format.big.BigTableReader",
+    "org.apache.cassandra.db.ColumnFamily",
+    "org.apache.cassandra.db.Keyspace",
+    "org.apache.cassandra.db.filter.QueryFilter",
+    "org.apache.cassandra.db.commitlog.CommitLogReplayer",
+    "org.apache.cassandra.config.CFMetaData",
+    "org.apache.cassandra.db.RowIndexEntry",
+    "org.apache.cassandra.streaming.StreamWriter",
+    "org.apache.cassandra.streaming.compress.CompressedStreamWriter",
+    "org.apache.cassandra.db.RowIndexEntry$IndexedEntry",
+    "org.apache.cassandra.io.sstable.IndexSummary"
+]
