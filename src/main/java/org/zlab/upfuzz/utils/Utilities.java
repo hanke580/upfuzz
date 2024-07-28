@@ -5,6 +5,7 @@ import static java.lang.String.format;
 import java.io.*;
 
 import org.apache.commons.io.FileUtils;
+import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
 
 import java.nio.ByteBuffer;
@@ -1180,5 +1181,16 @@ public class Utilities {
             targetSetList.remove(randomIndex);
         }
         return subSet;
+    }
+
+    public static void filterForwardReadFor14803(
+            CommandSequence validationCommandSequence) {
+        List<Command> newCommands = new LinkedList<>();
+        for (Command command : validationCommandSequence.commands) {
+            if (command.constructCommandString().contains(" DESC")) {
+                newCommands.add(command);
+            }
+        }
+        validationCommandSequence.commands = newCommands;
     }
 }

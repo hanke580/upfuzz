@@ -327,6 +327,10 @@ public class Config {
         public boolean eval_CASSANDRA13939 = false;
         public boolean enable_ORDERBY_IN_SELECT = true;
 
+        // Make sure not affected by forward read, we filter out those read
+        // commands
+        public boolean eval_14803_filter_forward_read = false;
+
         public boolean eval_CASSANDRA14912 = false;
         public boolean eval_CASSANDRA15970 = false;
 

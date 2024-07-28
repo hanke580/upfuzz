@@ -105,7 +105,7 @@ public class SELECT extends CassandraCommand {
         this.params.add(insertValues); // Param4
 
         if (Config.getConf().enable_ORDERBY_IN_SELECT) {
-            // Whether use the last columns from where Columns for ORDER BY
+            // Whether to use the last columns from where Columns for ORDER BY
             ParameterType.ConcreteType useOrderType = new BOOLType();
             Parameter useOrder = useOrderType.generateRandomParameter(state,
                     this);

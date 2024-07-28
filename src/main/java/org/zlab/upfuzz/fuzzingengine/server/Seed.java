@@ -56,6 +56,12 @@ public class Seed implements Serializable, Comparable<Seed> {
                 if (Config.getConf().system.equals("hdfs")) {
                     validationCommandSequence.commands.remove(0);
                 }
+                // For evaluation purpose: remove SELECT without ORDER BY DESC
+                if (Config.getConf().system.equals("cassandra")
+                        && Config.getConf().eval_14803_filter_forward_read) {
+                    Utilities.filterForwardReadFor14803(
+                            validationCommandSequence);
+                }
                 return true;
             }
         } catch (Exception e) {
