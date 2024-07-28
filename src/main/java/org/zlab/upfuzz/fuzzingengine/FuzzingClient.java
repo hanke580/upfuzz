@@ -1037,8 +1037,6 @@ public class FuzzingClient {
                         stackedTestPacketDown, isDowngradeSupported, group));
 
         // Retrieve results for operation 1
-        // StackedFeedbackPacket stackedFeedbackPacketUp = null;
-        // StackedFeedbackPacket stackedFeedbackPacketDown = null;
         try {
             StackedFeedbackPacket stackedFeedbackPacketUp = futureStackedFeedbackPacketUp
                     .get();
@@ -1057,15 +1055,17 @@ public class FuzzingClient {
 
             versionDeltaFeedbackPacketApproach2.clientGroup = group;
             executorService.shutdown();
-            assert versionDeltaFeedbackPacketApproach2 != null;
             if (group == 1) {
                 versionDeltaFeedbackPacketApproach2.stackedFeedbackPacketUpgrade.skipped = true;
                 versionDeltaFeedbackPacketApproach2.stackedFeedbackPacketDowngrade.skipped = true;
             }
             return versionDeltaFeedbackPacketApproach2;
         } catch (Exception e) {
-            logger.info("[HKLOG] Caught Exception!!! " + e);
-            e.printStackTrace();
+            logger.error("[HKLOG] " + e);
+            for (StackTraceElement ste : e.getStackTrace()) {
+                logger.error(ste.toString());
+            }
+            executorService.shutdown();
             return null;
         }
     }

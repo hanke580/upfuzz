@@ -395,11 +395,13 @@ class VersionDeltaStackedTestThread implements Callable<StackedFeedbackPacket> {
             logger.info("[Fuzzing Client] Cluster startup problem: "
                     + (direction == 0 ? "upgrade" : "downgrade"));
             return null;
-        } else {
-            if (Config.getConf().startUpClusterForDebugging) {
-                logger.info("[Debugging Mode] Start up the cluster only");
-                Utilities.sleepAndExit(36000);
-            }
+        }
+
+        if (Config.getConf().startUpClusterForDebugging) {
+            logger.info("[Debugging Mode] Start up the cluster only");
+            Utilities.sleepAndExit(36000);
+        }
+        try {
             StackedFeedbackPacket stackedFeedbackPacketBeforeVersionChange = runTestBatchBeforeChangingTheVersion(
                     executor,
                     stackedTestPacket, direction);
@@ -415,6 +417,10 @@ class VersionDeltaStackedTestThread implements Callable<StackedFeedbackPacket> {
                 tearDownExecutor();
                 return stackedFeedbackPacket;
             }
+        } catch (Exception e) {
+            // Make sure there's no dangling containers
+            tearDownExecutor();
+            throw e;
         }
     }
 }
