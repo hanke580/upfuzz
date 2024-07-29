@@ -28,6 +28,7 @@ import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.PrepareUpgrade;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.UpgradeOp;
 import org.zlab.upfuzz.hdfs.HdfsDockerCluster;
 import org.zlab.upfuzz.utils.Pair;
+import org.zlab.upfuzz.utils.Utilities;
 
 public abstract class Executor implements IExecutor {
     protected static final Logger logger = LogManager.getLogger(Executor.class);
@@ -192,6 +193,11 @@ public abstract class Executor implements IExecutor {
                     originalCommandSequence.state);
             if (Config.getConf().system.equals("hdfs")) {
                 validationCommandSequence.commands.remove(0);
+            }
+            // For evaluation purpose: remove SELECT without ORDER BY DESC
+            if (Config.getConf().system.equals("cassandra")
+                    && Config.getConf().eval_14803_filter_forward_read) {
+                Utilities.filterForwardReadFor14803(validationCommandSequence);
             }
             return new Seed(originalCommandSequence, validationCommandSequence,
                     configIdx, testID);
