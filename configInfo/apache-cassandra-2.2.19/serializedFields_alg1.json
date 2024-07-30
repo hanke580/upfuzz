@@ -530,11 +530,6 @@
         "data": "java.lang.Object",
         "max": "java.lang.Object"
     },
-    "org.apache.cassandra.db.DeletionTime": {
-        "localDeletionTime": "int",
-        "markedForDeleteAt": "long",
-        "LIVE": "org.apache.cassandra.db.DeletionTime"
-    },
     "org.apache.cassandra.db.ColumnIndex": {
         "columnsIndex": "java.util.List",
         "EMPTY": "org.apache.cassandra.db.ColumnIndex"

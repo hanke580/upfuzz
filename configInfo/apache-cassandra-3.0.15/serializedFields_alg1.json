@@ -293,11 +293,6 @@
     "org.apache.cassandra.utils.MerkleTree$Leaf": {
         "hash": "byte[]"
     },
-    "org.apache.cassandra.utils.btree.BTreeSet$BTreeRange": {
-        "tree": "java.lang.Object[]",
-        "lowerBound": "int",
-        "upperBound": "int"
-    },
     "org.apache.cassandra.io.sstable.SSTableTxnWriter": {
         "writer": "org.apache.cassandra.io.sstable.SSTableMultiWriter"
     },
@@ -818,6 +813,7 @@
         "triggers": "org.apache.cassandra.schema.Triggers",
         "cfId": "java.util.UUID",
         "clusteringColumns": "java.util.List",
+        "regularColumns": "java.util.List",
         "indexes": "org.apache.cassandra.schema.Indexes",
         "partitionKeyColumns": "java.util.List",
         "ksAndCFBytes": "byte[]",
@@ -1010,19 +1006,6 @@
     },
     "org.apache.cassandra.utils.btree.BTree$FiltrationTracker": {
         "wrapped": "com.google.common.base.Function"
-    },
-    "org.apache.cassandra.db.DeletionTime": {
-        "localDeletionTime": "int",
-        "markedForDeleteAt": "long",
-        "LIVE": "org.apache.cassandra.db.DeletionTime"
-    },
-    "org.apache.cassandra.db.rows.EncodingStats": {
-        "minTTL": "int",
-        "TIMESTAMP_EPOCH": "long",
-        "minLocalDeletionTime": "int",
-        "DELETION_TIME_EPOCH": "int",
-        "NO_STATS": "org.apache.cassandra.db.rows.EncodingStats",
-        "minTimestamp": "long"
     },
     "org.apache.cassandra.db.columniterator.SSTableReversedIterator": {
         "columns": "org.apache.cassandra.db.filter.ColumnFilter",
@@ -1505,9 +1488,6 @@
     "org.apache.cassandra.service.CacheService$CacheType": {
         "name": "java.lang.String"
     },
-    "org.apache.cassandra.locator.NetworkTopologyStrategy": {
-        "datacenters": "java.util.Map"
-    },
     "org.apache.cassandra.service.DigestResolver": {
         "dataResponse": "org.apache.cassandra.db.ReadResponse",
         "responses": "org.apache.cassandra.utils.concurrent.Accumulator",
@@ -1602,10 +1582,6 @@
     "org.apache.cassandra.schema.LegacySchemaMigrator$Type": {
         "metadata": "org.apache.cassandra.db.marshal.UserType",
         "timestamp": "long"
-    },
-    "org.apache.cassandra.dht.Range": {
-        "left": "org.apache.cassandra.dht.RingPosition",
-        "right": "org.apache.cassandra.dht.RingPosition"
     },
     "org.apache.cassandra.db.filter.RowFilter$ThriftFilter": {
         "expressions": "java.util.List"
