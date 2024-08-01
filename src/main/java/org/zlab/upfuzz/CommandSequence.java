@@ -87,13 +87,13 @@ public class CommandSequence implements Serializable {
 
         for (int mutateRetryIdx = 0; mutateRetryIdx < RETRY_MUTATE_TIME; mutateRetryIdx++) {
             try {
-                int choice = rand.nextInt(3);
+                int choice = rand.nextInt(33);
                 // hdfs: only clear dfs state, since we will recompute
                 // cassandra: clear all states
                 state.clearState();
 
                 int pos;
-                if (choice == 0) {
+                if (choice < 11) {
                     // Mutate a specific command
                     if (Config.getConf() != null
                             && Config.getConf().system != null
@@ -127,15 +127,17 @@ public class CommandSequence implements Serializable {
                     } else {
                         updateState(commands.get(pos), state);
                     }
-                } else {
+                } else if (choice < 32) {
                     // Insert a command
                     if (Config.getConf() != null
                             && Config.getConf().system != null
                             && Config.getConf().system.equals("hdfs")) {
                         // Do not insert before the first special command
+                        // [1, size]
                         pos = org.zlab.upfuzz.utils.Utilities.biasRand(
                                 rand, commands.size(), 5) + 1;
                     } else {
+                        // [0, size]
                         pos = org.zlab.upfuzz.utils.Utilities.biasRand(
                                 rand, commands.size() + 1, 5);
                     }
@@ -188,6 +190,33 @@ public class CommandSequence implements Serializable {
                         // state is already updated in generateSingleCommand!
                         // commands.get(pos).updateState(state);
                     }
+                } else {
+                    // Remove a command
+                    if (commands.size() == 1) {
+                        // Cannot remove the last command
+                        continue;
+                    }
+                    if (Config.getConf() != null
+                            && Config.getConf().system != null
+                            && Config.getConf().system.equals("hdfs")) {
+                        // Do not remove the first special command
+                        // [1, size - 1]
+                        pos = org.zlab.upfuzz.utils.Utilities.biasRand(
+                                rand, commands.size() - 1, 5) + 1;
+                    } else {
+                        // [0, size - 1]
+                        pos = org.zlab.upfuzz.utils.Utilities.biasRand(
+                                rand, commands.size(), 5);
+                    }
+                    // Compute the state up to the position
+                    for (int i = 0; i < pos; i++) {
+                        assert i < commands.size();
+                        commands.get(i).updateState(state);
+                    }
+                    commands.remove(pos);
+
+                    // pos must be smaller than commands.size()
+                    pos -= 1;
                 }
                 // Check the following commands
                 // There could be some commands that cannot be
