@@ -23,7 +23,6 @@ import org.zlab.ocov.tracker.FormatCoverageStatus;
 import org.zlab.ocov.tracker.ObjectGraphCoverage;
 import org.zlab.ocov.tracker.Runtime;
 import org.zlab.upfuzz.CommandPool;
-import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.cassandra.CassandraCommandPool;
 import org.zlab.upfuzz.cassandra.CassandraConfigGen;
@@ -121,11 +120,13 @@ public class FuzzingServer {
     ConfigGen configGen;
     public Path configDirPath;
 
-    // Format Coverage
+    // ------------------- Format Coverage -------------------
     // Execute a test in old version
     private ObjectGraphCoverage oriObjCoverage;
     // Execute a test in new version
     private ObjectGraphCoverage upObjCoverage;
+    private static Path formatCoverageLogPath = Paths
+            .get("format_coverage.log");
 
     // System state comparison
     public Set<String> targetSystemStates = new HashSet<>();
@@ -153,7 +154,6 @@ public class FuzzingServer {
     public BlockingQueue<StackedTestPacket> stackedTestPacketsQueueVersionDelta;
     public InterestingTestsCorpus testBatchCorpus;
     public long startTime;
-    public long lastRoundIntroducingVersionDelta;
 
     // Execute a test in old version
     ExecutionDataStore curOriCoverage;
@@ -166,15 +166,12 @@ public class FuzzingServer {
     ExecutionDataStore curOriCoverageAfterDowngrade;
 
     // Calculate cumulative probabilities
-    double[] cumulativeSeedChoiceProbabilities = new double[6];
     double[] cumulativeTestChoiceProbabilities = new double[4];
 
     Set<Integer> mutatedSeedIds = new HashSet<>();
     Set<Integer> insignificantInconsistenciesIn = new HashSet<>();
-    Map<Integer, Double> seedChoiceProbabilities;
     Map<Integer, Double> testChoiceProbabilities;
 
-    List<Integer> versionDeltaInducedTpIds = new ArrayList<>();
     List<Integer> branchVersionDeltaInducedTpIds = new ArrayList<>();
     List<Integer> formatVersionDeltaInducedTpIds = new ArrayList<>();
     List<Integer> onlyNewBranchCoverageInducedTpIds = new ArrayList<>();
@@ -252,13 +249,8 @@ public class FuzzingServer {
                         null,
                         null);
             }
-            Runtime.initWriter();
+            Runtime.initWriter(formatCoverageLogPath);
         }
-
-        /*
-         * ----- TODO? ------
-         * Version delta coverage init
-         */
 
         if (Config.getConf().testSingleVersion) {
             configDirPath = Paths.get(
@@ -276,11 +268,7 @@ public class FuzzingServer {
     }
 
     private void init() {
-        /**
-         * Force GC every 10 minutes, using format coverage would incur a
-         * large amount of objects which need to be GC quickly. Otherwise,
-         * the memory usage could burst to 20+GB.
-         */
+        // Force GC every 10 minutes
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
             System.gc();
             if (Config.getConf().debug) {
@@ -298,21 +286,28 @@ public class FuzzingServer {
 
         // maintain the num of configuration files
         // read all configurations file name in a list
-        if (Config.getConf().system.equals("cassandra")) {
+        switch (Config.getConf().system) {
+        case "cassandra":
             executor = new CassandraExecutor();
             commandPool = new CassandraCommandPool();
             stateClass = CassandraState.class;
             configGen = new CassandraConfigGen();
-        } else if (Config.getConf().system.equals("hdfs")) {
+            break;
+        case "hdfs":
             executor = new HdfsExecutor();
             commandPool = new HdfsCommandPool();
             stateClass = HdfsState.class;
             configGen = new HdfsConfigGen();
-        } else if (Config.getConf().system.equals("hbase")) {
+            break;
+        case "hbase":
             executor = new HBaseExecutor();
             commandPool = new HBaseCommandPool();
             stateClass = HBaseState.class;
             configGen = new HBaseConfigGen();
+            break;
+        default:
+            throw new RuntimeException(
+                    "System " + Config.getConf().system + " is not supported");
         }
         Path targetSystemStatesPath = Paths.get(System.getProperty("user.dir"),
                 Config.getConf().targetSystemStateFile);
@@ -532,6 +527,17 @@ public class FuzzingServer {
         stackedTestPackets.add(stackedTestPacket);
     }
 
+    /**
+     *  Get a seed from corpus, now fuzz it for an epoch
+     *  The seed contains a specific configuration to trigger new coverage
+     *  1. Fix the config, mutate command sequences
+     *      a. Mutate command sequences
+     *      b. Random generate new command sequences
+     *  2. Fix the command sequence
+     *      a. Mutate the configs (not supported yet)
+     *      b. Random generate new configs
+     *  3. Mutate both config and command sequence (violent, disabled)
+     */
     public void fuzzOne() {
         // Pick one test case from the corpus, fuzz it for mutationEpoch
         // Add the new tests into the stackedTestPackets
@@ -554,17 +560,6 @@ public class FuzzingServer {
         logger.debug(
                 "[fuzzOne] fuzz a seed from corpus, stackedTestPackets size = "
                         + stackedTestPackets.size());
-        /**
-         *  Get a seed from corpus, now fuzz it for an epoch
-         *  The seed contains a specific configuration to trigger new coverage
-         *  1. Fix the config, mutate command sequences
-         *      a. Mutate command sequences
-         *      b. Random generate new command sequences
-         *  2. Fix the command sequence
-         *      a. Mutate the configs (not supported yet)
-         *      b. Random generate new configs
-         *  3. Mutate both config and command sequence (violent, disabled)
-         */
 
         // 1.a Fix config, mutate command sequences
         if (seed.configIdx == -1)
@@ -697,12 +692,10 @@ public class FuzzingServer {
                 graph.addNode(seed.testID, mutateSeed);
                 testID2Seed.put(testID, mutateSeed);
 
-                /**
-                 * We shouldn't add more tests for this batch, since it's only
-                 * testing the configuration mutation, this batch would be 1.
-                 * If we add more tests, actually we already think that this
-                 * config is interesting, however, we shouldn't do that.
-                 */
+                // We shouldn't add more tests for this batch, since it's only
+                // testing the configuration mutation, this batch would be 1.
+                // If we add more tests, actually we already think that this
+                // config is interesting, however, we shouldn't do that.
                 stackedTestPacket.addTestPacket(mutateSeed, testID++);
                 // add mutated seeds (Mutate sequence&config)
                 if (Config.getConf().paddingStackedTestPackets) {
@@ -855,32 +848,6 @@ public class FuzzingServer {
                 fb.originalCodeCoverage.merge(feedBack.originalCodeCoverage);
             if (feedBack.upgradedCodeCoverage != null)
                 fb.upgradedCodeCoverage.merge(feedBack.upgradedCodeCoverage);
-        }
-        return fb;
-    }
-
-    public FeedBack mergeCoverage2(FeedBack[] feedBacks, String type) {
-        FeedBack fb = new FeedBack();
-        if (feedBacks == null) {
-            return fb;
-        }
-        for (FeedBack feedBack : feedBacks) {
-            if (feedBack.originalCodeCoverage != null)
-                fb.originalCodeCoverage.merge(feedBack.originalCodeCoverage);
-            if (feedBack.upgradedCodeCoverage != null)
-                fb.upgradedCodeCoverage.merge(feedBack.upgradedCodeCoverage);
-        }
-        return fb;
-    }
-
-    public FeedBack mergeCoverageVersionDeltaGroup1(FeedBack[] feedBacks) {
-        FeedBack fb = new FeedBack();
-        if (feedBacks == null) {
-            return fb;
-        }
-        for (FeedBack feedBack : feedBacks) {
-            if (feedBack.originalCodeCoverage != null)
-                fb.originalCodeCoverage.merge(feedBack.originalCodeCoverage);
         }
         return fb;
     }
@@ -2166,11 +2133,8 @@ public class FuzzingServer {
 
         int feedbackLength = versionDeltaFeedbackPacketsUp.size();
         System.out.println("feedback length: " + feedbackLength);
-        for (int i = 0; i < feedbackLength; i++) {
+        for (FeedbackPacket versionDeltaFeedbackPacketUp : versionDeltaFeedbackPacketsUp) {
             // handle invariant
-            FeedbackPacket versionDeltaFeedbackPacketUp = versionDeltaFeedbackPacketsUp
-                    .get(i);
-
             finishedTestID++;
             finishedTestIdAgentGroup2++;
             int score = 0;
