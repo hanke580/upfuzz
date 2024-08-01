@@ -1012,7 +1012,7 @@ public class CommandTest extends AbstractTest {
             read_cq = CommandSequence.generateSequence(
                     commandPool.readCommandClassList, null,
                     CassandraState.class,
-                    cass14803_cq.state);
+                    cass14803_cq.state, true);
 
             // CommandSequence read_cq =
             // cass14803_cq.generateRelatedReadSequence();

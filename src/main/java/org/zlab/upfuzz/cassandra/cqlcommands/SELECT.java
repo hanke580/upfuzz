@@ -61,7 +61,7 @@ public class SELECT extends CassandraCommand {
 
         ParameterType.ConcreteType whereValuesType = new ParameterType.Type2ValueType(
                 null, (s, c) -> (Collection) c.params.get(3).getValue(),
-                p -> ((Pair) ((Parameter) p).value).right);
+                p -> ((Pair<?, ?>) ((Parameter) p).value).right);
         Parameter insertValues = whereValuesType
                 .generateRandomParameter(state, this, init4);
         this.params.add(insertValues); // Param4
@@ -139,7 +139,7 @@ public class SELECT extends CassandraCommand {
         sb.append(" FROM ").append(params.get(0)).append(".")
                 .append(params.get(1));
 
-        int whereColsSize = ((List) params.get(3).getValue()).size();
+        int whereColsSize = ((List<?>) params.get(3).getValue()).size();
         if (whereColsSize > 0) {
 
             sb.append(" " + "WHERE" + " ");
@@ -181,8 +181,8 @@ public class SELECT extends CassandraCommand {
                 }
             } else {
                 for (int i = 0; i < whereColumns.size(); i++) {
-                    sb.append(whereColumns.get(i).toString() + " = "
-                            + whereValues.get(i).toString());
+                    sb.append(whereColumns.get(i).toString()).append(" = ")
+                            .append(whereValues.get(i).toString());
                     if (i < whereColumns.size() - 1) {
                         sb.append(" AND ");
                     }

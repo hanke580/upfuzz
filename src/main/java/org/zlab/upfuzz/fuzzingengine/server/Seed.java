@@ -72,10 +72,11 @@ public class Seed implements Serializable, Comparable<Seed> {
             ParameterType.BasicConcreteType.clearPool();
             originalCommandSequence = CommandSequence.generateSequence(
                     commandPool.commandClassList,
-                    commandPool.createCommandClassList, stateClass, null);
+                    commandPool.createCommandClassList, stateClass, null,
+                    false);
             validationCommandSequence = CommandSequence.generateSequence(
                     commandPool.readCommandClassList, null, stateClass,
-                    originalCommandSequence.state);
+                    originalCommandSequence.state, true);
             postProcessValidationCommands(validationCommandSequence);
             return new Seed(originalCommandSequence, validationCommandSequence,
                     configIdx, testID);
@@ -90,16 +91,18 @@ public class Seed implements Serializable, Comparable<Seed> {
         try {
             if (mutateImpl(originalCommandSequence)) {
                 originalCommandSequence.initializeTypePool();
-                // FIXME: duplicated read commands could be generated
                 validationCommandSequence = CommandSequence.generateSequence(
                         commandPool.readCommandClassList,
                         null,
-                        stateClass, originalCommandSequence.state);
+                        stateClass, originalCommandSequence.state, true);
                 postProcessValidationCommands(validationCommandSequence);
                 return true;
             }
         } catch (Exception e) {
-            logger.error("Generate related read sequence error", e);
+            logger.error("Mutation error", e);
+            for (StackTraceElement ste : e.getStackTrace()) {
+                logger.error(ste);
+            }
             return false;
         }
         return false;

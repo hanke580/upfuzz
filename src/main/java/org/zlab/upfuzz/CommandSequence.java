@@ -54,8 +54,7 @@ public class CommandSequence implements Serializable {
         }
         List<Command> validCommands = new LinkedList<>();
 
-        for (int i = 0; i < commands.size(); i++) {
-            Command command = commands.get(i);
+        for (Command command : commands) {
             boolean fixable = checkAndUpdateCommand(command, state);
             if (fixable) {
                 validCommands.add(command);
@@ -323,9 +322,6 @@ public class CommandSequence implements Serializable {
             } catch (Exception e) {
                 continue;
             }
-            if (command == null) {
-                throw new RuntimeException("Command is null");
-            }
             command.updateState(state);
             commands.add(command);
             if (commands.size() >= Config.getConf().addCommandWithSameTypeNum) {
@@ -338,15 +334,22 @@ public class CommandSequence implements Serializable {
     public static CommandSequence generateSequence(
             List<Map.Entry<Class<? extends Command>, Integer>> commandClassList,
             List<Map.Entry<Class<? extends Command>, Integer>> createCommandClassList,
-            Class<? extends State> stateClass, State state)
+            Class<? extends State> stateClass, State state, boolean isRead)
             throws Exception {
 
         assert commandClassList != null;
 
-        int len = Utilities.generateExponentialRandom(rand,
-                Config.getConf().CMD_SEQ_LEN_LAMBDA,
-                Config.getConf().MIN_CMD_SEQ_LEN,
-                Config.getConf().MAX_CMD_SEQ_LEN);
+        int len;
+        if (isRead)
+            len = Utilities.generateExponentialRandom(rand,
+                    Config.getConf().CMD_SEQ_LEN_LAMBDA,
+                    Config.getConf().MIN_READ_CMD_SEQ_LEN,
+                    Config.getConf().MAX_READ_CMD_SEQ_LEN);
+        else
+            len = Utilities.generateExponentialRandom(rand,
+                    Config.getConf().CMD_SEQ_LEN_LAMBDA,
+                    Config.getConf().MIN_CMD_SEQ_LEN,
+                    Config.getConf().MAX_CMD_SEQ_LEN);
 
         Constructor<?> constructor = stateClass.getConstructor();
         if (state == null)

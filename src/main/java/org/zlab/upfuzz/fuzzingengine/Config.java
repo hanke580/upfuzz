@@ -83,6 +83,10 @@ public class Config {
         public int MIN_CMD_SEQ_LEN = 15;
         public int MAX_CMD_SEQ_LEN = 100;
 
+        // Sequence Generation for read commands
+        public int MIN_READ_CMD_SEQ_LEN = 30;
+        public int MAX_READ_CMD_SEQ_LEN = 100;
+
         // Expected len = ~20
         // Base for the exponential function
         // Skew model of command sequence length

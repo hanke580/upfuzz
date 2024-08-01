@@ -25,7 +25,7 @@ public class CommandSequenceTest extends AbstractTest {
                 CassandraCommand.cassandraCommandPool.commandClassList,
                 CassandraCommand.cassandraCommandPool.createCommandClassList,
                 CassandraState.class,
-                null);
+                null, false);
 
         List<String> l = commandSequence.getCommandStringList();
         for (int i = 0; i < l.size(); i++) {
