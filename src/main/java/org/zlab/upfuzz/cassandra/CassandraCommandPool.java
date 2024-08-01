@@ -162,7 +162,7 @@ public class CassandraCommandPool extends CommandPool {
                         deleteLargeDataRate));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(DROP_TABLE.class,
-                        writeCommandRate));
+                        deleteLargeDataRate));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(DROP_TYPE.class,
                         writeCommandRate));
