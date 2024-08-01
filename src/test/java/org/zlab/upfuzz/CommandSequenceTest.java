@@ -162,7 +162,7 @@ public class CommandSequenceTest extends AbstractTest {
     public void testSeedGeneration() {
         Config.instance.system = "cassandra";
         CassandraCommandPool pool = new CassandraCommandPool();
-        Seed seed = Executor.generateSeed(pool, CassandraState.class, -1, -1);
+        Seed seed = Seed.generateSeed(pool, CassandraState.class, -1, -1);
 
         boolean print = false;
         if (print) {

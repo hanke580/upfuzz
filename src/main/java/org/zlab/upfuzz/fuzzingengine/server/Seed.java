@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.CommandSequence;
+import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.utils.Utilities;
@@ -15,10 +16,9 @@ import org.zlab.upfuzz.utils.Utilities;
 public class Seed implements Serializable, Comparable<Seed> {
     static Logger logger = LogManager.getLogger(Seed.class);
 
-    private final int MAX_STACK_MUTATION = 10;
+    private static final int MAX_STACK_MUTATION = 10;
 
     public int score = 0;
-
     public Random rand = new Random();
 
     // Write commands
@@ -43,6 +43,40 @@ public class Seed implements Serializable, Comparable<Seed> {
         this.testID = testID;
     }
 
+    public static void postProcessValidationCommands(
+            CommandSequence validationCommandSequence) {
+        if (Config.getConf().system.equals("hdfs")) {
+            validationCommandSequence.commands.remove(0);
+        }
+        // For evaluation purpose: remove SELECT without ORDER BY DESC
+        if (Config.getConf().system.equals("cassandra")
+                && Config.getConf().eval_14803_filter_forward_read) {
+            Utilities.filterForwardReadFor14803(
+                    validationCommandSequence);
+        }
+    }
+
+    public static Seed generateSeed(CommandPool commandPool,
+            Class<? extends State> stateClass, int configIdx, int testID) {
+        CommandSequence originalCommandSequence;
+        CommandSequence validationCommandSequence;
+        try {
+            ParameterType.BasicConcreteType.clearPool();
+            originalCommandSequence = CommandSequence.generateSequence(
+                    commandPool.commandClassList,
+                    commandPool.createCommandClassList, stateClass, null);
+            validationCommandSequence = CommandSequence.generateSequence(
+                    commandPool.readCommandClassList, null, stateClass,
+                    originalCommandSequence.state);
+            postProcessValidationCommands(validationCommandSequence);
+            return new Seed(originalCommandSequence, validationCommandSequence,
+                    configIdx, testID);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     public boolean mutate(CommandPool commandPool,
             Class<? extends State> stateClass) {
         try {
@@ -53,15 +87,7 @@ public class Seed implements Serializable, Comparable<Seed> {
                         commandPool.readCommandClassList,
                         null,
                         stateClass, originalCommandSequence.state);
-                if (Config.getConf().system.equals("hdfs")) {
-                    validationCommandSequence.commands.remove(0);
-                }
-                // For evaluation purpose: remove SELECT without ORDER BY DESC
-                if (Config.getConf().system.equals("cassandra")
-                        && Config.getConf().eval_14803_filter_forward_read) {
-                    Utilities.filterForwardReadFor14803(
-                            validationCommandSequence);
-                }
+                postProcessValidationCommands(validationCommandSequence);
                 return true;
             }
         } catch (Exception e) {

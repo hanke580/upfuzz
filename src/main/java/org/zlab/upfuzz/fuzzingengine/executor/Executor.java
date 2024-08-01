@@ -179,34 +179,6 @@ public abstract class Executor implements IExecutor {
         return ret;
     }
 
-    public static Seed generateSeed(CommandPool commandPool,
-            Class<? extends State> stateClass, int configIdx, int testID) {
-        CommandSequence originalCommandSequence;
-        CommandSequence validationCommandSequence;
-        try {
-            ParameterType.BasicConcreteType.clearPool();
-            originalCommandSequence = CommandSequence.generateSequence(
-                    commandPool.commandClassList,
-                    commandPool.createCommandClassList, stateClass, null);
-            validationCommandSequence = CommandSequence.generateSequence(
-                    commandPool.readCommandClassList, null, stateClass,
-                    originalCommandSequence.state);
-            if (Config.getConf().system.equals("hdfs")) {
-                validationCommandSequence.commands.remove(0);
-            }
-            // For evaluation purpose: remove SELECT without ORDER BY DESC
-            if (Config.getConf().system.equals("cassandra")
-                    && Config.getConf().eval_14803_filter_forward_read) {
-                Utilities.filterForwardReadFor14803(validationCommandSequence);
-            }
-            return new Seed(originalCommandSequence, validationCommandSequence,
-                    configIdx, testID);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
     public boolean execute(TestPlan testPlan) {
         // Any exception happen during this process, we will report it.
         eventIdx = 0;

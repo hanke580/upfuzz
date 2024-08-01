@@ -495,7 +495,7 @@ public class FuzzingServer {
 
         if (Config.getConf().paddingStackedTestPackets) {
             for (int i = 0; i < Config.getConf().STACKED_TESTS_NUM; i++) {
-                Seed seed = Executor.generateSeed(commandPool, stateClass,
+                Seed seed = Seed.generateSeed(commandPool, stateClass,
                         configIdx, testID);
                 if (seed != null) {
                     mutatedSeedIds.add(testID);
@@ -515,7 +515,7 @@ public class FuzzingServer {
                                     + maxGenLimit + ", not finished after "
                                     + genCount + " times");
                 }
-                seed = Executor.generateSeed(commandPool, stateClass,
+                seed = Seed.generateSeed(commandPool, stateClass,
                         configIdx, testID);
                 genCount++;
             }
@@ -654,7 +654,7 @@ public class FuzzingServer {
                 stackedTestPacket = new StackedTestPacket(
                         Config.getConf().nodeNum, configFileName);
             }
-            Seed randGenSeed = Executor.generateSeed(commandPool,
+            Seed randGenSeed = Seed.generateSeed(commandPool,
                     stateClass,
                     configIdx, testID);
             if (randGenSeed != null) {
@@ -801,7 +801,7 @@ public class FuzzingServer {
             // corpus is empty, generate some
             int configIdx = configGen.generateConfig();
             String configFileName = "test" + configIdx;
-            Seed seed = Executor.generateSeed(commandPool, stateClass,
+            Seed seed = Seed.generateSeed(commandPool, stateClass,
                     configIdx, testID);
             if (seed != null) {
 

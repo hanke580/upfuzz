@@ -41,7 +41,7 @@ public class FuzzingServerTest extends AbstractTest {
         Config.getConf().system = "hdfs";
         CommandPool commandPool = new HdfsCommandPool();
         Class<? extends State> stateClass = HdfsState.class;
-        Seed seed = Executor.generateSeed(commandPool, stateClass, -1, -1);
+        Seed seed = Seed.generateSeed(commandPool, stateClass, -1, -1);
         FullStopSeed fullStopSeed = new FullStopSeed(
                 seed, 3, new HashMap<>(), new LinkedList<>());
         FuzzingServer fuzzingServer = new FuzzingServer();
@@ -59,7 +59,7 @@ public class FuzzingServerTest extends AbstractTest {
     public void testTestPlanSerialization() {
         CassandraCommandPool commandPool = new CassandraCommandPool();
         Class stateClass = CassandraState.class;
-        Seed seed = Executor.generateSeed(commandPool, stateClass, -1, -1);
+        Seed seed = Seed.generateSeed(commandPool, stateClass, -1, -1);
         FullStopSeed fullStopSeed = new FullStopSeed(seed, 3, null, null);
         FuzzingServer fuzzingServer = new FuzzingServer();
         TestPlan testPlan = fuzzingServer.generateTestPlan(fullStopSeed);
@@ -139,8 +139,8 @@ public class FuzzingServerTest extends AbstractTest {
     public void testCorpus() {
         Config.instance.system = "cassandra";
         CassandraCommandPool pool = new CassandraCommandPool();
-        Seed seed1 = Executor.generateSeed(pool, CassandraState.class, -1, 1);
-        Seed seed2 = Executor.generateSeed(pool, CassandraState.class, -1, 2);
+        Seed seed1 = Seed.generateSeed(pool, CassandraState.class, -1, 1);
+        Seed seed2 = Seed.generateSeed(pool, CassandraState.class, -1, 2);
 
         assert seed1 != null;
         assert seed2 != null;
@@ -170,7 +170,7 @@ public class FuzzingServerTest extends AbstractTest {
 
         CassandraCommandPool pool = new CassandraCommandPool();
 
-        Seed seed1 = Executor.generateSeed(pool, CassandraState.class, 2, 1);
+        Seed seed1 = Seed.generateSeed(pool, CassandraState.class, 2, 1);
 
         FuzzingServer fuzzingServer = new FuzzingServer();
 
