@@ -1,15 +1,12 @@
 package org.zlab.upfuzz.fuzzingengine.server;
 
 import java.io.Serializable;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.zlab.upfuzz.CommandPool;
-import org.zlab.upfuzz.CommandSequence;
-import org.zlab.upfuzz.ParameterType;
-import org.zlab.upfuzz.State;
+import org.zlab.upfuzz.*;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.utils.Utilities;
 
@@ -54,6 +51,17 @@ public class Seed implements Serializable, Comparable<Seed> {
             Utilities.filterForwardReadFor14803(
                     validationCommandSequence);
         }
+        // Remove duplicated read commands
+        Set<String> readCommandSet = new HashSet<>();
+        List<Command> deDupCommands = new LinkedList<>();
+        for (Command command : validationCommandSequence.commands) {
+            if (readCommandSet.contains(command.constructCommandString())) {
+                continue;
+            }
+            readCommandSet.add(command.constructCommandString());
+            deDupCommands.add(command);
+        }
+        validationCommandSequence.commands = deDupCommands;
     }
 
     public static Seed generateSeed(CommandPool commandPool,
