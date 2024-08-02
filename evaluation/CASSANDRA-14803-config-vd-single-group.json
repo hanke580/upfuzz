@@ -6,7 +6,7 @@
   "clientPort" : "6400",
   "configDir" : "configtests",
   "STACKED_TESTS_NUM" : 40,
-  "STACKED_TESTS_NUM_G2" : 20,
+  "STACKED_TESTS_NUM_G2" : 1,
   "DROP_TEST_PROB_G2": 0.1,
   "sequenceMutationEpoch" : 80,
   "nodeNum": 1,
