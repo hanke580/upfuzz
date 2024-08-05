@@ -34,8 +34,7 @@
         "ends": "org.apache.cassandra.db.composites.Composite[]",
         "markedAts": "long[]",
         "delTimes": "int[]",
-        "starts": "org.apache.cassandra.db.composites.Composite[]",
-        "comparator": "java.util.Comparator"
+        "starts": "org.apache.cassandra.db.composites.Composite[]"
     },
     "org.apache.cassandra.utils.Pair": {
         "right": "java.lang.Object",
@@ -356,7 +355,6 @@
         "ksAndCFBytes": "byte[]",
         "cfName": "java.lang.String",
         "columnMetadata": "java.util.Map",
-        "comparator": "org.apache.cassandra.db.composites.CellNameType",
         "caching": "org.apache.cassandra.cache.CachingOptions",
         "DEFAULT_CACHING_STRATEGY": "org.apache.cassandra.cache.CachingOptions",
         "triggers": "java.util.Map",
@@ -1358,9 +1356,6 @@
     },
     "org.apache.cassandra.serializers.InetAddressSerializer": {
         "instance": "org.apache.cassandra.serializers.InetAddressSerializer"
-    },
-    "org.apache.cassandra.dht.LocalPartitioner": {
-        "comparator": "org.apache.cassandra.db.marshal.AbstractType"
     },
     "org.apache.cassandra.serializers.SetSerializer": {
         "elements": "org.apache.cassandra.serializers.TypeSerializer"

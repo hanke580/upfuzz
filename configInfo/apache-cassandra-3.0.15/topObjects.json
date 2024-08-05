@@ -105,5 +105,6 @@
     "org.apache.cassandra.db.LegacyLayout$LegacyDeletionInfo",
     "org.apache.cassandra.db.ColumnIndex",
     "org.apache.cassandra.db.SinglePartitionReadCommand$Group",
+    "org.apache.cassandra.db.ColumnFamilyStore$Flush",
     "org.apache.cassandra.db.columniterator.SSTableReversedIterator"
 ]
