@@ -7,6 +7,8 @@ process_file() {
     local prev_value=0
     local current_value=0
 
+    echo "Processing file: $file"
+
     failure_dir=$(dirname $(dirname "$file"))
 
     input_line=$(grep -ir "column_index" "$failure_dir" | head -n 1)
