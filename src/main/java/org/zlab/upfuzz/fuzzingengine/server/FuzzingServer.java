@@ -414,8 +414,8 @@ public class FuzzingServer {
                             commandPath.resolve("validcommands.txt"));
                 }
                 for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
-                    System.out.println(
-                            "[Eval] use fixed commands from examplecase/commands.txt");
+                    logger.info(
+                            "[Debug Usage] use fixed commands from examplecase/commands.txt");
                     tp.originalCommandSequenceList = fixedWriteCommands;
                     tp.validationCommandSequenceList = fixedValidationCommands;
                 }
