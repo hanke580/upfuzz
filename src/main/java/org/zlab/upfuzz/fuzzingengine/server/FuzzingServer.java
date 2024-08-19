@@ -1512,7 +1512,8 @@ public class FuzzingServer {
                     FormatCoverageStatus oriFormatCoverageStatus = oriObjCoverage
                             .merge(feedbackPacket.formatCoverage,
                                     "ori",
-                                    feedbackPacket.testPacketID, true);
+                                    feedbackPacket.testPacketID, true,
+                                    Config.getConf().updateInvariantBrokenFrequency);
                     if (oriFormatCoverageStatus.isNewFormat()) {
                         logger.info("New format coverage for test "
                                 + feedbackPacket.testPacketID);
@@ -1691,7 +1692,8 @@ public class FuzzingServer {
                             .merge(
                                     versionDeltaFeedbackPacketUp.formatCoverage,
                                     "ori",
-                                    testPacketID, true);
+                                    testPacketID, true,
+                                    Config.getConf().updateInvariantBrokenFrequency);
                     if (oriFormatCoverageStatus.isNewFormat())
                         newOriFC = true;
                     if (oriFormatCoverageStatus.isBoundaryChange())
@@ -1704,7 +1706,8 @@ public class FuzzingServer {
                             .merge(
                                     versionDeltaFeedbackPacketDown.formatCoverage,
                                     "up",
-                                    testPacketID, true);
+                                    testPacketID, true,
+                                    Config.getConf().updateInvariantBrokenFrequency);
                     if (upFormatCoverageStatus.isNewFormat())
                         newUpFC = true;
                     if (upFormatCoverageStatus.isBoundaryChange())
@@ -1846,7 +1849,8 @@ public class FuzzingServer {
                                 versionDeltaFeedbackPacketUp.formatCoverage,
                                 "ori",
                                 versionDeltaFeedbackPacketUp.testPacketID,
-                                true);
+                                true,
+                                Config.getConf().updateInvariantBrokenFrequency);
 
                 if (oriFormatCoverageStatus.isNewFormat())
                     oriNewFormat = true;
@@ -1861,7 +1865,8 @@ public class FuzzingServer {
                                 versionDeltaFeedbackPacketDown.formatCoverage,
                                 "up",
                                 versionDeltaFeedbackPacketDown.testPacketID,
-                                true);
+                                true,
+                                Config.getConf().updateInvariantBrokenFrequency);
                 if (upFormatCoverageStatus.isNewFormat())
                     upNewFormat = true;
                 if (upFormatCoverageStatus.isBoundaryChange())

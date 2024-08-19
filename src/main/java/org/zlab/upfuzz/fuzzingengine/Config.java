@@ -230,6 +230,10 @@ public class Config {
         // If disabled, we also won't collect format coverage
         public boolean useFormatCoverage = false;
 
+        // For <Multiple likely invariants broken at the same time>: optimized
+        // with frequency
+        public boolean updateInvariantBrokenFrequency = true;
+
         // NonVerisonDeltaMode
         // 70% fuzz FC, 30% fuzz BC
         public double BC_CorpusNonVersionDelta = 0.2;
