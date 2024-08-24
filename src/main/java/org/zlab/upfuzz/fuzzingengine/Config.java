@@ -233,6 +233,7 @@ public class Config {
         // For <Multiple likely invariants broken at the same time>: optimized
         // with frequency
         public boolean updateInvariantBrokenFrequency = true;
+        public boolean checkSpecialDumpIds = true;
 
         // NonVerisonDeltaMode
         // 70% fuzz FC, 30% fuzz BC
@@ -246,6 +247,7 @@ public class Config {
         public String topObjectsFileName = "topObjects.json";
         public String comparableClassesFileName = "comparableClasses.json";
         public String branch2CollectionFileName = "branch2Collection.json";
+        public String specialDumpIdsFileName = "modifiedDumpIds.json";
 
         // ---------------Version Delta-----------------
         public boolean useVersionDelta = false;
