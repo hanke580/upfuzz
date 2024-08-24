@@ -9,6 +9,7 @@ public class CorpusNonVersionDelta extends Corpus {
 
     private static final String queueNameBC = "CorpusNonVersionDelta_BC";
     private static final String queueNameFC = "CorpusNonVersionDelta_FC";
+    private static final String queueNameFCMOD = "CorpusNonVersionDelta_FC_MOD";
     private static final String queueNameBoundaryChange = "CorpusNonVersionDelta_BoundaryChange";
 
     private static final Path queuePathBC = Paths.get(Config.getConf().corpus)
@@ -17,20 +18,27 @@ public class CorpusNonVersionDelta extends Corpus {
     private static final Path queuePathFC = Paths.get(Config.getConf().corpus)
             .resolve(Config.getConf().system)
             .resolve(queueNameFC);
+    private static final Path queuePathFCMOD = Paths
+            .get(Config.getConf().corpus)
+            .resolve(Config.getConf().system)
+            .resolve(queueNameFCMOD);
     private static final Path queuePathBoundaryChange = Paths
             .get(Config.getConf().corpus).resolve(Config.getConf().system)
             .resolve(queueNameBoundaryChange);
 
     private int diskSeedIdBC = 0;
     private int diskSeedIdFC = 0;
+    private int diskSeedIdFCMOD = 0;
     private int diskSeedIdBoundaryChange = 0;
 
     public CorpusNonVersionDelta() {
-        super(3, new double[] { Config.getConf().FC_CorpusNonVersionDelta,
+        super(4, new double[] { Config.getConf().FC_CorpusNonVersionDelta,
                 Config.getConf().BC_CorpusNonVersionDelta,
+                Config.getConf().FC_MOD_CorpusNonVersionDelta,
                 Config.getConf().BoundaryChange_CorpusNonVersionDelta });
         // sum of probabilities should be 1
         if (Config.getConf().FC_CorpusNonVersionDelta
+                + Config.getConf().FC_MOD_CorpusNonVersionDelta
                 + Config.getConf().BC_CorpusNonVersionDelta
                 + Config.getConf().BoundaryChange_CorpusNonVersionDelta != 1)
             throw new RuntimeException("Sum of probabilities should be 1");
@@ -38,15 +46,15 @@ public class CorpusNonVersionDelta extends Corpus {
     }
 
     private enum QueueType {
-        FC, BC, BoundaryChange
+        FC, BC, FC_MOD, BoundaryChange
     }
 
     @Override
     public void addSeed(Seed seed, boolean newOriBC, boolean newUpBC,
             boolean newOriFC, boolean newUpFC, boolean newBCAfterUpgrade,
             boolean newBCAfterDowngrade, boolean newOriBoundaryChange,
-            boolean newUpBoundaryChange) {
-        // one seed could exist in multiple queues
+            boolean newUpBoundaryChange, boolean newModifiedFormatCoverage) {
+        // One seed could exist in multiple queues
         if (newOriFC) {
             cycleQueues[0].addSeed(seed);
 
@@ -69,8 +77,21 @@ public class CorpusNonVersionDelta extends Corpus {
                 Corpus.saveSeedQueueOnDisk(seed, queueNameBC, diskSeedIdBC);
             }
         }
-        if (newOriBoundaryChange) {
+        if (newModifiedFormatCoverage) {
             cycleQueues[2].addSeed(seed);
+
+            if (Config.getConf().saveCorpusToDisk) {
+                while (queuePathBoundaryChange
+                        .resolve("seed_" + diskSeedIdFCMOD).toFile()
+                        .exists()) {
+                    diskSeedIdFCMOD++;
+                }
+                Corpus.saveSeedQueueOnDisk(seed, queueNameFCMOD,
+                        diskSeedIdFCMOD);
+            }
+        }
+        if (newOriBoundaryChange) {
+            cycleQueues[3].addSeed(seed);
 
             if (Config.getConf().saveCorpusToDisk) {
                 while (queuePathBoundaryChange
@@ -100,6 +121,9 @@ public class CorpusNonVersionDelta extends Corpus {
                 queuePathFC.toFile(), testID);
         testID = Corpus.loadSeedIntoQueue(cycleQueues[QueueType.BC.ordinal()],
                 queuePathBC.toFile(), testID);
+        testID = Corpus.loadSeedIntoQueue(
+                cycleQueues[QueueType.FC_MOD.ordinal()],
+                queuePathFCMOD.toFile(), testID);
         testID = Corpus.loadSeedIntoQueue(
                 cycleQueues[QueueType.BoundaryChange.ordinal()],
                 queuePathBoundaryChange.toFile(), testID);

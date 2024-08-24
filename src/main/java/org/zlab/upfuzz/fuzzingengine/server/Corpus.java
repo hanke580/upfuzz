@@ -1,8 +1,6 @@
 package org.zlab.upfuzz.fuzzingengine.server;
 
-import org.zlab.upfuzz.CommandSequence;
 import org.zlab.upfuzz.fuzzingengine.Config;
-import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
 import java.io.*;
@@ -10,15 +8,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class Corpus implements ICorpus {
     Random rand = new Random();
-    AtomicLong timestampGenerator = new AtomicLong(0); // To track enqueue order
     double[] cumulativeProbabilities;
     CycleQueue[] cycleQueues;
 
     public Corpus(int queueSize, double[] probabilities) {
+        assert queueSize == probabilities.length;
+
         cumulativeProbabilities = new double[probabilities.length];
         cycleQueues = new CycleQueue[probabilities.length];
         for (int i = 0; i < cycleQueues.length; i++) {
@@ -35,22 +33,19 @@ public abstract class Corpus implements ICorpus {
     public abstract void addSeed(Seed seed, boolean newOriBC, boolean newUpBC,
             boolean newOriFC, boolean newUpFC, boolean newBCAfterUpgrade,
             boolean newBCAfterDowngrade, boolean newOriBoundaryChange,
-            boolean newUpBoundaryChange);
+            boolean newUpBoundaryChange, boolean newModifiedFormatCoverage);
 
     // FIXME: verify whether this is correct
     public void addSeed(Seed seed, boolean newOriBC, boolean newOriFC,
-            boolean newBCAfterUpgrade, boolean newOriBoundaryChange) {
+            boolean newBCAfterUpgrade, boolean newOriBoundaryChange,
+            boolean newModifiedFormatCoverage) {
         addSeed(seed, newOriBC, false, newOriFC, false, newBCAfterUpgrade,
-                false, newOriBoundaryChange, false);
+                false, newOriBoundaryChange, false, newModifiedFormatCoverage);
     }
 
     public Seed getSeed() {
         // Not support CorpusVersionDeltaSixQueue
         // if current class is CorpusVersionDetlaSixQueue, throw exception
-        if (this instanceof CorpusVersionDeltaSixQueue) {
-            throw new RuntimeException(
-                    "CorpusVersionDeltaSixQueue does not support getSeed()");
-        }
         if (cumulativeProbabilities.length != cycleQueues.length) {
             throw new RuntimeException(
                     "cumulativeProbabilities and cycleQueues have different lengths");

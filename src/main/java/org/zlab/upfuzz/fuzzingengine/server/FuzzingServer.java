@@ -181,13 +181,7 @@ public class FuzzingServer {
 
     public FuzzingServer() {
         if (Config.getConf().useVersionDelta) {
-            if (Config.getConf().versionDeltaApproach == 2) {
-                // corpus = new CorpusVersionDeltaSixQueue();
-                corpus = new CorpusVersionDeltaFiveQueueWithBoundary();
-            } else {
-                // Consider the boundary change...
-                corpus = new CorpusVersionDeltaFiveQueueWithBoundary();
-            }
+            corpus = new CorpusVersionDeltaFiveQueueWithBoundary();
         } else {
             if (Config.getConf().useFormatCoverage)
                 corpus = new CorpusNonVersionDelta();
@@ -1363,10 +1357,10 @@ public class FuzzingServer {
     public static void addSeedToCorpus(Corpus corpus,
             Seed seed, int score, boolean newOriBC,
             boolean newOriFC, boolean newBCAfterUpgrade,
-            boolean newOriBoundaryChange) {
+            boolean newOriBoundaryChange, boolean newModifiedFormatCoverage) {
         seed.score = score;
         corpus.addSeed(seed, newOriBC, newOriFC, newBCAfterUpgrade,
-                newOriBoundaryChange);
+                newOriBoundaryChange, newModifiedFormatCoverage);
     }
 
     public static void addSeedToCorpus(Corpus corpus,
@@ -1374,11 +1368,11 @@ public class FuzzingServer {
             boolean newOriBC, boolean newUpBC, boolean newOriFC,
             boolean newUpFC, boolean newBCAfterUpgrade,
             boolean newBCAfterDowngrade, boolean newOriBoundaryChange,
-            boolean newUpBoundaryChange) {
+            boolean newUpBoundaryChange, boolean newModifiedFormatCoverage) {
         seed.score = score;
         corpus.addSeed(seed, newOriBC, newUpBC, newOriFC, newUpFC,
                 newBCAfterUpgrade, newBCAfterDowngrade, newOriBoundaryChange,
-                newUpBoundaryChange);
+                newUpBoundaryChange, newModifiedFormatCoverage);
     }
 
     public synchronized void updateStatus(
@@ -1472,6 +1466,7 @@ public class FuzzingServer {
             boolean newNewVersionBranchCoverage = false;
 
             boolean newFormatCoverage = false;
+            boolean newModifiedFormatCoverage = false;
             boolean newBoundaryChange = false;
 
             // Merge all the feedbacks
@@ -1522,6 +1517,12 @@ public class FuzzingServer {
                                 + feedbackPacket.testPacketID);
                         newFormatCoverage = true;
                     }
+                    if (oriFormatCoverageStatus
+                            .isNewFormatAtModifiedMergePoint()) {
+                        logger.info("New modified format coverage for test "
+                                + feedbackPacket.testPacketID);
+                        newModifiedFormatCoverage = true;
+                    }
                     if (oriFormatCoverageStatus.isBoundaryChange()) {
                         logger.info("Boundary change for test "
                                 + feedbackPacket.testPacketID);
@@ -1536,7 +1537,7 @@ public class FuzzingServer {
                     testID2Seed.get(feedbackPacket.testPacketID),
                     score, newOldVersionBranchCoverage,
                     newFormatCoverage, newNewVersionBranchCoverage,
-                    newBoundaryChange);
+                    newBoundaryChange, newModifiedFormatCoverage);
 
             // FIXME: record boundary in graph
             graph.updateNodeCoverage(feedbackPacket.testPacketID,
@@ -1739,10 +1740,11 @@ public class FuzzingServer {
                         versionDeltaFeedbackPacketUp.inconsistencyReport);
             }
 
+            // FIXME: modified FC is not incorporated with version delta
             addSeedToCorpus(corpus, testID2Seed.get(testPacketID),
                     score, newOriBC, newUpBC, newOriFC, newUpFC,
                     newUpBCAfterUpgrade, newOriBCAfterDowngrade,
-                    newOriBoundaryChange, newUpBoundaryChange);
+                    newOriBoundaryChange, newUpBoundaryChange, false);
         }
         // update testid2Seed, no use anymore
         for (int testID : versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.testIDs) {
@@ -1977,13 +1979,14 @@ public class FuzzingServer {
                                 .get(i).testPacketID);
             }
 
+            // FIXME: modified FC is not incorporated with version delta
             addSeedToCorpus(corpus,
                     testID2Seed.get(versionDeltaFeedbackPacketUp.testPacketID),
                     score,
                     newOriBC,
                     newUpBC,
                     oriNewFormat, upNewFormat, false, false, oriBoundaryChange,
-                    upBoundaryChange);
+                    upBoundaryChange, false);
 
             graph.updateNodeCoverageGroup1(
                     versionDeltaFeedbackPacketUp.testPacketID,
@@ -2182,7 +2185,7 @@ public class FuzzingServer {
             addSeedToCorpus(corpus,
                     testID2Seed.get(versionDeltaFeedbackPacketUp.testPacketID),
                     score, false, false, false, false, newBCAfterUpgrade,
-                    false, false, false);
+                    false, false, false, false);
             // FIXME: it's already updated in Group1, do we update it again in
             // group2?
             graph.updateNodeCoverageGroup2(
@@ -2351,7 +2354,7 @@ public class FuzzingServer {
             addSeedToCorpus(corpus,
                     testID2Seed.get(versionDeltaFeedbackPacketUp.testPacketID),
                     score, false, false, false, false, newBCAfterUpgrade,
-                    newBCAfterDowngrade, false, false);
+                    newBCAfterDowngrade, false, false, false);
             // FIXME: it's already updated in Group1, do we update it again in
             // group2?
             graph.updateNodeCoverageGroup2(

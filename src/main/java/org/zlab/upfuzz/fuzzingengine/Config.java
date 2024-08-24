@@ -239,6 +239,7 @@ public class Config {
         // 70% fuzz FC, 30% fuzz BC
         public double BC_CorpusNonVersionDelta = 0.2;
         public double FC_CorpusNonVersionDelta = 0.6;
+        public double FC_MOD_CorpusNonVersionDelta = 0;
         public double BoundaryChange_CorpusNonVersionDelta = 0.2;
 
         public int formatCoveragePort = 62000;

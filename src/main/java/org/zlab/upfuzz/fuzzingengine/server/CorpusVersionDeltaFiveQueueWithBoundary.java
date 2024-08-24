@@ -53,7 +53,7 @@ public class CorpusVersionDeltaFiveQueueWithBoundary extends Corpus {
     public void addSeed(Seed seed, boolean newOriBC, boolean newUpBC,
             boolean newOriFC, boolean newUpFC, boolean newBCAfterUpgrade,
             boolean newBCAfterDowngrade, boolean newOriBoundaryChange,
-            boolean newUpBoundaryChange) {
+            boolean newUpBoundaryChange, boolean newModifiedFormatCoverage) {
         // One seed can occur in multiple queues (representing higher energy)
         // However, for one coverage, it can only exist in either vd or non-vd
         // queue
