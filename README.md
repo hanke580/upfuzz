@@ -57,139 +57,6 @@ Solution: Set the `serverPort` and `clientPort` in the configuration file to avo
 "clientPort" : "?",
 ```
 
-## Version Delta Testing
-### Cassandra
-```bash
-git clone git@github.com:zlab-purdue/upfuzz.git
-cd upfuzz
-export UPFUZZ_DIR=$PWD
-export ORI_VERSION=3.11.17
-export UP_VERSION=4.1.4
-
-mkdir -p "$UPFUZZ_DIR"/prebuild/cassandra
-cd prebuild/cassandra
-wget https://archive.apache.org/dist/cassandra/"$ORI_VERSION"/apache-cassandra-"$ORI_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$ORI_VERSION"-bin.tar.gz
-wget https://archive.apache.org/dist/cassandra/"$UP_VERSION"/apache-cassandra-"$UP_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$UP_VERSION"-bin.tar.gz
-sed -i 's/num_tokens: 16/num_tokens: 256/' apache-cassandra-"$UP_VERSION"/conf/cassandra.yaml
-
-cd ${UPFUZZ_DIR}
-cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
-cp src/main/resources/cqlsh_daemon4.py  prebuild/cassandra/apache-cassandra-"$UP_VERSION"/bin/cqlsh_daemon.py
-
-cd src/main/resources/cassandra/normal/compile-src/
-sed -i "s/ORI_VERSION=apache-cassandra-.*$/ORI_VERSION=apache-cassandra-$ORI_VERSION/" cassandra-clusternode.sh
-sed -i "s/UP_VERSION=apache-cassandra-.*$/UP_VERSION=apache-cassandra-$UP_VERSION/" cassandra-clusternode.sh
-docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"_apache-cassandra-"$UP_VERSION"
-# modify the cassandra-clusternode.sh file: reverse ORI_VERSION and UP_VERSION
-sed -i "s/ORI_VERSION=apache-cassandra-.*$/ORI_VERSION=apache-cassandra-$UP_VERSION/" cassandra-clusternode.sh
-sed -i "s/UP_VERSION=apache-cassandra-.*$/UP_VERSION=apache-cassandra-$ORI_VERSION/" cassandra-clusternode.sh
-docker build . -t upfuzz_cassandra:apache-cassandra-"$UP_VERSION"_apache-cassandra-"$ORI_VERSION"
-
-cd ${UPFUZZ_DIR}
-./gradlew copyDependencies
-./gradlew :spotlessApply build
-
-# open terminal1: start server
-bin/start_server.sh config.json
-# open terminal2: start two groups of agents: 3 agents in group 1, 2 agents in group 2
-bin/start_version_delta_clients.sh 3 2 config.json
-
-# stop testing
-bin/cass_cl.sh 3.11.17 4.1.4
-bin/cass_cl.sh 4.1.4 3.11.17
-```
-
-### HDFS
-
-```bash
-git clone git@github.com:zlab-purdue/upfuzz.git
-cd upfuzz
-export UPFUZZ_DIR=$PWD
-export ORI_VERSION=2.10.2
-export UP_VERSION=3.3.6
-
-mkdir -p $UPFUZZ_DIR/prebuild/hdfs
-cd $UPFUZZ_DIR/prebuild/hdfs
-wget https://archive.apache.org/dist/hadoop/common/hadoop-"$ORI_VERSION"/hadoop-"$ORI_VERSION".tar.gz ; tar -xzvf hadoop-$ORI_VERSION.tar.gz
-wget https://archive.apache.org/dist/hadoop/common/hadoop-"$UP_VERSION"/hadoop-"$UP_VERSION".tar.gz ; tar -xzvf hadoop-"$UP_VERSION".tar.gz
-
-# old version hdfs daemon
-cp $UPFUZZ_DIR/src/main/resources/FsShellDaemon2.java $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$ORI_VERSION"/FsShellDaemon.java
-cd $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$ORI_VERSION"/
-/usr/lib/jvm/java-8-openjdk-amd64/bin/javac -d . -cp "share/hadoop/hdfs/*:share/hadoop/common/*:share/hadoop/common/lib/*" FsShellDaemon.java
-sed -i "s/elif \[ \"\$COMMAND\" = \"dfs\" \] ; then/elif [ \"\$COMMAND\" = \"dfsdaemon\" ] ; then\n  CLASS=org.apache.hadoop.fs.FsShellDaemon\n  HADOOP_OPTS=\"\$HADOOP_OPTS \$HADOOP_CLIENT_OPTS\"\n&/" bin/hdfs
-
-# new version hdfs daemon
-cp $UPFUZZ_DIR/src/main/resources/FsShellDaemon_trunk.java $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$UP_VERSION"/FsShellDaemon.java
-cd $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$UP_VERSION"/
-/usr/lib/jvm/java-8-openjdk-amd64/bin/javac -d . -cp "share/hadoop/hdfs/*:share/hadoop/common/*:share/hadoop/common/lib/*" FsShellDaemon.java
-sed -i "s/  case \${subcmd} in/&\n    dfsdaemon)\n      HADOOP_CLASSNAME=\"org.apache.hadoop.fs.FsShellDaemon\"\n    ;;/" bin/hdfs
-
-cd $UPFUZZ_DIR/src/main/resources/hdfs/compile-src/
-sed -i "s/ORG_VERSION=hadoop-.*$/ORG_VERSION=hadoop-$ORI_VERSION/" hdfs-clusternode.sh
-sed -i "s/UPG_VERSION=hadoop-.*$/UPG_VERSION=hadoop-$UP_VERSION/" hdfs-clusternode.sh
-docker build . -t upfuzz_hdfs:hadoop-"$ORI_VERSION"_hadoop-"$UP_VERSION"
-# replace up and down version
-sed -i "s/ORG_VERSION=hadoop-.*$/ORG_VERSION=hadoop-$UP_VERSION/" hdfs-clusternode.sh
-sed -i "s/UPG_VERSION=hadoop-.*$/UPG_VERSION=hadoop-$ORI_VERSION/" hdfs-clusternode.sh
-docker build . -t upfuzz_hdfs:hadoop-"$UP_VERSION"_hadoop-"$ORI_VERSION"
-
-cd $UPFUZZ_DIR
-./gradlew copyDependencies
-./gradlew :spotlessApply build
-
-# open terminal1: start server
-bin/start_server.sh hdfs_config.json
-# open terminal2: start one client
-bin/start_clients.sh 1 hdfs_config.json
-
-# stop testing
-bin/hdfs_cl.sh
-```
-
-### HBase
-```bash
-git clone git@github.com:zlab-purdue/upfuzz.git
-cd upfuzz
-export UPFUZZ_DIR=$PWD
-export ORI_VERSION=2.4.17
-export UP_VERSION=2.5.8
-
-mkdir -p $UPFUZZ_DIR/prebuild/hadoop
-cd $UPFUZZ_DIR/prebuild/hadoop
-wget https://archive.apache.org/dist/hadoop/common/hadoop-2.10.2/hadoop-2.10.2.tar.gz ; tar -xzvf hadoop-2.10.2.tar.gz
-cp $UPFUZZ_DIR/src/main/resources/hdfs/hbase-pure/core-site.xml $UPFUZZ_DIR/prebuild/hadoop/hadoop-2.10.2/etc/hadoop/ -f
-cp $UPFUZZ_DIR/src/main/resources/hdfs/hbase-pure/hdfs-site.xml $UPFUZZ_DIR/prebuild/hadoop/hadoop-2.10.2/etc/hadoop/ -f
-cp $UPFUZZ_DIR/src/main/resources/hdfs/hbase-pure/hadoop-env.sh $UPFUZZ_DIR/prebuild/hadoop/hadoop-2.10.2/etc/hadoop/ -f
-
-mkdir -p $UPFUZZ_DIR/prebuild/hbase
-cd $UPFUZZ_DIR/prebuild/hbase
-wget https://archive.apache.org/dist/hbase/"$ORI_VERSION"/hbase-"$ORI_VERSION"-bin.tar.gz -O hbase-"$ORI_VERSION".tar.gz ; tar -xzvf hbase-"$ORI_VERSION".tar.gz
-wget https://archive.apache.org/dist/hbase/"$UP_VERSION"/hbase-"$UP_VERSION"-bin.tar.gz -O hbase-"$UP_VERSION".tar.gz ; tar -xzvf hbase-"$UP_VERSION".tar.gz
-cp $UPFUZZ_DIR/src/main/resources/hbase/compile-src/hbase-env.sh $UPFUZZ_DIR/prebuild/hbase/hbase-$ORI_VERSION/conf/ -f
-cp $UPFUZZ_DIR/src/main/resources/hbase/compile-src/hbase-env.sh $UPFUZZ_DIR/prebuild/hbase/hbase-$UP_VERSION/conf/ -f
-
-cd $UPFUZZ_DIR/src/main/resources/hdfs/hbase-pure/
-docker build . -t upfuzz_hdfs:hadoop-2.10.2
-
-cd $UPFUZZ_DIR/src/main/resources/hbase/compile-src/
-docker build . -t upfuzz_hbase:hbase-"$ORI_VERSION"_hbase-"$UP_VERSION"
-docker build . -t upfuzz_hbase:hbase-"$UP_VERSION"_hbase-"$ORI_VERSION"
-
-cd $UPFUZZ_DIR
-./gradlew copyDependencies
-./gradlew :spotlessApply build
-
-# Enable version delta testing mechanism in hbase_config.json
-# open terminal1: start server
-bin/start_server.sh hbase_config.json
-# open terminal2: start one client
-bin/start_clients.sh 1 hbase_config.json
-
-# stop testing
-bin/hbase_cl.sh
-```
-
 ## Minimal Set up for Cassandra (Try upfuzz quickly!)
 Requirement: java11, docker (Docker version 26.0.0, build a5ee5b1)
 > - Not test configurations.
@@ -359,6 +226,139 @@ cd $UPFUZZ_DIR
 # open terminal1: start server (this runs in foreground)
 bin/start_server.sh hbase_config.json
 # open terminal2: start one client (this runs in background)
+bin/start_clients.sh 1 hbase_config.json
+
+# stop testing
+bin/hbase_cl.sh
+```
+
+## Version Delta Testing
+### Cassandra
+```bash
+git clone git@github.com:zlab-purdue/upfuzz.git
+cd upfuzz
+export UPFUZZ_DIR=$PWD
+export ORI_VERSION=3.11.17
+export UP_VERSION=4.1.4
+
+mkdir -p "$UPFUZZ_DIR"/prebuild/cassandra
+cd prebuild/cassandra
+wget https://archive.apache.org/dist/cassandra/"$ORI_VERSION"/apache-cassandra-"$ORI_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$ORI_VERSION"-bin.tar.gz
+wget https://archive.apache.org/dist/cassandra/"$UP_VERSION"/apache-cassandra-"$UP_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$UP_VERSION"-bin.tar.gz
+sed -i 's/num_tokens: 16/num_tokens: 256/' apache-cassandra-"$UP_VERSION"/conf/cassandra.yaml
+
+cd ${UPFUZZ_DIR}
+cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
+cp src/main/resources/cqlsh_daemon4.py  prebuild/cassandra/apache-cassandra-"$UP_VERSION"/bin/cqlsh_daemon.py
+
+cd src/main/resources/cassandra/normal/compile-src/
+sed -i "s/ORI_VERSION=apache-cassandra-.*$/ORI_VERSION=apache-cassandra-$ORI_VERSION/" cassandra-clusternode.sh
+sed -i "s/UP_VERSION=apache-cassandra-.*$/UP_VERSION=apache-cassandra-$UP_VERSION/" cassandra-clusternode.sh
+docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"_apache-cassandra-"$UP_VERSION"
+# modify the cassandra-clusternode.sh file: reverse ORI_VERSION and UP_VERSION
+sed -i "s/ORI_VERSION=apache-cassandra-.*$/ORI_VERSION=apache-cassandra-$UP_VERSION/" cassandra-clusternode.sh
+sed -i "s/UP_VERSION=apache-cassandra-.*$/UP_VERSION=apache-cassandra-$ORI_VERSION/" cassandra-clusternode.sh
+docker build . -t upfuzz_cassandra:apache-cassandra-"$UP_VERSION"_apache-cassandra-"$ORI_VERSION"
+
+cd ${UPFUZZ_DIR}
+./gradlew copyDependencies
+./gradlew :spotlessApply build
+
+# open terminal1: start server
+bin/start_server.sh config.json
+# open terminal2: start two groups of agents: 3 agents in group 1, 2 agents in group 2
+bin/start_version_delta_clients.sh 3 2 config.json
+
+# stop testing
+bin/cass_cl.sh 3.11.17 4.1.4
+bin/cass_cl.sh 4.1.4 3.11.17
+```
+
+### HDFS
+
+```bash
+git clone git@github.com:zlab-purdue/upfuzz.git
+cd upfuzz
+export UPFUZZ_DIR=$PWD
+export ORI_VERSION=2.10.2
+export UP_VERSION=3.3.6
+
+mkdir -p $UPFUZZ_DIR/prebuild/hdfs
+cd $UPFUZZ_DIR/prebuild/hdfs
+wget https://archive.apache.org/dist/hadoop/common/hadoop-"$ORI_VERSION"/hadoop-"$ORI_VERSION".tar.gz ; tar -xzvf hadoop-$ORI_VERSION.tar.gz
+wget https://archive.apache.org/dist/hadoop/common/hadoop-"$UP_VERSION"/hadoop-"$UP_VERSION".tar.gz ; tar -xzvf hadoop-"$UP_VERSION".tar.gz
+
+# old version hdfs daemon
+cp $UPFUZZ_DIR/src/main/resources/FsShellDaemon2.java $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$ORI_VERSION"/FsShellDaemon.java
+cd $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$ORI_VERSION"/
+/usr/lib/jvm/java-8-openjdk-amd64/bin/javac -d . -cp "share/hadoop/hdfs/*:share/hadoop/common/*:share/hadoop/common/lib/*" FsShellDaemon.java
+sed -i "s/elif \[ \"\$COMMAND\" = \"dfs\" \] ; then/elif [ \"\$COMMAND\" = \"dfsdaemon\" ] ; then\n  CLASS=org.apache.hadoop.fs.FsShellDaemon\n  HADOOP_OPTS=\"\$HADOOP_OPTS \$HADOOP_CLIENT_OPTS\"\n&/" bin/hdfs
+
+# new version hdfs daemon
+cp $UPFUZZ_DIR/src/main/resources/FsShellDaemon_trunk.java $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$UP_VERSION"/FsShellDaemon.java
+cd $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$UP_VERSION"/
+/usr/lib/jvm/java-8-openjdk-amd64/bin/javac -d . -cp "share/hadoop/hdfs/*:share/hadoop/common/*:share/hadoop/common/lib/*" FsShellDaemon.java
+sed -i "s/  case \${subcmd} in/&\n    dfsdaemon)\n      HADOOP_CLASSNAME=\"org.apache.hadoop.fs.FsShellDaemon\"\n    ;;/" bin/hdfs
+
+cd $UPFUZZ_DIR/src/main/resources/hdfs/compile-src/
+sed -i "s/ORG_VERSION=hadoop-.*$/ORG_VERSION=hadoop-$ORI_VERSION/" hdfs-clusternode.sh
+sed -i "s/UPG_VERSION=hadoop-.*$/UPG_VERSION=hadoop-$UP_VERSION/" hdfs-clusternode.sh
+docker build . -t upfuzz_hdfs:hadoop-"$ORI_VERSION"_hadoop-"$UP_VERSION"
+# replace up and down version
+sed -i "s/ORG_VERSION=hadoop-.*$/ORG_VERSION=hadoop-$UP_VERSION/" hdfs-clusternode.sh
+sed -i "s/UPG_VERSION=hadoop-.*$/UPG_VERSION=hadoop-$ORI_VERSION/" hdfs-clusternode.sh
+docker build . -t upfuzz_hdfs:hadoop-"$UP_VERSION"_hadoop-"$ORI_VERSION"
+
+cd $UPFUZZ_DIR
+./gradlew copyDependencies
+./gradlew :spotlessApply build
+
+# open terminal1: start server
+bin/start_server.sh hdfs_config.json
+# open terminal2: start one client
+bin/start_clients.sh 1 hdfs_config.json
+
+# stop testing
+bin/hdfs_cl.sh
+```
+
+### HBase
+```bash
+git clone git@github.com:zlab-purdue/upfuzz.git
+cd upfuzz
+export UPFUZZ_DIR=$PWD
+export ORI_VERSION=2.4.17
+export UP_VERSION=2.5.8
+
+mkdir -p $UPFUZZ_DIR/prebuild/hadoop
+cd $UPFUZZ_DIR/prebuild/hadoop
+wget https://archive.apache.org/dist/hadoop/common/hadoop-2.10.2/hadoop-2.10.2.tar.gz ; tar -xzvf hadoop-2.10.2.tar.gz
+cp $UPFUZZ_DIR/src/main/resources/hdfs/hbase-pure/core-site.xml $UPFUZZ_DIR/prebuild/hadoop/hadoop-2.10.2/etc/hadoop/ -f
+cp $UPFUZZ_DIR/src/main/resources/hdfs/hbase-pure/hdfs-site.xml $UPFUZZ_DIR/prebuild/hadoop/hadoop-2.10.2/etc/hadoop/ -f
+cp $UPFUZZ_DIR/src/main/resources/hdfs/hbase-pure/hadoop-env.sh $UPFUZZ_DIR/prebuild/hadoop/hadoop-2.10.2/etc/hadoop/ -f
+
+mkdir -p $UPFUZZ_DIR/prebuild/hbase
+cd $UPFUZZ_DIR/prebuild/hbase
+wget https://archive.apache.org/dist/hbase/"$ORI_VERSION"/hbase-"$ORI_VERSION"-bin.tar.gz -O hbase-"$ORI_VERSION".tar.gz ; tar -xzvf hbase-"$ORI_VERSION".tar.gz
+wget https://archive.apache.org/dist/hbase/"$UP_VERSION"/hbase-"$UP_VERSION"-bin.tar.gz -O hbase-"$UP_VERSION".tar.gz ; tar -xzvf hbase-"$UP_VERSION".tar.gz
+cp $UPFUZZ_DIR/src/main/resources/hbase/compile-src/hbase-env.sh $UPFUZZ_DIR/prebuild/hbase/hbase-$ORI_VERSION/conf/ -f
+cp $UPFUZZ_DIR/src/main/resources/hbase/compile-src/hbase-env.sh $UPFUZZ_DIR/prebuild/hbase/hbase-$UP_VERSION/conf/ -f
+
+cd $UPFUZZ_DIR/src/main/resources/hdfs/hbase-pure/
+docker build . -t upfuzz_hdfs:hadoop-2.10.2
+
+cd $UPFUZZ_DIR/src/main/resources/hbase/compile-src/
+docker build . -t upfuzz_hbase:hbase-"$ORI_VERSION"_hbase-"$UP_VERSION"
+docker build . -t upfuzz_hbase:hbase-"$UP_VERSION"_hbase-"$ORI_VERSION"
+
+cd $UPFUZZ_DIR
+./gradlew copyDependencies
+./gradlew :spotlessApply build
+
+# Enable version delta testing mechanism in hbase_config.json
+# open terminal1: start server
+bin/start_server.sh hbase_config.json
+# open terminal2: start one client
 bin/start_clients.sh 1 hbase_config.json
 
 # stop testing

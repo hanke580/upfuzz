@@ -458,6 +458,13 @@ make
 sudo make install
 ```
 
+SSH problem 
+```bash
+# Server
+# If running into certificate problem: try the following (however, not suggest)
+git config --global http.sslVerify false
+```
+
 ## Debug
 
 The most common exception is `nyx instance was null` since the exception in the vm is not exposed to
