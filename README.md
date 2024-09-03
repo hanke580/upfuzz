@@ -482,6 +482,16 @@ launch_service()
     cassandra_parms="$cassandra_parms -Dcassandra.logdir=$CASSANDRA_LOG_DIR"
 ```
 
+### Cassandra-5.0
+```bash
+# When testing cassandra-5.0-rc2, we need to modify the cqlshmain.py to avoid FP.
+ vim pylib/cqlshlib/cqlshmain.py
+ # Remove the following 2 lines
+if baseversion != build_version:
+    print("WARNING: cqlsh was built against {}, but this server is {}.  All features may not work!".format(build_version, baseversion))
+```
+
+
 ### cqlsh daemon to the compatible version
 * [cqlsh_daemon2_1.py](src/main/resources/cqlsh_daemon2_1.py): cassandra 2.1
 * [cqlsh_daemon2.py](src/main/resources/cqlsh_daemon2.py): cassandra-2.2.8, cassandra-3.0.(15|16|17|30), cassandra-3.11.16
