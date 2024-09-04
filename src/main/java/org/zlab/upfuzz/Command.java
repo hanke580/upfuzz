@@ -77,7 +77,16 @@ public abstract class Command implements Serializable {
 
     public void updateTypePool() {
         for (Parameter param : params) {
-            param.updateTypePool();
+            try {
+                param.updateTypePool();
+            } catch (Exception e) {
+                // log stack trace
+                logger.error("Error in updateTypePool, current command = "
+                        + this + ", param idx = " + params.indexOf(param));
+                for (StackTraceElement ste : e.getStackTrace()) {
+                    logger.error(ste);
+                }
+            }
         }
     }
 
