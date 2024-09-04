@@ -202,15 +202,12 @@ public class FuzzingServer {
             // FIXME: add isSerialized path
             Path oriFormatInfoFolder = Paths.get("configInfo")
                     .resolve(Config.getConf().originalVersion);
-            Path upFormatInfoFolder = Paths.get("configInfo")
-                    .resolve(Config.getConf().upgradedVersion);
 
             // We will also have another folder to provide information between
             // versions
-            if (!oriFormatInfoFolder.toFile().exists()
-                    || !upFormatInfoFolder.toFile().exists()) {
+            if (!oriFormatInfoFolder.toFile().exists()) {
                 throw new RuntimeException(
-                        "oriFormatInfoFolder or upFormatInfoFolder is not specified in the configuration file "
+                        "oriFormatInfoFolder is not specified in the configuration file "
                                 +
                                 "while format coverage is enabled");
             }
@@ -233,6 +230,14 @@ public class FuzzingServer {
                     upgradeFormatInfoFolder
                             .resolve(Config.getConf().specialDumpIdsFileName));
             if (Config.getConf().useVersionDelta) {
+                Path upFormatInfoFolder = Paths.get("configInfo")
+                        .resolve(Config.getConf().upgradedVersion);
+                if (!upFormatInfoFolder.toFile().exists()) {
+                    throw new RuntimeException(
+                            "upFormatInfoFolder is not specified in the configuration file "
+                                    +
+                                    "while format coverage is enabled");
+                }
                 upObjCoverage = new ObjectGraphCoverage(
                         upFormatInfoFolder.resolve(
                                 Config.getConf().baseClassInfoFileName),
