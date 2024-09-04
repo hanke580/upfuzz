@@ -38,8 +38,7 @@ public class HBaseDockerCluster extends DockerCluster {
 
     public static String[] includeJacocoHandlers = {
             "org.apache.hadoop.hbase.master.HMaster",
-            "org.apache.hadoop.hbase.regionserver.HRegionServer",
-            "org.apache.hadoop.hbase.zookeeper.HQuorumPeer"
+            "org.apache.hadoop.hbase.regionserver.HRegionServer"
     };
 
     HBaseDockerCluster(HBaseExecutor executor, String version,
