@@ -20,6 +20,7 @@ RUN pip3 install pexpect
 RUN apt-get install iptables -y
 
 RUN apt-get install openjdk-8-jdk -y
+RUN apt-get install openjdk-17-jdk -y
 RUN ln -sf /usr/lib/jvm/java-1.8.0-openjdk-amd64/bin/java /usr/bin/java
 
 ADD general-setup.sh /usr/local/bin/general-setup.sh

@@ -45,7 +45,7 @@ else
 fi
 
 export HBASE_ENV_INIT=
-export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
+# export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
 export HBASE_CONF_DIR=${HBASE_CONF}
 
 # Connection to NN
