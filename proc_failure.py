@@ -23,7 +23,7 @@ event_crash = "event_crash"
 inconsistency = "inconsistency"
 
 HDFS_BLACK_LIST = ["RECEIVED SIGNAL", "DataXceiver error processing"]
-HBASE_BLACK_LIST = ["zookeeper.ZKWatcher:", "quorum.LearnerHandler", "zookeeper.ClientCnxn", "procedure2.ProcedureExecutor: ThreadGroup java.lang.ThreadGroup", "quorum.QuorumCnxManager"]
+HBASE_BLACK_LIST = ["zookeeper.ZKWatcher:", "quorum.LearnerHandler", "zookeeper.ClientCnxn", "procedure2.ProcedureExecutor: ThreadGroup java.lang.ThreadGroup"]
 
 # subprocess.run(["grep", "-r", "-A", "4", "ERROR", "/Users/hanke/Desktop/Project/upfuzz/system.log"])
 
@@ -135,6 +135,8 @@ def hbase_grepUniqueError(black_list):
             cur_idx = start_idx + 1
             flag = False
             GREP_NUM = 5
+            if "ABORTING" in line_str:
+                GREP_NUM=4
             cur_Num = 0
             while True:
                 if cur_idx >= len(arr) or cur_Num >= GREP_NUM:
