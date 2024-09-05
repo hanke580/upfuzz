@@ -23,7 +23,7 @@ event_crash = "event_crash"
 inconsistency = "inconsistency"
 
 HDFS_BLACK_LIST = ["RECEIVED SIGNAL", "DataXceiver error processing"]
-HBASE_BLACK_LIST = ["zookeeper.ZKWatcher:"]
+HBASE_BLACK_LIST = ["zookeeper.ZKWatcher:", "quorum.LearnerHandler", "zookeeper.ClientCnxn", "procedure2.ProcedureExecutor: ThreadGroup java.lang.ThreadGroup"]
 
 # subprocess.run(["grep", "-r", "-A", "4", "ERROR", "/Users/hanke/Desktop/Project/upfuzz/system.log"])
 
