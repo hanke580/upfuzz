@@ -190,8 +190,8 @@ prepareImageFirst
 git clone git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
 export UPFUZZ_DIR=$PWD
-export ORI_VERSION=2.4.17
-export UP_VERSION=2.5.5
+export ORI_VERSION=2.4.19
+export UP_VERSION=2.5.9
 
 mkdir -p $UPFUZZ_DIR/prebuild/hadoop
 cd $UPFUZZ_DIR/prebuild/hadoop
@@ -213,8 +213,8 @@ cp $UPFUZZ_DIR/src/main/resources/hbase/compile-src/hbase-env.sh $UPFUZZ_DIR/pre
 
 # for hbase version >= 2.4.0, use hbase_daemon3.py
 # for hbase version < 2.4.0, use hbase_daemon2.py
-cp $UPFUZZ_DIR/src/main/resources/hbase/compile-src/hbase_daemon2.py $UPFUZZ_DIR/prebuild/hbase/hbase-$ORI_VERSION/bin/hbase_daemon.py
-cp $UPFUZZ_DIR/src/main/resources/hbase/compile-src/hbase_daemon2.py $UPFUZZ_DIR/prebuild/hbase/hbase-$UP_VERSION/bin/hbase_daemon.py
+cp $UPFUZZ_DIR/src/main/resources/hbase/compile-src/hbase_daemon3.py $UPFUZZ_DIR/prebuild/hbase/hbase-$ORI_VERSION/bin/hbase_daemon.py
+cp $UPFUZZ_DIR/src/main/resources/hbase/compile-src/hbase_daemon3.py $UPFUZZ_DIR/prebuild/hbase/hbase-$UP_VERSION/bin/hbase_daemon.py
 
 
 cd $UPFUZZ_DIR/src/main/resources/hdfs/hbase-pure/
@@ -331,8 +331,8 @@ bin/hdfs_cl.sh
 git clone git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
 export UPFUZZ_DIR=$PWD
-export ORI_VERSION=2.4.17
-export UP_VERSION=2.5.8
+export ORI_VERSION=2.4.19
+export UP_VERSION=2.5.9
 
 mkdir -p $UPFUZZ_DIR/prebuild/hadoop
 cd $UPFUZZ_DIR/prebuild/hadoop
