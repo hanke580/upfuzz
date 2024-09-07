@@ -641,30 +641,34 @@ public class FuzzingServer {
         if (stackedTestPacket.size() != 0) {
             stackedTestPackets.add(stackedTestPacket);
         }
+
         // 1.b Fix config, random generate new command sequences
-        stackedTestPacket = new StackedTestPacket(Config.getConf().nodeNum,
-                configFileName);
-        for (int i = 0; i < randGenEpoch; i++) {
-            if (i != 0 && i % Config.getConf().STACKED_TESTS_NUM == 0) {
+        if (Config.getConf().enableRandomGenUsingSameConfig
+                && configGen.enable) {
+            stackedTestPacket = new StackedTestPacket(Config.getConf().nodeNum,
+                    configFileName);
+            for (int i = 0; i < randGenEpoch; i++) {
+                if (i != 0 && i % Config.getConf().STACKED_TESTS_NUM == 0) {
+                    stackedTestPackets.add(stackedTestPacket);
+                    stackedTestPacket = new StackedTestPacket(
+                            Config.getConf().nodeNum, configFileName);
+                }
+                Seed randGenSeed = Seed.generateSeed(commandPool,
+                        stateClass,
+                        configIdx, testID);
+                if (randGenSeed != null) {
+                    graph.addNode(seed.testID, randGenSeed);
+                    testID2Seed.put(testID, randGenSeed);
+                    stackedTestPacket.addTestPacket(randGenSeed, testID++);
+                } else {
+                    logger.debug("Random seed generation failed");
+                    i--;
+                }
+            }
+            // last test packet
+            if (stackedTestPacket.size() != 0) {
                 stackedTestPackets.add(stackedTestPacket);
-                stackedTestPacket = new StackedTestPacket(
-                        Config.getConf().nodeNum, configFileName);
             }
-            Seed randGenSeed = Seed.generateSeed(commandPool,
-                    stateClass,
-                    configIdx, testID);
-            if (randGenSeed != null) {
-                graph.addNode(seed.testID, randGenSeed);
-                testID2Seed.put(testID, randGenSeed);
-                stackedTestPacket.addTestPacket(randGenSeed, testID++);
-            } else {
-                logger.debug("Random seed generation failed");
-                i--;
-            }
-        }
-        // last test packet
-        if (stackedTestPacket.size() != 0) {
-            stackedTestPackets.add(stackedTestPacket);
         }
 
         if (configGen.enable) {

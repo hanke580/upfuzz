@@ -115,6 +115,9 @@ public class Config {
         public int firstSequenceRandGenEpoch = 10;
         public int sequenceRandGenEpoch = 200;
 
+        // Whether to enable random generation using the same config
+        public boolean enableRandomGenUsingSameConfig = false;
+
         /**
          * When we only mutate config, we cannot stack them
          * together. For throughput, we can stack
