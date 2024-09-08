@@ -104,7 +104,7 @@ public class Config {
         // to the corpus, mutate them for relative few times
         public int firstMutationSeedLimit = 5;
         public int firstSequenceMutationEpoch = 10;
-        public int sequenceMutationEpoch = 800;
+        public int sequenceMutationEpoch = 80;
         public int firstConfigMutationEpoch = 3;
         public int limitConfigForVersionDeltaRound = 100;
         public int configMutationEpoch = 20;
@@ -113,7 +113,7 @@ public class Config {
         // Fix config and random generate new command sequences
         // Focus on fuzzing
         public int firstSequenceRandGenEpoch = 10;
-        public int sequenceRandGenEpoch = 200;
+        public int sequenceRandGenEpoch = 20;
 
         // Whether to enable random generation using the same config
         public boolean enableRandomGenUsingSameConfig = false;
