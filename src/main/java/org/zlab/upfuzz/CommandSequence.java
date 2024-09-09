@@ -76,7 +76,8 @@ public class CommandSequence implements Serializable {
         // 1: Insert a command 2/3
 
         // We can disable this when eval_UnitTest
-        separateFromFormerTest();
+        if (Config.getConf().STACKED_TESTS_NUM != 1)
+            separateFromFormerTest();
         initializeTypePool();
 
         if (CassandraCommand.DEBUG) {
