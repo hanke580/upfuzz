@@ -1441,7 +1441,7 @@ public class FuzzingServer {
     public synchronized void updateStatus(
             StackedFeedbackPacket stackedFeedbackPacket) {
 
-        if (stackedFeedbackPacket.skipped) {
+        if (stackedFeedbackPacket.upgradeSkipped) {
             // upgrade process is skipped
             logger.info("upgrade process is skipped");
         }
@@ -2109,7 +2109,7 @@ public class FuzzingServer {
 
     public synchronized void analyzeFeedbackFromVersionDeltaGroup2WithoutDowngrade(
             VersionDeltaFeedbackPacketApproach2 versionDeltaFeedbackPacket) {
-        if (versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.skipped) {
+        if (versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.upgradeSkipped) {
             // upgrade process is skipped
             logger.info("upgrade process is skipped");
         }
@@ -2226,12 +2226,12 @@ public class FuzzingServer {
     public synchronized void analyzeFeedbackFromVersionDeltaGroup2WithDowngrade(
             VersionDeltaFeedbackPacketApproach2 versionDeltaFeedbackPacket) {
 
-        if (versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.skipped) {
+        if (versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.upgradeSkipped) {
             // upgrade process is skipped
             logger.info("upgrade process is skipped");
         }
 
-        if (versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.skipped) {
+        if (versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.upgradeSkipped) {
             // upgrade process is skipped
             logger.info("downgrade process is skipped");
         }

@@ -62,14 +62,13 @@ public class Config {
         public boolean nyxMode = false;
         public String nyxFuzzSH = null;
 
+        // Skip Upgrade
+        public boolean skipUpgrade = false;
+
         // -------------- GC --------------
         public int gcInterval = 5; // minutes
 
         // ------------ Corpus ------------
-        /**
-         * 0: 6 queues (reuse bishal's implementation)
-         * 1: 4 queues (ke's implementation)
-         */
         public String corpus = "corpus";
         public boolean saveCorpusToDisk = true;
         public boolean loadInitCorpus = false;

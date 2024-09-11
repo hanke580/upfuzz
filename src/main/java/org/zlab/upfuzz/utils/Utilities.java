@@ -24,14 +24,13 @@ import org.jacoco.core.data.ExecutionDataStore;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.zlab.upfuzz.CommandSequence;
-import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.FeedBack;
 import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPacket;
 
 public class Utilities {
     static Logger logger = LogManager.getLogger(Utilities.class);
-    static Random rand = new Random();
+    public static Random rand = new Random();
 
     public static List<Integer> permutation(int size) {
         List<Integer> indexArray = new ArrayList<>();
@@ -1192,5 +1191,20 @@ public class Utilities {
             }
         }
         validationCommandSequence.commands = newCommands;
+    }
+
+    public static class ExponentialProbabilityModel {
+        private final double c; // Initial probability
+        private final double k; // Decay constant
+
+        public ExponentialProbabilityModel(double c, double targetProbability,
+                int targetN) {
+            this.c = c;
+            this.k = -Math.log(targetProbability / c) / targetN;
+        }
+
+        public double calculateProbability(int N) {
+            return c * Math.exp(-k * N);
+        }
     }
 }

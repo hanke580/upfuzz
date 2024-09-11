@@ -47,6 +47,14 @@ public class MiniClientMain {
     static int testType;
     static String testExecutionLog = "";
 
+    static Utilities.ExponentialProbabilityModel model = new Utilities.ExponentialProbabilityModel(
+            0.9, 0.2, 10);
+
+    public static boolean skipUpgrade(int mutationDepth) {
+        return Utilities.rand.nextDouble() < model
+                .calculateProbability(mutationDepth);
+    }
+
     public static void setTestType(int type) {
         testExecutionLog += "invoked set test type: " + type;
         testType = type;
@@ -103,7 +111,7 @@ public class MiniClientMain {
         StackedFeedbackPacket stackedFeedbackPacket;
         TestPlanFeedbackPacket testPlanFeedbackPacket;
         String archive_name, fuzzing_archive_command;
-        Long start_time_create_archive, start_time_t, startTimeReadTestPkt;
+        long start_time_create_archive, start_time_t, startTimeReadTestPkt;
 
         logMessages += "Type " + testType + ", ";
 
@@ -796,6 +804,41 @@ public class MiniClientMain {
                 stackedFeedbackPacket.addFeedbackPacket(feedbackPacket);
             }
             return stackedFeedbackPacket;
+        }
+
+        // Skip Upgrade
+        if (Config.getConf().useFormatCoverage
+                && Config.getConf().skipUpgrade) {
+            // If new format, do not skip
+            // Otherwise, skip upgrade according to a exponential probabilistic
+            // model
+            // N = 0: P = 0.9, N = 10: P = 0.2
+            assert Config.getConf().STACKED_TESTS_NUM == 1
+                    : "Only skip upgrade when there is batch size is 1";
+
+            // Examine new FC
+            boolean newFormat = false;
+            for (FeedbackPacket feedbackPacket : testID2FeedbackPacket
+                    .values()) {
+                if (stackedTestPacket.formatCoverage
+                        .merge(feedbackPacket.formatCoverage).isNewFormat()) {
+                    newFormat = true;
+                    break;
+                }
+            }
+
+            if (!newFormat) {
+                // Examine test depth with a probabilistic model
+                assert stackedTestPacket.testMutationDepth != null
+                        && stackedTestPacket.testMutationDepth
+                                .size() == stackedTestPacket.getTestPacketList()
+                                        .size();
+                assert stackedTestPacket.testMutationDepth.size() == 1;
+                if (skipUpgrade(stackedTestPacket.testMutationDepth.get(0))) {
+                    stackedFeedbackPacket.upgradeSkipped = true;
+                    return stackedFeedbackPacket;
+                }
+            }
         }
 
         boolean upgradeStatus = false;

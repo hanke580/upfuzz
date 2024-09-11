@@ -30,6 +30,10 @@ public class StackedTestPacket extends Packet implements Serializable {
     public int testDirection;
     public boolean isDowngradeSupported;
 
+    // Use for skipping upgrade
+    public ObjectGraphCoverage formatCoverage;
+    public List<Integer> testMutationDepth;
+
     public StackedTestPacket(int nodeNum, String configFileName) {
         this.nodeNum = nodeNum;
         this.configFileName = configFileName;

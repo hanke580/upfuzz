@@ -781,8 +781,8 @@ public class FuzzingClient {
                     stackedFeedbackPacketUp, stackedFeedbackPacketDown,
                     tpList);
             if (group == 1) {
-                versionDeltaFeedbackPacketApproach2.stackedFeedbackPacketUpgrade.skipped = true;
-                versionDeltaFeedbackPacketApproach2.stackedFeedbackPacketDowngrade.skipped = true;
+                versionDeltaFeedbackPacketApproach2.stackedFeedbackPacketUpgrade.upgradeSkipped = true;
+                versionDeltaFeedbackPacketApproach2.stackedFeedbackPacketDowngrade.upgradeSkipped = true;
             }
             versionDeltaFeedbackPacketApproach2.clientGroup = group;
             executorService.shutdown();
@@ -1056,8 +1056,8 @@ public class FuzzingClient {
             versionDeltaFeedbackPacketApproach2.clientGroup = group;
             executorService.shutdown();
             if (group == 1) {
-                versionDeltaFeedbackPacketApproach2.stackedFeedbackPacketUpgrade.skipped = true;
-                versionDeltaFeedbackPacketApproach2.stackedFeedbackPacketDowngrade.skipped = true;
+                versionDeltaFeedbackPacketApproach2.stackedFeedbackPacketUpgrade.upgradeSkipped = true;
+                versionDeltaFeedbackPacketApproach2.stackedFeedbackPacketDowngrade.upgradeSkipped = true;
             }
             return versionDeltaFeedbackPacketApproach2;
         } catch (Exception e) {
