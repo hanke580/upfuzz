@@ -117,7 +117,7 @@ public class FuzzingServer {
     private int executionCountWithoutAnyNewCoverage = 0;
 
     // Config mutation
-    ConfigGen configGen;
+    public ConfigGen configGen;
     public Path configDirPath;
 
     // ------------------- Format Coverage -------------------
@@ -402,6 +402,11 @@ public class FuzzingServer {
                     && (Config.getConf().versionDeltaApproach == 2)) {
                 stackedTestPacket.clientGroupForVersionDelta = 1;
             }
+            if (Config.getConf().useFormatCoverage
+                    && Config.getConf().skipUpgrade) {
+                stackedTestPacket.formatCoverage = SerializationUtils.clone(
+                        oriObjCoverage);
+            }
 
             // Debug: use the fixed command
             if (Config.getConf().useFixedCommand) {
@@ -537,7 +542,7 @@ public class FuzzingServer {
      *  2. Fix the command sequence
      *      a. Mutate the configs (not supported yet)
      *      b. Random generate new configs
-     *  3. Mutate both config and command sequence (violent, disabled)
+     *  3. Mutate both config and command sequence (dramatic mutation, disabled currently)
      */
     public void fuzzOne() {
         // Pick one test case from the corpus, fuzz it for mutationEpoch
@@ -555,6 +560,9 @@ public class FuzzingServer {
 
         round++;
         StackedTestPacket stackedTestPacket;
+
+        // Compute mutation depth
+        int mutationDepth = seed.mutationDepth;
         int configIdx;
 
         mutatedSeedIds.add(seed.testID);
@@ -627,6 +635,7 @@ public class FuzzingServer {
             Seed mutateSeed = SerializationUtils.clone(seed);
             if (mutateSeed.mutate(commandPool, stateClass)) {
                 mutateSeed.testID = testID; // update testID after mutation
+                mutateSeed.mutationDepth = mutationDepth;
                 graph.addNode(seed.testID, mutateSeed);
                 testID2Seed.put(testID, mutateSeed);
                 stackedTestPacket.addTestPacket(mutateSeed, testID++);
@@ -657,6 +666,8 @@ public class FuzzingServer {
                         stateClass,
                         configIdx, testID);
                 if (randGenSeed != null) {
+                    // This should be 0 since it's randomly generated
+                    // randGenSeed.mutationDepth = mutationDepth;
                     graph.addNode(seed.testID, randGenSeed);
                     testID2Seed.put(testID, randGenSeed);
                     stackedTestPacket.addTestPacket(randGenSeed, testID++);
@@ -694,6 +705,7 @@ public class FuzzingServer {
                 Seed mutateSeed = SerializationUtils.clone(seed);
                 mutateSeed.configIdx = configIdx;
                 mutateSeed.testID = testID; // update testID after mutation
+                mutateSeed.mutationDepth = mutationDepth;
                 graph.addNode(seed.testID, mutateSeed);
                 testID2Seed.put(testID, mutateSeed);
 
@@ -710,6 +722,7 @@ public class FuzzingServer {
                         mutateSeed.configIdx = configIdx;
                         if (mutateSeed.mutate(commandPool, stateClass)) {
                             mutateSeed.testID = testID;
+                            mutateSeed.mutationDepth = mutationDepth;
                             graph.addNode(seed.testID, mutateSeed);
                             testID2Seed.put(testID, mutateSeed);
                             stackedTestPacket.addTestPacket(mutateSeed,

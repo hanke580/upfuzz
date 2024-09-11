@@ -810,10 +810,12 @@ public class MiniClientMain {
         if (Config.getConf().useFormatCoverage
                 && Config.getConf().skipUpgrade) {
             // If new format, do not skip
-            // Otherwise, skip upgrade according to a exponential probabilistic
+            // Otherwise, skip upgrade according to an exponential probabilistic
             // model
             // N = 0: P = 0.9, N = 10: P = 0.2
             assert Config.getConf().STACKED_TESTS_NUM == 1
+                    : "Only skip upgrade when there is batch size is 1";
+            assert stackedTestPacket.getTestPacketList().size() == 1
                     : "Only skip upgrade when there is batch size is 1";
 
             // Examine new FC
@@ -829,12 +831,8 @@ public class MiniClientMain {
 
             if (!newFormat) {
                 // Examine test depth with a probabilistic model
-                assert stackedTestPacket.testMutationDepth != null
-                        && stackedTestPacket.testMutationDepth
-                                .size() == stackedTestPacket.getTestPacketList()
-                                        .size();
-                assert stackedTestPacket.testMutationDepth.size() == 1;
-                if (skipUpgrade(stackedTestPacket.testMutationDepth.get(0))) {
+                if (skipUpgrade(stackedTestPacket.getTestPacketList()
+                        .get(0).mutationDepth)) {
                     stackedFeedbackPacket.upgradeSkipped = true;
                     return stackedFeedbackPacket;
                 }

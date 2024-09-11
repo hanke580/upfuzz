@@ -14,15 +14,19 @@ public class TestPacket implements Serializable {
     // Read Commands
     public List<String> validationCommandSequenceList;
 
+    // For skipping upgrade
+    public int mutationDepth;
+
     public TestPacket(String systemID, int testPacketID,
             List<String> originalCommandSequenceList,
             List<String> upgradeCommandSequenceList,
-            List<String> validationCommandSequenceList) {
+            List<String> validationCommandSequenceList, int mutationDepth) {
         this.systemID = systemID;
         this.testPacketID = testPacketID;
         this.originalCommandSequenceList = originalCommandSequenceList;
         this.upgradeCommandSequenceList = upgradeCommandSequenceList;
         this.validationCommandSequenceList = validationCommandSequenceList;
+        this.mutationDepth = mutationDepth;
     }
 
     public void serializeTo(String pathString) {

@@ -25,14 +25,13 @@ public class StackedTestPacket extends Packet implements Serializable {
 
     public int nodeNum;
     public String configFileName;
-    private List<TestPacket> tpList;
+    private final List<TestPacket> tpList;
     public int clientGroupForVersionDelta;
     public int testDirection;
     public boolean isDowngradeSupported;
 
-    // Use for skipping upgrade
+    // For skipping upgrade
     public ObjectGraphCoverage formatCoverage;
-    public List<Integer> testMutationDepth;
 
     public StackedTestPacket(int nodeNum, String configFileName) {
         this.nodeNum = nodeNum;
@@ -46,13 +45,15 @@ public class StackedTestPacket extends Packet implements Serializable {
             tpList.add(new TestPacket(
                     Config.getConf().system, testID,
                     seed.originalCommandSequence.getCommandStringList(), null,
-                    seed.validationCommandSequence.getCommandStringList()));
+                    seed.validationCommandSequence.getCommandStringList(),
+                    seed.mutationDepth));
         } else {
             tpList.add(new TestPacket(
                     Config.getConf().system, testID,
                     seed.originalCommandSequence.getCommandStringList(),
                     seed.upgradedCommandSequence.getCommandStringList(),
-                    seed.validationCommandSequence.getCommandStringList()));
+                    seed.validationCommandSequence.getCommandStringList(),
+                    seed.mutationDepth));
         }
     }
 

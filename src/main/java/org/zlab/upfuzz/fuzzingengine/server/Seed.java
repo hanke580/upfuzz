@@ -25,19 +25,22 @@ public class Seed implements Serializable, Comparable<Seed> {
     public CommandSequence validationCommandSequence;
 
     // Configuration filename
-    public int configIdx = -1;
-    public int testID = -1;
+    public int configIdx;
+    public int testID;
+
+    public int mutationDepth;
 
     // timestamp: when the seed is added to the corpus
     private long timestamp = -1;
 
     public Seed(CommandSequence originalCommandSequence,
             CommandSequence validationCommandSequence, int configIdx,
-            int testID) {
+            int testID, int mutationDepth) {
         this.originalCommandSequence = originalCommandSequence;
         this.validationCommandSequence = validationCommandSequence;
         this.configIdx = configIdx;
         this.testID = testID;
+        this.mutationDepth = mutationDepth;
     }
 
     public static void postProcessValidationCommands(
@@ -79,7 +82,7 @@ public class Seed implements Serializable, Comparable<Seed> {
                     originalCommandSequence.state, true);
             postProcessValidationCommands(validationCommandSequence);
             return new Seed(originalCommandSequence, validationCommandSequence,
-                    configIdx, testID);
+                    configIdx, testID, 0);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
