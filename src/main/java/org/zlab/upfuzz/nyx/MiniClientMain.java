@@ -12,6 +12,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+import org.apache.logging.log4j.LogManager;
+import org.zlab.ocov.tracker.ObjectGraphCoverage;
+import org.zlab.ocov.tracker.graph.GraphPattern;
 import org.zlab.upfuzz.fuzzingengine.Config.Configuration;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.fuzzingengine.Config;
@@ -36,7 +39,9 @@ public class MiniClientMain {
     // WARNING: This must be disabled otherwise it can
     // log to output and corrupt the process
     // INFO => cClient output
-    // static Logger logger = LogManager.getLogger(MiniClientMain.class);
+    // FIXME: disable this if you want NYX to work
+    static org.apache.logging.log4j.Logger logger = LogManager
+            .getLogger(MiniClientMain.class);
 
     // Where all files are searched for
     static final String workdir = "/miniClientWorkdir";
@@ -277,7 +282,7 @@ public class MiniClientMain {
             start_time_t = System.currentTimeMillis();
             if (!Config.getConf().useVersionDelta) {
                 stackedFeedbackPacket = runTheTests(executor, stackedTestPacket,
-                        0);
+                        0, null);
             } else {
                 logMessages += "direction " + stackedTestPacket.testDirection
                         + ", ";
@@ -725,7 +730,8 @@ public class MiniClientMain {
     }
 
     public static StackedFeedbackPacket runTheTests(Executor executor,
-            StackedTestPacket stackedTestPacket, int direction) {
+            StackedTestPacket stackedTestPacket, int direction,
+            ObjectGraphCoverage accumOriObjCoverage) {
         Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();
         Map<Integer, List<String>> testID2oriResults = new HashMap<>();
         Map<Integer, List<String>> testID2upResults = new HashMap<>();
@@ -806,6 +812,8 @@ public class MiniClientMain {
             return stackedFeedbackPacket;
         }
 
+        logger.debug("[skip upgrade] check");
+
         // Skip Upgrade
         if (Config.getConf().useFormatCoverage
                 && Config.getConf().skipUpgrade) {
@@ -817,25 +825,43 @@ public class MiniClientMain {
                     : "Only skip upgrade when there is batch size is 1";
             assert stackedTestPacket.getTestPacketList().size() == 1
                     : "Only skip upgrade when there is batch size is 1";
+            assert accumOriObjCoverage != null;
 
+            stackedTestPacket.formatCoverage.copyBasicInfo(accumOriObjCoverage);
             // Examine new FC
             boolean newFormat = false;
-            for (FeedbackPacket feedbackPacket : testID2FeedbackPacket
-                    .values()) {
-                if (stackedTestPacket.formatCoverage
-                        .merge(feedbackPacket.formatCoverage).isNewFormat()) {
-                    newFormat = true;
-                    break;
-                }
+            FeedbackPacket feedbackPacket = testID2FeedbackPacket
+                    .get(stackedTestPacket.getTestPacketList()
+                            .get(0).testPacketID);
+
+            if (stackedTestPacket.formatCoverage
+                    .merge(feedbackPacket.formatCoverage,
+                            "ori",
+                            feedbackPacket.testPacketID,
+                            true,
+                            Config.getConf().updateInvariantBrokenFrequency,
+                            Config.getConf().checkSpecialDumpIds)
+                    .isNewFormat()) {
+                newFormat = true;
             }
+
+            logger.debug("[Skip Upgrade] newFormat: " + newFormat);
 
             if (!newFormat) {
                 // Examine test depth with a probabilistic model
                 if (skipUpgrade(stackedTestPacket.getTestPacketList()
                         .get(0).mutationDepth)) {
+                    logger.debug(
+                            "[Skip Upgrade] YES: no new format, mutation depth = "
+                                    + stackedTestPacket.getTestPacketList()
+                                            .get(0).mutationDepth);
                     stackedFeedbackPacket.upgradeSkipped = true;
                     return stackedFeedbackPacket;
                 }
+                logger.debug(
+                        "[Skip Upgrade] NO: no new format, mutation depth = "
+                                + stackedTestPacket.getTestPacketList()
+                                        .get(0).mutationDepth);
             }
         }
 
@@ -963,6 +989,7 @@ public class MiniClientMain {
             }
         }
 
+        // FIXME: this should always be executed
         // update stackedFeedbackPacket
         for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
             TestPacket tp = stackedTestPacket.getTestPacketList()

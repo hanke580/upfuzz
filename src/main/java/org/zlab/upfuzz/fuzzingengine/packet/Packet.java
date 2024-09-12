@@ -17,6 +17,7 @@ import org.zlab.ocov.tracker.graph.structure.StructureConstraint;
 import org.zlab.ocov.tracker.inv.Invariant;
 import org.zlab.ocov.tracker.inv.unary.*;
 
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
@@ -104,5 +105,26 @@ public abstract class Packet {
         private PacketType(int Value) {
             this.value = Value;
         }
+    }
+
+    public static Object read(DataInputStream in, Class<?> clazz) {
+        try {
+            int packetLength = in.readInt();
+            byte[] bytes = new byte[packetLength + 1];
+            int len = 0;
+            len = in.read(bytes, len, packetLength - len);
+            logger.debug("packet length: " + packetLength);
+            while (len < packetLength) {
+                int size = in.read(bytes, len, packetLength - len);
+                // logger.debug("packet read extra: " + size);
+                len += size;
+            }
+            logger.debug("received packet length : " + len);
+            return gson.fromJson(new String(bytes, 0, len),
+                    clazz);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

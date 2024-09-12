@@ -16,6 +16,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionDataStore;
+import org.zlab.ocov.tracker.ObjectGraphCoverage;
 import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.fuzzingengine.packet.*;
 import org.zlab.upfuzz.fuzzingengine.packet.Packet.PacketType;
@@ -43,6 +44,16 @@ public class FuzzingClient {
     public boolean isDowngradeSupported;
     int CLUSTER_START_RETRY = 3;
 
+    // For skipping upgrade
+    public static ObjectGraphCoverage oriObjCoverage;
+
+    // Debug
+    // static {
+    // Path formatCoverageLogPath = Paths
+    // .get("format_coverage_client.log");
+    // org.zlab.ocov.tracker.Runtime.initWriter(formatCoverageLogPath);
+    // }
+
     FuzzingClient() {
         if (Config.getConf().testSingleVersion) {
             configDirPath = Paths.get(
@@ -61,6 +72,30 @@ public class FuzzingClient {
                         Config.getConf().configDir,
                         Config.getConf().upgradedVersion
                                 + "_" + Config.getConf().originalVersion);
+            }
+
+            if (Config.getConf().useFormatCoverage
+                    && Config.getConf().skipUpgrade) {
+                // only init format coverage at this stage
+                Path oriFormatInfoFolder = Paths.get("configInfo")
+                        .resolve(Config.getConf().originalVersion);
+                Path upgradeFormatInfoFolder = Paths.get("configInfo")
+                        .resolve(Config.getConf().originalVersion + "_"
+                                + Config.getConf().upgradedVersion);
+                oriObjCoverage = new ObjectGraphCoverage(
+                        oriFormatInfoFolder.resolve(
+                                Config.getConf().baseClassInfoFileName),
+                        oriFormatInfoFolder.resolve(
+                                Config.getConf().topObjectsFileName),
+                        oriFormatInfoFolder.resolve(
+                                Config.getConf().comparableClassesFileName),
+                        null,
+                        null,
+                        null,
+                        null,
+                        upgradeFormatInfoFolder
+                                .resolve(Config
+                                        .getConf().specialDumpIdsFileName));
             }
         }
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -815,7 +850,7 @@ public class FuzzingClient {
         }
 
         StackedFeedbackPacket stackedFeedbackPacket = runTheTests(executor,
-                stackedTestPacket, 0);
+                stackedTestPacket, 0, oriObjCoverage);
         tearDownExecutor();
         return stackedFeedbackPacket;
     }

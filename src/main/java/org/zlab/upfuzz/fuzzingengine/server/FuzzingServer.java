@@ -22,6 +22,7 @@ import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.ocov.tracker.FormatCoverageStatus;
 import org.zlab.ocov.tracker.ObjectGraphCoverage;
 import org.zlab.ocov.tracker.Runtime;
+import org.zlab.ocov.tracker.graph.GraphPattern;
 import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.cassandra.CassandraCommandPool;
@@ -404,6 +405,7 @@ public class FuzzingServer {
             }
             if (Config.getConf().useFormatCoverage
                     && Config.getConf().skipUpgrade) {
+                assert Config.getConf().STACKED_TESTS_NUM == 1;
                 stackedTestPacket.formatCoverage = SerializationUtils.clone(
                         oriObjCoverage);
             }

@@ -1,17 +1,12 @@
 package org.zlab.upfuzz.fuzzingengine.packet;
 
 import java.io.DataInputStream;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.LogInfo;
-
-/**
- * Client: Execute and reply the execute information
- */
 
 public class StackedFeedbackPacket extends Packet implements Serializable {
     static Logger logger = LogManager.getLogger(StackedFeedbackPacket.class);
@@ -84,22 +79,6 @@ public class StackedFeedbackPacket extends Packet implements Serializable {
     }
 
     public static StackedFeedbackPacket read(DataInputStream in) {
-        try {
-            int packetLength = in.readInt();
-            byte[] bytes = new byte[packetLength + 1];
-            int len = 0;
-            len = in.read(bytes, len, packetLength - len);
-            // logger.debug("packet length: " + packetLength);
-            while (len < packetLength) {
-                int size = in.read(bytes, len, packetLength - len);
-                len += size;
-            }
-            // logger.debug("get packet length " + len);
-            return gson.fromJson(new String(bytes, 0, len),
-                    StackedFeedbackPacket.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return (StackedFeedbackPacket) read(in, StackedFeedbackPacket.class);
     }
 }

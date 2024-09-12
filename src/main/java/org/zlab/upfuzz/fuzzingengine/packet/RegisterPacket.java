@@ -28,22 +28,6 @@ public class RegisterPacket extends Packet {
     }
 
     public static RegisterPacket read(DataInputStream in) {
-        try {
-            int packetLength = in.readInt();
-            byte[] bytes = new byte[packetLength + 1];
-            int len = 0;
-            len = in.read(bytes, len, packetLength - len);
-            logger.debug("packet length: " + packetLength);
-            while (len < packetLength) {
-                int size = in.read(bytes, len, packetLength - len);
-                len += size;
-            }
-            return new Gson().fromJson(new String(bytes, 0, len),
-                    RegisterPacket.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return (RegisterPacket) read(in, RegisterPacket.class);
     }
-
 }

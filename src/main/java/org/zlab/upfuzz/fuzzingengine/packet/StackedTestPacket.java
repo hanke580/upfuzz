@@ -70,23 +70,6 @@ public class StackedTestPacket extends Packet implements Serializable {
     }
 
     public static StackedTestPacket read(DataInputStream in) {
-        try {
-            int packetLength = in.readInt();
-            byte[] bytes = new byte[packetLength + 1];
-            int len = 0;
-            len = in.read(bytes, len, packetLength - len);
-            logger.debug("packet length: " + packetLength);
-            while (len < packetLength) {
-                int size = in.read(bytes, len, packetLength - len);
-                // logger.debug("packet read extra: " + size);
-                len += size;
-            }
-            logger.debug("receive stacked test packet length : " + len);
-            return new Gson().fromJson(new String(bytes, 0, len),
-                    StackedTestPacket.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return (StackedTestPacket) read(in, StackedTestPacket.class);
     }
 }

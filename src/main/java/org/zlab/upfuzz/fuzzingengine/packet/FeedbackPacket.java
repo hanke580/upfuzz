@@ -32,11 +32,6 @@ public class FeedbackPacket extends Packet {
     // format coverage
     public ObjectGraphCoverage formatCoverage;
 
-    // has this test packet induced new version delta?
-    public boolean inducedNewVersionDeltaBeforeVersionChange = false;
-    public boolean newOriCoverage = false;
-    public boolean newUpCoverage = false;
-
     public FeedbackPacket(String systemID, int nodeNum, int testPacketID,
             FeedBack[] feedBacks, List<String> validationReadResults) {
         this.type = PacketType.FeedbackPacket;
@@ -50,23 +45,6 @@ public class FeedbackPacket extends Packet {
     }
 
     public static FeedbackPacket read(DataInputStream in) {
-        try {
-            int packetLength = in.readInt();
-            byte[] bytes = new byte[packetLength + 1];
-            int len = 0;
-            len = in.read(bytes, len, packetLength - len);
-            logger.debug("packet length: " + packetLength);
-            while (len < packetLength) {
-                int size = in.read(bytes, len, packetLength - len);
-                // logger.debug("packet read extra: " + size);
-                len += size;
-            }
-            logger.debug("receive stacked test packet length : " + len);
-            return new Gson().fromJson(new String(bytes, 0, len),
-                    FeedbackPacket.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return (FeedbackPacket) read(in, FeedbackPacket.class);
     }
 }
