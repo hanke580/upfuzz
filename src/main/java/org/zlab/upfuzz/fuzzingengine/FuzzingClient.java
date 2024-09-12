@@ -850,7 +850,7 @@ public class FuzzingClient {
         }
 
         StackedFeedbackPacket stackedFeedbackPacket = runTheTests(executor,
-                stackedTestPacket, 0, oriObjCoverage);
+                stackedTestPacket, oriObjCoverage);
         tearDownExecutor();
         return stackedFeedbackPacket;
     }
