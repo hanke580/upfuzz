@@ -820,7 +820,7 @@ public class MiniClientMain {
                     : "Only skip upgrade when there is batch size is 1";
             assert accumOriObjCoverage != null;
 
-            stackedTestPacket.formatCoverage.copyBasicInfo(accumOriObjCoverage);
+            // stackedTestPacket.formatCoverage.copyBasicInfo(accumOriObjCoverage);
 
             boolean newFormat = false;
             FeedbackPacket feedbackPacket = testID2FeedbackPacket
