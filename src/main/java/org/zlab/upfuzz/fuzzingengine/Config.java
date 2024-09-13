@@ -369,6 +369,10 @@ public class Config {
         public boolean support_StorageType_PROVIDED = false; // > 2
         public boolean support_count_e_opt = false; // > 2
         public boolean support_du_v_opt = false; // > 2
+
+        // disable this when evaluating HDFS-16984
+        public boolean enable_count = true; // du can be tested for version > 2
+
         public boolean enable_du = false; // du can be tested for version > 2
         public boolean support_StorageType_NVDIMM = false; // >= 3.4.0
         public boolean support_checksum_v_opt = false; // > 3.3.x
