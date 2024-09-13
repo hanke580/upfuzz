@@ -185,11 +185,15 @@ public class HdfsExecutor extends Executor {
         } else {
             boolean ret = true;
             for (int i = 0; i < oriResult.size(); i++) {
+                String str1 = oriResult.get(i);
+                String str2 = upResult.get(i);
                 // Mask timestamp
-                String str1 = Utilities.maskTimeStampYYYYMMDD(
-                        Utilities.maskTimeStampHHSS(oriResult.get(i)));
-                String str2 = Utilities.maskTimeStampYYYYMMDD(
-                        Utilities.maskTimeStampHHSS(upResult.get(i)));
+                if (Config.getConf().maskTimestamp) {
+                    str1 = Utilities.maskTimeStampYYYYMMDD(
+                            Utilities.maskTimeStampHHSS(str1));
+                    str2 = Utilities.maskTimeStampYYYYMMDD(
+                            Utilities.maskTimeStampHHSS(str2));
+                }
                 // Mask all spaces
                 str1 = str1.replaceAll("\\s", "");
                 str2 = str2.replaceAll("\\s", "");

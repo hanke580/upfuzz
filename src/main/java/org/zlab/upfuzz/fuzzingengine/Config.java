@@ -373,6 +373,8 @@ public class Config {
         public boolean support_StorageType_NVDIMM = false; // >= 3.4.0
         public boolean support_checksum_v_opt = false; // > 3.3.x
 
+        public boolean maskTimestamp = true;
+
         // == hbase ==
         // Wait for process to start up for hbaseDaemonRetryTimes * 5 seconds
         public int hbaseDaemonRetryTimes = 40;
