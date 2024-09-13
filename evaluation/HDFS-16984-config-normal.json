@@ -46,5 +46,6 @@
   "support_StorageType_NVDIMM": false,
   "support_checksum_v_opt": false,
   "useFixedCommand": false,
+  "maskTimestamp": false,
   "startUpClusterForDebugging": false
 }
