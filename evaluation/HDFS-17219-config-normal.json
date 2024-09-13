@@ -44,6 +44,7 @@
   "support_du_v_opt": false,
   "enable_du": false,
   "enable_count": true,
+  "enable_checksum": false,
   "support_StorageType_NVDIMM": false,
   "support_checksum_v_opt": false,
   "useFixedCommand": false,
