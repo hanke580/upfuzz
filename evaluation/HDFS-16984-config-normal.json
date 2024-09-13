@@ -9,7 +9,7 @@
   "STACKED_TESTS_NUM_G2" : 1,
   "DROP_TEST_PROB_G2": 0.1,
   "sequenceMutationEpoch" : 80,
-  "nodeNum": 4,
+  "nodeNum": 3,
   "faultMaxNum": 0,
   "loadInitCorpus": false,
   "saveCorpusToDisk": true,
