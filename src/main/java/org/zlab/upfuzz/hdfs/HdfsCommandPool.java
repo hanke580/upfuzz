@@ -17,8 +17,9 @@ public class HdfsCommandPool extends CommandPool {
         // dfs read
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(Cat.class, 2));
-        readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(Checksum.class, 2));
+        if (Config.getConf().enable_checksum)
+            readCommandClassList.add(
+                    new AbstractMap.SimpleImmutableEntry<>(Checksum.class, 2));
         if (Config.getConf().enable_count)
             readCommandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(Count.class, 2));
