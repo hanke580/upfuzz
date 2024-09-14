@@ -97,6 +97,7 @@ public class FuzzingServer {
 
     private int testID = 0;
     private int finishedTestID = 0;
+    private int skippedUpgradeNum = 0;
     public static int round = 0;
     public static int failureId = 0;
     public static int fullStopCrashNum = 0;
@@ -1459,6 +1460,7 @@ public class FuzzingServer {
         if (stackedFeedbackPacket.upgradeSkipped) {
             // upgrade process is skipped
             logger.info("upgrade process is skipped");
+            skippedUpgradeNum++;
         }
 
         Path failureDir = null;
@@ -2623,7 +2625,9 @@ public class FuzzingServer {
                         + "=================================================================");
         System.out.format("|%30s|%30s|%30s|%30s|\n",
                 "cur testID : " + testID,
-                "total exec : " + finishedTestID, "", "");
+                "total exec : " + finishedTestID,
+                "skipped upgrade : " + skippedUpgradeNum,
+                "");
 
         if (Config.getConf().testSingleVersion) {
             System.out.format("|%30s|%30s|\n",
