@@ -375,6 +375,7 @@ public class Config {
                                                // 2
         // Disable this when evaluating HDFS-16984
         public boolean enable_count = true; // du can be tested for version > 2
+        public boolean enable_ls_u_option = true; // access time
 
         public boolean enable_du = false; // du can be tested for version > 2
         public boolean support_StorageType_NVDIMM = false; // >= 3.4.0

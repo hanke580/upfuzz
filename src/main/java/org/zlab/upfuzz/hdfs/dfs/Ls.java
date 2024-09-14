@@ -3,6 +3,7 @@ package org.zlab.upfuzz.hdfs.dfs;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
+import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.hdfs.HDFSParameterType.HDFSDirPathType;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
@@ -84,7 +85,7 @@ public class Ls extends Dfs {
 
     @Override
     public String constructCommandString() {
-        return "dfs" + " " +
+        String ret = "dfs" + " " +
                 params.get(0) + " " +
                 params.get(1) + " " +
                 params.get(2) + " " +
@@ -92,10 +93,12 @@ public class Ls extends Dfs {
                 params.get(4) + " " +
                 params.get(5) + " " +
                 params.get(6) + " " +
-                params.get(7) + " " +
-                params.get(8) + " " +
-                subdir +
-                params.get(9);
+                params.get(7) + " ";
+        if (Config.getConf().enable_ls_u_option) {
+            ret += params.get(8) + " ";
+        }
+        ret += subdir + params.get(9);
+        return ret;
     }
 
     @Override
