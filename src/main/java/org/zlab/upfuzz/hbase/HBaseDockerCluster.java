@@ -78,6 +78,8 @@ public class HBaseDockerCluster extends DockerCluster {
                 "snapshot.TakeSnapshotHandler: Couldn't delete snapshot working");
         blackListErrorLog.add(
                 "regionserver.HRegion: Memstore data size is");
+        blackListErrorLog.add(
+                "quorum.LearnerHandler: Unexpected exception in LearnerHandler");
     }
 
     public boolean build() throws Exception {
