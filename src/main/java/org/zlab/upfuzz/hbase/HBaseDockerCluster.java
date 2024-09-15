@@ -80,6 +80,13 @@ public class HBaseDockerCluster extends DockerCluster {
                 "regionserver.HRegion: Memstore data size is");
         blackListErrorLog.add(
                 "quorum.LearnerHandler: Unexpected exception in LearnerHandler");
+        // zookeeper.ZKWatcher
+        blackListErrorLog.add(
+                "zookeeper.ZKWatcher");
+        blackListErrorLog.add(
+                "procedure2.ProcedureExecutor: ThreadGroup java.lang.ThreadGroup");
+        blackListErrorLog.add(
+                "zookeeper.ClientCnxn");
     }
 
     public boolean build() throws Exception {
