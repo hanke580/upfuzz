@@ -1,0 +1,13 @@
+dfs -mkdir /GscWZRxS
+dfs -put -f  -d /tmp/upfuzz/hdfs/hpLjvJVW/cl /GscWZRxS/
+dfs -put -f  -d /tmp/upfuzz/hdfs/hpLjvJVW/Zjpk /GscWZRxS/cl/lBsmFBlyBd/pozIeNFjzd/PsLbgpR
+dfsadmin -clrQuota /GscWZRxS/cl
+dfsadmin -refreshSuperUserGroupsConfiguration
+dfs -mkdir /GscWZRxS/cl/lBsmFBlyBd/pozIeNFjzd/PsLbgpR/Zjpk/Cf/mGpVA
+dfsadmin -refreshCallQueue
+dfsadmin -clrQuota /GscWZRxS/cl/lBsmFBlyBd/pozIeNFjzd
+dfsadmin -setSpaceQuota 2 -storageType DISK /GscWZRxS/cl/lBsmFBlyBd/pozIeNFjzd/PsLbgpR/Zjpk/Cf
+dfsadmin -refreshNodes
+dfsadmin -setSpaceQuota 2 -storageType DISK /GscWZRxS/cl/lBsmFBlyBd/pozIeNFjzd
+dfsadmin -clrSpaceQuota -storageType ARCHIVE /GscWZRxS/cl
+dfsadmin -restoreFailedStorage true

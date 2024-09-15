@@ -37,7 +37,7 @@
   "debug": false,
   "useExampleTestPlan": false,
   "enable_fsimage": true,
-  "prepareImageFirst": true,
+  "prepareImageFirst": false,
   "support_EC": false,
   "support_StorageType_PROVIDED": false,
   "support_count_e_opt": false,
