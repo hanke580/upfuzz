@@ -64,6 +64,7 @@ public class Config {
 
         // Skip Upgrade
         public boolean skipUpgrade = false;
+        public double skipProbForNewBranchCoverage = 0.2;
 
         // -------------- GC --------------
         public int gcInterval = 5; // minutes

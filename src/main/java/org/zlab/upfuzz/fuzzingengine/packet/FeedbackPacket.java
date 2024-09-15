@@ -1,12 +1,7 @@
 package org.zlab.upfuzz.fuzzingengine.packet;
 
-import com.google.gson.Gson;
-
 import java.io.DataInputStream;
-import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

@@ -409,6 +409,8 @@ public class FuzzingServer {
                 assert Config.getConf().STACKED_TESTS_NUM == 1;
                 stackedTestPacket.formatCoverage = SerializationUtils.clone(
                         oriObjCoverage);
+                stackedTestPacket.branchCoverage = new ExecutionDataStore();
+                stackedTestPacket.branchCoverage.merge(curOriCoverage);
             }
 
             // Debug: use the fixed command

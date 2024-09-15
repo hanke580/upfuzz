@@ -1,13 +1,9 @@
 package org.zlab.upfuzz.fuzzingengine.packet;
 
-import com.google.gson.Gson;
 import java.io.DataInputStream;
-import java.io.IOException;
 import java.io.Serializable;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,6 +28,7 @@ public class StackedTestPacket extends Packet implements Serializable {
 
     // For skipping upgrade
     public ObjectGraphCoverage formatCoverage;
+    public ExecutionDataStore branchCoverage;
 
     public StackedTestPacket(int nodeNum, String configFileName) {
         this.nodeNum = nodeNum;

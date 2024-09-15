@@ -733,7 +733,6 @@ public class MiniClientMain {
         Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();
         Map<Integer, List<String>> testID2oriResults = new HashMap<>();
         Map<Integer, List<String>> testID2upResults = new HashMap<>();
-        Map<Integer, List<String>> testID2downResults = new HashMap<>();
 
         int executedTestNum = 0;
         boolean breakNewInv = false;
@@ -819,10 +818,9 @@ public class MiniClientMain {
             assert stackedTestPacket.getTestPacketList().size() == 1
                     : "Only skip upgrade when there is batch size is 1";
             assert accumOriObjCoverage != null;
-
             // stackedTestPacket.formatCoverage.copyBasicInfo(accumOriObjCoverage);
 
-            boolean newFormat = false;
+            boolean newFormatCoverage = false;
             FeedbackPacket feedbackPacket = testID2FeedbackPacket
                     .get(stackedTestPacket.getTestPacketList()
                             .get(0).testPacketID);
@@ -834,22 +832,35 @@ public class MiniClientMain {
                             Config.getConf().updateInvariantBrokenFrequency,
                             Config.getConf().checkSpecialDumpIds)
                     .isNewFormat()) {
-                newFormat = true;
+                newFormatCoverage = true;
             }
 
-            if (!newFormat) {
-                if (skipUpgradeBasedOnMutationDepth(
-                        stackedTestPacket.getTestPacketList()
-                                .get(0).mutationDepth)) {
-                    logger.debug(
-                            "[Skip Upgrade] YES: no new format, mutation depth = "
-                                    + stackedTestPacket.getTestPacketList()
-                                            .get(0).mutationDepth);
-                    stackedFeedbackPacket.upgradeSkipped = true;
-                    skipUpgrade = true;
+            if (!newFormatCoverage) {
+                boolean newBranchCoverage = false;
+                for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
+                    if (Utilities.hasNewBits(stackedTestPacket.branchCoverage,
+                            feedbackPacket.feedBacks[nodeIdx].originalCodeCoverage)) {
+                        newBranchCoverage = true;
+                        break;
+                    }
+                }
+                if (newBranchCoverage) {
+                    if (Utilities.rand.nextDouble() < Config
+                            .getConf().skipProbForNewBranchCoverage)
+                        skipUpgrade = true;
+                } else {
+                    if (skipUpgradeBasedOnMutationDepth(
+                            stackedTestPacket.getTestPacketList()
+                                    .get(0).mutationDepth)) {
+                        skipUpgrade = true;
+                    }
                 }
                 logger.debug(
-                        "[Skip Upgrade] NO: no new format, mutation depth = "
+                        "[Skip Upgrade] skip = " + skipUpgrade + ", " +
+                                "no new format, " +
+                                "newBranchCoverage = " + newBranchCoverage
+                                + ", " +
+                                "mutation depth = "
                                 + stackedTestPacket.getTestPacketList()
                                         .get(0).mutationDepth);
             }
@@ -857,7 +868,9 @@ public class MiniClientMain {
 
         logger.debug("[Skip Upgrade] " + skipUpgrade);
 
-        if (!skipUpgrade) {
+        if (skipUpgrade) {
+            stackedFeedbackPacket.upgradeSkipped = true;
+        } else {
             testExecutionLog += "upgraded, ";
             boolean upgradeStatus = executor.fullStopUpgrade();
             if (!upgradeStatus) {

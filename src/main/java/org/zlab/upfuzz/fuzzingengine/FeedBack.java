@@ -1,12 +1,11 @@
 package org.zlab.upfuzz.fuzzingengine;
 
-import java.util.List;
 import org.jacoco.core.data.ExecutionDataStore;
 
 public class FeedBack {
-    public ExecutionDataStore originalCodeCoverage = null;
-    public ExecutionDataStore upgradedCodeCoverage = null;
-    public ExecutionDataStore downgradedCodeCoverage = null;
+    public ExecutionDataStore originalCodeCoverage;
+    public ExecutionDataStore upgradedCodeCoverage;
+    public ExecutionDataStore downgradedCodeCoverage;
 
     public FeedBack() {
         originalCodeCoverage = new ExecutionDataStore();
