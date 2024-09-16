@@ -52,7 +52,9 @@ public class MiniClientMain {
     static String testExecutionLog = "";
 
     static Utilities.ExponentialProbabilityModel model = new Utilities.ExponentialProbabilityModel(
-            0.9, 0.2, 10);
+            Config.getConf().expProbModel_C,
+            Config.getConf().skipUpgradeTargetProb,
+            Config.getConf().skipUpgradeTargetProbN);
 
     public static boolean skipUpgradeBasedOnMutationDepth(int mutationDepth) {
         return Utilities.rand.nextDouble() < model

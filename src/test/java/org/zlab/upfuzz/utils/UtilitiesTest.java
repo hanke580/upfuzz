@@ -35,7 +35,8 @@ public class UtilitiesTest {
     @Test
     public void testExponentialProbabilityModel() {
         Utilities.ExponentialProbabilityModel model = new Utilities.ExponentialProbabilityModel(
-                0.9, 0.2, 10);
-        assert model.calculateProbability(0) == 0.9;
+                0.4, 0.1, 10);
+        assert model.calculateProbability(0) == 0.4;
+        System.out.println(model.calculateProbability(10));
     }
 }
