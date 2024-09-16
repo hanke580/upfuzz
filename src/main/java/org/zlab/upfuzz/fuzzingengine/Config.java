@@ -64,8 +64,8 @@ public class Config {
 
         // Skip Upgrade
         public boolean skipUpgrade = false;
-        public double skipProbForNewBranchCoverage = 0.2;
         // Parameters for the exponential distribution
+        public double skipProbForNewBranchCoverage = 0.2;
         public double expProbModel_C = 0.9;
         public double skipUpgradeTargetProb = 0.2;
         public int skipUpgradeTargetProbN = 10;
