@@ -190,7 +190,7 @@ prepareImageFirst
 git clone git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
 export UPFUZZ_DIR=$PWD
-export ORI_VERSION=2.4.19
+export ORI_VERSION=2.4.18
 export UP_VERSION=2.5.9
 
 mkdir -p $UPFUZZ_DIR/prebuild/hadoop
