@@ -13,12 +13,10 @@ import java.util.List;
 import java.util.Random;
 
 public class GRANT extends HBaseCommand {
-
     // store the permission options
     StringBuilder options;
 
     // TODO: allow optional tableName, row name, and columnfamily name options
-
     public GRANT(HBaseState state) {
         super(state);
         options = new StringBuilder();
@@ -39,23 +37,17 @@ public class GRANT extends HBaseCommand {
             options.append(allOptions.get(randomIndex));
             allOptions.remove(randomIndex);
         }
-
         Parameter tableName = chooseTable(state, this, null);
-        this.params.add(rand.nextInt(2) == 1 ? tableName : null); // 0 tableName
+        this.params.add(tableName);
     }
 
     @Override
     public String constructCommandString() {
         Parameter username = this.params.get(0);
         Parameter tableName = this.params.get(1);
-        if (tableName == null) {
-            return String.format(
-                    "grant '%s', '%s'",
-                    username.toString(), options.toString());
-        }
         return String.format(
                 "grant '%s', '%s', '%s'",
-                username.toString(), options.toString(), tableName.toString());
+                username.toString(), options.toString(), tableName);
     }
 
     @Override
