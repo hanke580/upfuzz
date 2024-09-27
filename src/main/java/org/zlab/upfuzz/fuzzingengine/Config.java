@@ -391,6 +391,7 @@ public class Config {
         // == hbase ==
         // Wait for process to start up for hbaseDaemonRetryTimes * 5 seconds
         public int hbaseDaemonRetryTimes = 40;
+        public boolean enable_LIST_SNAPSHOTS = true;
         public boolean enableQuota = true;
         public int MAX_CF_NUM = 7;
         public final String[] REGIONSERVERS = { "hregion1", "hregion2" };

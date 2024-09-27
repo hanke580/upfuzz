@@ -495,8 +495,16 @@ if baseversion != build_version:
     print("WARNING: cqlsh was built against {}, but this server is {}.  All features may not work!".format(build_version, baseversion))
 ```
 
+### HBase
+daemon
+* hbase version >= 2.4.0, use hbase_daemon3.py
+* hbase version < 2.4.0, use hbase_daemon2.py
 
-### cqlsh daemon to the compatible version
+Avoid FP: disable `list_snapshots` command in `hbase_config.json` when upgrading across the formats.
+* 2.5.9/3.x/4.x: list_snapshots in format2 (with TTL)
+* 2.4.18/2.6.0: list_snapshots in format1 (without TTL)
+
+### Cassandra cqlsh daemon to the compatible version
 * [cqlsh_daemon2_1.py](src/main/resources/cqlsh_daemon2_1.py): cassandra 2.1
 * [cqlsh_daemon2.py](src/main/resources/cqlsh_daemon2.py): cassandra-2.2.8, cassandra-3.0.(15|16|17|30), cassandra-3.11.16
 * [cqlsh_daemon3.py](src/main/resources/cqlsh_daemon3.py): N/A
