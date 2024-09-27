@@ -35,7 +35,6 @@ import org.zlab.upfuzz.fuzzingengine.configgen.ConfigGen;
 import org.zlab.upfuzz.fuzzingengine.packet.*;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.server.testtracker.TestTrackerGraph;
-import org.zlab.upfuzz.fuzzingengine.testplan.FullStopUpgrade;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
@@ -89,7 +88,6 @@ public class FuzzingServer {
 
     // Next packet for execution
     public final Queue<StackedTestPacket> stackedTestPackets;
-    public final Queue<FullStopPacket> fullStopPackets;
     private final Queue<TestPlanPacket> testPlanPackets;
 
     // Fuzzing Status
@@ -193,7 +191,6 @@ public class FuzzingServer {
         testID2Seed = new HashMap<>();
         testID2TestPlan = new HashMap<>();
         stackedTestPackets = new LinkedList<>();
-        fullStopPackets = new LinkedList<>();
         testPlanPackets = new LinkedList<>();
         curOriCoverage = new ExecutionDataStore();
         curUpCoverage = new ExecutionDataStore();
@@ -432,10 +429,6 @@ public class FuzzingServer {
                 }
             }
             return stackedTestPacket;
-        } else if (Config.getConf().testingMode == 1) {
-            // always execute one test case
-            // to verify whether a bug exists
-            return generateExampleFullStopPacket();
         } else if (Config.getConf().testingMode == 2) {
             return generateMixedTestPacket();
         } else if (Config.getConf().testingMode == 3) {
@@ -488,7 +481,6 @@ public class FuzzingServer {
         testPlanPacket = testPlanPackets.poll();
 
         return new MixedTestPacket(stackedTestPacket, testPlanPacket);
-
     }
 
     public void generateRandomSeed() {
@@ -791,6 +783,7 @@ public class FuzzingServer {
                         testID++, configFileName, mutateTestPlan));
             }
         } else {
+            // FIXME: need to add seeds into full-stop corpus
             FullStopSeed fullStopSeed = fullStopCorpus.getSeed();
             if (fullStopSeed == null) {
                 // return false, cannot fuzz test plan
@@ -812,57 +805,6 @@ public class FuzzingServer {
                 testPlanPackets.add(new TestPlanPacket(
                         Config.getConf().system,
                         testID++, configFileName, testPlan));
-            }
-        }
-        return true;
-    }
-
-    public boolean fuzzFullStopUpgrade() {
-        FullStopSeed fullStopSeed = fullStopCorpus.getSeed();
-        round++;
-        if (fullStopSeed == null) {
-            // corpus is empty, generate some
-            int configIdx = configGen.generateConfig();
-            String configFileName = "test" + configIdx;
-            Seed seed = Seed.generateSeed(commandPool, stateClass,
-                    configIdx, testID);
-            if (seed != null) {
-
-                FullStopUpgrade fullStopUpgrade = new FullStopUpgrade(
-                        Config.getConf().nodeNum,
-                        seed.originalCommandSequence.getCommandStringList(),
-                        seed.validationCommandSequence.getCommandStringList(),
-                        targetSystemStates);
-                testID2Seed.put(testID, seed);
-                fullStopPackets.add(new FullStopPacket(Config.getConf().system,
-                        testID++, configFileName, fullStopUpgrade));
-            } else {
-                logger.error("Seed is null");
-            }
-        } else {
-            // Get a full-stop seed, mutate it and create some new seeds
-            Seed seed = fullStopSeed.seed;
-
-            for (int i = 0; i < Config.getConf().sequenceMutationEpoch; i++) {
-                Seed mutateSeed = SerializationUtils.clone(seed);
-                if (mutateSeed.mutate(commandPool, stateClass)) {
-                    FullStopUpgrade fullStopUpgrade = new FullStopUpgrade(
-                            Config.getConf().nodeNum,
-                            seed.originalCommandSequence.getCommandStringList(),
-                            seed.validationCommandSequence
-                                    .getCommandStringList(),
-                            targetSystemStates);
-                    testID2Seed.put(testID, mutateSeed);
-                    int configIdx = configGen.generateConfig();
-                    String configFileName = "test" + configIdx;
-                    fullStopPackets
-                            .add(new FullStopPacket(Config.getConf().system,
-                                    testID++, configFileName,
-                                    fullStopUpgrade));
-                } else {
-                    logger.info("Mutation failed");
-                    i--;
-                }
             }
         }
         return true;
@@ -890,46 +832,6 @@ public class FuzzingServer {
         return new TestPlanPacket(
                 Config.getConf().system, testID++, configFileName,
                 generateExampleTestPlan());
-    }
-
-    public Packet generateExampleFullStopPacket() {
-        Path commandPath = Paths.get(System.getProperty("user.dir"),
-                "examplecase");
-        List<String> commands = readCommands(
-                commandPath.resolve("commands.txt"));
-        List<String> validcommands = readCommands(
-                commandPath.resolve("validcommands.txt"));
-        // configuration path
-        String configFileName = readConfigFileName(
-                commandPath.resolve("configFileName.txt"));
-        if (configFileName == null) {
-            logger.info(String.format(
-                    "File %s is empty or could not be read the config idx%n",
-                    commandPath.resolve("configFileName.txt")));
-            System.out.println("Use new configuration");
-            int configIdx = configGen.generateConfig();
-            configFileName = "test" + configIdx;
-        } else {
-            logger.info("Use specified configuration: " + configFileName);
-        }
-
-        Set<String> targetSystemStates = new HashSet<>();
-
-        logger.info("commands size = " + commands.size());
-        logger.info("validcommands size = " + validcommands.size());
-
-        FullStopUpgrade fullStopUpgrade = new FullStopUpgrade(
-                Config.getConf().nodeNum,
-                commands,
-                validcommands,
-                targetSystemStates);
-        // TODO: Change this to the configIdx you want to test
-
-        FullStopPacket fullStopPacket = new FullStopPacket(
-                Config.getConf().system,
-                testID++, configFileName, fullStopUpgrade);
-        logger.info("config path = " + configFileName);
-        return fullStopPacket;
     }
 
     public TestPlan generateExampleTestPlan() {
@@ -1318,74 +1220,6 @@ public class FuzzingServer {
                     new Pair(timeElapsed, oriCoveredBranchesAfterDowngrade));
             lastTimePoint = timeElapsed;
         }
-    }
-
-    public synchronized void updateStatus(
-            FullStopFeedbackPacket fullStopFeedbackPacket) {
-        FeedBack fb = mergeCoverage(fullStopFeedbackPacket.feedBacks);
-
-        // Print states
-        for (Integer nodeId : fullStopFeedbackPacket.systemStates.keySet()) {
-            logger.info("node" + nodeId + " states: ");
-            Map<String, String> states = fullStopFeedbackPacket.systemStates
-                    .get(nodeId);
-            for (String stateName : states.keySet()) {
-                logger.info(String.format("state[%s] = %s", stateName,
-                        Utilities.decodeString(states.get(stateName))));
-            }
-            logger.info("");
-        }
-
-        boolean addToCorpus = false;
-        if ((Config.getConf().useBranchCoverage)
-                && Utilities.hasNewBits(curOriCoverage,
-                        fb.originalCodeCoverage)) {
-            addToCorpus = true;
-            curOriCoverage.merge(fb.originalCodeCoverage);
-        }
-
-        if ((Config.getConf().useBranchCoverage)
-                && Utilities.hasNewBits(curUpCoverageAfterUpgrade,
-                        fb.upgradedCodeCoverage)) {
-            addToCorpus = true;
-            curUpCoverageAfterUpgrade.merge(fb.upgradedCodeCoverage);
-        }
-
-        if (addToCorpus) {
-            fullStopCorpus.addSeed(new FullStopSeed(
-                    testID2Seed.get(fullStopFeedbackPacket.testPacketID),
-                    Config.getConf().nodeNum,
-                    fullStopFeedbackPacket.systemStates, new LinkedList<>()));
-        }
-
-        Path failureDir;
-        if (fullStopFeedbackPacket.isUpgradeProcessFailed
-                || fullStopFeedbackPacket.isInconsistent
-                || fullStopFeedbackPacket.hasERRORLog) {
-            failureDir = createFailureDir(
-                    fullStopFeedbackPacket.configFileName);
-            saveFullSequence(failureDir, fullStopFeedbackPacket.fullSequence);
-            if (fullStopFeedbackPacket.isUpgradeProcessFailed) {
-                saveFullStopCrashReport(failureDir,
-                        fullStopFeedbackPacket.upgradeFailureReport,
-                        fullStopFeedbackPacket.testPacketID);
-            }
-            if (fullStopFeedbackPacket.isInconsistent) {
-                saveInconsistencyReport(failureDir,
-                        fullStopFeedbackPacket.testPacketID,
-                        fullStopFeedbackPacket.inconsistencyReport);
-            }
-            if (fullStopFeedbackPacket.hasERRORLog) {
-                saveErrorReport(failureDir,
-                        fullStopFeedbackPacket.errorLogReport,
-                        fullStopFeedbackPacket.testPacketID);
-            }
-        }
-        testID2Seed.remove(fullStopFeedbackPacket.testPacketID);
-
-        finishedTestID++;
-        printInfo();
-        System.out.println();
     }
 
     public static void addSeedToCorpus(Corpus corpus,

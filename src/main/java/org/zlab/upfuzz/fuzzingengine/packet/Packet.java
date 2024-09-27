@@ -84,8 +84,7 @@ public abstract class Packet {
     }
 
     public String getGsonStr() throws IOException {
-        String packetStr = gson.toJson(this);
-        return packetStr;
+        return gson.toJson(this);
     }
 
     public enum PacketType {
@@ -93,12 +92,11 @@ public abstract class Packet {
         RegisterPacket(0), StackedTestPacket(1), StackedFeedbackPacket(
                 2), FeedbackPacket(3), TestPlanPacket(
                         4), TestPlanFeedbackPacket(5), MixedTestPacket(
-                                6), MixedFeedbackPacket(7), FullStopPacket(
-                                        8), FullStopFeedbackPacket(
-                                                9), VersionDeltaFeedbackPacket(
-                                                        10), VersionDeltaFeedbackPacketApproach1(
-                                                                11), VersionDeltaFeedbackPacketApproach2(
-                                                                        12);
+                                6), MixedFeedbackPacket(
+                                        7), VersionDeltaFeedbackPacket(
+                                                10), VersionDeltaFeedbackPacketApproach1(
+                                                        11), VersionDeltaFeedbackPacketApproach2(
+                                                                12);
 
         public int value;
 

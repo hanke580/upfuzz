@@ -1,11 +1,6 @@
 package org.zlab.upfuzz.fuzzingengine.server;
 
-import org.zlab.upfuzz.fuzzingengine.testplan.FullStopUpgrade;
-
-import java.util.LinkedList;
-import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.Queue;
 
 public class FullStopCorpus {
 

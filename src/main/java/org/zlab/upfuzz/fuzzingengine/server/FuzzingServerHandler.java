@@ -228,11 +228,6 @@ public class FuzzingServerHandler implements Runnable {
                     .updateStatus(mixedFeedbackPacket.stackedFeedbackPacket);
             fuzzingServer
                     .updateStatus(mixedFeedbackPacket.testPlanFeedbackPacket);
-        } else if (intType == PacketType.FullStopFeedbackPacket.value) {
-            logger.info("read fullstop fb packet");
-            FullStopFeedbackPacket fullStopFeedbackPacket = FullStopFeedbackPacket
-                    .read(in);
-            fuzzingServer.updateStatus(fullStopFeedbackPacket);
         } else if (intType == PacketType.VersionDeltaFeedbackPacketApproach2.value) {
             logger.info("read version delta fb packet");
             VersionDeltaFeedbackPacketApproach2 versionDeltaFeedbackPacketApproach2 = VersionDeltaFeedbackPacketApproach2

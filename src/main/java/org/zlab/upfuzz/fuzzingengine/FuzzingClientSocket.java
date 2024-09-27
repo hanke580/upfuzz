@@ -84,12 +84,6 @@ class FuzzingClientSocket implements Runnable {
                     }
                     break;
                 }
-                case FullStopPacket: {
-                    FullStopPacket fullStopPacket = FullStopPacket.read(in);
-                    feedBackPacket = fuzzingClient
-                            .executeFullStopPacket(fullStopPacket);
-                    break;
-                }
                 case TestPlanPacket: {
                     TestPlanPacket testPlanPacket = TestPlanPacket.read(in);
                     feedBackPacket = fuzzingClient
