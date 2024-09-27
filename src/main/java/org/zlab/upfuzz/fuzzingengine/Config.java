@@ -391,6 +391,7 @@ public class Config {
         // == hbase ==
         // Wait for process to start up for hbaseDaemonRetryTimes * 5 seconds
         public int hbaseDaemonRetryTimes = 40;
+        public boolean enableHBaseReadResultComparison = true;
         public boolean enable_IS_DISABLED = true;
         public boolean enable_LIST_SNAPSHOTS = true;
         public boolean enableQuota = true;

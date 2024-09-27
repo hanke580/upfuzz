@@ -1,8 +1,5 @@
 package org.zlab.upfuzz.hbase;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
@@ -157,7 +154,13 @@ public class HBaseExecutor extends Executor {
             logger.error("upgraded result are null!");
         }
 
-        StringBuilder failureInfo = new StringBuilder("");
+        if (!Config.getConf().enableHBaseReadResultComparison)
+            return new Pair<>(true, "");
+
+        StringBuilder failureInfo = new StringBuilder();
+
+        assert oriResult != null;
+        assert upResult != null;
         if (oriResult.size() != upResult.size()) {
             failureInfo.append("The result size is different\n");
             return new Pair<>(false, failureInfo.toString());

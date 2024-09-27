@@ -40,6 +40,7 @@
   "eval_HBASE22503": false,
   "debug": false,
   "useFixedCommand": false,
+  "enableHBaseReadResultComparison": true,
   "enable_IS_DISABLED": true,
   "enable_LIST_SNAPSHOTS": false,
   "startUpClusterForDebugging": false
