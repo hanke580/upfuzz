@@ -175,6 +175,9 @@ public class HBaseExecutor extends Executor {
                 // HBase unique: Ruby objects
                 str1 = Utilities.maskRubyObject(str1);
                 str2 = Utilities.maskRubyObject(str2);
+                // Mask all spaces
+                str1 = str1.replaceAll("\\s", "");
+                str2 = str2.replaceAll("\\s", "");
 
                 if (str1.compareTo(str2) != 0) {
                     // Handle FP
