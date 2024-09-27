@@ -462,6 +462,13 @@ public class FuzzingServer {
             }
             isFullStopUpgrade = !isFullStopUpgrade;
             return packet;
+        } else if (Config.getConf().testingMode == 5) {
+            // TODO: only test rolling upgrade (test plan)
+            throw new RuntimeException("Not implemented yet");
+            // if (testPlanPackets.isEmpty())
+            // fuzzTestPlan();
+            // assert !testPlanPackets.isEmpty();
+            // return testPlanPackets.poll();
         }
         throw new RuntimeException(
                 String.format("testing Mode [%d] is not in correct scope",

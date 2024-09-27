@@ -89,8 +89,7 @@ public class TestPlan implements Serializable {
 
         int mutateType;
 
-        // TODO: reinterleave the commands and faults
-
+        // TODO: re-interleave the commands and faults
         while (true) {
             if (Config.getConf().shuffleUpgradeOrder && nodeNum > 1) {
                 mutateType = rand.nextInt(4);
@@ -103,6 +102,7 @@ public class TestPlan implements Serializable {
                         .randomGenerateFault(Config.getConf().nodeNum);
                 // Pick a position and inject it
                 int pos1 = rand.nextInt(events.size() + 1);
+                assert faultPair != null;
                 events.add(pos1, faultPair.left);
                 if (faultPair.right != null) {
                     int pos2 = Utilities.randWithRange(rand, pos1 + 1,

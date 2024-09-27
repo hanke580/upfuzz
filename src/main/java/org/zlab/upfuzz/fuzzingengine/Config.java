@@ -206,6 +206,7 @@ public class Config {
         // 2: mixed test using MixedTestPlan
         // 3: Bug Reproduction: Rolling upgrade (given a test plan)
         // 4: full-stop upgrade + rolling upgrade iteratively (Final Version)
+        // 5: Only test rolling upgrade (Not done)
         public int testingMode = 0;
         public boolean testSingleVersion = false;
         // This make the test plan interleave with
