@@ -734,7 +734,6 @@ public class FuzzingServer {
 
         if (testPlan == null) {
             // Randomly generate a new test plan
-            // FIXME: need to add seeds into full-stop corpus
             FullStopSeed fullStopSeed = fullStopCorpus.getSeed();
             if (fullStopSeed == null) {
                 // return false, cannot fuzz test plan

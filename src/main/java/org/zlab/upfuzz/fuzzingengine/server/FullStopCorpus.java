@@ -1,30 +1,19 @@
 package org.zlab.upfuzz.fuzzingengine.server;
 
-import java.util.PriorityQueue;
-
 public class FullStopCorpus {
 
-    PriorityQueue<FullStopSeed> queue = new PriorityQueue<>();
+    CycleQueue<FullStopSeed> cycleQueue = new CycleQueue<>();
 
     public FullStopSeed getSeed() {
-        if (queue.isEmpty())
-            return null;
-        return queue.poll();
+        return cycleQueue.getNextSeed();
     }
 
-    public FullStopSeed peekSeed() {
-        if (queue.isEmpty())
-            return null;
-        return queue.peek();
-    }
-
-    // Add one interesting seed to corpus
-    public boolean addSeed(FullStopSeed seed) {
-        queue.add(seed);
-        return true;
+    public void addSeed(FullStopSeed seed) {
+        cycleQueue.addSeed(seed);
     }
 
     public boolean isEmpty() {
-        return queue.isEmpty();
+        return cycleQueue.isEmpty();
     }
+
 }
