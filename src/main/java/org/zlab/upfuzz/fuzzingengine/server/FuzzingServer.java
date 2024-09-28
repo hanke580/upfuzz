@@ -22,7 +22,6 @@ import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.ocov.tracker.FormatCoverageStatus;
 import org.zlab.ocov.tracker.ObjectGraphCoverage;
 import org.zlab.ocov.tracker.Runtime;
-import org.zlab.ocov.tracker.graph.GraphPattern;
 import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.cassandra.CassandraCommandPool;
@@ -90,7 +89,6 @@ public class FuzzingServer {
     public final Queue<StackedTestPacket> stackedTestPackets;
     private final Queue<TestPlanPacket> testPlanPackets;
 
-    // Fuzzing Status
     public int firstMutationSeedNum = 0;
 
     private int testID = 0;
@@ -102,19 +100,10 @@ public class FuzzingServer {
     public static int eventCrashNum = 0;
     public static int inconsistencyNum = 0;
     public static int errorLogNum = 0;
-    boolean isFullStopUpgrade = true;
+
+    private boolean isFullStopUpgrade = true;
     private int finishedTestIdAgentGroup1 = 0;
     private int finishedTestIdAgentGroup2 = 0;
-
-    // This can be replaced by queue size
-    private int newVersionDeltaCountForBranchCoverage = 0;
-    private int newVersionDeltaCountForFormatCoverage = 0;
-
-    private int executionCountWithOnlyNewBranchDelta = 0;
-    private int executionCountWithOnlyNewFormatDelta = 0;
-    private int executionCountWithOnlyNewBranchCoverage = 0;
-    private int executionCountWithOnlyNewFormatCoverage = 0;
-    private int executionCountWithoutAnyNewCoverage = 0;
 
     // Config mutation
     public ConfigGen configGen;
@@ -125,7 +114,7 @@ public class FuzzingServer {
     private ObjectGraphCoverage oriObjCoverage;
     // Execute a test in new version
     private ObjectGraphCoverage upObjCoverage;
-    private static Path formatCoverageLogPath = Paths
+    private static final Path formatCoverageLogPath = Paths
             .get("format_coverage.log");
 
     // System state comparison
@@ -1763,36 +1752,6 @@ public class FuzzingServer {
             boolean hasFeedbackInducedNewBrokenBoundary = upBoundaryChange
                     || oriBoundaryChange;
 
-            if (Config.getConf().useBranchCoverage
-                    && (Config.getConf().branchCoverageChoiceProb > 0)) {
-                if (hasFeedbackInducedBranchVersionDelta) {
-                    logger.info("Adding to code coverage corpus: "
-                            + versionDeltaFeedbackPacketUp.testPacketID);
-                    logger.info(
-                            "new old version branch coverage before upgrade: "
-                                    + newOriBC);
-                    logger.info(
-                            "new new version branch coverage before downgrade: "
-                                    + newUpBC);
-                    newVersionDeltaCountForBranchCoverage += 1;
-                } else if (hasFeedbackInducedNewBranchCoverage) {
-                    executionCountWithOnlyNewBranchCoverage += 1;
-                }
-            }
-
-            if (Config.getConf().useFormatCoverage
-                    && (Config.getConf().formatCoverageChoiceProb > 0)) {
-                if (hasFeedbackInducedFormatVersionDelta) {
-                    logger.debug("Add test "
-                            + versionDeltaFeedbackPacketUp.testPacketID
-                            + " to format coverage corpus " + "oriNewFormat = "
-                            + oriNewFormat + " upNewFormat = " + upNewFormat);
-                    newVersionDeltaCountForFormatCoverage += 1;
-                } else if (hasFeedbackInducedNewFormatCoverage) {
-                    executionCountWithOnlyNewFormatCoverage += 1;
-                }
-            }
-
             if (hasFeedbackInducedFormatVersionDelta) {
                 testBatchCorpus.addPacket(testPacket,
                         InterestingTestsCorpus.TestType.FORMAT_COVERAGE_VERSION_DELTA,
@@ -2504,18 +2463,6 @@ public class FuzzingServer {
                     "ori BC downgrade : "
                             + oriCoveredBranchesAfterDowngrade + "/"
                             + oriProbeNumAfterDowngrade);
-
-            if (Config.getConf().debug) {
-                System.out.format("|%30s|%30s|%30s|%30s|\n",
-                        "both version delta : "
-                                + (newVersionDeltaCountForBranchCoverage
-                                        - executionCountWithOnlyNewBranchDelta),
-                        "exec with branch cov : "
-                                + executionCountWithOnlyNewBranchCoverage,
-                        "exec with format cov : "
-                                + executionCountWithOnlyNewFormatCoverage,
-                        "");
-            }
         }
 
         if (Config.getConf().debug)

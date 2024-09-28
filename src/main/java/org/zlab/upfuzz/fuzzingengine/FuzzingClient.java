@@ -47,13 +47,6 @@ public class FuzzingClient {
     // For skipping upgrade
     public static ObjectGraphCoverage oriObjCoverage;
 
-    // Debug
-    // static {
-    // Path formatCoverageLogPath = Paths
-    // .get("format_coverage_client.log");
-    // org.zlab.ocov.tracker.Runtime.initWriter(formatCoverageLogPath);
-    // }
-
     FuzzingClient() {
         if (Config.getConf().testSingleVersion) {
             configDirPath = Paths.get(
@@ -229,7 +222,8 @@ public class FuzzingClient {
             Set<String> targetSystemStates,
             Path configPath) {
         String system = Config.getConf().system;
-        if (system.equals("cassandra")) {
+        switch (system) {
+        case "cassandra":
             CassandraExecutor[] cassandraExecutors = new CassandraExecutor[2];
 
             for (int i = 0; i < cassandraExecutors.length; i++) {
@@ -240,7 +234,7 @@ public class FuzzingClient {
             }
 
             return cassandraExecutors;
-        } else if (system.equals("hdfs")) {
+        case "hdfs":
             HdfsExecutor[] hdfsExecutors = new HdfsExecutor[2];
 
             for (int i = 0; i < hdfsExecutors.length; i++) {
@@ -250,7 +244,7 @@ public class FuzzingClient {
             }
 
             return hdfsExecutors;
-        } else if (system.equals("hbase")) {
+        case "hbase":
             HBaseExecutor[] hbaseExecutors = new HBaseExecutor[2];
 
             for (int i = 0; i < hbaseExecutors.length; i++) {
@@ -272,15 +266,16 @@ public class FuzzingClient {
             Set<String> targetSystemStates,
             Path configPath) {
         String system = Config.getConf().system;
-        if (system.equals("cassandra")) {
+        switch (system) {
+        case "cassandra":
             return new CassandraExecutor(nodeNum, collectFormatCoverage,
                     targetSystemStates,
                     configPath, 0);
-        } else if (system.equals("hdfs")) {
+        case "hdfs":
             return new HdfsExecutor(nodeNum, collectFormatCoverage,
                     targetSystemStates,
                     configPath, 0);
-        } else if (system.equals("hbase")) {
+        case "hbase":
             return new HBaseExecutor(nodeNum, collectFormatCoverage,
                     targetSystemStates,
                     configPath, 0);
@@ -295,15 +290,16 @@ public class FuzzingClient {
             Set<String> targetSystemStates,
             Path configPath, int testDirection) {
         String system = Config.getConf().system;
-        if (system.equals("cassandra")) {
+        switch (system) {
+        case "cassandra":
             return new CassandraExecutor(nodeNum, collectFormatCoverage,
                     targetSystemStates,
                     configPath, testDirection);
-        } else if (system.equals("hdfs")) {
+        case "hdfs":
             return new HdfsExecutor(nodeNum, collectFormatCoverage,
                     targetSystemStates,
                     configPath, testDirection);
-        } else if (system.equals("hbase")) {
+        case "hbase":
             return new HBaseExecutor(nodeNum, collectFormatCoverage,
                     targetSystemStates,
                     configPath, testDirection);
@@ -366,7 +362,8 @@ public class FuzzingClient {
         assert oriConfigPath1.toFile().isDirectory();
         Path oriConfigPath2 = configPath2.resolve("oriconfig");
         assert oriConfigPath2.toFile().isDirectory();
-        for (File file : oriConfigPath1.toFile().listFiles()) {
+        for (File file : Objects
+                .requireNonNull(oriConfigPath1.toFile().listFiles())) {
             File file2 = oriConfigPath2.resolve(file.getName()).toFile();
             if (file2.exists()) {
                 try (
@@ -388,7 +385,8 @@ public class FuzzingClient {
             assert upConfigPath1.toFile().isDirectory();
             Path upConfigPath2 = configPath2.resolve("upconfig");
             assert upConfigPath2.toFile().isDirectory();
-            for (File file : upConfigPath1.toFile().listFiles()) {
+            for (File file : Objects
+                    .requireNonNull(upConfigPath1.toFile().listFiles())) {
                 File file2 = upConfigPath2.resolve(file.getName()).toFile();
                 if (file2.exists()) {
                     try (
@@ -427,9 +425,6 @@ public class FuzzingClient {
             Path defaultStackedTestPath = Paths.get(this.libnyx.getSharedir(),
                     "stackedTestPackets",
                     "defaultStackedPacket.ser");
-            Path defaultTestPlanPath = Paths.get(this.libnyx.getSharedir(),
-                    "testPlanPackets",
-                    "defaultTestPlanPacket.ser");
             Path sharedConfigPath = Paths.get(this.libnyx.getSharedir(),
                     "archive.tar.gz");
             try {
@@ -452,7 +447,7 @@ public class FuzzingClient {
                 tar.waitFor();
 
                 System.out.println(configPath
-                        .resolve("archive.tar.gz").toAbsolutePath().toString());
+                        .resolve("archive.tar.gz").toAbsolutePath());
                 FileUtils.copyFile(
                         configPath.resolve("archive.tar.gz")
                                 .toFile(),
