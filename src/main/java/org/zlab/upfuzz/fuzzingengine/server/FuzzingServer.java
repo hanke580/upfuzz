@@ -419,25 +419,23 @@ public class FuzzingServer {
                     fuzzOne();
                 assert !stackedTestPackets.isEmpty();
                 packet = stackedTestPackets.poll();
+                logger.debug("[getOneTest] for full-stop. isFullStopUpgrade = "
+                        + isFullStopUpgrade);
             } else {
-                if (testPlanPackets.isEmpty())
-                    fuzzTestPlan();
+                assert !testPlanPackets.isEmpty();
                 packet = testPlanPackets.poll();
-                // TestPlanPacket tp = (TestPlanPacket) packet;
-                // logger.info("val cmd size = "
-                // + tp.testPlan.validationCommands.size());
-                // logger.info("val oracle size = "
-                // + tp.testPlan.validationReadResultsOracle.size());
+                logger.debug("[getOneTest] for test plan. isFullStopUpgrade = "
+                        + isFullStopUpgrade);
             }
             isFullStopUpgrade = !isFullStopUpgrade;
             return packet;
         } else if (Config.getConf().testingMode == 5) {
             // TODO: only test rolling upgrade (test plan)
-            // throw new RuntimeException("Not implemented yet");
-            if (testPlanPackets.isEmpty())
-                fuzzTestPlan();
-            assert !testPlanPackets.isEmpty();
-            return testPlanPackets.poll();
+            throw new RuntimeException("Not implemented yet");
+            // if (testPlanPackets.isEmpty())
+            // fuzzTestPlan();
+            // assert !testPlanPackets.isEmpty();
+            // return testPlanPackets.poll();
         }
         throw new RuntimeException(
                 String.format("testing Mode [%d] is not in correct scope",
