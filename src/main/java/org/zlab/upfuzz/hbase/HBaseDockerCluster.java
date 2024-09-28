@@ -43,10 +43,9 @@ public class HBaseDockerCluster extends DockerCluster {
 
     HBaseDockerCluster(HBaseExecutor executor, String version,
             int nodeNum, boolean collectFormatCoverage,
-            Set<String> targetSystemStates, Path configPath,
+            Path configPath,
             int direction) {
-        super(executor, version, nodeNum, collectFormatCoverage,
-                targetSystemStates, direction);
+        super(executor, version, nodeNum, collectFormatCoverage, direction);
 
         this.dockers = new HBaseDocker[nodeNum];
         this.extranodes = new HBaseHDFSDocker[1];
@@ -196,11 +195,6 @@ public class HBaseDockerCluster extends DockerCluster {
         formatMap.put("networkName", networkName);
         StringSubstitutor sub = new StringSubstitutor(formatMap);
         this.composeYaml = sub.replace(template);
-    }
-
-    @Override
-    public Path getDataPath() {
-        return Paths.get(workdir.toString(), "persistent");
     }
 
     // Fault Injection

@@ -117,9 +117,6 @@ public class FuzzingServer {
     private static final Path formatCoverageLogPath = Paths
             .get("format_coverage.log");
 
-    // System state comparison
-    public Set<String> targetSystemStates = new HashSet<>();
-
     // Coverage
     // before upgrade
     public static int oriCoveredBranches = 0;
@@ -298,16 +295,6 @@ public class FuzzingServer {
             throw new RuntimeException(
                     "System " + Config.getConf().system + " is not supported");
         }
-        Path targetSystemStatesPath = Paths.get(System.getProperty("user.dir"),
-                Config.getConf().targetSystemStateFile);
-        try {
-            targetSystemStates = readState(targetSystemStatesPath);
-        } catch (IOException e) {
-            logger.error("Not tracking system state");
-            e.printStackTrace();
-            System.exit(1);
-        }
-
         TestChoiceProbabilitiesVersionDeltaTwoGroups testChoiceProbabilitiesVersionDeltaTwoGroups = new TestChoiceProbabilitiesVersionDeltaTwoGroups();
 
         testChoiceProbabilities = testChoiceProbabilitiesVersionDeltaTwoGroups.probabilitiesHashMap;
@@ -446,11 +433,11 @@ public class FuzzingServer {
             return packet;
         } else if (Config.getConf().testingMode == 5) {
             // TODO: only test rolling upgrade (test plan)
-            throw new RuntimeException("Not implemented yet");
-            // if (testPlanPackets.isEmpty())
-            // fuzzTestPlan();
-            // assert !testPlanPackets.isEmpty();
-            // return testPlanPackets.poll();
+            // throw new RuntimeException("Not implemented yet");
+            if (testPlanPackets.isEmpty())
+                fuzzTestPlan();
+            assert !testPlanPackets.isEmpty();
+            return testPlanPackets.poll();
         }
         throw new RuntimeException(
                 String.format("testing Mode [%d] is not in correct scope",
@@ -742,59 +729,65 @@ public class FuzzingServer {
     }
 
     private boolean fuzzTestPlan() {
-        // We should first try to mutate the test plan, but there
-        // should still be possibility for generating a new test plan
-        // Mutate a testplan
+        int MAX_MUTATION_RETRY = 50;
         TestPlan testPlan = testPlanCorpus.getTestPlan();
 
-        if (testPlan != null) {
-            for (int i = 0; i < Config.getConf().testPlanMutationEpoch; i++) {
-                TestPlan mutateTestPlan = null;
-                int j = 0;
-                for (; j < Config.getConf().testPlanMutationRetry; j++) {
-                    mutateTestPlan = SerializationUtils.clone(testPlan);
-                    mutateTestPlan.mutate();
-                    if (testPlanVerifier(mutateTestPlan.getEvents(),
-                            testPlan.nodeNum)) {
-                        break;
-                    }
-                }
-                // Always failed mutating this test plan
-                if (j == Config.getConf().testPlanMutationRetry)
-                    return false;
-                testID2TestPlan.put(testID, mutateTestPlan);
-
-                int configIdx = configGen.generateConfig();
-                String configFileName = "test" + configIdx;
-
-                testPlanPackets.add(new TestPlanPacket(
-                        Config.getConf().system,
-                        testID++, configFileName, mutateTestPlan));
-            }
-        } else {
+        if (testPlan == null) {
+            // Randomly generate a new test plan
             // FIXME: need to add seeds into full-stop corpus
             FullStopSeed fullStopSeed = fullStopCorpus.getSeed();
             if (fullStopSeed == null) {
                 // return false, cannot fuzz test plan
+                // TODO: Completely generate a new test plan?
                 return false;
+            } else {
+                // Generate a test plan from the full-stop seed
+                for (int i = 0; i < Config
+                        .getConf().testPlanGenerationNum; i++) {
+                    for (int j = 0; j < MAX_MUTATION_RETRY; j++) {
+                        testPlan = generateTestPlan(fullStopSeed);
+                        if (testPlan != null) {
+                            break;
+                        }
+                    }
+                    if (testPlan == null)
+                        return false;
+
+                    testID2TestPlan.put(testID, testPlan);
+                    int configIdx = configGen.generateConfig();
+                    String configFileName = "test" + configIdx;
+
+                    testPlanPackets.add(new TestPlanPacket(
+                            Config.getConf().system,
+                            testID++, configFileName, testPlan));
+                }
+                return true;
             }
+        }
 
-            // Generate several test plan...
-            for (int i = 0; i < Config.getConf().testPlanGenerationNum; i++) {
-
-                // FIXME: possible forever loop
-                while ((testPlan = generateTestPlan(fullStopSeed)) == null)
-                    ;
-
-                testID2TestPlan.put(testID, testPlan);
-
-                int configIdx = configGen.generateConfig();
-                String configFileName = "test" + configIdx;
-
-                testPlanPackets.add(new TestPlanPacket(
-                        Config.getConf().system,
-                        testID++, configFileName, testPlan));
+        // Mutate an existing test plan
+        for (int i = 0; i < Config.getConf().testPlanMutationEpoch; i++) {
+            TestPlan mutateTestPlan = null;
+            int j = 0;
+            for (; j < Config.getConf().testPlanMutationRetry; j++) {
+                mutateTestPlan = SerializationUtils.clone(testPlan);
+                mutateTestPlan.mutate();
+                if (testPlanVerifier(mutateTestPlan.getEvents(),
+                        testPlan.nodeNum)) {
+                    break;
+                }
             }
+            // Always failed mutating this test plan
+            if (j == Config.getConf().testPlanMutationRetry)
+                return false;
+            testID2TestPlan.put(testID, mutateTestPlan);
+
+            int configIdx = configGen.generateConfig();
+            String configFileName = "test" + configIdx;
+
+            testPlanPackets.add(new TestPlanPacket(
+                    Config.getConf().system,
+                    testID++, configFileName, mutateTestPlan));
         }
         return true;
     }
@@ -832,7 +825,6 @@ public class FuzzingServer {
 
         logger.debug("example test plan size = " + events.size());
 
-        Set<String> targetSystemStates = new HashSet<>();
         Map<Integer, Map<String, String>> oracle = new HashMap<>();
         Path commandPath = Paths.get(System.getProperty("user.dir"),
                 "examplecase");
@@ -840,14 +832,14 @@ public class FuzzingServer {
                 commandPath.resolve("validcommands.txt"));
         List<String> validationReadResultsOracle = new LinkedList<>();
 
-        return new TestPlan(nodeNum, events, targetSystemStates,
-                oracle, validcommands, validationReadResultsOracle);
+        return new TestPlan(nodeNum, events, validcommands,
+                validationReadResultsOracle);
     }
 
     public TestPlan generateTestPlan(FullStopSeed fullStopSeed) {
         // Some systems might have special requirements for
         // upgrade, like HDFS needs to upgrade NN.
-        int nodeNum = fullStopSeed.nodeNum;
+        int nodeNum = Config.getConf().nodeNum;
 
         if (Config.getConf().useExampleTestPlan)
             return constructExampleTestPlan(fullStopSeed, nodeNum);
@@ -901,8 +893,7 @@ public class FuzzingServer {
                 && !Config.getConf().fullStopUpgradeWithFaults)
             events.add(events.size(), new FinalizeUpgrade());
 
-        return new TestPlan(nodeNum, events, targetSystemStates,
-                fullStopSeed.targetSystemStateResults,
+        return new TestPlan(nodeNum, events,
                 fullStopSeed.seed.validationCommandSequence
                         .getCommandStringList(),
                 fullStopSeed.validationReadResults);
@@ -937,8 +928,7 @@ public class FuzzingServer {
         // exampleEvents.add(new UpgradeOp(2));
         // exampleEvents.add(new UpgradeOp(3));
         // exampleEvents.add(0, new LinkFailure(1, 2));
-        return new TestPlan(nodeNum, exampleEvents, targetSystemStates,
-                fullStopSeed.targetSystemStateResults, new LinkedList<>(),
+        return new TestPlan(nodeNum, exampleEvents, new LinkedList<>(),
                 new LinkedList<>());
     }
 
@@ -1396,6 +1386,11 @@ public class FuzzingServer {
                     score, newOldVersionBranchCoverage,
                     newFormatCoverage, newNewVersionBranchCoverage,
                     newBoundaryChange, newModifiedFormatCoverage);
+
+            // also update full-stop corpus
+            fullStopCorpus.addSeed(new FullStopSeed(
+                    testID2Seed.get(feedbackPacket.testPacketID),
+                    feedbackPacket.validationReadResults));
 
             // FIXME: record boundary in graph
             graph.updateNodeCoverage(feedbackPacket.testPacketID,

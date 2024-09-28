@@ -192,8 +192,6 @@ public class Config {
         // full-stop upgrade
         public boolean fullStopUpgradeWithFaults = false;
 
-        // ------------State Comparison (deprecated) -------------
-        public boolean enableStateComp = false;
         // Debug option
         public boolean startUpClusterForDebugging = false;
         public boolean useExampleTestPlan = false;

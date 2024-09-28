@@ -6,13 +6,10 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.zlab.dinv.runtimechecker.Runtime;
 import org.zlab.upfuzz.docker.Docker;
 import org.zlab.upfuzz.docker.DockerCluster;
 import org.zlab.upfuzz.fuzzingengine.Config;
@@ -54,7 +51,6 @@ public class CassandraDocker extends Docker {
         serviceName = "DC3N" + index;
 
         collectFormatCoverage = dockerCluster.collectFormatCoverage;
-        targetSystemStates = dockerCluster.targetSystemStates;
         configPath = dockerCluster.configpath;
         if (Config.getConf().testSingleVersion)
             containerName = "cassandra-" + originalVersion + "_" + executorID
@@ -352,12 +348,6 @@ public class CassandraDocker extends Docker {
         return true;
     }
 
-    @Override
-    public Path getDataPath() {
-        return Paths.get(workdir.toString(),
-                "/persistent/node_" + index + "/data");
-    }
-
     public Path getWorkPath() {
         return workdir.toPath();
     }
@@ -443,44 +433,6 @@ public class CassandraDocker extends Docker {
             + "            memlock: -1\n"
             + "            nproc: 32768\n"
             + "            nofile: 100000\n";
-
-    @Override
-    public Map<String, String> readSystemState() {
-        Map<String, String> stateValues = new HashMap<>();
-        // Cassandra do not distinguish nodes
-        // HDFS might get state from different nodes
-        for (String stateName : targetSystemStates) {
-            Path filePath = Paths.get("/var/log/cassandra/system.log");
-            String target = String.format("\\[InconsistencyDetector\\]\\[%s\\]",
-                    stateName);
-            String[] grepStateCmd = new String[] {
-                    "/bin/sh", "-c",
-                    "grep -a \"" + target + "\" " + filePath
-                            + " | tail -n 1"
-            };
-            try {
-                System.out.println("\n\n");
-                Process grepProc = runInContainer(grepStateCmd);
-                String result = new String(
-                        grepProc.getInputStream().readAllBytes());
-                String stateValue = "";
-                if (!result.isEmpty()) {
-                    int index = result.indexOf("=");
-                    if (index != -1) {
-                        stateValue = result.substring(index + 1);
-                    }
-                }
-                logger.info(String.format("State [%s] =  %s", stateName,
-                        stateValue));
-                stateValues.put(stateName, Utilities.encodeString(stateValue));
-            } catch (IOException e) {
-                logger.error(String.format(
-                        "Problem when reading state in docker[%d]", index));
-                e.printStackTrace();
-            }
-        }
-        return stateValues;
-    }
 
     @Override
     public LogInfo grepLogInfo(Set<String> blackListErrorLog) {

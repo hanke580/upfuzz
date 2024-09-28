@@ -42,17 +42,16 @@ public class HBaseExecutor extends Executor {
 
         dockerCluster = new HBaseDockerCluster(this,
                 Config.getConf().originalVersion,
-                nodeNum, collectFormatCoverage, null, configPath, direction);
+                nodeNum, collectFormatCoverage, configPath, direction);
     }
 
     public HBaseExecutor(int nodeNum, boolean collectFormatCoverage,
-            Set<String> targetSystemStates, Path configPath, int direction) {
+            Path configPath, int direction) {
         super("hbase", nodeNum);
 
         timestamp = System.currentTimeMillis();
 
         this.collectFormatCoverage = collectFormatCoverage;
-        this.targetSystemStates = targetSystemStates;
         this.configPath = configPath;
         this.direction = direction;
 
@@ -72,12 +71,12 @@ public class HBaseExecutor extends Executor {
         if (direction == 0) {
             dockerCluster = new HBaseDockerCluster(this,
                     Config.getConf().originalVersion,
-                    nodeNum, collectFormatCoverage, null, configPath,
+                    nodeNum, collectFormatCoverage, configPath,
                     direction);
         } else {
             dockerCluster = new HBaseDockerCluster(this,
                     Config.getConf().upgradedVersion,
-                    nodeNum, collectFormatCoverage, null, configPath,
+                    nodeNum, collectFormatCoverage, configPath,
                     direction);
         }
     }

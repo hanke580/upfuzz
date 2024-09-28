@@ -26,17 +26,16 @@ public class CassandraExecutor extends Executor {
 
         dockerCluster = new CassandraDockerCluster(
                 this, Config.getConf().originalVersion,
-                nodeNum, collectFormatCoverage, targetSystemStates, configPath,
+                nodeNum, collectFormatCoverage, configPath,
                 direction);
     }
 
     public CassandraExecutor(int nodeNum, boolean collectFormatCoverage,
-            Set<String> targetSystemStates, Path configPath, int direction) {
+            Path configPath, int direction) {
         super("cassandra", nodeNum);
         timestamp = System.currentTimeMillis();
 
         this.collectFormatCoverage = collectFormatCoverage;
-        this.targetSystemStates = targetSystemStates;
         this.configPath = configPath;
         this.direction = direction;
         agentStore = new HashMap<>();
@@ -62,14 +61,14 @@ public class CassandraExecutor extends Executor {
                     + Config.getConf().originalVersion);
             dockerCluster = new CassandraDockerCluster(
                     this, Config.getConf().originalVersion,
-                    nodeNum, collectFormatCoverage, targetSystemStates,
+                    nodeNum, collectFormatCoverage,
                     configPath, direction);
         } else {
             logger.info("[HKLOG] Docker Cluster startup, upgraded version: "
                     + Config.getConf().upgradedVersion);
             dockerCluster = new CassandraDockerCluster(
                     this, Config.getConf().upgradedVersion,
-                    nodeNum, collectFormatCoverage, targetSystemStates,
+                    nodeNum, collectFormatCoverage,
                     configPath, direction);
         }
 

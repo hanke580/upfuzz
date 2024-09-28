@@ -133,7 +133,7 @@ public class MiniClientMain {
             System.err.println("verifying configuration");
             if (!Config.getConf().useVersionDelta) {
                 executor = FuzzingClient.initExecutor(
-                        1, Config.getConf().useFormatCoverage, null,
+                        1, Config.getConf().useFormatCoverage,
                         defaultConfigPath);
             } else {
                 // FIXME: Why in nyx, direction is always 0?
@@ -178,7 +178,7 @@ public class MiniClientMain {
                 if (!Config.getConf().useVersionDelta) {
                     executor = FuzzingClient.initExecutor(
                             defaultTestPlanPacket.getNodeNum(),
-                            Config.getConf().useFormatCoverage, null,
+                            Config.getConf().useFormatCoverage,
                             defaultConfigPath);
                 } else {
                     executor = FuzzingClient.initExecutor(

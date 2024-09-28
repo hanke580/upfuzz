@@ -97,18 +97,6 @@ public class TestPlanPacket extends Packet implements Serializable {
             String configFileName = readString(in);
 
             int nodeNum = in.readInt();
-            // targetStates
-            String targetSystemStatesStr = readString(in);
-            Type t1 = new TypeToken<Set<String>>() {
-            }.getType();
-            Set<String> targetSystemStates = gson
-                    .fromJson(targetSystemStatesStr, t1);
-            // targetStatesOracle
-            String targetSystemStatesOracleStr = readString(in);
-            Type t2 = new TypeToken<Map<Integer, Map<String, String>>>() {
-            }.getType();
-            Map<Integer, Map<String, String>> targetSystemStatesOracle = gson
-                    .fromJson(targetSystemStatesOracleStr, t2);
 
             // validationCommands
             String validationCommandsStr = readString(in);
@@ -140,7 +128,6 @@ public class TestPlanPacket extends Packet implements Serializable {
 
             List<Event> events = gson.fromJson(eventsStr, listType);
             TestPlan testPlan = new TestPlan(nodeNum, events,
-                    targetSystemStates, targetSystemStatesOracle,
                     validationCommands, validationReadResultsOracle);
             return new TestPlanPacket(systemID, testPacketId, configFileName,
                     testPlan);
@@ -167,17 +154,6 @@ public class TestPlanPacket extends Packet implements Serializable {
 
         // test plan
         out.writeInt(testPlan.nodeNum);
-
-        String stateStr = new Gson().toJson(testPlan.targetSystemStates);
-        int stateStrLen = stateStr.length();
-        out.writeInt(stateStrLen);
-        out.write(stateStr.getBytes(StandardCharsets.UTF_8));
-
-        String stateOracleStr = new Gson()
-                .toJson(testPlan.targetSystemStatesOracle);
-        int stateOracleStrLen = stateOracleStr.length();
-        out.writeInt(stateOracleStrLen);
-        out.write(stateOracleStr.getBytes(StandardCharsets.UTF_8));
 
         String validationCommandsStr = new Gson()
                 .toJson(testPlan.validationCommands);

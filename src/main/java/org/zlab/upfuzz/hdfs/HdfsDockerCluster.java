@@ -29,11 +29,10 @@ public class HdfsDockerCluster extends DockerCluster {
     };
 
     HdfsDockerCluster(HdfsExecutor executor, String version,
-            int nodeNum, boolean collectFormatCoverage,
-            Set<String> targetSystemStates, Path configPath,
+            int nodeNum, boolean collectFormatCoverage, Path configPath,
             int direction) {
         super(executor, version, nodeNum, collectFormatCoverage,
-                targetSystemStates, direction);
+                direction);
 
         this.dockers = new HdfsDocker[nodeNum];
         this.namenodeIP = DockerCluster.getKthIP(hostIP, 0); // 2 means the
@@ -207,10 +206,5 @@ public class HdfsDockerCluster extends DockerCluster {
         formatMap.put("networkName", networkName);
         StringSubstitutor sub = new StringSubstitutor(formatMap);
         this.composeYaml = sub.replace(template);
-    }
-
-    @Override
-    public Path getDataPath() {
-        return Paths.get(workdir.toString(), "persistent");
     }
 }

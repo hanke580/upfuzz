@@ -41,7 +41,6 @@ public abstract class Executor implements IExecutor {
     public int nodeNum;
 
     public boolean collectFormatCoverage = false;
-    public Set<String> targetSystemStates;
     public Path configPath;
     public String testPlanExecutionLog = "";
     public int direction;
@@ -616,10 +615,6 @@ public abstract class Executor implements IExecutor {
             return false;
         }
         return true;
-    }
-
-    public Map<Integer, Map<String, String>> readSystemState() {
-        return dockerCluster.readSystemState();
     }
 
     public Map<Integer, LogInfo> grepLogInfo() {

@@ -47,7 +47,6 @@ public abstract class DockerCluster implements IDockerCluster {
     public int direction;
 
     public boolean collectFormatCoverage;
-    public Set<String> targetSystemStates;
     public Set<String> blackListErrorLog = new HashSet<>();
 
     // This function do the shifting
@@ -60,8 +59,7 @@ public abstract class DockerCluster implements IDockerCluster {
     }
 
     public DockerCluster(Executor executor, String version,
-            int nodeNum, boolean collectFormatCoverage,
-            Set<String> targetSystemStates, int direction) {
+            int nodeNum, boolean collectFormatCoverage, int direction) {
         // replace subnet
         // rename services
 
@@ -134,7 +132,6 @@ public abstract class DockerCluster implements IDockerCluster {
 
         this.network = new Network();
         this.collectFormatCoverage = collectFormatCoverage;
-        this.targetSystemStates = targetSystemStates;
 
         // Init docker states
         dockerStates = new DockerMeta.DockerState[nodeNum];
@@ -370,18 +367,6 @@ public abstract class DockerCluster implements IDockerCluster {
         }
         logger.info("Cluster upgraded");
         return true;
-    }
-
-    /**
-     * collecting system states from each node
-     */
-    public Map<Integer, Map<String, String>> readSystemState() {
-        // nodeId -> {class.state -> value}
-        Map<Integer, Map<String, String>> states = new HashMap<>();
-        for (int i = 0; i < nodeNum; i++) {
-            states.put(i, dockers[i].readSystemState());
-        }
-        return states;
     }
 
     /**

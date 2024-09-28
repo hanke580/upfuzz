@@ -1,22 +1,15 @@
 package org.zlab.upfuzz.fuzzingengine.server;
 
 import java.util.List;
-import java.util.Map;
 
 public class FullStopSeed implements Comparable<FullStopSeed> {
+
     public Seed seed;
-    public int nodeNum;
-    public Map<Integer, Map<String, String>> targetSystemStateResults;
+    public List<String> validationReadResults;
 
-    public List<String> validationReadResults; // only save old version read
-                                               // results
-
-    public FullStopSeed(Seed seed, int nodeNum,
-            Map<Integer, Map<String, String>> targetSystemStateResults,
+    public FullStopSeed(Seed seed,
             List<String> validationReadResults) {
         this.seed = seed;
-        this.nodeNum = nodeNum;
-        this.targetSystemStateResults = targetSystemStateResults;
         this.validationReadResults = validationReadResults;
     }
 

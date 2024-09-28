@@ -33,11 +33,7 @@ public interface IDocker {
     // remove all system data (data/ in cassandra)
     boolean clear();
 
-    Map<String, String> readSystemState();
-
     LogInfo grepLogInfo(Set<String> blackListErrorLog);
-
-    Path getDataPath();
 
     String formatComposeYaml();
 }

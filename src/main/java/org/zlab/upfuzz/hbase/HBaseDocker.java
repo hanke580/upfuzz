@@ -57,7 +57,6 @@ public class HBaseDocker extends Docker {
         serviceName = "DC3N" + index;
 
         collectFormatCoverage = dockerCluster.collectFormatCoverage;
-        targetSystemStates = dockerCluster.targetSystemStates;
         configPath = dockerCluster.configpath;
 
         if (Config.getConf().testSingleVersion)
@@ -394,12 +393,6 @@ public class HBaseDocker extends Docker {
         return true;
     }
 
-    @Override
-    public Path getDataPath() {
-        return Paths.get(workdir.toString(),
-                "/persistent/node_" + index + "/data");
-    }
-
     public Path getWorkPath() {
         return workdir.toPath();
     }
@@ -469,11 +462,6 @@ public class HBaseDocker extends Docker {
             + "            nofile: 100000\n"
             + "        depends_on:\n"
             + "             - ${depDockerID}\n";
-
-    @Override
-    public Map<String, String> readSystemState() {
-        return null;
-    }
 
     @Override
     public LogInfo grepLogInfo(Set<String> blackListErrorLog) {

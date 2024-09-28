@@ -2,8 +2,8 @@ package org.zlab.upfuzz.fuzzingengine.server;
 
 import java.util.LinkedList;
 
-public class CycleQueue {
-    private final LinkedList<Seed> queue;
+public class CycleQueue<T> {
+    private final LinkedList<T> queue;
     private int currentIndex;
 
     public CycleQueue() {
@@ -12,7 +12,7 @@ public class CycleQueue {
     }
 
     // Adds a seed to the queue
-    public void addSeed(Seed seed) {
+    public void addSeed(T seed) {
         // avoid add duplicate seed
         if (queue.contains(seed)) {
             return;
@@ -21,19 +21,19 @@ public class CycleQueue {
     }
 
     // Retrieves the current seed and moves the pointer to the next
-    public Seed getNextSeed() {
+    public T getNextSeed() {
         if (queue.isEmpty()) {
             return null;
         }
 
-        Seed currentSeed = queue.get(currentIndex);
+        T currentSeed = queue.get(currentIndex);
         currentIndex = (currentIndex + 1) % queue.size(); // Move to next or
                                                           // cycle to the start
         return currentSeed;
     }
 
     // Peeks at the current seed without moving the pointer
-    public Seed peekSeed() {
+    public T peekSeed() {
         if (queue.isEmpty()) {
             return null; // or throw an exception based on your use case
         }

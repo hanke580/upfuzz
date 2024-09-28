@@ -12,8 +12,6 @@ public interface IDockerCluster {
 
     boolean build() throws Exception;
 
-    Path getDataPath();
-
     void prepareUpgrade() throws Exception;
 
     boolean fullStopUpgrade() throws Exception;

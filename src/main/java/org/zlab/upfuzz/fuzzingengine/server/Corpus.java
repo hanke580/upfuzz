@@ -12,7 +12,7 @@ import java.util.Random;
 public abstract class Corpus implements ICorpus {
     Random rand = new Random();
     double[] cumulativeProbabilities;
-    CycleQueue[] cycleQueues;
+    CycleQueue<Seed>[] cycleQueues;
 
     public Corpus(int queueSize, double[] probabilities) {
         assert queueSize == probabilities.length;
@@ -20,7 +20,7 @@ public abstract class Corpus implements ICorpus {
         cumulativeProbabilities = new double[probabilities.length];
         cycleQueues = new CycleQueue[probabilities.length];
         for (int i = 0; i < cycleQueues.length; i++) {
-            cycleQueues[i] = new CycleQueue();
+            cycleQueues[i] = new CycleQueue<>();
         }
 
         cumulativeProbabilities[0] = probabilities[0];

@@ -43,7 +43,7 @@ public class FuzzingServerTest extends AbstractTest {
         Class<? extends State> stateClass = HdfsState.class;
         Seed seed = Seed.generateSeed(commandPool, stateClass, -1, -1);
         FullStopSeed fullStopSeed = new FullStopSeed(
-                seed, 3, new HashMap<>(), new LinkedList<>());
+                seed, new LinkedList<>());
         FuzzingServer fuzzingServer = new FuzzingServer();
         TestPlan testPlan;
         while ((testPlan = fuzzingServer
@@ -60,7 +60,7 @@ public class FuzzingServerTest extends AbstractTest {
         CassandraCommandPool commandPool = new CassandraCommandPool();
         Class stateClass = CassandraState.class;
         Seed seed = Seed.generateSeed(commandPool, stateClass, -1, -1);
-        FullStopSeed fullStopSeed = new FullStopSeed(seed, 3, null, null);
+        FullStopSeed fullStopSeed = new FullStopSeed(seed, null);
         FuzzingServer fuzzingServer = new FuzzingServer();
         TestPlan testPlan = fuzzingServer.generateTestPlan(fullStopSeed);
         TestPlanPacket testPlanPacket;
@@ -99,32 +99,13 @@ public class FuzzingServerTest extends AbstractTest {
     }
 
     @Test
-    public void testSer() {
-        Map<Integer, Map<String, String>> targetSystemStates = new HashMap<>();
-        targetSystemStates.put(0, new HashMap<>());
-        targetSystemStates.get(0).put("hh", "dd");
-
-        String str = new Gson().toJson(targetSystemStates);
-        byte[] strByte = str.getBytes();
-        Type t = new TypeToken<Map<Integer, Map<String, String>>>() {
-        }.getType();
-
-        Map<Integer, Map<String, String>> deStr = new Gson().fromJson(
-                new String(strByte, 0, strByte.length),
-                t);
-
-        logger.info(str);
-        logger.info(deStr);
-    }
-
-    @Test
     public void test1() {
         List<Event> events = new LinkedList<>();
 
         Config.instance.system = "hdfs";
 
         events.add(new HDFSStopSNN());
-//        events.add(new NodeFailure(2));
+        // events.add(new NodeFailure(2));
         events.add(new IsolateFailure(2));
 
         events.add(new UpgradeOp(0));

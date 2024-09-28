@@ -17,31 +17,21 @@ public class TestPlan implements Serializable {
     static Logger logger = LogManager.getLogger(TestPlan.class);
 
     public int nodeNum;
-    private List<Event> events;
-
-    // ----system state comparison----
-    public Set<String> targetSystemStates;
-    public Map<Integer, Map<String, String>> targetSystemStatesOracle;
+    private final List<Event> events;
 
     // ----read results comparison----
     public List<String> validationCommands;
     public List<String> validationReadResultsOracle;
 
     public TestPlan(int nodeNum, List<Event> events,
-            Set<String> targetSystemStates,
-            Map<Integer, Map<String, String>> targetSystemStatesOracle,
             List<String> validationCommands,
             List<String> validationReadResultsOracle) {
 
-        assert targetSystemStates != null;
-        assert targetSystemStatesOracle != null;
         assert validationCommands != null;
         assert validationReadResultsOracle != null;
 
         this.nodeNum = nodeNum;
         this.events = events;
-        this.targetSystemStates = targetSystemStates;
-        this.targetSystemStatesOracle = targetSystemStatesOracle;
         this.validationCommands = validationCommands;
         this.validationReadResultsOracle = validationReadResultsOracle;
     }

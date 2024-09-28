@@ -54,7 +54,6 @@ public abstract class DockerMeta {
     public Path configPath;
 
     public boolean collectFormatCoverage;
-    public Set<String> targetSystemStates;
 
     public Process runInContainer(String[] cmd, String[] env)
             throws IOException {

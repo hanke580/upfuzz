@@ -26,10 +26,10 @@ public class CassandraDockerCluster extends DockerCluster {
 
     CassandraDockerCluster(CassandraExecutor executor, String version,
             int nodeNum, boolean collectFormatCoverage,
-            Set<String> targetSystemStates, Path configPath,
+            Path configPath,
             int direction) {
         super(executor, version, nodeNum, collectFormatCoverage,
-                targetSystemStates, direction);
+                direction);
 
         this.dockers = new CassandraDocker[nodeNum];
         this.seedIP = DockerCluster.getKthIP(hostIP, 0);
@@ -137,11 +137,6 @@ public class CassandraDockerCluster extends DockerCluster {
         formatMap.put("networkName", networkName);
         StringSubstitutor sub = new StringSubstitutor(formatMap);
         this.composeYaml = sub.replace(template);
-    }
-
-    @Override
-    public Path getDataPath() {
-        return Paths.get(workdir.toString(), "persistent");
     }
 
     // Fault Injection

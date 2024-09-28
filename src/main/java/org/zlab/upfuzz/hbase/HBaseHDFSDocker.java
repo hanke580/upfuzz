@@ -279,23 +279,12 @@ public class HBaseHDFSDocker extends Docker {
     }
 
     @Override
-    public Map<String, String> readSystemState() {
-        return null;
-    }
-
-    @Override
     public LogInfo grepLogInfo(Set<String> blackListErrorLog) {
         LogInfo logInfo = new LogInfo();
         Path filePath = Paths.get("/var/log/hdfs/*.log");
 
         constructLogInfo(logInfo, filePath, blackListErrorLog);
         return logInfo;
-    }
-
-    @Override
-    public Path getDataPath() {
-        return Paths.get(workdir.toString(),
-                "/persistent/hdfs_" + index + "/nndata");
     }
 
     public Path getWorkPath() {
