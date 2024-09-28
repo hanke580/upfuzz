@@ -122,10 +122,11 @@ public class CassandraDocker extends Docker {
         String pythonVersion = "python2";
         String jdkPath = "/usr/local/openjdk-8/";
         try {
+            String version = spStrings[spStrings.length - 1];
             int main_version = Integer
-                    .parseInt(spStrings[spStrings.length - 1].substring(0, 1));
+                    .parseInt(version.substring(0, 1));
             logger.debug("[HKLOG] original main version = " + main_version);
-            if (main_version > 3)
+            if (main_version > 3 && !version.equals("4.0.0"))
                 pythonVersion = "python3";
             if (main_version >= 5)
                 jdkPath = "/usr/lib/jvm/java-11-openjdk-amd64";

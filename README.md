@@ -495,7 +495,7 @@ if baseversion != build_version:
     print("WARNING: cqlsh was built against {}, but this server is {}.  All features may not work!".format(build_version, baseversion))
 ```
 
-### HBase
+### HBase daemon
 daemon
 * hbase version >= 2.4.0, use hbase_daemon3.py
 * hbase version < 2.4.0, use hbase_daemon2.py
@@ -504,14 +504,14 @@ Avoid FP: disable `list_snapshots` command in `hbase_config.json` when upgrading
 * 2.5.9/3.x/4.x: list_snapshots in format2 (with TTL)
 * 2.4.18/2.6.0: list_snapshots in format1 (without TTL)
 
-### Cassandra cqlsh daemon to the compatible version
-* [cqlsh_daemon2_1.py](src/main/resources/cqlsh_daemon2_1.py): cassandra 2.1
-* [cqlsh_daemon2.py](src/main/resources/cqlsh_daemon2.py): cassandra-2.2.8, cassandra-3.0.(15|16|17|30), cassandra-3.11.16
+### Cassandra daemon
+* [cqlsh_daemon2_1.py](src/main/resources/cqlsh_daemon2_1.py): 2.1
+* [cqlsh_daemon2.py](src/main/resources/cqlsh_daemon2.py): 2.2.8, 3.0.(15|16|17|30), 3.11.16, 4.0.0
 * [cqlsh_daemon3.py](src/main/resources/cqlsh_daemon3.py): N/A
 * [cqlsh_daemon4.py](src/main/resources/cqlsh_daemon4.py): 4.0.5, 4.0.12, 4.1.0, 4.1.4
 * [cqlsh_daemon5.py](src/main/resources/cqlsh_daemon5.py): 5.0-beta
 
-### hdfs daemon to version
+### HDFS daemon
 * FsShellDaemon2.java: hadoop-2.10.2
 * FsShellDaemon3.java: (> 3): 3.2.4, 3.3.0
 * FsShellDaemon_trunk.java: (>=3.3.4) hadoop-3.3.6, 3.4.0
