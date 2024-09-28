@@ -2,10 +2,6 @@ package org.zlab.upfuzz.fuzzingengine;
 
 import com.google.gson.GsonBuilder;
 import java.lang.reflect.Field;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * Configuration for the fuzzing engine
@@ -22,19 +18,6 @@ public class Config {
 
     public Config() {
         instance = new Configuration();
-
-        // Path for format coverage
-        if (instance.useFormatCoverage) {
-            try {
-                URL sysInfoURL = getClass().getResource(
-                        instance.system + "/"
-                                + instance.originalVersion);
-                Path sysInfoPath = Paths.get(sysInfoURL.toURI());
-            } catch (URISyntaxException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
     }
 
     public static class Configuration {
@@ -55,7 +38,6 @@ public class Config {
         public String jacocoAgentPath = null;
         public String system = null;
         public String depSystem = null;
-        public String initSeedDir = null;
 
         public String failureDir = null;
 
@@ -110,7 +92,6 @@ public class Config {
         public int firstSequenceMutationEpoch = 10;
         public int sequenceMutationEpoch = 80;
         public int firstConfigMutationEpoch = 3;
-        public int limitConfigForVersionDeltaRound = 100;
         public int configMutationEpoch = 20;
         public int mutationFailLimit = 15;
 
@@ -129,7 +110,6 @@ public class Config {
          * that we already think that this config is interesting,
          * which is not reasonable.
          * Also, with NYX, there's no need for doing this.
-         *
          * This can be enabled when using stacked tests and aiming
          * only for largest throughput.
          */
@@ -140,8 +120,7 @@ public class Config {
         // If choose to add command, 30% add multiple commands
         public double addCommandWithSameTypeProb = 0.3;
         public int addCommandWithSameTypeNum = 3;
-        // violent mutation, usually fewer
-        public int bothMutationEpoch = 20;
+
         public int testPlanMutationEpoch = 20;
         public int testPlanMutationRetry = 50;
         // Given a full-stop seed, we generate 20
@@ -202,7 +181,7 @@ public class Config {
         public boolean failureOver = false;
 
         // 0: only full-stop test using StackedTestPacket
-        // 1: Bug Reproduction: Full-Stop Test
+        // 1: N/A
         // 2: mixed test using MixedTestPlan
         // 3: Bug Reproduction: Rolling upgrade (given a test plan)
         // 4: full-stop upgrade + rolling upgrade iteratively (Final Version)
@@ -225,10 +204,6 @@ public class Config {
         public boolean enableLogCheck = true;
         public int grepLineNum = 4;
         public boolean filterLogBeforeUpgrade = false;
-
-        // ------------Priority Coverage-------------
-        public boolean usePriorityCov = false;
-        public double oldCovRatio = 0.4;
 
         // ---------------Test Graph-----------------
         public String testGraphDirPath = "graph";
@@ -266,12 +241,6 @@ public class Config {
         // Approach 2
         public boolean enableNyxInGroup2 = false;
 
-        // Approach 1: Four Queue Implementation
-        public double FC_VD_PROB_CorpusVersionDeltaFourQueue = 0.4;
-        public double FC_PROB_CorpusVersionDeltaFourQueue = 0.3;
-        public double BC_VD_PROB_CorpusVersionDeltaFourQueue = 0.2;
-        public double BC_PROB_CorpusVersionDeltaFourQueue = 0.1;
-
         // Approach 1: Five Queue Implementation with boundary: no boundary
         // delta
         public double FC_VD_PROB_CorpusVersionDeltaFiveQueueWithBoundary = 0.3;
@@ -279,15 +248,6 @@ public class Config {
         public double BC_VD_PROB_CorpusVersionDeltaFiveQueueWithBoundary = 0.1;
         public double BC_PROB_CorpusVersionDeltaFiveQueueWithBoundary = 0.1;
         public double BoundaryChange_PROB_CorpusVersionDeltaFiveQueueWithBoundary = 0.3;
-
-        // Approach 1: Six Queue Implementation with boundary: compute boundary
-        // delta
-        public double FC_VD_PROB_CorpusVersionDeltaSixQueueWithBoundary = 0.25;
-        public double FC_PROB_CorpusVersionDeltaSixQueueWithBoundary = 0.15;
-        public double BC_VD_PROB_CorpusVersionDeltaSixQueueWithBoundary = 0.1;
-        public double BC_PROB_CorpusVersionDeltaSixQueueWithBoundary = 0.1;
-        public double BoundaryChange_VD_PROB_CorpusVersionDeltaSixQueueWithBoundary = 0.25;
-        public double BoundaryChange_PROB_CorpusVersionDeltaSixQueueWithBoundary = 0.15;
 
         // Approach 2: Six Queue Implementation
         // Group1
@@ -299,45 +259,11 @@ public class Config {
 
         public double DROP_TEST_PROB_G2 = 0.1;
 
-        // Group2
-        // Seeds that trigger new coverage before version change
-        public double branchCovSeedChoiceProb = 0.1;
-        // Seeds that trigger new format before version change
-        public double formatCovSeedChoiceProb = 0.15;
-        // Seeds that trigger version delta before version change
-        public double branchDeltaSeedChoiceProb = 0.25;
-        // Seeds that trigger format delta before version change
-        public double formatDeltaSeedChoiceProb = 0.4;
-        // Seeds that trigger new coverage after upgrade
-        public double branchCovAfterUpgSeedChoiceProb = 0.1;
-        // Seeds that trigger new coverage after downgrade
-        public double branchCovAfterDowngSeedChoiceProb = 0;
-
-        // Approach 2: Eight Queue Implementation with boundary
-        // Group1
-        public double FC_VD_PROB_CorpusVersionDeltaEightQueueWithBoundary_G1 = 0.25;
-        public double FC_PROB_CorpusVersionDeltaEightQueueWithBoundary_G1 = 0.15;
-        public double BC_VD_PROB_CorpusVersionDeltaEightQueueWithBoundary_G1 = 0.1;
-        public double BC_PROB_CorpusVersionDeltaEightQueueWithBoundary_G1 = 0.1;
-        public double BoundaryChange_VD_PROB_CorpusVersionDeltaEightQueueWithBoundary_G1 = 0.25;
-        public double BoundaryChange_PROB_CorpusVersionDeltaEightQueueWithBoundary_G1 = 0.15;
-
-        // Group2
-        public double FC_VD_PROB_CorpusVersionDeltaEightQueueWithBoundary_G2 = 0.2;
-        public double FC_PROB_CorpusVersionDeltaEightQueueWithBoundary_G2 = 0.15;
-        public double BC_VD_PROB_CorpusVersionDeltaEightQueueWithBoundary_G2 = 0.15;
-        public double BC_PROB_CorpusVersionDeltaEightQueueWithBoundary_G2 = 0.05;
-        public double BC_After_Upgrade_PROB_CorpusVersionDeltaEightQueueWithBoundary_G2 = 0.05;
-        public double BC_After_Downgrade_PROB_CorpusVersionDeltaEightQueueWithBoundary_G2 = 0.05;
-        public double BoundaryChange_VD_PROB_CorpusVersionDeltaEightQueueWithBoundary_G2 = 0.2;
-        public double BoundaryChange_PROB_CorpusVersionDeltaEightQueueWithBoundary_G2 = 0.15;
-
         /**
          * ---------------Version Specific-----------------
          * To avoid FPs
          * If a command is supported only in the new/old version,
          * this can cause FP when comparing the read results.
-         *
          * Do not modify these default configurations!
          */
         // == cassandra ==
@@ -398,7 +324,6 @@ public class Config {
         public boolean enableQuota = true;
         public int MAX_CF_NUM = 7;
         public final String[] REGIONSERVERS = { "hregion1", "hregion2" };
-        public final String[] SERVERS = { "hmaster", "hregion1", "hregion2" };
         public int REGIONSERVER_PORT = 16020;
 
         public boolean eval_HBASE22503 = false;
