@@ -1349,24 +1349,13 @@ public class FuzzingClient {
         }
 
         // start up cluster
-        if (Config.getConf().debug) {
-            logger.info("[Fuzzing Client] Call to initialize executor");
-        }
         executor = initExecutor(testPlanPacket.getNodeNum(),
                 Config.getConf().useFormatCoverage,
                 configPath);
-
-        if (Config.getConf().debug) {
-            logger.info("[Fuzzing Client] Call to start up executor");
-        }
         boolean startUpStatus = startUpExecutor();
-        if (!startUpStatus) {
+        if (!startUpStatus)
             return null;
-        }
 
-        if (Config.getConf().debug) {
-            logger.info("[Fuzzing Client] started up executor");
-        }
         // LOG checking1
         long curTime2 = System.currentTimeMillis();
         Map<Integer, LogInfo> logInfoBeforeUpgrade = null;
@@ -1388,6 +1377,12 @@ public class FuzzingClient {
         if (Config.getConf().debug) {
             logger.info("[Fuzzing Client] completed the testing");
         }
+
+        if (Config.getConf().startUpClusterForDebugging) {
+            logger.info("[Debugging Mode] Start up the cluster only");
+            Utilities.sleepAndExit(36000);
+        }
+
         FeedBack[] testPlanFeedBacks = new FeedBack[nodeNum];
 
         long curTime = System.currentTimeMillis();

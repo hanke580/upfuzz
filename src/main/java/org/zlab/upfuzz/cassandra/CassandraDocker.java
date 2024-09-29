@@ -108,7 +108,7 @@ public class CassandraDocker extends Docker {
         fw = new FileWriter(envFile, false);
         for (String s : env) {
             if (Config.getConf().debug)
-                logger.info("env to be written: " + s);
+                logger.debug("env to be written: " + s);
             fw.write("export " + s + "\n");
         }
         fw.close();
