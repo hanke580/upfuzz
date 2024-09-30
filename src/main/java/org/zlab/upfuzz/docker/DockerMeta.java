@@ -136,9 +136,8 @@ public abstract class DockerMeta {
             throws IOException {
         String[] dockerCMD = Utilities.concatArray(
                 new String[] { "docker", "exec", containerName }, cmd);
+        // if (Config.getConf().debug)
         // logger.debug(String.join(" ", dockerCMD));
-        if (Config.getConf().debug)
-            logger.debug(String.join(" ", dockerCMD));
         return Utilities.exec(dockerCMD, workdir);
     }
 
