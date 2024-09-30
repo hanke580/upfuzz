@@ -407,9 +407,9 @@ public abstract class DockerCluster implements IDockerCluster {
                     this.uniPartition(nodeIndex);
                     logger.info("[eval CASSANDRA15727] uni-partition node "
                             + nodeIndex);
-                    // sleep 10s
+                    // sleep ?s
                     try {
-                        Thread.sleep(10000);
+                        Thread.sleep(5000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
