@@ -151,6 +151,8 @@ public class Config {
 
         public int rebuildConnectionSecs = 5;
 
+        public boolean eval_CASSANDRA15727 = false;
+
         // ------------Configuration Testing-------------
         public boolean verifyConfig = false;
         public String configDir = "configtests";

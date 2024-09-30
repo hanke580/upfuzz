@@ -396,6 +396,30 @@ public abstract class DockerCluster implements IDockerCluster {
         if (dockerStates[nodeIndex].alive) {
             logger.info(String.format("Upgrade Node[%d]", nodeIndex));
             dockers[nodeIndex].shutdown();
+
+            // Only for debug usage
+            if (Config.getConf().eval_CASSANDRA15727) {
+                logger.info(
+                        "[eval CASSANDRA15727] is enabled: " +
+                                "special fault inject during upgrade");
+                // uni-partition current node for N seconds during upgrade
+                new Thread(() -> {
+                    this.uniPartition(nodeIndex);
+                    logger.info("[eval CASSANDRA15727] uni-partition node "
+                            + nodeIndex);
+                    // sleep 10s
+                    try {
+                        Thread.sleep(10000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    this.uniPartitionRecover(nodeIndex);
+                    logger.info(
+                            "[eval CASSANDRA15727] uni-partition recover node "
+                                    + nodeIndex);
+                }).start();
+            }
+
             dockers[nodeIndex].upgrade();
             dockerStates[nodeIndex].dockerVersion = DockerMeta.DockerVersion.upgraded;
             logger.info(String.format("Node[%d] is upgraded", nodeIndex));
@@ -416,6 +440,38 @@ public abstract class DockerCluster implements IDockerCluster {
         dockers[nodeIndex].downgrade();
         dockerStates[nodeIndex].dockerVersion = DockerMeta.DockerVersion.original;
         logger.info(String.format("Node[%d] is downgraded", nodeIndex));
+    }
+
+    // Uni Partition a node
+    // It cannot receive any packets from other nodes, but can send packets
+    public boolean uniPartition(int nodeIndex) {
+        if (!checkIndex(nodeIndex))
+            return false;
+        if (!dockerStates[nodeIndex].alive)
+            return false;
+        boolean ret = true;
+        for (int i = 0; i < nodeNum; i++) {
+            if (i != nodeIndex) {
+                if (network.uniPartition(dockers[nodeIndex], dockers[i]))
+                    ret = false;
+            }
+        }
+        return ret;
+    }
+
+    public boolean uniPartitionRecover(int nodeIndex) {
+        if (!checkIndex(nodeIndex))
+            return false;
+        if (!dockerStates[nodeIndex].alive)
+            return false;
+        boolean ret = true;
+        for (int i = 0; i < nodeNum; i++) {
+            if (i != nodeIndex) {
+                if (network.uniPartitionRecover(dockers[nodeIndex], dockers[i]))
+                    ret = false;
+            }
+        }
+        return ret;
     }
 
     public boolean linkFailure(int nodeIndex1, int nodeIndex2) {

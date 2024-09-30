@@ -180,15 +180,13 @@ public abstract class Executor implements IExecutor {
 
     public boolean execute(TestPlan testPlan) {
         // Any exception happen during this process, we will report it.
-        eventIdx = 0;
-
         boolean status = true;
         for (eventIdx = 0; eventIdx < testPlan.getEvents().size(); eventIdx++) {
             Event event = testPlan.getEvents().get(eventIdx);
             logger.info(String.format("\nhandle %s\n", event));
             // String command = String.format("handle %d %s ", eventIdx, event);
 
-            Long initTime = System.currentTimeMillis();
+            long initTime = System.currentTimeMillis();
             if (event instanceof Fault) {
                 if (!handleFault((Fault) event)) {
                     // If fault injection fails, keep executing

@@ -81,7 +81,7 @@ public class Network {
         return ret1 && ret2;
     }
 
-    private boolean uniPartition(Docker local, Docker remote) {
+    public boolean uniPartition(Docker local, Docker remote) {
         // Make node1 cannot receive any packets from node2
         // Execute in node1
         try {
@@ -97,7 +97,7 @@ public class Network {
         return true;
     }
 
-    private boolean uniPartitionRecover(Docker local, Docker remote) {
+    public boolean uniPartitionRecover(Docker local, Docker remote) {
         try {
             local.runInContainerWithPrivilege(new String[] {
                     "iptables", "-D", "INPUT", "-s", remote.networkIP, "-j",
