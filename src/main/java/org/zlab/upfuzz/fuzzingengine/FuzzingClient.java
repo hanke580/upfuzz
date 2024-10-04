@@ -280,7 +280,6 @@ public class FuzzingClient {
 
     public static Executor initExecutor(int nodeNum,
             boolean collectFormatCoverage,
-            Set<String> targetSystemStates,
             Path configPath, int testDirection) {
         String system = Config.getConf().system;
         switch (system) {

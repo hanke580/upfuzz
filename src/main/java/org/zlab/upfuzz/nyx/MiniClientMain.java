@@ -138,7 +138,7 @@ public class MiniClientMain {
             } else {
                 // FIXME: Why in nyx, direction is always 0?
                 executor = FuzzingClient.initExecutor(
-                        1, Config.getConf().useFormatCoverage, null,
+                        1, Config.getConf().useFormatCoverage,
                         defaultConfigPath, 0);
             }
             boolean startUpStatus = executor.startup();
@@ -162,12 +162,12 @@ public class MiniClientMain {
                 if (!Config.getConf().useVersionDelta) {
                     executor = FuzzingClient.initExecutor(
                             defaultStackedTestPacket.nodeNum,
-                            Config.getConf().useFormatCoverage, null,
+                            Config.getConf().useFormatCoverage,
                             defaultConfigPath, 0);
                 } else {
                     executor = FuzzingClient.initExecutor(
                             defaultStackedTestPacket.nodeNum,
-                            Config.getConf().useFormatCoverage, null,
+                            Config.getConf().useFormatCoverage,
                             defaultConfigPath,
                             defaultStackedTestPacket.testDirection);
                 }
@@ -183,7 +183,7 @@ public class MiniClientMain {
                 } else {
                     executor = FuzzingClient.initExecutor(
                             defaultTestPlanPacket.getNodeNum(),
-                            Config.getConf().useFormatCoverage, null,
+                            Config.getConf().useFormatCoverage,
                             defaultConfigPath,
                             defaultTestPlanPacket.testDirection);
                 }
