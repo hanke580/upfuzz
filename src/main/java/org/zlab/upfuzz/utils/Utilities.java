@@ -24,6 +24,7 @@ import org.jacoco.core.data.ExecutionDataStore;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.zlab.upfuzz.CommandSequence;
+import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.FeedBack;
 import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPacket;
@@ -138,6 +139,19 @@ public class Utilities {
 
     public static boolean hasNewBits(ExecutionDataStore curCoverage,
             ExecutionDataStore testSequenceCoverage) {
+        if (Config.getConf().enableHitCount) {
+            return hasNewBitsAccum(curCoverage, testSequenceCoverage);
+        } else {
+            if (Config.getConf().debugCoverage) {
+                return hasNewBitsDebug(curCoverage, testSequenceCoverage);
+            } else {
+                return hasNewBitsBoolean(curCoverage, testSequenceCoverage);
+            }
+        }
+    }
+
+    private static boolean hasNewBitsBoolean(ExecutionDataStore curCoverage,
+            ExecutionDataStore testSequenceCoverage) {
 
         if (testSequenceCoverage == null)
             return false;
@@ -148,7 +162,7 @@ public class Utilities {
             for (final ExecutionData testSequenceData : testSequenceCoverage
                     .getContents()) {
 
-                final Long id = Long.valueOf(testSequenceData.getId());
+                final long id = testSequenceData.getId();
                 final ExecutionData curData = curCoverage.get(id);
 
                 // For one class, merge the coverage
@@ -189,7 +203,7 @@ public class Utilities {
         }
     }
 
-    public static boolean hasNewBitsDebug(ExecutionDataStore curCoverage,
+    private static boolean hasNewBitsDebug(ExecutionDataStore curCoverage,
             ExecutionDataStore testSequenceCoverage) {
 
         if (testSequenceCoverage == null)
@@ -202,7 +216,7 @@ public class Utilities {
             for (final ExecutionData testSequenceData : testSequenceCoverage
                     .getContents()) {
 
-                final Long id = Long.valueOf(testSequenceData.getId());
+                final long id = testSequenceData.getId();
                 final ExecutionData curData = curCoverage.get(id);
 
                 // For one class, merge the coverage
@@ -283,8 +297,7 @@ public class Utilities {
         } else {
             for (final ExecutionData testSequenceData : testSequenceCoverage
                     .getContents()) {
-
-                final Long id = Long.valueOf(testSequenceData.getId());
+                final long id = testSequenceData.getId();
                 final ExecutionData curData = curCoverage.get(id);
 
                 // For one class, merge the coverage
@@ -294,7 +307,20 @@ public class Utilities {
                     final int[] testSequenceProbes = testSequenceData
                             .getProbes();
                     for (int i = 0; i < curProbes.length; i++) {
-                        if (curProbes[i] < testSequenceProbes[i]) {
+                        if (curProbes[i] < testSequenceProbes[i]
+                                && getBucketIndex(
+                                        curProbes[i]) < getBucketIndex(
+                                                testSequenceProbes[i])) {
+                            if (Config.getConf().debugHitCount) {
+                                logger.debug("[Coverage] class "
+                                        + testSequenceData.getName()
+                                        + " has a new coverage" + " curProb = "
+                                        + curProbes[i] + " curBucket = "
+                                        + getBucketIndex(curProbes[i])
+                                        + " testProb = " + testSequenceProbes[i]
+                                        + " curBucket = " + getBucketIndex(
+                                                testSequenceProbes[i]));
+                            }
                             return true;
                         }
                     }
@@ -395,6 +421,24 @@ public class Utilities {
             }
             return false;
         }
+    }
+
+    private static int getBucketIndex(int exec_count) {
+        if (exec_count == 1)
+            return 0;
+        if (exec_count == 2)
+            return 1;
+        if (exec_count == 3)
+            return 2;
+        if (exec_count >= 4 && exec_count <= 7)
+            return 3;
+        if (exec_count >= 8 && exec_count <= 15)
+            return 4;
+        if (exec_count >= 16 && exec_count <= 31)
+            return 5;
+        if (exec_count >= 32 && exec_count <= 127)
+            return 6;
+        return 7; // For 128+ executions
     }
 
     public static Pair<Integer, Integer> getCoverageStatus(

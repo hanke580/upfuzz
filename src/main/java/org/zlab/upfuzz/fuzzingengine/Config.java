@@ -139,6 +139,8 @@ public class Config {
 
         // ------------Branch Coverage------------
         public boolean useBranchCoverage = true;
+        public boolean enableHitCount = false;
+        public boolean debugHitCount = false;
         public boolean collUpFeedBack = true;
         public boolean collDownFeedBack = true;
 
