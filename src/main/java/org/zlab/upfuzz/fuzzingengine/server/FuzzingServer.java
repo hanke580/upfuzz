@@ -117,7 +117,18 @@ public class FuzzingServer {
     private static final Path formatCoverageLogPath = Paths
             .get("format_coverage.log");
 
-    // Coverage
+    // ------------------- Version Delta -------------------
+    // Matchable Format (formats that exist in both versions)
+    Map<String, Map<String, String>> matchableClassInfo;
+    // Matchable Modified Format (formats that exist in both versions and the
+    // usage is modified)
+    Map<String, Map<String, String>> matchableModifiedClassInfo;
+
+    // 2-group version delta
+    public BlockingQueue<StackedTestPacket> stackedTestPacketsQueueVersionDelta;
+    public InterestingTestsCorpus testBatchCorpus;
+
+    // ------------------- Branch Coverage -------------------
     // before upgrade
     public static int oriCoveredBranches = 0;
     public static int oriProbeNum = 0;
@@ -131,16 +142,13 @@ public class FuzzingServer {
     public static int oriCoveredBranchesAfterDowngrade = 0;
     public static int oriProbeNumAfterDowngrade = 0;
 
-    public static List<Pair<Integer, Integer>> oriBCAlongTime = new ArrayList<>(); // time:
-    public static List<Pair<Integer, Integer>> upBCAlongTimeAfterUpgrade = new ArrayList<>(); // time:
-    public static List<Pair<Integer, Integer>> upBCCoverageAlongTime = new ArrayList<>(); // time:
-    public static List<Pair<Integer, Integer>> oriBCAlongTimeAfterDowngrade = new ArrayList<>(); // time:
+    public static List<Pair<Integer, Integer>> oriBCAlongTime = new ArrayList<>();
+    public static List<Pair<Integer, Integer>> upBCAlongTimeAfterUpgrade = new ArrayList<>();
+    public static List<Pair<Integer, Integer>> upBCCoverageAlongTime = new ArrayList<>();
+    public static List<Pair<Integer, Integer>> oriBCAlongTimeAfterDowngrade = new ArrayList<>();
 
     public static long lastTimePoint = 0;
-    public BlockingQueue<StackedTestPacket> stackedTestPacketsQueueVersionDelta;
-    public InterestingTestsCorpus testBatchCorpus;
     public long startTime;
-
     // Execute a test in old version
     ExecutionDataStore curOriCoverage;
     // Coverage after upgrade to new version
@@ -234,6 +242,19 @@ public class FuzzingServer {
                         null,
                         null,
                         null);
+
+                // Compute matchableClassInfo
+                matchableClassInfo = Utilities.computeMF(
+                        Objects.requireNonNull(Utilities
+                                .loadMapFromFile(oriFormatInfoFolder.resolve(
+                                        Config.getConf().baseClassInfoFileName))),
+                        Objects.requireNonNull(Utilities
+                                .loadMapFromFile(
+                                        upgradeFormatInfoFolder.resolve(
+                                                Config.getConf().baseClassInfoFileName))));
+
+                oriObjCoverage.setMatchableClassInfo(matchableClassInfo);
+                upObjCoverage.setMatchableClassInfo(matchableClassInfo);
             }
             Runtime.initWriter(formatCoverageLogPath);
         }
@@ -1198,27 +1219,6 @@ public class FuzzingServer {
         }
     }
 
-    public static void addSeedToCorpus(Corpus corpus,
-            Seed seed, int score, boolean newOriBC,
-            boolean newOriFC, boolean newBCAfterUpgrade,
-            boolean newOriBoundaryChange, boolean newModifiedFormatCoverage) {
-        seed.score = score;
-        corpus.addSeed(seed, newOriBC, newOriFC, newBCAfterUpgrade,
-                newOriBoundaryChange, newModifiedFormatCoverage);
-    }
-
-    public static void addSeedToCorpus(Corpus corpus,
-            Seed seed, int score,
-            boolean newOriBC, boolean newUpBC, boolean newOriFC,
-            boolean newUpFC, boolean newBCAfterUpgrade,
-            boolean newBCAfterDowngrade, boolean newOriBoundaryChange,
-            boolean newUpBoundaryChange, boolean newModifiedFormatCoverage) {
-        seed.score = score;
-        corpus.addSeed(seed, newOriBC, newUpBC, newOriFC, newUpFC,
-                newBCAfterUpgrade, newBCAfterDowngrade, newOriBoundaryChange,
-                newUpBoundaryChange, newModifiedFormatCoverage);
-    }
-
     public synchronized void updateStatus(
             TestPlanFeedbackPacket testPlanFeedbackPacket) {
 
@@ -1305,7 +1305,6 @@ public class FuzzingServer {
         for (FeedbackPacket feedbackPacket : stackedFeedbackPacket
                 .getFpList()) {
             finishedTestID++;
-            int score = 0;
 
             boolean newOldVersionBranchCoverage = false;
             boolean newNewVersionBranchCoverage = false;
@@ -1361,9 +1360,8 @@ public class FuzzingServer {
                 }
             }
 
-            addSeedToCorpus(corpus,
-                    testID2Seed.get(feedbackPacket.testPacketID),
-                    score, newOldVersionBranchCoverage,
+            corpus.addSeed(testID2Seed.get(feedbackPacket.testPacketID),
+                    newOldVersionBranchCoverage,
                     newFormatCoverage, newNewVersionBranchCoverage,
                     newBoundaryChange, newModifiedFormatCoverage);
 
@@ -1408,7 +1406,7 @@ public class FuzzingServer {
         System.out.println();
     }
 
-    // Used for single group mechanism: always upgrade
+    // One Group VD
     public synchronized void analyzeFeedbackFromVersionDelta(
             VersionDeltaFeedbackPacketApproach1 versionDeltaFeedbackPacket) {
         logger.debug("analyzeFeedbackFromVersionDelta");
@@ -1478,21 +1476,24 @@ public class FuzzingServer {
 
             finishedTestID++;
             finishedTestIdAgentGroup2++;
-            int score = 0;
 
             // Branch coverage
+            boolean newBCVD = false;
             boolean newOriBC = false;
             boolean newUpBCAfterUpgrade = false;
-
             boolean newUpBC = false;
             boolean newOriBCAfterDowngrade = false;
-            // Format coverage
-            boolean newOriFC = false;
-            boolean newOriBoundaryChange = false;
-            boolean newUpFC = false;
-            boolean newUpBoundaryChange = false;
 
-            // Merge all the feedbacks
+            // Format coverage
+            boolean newFCVD = false;
+            boolean newOriFC = false;
+            boolean newMatchableOriFC = false;
+            boolean newUpFC = false;
+            boolean newMatchableUpFC = false;
+            boolean newUpBoundaryChange = false;
+            boolean newOriBoundaryChange = false;
+
+            // Merge all feedbacks
             FeedBack fbUpgrade = mergeCoverage(
                     versionDeltaFeedbackPacketUp.feedBacks);
             FeedBack fbDowngrade = mergeCoverage(
@@ -1523,6 +1524,10 @@ public class FuzzingServer {
                         fbDowngrade.downgradedCodeCoverage);
                 newOriBCAfterDowngrade = true;
             }
+            // Compute BC version delta
+            newBCVD = newOriBC ^ newUpBC;
+
+            // Compute format coverage
             if (Config.getConf().useFormatCoverage) {
                 if (versionDeltaFeedbackPacketUp.formatCoverage != null) {
                     FormatCoverageStatus oriFormatCoverageStatus = oriObjCoverage
@@ -1536,6 +1541,8 @@ public class FuzzingServer {
                         newOriFC = true;
                     if (oriFormatCoverageStatus.isBoundaryChange())
                         newOriBoundaryChange = true;
+                    if (oriFormatCoverageStatus.isMatchableNewFormat())
+                        newMatchableOriFC = true;
                 } else {
                     logger.info("Null format coverage");
                 }
@@ -1551,9 +1558,12 @@ public class FuzzingServer {
                         newUpFC = true;
                     if (upFormatCoverageStatus.isBoundaryChange())
                         newUpBoundaryChange = true;
+                    if (upFormatCoverageStatus.isMatchableNewFormat())
+                        newMatchableUpFC = true;
                 } else {
                     logger.info("Null format coverage");
                 }
+                newFCVD = newMatchableOriFC ^ newMatchableUpFC;
             }
 
             // Update graph
@@ -1573,13 +1583,14 @@ public class FuzzingServer {
                         versionDeltaFeedbackPacketUp.inconsistencyReport);
             }
 
-            // FIXME: modified FC is not incorporated with version delta
-            addSeedToCorpus(corpus, testID2Seed.get(testPacketID),
-                    score, newOriBC, newUpBC, newOriFC, newUpFC,
+            assert corpus instanceof CorpusVersionDeltaFiveQueueWithBoundary;
+            corpus.addSeed(testID2Seed.get(testPacketID),
+                    newOriBC, newUpBC, newOriFC, newUpFC,
                     newUpBCAfterUpgrade, newOriBCAfterDowngrade,
-                    newOriBoundaryChange, newUpBoundaryChange, false);
+                    newOriBoundaryChange, newUpBoundaryChange, false, newBCVD,
+                    newFCVD);
         }
-        // update testid2Seed, no use anymore
+        // update testId2Seed, no use anymore
         for (int testID : versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.testIDs) {
             testID2Seed.remove(testID);
         }
@@ -1611,6 +1622,7 @@ public class FuzzingServer {
         System.out.println();
     }
 
+    // Two Group VD: G1
     public synchronized void analyzeFeedbackFromVersionDeltaGroup1(
             VersionDeltaFeedbackPacketApproach2 versionDeltaFeedbackPacket) {
         int startTestID = 0;
@@ -1640,7 +1652,6 @@ public class FuzzingServer {
         Path failureDir = null;
 
         for (int i = 0; i < feedbackLength; i++) {
-            // handle invariant
             TestPacket testPacket = versionDeltaFeedbackPacket.tpList.get(i);
             FeedbackPacket versionDeltaFeedbackPacketUp = versionDeltaFeedbackPacketsUp
                     .get(i);
@@ -1648,13 +1659,12 @@ public class FuzzingServer {
                     .get(i);
             finishedTestID++;
             finishedTestIdAgentGroup1++;
-            int score = 0;
 
             boolean newOriBC = false;
             boolean newUpBC = false;
-            boolean oriNewFormat = false;
+            boolean newOriFC = false;
             boolean oriBoundaryChange = false;
-            boolean upNewFormat = false;
+            boolean newUpFC = false;
             boolean upBoundaryChange = false;
 
             // Merge all the feedbacks
@@ -1694,7 +1704,7 @@ public class FuzzingServer {
                                 Config.getConf().checkSpecialDumpIds);
 
                 if (oriFormatCoverageStatus.isNewFormat())
-                    oriNewFormat = true;
+                    newOriFC = true;
                 if (oriFormatCoverageStatus.isBoundaryChange())
                     oriBoundaryChange = true;
 
@@ -1710,7 +1720,7 @@ public class FuzzingServer {
                                 Config.getConf().updateInvariantBrokenFrequency,
                                 Config.getConf().checkSpecialDumpIds);
                 if (upFormatCoverageStatus.isNewFormat())
-                    upNewFormat = true;
+                    newUpFC = true;
                 if (upFormatCoverageStatus.isBoundaryChange())
                     upBoundaryChange = true;
                 logger.debug("Check up format coverage done");
@@ -1718,12 +1728,12 @@ public class FuzzingServer {
 
             boolean hasFeedbackInducedBranchVersionDelta = newOriBC
                     ^ newUpBC;
-            boolean hasFeedbackInducedFormatVersionDelta = oriNewFormat
-                    ^ upNewFormat;
+            boolean hasFeedbackInducedFormatVersionDelta = newOriFC
+                    ^ newUpFC;
             boolean hasFeedbackInducedNewBranchCoverage = newOriBC
                     || newUpBC;
-            boolean hasFeedbackInducedNewFormatCoverage = oriNewFormat
-                    || upNewFormat;
+            boolean hasFeedbackInducedNewFormatCoverage = newOriFC
+                    || newUpFC;
             boolean hasFeedbackInducedNewBrokenBoundary = upBoundaryChange
                     || oriBoundaryChange;
 
@@ -1782,20 +1792,15 @@ public class FuzzingServer {
                                 .get(i).testPacketID);
             }
 
-            // FIXME: modified FC is not incorporated with version delta
-            addSeedToCorpus(corpus,
+            corpus.addSeed(
                     testID2Seed.get(versionDeltaFeedbackPacketUp.testPacketID),
-                    score,
-                    newOriBC,
-                    newUpBC,
-                    oriNewFormat, upNewFormat, false, false, oriBoundaryChange,
-                    upBoundaryChange, false);
+                    newOriBC, newUpBC, newOriFC, newUpFC, false, false,
+                    oriBoundaryChange, upBoundaryChange, false,
+                    newOriBC ^ newUpBC, newOriFC ^ newUpFC);
 
             graph.updateNodeCoverageGroup1(
                     versionDeltaFeedbackPacketUp.testPacketID,
-                    newOriBC,
-                    newUpBC,
-                    oriNewFormat, upNewFormat);
+                    newOriBC, newUpBC, newOriFC, newUpFC);
         }
 
         if (versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.hasERRORLog) {
@@ -1857,19 +1862,6 @@ public class FuzzingServer {
         printInfo();
         System.out.println();
 
-        // StackedTestPacket stackedTestPacketVersionDelta = new
-        // StackedTestPacket(
-        // versionDeltaFeedbackPacket.nodeNum,
-        // versionDeltaFeedbackPacket.configFileName);
-        // StackedTestPacket stackedTestPacketBranchCoverage = new
-        // StackedTestPacket(
-        // versionDeltaFeedbackPacket.nodeNum,
-        // versionDeltaFeedbackPacket.configFileName);
-        // StackedTestPacket stackedTestPacketFormatCoverage = new
-        // StackedTestPacket(
-        // versionDeltaFeedbackPacket.nodeNum,
-        // versionDeltaFeedbackPacket.configFileName);
-
         if (Config.getConf().debug) {
             String reportDir = "fullSequences/lessPriority";
             if (formatVersionDeltaInducedTpIds.size() > 0
@@ -1887,21 +1879,18 @@ public class FuzzingServer {
             saveFullSequenceBasedOnType(reportDir, reportName,
                     versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.fullSequence);
         }
-        // addOneBatchToSharedQueue(versionDeltaFeedbackPacket);
     }
 
+    // Two Group VD: G2
     public synchronized void analyzeFeedbackFromVersionDeltaGroup2(
             VersionDeltaFeedbackPacketApproach2 versionDeltaFeedbackPacket) {
-        if (versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade == null) {
-            analyzeFeedbackFromVersionDeltaGroup2WithoutDowngrade(
-                    versionDeltaFeedbackPacket);
-        } else {
-            analyzeFeedbackFromVersionDeltaGroup2WithDowngrade(
-                    versionDeltaFeedbackPacket);
-        }
+        assert versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade == null;
+        analyzeFeedbackFromVersionDeltaGroup2WithoutDowngrade(
+                versionDeltaFeedbackPacket);
     }
 
-    public synchronized void analyzeFeedbackFromVersionDeltaGroup2WithoutDowngrade(
+    // Two Group VD: G2 without downgrade
+    private synchronized void analyzeFeedbackFromVersionDeltaGroup2WithoutDowngrade(
             VersionDeltaFeedbackPacketApproach2 versionDeltaFeedbackPacket) {
         if (versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.upgradeSkipped) {
             // upgrade process is skipped
@@ -1952,10 +1941,8 @@ public class FuzzingServer {
         int feedbackLength = versionDeltaFeedbackPacketsUp.size();
         System.out.println("feedback length: " + feedbackLength);
         for (FeedbackPacket versionDeltaFeedbackPacketUp : versionDeltaFeedbackPacketsUp) {
-            // handle invariant
             finishedTestID++;
             finishedTestIdAgentGroup2++;
-            int score = 0;
 
             boolean newBCAfterUpgrade = false;
 
@@ -1985,10 +1972,9 @@ public class FuzzingServer {
                         versionDeltaFeedbackPacketUp.inconsistencyReport);
             }
 
-            addSeedToCorpus(corpus,
+            corpus.addSeed(
                     testID2Seed.get(versionDeltaFeedbackPacketUp.testPacketID),
-                    score, false, false, false, false, newBCAfterUpgrade,
-                    false, false, false, false);
+                    false, false, newBCAfterUpgrade, false, false);
             // FIXME: it's already updated in Group1, do we update it again in
             // group2?
             graph.updateNodeCoverageGroup2(
@@ -2011,187 +1997,6 @@ public class FuzzingServer {
                     versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.errorLogReport,
                     startTestID,
                     endTestID, true);
-        }
-
-        printInfo();
-        System.out.println();
-    }
-
-    public synchronized void analyzeFeedbackFromVersionDeltaGroup2WithDowngrade(
-            VersionDeltaFeedbackPacketApproach2 versionDeltaFeedbackPacket) {
-
-        if (versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.upgradeSkipped) {
-            // upgrade process is skipped
-            logger.info("upgrade process is skipped");
-        }
-
-        if (versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.upgradeSkipped) {
-            // upgrade process is skipped
-            logger.info("downgrade process is skipped");
-        }
-
-        Path failureDir = null;
-
-        int startTestID = 0;
-        int endTestID = 0;
-        if (versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.getFpList()
-                .size() > 0) {
-            startTestID = versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade
-                    .getFpList()
-                    .get(0).testPacketID;
-            endTestID = versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade
-                    .getFpList()
-                    .get(versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade
-                            .getFpList().size()
-                            - 1).testPacketID;
-        }
-
-        if (versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.isUpgradeProcessFailed) {
-            failureDir = createFailureDir(
-                    versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.configFileName);
-            saveFullSequence(failureDir,
-                    versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.fullSequence);
-            saveFullStopCrashReport(failureDir,
-                    versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.upgradeFailureReport,
-                    startTestID,
-                    endTestID, true);
-            if (versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.isDowngradeProcessFailed) {
-                saveFullStopCrashReport(failureDir,
-                        versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.downgradeFailureReport,
-                        startTestID,
-                        endTestID, false);
-            }
-            finishedTestID++;
-            finishedTestIdAgentGroup2++;
-        } else if (versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.isDowngradeProcessFailed) {
-            failureDir = createFailureDir(
-                    versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.configFileName);
-            saveFullSequence(failureDir,
-                    versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.fullSequence);
-            saveFullStopCrashReport(failureDir,
-                    versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.downgradeFailureReport,
-                    startTestID,
-                    endTestID, false);
-            finishedTestID++;
-            finishedTestIdAgentGroup2++;
-        }
-        FuzzingServerHandler.printClientNum();
-
-        List<FeedbackPacket> versionDeltaFeedbackPacketsUp = versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade
-                .getFpList();
-        List<FeedbackPacket> versionDeltaFeedbackPacketsDown = versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade
-                .getFpList();
-
-        for (FeedbackPacket fp : versionDeltaFeedbackPacketsUp) {
-            if (fp.isInconsistencyInsignificant) {
-                insignificantInconsistenciesIn.add(fp.testPacketID);
-            }
-        }
-
-        for (FeedbackPacket fp : versionDeltaFeedbackPacketsDown) {
-            if (fp.isInconsistencyInsignificant) {
-                insignificantInconsistenciesIn.add(fp.testPacketID);
-            }
-        }
-
-        int feedbackLength = versionDeltaFeedbackPacketsUp.size();
-        logger.debug("feedback length: " + feedbackLength);
-        for (int i = 0; i < feedbackLength; i++) {
-            // handle invariant
-            FeedbackPacket versionDeltaFeedbackPacketUp = versionDeltaFeedbackPacketsUp
-                    .get(i);
-            FeedbackPacket versionDeltaFeedbackPacketDown = versionDeltaFeedbackPacketsDown
-                    .get(i);
-            finishedTestID++;
-            finishedTestIdAgentGroup2++;
-            int score = 0;
-
-            boolean newBCAfterUpgrade = false;
-            boolean newBCAfterDowngrade = false;
-
-            // Merge all the feedbacks
-            FeedBack fbUpgrade = mergeCoverage(
-                    versionDeltaFeedbackPacketUp.feedBacks);
-            FeedBack fbDowngrade = mergeCoverage(
-                    versionDeltaFeedbackPacketDown.feedBacks);
-
-            // priority feature is disabled
-            if (Utilities.hasNewBits(
-                    curUpCoverageAfterUpgrade,
-                    fbUpgrade.upgradedCodeCoverage)) {
-                // Write Seed to Disk + Add to Corpus
-                newBCAfterUpgrade = true;
-            }
-            if (Utilities.hasNewBits(curOriCoverageAfterDowngrade,
-                    fbDowngrade.downgradedCodeCoverage)) {
-                newBCAfterDowngrade = true;
-            }
-
-            curUpCoverageAfterUpgrade.merge(fbUpgrade.upgradedCodeCoverage);
-            curOriCoverageAfterDowngrade
-                    .merge(fbDowngrade.downgradedCodeCoverage);
-
-            if (versionDeltaFeedbackPacketUp.isInconsistent) {
-                if (failureDir == null) {
-                    failureDir = createFailureDir(
-                            versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.configFileName);
-                    saveFullSequence(failureDir,
-                            versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.fullSequence);
-                }
-                saveInconsistencyReport(failureDir,
-                        versionDeltaFeedbackPacketUp.testPacketID,
-                        versionDeltaFeedbackPacketUp.inconsistencyReport);
-            }
-            if (versionDeltaFeedbackPacketDown.isInconsistent) {
-                if (failureDir == null) {
-                    failureDir = createFailureDir(
-                            versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.configFileName);
-                    saveFullSequence(failureDir,
-                            versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.fullSequence);
-                }
-                saveInconsistencyReport(failureDir,
-                        versionDeltaFeedbackPacketDown.testPacketID,
-                        versionDeltaFeedbackPacketDown.inconsistencyReport);
-            }
-
-            addSeedToCorpus(corpus,
-                    testID2Seed.get(versionDeltaFeedbackPacketUp.testPacketID),
-                    score, false, false, false, false, newBCAfterUpgrade,
-                    newBCAfterDowngrade, false, false, false);
-            // FIXME: it's already updated in Group1, do we update it again in
-            // group2?
-            graph.updateNodeCoverageGroup2(
-                    versionDeltaFeedbackPacketUp.testPacketID,
-                    newBCAfterUpgrade, newBCAfterDowngrade);
-
-        }
-        // update testid2Seed, no use anymore
-        for (TestPacket tp : versionDeltaFeedbackPacket.tpList) {
-            testID2Seed.remove(tp.testPacketID);
-        }
-        if (versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.hasERRORLog) {
-            if (failureDir == null) {
-                failureDir = createFailureDir(
-                        versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.configFileName);
-                saveFullSequence(failureDir,
-                        versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.fullSequence);
-            }
-            saveErrorReport(failureDir,
-                    versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.errorLogReport,
-                    startTestID,
-                    endTestID, true);
-        }
-        if (versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.hasERRORLog) {
-            if (failureDir == null) {
-                failureDir = createFailureDir(
-                        versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.configFileName);
-                saveFullSequence(failureDir,
-                        versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.fullSequence);
-            }
-            saveErrorReport(failureDir,
-                    versionDeltaFeedbackPacket.stackedFeedbackPacketDowngrade.errorLogReport,
-                    startTestID,
-                    endTestID, false);
         }
 
         printInfo();

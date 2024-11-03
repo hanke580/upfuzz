@@ -237,6 +237,10 @@ bin/hbase_cl.sh
 ```
 
 ## Version Delta Testing
+
+Latest implementation only applies to one-group set up.
+
+
 ### Cassandra
 ```bash
 git clone git@github.com:zlab-purdue/upfuzz.git

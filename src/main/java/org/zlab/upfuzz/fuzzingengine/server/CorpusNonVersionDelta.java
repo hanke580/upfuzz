@@ -53,7 +53,8 @@ public class CorpusNonVersionDelta extends Corpus {
     public void addSeed(Seed seed, boolean newOriBC, boolean newUpBC,
             boolean newOriFC, boolean newUpFC, boolean newBCAfterUpgrade,
             boolean newBCAfterDowngrade, boolean newOriBoundaryChange,
-            boolean newUpBoundaryChange, boolean newModifiedFormatCoverage) {
+            boolean newUpBoundaryChange, boolean newModifiedFormatCoverage,
+            boolean newBCVD, boolean newFCVD) {
         // One seed could exist in multiple queues
         if (newOriFC) {
             cycleQueues[0].addSeed(seed);

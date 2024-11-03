@@ -53,11 +53,10 @@ public class CorpusVersionDeltaFiveQueueWithBoundary extends Corpus {
     public void addSeed(Seed seed, boolean newOriBC, boolean newUpBC,
             boolean newOriFC, boolean newUpFC, boolean newBCAfterUpgrade,
             boolean newBCAfterDowngrade, boolean newOriBoundaryChange,
-            boolean newUpBoundaryChange, boolean newModifiedFormatCoverage) {
-        // One seed can occur in multiple queues (representing higher energy)
-        // However, for one coverage, it can only exist in either vd or non-vd
-        // queue
-        if (newOriFC ^ newUpFC) {
+            boolean newUpBoundaryChange, boolean newModifiedFormatCoverage,
+            boolean newBCVD, boolean newFCVD) {
+        // One seed can occur in multiple queues (higher fuzzing energy)
+        if (newFCVD) {
             cycleQueues[QueueType.FC_VD.ordinal()].addSeed(seed);
 
             if (Config.getConf().saveCorpusToDisk) {
@@ -85,7 +84,7 @@ public class CorpusVersionDeltaFiveQueueWithBoundary extends Corpus {
             }
         }
 
-        if (newOriBC ^ newUpBC) {
+        if (newBCVD) {
             cycleQueues[QueueType.BC_VD.ordinal()].addSeed(seed);
 
             if (Config.getConf().saveCorpusToDisk) {

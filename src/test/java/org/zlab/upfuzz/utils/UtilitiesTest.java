@@ -2,7 +2,9 @@ package org.zlab.upfuzz.utils;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class UtilitiesTest {
@@ -38,5 +40,32 @@ public class UtilitiesTest {
                 0.4, 0.1, 5);
         assert model.calculateProbability(0) == 0.4;
         System.out.println(model.calculateProbability(10));
+    }
+
+    @Test
+    public void testComputeMF() {
+        Map<String, Map<String, String>> oriClassInfo = new HashMap<>();
+        Map<String, Map<String, String>> upClassInfo = new HashMap<>();
+        oriClassInfo.put("A", new HashMap<>());
+        oriClassInfo.put("B", new HashMap<>());
+        oriClassInfo.put("C", new HashMap<>());
+
+        oriClassInfo.get("A").put("f1", "int");
+        oriClassInfo.get("B").put("f1", "String");
+        oriClassInfo.get("C").put("f2", "List");
+
+        upClassInfo.put("A", new HashMap<>());
+        upClassInfo.put("B", new HashMap<>());
+        upClassInfo.put("D", new HashMap<>());
+
+        upClassInfo.get("A").put("f1", "int");
+        upClassInfo.get("B").put("f1", "String");
+        upClassInfo.get("D").put("f2", "List");
+
+        Map<String, Map<String, String>> mf = Utilities.computeMF(oriClassInfo,
+                upClassInfo);
+        assert mf.containsKey("A");
+        assert mf.containsKey("B");
+        assert mf.get("B").containsKey("f1");
     }
 }

@@ -4,6 +4,7 @@ import static java.lang.String.format;
 
 import java.io.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.Parameter;
@@ -1250,5 +1251,47 @@ public class Utilities {
         public double calculateProbability(int N) {
             return c * Math.exp(-k * N);
         }
+    }
+
+    // json: load map from a file
+    public static Map<String, Map<String, String>> loadMapFromFile(
+            Path filePath) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(filePath.toFile(), Map.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static Map<String, Map<String, String>> computeMF(
+            Map<String, Map<String, String>> oriClassInfo,
+            Map<String, Map<String, String>> upClassInfo) {
+        assert oriClassInfo != null && upClassInfo != null;
+        // classname -> fieldName -> fieldType
+        // Compute intersection (classname, fieldName and fieldType are the
+        // same)
+        Map<String, Map<String, String>> mf = new HashMap<>();
+        for (String className : oriClassInfo.keySet()) {
+            if (upClassInfo.containsKey(className)) {
+                Map<String, String> oriFieldInfo = oriClassInfo.get(className);
+                Map<String, String> upFieldInfo = upClassInfo.get(className);
+                Map<String, String> commonFieldInfo = new HashMap<>();
+                for (String fieldName : oriFieldInfo.keySet()) {
+                    if (upFieldInfo.containsKey(fieldName)) {
+                        String oriFieldType = oriFieldInfo.get(fieldName);
+                        String upFieldType = upFieldInfo.get(fieldName);
+                        if (oriFieldType.equals(upFieldType)) {
+                            commonFieldInfo.put(fieldName, oriFieldType);
+                        }
+                    }
+                }
+                if (!commonFieldInfo.isEmpty()) {
+                    mf.put(className, commonFieldInfo);
+                }
+            }
+        }
+        return mf;
     }
 }

@@ -220,8 +220,7 @@ public class Config {
         public boolean updateInvariantBrokenFrequency = true;
         public boolean checkSpecialDumpIds = true;
 
-        // NonVerisonDeltaMode
-        // 70% fuzz FC, 30% fuzz BC
+        // NonVersionDeltaMode
         public double BC_CorpusNonVersionDelta = 0.2;
         public double FC_CorpusNonVersionDelta = 0.6;
         public double FC_MOD_CorpusNonVersionDelta = 0;
@@ -240,9 +239,6 @@ public class Config {
 
         public int versionDeltaApproach = 2;
 
-        // Approach 2
-        public boolean enableNyxInGroup2 = false;
-
         // Approach 1: Five Queue Implementation with boundary: no boundary
         // delta
         public double FC_VD_PROB_CorpusVersionDeltaFiveQueueWithBoundary = 0.3;
@@ -258,6 +254,9 @@ public class Config {
         public double branchCoverageChoiceProb = 0.1;
         public double formatCoverageChoiceProb = 0.2;
         public double boundaryRelatedSeedsChoiceProb = 0.1;
+
+        // Approach 2
+        public boolean enableNyxInGroup2 = false;
 
         public double DROP_TEST_PROB_G2 = 0.1;
 
