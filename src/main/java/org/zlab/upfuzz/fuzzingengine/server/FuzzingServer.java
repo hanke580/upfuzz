@@ -251,15 +251,6 @@ public class FuzzingServer {
                         Objects.requireNonNull(Utilities
                                 .loadMapFromFile(upFormatInfoFolder.resolve(
                                         Config.getConf().baseClassInfoFileName))));
-                // Debug: print matchableClassInfo
-                if (Config.getConf().debug) {
-                    logger.debug("Matchable Class Info:");
-                    for (Map.Entry<String, Map<String, String>> entry : matchableClassInfo
-                            .entrySet()) {
-                        logger.debug(entry.getKey() + ": " + entry.getValue());
-                    }
-                }
-
                 oriObjCoverage.setMatchableClassInfo(matchableClassInfo);
                 upObjCoverage.setMatchableClassInfo(matchableClassInfo);
             }
