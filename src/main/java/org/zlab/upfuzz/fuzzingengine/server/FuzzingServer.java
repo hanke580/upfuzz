@@ -1408,7 +1408,6 @@ public class FuzzingServer {
     // One Group VD
     public synchronized void analyzeFeedbackFromVersionDelta(
             VersionDeltaFeedbackPacketApproach1 versionDeltaFeedbackPacket) {
-        logger.debug("analyzeFeedbackFromVersionDelta");
         Path failureDir = null;
 
         int startTestID = 0;
@@ -1463,8 +1462,6 @@ public class FuzzingServer {
         }
 
         int feedbackLength = versionDeltaFeedbackPacketsUp.size();
-        logger.debug("feedback length: " + feedbackLength);
-
         for (int i = 0; i < feedbackLength; i++) {
             FeedbackPacket versionDeltaFeedbackPacketUp = versionDeltaFeedbackPacketsUp
                     .get(i);
@@ -1615,8 +1612,6 @@ public class FuzzingServer {
                     startTestID,
                     endTestID, false);
         }
-        logger.debug(
-                "analyzeFeedbackFromVersionDelta done, prepare to printInfo");
         printInfo();
         System.out.println();
     }
