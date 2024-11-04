@@ -249,9 +249,8 @@ public class FuzzingServer {
                                 .loadMapFromFile(oriFormatInfoFolder.resolve(
                                         Config.getConf().baseClassInfoFileName))),
                         Objects.requireNonNull(Utilities
-                                .loadMapFromFile(
-                                        upgradeFormatInfoFolder.resolve(
-                                                Config.getConf().baseClassInfoFileName))));
+                                .loadMapFromFile(upFormatInfoFolder.resolve(
+                                        Config.getConf().baseClassInfoFileName))));
 
                 oriObjCoverage.setMatchableClassInfo(matchableClassInfo);
                 upObjCoverage.setMatchableClassInfo(matchableClassInfo);
