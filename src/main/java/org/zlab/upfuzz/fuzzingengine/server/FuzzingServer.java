@@ -205,10 +205,6 @@ public class FuzzingServer {
                                 "while format coverage is enabled");
             }
 
-            Path upgradeFormatInfoFolder = Paths.get("configInfo")
-                    .resolve(Config.getConf().originalVersion + "_"
-                            + Config.getConf().upgradedVersion);
-
             oriObjCoverage = new ObjectGraphCoverage(
                     oriFormatInfoFolder.resolve(
                             Config.getConf().baseClassInfoFileName),
@@ -220,8 +216,7 @@ public class FuzzingServer {
                     null,
                     null,
                     null,
-                    upgradeFormatInfoFolder
-                            .resolve(Config.getConf().specialDumpIdsFileName));
+                    null);
             if (Config.getConf().useVersionDelta) {
                 Path upFormatInfoFolder = Paths.get("configInfo")
                         .resolve(Config.getConf().upgradedVersion);
