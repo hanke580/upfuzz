@@ -1,0 +1,2 @@
+[PrepareUpgrade] flush/create image before starting upgrade
+[UpgradeOp] Upgrade Node[0]
