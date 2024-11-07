@@ -1294,4 +1294,14 @@ public class Utilities {
         }
         return mf;
     }
+
+    public static void printMF(
+            Map<String, Map<String, String>> matchableClassInfo) {
+        // print matchableClassInfo
+        logger.debug("Matchable Class Info:");
+        for (Map.Entry<String, Map<String, String>> entry : matchableClassInfo
+                .entrySet()) {
+            logger.debug(entry.getKey() + ": " + entry.getValue());
+        }
+    }
 }
