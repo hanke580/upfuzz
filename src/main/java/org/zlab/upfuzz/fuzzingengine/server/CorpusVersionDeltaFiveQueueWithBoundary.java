@@ -69,7 +69,7 @@ public class CorpusVersionDeltaFiveQueueWithBoundary extends Corpus {
             }
 
         } else {
-            if (newOriFC && newUpFC) {
+            if (newOriFC || newUpFC) {
                 cycleQueues[QueueType.FC.ordinal()].addSeed(seed);
 
                 if (Config.getConf().saveCorpusToDisk) {
