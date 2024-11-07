@@ -246,6 +246,12 @@ public class FuzzingServer {
                         Objects.requireNonNull(Utilities
                                 .loadMapFromFile(upFormatInfoFolder.resolve(
                                         Config.getConf().baseClassInfoFileName))));
+                // print matchableClassInfo
+                logger.debug("Matchable Class Info:");
+                for (Map.Entry<String, Map<String, String>> entry : matchableClassInfo
+                        .entrySet()) {
+                    logger.debug(entry.getKey() + ": " + entry.getValue());
+                }
                 oriObjCoverage.setMatchableClassInfo(matchableClassInfo);
                 upObjCoverage.setMatchableClassInfo(matchableClassInfo);
             }
@@ -1553,6 +1559,9 @@ public class FuzzingServer {
                 } else {
                     logger.info("Null format coverage");
                 }
+                logger.debug("newOriFC: " + newOriFC + " newUpFC: " + newUpFC
+                        + " newMatchableOriFC: " + newMatchableOriFC
+                        + " newMatchableUpFC: " + newMatchableUpFC);
                 newFCVD = newMatchableOriFC ^ newMatchableUpFC;
             }
 
