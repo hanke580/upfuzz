@@ -214,6 +214,7 @@ public class Config {
         // whether to use format coverage to guide the test (add to corpus)
         // If disabled, we also won't collect format coverage
         public boolean useFormatCoverage = false;
+        public boolean deltaGuidedFC = false; // Static VD
 
         // For <Multiple likely invariants broken at the same time>: optimized
         // with frequency

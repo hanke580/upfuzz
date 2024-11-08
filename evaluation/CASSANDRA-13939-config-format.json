@@ -16,6 +16,7 @@
   "testSingleVersion": false,
   "testingMode": 0,
   "useFormatCoverage": true,
+  "deltaGuidedFC": false,
   "useVersionDelta": false,
   "versionDeltaApproach": 1,
   "BC_CorpusNonVersionDelta": 0.2,

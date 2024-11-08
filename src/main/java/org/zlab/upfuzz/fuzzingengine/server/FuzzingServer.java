@@ -195,9 +195,6 @@ public class FuzzingServer {
             // FIXME: add isSerialized path
             Path oriFormatInfoFolder = Paths.get("configInfo")
                     .resolve(Config.getConf().originalVersion);
-
-            // We will also have another folder to provide information between
-            // versions
             if (!oriFormatInfoFolder.toFile().exists()) {
                 throw new RuntimeException(
                         "oriFormatInfoFolder is not specified in the configuration file "
@@ -217,28 +214,14 @@ public class FuzzingServer {
                     null,
                     null,
                     null);
-            if (Config.getConf().useVersionDelta) {
+            if (Config.getConf().deltaGuidedFC
+                    || Config.getConf().useVersionDelta) {
                 Path upFormatInfoFolder = Paths.get("configInfo")
                         .resolve(Config.getConf().upgradedVersion);
                 if (!upFormatInfoFolder.toFile().exists()) {
                     throw new RuntimeException(
-                            "upFormatInfoFolder is not specified in the configuration file "
-                                    +
-                                    "while format coverage is enabled");
+                            "upFormatInfoFolder is not specified in config");
                 }
-                upObjCoverage = new ObjectGraphCoverage(
-                        upFormatInfoFolder.resolve(
-                                Config.getConf().baseClassInfoFileName),
-                        upFormatInfoFolder.resolve(
-                                Config.getConf().topObjectsFileName),
-                        upFormatInfoFolder.resolve(
-                                Config.getConf().comparableClassesFileName),
-                        null,
-                        null,
-                        null,
-                        null);
-
-                // Compute matchableClassInfo
                 matchableClassInfo = Utilities.computeMF(
                         Objects.requireNonNull(Utilities
                                 .loadMapFromFile(oriFormatInfoFolder.resolve(
@@ -246,9 +229,21 @@ public class FuzzingServer {
                         Objects.requireNonNull(Utilities
                                 .loadMapFromFile(upFormatInfoFolder.resolve(
                                         Config.getConf().baseClassInfoFileName))));
-                // Utilities.printMF(matchableClassInfo);
                 oriObjCoverage.setMatchableClassInfo(matchableClassInfo);
-                upObjCoverage.setMatchableClassInfo(matchableClassInfo);
+                if (Config.getConf().useVersionDelta) {
+                    upObjCoverage = new ObjectGraphCoverage(
+                            upFormatInfoFolder.resolve(
+                                    Config.getConf().baseClassInfoFileName),
+                            upFormatInfoFolder.resolve(
+                                    Config.getConf().topObjectsFileName),
+                            upFormatInfoFolder.resolve(
+                                    Config.getConf().comparableClassesFileName),
+                            null,
+                            null,
+                            null,
+                            null);
+                    upObjCoverage.setMatchableClassInfo(matchableClassInfo);
+                }
             }
             Runtime.initWriter(formatCoverageLogPath);
         }
@@ -1304,7 +1299,7 @@ public class FuzzingServer {
             boolean newNewVersionBranchCoverage = false;
 
             boolean newFormatCoverage = false;
-            boolean newModifiedFormatCoverage = false;
+            boolean newNonMatchableFC = false;
             boolean newBoundaryChange = false;
 
             // Merge all the feedbacks
@@ -1338,11 +1333,13 @@ public class FuzzingServer {
                                 + feedbackPacket.testPacketID);
                         newFormatCoverage = true;
                     }
+                    // New format relevant to modification
                     if (oriFormatCoverageStatus
-                            .isNewFormatAtModifiedMergePoint()) {
-                        logger.info("New modified format coverage for test "
-                                + feedbackPacket.testPacketID);
-                        newModifiedFormatCoverage = true;
+                            .isNonMatchableNewFormat()) {
+                        logger.info(
+                                "New modification related format coverage for test "
+                                        + feedbackPacket.testPacketID);
+                        newNonMatchableFC = true;
                     }
                     if (oriFormatCoverageStatus.isBoundaryChange()) {
                         logger.info("Boundary change for test "
@@ -1357,7 +1354,7 @@ public class FuzzingServer {
             corpus.addSeed(testID2Seed.get(feedbackPacket.testPacketID),
                     newOldVersionBranchCoverage,
                     newFormatCoverage, newNewVersionBranchCoverage,
-                    newBoundaryChange, newModifiedFormatCoverage);
+                    newBoundaryChange, newNonMatchableFC);
 
             // also update full-stop corpus
             fullStopCorpus.addSeed(new FullStopSeed(
@@ -1381,7 +1378,7 @@ public class FuzzingServer {
                         feedbackPacket.inconsistencyReport);
             }
         }
-        // update testid2Seed, no use anymore
+        // update testId2Seed
         for (int testID : stackedFeedbackPacket.testIDs) {
             testID2Seed.remove(testID);
         }
@@ -1584,7 +1581,7 @@ public class FuzzingServer {
                     newOriBoundaryChange, newUpBoundaryChange, false, newBCVD,
                     newFCVD);
         }
-        // update testId2Seed, no use anymore
+        // update testId2Seed
         for (int testID : versionDeltaFeedbackPacket.stackedFeedbackPacketUpgrade.testIDs) {
             testID2Seed.remove(testID);
         }
@@ -1974,7 +1971,7 @@ public class FuzzingServer {
                     newBCAfterUpgrade, false);
 
         }
-        // update testid2Seed, no use anymore
+        // update testId2Seed
         for (TestPacket tp : versionDeltaFeedbackPacket.tpList) {
             testID2Seed.remove(tp.testPacketID);
         }
