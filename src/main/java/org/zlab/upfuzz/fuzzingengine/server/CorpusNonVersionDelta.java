@@ -55,8 +55,19 @@ public class CorpusNonVersionDelta extends Corpus {
             boolean newBCAfterDowngrade, boolean newOriBoundaryChange,
             boolean newUpBoundaryChange, boolean newNonMatchableFC,
             boolean newBCVD, boolean newFCVD) {
-        // One seed could exist in multiple queues
-        if (newOriFC) {
+        if (newNonMatchableFC) {
+            cycleQueues[2].addSeed(seed);
+
+            if (Config.getConf().saveCorpusToDisk) {
+                while (queuePathBoundaryChange
+                        .resolve("seed_" + diskSeedIdFCMOD).toFile()
+                        .exists()) {
+                    diskSeedIdFCMOD++;
+                }
+                Corpus.saveSeedQueueOnDisk(seed, queueNameFCMOD,
+                        diskSeedIdFCMOD);
+            }
+        } else if (newOriFC) {
             cycleQueues[0].addSeed(seed);
 
             if (Config.getConf().saveCorpusToDisk) {
@@ -76,19 +87,6 @@ public class CorpusNonVersionDelta extends Corpus {
                     diskSeedIdBC++;
                 }
                 Corpus.saveSeedQueueOnDisk(seed, queueNameBC, diskSeedIdBC);
-            }
-        }
-        if (newNonMatchableFC) {
-            cycleQueues[2].addSeed(seed);
-
-            if (Config.getConf().saveCorpusToDisk) {
-                while (queuePathBoundaryChange
-                        .resolve("seed_" + diskSeedIdFCMOD).toFile()
-                        .exists()) {
-                    diskSeedIdFCMOD++;
-                }
-                Corpus.saveSeedQueueOnDisk(seed, queueNameFCMOD,
-                        diskSeedIdFCMOD);
             }
         }
         if (newOriBoundaryChange) {
