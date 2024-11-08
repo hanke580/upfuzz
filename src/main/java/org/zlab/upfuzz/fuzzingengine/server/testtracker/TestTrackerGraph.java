@@ -40,11 +40,20 @@ public class TestTrackerGraph implements Serializable {
         // parentNodeID == -1 means this is the root node (random generated, or
         // from the provided corpus)
         if (Config.getConf().useVersionDelta) {
-            BaseNode node = new TestTrackerVersionDeltaNode(
-                    seed.testID, parentNodeID,
-                    seed.originalCommandSequence.getCommandStringList(),
-                    seed.validationCommandSequence.getCommandStringList(),
-                    seed.configIdx);
+            BaseNode node;
+            if (Config.getConf().versionDeltaApproach == 1) {
+                node = new TestTrackerMatchableVersionDeltaNode(
+                        seed.testID, parentNodeID,
+                        seed.originalCommandSequence.getCommandStringList(),
+                        seed.validationCommandSequence.getCommandStringList(),
+                        seed.configIdx);
+            } else {
+                node = new TestTrackerVersionDeltaNode(
+                        seed.testID, parentNodeID,
+                        seed.originalCommandSequence.getCommandStringList(),
+                        seed.validationCommandSequence.getCommandStringList(),
+                        seed.configIdx);
+            }
             addNode(node);
         } else {
             BaseNode node = new TestTrackerUpgradeNode(
