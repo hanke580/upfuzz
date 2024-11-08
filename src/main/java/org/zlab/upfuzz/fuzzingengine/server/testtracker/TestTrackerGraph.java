@@ -99,24 +99,26 @@ public class TestTrackerGraph implements Serializable {
 
     // --------- Version delta testing mode (1-group) ---------
 
-    // Update coverage group1
+    // Update coverage (single group)
     public void updateNodeCoverage(int nodeId,
             boolean newOriBC,
             boolean newUpBCAfterUpgrade,
             boolean newUpBC,
             boolean newOriBCAfterDowngrade,
             boolean newOriFC,
-            boolean newUpFC) {
+            boolean newUpFC,
+            boolean newOriMatchableFC,
+            boolean newUpMatchableFC) {
         // Runtime tracking, it removes the node from memory
-        if (!Config.getConf().useVersionDelta)
-            throw new RuntimeException(
-                    "This function is only for version delta testing");
+        assert Config.getConf().useVersionDelta
+                && Config.getConf().versionDeltaApproach == 1;
 
         BaseNode baseNode = nodeMap.get(nodeId);
-        assert baseNode instanceof TestTrackerVersionDeltaNode;
-        TestTrackerVersionDeltaNode node = (TestTrackerVersionDeltaNode) baseNode;
+        assert baseNode instanceof TestTrackerMatchableVersionDeltaNode;
+        TestTrackerMatchableVersionDeltaNode node = (TestTrackerMatchableVersionDeltaNode) baseNode;
         node.updateCoverage(newOriBC, newUpBCAfterUpgrade, newUpBC,
-                newOriBCAfterDowngrade, newOriFC, newUpFC);
+                newOriBCAfterDowngrade, newOriFC, newUpFC, newOriMatchableFC,
+                newUpMatchableFC);
 
         // serialize this node to disk, remove it from map
         assert nodeMap.containsKey(nodeId);

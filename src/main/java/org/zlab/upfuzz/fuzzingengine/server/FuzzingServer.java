@@ -1364,7 +1364,7 @@ public class FuzzingServer {
                     testID2Seed.get(feedbackPacket.testPacketID),
                     feedbackPacket.validationReadResults));
 
-            // FIXME: record boundary in graph
+            // TODO: record boundary in graph
             graph.updateNodeCoverage(feedbackPacket.testPacketID,
                     newOldVersionBranchCoverage, newNewVersionBranchCoverage,
                     newFormatCoverage);
@@ -1478,9 +1478,9 @@ public class FuzzingServer {
             // Format coverage
             boolean newFCVD = false;
             boolean newOriFC = false;
-            boolean newMatchableOriFC = false;
+            boolean newOriMatchableFC = false;
             boolean newUpFC = false;
-            boolean newMatchableUpFC = false;
+            boolean newUpMatchableFC = false;
             boolean newUpBoundaryChange = false;
             boolean newOriBoundaryChange = false;
 
@@ -1533,7 +1533,7 @@ public class FuzzingServer {
                     if (oriFormatCoverageStatus.isBoundaryChange())
                         newOriBoundaryChange = true;
                     if (oriFormatCoverageStatus.isMatchableNewFormat())
-                        newMatchableOriFC = true;
+                        newOriMatchableFC = true;
                 } else {
                     logger.info("Null format coverage");
                 }
@@ -1550,20 +1550,20 @@ public class FuzzingServer {
                     if (upFormatCoverageStatus.isBoundaryChange())
                         newUpBoundaryChange = true;
                     if (upFormatCoverageStatus.isMatchableNewFormat())
-                        newMatchableUpFC = true;
+                        newUpMatchableFC = true;
                 } else {
                     logger.info("Null format coverage");
                 }
                 logger.debug("newOriFC: " + newOriFC + " newUpFC: " + newUpFC
-                        + " newMatchableOriFC: " + newMatchableOriFC
-                        + " newMatchableUpFC: " + newMatchableUpFC);
-                newFCVD = newMatchableOriFC ^ newMatchableUpFC;
+                        + " newOriMatchableFC: " + newOriMatchableFC
+                        + " newUpMatchableFC: " + newUpMatchableFC);
+                newFCVD = newOriMatchableFC ^ newUpMatchableFC;
             }
 
-            // Update graph
             graph.updateNodeCoverage(testPacketID,
                     newOriBC, newUpBCAfterUpgrade, newUpBC,
-                    newOriBCAfterDowngrade, newOriFC, newUpFC);
+                    newOriBCAfterDowngrade, newOriFC, newUpFC,
+                    newOriMatchableFC, newUpMatchableFC);
 
             if (versionDeltaFeedbackPacketUp.isInconsistent) {
                 if (failureDir == null) {

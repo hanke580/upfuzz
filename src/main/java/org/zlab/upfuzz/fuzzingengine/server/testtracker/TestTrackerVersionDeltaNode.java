@@ -1,9 +1,5 @@
 package org.zlab.upfuzz.fuzzingengine.server.testtracker;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.nio.file.Path;
 import java.util.List;
 
 public class TestTrackerVersionDeltaNode extends BaseNode {
@@ -42,17 +38,6 @@ public class TestTrackerVersionDeltaNode extends BaseNode {
                 "newOriFC: " + newOriFC + ", " + "newUpFC: " + newUpFC + ", ";
     }
 
-    public void updateCoverage(boolean newOriBC, boolean newUpBCAfterUpgrade,
-            boolean newUpBC,
-            boolean newOriBCAfterDowngrade, boolean newOriFC, boolean newUpFC) {
-        this.newOriBC = newOriBC;
-        this.newUpBCAfterUpgrade = newUpBCAfterUpgrade;
-        this.newUpBC = newUpBC;
-        this.newOriBCAfterDowngrade = newOriBCAfterDowngrade;
-        this.newOriFC = newOriFC;
-        this.newUpFC = newUpFC;
-    }
-
     public void updateCoverageGroup1(boolean newOriBC,
             boolean newUpBC,
             boolean newOriFC, boolean newUpFC) {
@@ -71,17 +56,14 @@ public class TestTrackerVersionDeltaNode extends BaseNode {
     @Override
     public String toString() {
         String basicInfo = printAsString();
-        StringBuilder coverageInfoBuilder = new StringBuilder();
-        coverageInfoBuilder.append(
-                "newOriBC: " + newOriBC + ", newUpBCAfterUpgrade: "
-                        + newUpBCAfterUpgrade
-                        + "\n");
-        coverageInfoBuilder.append(
+        String coverageInfoBuilder = "newOriBC: " + newOriBC
+                + ", newUpBCAfterUpgrade: "
+                + newUpBCAfterUpgrade
+                + "\n" +
                 "newUpBC: " + newUpBC + ", newOriBCAfterDowngrade: "
-                        + newOriBCAfterDowngrade
-                        + "\n");
-        coverageInfoBuilder.append(
-                "newOriFC: " + newOriFC + ", newUpFC: " + newUpFC + "\n");
-        return coverageInfoBuilder.toString() + basicInfo;
+                + newOriBCAfterDowngrade
+                + "\n" +
+                "newOriFC: " + newOriFC + ", newUpFC: " + newUpFC + "\n";
+        return coverageInfoBuilder + basicInfo;
     }
 }
