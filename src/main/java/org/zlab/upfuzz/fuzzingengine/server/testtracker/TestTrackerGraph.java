@@ -65,22 +65,27 @@ public class TestTrackerGraph implements Serializable {
         }
     }
 
-    // Non-version delta testing mode
     public void updateNodeCoverage(int nodeId,
             boolean newOldVersionBranchCoverage,
             boolean newNewVersionBranchCoverage, boolean newFormatCoverage) {
+        updateNodeCoverage(nodeId, newOldVersionBranchCoverage,
+                newNewVersionBranchCoverage, newFormatCoverage, false);
+    }
+
+    // Non-version delta testing mode
+    public void updateNodeCoverage(int nodeId,
+            boolean newOldVersionBranchCoverage,
+            boolean newNewVersionBranchCoverage, boolean newFormatCoverage,
+            boolean newModFC) {
         // Runtime tracking, it removes the node from memory
         // long startTime = System.nanoTime();
-
-        if (Config.getConf().useVersionDelta)
-            throw new RuntimeException(
-                    "This function is only for non-version delta testing");
+        assert !Config.getConf().useVersionDelta;
 
         BaseNode baseNode = nodeMap.get(nodeId);
         assert baseNode instanceof TestTrackerUpgradeNode;
         TestTrackerUpgradeNode node = (TestTrackerUpgradeNode) baseNode;
         node.updateCoverage(newOldVersionBranchCoverage,
-                newNewVersionBranchCoverage, newFormatCoverage);
+                newNewVersionBranchCoverage, newFormatCoverage, newModFC);
 
         // serialize this node to disk, remove it from map
         assert nodeMap.containsKey(nodeId);

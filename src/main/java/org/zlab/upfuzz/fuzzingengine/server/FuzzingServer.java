@@ -1364,7 +1364,7 @@ public class FuzzingServer {
             // TODO: record boundary in graph
             graph.updateNodeCoverage(feedbackPacket.testPacketID,
                     newOldVersionBranchCoverage, newNewVersionBranchCoverage,
-                    newFormatCoverage);
+                    newFormatCoverage, newNonMatchableFC);
 
             if (feedbackPacket.isInconsistent) {
                 if (failureDir == null) {

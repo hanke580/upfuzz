@@ -1,15 +1,14 @@
 package org.zlab.upfuzz.fuzzingengine.server.testtracker;
 
-import java.io.*;
-import java.nio.file.Path;
 import java.util.List;
 
 public class TestTrackerUpgradeNode extends BaseNode {
     private static final long serialVersionUID = 20240407L;
 
-    private boolean newOriBC = false;
-    private boolean newUpBC = false;
-    private boolean newFC = false;
+    private boolean oriBC = false; // BC before upgrade
+    private boolean upBC = false; // BC after upgrade
+    private boolean FC = false;
+    private boolean FC_MOD = false;
 
     public TestTrackerUpgradeNode(int nodeId, int pNodeId,
             List<String> writeCommands,
@@ -19,36 +18,30 @@ public class TestTrackerUpgradeNode extends BaseNode {
 
     @Override
     public boolean hasNewCoverage() {
-        return newOriBC || newUpBC || newFC;
+        return oriBC || upBC || FC || FC_MOD;
     }
 
     @Override
     public String printCovInfo() {
-        return "newOriBC: " + newOriBC + ", " + "newUpBC: "
-                + newUpBC + ", " + "newFC: " + newFC + ", ";
+        return "oriBC: " + oriBC + ", " + "upBC: "
+                + upBC + ", " + "FC: " + FC + ", " + "FC_MOD: "
+                + FC_MOD;
     }
 
     public void updateCoverage(boolean newOldVersionBranchCoverage,
             boolean newNewVersionBranchCoverage,
-            boolean newFormatCoverage) {
-        this.newOriBC = newOldVersionBranchCoverage;
-        this.newUpBC = newNewVersionBranchCoverage;
-        this.newFC = newFormatCoverage;
+            boolean newFormatCoverage, boolean FC_MOD) {
+        this.oriBC = newOldVersionBranchCoverage;
+        this.upBC = newNewVersionBranchCoverage;
+        this.FC = newFormatCoverage;
+        this.FC_MOD = FC_MOD;
     }
 
     @Override
     public String toString() {
         String basicInfo = printAsString();
-
-        StringBuilder coverageInfoBuilder = new StringBuilder();
-        coverageInfoBuilder.append(
-                "newOldVersionBranchCoverage: " + newOriBC
-                        + "\n");
-        coverageInfoBuilder.append(
-                "newNewVersionBranchCoverage: " + newUpBC
-                        + "\n");
-        coverageInfoBuilder
-                .append("newFormatCoverage: " + newFC + "\n");
-        return coverageInfoBuilder.toString() + basicInfo;
+        String coverageInfoBuilder = "oriBC: " + oriBC + "\n" + "upBC: " + upBC
+                + "\n" + "FC: " + FC + "\n" + "FC_MOD: " + FC_MOD + "\n";
+        return coverageInfoBuilder + basicInfo;
     }
 }
