@@ -1,6 +1,7 @@
 package org.zlab.upfuzz.utils;
 
 import org.junit.jupiter.api.Test;
+import org.zlab.upfuzz.docker.DockerMeta;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -67,5 +68,22 @@ public class UtilitiesTest {
         assert mf.containsKey("A");
         assert mf.containsKey("B");
         assert mf.get("B").containsKey("f1");
+    }
+
+    @Test
+    public void testIsBlackListed() {
+        String errorLog = "        at " +
+                "org.apache.cassandra.db.composites.CompoundSparseCellNameType.create"
+                +
+                "(CompoundSparseCellNameType.java:126) " +
+                "~[apache-cassandra-2.2.19-SNAPSHOT.jar:2.2.19-SNAPSHOT]";
+        Set<String> blackListErrorLog = new HashSet<>();
+        blackListErrorLog.add(
+                "org.apache.cassandra.db.composites.CompoundSparseCellNameType.create"
+                        +
+                        "(CompoundSparseCellNameType.java:126)" +
+                        " ~[apache-cassandra-2.2.19-SNAPSHOT.jar:2.2.19-SNAPSHOT]");
+
+        assert DockerMeta.isBlackListed(errorLog, blackListErrorLog);
     }
 }

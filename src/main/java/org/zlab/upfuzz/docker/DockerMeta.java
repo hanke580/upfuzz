@@ -202,7 +202,7 @@ public abstract class DockerMeta {
         };
     }
 
-    public boolean isBlackListed(String errorMsg,
+    public static boolean isBlackListed(String errorMsg,
             Set<String> blackListErrorLog) {
         for (String str : blackListErrorLog) {
             if (errorMsg.contains(str)) {

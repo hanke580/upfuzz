@@ -239,6 +239,8 @@ bin/hbase_cl.sh
 ## Version Delta Testing
 
 Latest implementation only applies to one-group set up.
+* Set `useVersionDelta` to `true`.
+* Set `versionDeltaApproach` to `1`. (Represents 1 group setup)
 
 
 ### Cassandra
@@ -274,8 +276,7 @@ cd ${UPFUZZ_DIR}
 
 # open terminal1: start server
 bin/start_server.sh config.json
-# open terminal2: start two groups of agents: 3 agents in group 1, 2 agents in group 2
-bin/start_version_delta_clients.sh 3 2 config.json
+bin/start_clients.sh 1 config.json
 
 # stop testing
 bin/cass_cl.sh 3.11.17 4.1.4

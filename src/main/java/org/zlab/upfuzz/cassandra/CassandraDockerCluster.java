@@ -43,6 +43,11 @@ public class CassandraDockerCluster extends DockerCluster {
         blackListErrorLog.add(
                 "java.io.IOError: java.nio.channels.AsynchronousCloseException");
         blackListErrorLog.add("LEAK DETECTED");
+        blackListErrorLog.add(
+                "org.apache.cassandra.db.composites.CompoundSparseCellNameType.create"
+                        +
+                        "(CompoundSparseCellNameType.java:126)" +
+                        " ~[apache-cassandra-2.2.19-SNAPSHOT.jar:2.2.19-SNAPSHOT]");
     }
 
     public boolean build() throws Exception {
