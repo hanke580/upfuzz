@@ -214,7 +214,7 @@ public class FuzzingServer {
                     null,
                     null,
                     null);
-            if (Config.getConf().deltaGuidedFC
+            if (Config.getConf().staticVD
                     || Config.getConf().useVersionDelta) {
                 Path upFormatInfoFolder = Paths.get("configInfo")
                         .resolve(Config.getConf().upgradedVersion);

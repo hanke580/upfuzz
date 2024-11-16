@@ -214,12 +214,12 @@ public class Config {
         // whether to use format coverage to guide the test (add to corpus)
         // If disabled, we also won't collect format coverage
         public boolean useFormatCoverage = false;
-        public boolean deltaGuidedFC = false; // Static VD
+        public boolean staticVD = false;
 
         // For <Multiple likely invariants broken at the same time>: optimized
         // with frequency
         public boolean updateInvariantBrokenFrequency = true;
-        public boolean checkSpecialDumpIds = true;
+        public boolean checkSpecialDumpIds = false; // Deprecated
 
         // NonVersionDeltaMode
         public double BC_CorpusNonVersionDelta = 0.2;
@@ -236,7 +236,7 @@ public class Config {
         public String specialDumpIdsFileName = "modifiedDumpIds.json";
 
         // ---------------Version Delta-----------------
-        public boolean useVersionDelta = false;
+        public boolean useVersionDelta = false; // Dynamic VD
 
         public int versionDeltaApproach = 2;
 
