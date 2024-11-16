@@ -5,8 +5,8 @@ import java.util.List;
 public class TestTrackerUpgradeNode extends BaseNode {
     private static final long serialVersionUID = 20240407L;
 
-    private boolean oriBC = false; // BC before upgrade
-    private boolean upBC = false; // BC after upgrade
+    private boolean oriBC = false; // old version BC
+    private boolean upBC = false; // new version BC
     private boolean FC = false;
     private boolean FC_MOD = false;
 
@@ -28,12 +28,12 @@ public class TestTrackerUpgradeNode extends BaseNode {
                 + FC_MOD;
     }
 
-    public void updateCoverage(boolean newOldVersionBranchCoverage,
-            boolean newNewVersionBranchCoverage,
-            boolean newFormatCoverage, boolean FC_MOD) {
-        this.oriBC = newOldVersionBranchCoverage;
-        this.upBC = newNewVersionBranchCoverage;
-        this.FC = newFormatCoverage;
+    public void updateCoverage(boolean oriBC,
+            boolean upBC,
+            boolean FC, boolean FC_MOD) {
+        this.oriBC = oriBC;
+        this.upBC = upBC;
+        this.FC = FC;
         this.FC_MOD = FC_MOD;
     }
 

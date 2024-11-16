@@ -86,4 +86,44 @@ public class UtilitiesTest {
 
         assert DockerMeta.isBlackListed(errorLog, blackListErrorLog);
     }
+
+    @Test
+    public void testComputeChangedClasses() {
+        Map<String, Map<String, String>> oriClassInfo = new HashMap<>();
+        Map<String, Map<String, String>> upClassInfo = new HashMap<>();
+        oriClassInfo.put("A", new HashMap<>());
+        oriClassInfo.put("B", new HashMap<>());
+        oriClassInfo.put("C", new HashMap<>());
+        oriClassInfo.put("E", new HashMap<>());
+        oriClassInfo.put("F", new HashMap<>());
+
+        oriClassInfo.get("A").put("f1", "int");
+        oriClassInfo.get("B").put("f1", "String");
+        oriClassInfo.get("C").put("f2", "List");
+        oriClassInfo.get("E").put("f2", "List");
+        oriClassInfo.get("F").put("f1", "int");
+        oriClassInfo.get("F").put("f2", "String");
+
+        upClassInfo.put("A", new HashMap<>());
+        upClassInfo.put("B", new HashMap<>());
+        upClassInfo.put("D", new HashMap<>());
+        upClassInfo.put("E", new HashMap<>());
+        upClassInfo.put("F", new HashMap<>());
+
+        upClassInfo.get("A").put("f1", "int");
+        upClassInfo.get("B").put("f1", "String");
+        upClassInfo.get("D").put("f2", "List");
+        upClassInfo.get("E").put("f2", "Array");
+        upClassInfo.get("F").put("f1", "int");
+        upClassInfo.get("F").put("f2", "String");
+        upClassInfo.get("F").put("f3", "bool");
+
+        Set<String> changedClasses = Utilities.computeChangedClasses(
+                oriClassInfo,
+                upClassInfo);
+        assert changedClasses.contains("C");
+        assert changedClasses.contains("E");
+        assert changedClasses.contains("F");
+        assert !changedClasses.contains("D");
+    }
 }

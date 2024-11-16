@@ -214,7 +214,11 @@ public class Config {
         // whether to use format coverage to guide the test (add to corpus)
         // If disabled, we also won't collect format coverage
         public boolean useFormatCoverage = false;
-        public boolean staticVD = false;
+
+        // Only one of the following can be true
+        public boolean staticVD = false; // A superSet of isSerialized
+        public boolean prioritizeIsSerialized = false; // For ablation
+                                                       // experiments
 
         // For <Multiple likely invariants broken at the same time>: optimized
         // with frequency

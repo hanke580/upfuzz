@@ -1295,6 +1295,35 @@ public class Utilities {
         return mf;
     }
 
+    public static Set<String> computeChangedClasses(
+            Map<String, Map<String, String>> oriClassInfo,
+            Map<String, Map<String, String>> upClassInfo) {
+        assert oriClassInfo != null && upClassInfo != null;
+        Set<String> changedClasses = new HashSet<>();
+        // classname -> (fieldName, fieldType)
+        // For each class, check whether all fields' name and type are the same
+        // Otherwise, include it in the return set
+        for (String className : oriClassInfo.keySet()) {
+            if (!upClassInfo.containsKey(className)
+                    || oriClassInfo.get(className).size() != upClassInfo
+                            .get(className).size()) {
+                changedClasses.add(className);
+                continue;
+            }
+            Map<String, String> oriFieldInfo = oriClassInfo.get(className);
+            Map<String, String> upFieldInfo = upClassInfo.get(className);
+            // check whether all fields are the same
+            for (String fieldName : oriFieldInfo.keySet()) {
+                if (!upFieldInfo.containsKey(fieldName) || !oriFieldInfo
+                        .get(fieldName).equals(upFieldInfo.get(fieldName))) {
+                    changedClasses.add(className);
+                    break;
+                }
+            }
+        }
+        return changedClasses;
+    }
+
     public static void printMF(
             Map<String, Map<String, String>> matchableClassInfo) {
         // print matchableClassInfo

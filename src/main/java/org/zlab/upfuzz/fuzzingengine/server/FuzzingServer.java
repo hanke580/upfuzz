@@ -120,9 +120,9 @@ public class FuzzingServer {
     // ------------------- Version Delta -------------------
     // Matchable Format (formats that exist in both versions)
     Map<String, Map<String, String>> matchableClassInfo;
-    // Matchable Modified Format (formats that exist in both versions and the
-    // usage is modified)
-    Map<String, Map<String, String>> matchableModifiedClassInfo;
+
+    // Ablation: <IsSerialized>
+    Set<String> changedClasses;
 
     // 2-group version delta
     public BlockingQueue<StackedTestPacket> stackedTestPacketsQueueVersionDelta;
@@ -215,6 +215,7 @@ public class FuzzingServer {
                     null,
                     null);
             if (Config.getConf().staticVD
+                    || Config.getConf().prioritizeIsSerialized
                     || Config.getConf().useVersionDelta) {
                 Path upFormatInfoFolder = Paths.get("configInfo")
                         .resolve(Config.getConf().upgradedVersion);
@@ -222,14 +223,34 @@ public class FuzzingServer {
                     throw new RuntimeException(
                             "upFormatInfoFolder is not specified in config");
                 }
-                matchableClassInfo = Utilities.computeMF(
-                        Objects.requireNonNull(Utilities
-                                .loadMapFromFile(oriFormatInfoFolder.resolve(
-                                        Config.getConf().baseClassInfoFileName))),
-                        Objects.requireNonNull(Utilities
-                                .loadMapFromFile(upFormatInfoFolder.resolve(
-                                        Config.getConf().baseClassInfoFileName))));
-                oriObjCoverage.setMatchableClassInfo(matchableClassInfo);
+
+                assert Config.getConf().staticVD
+                        ^ Config.getConf().prioritizeIsSerialized
+                        : "Only one of staticVD and prioritizeIsSerialized can be true";
+
+                if (Config.getConf().staticVD) {
+                    matchableClassInfo = Utilities.computeMF(
+                            Objects.requireNonNull(Utilities
+                                    .loadMapFromFile(
+                                            oriFormatInfoFolder.resolve(
+                                                    Config.getConf().baseClassInfoFileName))),
+                            Objects.requireNonNull(Utilities
+                                    .loadMapFromFile(upFormatInfoFolder.resolve(
+                                            Config.getConf().baseClassInfoFileName))));
+                    oriObjCoverage.setMatchableClassInfo(matchableClassInfo);
+                }
+                if (Config.getConf().prioritizeIsSerialized) {
+                    changedClasses = Utilities.computeChangedClasses(
+                            Objects.requireNonNull(Utilities
+                                    .loadMapFromFile(
+                                            oriFormatInfoFolder.resolve(
+                                                    Config.getConf().baseClassInfoFileName))),
+                            Objects.requireNonNull(Utilities
+                                    .loadMapFromFile(upFormatInfoFolder.resolve(
+                                            Config.getConf().baseClassInfoFileName))));
+                    oriObjCoverage.setChangedClasses(changedClasses);
+                }
+
                 if (Config.getConf().useVersionDelta) {
                     upObjCoverage = new ObjectGraphCoverage(
                             upFormatInfoFolder.resolve(
@@ -1295,11 +1316,11 @@ public class FuzzingServer {
                 .getFpList()) {
             finishedTestID++;
 
-            boolean newOldVersionBranchCoverage = false;
-            boolean newNewVersionBranchCoverage = false;
+            boolean newOriBC = false;
+            boolean newUpgradeBC = false;
 
-            boolean newFormatCoverage = false;
-            boolean newNonMatchableFC = false;
+            boolean newOriFC = false;
+            boolean newModFC = false;
             boolean newBoundaryChange = false;
 
             // Merge all the feedbacks
@@ -1310,13 +1331,13 @@ public class FuzzingServer {
                 // Write Seed to Disk + Add to Corpus
                 curOriCoverage.merge(
                         fb.originalCodeCoverage);
-                newOldVersionBranchCoverage = true;
+                newOriBC = true;
             }
             if (Utilities.hasNewBits(curUpCoverageAfterUpgrade,
                     fb.upgradedCodeCoverage)) {
                 curUpCoverageAfterUpgrade.merge(
                         fb.upgradedCodeCoverage);
-                newNewVersionBranchCoverage = true;
+                newUpgradeBC = true;
             }
 
             // format coverage
@@ -1331,15 +1352,23 @@ public class FuzzingServer {
                     if (oriFormatCoverageStatus.isNewFormat()) {
                         logger.info("New format coverage for test "
                                 + feedbackPacket.testPacketID);
-                        newFormatCoverage = true;
+                        newOriFC = true;
                     }
                     // New format relevant to modification
-                    if (oriFormatCoverageStatus
+                    assert Config.getConf().staticVD
+                            ^ Config.getConf().prioritizeIsSerialized;
+                    if (Config.getConf().staticVD && oriFormatCoverageStatus
                             .isNonMatchableNewFormat()) {
                         logger.info(
                                 "New modification related format coverage for test "
                                         + feedbackPacket.testPacketID);
-                        newNonMatchableFC = true;
+                        newModFC = true;
+                    }
+                    if (Config.getConf().prioritizeIsSerialized
+                            && oriFormatCoverageStatus.isNewIsSerialize()) {
+                        logger.info("New isSerialized coverage for test "
+                                + feedbackPacket.testPacketID);
+                        newModFC = true;
                     }
                     if (oriFormatCoverageStatus.isBoundaryChange()) {
                         logger.info("Boundary change for test "
@@ -1352,9 +1381,9 @@ public class FuzzingServer {
             }
 
             corpus.addSeed(testID2Seed.get(feedbackPacket.testPacketID),
-                    newOldVersionBranchCoverage,
-                    newFormatCoverage, newNewVersionBranchCoverage,
-                    newBoundaryChange, newNonMatchableFC);
+                    newOriBC,
+                    newOriFC, newUpgradeBC,
+                    newBoundaryChange, newModFC);
 
             // also update full-stop corpus
             fullStopCorpus.addSeed(new FullStopSeed(
@@ -1363,8 +1392,8 @@ public class FuzzingServer {
 
             // TODO: record boundary in graph
             graph.updateNodeCoverage(feedbackPacket.testPacketID,
-                    newOldVersionBranchCoverage, newNewVersionBranchCoverage,
-                    newFormatCoverage, newNonMatchableFC);
+                    newOriBC, newUpgradeBC,
+                    newOriFC, newModFC);
 
             if (feedbackPacket.isInconsistent) {
                 if (failureDir == null) {
@@ -1468,9 +1497,9 @@ public class FuzzingServer {
             // Branch coverage
             boolean newBCVD = false;
             boolean newOriBC = false;
-            boolean newUpBCAfterUpgrade = false;
+            boolean newUpgradeBC = false;
             boolean newUpBC = false;
-            boolean newOriBCAfterDowngrade = false;
+            boolean newDowngradeBC = false;
 
             // Format coverage
             boolean newFCVD = false;
@@ -1504,13 +1533,13 @@ public class FuzzingServer {
                     fbUpgrade.upgradedCodeCoverage)) {
                 curUpCoverageAfterUpgrade.merge(
                         fbUpgrade.upgradedCodeCoverage);
-                newUpBCAfterUpgrade = true;
+                newUpgradeBC = true;
             }
             if (Utilities.hasNewBits(curOriCoverageAfterDowngrade,
                     fbDowngrade.downgradedCodeCoverage)) {
                 curOriCoverageAfterDowngrade.merge(
                         fbDowngrade.downgradedCodeCoverage);
-                newOriBCAfterDowngrade = true;
+                newDowngradeBC = true;
             }
             // Compute BC version delta
             newBCVD = newOriBC ^ newUpBC;
@@ -1558,8 +1587,8 @@ public class FuzzingServer {
             }
 
             graph.updateNodeCoverage(testPacketID,
-                    newOriBC, newUpBCAfterUpgrade, newUpBC,
-                    newOriBCAfterDowngrade, newOriFC, newUpFC,
+                    newOriBC, newUpgradeBC, newUpBC,
+                    newDowngradeBC, newOriFC, newUpFC,
                     newOriMatchableFC, newUpMatchableFC);
 
             if (versionDeltaFeedbackPacketUp.isInconsistent) {
@@ -1577,7 +1606,7 @@ public class FuzzingServer {
             assert corpus instanceof CorpusVersionDeltaFiveQueueWithBoundary;
             corpus.addSeed(testID2Seed.get(testPacketID),
                     newOriBC, newUpBC, newOriFC, newUpFC,
-                    newUpBCAfterUpgrade, newOriBCAfterDowngrade,
+                    newUpgradeBC, newDowngradeBC,
                     newOriBoundaryChange, newUpBoundaryChange, false, newBCVD,
                     newFCVD);
         }
@@ -1933,7 +1962,7 @@ public class FuzzingServer {
             finishedTestID++;
             finishedTestIdAgentGroup2++;
 
-            boolean newBCAfterUpgrade = false;
+            boolean newUpgradeBC = false;
 
             // Merge all the feedbacks
             FeedBack fbUpgrade = mergeCoverage(
@@ -1944,7 +1973,7 @@ public class FuzzingServer {
                     curUpCoverageAfterUpgrade,
                     fbUpgrade.upgradedCodeCoverage)) {
                 // Write Seed to Disk + Add to Corpus
-                newBCAfterUpgrade = true;
+                newUpgradeBC = true;
             }
 
             curUpCoverageAfterUpgrade.merge(fbUpgrade.upgradedCodeCoverage);
@@ -1963,12 +1992,12 @@ public class FuzzingServer {
 
             corpus.addSeed(
                     testID2Seed.get(versionDeltaFeedbackPacketUp.testPacketID),
-                    false, false, newBCAfterUpgrade, false, false);
+                    false, false, newUpgradeBC, false, false);
             // FIXME: it's already updated in Group1, do we update it again in
             // group2?
             graph.updateNodeCoverageGroup2(
                     versionDeltaFeedbackPacketUp.testPacketID,
-                    newBCAfterUpgrade, false);
+                    newUpgradeBC, false);
 
         }
         // update testId2Seed
