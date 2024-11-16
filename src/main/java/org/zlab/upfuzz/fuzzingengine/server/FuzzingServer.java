@@ -249,7 +249,7 @@ public class FuzzingServer {
                                     .loadMapFromFile(upFormatInfoFolder.resolve(
                                             Config.getConf().baseClassInfoFileName))));
                     // debug: print changed classes
-                    logger.debug("<isSerialized> Changed classes: " + changedClasses);
+                    // logger.debug("<isSerialized> Changed classes: " + changedClasses);
                     oriObjCoverage.setChangedClasses(changedClasses);
                 }
 
