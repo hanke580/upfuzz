@@ -238,8 +238,6 @@ public class FuzzingServer {
                                     .loadMapFromFile(upFormatInfoFolder.resolve(
                                             Config.getConf().baseClassInfoFileName))));
                     oriObjCoverage.setMatchableClassInfo(matchableClassInfo);
-                }
-                if (Config.getConf().prioritizeIsSerialized) {
                     changedClasses = Utilities.computeChangedClasses(
                             Objects.requireNonNull(Utilities
                                     .loadMapFromFile(
@@ -248,8 +246,8 @@ public class FuzzingServer {
                             Objects.requireNonNull(Utilities
                                     .loadMapFromFile(upFormatInfoFolder.resolve(
                                             Config.getConf().baseClassInfoFileName))));
-                    // debug: print changed classes
-                    // logger.debug("<isSerialized> Changed classes: " + changedClasses);
+                    // logger.debug("<isSerialized> Changed classes: " +
+                    // changedClasses);
                     oriObjCoverage.setChangedClasses(changedClasses);
                 }
 
