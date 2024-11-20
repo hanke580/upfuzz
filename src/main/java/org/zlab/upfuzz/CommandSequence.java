@@ -14,6 +14,11 @@ import org.zlab.upfuzz.cassandra.CassandraCommand;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.hdfs.dfs.SpecialMkdir;
+import org.zlab.upfuzz.ozone.OzoneState;
+import org.zlab.upfuzz.ozone.fs.InitialMkdir;
+import org.zlab.upfuzz.ozone.fs.InitialLs;
+import org.zlab.upfuzz.ozone.fs.Mkdir;
+import org.zlab.upfuzz.ozone.bucket.InitialCreateBucket;
 import org.zlab.upfuzz.utils.INTType;
 import org.zlab.upfuzz.utils.STRINGType;
 import org.zlab.upfuzz.utils.Utilities;
@@ -358,12 +363,26 @@ public class CommandSequence implements Serializable {
         List<Command> commands = new LinkedList<>();
 
         for (int i = 0; i < len; i++) {
-
             if (i == 0 && Config.getConf() != null
-                    && Config.getConf().system != null
-                    && Config.getConf().system.equals("hdfs")) {
-                // add a mkdir command for separation
-                commands.add(new SpecialMkdir((HdfsState) state));
+                    && Config.getConf().system != null) {
+                if (Config.getConf().system.equals("hdfs")) {
+                    // add a mkdir command for separation
+                    commands.add(new SpecialMkdir((HdfsState) state));
+                } else if (Config.getConf().system.equals("ozone")) {
+                    if (!isRead) {
+                        // Command initialCreateVolumeCmd = new
+                        // InitialCreateVolume(
+                        // (OzoneState) state);
+                        // Parameter volumeName = initialCreateVolumeCmd.params
+                        // .get(initialCreateVolumeCmd.params.size() - 1);
+                        Command initialCreateBucketCmd = new InitialCreateBucket(
+                                (OzoneState) state);
+                        // commands.add(initialCreateVolumeCmd);
+                        commands.add(initialCreateBucketCmd);
+                        commands.add(new InitialLs((OzoneState) state));
+                        commands.add(new InitialMkdir((OzoneState) state));
+                    }
+                }
                 continue;
             }
 

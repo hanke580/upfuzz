@@ -23,6 +23,7 @@ import org.zlab.upfuzz.fuzzingengine.packet.Packet.PacketType;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.hdfs.HdfsExecutor;
 import org.zlab.upfuzz.hbase.HBaseExecutor;
+import org.zlab.upfuzz.ozone.OzoneExecutor;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 import org.zlab.upfuzz.nyx.LibnyxInterface;
@@ -243,6 +244,17 @@ public class FuzzingClient {
             }
 
             return hbaseExecutors;
+        } else if (system.equals("ozone")) {
+            OzoneExecutor[] ozoneExecutors = new OzoneExecutor[2];
+
+            for (int i = 0; i < ozoneExecutors.length; i++) {
+                ozoneExecutors[i] = new OzoneExecutor(nodeNum,
+                        collectFormatCoverage,
+                        targetSystemStates,
+                        configPath, i);
+            }
+
+            return ozoneExecutors;
         }
         throw new RuntimeException(String.format(
                 "System %s is not supported yet, supported system: cassandra, hdfs, hbase",
@@ -263,6 +275,9 @@ public class FuzzingClient {
         case "hbase":
             return new HBaseExecutor(nodeNum, collectFormatCoverage,
                     configPath, 0);
+        case "ozone":
+            return new OzoneExecutor(nodeNum, collectFormatCoverage,
+                    configPath, 0)
         }
         throw new RuntimeException(String.format(
                 "System %s is not supported yet, supported system: cassandra, hdfs, hbase",
@@ -282,6 +297,9 @@ public class FuzzingClient {
                     configPath, testDirection);
         case "hbase":
             return new HBaseExecutor(nodeNum, collectFormatCoverage,
+                    configPath, testDirection);
+        case "ozone":
+            return new OzoneExecutor(nodeNum, collectFormatCoverage,
                     configPath, testDirection);
         }
         throw new RuntimeException(String.format(
@@ -1759,7 +1777,9 @@ public class FuzzingClient {
             Executor executor;
             if (system.equals("hdfs")) {
                 executor = initExecutor(4, false, configPath);
-            } else if (system.equals("hbase")) {
+            } else if (system.equals("ozone")) {
+                executor = initExecutor(4, false, null, configPath);
+            }  else if (system.equals("hbase")) {
                 executor = initExecutor(3, false, configPath);
             } else {
                 executor = initExecutor(1, false, configPath);

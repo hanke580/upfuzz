@@ -7,6 +7,8 @@ import java.util.Random;
 import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.zlab.upfuzz.fuzzingengine.Config;
+import org.zlab.upfuzz.ozone.OzoneState;
 
 /**
  * User need to implement two methods constructCommandString() and

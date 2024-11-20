@@ -15,6 +15,7 @@ public class STRINGType extends ParameterType.BasicConcreteType {
     static Logger logger = LogManager.getLogger(STRINGType.class);
 
     public int MAX_LEN = 1024; // FIXME: what's a appropriate value?
+    public int MIN_LEN = 1;
 
     public static final Set<String> stringPool = new HashSet<>();
     public static final String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -27,7 +28,34 @@ public class STRINGType extends ParameterType.BasicConcreteType {
         assert MAX_LEN > 1;
     }
 
+    public STRINGType(int MAX_LEN, int MIN_LEN) {
+        this.MIN_LEN = MIN_LEN;
+        this.MAX_LEN = MAX_LEN;
+        assert MIN_LEN > 0;
+        assert MAX_LEN > 1;
+        assert MAX_LEN >= MIN_LEN;
+    }
+
     public STRINGType() {
+    }
+
+    public String generateRandomStringWithMinLen() {
+        // Now when calling text, it's impossible to generate empty string!
+        StringBuilder sb = new StringBuilder();
+        Random random = new Random();
+        int length = random.nextInt(MAX_LEN) + MIN_LEN;
+        for (int i = 0; i < length; i++) {
+            // generate random index number
+            int index = random.nextInt(alphabet.length());
+            char randomChar = alphabet.charAt(index);
+            sb.append(randomChar);
+        }
+        while (sb.toString().length() < MIN_LEN) {
+            int index = random.nextInt(alphabet.length());
+            char randomChar = alphabet.charAt(index);
+            sb.append(randomChar);
+        }
+        return sb.toString();
     }
 
     public String generateRandomString() {
@@ -100,9 +128,16 @@ public class STRINGType extends ParameterType.BasicConcreteType {
                 }
             }
         }
-        ret = new Parameter(this, generateRandomString());
-        while (!isValid(s, c, ret)) {
+        if (MIN_LEN == 0) {
             ret = new Parameter(this, generateRandomString());
+            while (!isValid(s, c, ret)) {
+                ret = new Parameter(this, generateRandomString());
+            }
+        } else {
+            ret = new Parameter(this, generateRandomStringWithMinLen());
+            while (!isValid(s, c, ret)) {
+                ret = new Parameter(this, generateRandomStringWithMinLen());
+            }
         }
         stringPool.add((String) ret.value);
         return ret;

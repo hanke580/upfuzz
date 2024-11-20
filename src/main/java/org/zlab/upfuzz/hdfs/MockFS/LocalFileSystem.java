@@ -79,6 +79,16 @@ public class LocalFileSystem extends FileSystem {
         return files[index];
     }
 
+    public boolean localRootContainsFile() {
+        File[] files = new File(localRoot).listFiles();
+        for (File file : files) {
+            if (file.isFile()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // TODO improve random dir method
     public File getRandomDir() {
         try {
@@ -100,8 +110,6 @@ public class LocalFileSystem extends FileSystem {
             e.printStackTrace();
             throw new IllegalStateException(e);
         }
-        // File[] files = new File(localRoot).listFiles();
-        // System.out.println("list files: " + files.length);
     }
 
     public String getRandomPathString() {

@@ -1,0 +1,59 @@
+package org.zlab.upfuzz.ozone;
+
+import org.zlab.upfuzz.Command;
+import org.zlab.upfuzz.State;
+import org.zlab.upfuzz.fuzzingengine.Config;
+
+import java.util.LinkedList;
+import java.util.List;
+
+public abstract class OzoneCommand extends Command {
+    public String subdir;
+    public String bucket;
+    public String volume;
+
+    public OzoneCommand(String subdir) {
+        this.subdir = subdir;
+        initStorageTypeOptions();
+    }
+
+    public OzoneCommand(String subdir, String bucket, String volume) {
+        this.subdir = subdir;
+        this.bucket = bucket;
+        this.volume = volume;
+        initStorageTypeOptions();
+    }
+
+    @Override
+    public void separate(State state) {
+        subdir = ((OzoneState) state).subdir;
+        bucket = ((OzoneState) state).bucket;
+        bucket = ((OzoneState) state).volume;
+    }
+
+    public List<String> storageTypeOptions = new LinkedList<>();
+
+    public void initStorageTypeOptions() {
+        storageTypeOptions.add("RAM_DISK");
+        if (Config.getConf().support_StorageType_NVDIMM)
+            storageTypeOptions.add("NVDIMM");
+        storageTypeOptions.add("SSD");
+        storageTypeOptions.add("DISK");
+        storageTypeOptions.add("ARCHIVE");
+        if (Config.getConf().support_StorageType_PROVIDED)
+            storageTypeOptions.add("PROVIDED");
+    }
+
+    public String constructCommandStringWithDirSeparation(String type) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(type).append(" ");
+        int i = 0;
+        while (i < params.size() - 1) {
+            if (!params.get(i).toString().isEmpty())
+                sb.append(params.get(i)).append(" ");
+            i++;
+        }
+        sb.append(subdir).append(params.get(i));
+        return sb.toString();
+    }
+}

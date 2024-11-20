@@ -1,0 +1,91 @@
+version: '3'
+services:
+
+        DC3N0:
+                container_name: hadoop-hadoop-2.10.2_hadoop-2.10.2-dup_cymYvnXL_N0
+                image: upfuzz_hadoop:hadoop-2.10.2_hadoop-2.10.2-dup
+                command: bash -c 'sleep 0 && /usr/bin/supervisord'
+                networks:
+
+                        network_hadoop_hadoop-2.10.2_to_hadoop-2.10.2-dup_237b23dd-4daf-42a1-b4a4-1c5bb02bebe0:
+                                ipv4_address: 192.168.245.2
+                volumes:
+                        - ./persistent/node_0/env.sh:/usr/bin/set_env
+                        - ./persistent/node_0/consolelog:/var/log/supervisor
+                        - /project/upfuzz/prebuild/hadoop/hadoop-2.10.2:/hadoop/hadoop-2.10.2
+                        - /project/upfuzz/prebuild/hadoop/hadoop-2.10.2-dup:/hadoop/hadoop-2.10.2-dup
+                environment:
+                        - CASSANDRA_CLUSTER_NAME=dev_cluster
+                        - CASSANDRA_LOG_DIR=/var/log/cassandra
+                expose:
+                        - 50020
+                        - 50010
+                        - 50075
+                        - 9000
+                        - 50070
+                        - 50090
+                ulimits:
+                        memlock: -1
+                        nproc: 32768
+                        nofile: 100000
+        DC3N1:
+                container_name: hadoop-hadoop-2.10.2_hadoop-2.10.2-dup_cymYvnXL_N1
+                image: upfuzz_hadoop:hadoop-2.10.2_hadoop-2.10.2-dup
+                command: bash -c 'sleep 0 && /usr/bin/supervisord'
+                networks:
+                        network_hadoop_hadoop-2.10.2_to_hadoop-2.10.2-dup_237b23dd-4daf-42a1-b4a4-1c5bb02bebe0:
+                                ipv4_address: 192.168.245.3
+                volumes:
+                        - ./persistent/node_1/env.sh:/usr/bin/set_env
+                        - ./persistent/node_1/consolelog:/var/log/supervisor
+                        - /project/upfuzz/prebuild/hadoop/hadoop-2.10.2:/hadoop/hadoop-2.10.2
+                        - /project/upfuzz/prebuild/hadoop/hadoop-2.10.2-dup:/hadoop/hadoop-2.10.2-dup
+                environment:
+                        - CASSANDRA_CLUSTER_NAME=dev_cluster
+                        - CASSANDRA_LOG_DIR=/var/log/cassandra
+                expose:
+                        - 50020
+                        - 50010
+                        - 50075
+                        - 9000
+                        - 50070
+                        - 50090
+                ulimits:
+                        memlock: -1
+                        nproc: 32768
+                        nofile: 100000
+
+        DC3N2:
+                container_name: hadoop-hadoop-2.10.2_hadoop-2.10.2-dup_cymYvnXL_N2
+                image: upfuzz_hadoop:hadoop-2.10.2_hadoop-2.10.2-dup
+                command: bash -c 'sleep 0 && /usr/bin/supervisord'
+                networks:
+                        network_hadoop_hadoop-2.10.2_to_hadoop-2.10.2-dup_237b23dd-4daf-42a1-b4a4-1c5bb02bebe0:
+                                ipv4_address: 192.168.245.4
+                volumes:
+                        - ./persistent/node_2/env.sh:/usr/bin/set_env
+                        - ./persistent/node_2/consolelog:/var/log/supervisor
+                        - /project/upfuzz/prebuild/hadoop/hadoop-2.10.2:/hadoop/hadoop-2.10.2
+                        - /project/upfuzz/prebuild/hadoop/hadoop-2.10.2-dup:/hadoop/hadoop-2.10.2-dup
+                environment:
+                        - CASSANDRA_CLUSTER_NAME=dev_cluster
+                        - CASSANDRA_LOG_DIR=/var/log/cassandra
+                expose:
+                        - 50020
+                        - 50010
+                        - 50075
+                        - 9000
+                        - 50070
+                        - 50090
+                ulimits:
+                        memlock: -1
+                        nproc: 32768
+                        nofile: 100000
+
+networks:
+        network_hadoop_hadoop-2.10.2_to_hadoop-2.10.2-dup_237b23dd-4daf-42a1-b4a4-1c5bb02bebe0:
+                driver: bridge
+                ipam:
+                        driver: default
+                        config:
+                                - subnet: 192.168.245.1/24

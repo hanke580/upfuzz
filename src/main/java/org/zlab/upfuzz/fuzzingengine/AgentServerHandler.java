@@ -19,6 +19,7 @@ import org.jacoco.core.runtime.RemoteControlWriter;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.hbase.HBaseDockerCluster;
 import org.zlab.upfuzz.hdfs.HdfsDockerCluster;
+import org.zlab.upfuzz.ozone.OzoneDockerCluster;
 import org.zlab.upfuzz.utils.Utilities;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
@@ -118,6 +119,13 @@ public class AgentServerHandler
             // + socket.getRemoteSocketAddress().toString() + " " +
             // sessionId + ": not in target hdfs process");
             // }
+            return;
+        }
+
+        // ozone filter: collecting dn, recon, om and scm
+        if (sessionSplit[0].equals("ozone")
+                && !Utilities.contains(sessionSplit[3],
+                        OzoneDockerCluster.includeJacocoHandlers)) {
             return;
         }
 

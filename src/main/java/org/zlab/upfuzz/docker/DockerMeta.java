@@ -83,8 +83,10 @@ public abstract class DockerMeta {
 
         ProcessBuilder pb = new ProcessBuilder(cmds).redirectErrorStream(true);
 
-        for (String cmd : cmds) {
-            logger.info("exec cmd: " + cmd);
+        if (Config.getConf().debug) {
+            for (String cmd : cmds) {
+                logger.info("exec cmd: " + cmd);
+            }
         }
         return pb.start();
     }
@@ -105,10 +107,11 @@ public abstract class DockerMeta {
 
         ProcessBuilder pb = new ProcessBuilder(cmds).redirectErrorStream(true);
 
-        for (String cmd : cmds) {
-            logger.info("exec cmd: " + cmd);
+        if (Config.getConf().debug) {
+            for (String cmd : cmds) {
+                logger.info("exec cmd: " + cmd);
+            }
         }
-
         return pb.start();
     }
 

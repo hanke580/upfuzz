@@ -14,6 +14,11 @@ import java.util.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.zlab.ocov.tracker.ObjectGraphCoverage;
+<<<<<<< HEAD
+=======
+import org.apache.logging.log4j.Logger;
+
+>>>>>>> ozone implementation aligned main branch
 import org.zlab.upfuzz.fuzzingengine.Config.Configuration;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.upfuzz.fuzzingengine.Config;
@@ -27,6 +32,7 @@ import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPlanPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPlanFeedbackPacket;
+import org.zlab.upfuzz.ozone.OzoneExecutor;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
@@ -735,13 +741,19 @@ public class MiniClientMain {
         Map<Integer, FeedbackPacket> testID2FeedbackPacket = new HashMap<>();
         Map<Integer, List<String>> testID2oriResults = new HashMap<>();
         Map<Integer, List<String>> testID2upResults = new HashMap<>();
+        Map<Integer, List<String>> testID2downResults = new HashMap<>();
+        List<String> ozoneDefaultFSs = new ArrayList<>();
 
         int executedTestNum = 0;
         boolean breakNewInv = false;
 
         for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
             executedTestNum++;
-            executor.executeCommands(tp.originalCommandSequenceList);
+            if (Config.getConf().system.equals("ozone")) {
+                runOzoneWriteCommands(tp, executor, ozoneDefaultFSs);
+            } else {
+                executor.executeCommands(tp.originalCommandSequenceList);
+            }
             if (Config.getConf().flushAfterTest)
                 executor.flush();
 
@@ -887,8 +899,16 @@ public class MiniClientMain {
                 for (int testPacketIdx = 0; testPacketIdx < executedTestNum; testPacketIdx++) {
                     TestPacket tp = stackedTestPacket.getTestPacketList()
                             .get(testPacketIdx);
-                    List<String> upResult = executor
-                            .executeCommands(tp.validationCommandSequenceList);
+                    List<String> upResult = new ArrayList<>();
+                    if (Config.getConf().system.equals("ozone")) {
+                        upResult = runOzoneReadCommandsAfterUpgrade(
+                                testPacketIdx, tp,
+                                executor, ozoneDefaultFSs);
+                    } else {
+                        upResult = executor
+                                .executeCommands(
+                                        tp.validationCommandSequenceList);
+                    }
                     testID2upResults.put(tp.testPacketID, upResult);
                     if (Config.getConf().collUpFeedBack) {
                         ExecutionDataStore[] upCoverages = executor
@@ -947,7 +967,66 @@ public class MiniClientMain {
                                 logInfo);
             }
         }
+        ozoneDefaultFSs.clear();
         return stackedFeedbackPacket;
+    }
+
+    public static void runOzoneWriteCommands(TestPacket tp, Executor executor,
+            List<String> ozoneDefaultFSs) {
+        List<String> originalCommandSequenceListCombined = tp.originalCommandSequenceList;
+        List<String> initCommands = new ArrayList<>();
+        String initBucketCommand = originalCommandSequenceListCombined
+                .get(0);
+        try {
+            String[] initBucketCommandParams = initBucketCommand.split(" ");
+            String volumeNameParam = initBucketCommandParams[initBucketCommandParams.length
+                    - 1].split("/")[0];
+            String bucketNameParam = initBucketCommandParams[initBucketCommandParams.length
+                    - 1].split("/")[1];
+            String initVolumeCommand = "sh volume create "
+                    + volumeNameParam;
+            initCommands.add(initVolumeCommand);
+            initCommands.add(initBucketCommand);
+            List<String> laterWriteCommands = new ArrayList<>(
+                    originalCommandSequenceListCombined.subList(1,
+                            originalCommandSequenceListCombined.size()));
+            executor.executeCommands(initCommands);
+
+            String fsPath = "o3fs://" + bucketNameParam + "."
+                    + volumeNameParam;
+
+            /**
+             * To make sure that interferences are avoided: 
+             * each set of write commands work on different defaultFS
+            **/
+            ((OzoneExecutor) executor).setDefaultFs(fsPath, 0);
+            ozoneDefaultFSs.add(fsPath);
+
+            executor.executeCommands(laterWriteCommands);
+        } catch (Exception e) {
+            executor.executeCommands(originalCommandSequenceListCombined);
+            e.printStackTrace();
+        }
+    }
+
+    public static List<String> runOzoneReadCommandsAfterUpgrade(
+            int testPacketIdx, TestPacket tp,
+            Executor executor, List<String> ozoneDefaultFSs) {
+        try {
+            // Have to use the same defaultFS as the corresponding set of write
+            // commands
+            String fsPath = ozoneDefaultFSs.get(testPacketIdx);
+            ((OzoneExecutor) executor).setDefaultFs(fsPath, 1);
+
+            List<String> upResult = executor
+                    .executeCommands(tp.validationCommandSequenceList);
+            return upResult;
+        } catch (Exception e) {
+            e.printStackTrace();
+            List<String> upResult = executor
+                    .executeCommands(tp.validationCommandSequenceList);
+            return upResult;
+        }
     }
 
     public static TestPlanFeedbackPacket runTestPlanPacket(Executor executor,

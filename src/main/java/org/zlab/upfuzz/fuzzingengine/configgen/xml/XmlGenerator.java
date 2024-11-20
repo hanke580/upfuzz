@@ -65,6 +65,18 @@ public class XmlGenerator extends ConfigFileGenerator {
             // logger.info("set hdfs basic cluster config");
             hdfsClusterSetting(configurations);
             hdfsClusterSetting(newConfigurations);
+        } else if (Config.getConf().system.equals("ozone")
+                && defaultXMLPath.getFileName().toString()
+                        .equals("ozone-site.xml")) {
+            // logger.info("set hdfs basic cluster config");
+            ozoneClusterSetting(configurations);
+            ozoneClusterSetting(newConfigurations);
+        } else if (Config.getConf().system.equals("ozone")
+                && defaultXMLPath.getFileName().toString()
+                        .equals("core-site.xml")) {
+            // logger.info("set hdfs basic cluster config");
+            ozoneNameClusterSetting(configurations);
+            ozoneNameClusterSetting(newConfigurations);
         } else if (Config.getConf().system.equals("hbase")
                 && defaultXMLPath.getFileName().toString()
                         .equals("hdfs-site.xml")) {
@@ -121,6 +133,42 @@ public class XmlGenerator extends ConfigFileGenerator {
                 "false");
         curConfigurations.put("dfs.secondary.http.address",
                 "secondarynn:50090");
+    }
+
+    public void ozoneClusterSetting(Map<String, String> curConfigurations) {
+        curConfigurations.put("ozone.om.metadata-dir", "/var/ozone/data/om");
+        curConfigurations.put("ozone.scm.db.dirs", "/var/ozone/data/scm"); // No
+                                                                           // replication
+        curConfigurations.put("ozone.datanode.data.dir",
+                "/var/ozone/data/dataNode"); // Single node replication
+        // curConfigurations.put("ozone.replication", "3");
+        curConfigurations.put("ozone.om.ratis.enable", "true");
+        curConfigurations.put("ozone.scm.ha", "true");
+        // curConfigurations.put("ozone.om.service.ids", "om-id-1");
+        // curConfigurations.put("ozone.om.nodes", "om1");
+        // curConfigurations.put("ozone.om.address.om-service-id.om1",
+        // "om:9862");
+        // curConfigurations.put("ozone.recon.db.dirs",
+        // "/var/ozone/data/recon");
+        // curConfigurations.put("ozone.scm.block.client.address",
+        // "ozone-scm:9860");
+        curConfigurations.put("ozone.scm.names", "ozone-scm");
+        curConfigurations.put("ozone.scm.client.address", "ozone-scm:9860");
+        curConfigurations.put("ozone.scm.datanode.address", "ozone-scm:9861");
+        curConfigurations.put("ozone.om.address", "om:9862");
+        curConfigurations.put(
+                "ozone.scm.datanode.registration.ip-hostname-check",
+                "false");
+        curConfigurations.put("ozone.metadata.dirs",
+                "/var/ozone/data/metadata");
+    }
+
+    public void ozoneNameClusterSetting(
+            Map<String, String> curConfigurations) {
+        curConfigurations.put("fs.defaultFS", "o3fs://bucket.volume.om");
+        curConfigurations.put("ozone.om.address", "om:9862");
+        curConfigurations.put("ozone.scm.names", "ozone-scm");
+        curConfigurations.put("ozone.scm.client.address", "ozone-scm:9860");
     }
 
     public void HBasehdfsClusterSetting(Map<String, String> curConfigurations) {

@@ -49,6 +49,10 @@ import org.zlab.upfuzz.hdfs.HdfsCommandPool;
 import org.zlab.upfuzz.hdfs.HdfsConfigGen;
 import org.zlab.upfuzz.hdfs.HdfsExecutor;
 import org.zlab.upfuzz.hdfs.HdfsState;
+import org.zlab.upfuzz.ozone.OzoneCommandPool;
+import org.zlab.upfuzz.ozone.OzoneState;
+import org.zlab.upfuzz.ozone.OzoneConfigGen;
+import org.zlab.upfuzz.ozone.OzoneExecutor;
 import org.zlab.upfuzz.hbase.HBaseCommandPool;
 import org.zlab.upfuzz.hbase.HBaseExecutor;
 import org.zlab.upfuzz.hbase.HBaseState;
@@ -356,6 +360,12 @@ public class FuzzingServer {
             commandPool = new HBaseCommandPool();
             stateClass = HBaseState.class;
             configGen = new HBaseConfigGen();
+            break;
+        case "ozone":
+            executor = new OzoneExecutor();
+            commandPool = new OzoneCommandPool();
+            stateClass = OzoneState.class;
+            configGen = new OzoneConfigGen();
             break;
         default:
             throw new RuntimeException(
