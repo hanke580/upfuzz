@@ -53,7 +53,7 @@ public class Config {
         public int skipUpgradeTargetProbN = 10;
 
         // -------------- GC --------------
-        public int gcInterval = 5; // minutes
+        public int gcInterval = 2; // minutes
 
         // ------------ Corpus ------------
         public String corpus = "corpus";
