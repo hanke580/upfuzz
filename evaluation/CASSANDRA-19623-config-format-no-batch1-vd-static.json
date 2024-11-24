@@ -7,7 +7,7 @@
   "configDir" : "configtests",
   "STACKED_TESTS_NUM" : 1,
   "STACKED_TESTS_NUM_G2" : 1,
-  "skipUpgrade": true,
+  "skipUpgrade": false,
   "skipProbForNewBranchCoverage": 0,
   "expProbModel_C": 0.4,
   "skipUpgradeTargetProb": 0.1,
