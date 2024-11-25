@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# Input: failure/failure_xxx
+# Output: print triggering time
 compute_triggering_time() {
     # Check if a directory argument was provided
     if [ -z "$1" ]; then
@@ -25,12 +28,8 @@ compute_triggering_time() {
     # Output the results
     echo "Bug Report: $FILENAME"
     # echo "Total time: $NUM seconds"
-    echo "Triggering time: $HOURS hours"
+    # echo "Triggering time: $HOURS hours"
+    # echo -e "Triggering time: \e[1m$HOURS hours\e[0m"
+    # echo -e "Triggering time: \e[1;32m$HOURS hours\e[0m"
+    echo -e "Triggering time: \e[1;31m$HOURS hours\e[0m"
 }
-
-# Use the function with input from the command line
-#if [ $# -eq 0 ]; then
-#    echo "Usage: $0 <directory>"
-#    exit 1
-#fi
-#compute_triggering_time "$1"
