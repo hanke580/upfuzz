@@ -82,13 +82,7 @@ public class FuzzingClient {
                                 Config.getConf().topObjectsFileName),
                         oriFormatInfoFolder.resolve(
                                 Config.getConf().comparableClassesFileName),
-                        null,
-                        null,
-                        null,
-                        null,
-                        upgradeFormatInfoFolder
-                                .resolve(Config
-                                        .getConf().specialDumpIdsFileName));
+                        null, null, null, null, null);
             }
         }
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
