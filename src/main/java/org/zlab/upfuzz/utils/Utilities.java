@@ -25,6 +25,7 @@ import org.jacoco.core.data.ExecutionDataStore;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.zlab.upfuzz.CommandSequence;
+import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.FeedBack;
 import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacket;
@@ -757,6 +758,22 @@ public class Utilities {
             ret.add(new Parameter(CONSTANTSTRINGType.instance, str));
         }
         return ret;
+    }
+
+    public static ParameterType.InCollectionType createInStringCollectionType(
+            Collection<String> strings) {
+        return new ParameterType.InCollectionType(
+                CONSTANTSTRINGType.instance,
+                (s, c) -> Utilities
+                        .strings2Parameters(
+                                strings),
+                null);
+    }
+
+    public static ParameterType.OptionalType createOptionalString(
+            String s) {
+        return new ParameterType.OptionalType(
+                new CONSTANTSTRINGType(s), null);
     }
 
     public static Set<Parameter> strings2Parameters(

@@ -20,6 +20,37 @@ public class CommandTest extends AbstractTest {
     }
 
     @Test
+    public void testGetACL() {
+        HdfsState hdfsState = new HdfsState();
+        Command cmd = new Getfacl(hdfsState);
+        System.out.println(cmd.constructCommandString());
+    }
+
+    @Test
+    public void testGetfattr() {
+        HdfsState hdfsState = new HdfsState();
+        Command cmd = new Getfattr(hdfsState);
+        System.out.println(cmd.constructCommandString());
+    }
+
+    @Test
+    public void testStat() {
+        HdfsState hdfsState = new HdfsState();
+        Command cmd1 = new Touchz(hdfsState);
+        cmd1.updateState(hdfsState);
+        Command cmd2 = new Stat(hdfsState);
+        cmd2.updateState(hdfsState);
+        System.out.println(cmd2.constructCommandString());
+    }
+
+    @Test
+    public void testChown() {
+        HdfsState hdfsState = new HdfsState();
+        Command cmd = new Chown(hdfsState);
+        System.out.println(cmd.constructCommandString());
+    }
+
+    @Test
     public void testPut() {
         HdfsState hdfsState = new HdfsState();
         Command putCommand = new Put(hdfsState);

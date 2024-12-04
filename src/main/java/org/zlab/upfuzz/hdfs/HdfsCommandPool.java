@@ -1,8 +1,6 @@
 package org.zlab.upfuzz.hdfs;
 
 import java.util.AbstractMap;
-import java.util.LinkedList;
-import java.util.List;
 
 import org.zlab.upfuzz.CommandPool;
 import org.zlab.upfuzz.fuzzingengine.Config;
@@ -31,6 +29,14 @@ public class HdfsCommandPool extends CommandPool {
                     new AbstractMap.SimpleImmutableEntry<>(Du.class, 2));
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(Ls.class, 2));
+        readCommandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(Getfacl.class, 2));
+        readCommandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(Getfattr.class, 2));
+        readCommandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(Stat.class, 2));
+        readCommandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(Chown.class, 2));
         // dfs admin
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(ListOpenFiles.class, 2));
@@ -66,6 +72,9 @@ public class HdfsCommandPool extends CommandPool {
                 new AbstractMap.SimpleImmutableEntry<>(CreateSnapshot.class,
                         5));
         commandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(DeleteSnapshot.class,
+                        5));
+        commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(Expunge.class, 5));
         // Disable get for now, since this could cause problem when
         // multiple tests are using the same Local FS => FP
@@ -81,6 +90,9 @@ public class HdfsCommandPool extends CommandPool {
                 new AbstractMap.SimpleImmutableEntry<>(
                         Put.class, 5));
         commandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(RenameSnapshot.class,
+                        5));
+        commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
                         RmDir.class, 2));
         commandClassList.add(
@@ -88,17 +100,35 @@ public class HdfsCommandPool extends CommandPool {
                         RmFile.class, 5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
-                        Setacl.class, 5));
+                        Setfacl.class, 5));
+        commandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(
+                        Setrep.class, 5));
+        commandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(
+                        Setfattr1.class, 5));
+        commandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(
+                        Setfattr2.class, 5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(
                         SpecialMkdir.class, 5));
         commandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(
+                        Truncate.class, 5));
+        commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(Touchz.class, 5));
+
         // dfsadmin
+        commandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(AllowSnapshot.class, 5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(ClrQuota.class, 5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(ClrSpaceQuota.class, 5));
+        commandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(DisallowSnapshot.class,
+                        5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(Metasave.class, 5));
         commandClassList.add(

@@ -5,6 +5,8 @@ import org.zlab.upfuzz.hdfs.HdfsCommand;
 
 public abstract class Dfsadmin extends HdfsCommand {
 
+    String type = "dfsadmin";
+
     public Dfsadmin(String subdir) {
         super(subdir);
     }

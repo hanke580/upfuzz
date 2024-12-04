@@ -161,6 +161,22 @@ public class HadoopFileSystem implements Serializable {
         }
     }
 
+    public String getRandomSnapshotPath() {
+        // If there is no file in FS, we return NULL
+        if (snapshotDir2Filename.isEmpty())
+            return null;
+        // Random pick one from snapshotDir2Filename
+        String[] dirArr = snapshotDir2Filename.keySet().toArray(new String[0]);
+        int idx = new Random().nextInt(snapshotDir2Filename.size());
+        String snapshotDir = dirArr[idx];
+        // now pick a file
+        String[] fileArr = snapshotDir2Filename.get(snapshotDir)
+                .toArray(new String[0]);
+        idx = new Random()
+                .nextInt(snapshotDir2Filename.get(snapshotDir).size());
+        return Paths.get(snapshotDir, fileArr[idx]).toString();
+    }
+
     // --------Simple FS End--------
 
     public Integer remixHash(int x) {

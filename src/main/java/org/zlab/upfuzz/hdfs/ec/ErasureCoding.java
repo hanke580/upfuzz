@@ -23,6 +23,8 @@ import java.util.List;
  */
 public abstract class ErasureCoding extends HdfsCommand {
 
+    String type = "ec";
+
     public static List<String> policies = new LinkedList<>();
 
     static {

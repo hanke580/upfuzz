@@ -20,6 +20,16 @@ public abstract class HdfsCommand extends Command {
         subdir = ((HdfsState) state).subdir;
     }
 
+    public static List<String> formatOptions = new LinkedList<>();
+    static {
+        formatOptions.add("\"%b\"");
+        formatOptions.add("\"%n\"");
+        formatOptions.add("\"%o\"");
+        formatOptions.add("\"%r\"");
+        formatOptions.add("\"%y\"");
+        formatOptions.add("\"%f\"");
+    }
+
     public List<String> storageTypeOptions = new LinkedList<>();
 
     public void initStorageTypeOptions() {

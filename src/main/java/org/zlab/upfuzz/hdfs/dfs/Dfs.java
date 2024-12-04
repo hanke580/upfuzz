@@ -3,7 +3,17 @@ package org.zlab.upfuzz.hdfs.dfs;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.hdfs.HdfsCommand;
 
+import java.util.Arrays;
+import java.util.List;
+
 public abstract class Dfs extends HdfsCommand {
+
+    String type = "dfs";
+
+    public static final List<String> opts = Arrays.asList("user.description",
+            "user.flag");
+    public static final List<String> values = Arrays.asList("this is a desc",
+            "this is a flag");
 
     public Dfs(String subdir) {
         super(subdir);

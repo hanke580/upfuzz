@@ -1355,8 +1355,8 @@ public class FuzzingServer {
                         newOriFC = true;
                     }
                     // New format relevant to modification
-                    assert Config.getConf().staticVD
-                            ^ Config.getConf().prioritizeIsSerialized;
+                    assert !(Config.getConf().staticVD
+                            && Config.getConf().prioritizeIsSerialized);
                     if (Config.getConf().staticVD && oriFormatCoverageStatus
                             .isNonMatchableNewFormat()) {
                         logger.info(
