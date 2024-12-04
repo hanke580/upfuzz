@@ -34,7 +34,6 @@ public class RenameSnapshot extends Dfs {
 
     @Override
     public String constructCommandString() {
-        assert params.size() == 2;
         Path p = Path.of(params.get(1).toString());
         // get filename
         String snapshotDir = p.getParent().toString() + "/";
@@ -50,7 +49,6 @@ public class RenameSnapshot extends Dfs {
 
     @Override
     public void updateState(State state) {
-        assert params.size() == 2;
         Path p = Path.of(params.get(1).toString());
         // get filename
         String snapshotDir = p.getParent().toString() + "/";
