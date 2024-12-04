@@ -509,6 +509,19 @@ Avoid FP: disable `list_snapshots` command in `hbase_config.json` when upgrading
 * 2.5.9/3.x/4.x: list_snapshots in format2 (with TTL)
 * 2.4.18/2.6.0: list_snapshots in format1 (without TTL)
 
+2.10.2 Script
+```bash
+/usr/lib/jvm/java-8-openjdk-amd64/bin/javac -d . -cp "share/hadoop/hdfs/*:share/hadoop/common/*:share/hadoop/common/lib/*" FsShellDaemon.java
+sed -i "s/elif \[ \"\$COMMAND\" = \"dfs\" \] ; then/elif [ \"\$COMMAND\" = \"dfsdaemon\" ] ; then\n  CLASS=org.apache.hadoop.fs.FsShellDaemon\n  HADOOP_OPTS=\"\$HADOOP_OPTS \$HADOOP_CLIENT_OPTS\"\n&/" bin/hdfs
+```
+
+3.2.4/3.3.6/3.4.0/3.4.1 Script
+```bash
+/usr/lib/jvm/java-8-openjdk-amd64/bin/javac -d . -cp "share/hadoop/hdfs/*:share/hadoop/common/*:share/hadoop/common/lib/*" FsShellDaemon.java
+sed -i "s/  case \${subcmd} in/&\n    dfsdaemon)\n      HADOOP_CLASSNAME=\"org.apache.hadoop.fs.FsShellDaemon\"\n    ;;/" bin/hdfs
+```
+
+
 ### Cassandra daemon
 * [cqlsh_daemon2_1.py](src/main/resources/cqlsh_daemon2_1.py): 2.1
 * [cqlsh_daemon2.py](src/main/resources/cqlsh_daemon2.py): 2.2.8, 3.0.(15|16|17|30), 3.11.16, 4.0.0
