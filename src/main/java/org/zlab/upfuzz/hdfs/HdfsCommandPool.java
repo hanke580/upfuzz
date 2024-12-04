@@ -35,8 +35,6 @@ public class HdfsCommandPool extends CommandPool {
                 new AbstractMap.SimpleImmutableEntry<>(Getfattr.class, 2));
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(Stat.class, 2));
-        readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(Chown.class, 2));
         // dfs admin
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(ListOpenFiles.class, 2));
@@ -66,6 +64,8 @@ public class HdfsCommandPool extends CommandPool {
                 new AbstractMap.SimpleImmutableEntry<>(AppendToFile.class, 5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(Chmod.class, 5));
+        commandClassList.add(
+                new AbstractMap.SimpleImmutableEntry<>(Chown.class, 5));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(Cp.class, 100));
         commandClassList.add(
