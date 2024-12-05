@@ -22,6 +22,7 @@ full_stop_crash = "fullstop_crash"
 event_crash = "event_crash"
 inconsistency = "inconsistency"
 
+CASSANDRA_BLACK_LIST = ["QueryProcessor.java:559 - The statement:"]
 HDFS_BLACK_LIST = ["RECEIVED SIGNAL", "DataXceiver error processing"]
 HBASE_BLACK_LIST = ["zookeeper.ZKWatcher:", "quorum.LearnerHandler", "zookeeper.ClientCnxn", "procedure2.ProcedureExecutor: ThreadGroup java.lang.ThreadGroup"]
 
@@ -41,13 +42,20 @@ def save_failureinfo(error2failure):
         json.dump(error2failure, f)
 
 
-def cass_grepUniqueError():
+def cass_grepUniqueError(black_list):
     proc = subprocess.Popen(["grep", "-hr", "ERROR", "failure"],stdout=subprocess.PIPE)
     error_arr = []
     for line in proc.stdout:
         #the real code does filtering here
         line_str = line.decode().rstrip()
         if "ERROR LOG" in line_str:
+            continue
+        blacklisted = False
+        for blacklist_error in black_list:
+            if blacklist_error in line_str:
+                blacklisted = True
+                break
+        if blacklisted:
             continue
         str = ""
         arr = line_str.split()
@@ -247,7 +255,7 @@ def processHBase():
     save_failureinfo(error2failure)
 
 def processCassandra():
-    unique_errors = cass_grepUniqueError()
+    unique_errors = cass_grepUniqueError(CASSANDRA_BLACK_LIST)
     error2failure = cass_construct_map(unique_errors)
     for error_msg in error2failure:
         print("error: ", error_msg, "\t size = ", len(error2failure[error_msg]))

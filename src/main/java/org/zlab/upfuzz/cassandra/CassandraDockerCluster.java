@@ -48,6 +48,8 @@ public class CassandraDockerCluster extends DockerCluster {
                         +
                         "(CompoundSparseCellNameType.java:126)" +
                         " ~[apache-cassandra-2.2.19-SNAPSHOT.jar:2.2.19-SNAPSHOT]");
+        // "QueryProcessor.java:559 - The statement:": reported bug
+        blackListErrorLog.add("QueryProcessor.java:559 - The statement:");
     }
 
     public boolean build() throws Exception {
