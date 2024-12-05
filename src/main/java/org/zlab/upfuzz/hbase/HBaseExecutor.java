@@ -3,11 +3,11 @@ package org.zlab.upfuzz.hbase;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.zlab.upfuzz.fuzzingengine.AgentServerSocket;
+import org.zlab.upfuzz.fuzzingengine.ClusterStuckException;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
@@ -134,6 +134,10 @@ public class HBaseExecutor extends Executor {
             if (cp != null) {
                 ret = cp.message;
             }
+        } catch (ClusterStuckException e) {
+            logger.error("ClusterStuckException occurred: " + e.getMessage(),
+                    e);
+            throw e;
         } catch (Exception e) {
             logger.error(e);
             ret = "shell daemon execution problem " + e;

@@ -827,8 +827,15 @@ public class FuzzingClient {
             Utilities.sleepAndExit(36000);
         }
 
-        StackedFeedbackPacket stackedFeedbackPacket = runTheTests(executor,
-                stackedTestPacket, oriObjCoverage);
+        StackedFeedbackPacket stackedFeedbackPacket = null;
+        try {
+            stackedFeedbackPacket = runTheTests(executor,
+                    stackedTestPacket, oriObjCoverage);
+        } catch (ClusterStuckException e) {
+            logger.error(
+                    "Cluster shows no response within the time limit, drop the test");
+            // TODO: Debug, print all commands
+        }
         tearDownExecutor();
         return stackedFeedbackPacket;
     }
