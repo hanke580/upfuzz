@@ -41,5 +41,6 @@
   "debug": false,
   "useFixedCommand": false,
   "enable_LIST_SNAPSHOTS": false,
+  "enable_LIST_QUOTA_TABLE_SIZES": false,
   "startUpClusterForDebugging": false
 }

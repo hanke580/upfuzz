@@ -89,9 +89,12 @@ public class HBaseCommandPool extends CommandPool {
             readCommandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
                             LIST_QUOTA_SNAPSHOTS.class, 5));
-            readCommandClassList.add(
-                    new AbstractMap.SimpleImmutableEntry<>(
-                            LIST_QUOTA_TABLE_SIZES.class, 5));
+
+            if (Config.getConf().enable_LIST_QUOTA_TABLE_SIZES) {
+                readCommandClassList.add(
+                        new AbstractMap.SimpleImmutableEntry<>(
+                                LIST_QUOTA_TABLE_SIZES.class, 5));
+            }
             readCommandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(LIST_QUOTAS.class,
                             5));

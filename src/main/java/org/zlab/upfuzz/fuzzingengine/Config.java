@@ -329,6 +329,8 @@ public class Config {
         public boolean enableHBaseReadResultComparison = true;
         public boolean enable_IS_DISABLED = true;
         public boolean enable_LIST_SNAPSHOTS = true;
+        public boolean enable_LIST_QUOTA_TABLE_SIZES = true;
+
         public boolean enableQuota = true;
         public int MAX_CF_NUM = 7;
         public final String[] REGIONSERVERS = { "hregion1", "hregion2" };

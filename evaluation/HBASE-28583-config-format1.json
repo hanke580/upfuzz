@@ -29,11 +29,6 @@
   "BC_CorpusNonVersionDelta": 0.2,
   "FC_CorpusNonVersionDelta": 0.8,
   "BoundaryChange_CorpusNonVersionDelta": 0,
-  "FC_VD_PROB_CorpusVersionDeltaFiveQueueWithBoundary": 0.4,
-  "FC_PROB_CorpusVersionDeltaFiveQueueWithBoundary": 0.3,
-  "BC_VD_PROB_CorpusVersionDeltaFiveQueueWithBoundary": 0,
-  "BC_PROB_CorpusVersionDeltaFiveQueueWithBoundary": 0.1,
-  "BoundaryChange_PROB_CorpusVersionDeltaFiveQueueWithBoundary": 0.2,
   "verifyConfig": false,
   "testAddedConfig": false,
   "testDeletedConfig": false,
@@ -46,5 +41,6 @@
   "debug": false,
   "useFixedCommand": false,
   "enable_LIST_SNAPSHOTS": false,
+  "enable_LIST_QUOTA_TABLE_SIZES": false,
   "startUpClusterForDebugging": false
 }
