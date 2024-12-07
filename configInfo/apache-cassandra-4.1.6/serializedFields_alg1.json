@@ -1,1 +1,1085 @@
-{"org.apache.cassandra.schema.DroppedColumn":{"column":"org.apache.cassandra.schema.ColumnMetadata"},"org.apache.cassandra.io.sstable.format.big.BigTableWriter$StatsCollector":{"collector":"org.apache.cassandra.io.sstable.metadata.MetadataCollector"},"org.apache.cassandra.db.rows.Rows":{"EMPTY_STATIC_ROW":"org.apache.cassandra.db.rows.Row"},"org.apache.cassandra.db.compaction.CompactionManager$CleanupStrategy":{"nowInSec":"int"},"org.apache.cassandra.index.SecondaryIndexManager$WriteTimeTransaction":{"indexers":"org.apache.cassandra.index.Index$Indexer[]"},"org.apache.cassandra.db.BufferClusteringBoundOrBoundary":{"TOP":"org.apache.cassandra.db.ClusteringBound","values":"java.lang.Object[]","BOTTOM":"org.apache.cassandra.db.ClusteringBound"},"org.apache.cassandra.io.sstable.format.RangeAwareSSTableWriter":{"currentWriter":"org.apache.cassandra.io.sstable.SSTableMultiWriter","estimatedKeys":"long","header":"org.apache.cassandra.db.SerializationHeader"},"org.apache.cassandra.utils.memory.SlabAllocator":{"ensureOnHeap":"org.apache.cassandra.utils.memory.EnsureOnHeap"},"org.apache.cassandra.index.internal.IndexEntry":{"indexedEntryClustering":"org.apache.cassandra.db.Clustering","indexedKey":"java.nio.ByteBuffer"},"org.apache.cassandra.db.Slice":{"ALL":"org.apache.cassandra.db.Slice","start":"org.apache.cassandra.db.ClusteringBound","end":"org.apache.cassandra.db.ClusteringBound"},"org.apache.cassandra.schema.Types":{"types":"java.util.Map"},"org.apache.cassandra.db.SinglePartitionReadCommand":{"partitionKey":"org.apache.cassandra.db.DecoratedKey","clusteringIndexFilter":"org.apache.cassandra.db.filter.ClusteringIndexFilter"},"org.apache.cassandra.io.sstable.format.SSTableReaderBuilder$ForRead":{"summary":"org.apache.cassandra.io.sstable.IndexSummary","bf":"org.apache.cassandra.utils.IFilter","last":"org.apache.cassandra.db.DecoratedKey","first":"org.apache.cassandra.db.DecoratedKey"},"org.apache.cassandra.db.rows.NativeCell":{"EMPTY_SIZE":"long"},"org.apache.cassandra.db.DataRange$Paging":{"lastReturned":"org.apache.cassandra.db.Clustering","clusteringIndexFilter":"org.apache.cassandra.db.filter.ClusteringIndexFilter"},"org.apache.cassandra.db.rows.Row$Deletion":{"EMPTY_SIZE":"long","time":"org.apache.cassandra.db.DeletionTime","LIVE":"org.apache.cassandra.db.rows.Row$Deletion"},"org.apache.cassandra.dht.Token$KeyBound":{"token":"org.apache.cassandra.dht.Token"},"org.apache.cassandra.utils.memory.NativeAllocator":{"cloneToHeap":"org.apache.cassandra.utils.memory.EnsureOnHeap$CloneToHeap"},"org.apache.cassandra.db.filter.ColumnFilter$SelectionColumnFilter":{"queried":"org.apache.cassandra.db.RegularAndStaticColumns","fetched":"org.apache.cassandra.db.RegularAndStaticColumns"},"org.apache.cassandra.batchlog.BatchlogManager$ReplayingBatch":{"writtenAt":"long"},"org.apache.cassandra.io.sstable.format.big.BigTableScanner":{"iterator":"java.util.Iterator","sstable":"org.apache.cassandra.io.sstable.format.SSTableReader","dataRange":"org.apache.cassandra.db.DataRange","columns":"org.apache.cassandra.db.filter.ColumnFilter"},"org.apache.cassandra.db.rows.CellPath$SingleItemCellPath":{"EMPTY_SIZE":"long","value":"java.nio.ByteBuffer"},"org.apache.cassandra.utils.btree.TreeCursor":{"cur":"org.apache.cassandra.utils.btree.NodeCursor"},"org.apache.cassandra.service.pager.SinglePartitionPager":{"query":"org.apache.cassandra.db.ReadQuery"},"org.apache.cassandra.db.compaction.CompactionIterator":{"scanners":"java.util.List","compacted":"org.apache.cassandra.db.partitions.UnfilteredPartitionIterator","nowInSec":"int"},"org.apache.cassandra.db.RowIndexEntry$IndexedEntry":{"indexedPartSize":"int","offsets":"int[]","headerLength":"long","columnsIndex":"org.apache.cassandra.io.sstable.IndexInfo[]","deletionTime":"org.apache.cassandra.db.DeletionTime","position":"long"},"org.apache.cassandra.utils.btree.NodeCursor":{"node":"java.lang.Object[]","parent":"org.apache.cassandra.utils.btree.NodeCursor","nodeOffset":"int","position":"int","child":"org.apache.cassandra.utils.btree.NodeCursor"},"org.apache.cassandra.utils.btree.LeafBTreeSearchIterator":{"upperBound":"int","nextPos":"int","keys":"java.lang.Object[]","lowerBound":"int"},"org.apache.cassandra.db.compaction.CompactionManager":{"instance":"org.apache.cassandra.db.compaction.CompactionManager","active":"org.apache.cassandra.db.compaction.ActiveCompactions"},"org.apache.cassandra.db.columniterator.SSTableIterator$ForwardIndexedReader":{"deserializer":"org.apache.cassandra.db.UnfilteredDeserializer"},"org.apache.cassandra.db.RepairedDataInfo":{"purger":"org.apache.cassandra.db.RepairedDataInfo$RepairedDataPurger","NO_OP_REPAIRED_DATA_INFO":"org.apache.cassandra.db.RepairedDataInfo","repairedCounter":"org.apache.cassandra.db.filter.DataLimits$Counter"},"org.apache.cassandra.db.ClusteringPrefix$Deserializer":{"nextKind":"org.apache.cassandra.db.ClusteringPrefix$Kind","nextValues":"byte[][]"},"org.apache.cassandra.db.compaction.writers.DefaultCompactionWriter":{"nonExpiredSSTables":"java.util.Set","sstableWriter":"org.apache.cassandra.io.sstable.SSTableRewriter"},"org.apache.cassandra.db.rows.BTreeRow":{"primaryKeyLivenessInfo":"org.apache.cassandra.db.LivenessInfo","deletion":"org.apache.cassandra.db.rows.Row$Deletion","EMPTY_SIZE":"long","clustering":"org.apache.cassandra.db.Clustering","btree":"java.lang.Object[]"},"org.apache.cassandra.service.pager.AbstractQueryPager$Pager":{"lastRow":"org.apache.cassandra.db.rows.Row","counter":"org.apache.cassandra.db.filter.DataLimits$Counter"},"org.apache.cassandra.dht.RandomPartitioner":{"MINIMUM":"org.apache.cassandra.dht.RandomPartitioner$BigIntegerToken"},"org.apache.cassandra.db.rows.Row$Merger$ColumnDataReducer":{"cellReducer":"org.apache.cassandra.db.rows.Row$Merger$CellReducer","complexCells":"java.util.List"},"org.apache.cassandra.utils.caching.TinyThreadLocalPool$TinyPool":{"val3":"java.lang.Object","val2":"java.lang.Object","val1":"java.lang.Object"},"org.apache.cassandra.db.Slices$ArrayBackedSlices":{"slices":"org.apache.cassandra.db.Slice[]"},"org.apache.cassandra.utils.btree.BTree$Updater":{"insert":"org.apache.cassandra.utils.btree.BTree$SimpleTreeKeysIterator","updateF":"org.apache.cassandra.utils.btree.UpdateFunction"},"org.apache.cassandra.db.rows.UnfilteredRowIteratorSerializer$Header":{"partitionDeletion":"org.apache.cassandra.db.DeletionTime","staticRow":"org.apache.cassandra.db.rows.Row","sHeader":"org.apache.cassandra.db.SerializationHeader","key":"org.apache.cassandra.db.DecoratedKey"},"org.apache.cassandra.utils.btree.BTree$SimpleTreeStack":{"nodes":"java.lang.Object[][]"},"org.apache.cassandra.db.partitions.ImmutableBTreePartition":{"holder":"org.apache.cassandra.db.partitions.AbstractBTreePartition$Holder"},"org.apache.cassandra.db.transform.BaseRows":{"input":"org.apache.cassandra.utils.CloseableIterator","staticRow":"org.apache.cassandra.db.rows.Row"},"org.apache.cassandra.io.sstable.Descriptor":{"id":"org.apache.cassandra.io.sstable.SSTableId"},"org.apache.cassandra.db.BufferClusteringBound":{"TOP":"org.apache.cassandra.db.ClusteringBound","BOTTOM":"org.apache.cassandra.db.ClusteringBound"},"org.apache.cassandra.db.virtual.SimpleDataSet$SimplePartition":{"key":"org.apache.cassandra.db.DecoratedKey"},"org.apache.cassandra.dht.LocalPartitioner$LocalToken":{"token":"java.lang.Comparable"},"org.apache.cassandra.io.sstable.format.big.BigTableWriter":{"metadataCollector":"org.apache.cassandra.io.sstable.metadata.MetadataCollector","columnIndexWriter":"org.apache.cassandra.db.ColumnIndex","lastWrittenKey":"org.apache.cassandra.db.DecoratedKey","header":"org.apache.cassandra.db.SerializationHeader","iwriter":"org.apache.cassandra.io.sstable.format.big.BigTableWriter$IndexWriter","dataFile":"org.apache.cassandra.io.util.SequentialWriter"},"org.apache.cassandra.db.rows.RangeTombstoneBoundMarker":{"deletion":"org.apache.cassandra.db.DeletionTime"},"org.apache.cassandra.utils.BiMultiValMap":{"forwardMap":"java.util.Map"},"org.apache.cassandra.db.transform.Stack$MoreContentsHolder":{"moreContents":"org.apache.cassandra.db.transform.MoreContents"},"org.apache.cassandra.dht.AbstractBounds$Type":{"BOUNDS":"org.apache.cassandra.dht.AbstractBounds$Type","RANGE":"org.apache.cassandra.dht.AbstractBounds$Type"},"org.apache.cassandra.db.RowIndexEntry$ShallowIndexedEntry":{"indexedPartSize":"int","indexFilePosition":"long","fieldsSerializedSize":"int","headerLength":"long","deletionTime":"org.apache.cassandra.db.DeletionTime","position":"long","columnsIndexCount":"int"},"org.apache.cassandra.db.filter.ClusteringIndexSliceFilter":{"slices":"org.apache.cassandra.db.Slices"},"org.apache.cassandra.index.internal.CassandraIndex":{"baseCfs":"org.apache.cassandra.db.ColumnFamilyStore","indexedColumn":"org.apache.cassandra.schema.ColumnMetadata","indexCfs":"org.apache.cassandra.db.ColumnFamilyStore"},"org.apache.cassandra.db.partitions.UnfilteredPartitionIterators":{"serializer":"org.apache.cassandra.db.partitions.UnfilteredPartitionIterators$Serializer"},"org.apache.cassandra.locator.AbstractReplicaCollection$ReplicaList":{"size":"int","contents":"org.apache.cassandra.locator.Replica[]"},"org.apache.cassandra.db.rows.SerializationHelper":{"header":"org.apache.cassandra.db.SerializationHeader"},"org.apache.cassandra.db.SinglePartitionReadCommand$VirtualTableGroup":{"queries":"java.util.List"},"org.apache.cassandra.io.sstable.SequenceBasedSSTableId":{"generation":"int"},"org.apache.cassandra.db.streaming.CassandraStreamReader$StreamDeserializer":{"iterator":"org.apache.cassandra.io.sstable.SSTableSimpleIterator","metadata":"org.apache.cassandra.schema.TableMetadata","staticRow":"org.apache.cassandra.db.rows.Row","header":"org.apache.cassandra.db.SerializationHeader","partitionLevelDeletion":"org.apache.cassandra.db.DeletionTime","key":"org.apache.cassandra.db.DecoratedKey"},"org.apache.cassandra.io.sstable.format.SSTableReader":{"bf":"org.apache.cassandra.utils.IFilter","indexSummary":"org.apache.cassandra.io.sstable.IndexSummary","header":"org.apache.cassandra.db.SerializationHeader","sstableMetadata":"org.apache.cassandra.io.sstable.metadata.StatsMetadata"},"org.apache.cassandra.hints.HintsBuffer$Allocation":{"totalSize":"int"},"org.apache.cassandra.db.BufferClustering":{"EMPTY_SIZE":"long"},"org.apache.cassandra.db.columniterator.SSTableReversedIterator$ReusablePartitionData":{"built":"org.apache.cassandra.db.partitions.ImmutableBTreePartition"},"org.apache.cassandra.db.DecoratedKey":{"token":"org.apache.cassandra.dht.Token"},"org.apache.cassandra.db.ArrayClusteringBoundary":{"values":"java.lang.Object[]"},"org.apache.cassandra.service.reads.AbstractReadExecutor":{"result":"org.apache.cassandra.db.partitions.PartitionIterator","readRepair":"org.apache.cassandra.service.reads.repair.ReadRepair","digestResolver":"org.apache.cassandra.service.reads.DigestResolver"},"org.apache.cassandra.db.rows.UnfilteredRowIterators$UnfilteredRowMergeIterator$MergeReducer":{"listener":"org.apache.cassandra.db.rows.UnfilteredRowIterators$MergeListener","rowMerger":"org.apache.cassandra.db.rows.Row$Merger"},"org.apache.cassandra.io.sstable.ReducingKeyIterator":{"iters":"java.util.ArrayList","mi":"org.apache.cassandra.utils.IMergeIterator"},"org.apache.cassandra.db.commitlog.CommitLogSegmentReader":{"handler":"org.apache.cassandra.db.commitlog.CommitLogReadHandler"},"org.apache.cassandra.db.UnfilteredDeserializer":{"clusteringDeserializer":"org.apache.cassandra.db.ClusteringPrefix$Deserializer","header":"org.apache.cassandra.db.SerializationHeader"},"org.apache.cassandra.db.rows.RowAndDeletionMergeIterator":{"selection":"org.apache.cassandra.db.filter.ColumnFilter"},"org.apache.cassandra.service.StorageProxy$LocalReadRunnable":{"command":"org.apache.cassandra.db.ReadCommand"},"org.apache.cassandra.cache.RowCacheKey":{"key":"byte[]"},"org.apache.cassandra.service.reads.repair.AbstractReadRepair$DigestRepair":{"dataResolver":"org.apache.cassandra.service.reads.DataResolver"},"org.apache.cassandra.io.util.Memory":{"size":"long","NO_BYTE_BUFFERS":"java.nio.ByteBuffer[]"},"org.apache.cassandra.db.StorageHook":{"instance":"org.apache.cassandra.db.StorageHook"},"org.apache.cassandra.db.transform.RTBoundCloser$RowsTransformation":{"partition":"org.apache.cassandra.db.rows.UnfilteredRowIterator"},"org.apache.cassandra.io.sstable.metadata.StatsMetadata":{"minTTL":"int","maxTimestamp":"long","maxTTL":"int","pendingRepair":"org.apache.cassandra.utils.TimeUUID","totalColumnsSet":"long","repairedAt":"long","totalRows":"long","maxLocalDeletionTime":"int","compressionRatio":"double","encodingStats":"org.apache.cassandra.db.rows.EncodingStats","commitLogIntervals":"org.apache.cassandra.db.commitlog.IntervalSet","estimatedTombstoneDropTime":"org.apache.cassandra.utils.streamhist.TombstoneHistogram","hasLegacyCounterShards":"boolean","maxClusteringValues":"java.util.List","minLocalDeletionTime":"int","isTransient":"boolean","sstableLevel":"int","minClusteringValues":"java.util.List","minTimestamp":"long"},"org.apache.cassandra.db.rows.ThrottledUnfilteredIterator":{"overflowed":"java.util.Iterator"},"org.apache.cassandra.db.columniterator.AbstractSSTableIterator":{"slices":"org.apache.cassandra.db.Slices","sstable":"org.apache.cassandra.io.sstable.format.SSTableReader","reader":"org.apache.cassandra.db.columniterator.AbstractSSTableIterator$Reader","staticRow":"org.apache.cassandra.db.rows.Row","columns":"org.apache.cassandra.db.filter.ColumnFilter","partitionLevelDeletion":"org.apache.cassandra.db.DeletionTime","key":"org.apache.cassandra.db.DecoratedKey"},"org.apache.cassandra.db.transform.StoppingTransformation":{"partitions":"org.apache.cassandra.db.transform.BaseIterator","rows":"org.apache.cassandra.db.transform.BaseIterator"},"org.apache.cassandra.db.BufferClusteringBoundary":{"values":"java.lang.Object[]"},"org.apache.cassandra.db.memtable.Flushing$FlushRunnable":{"toFlush":"org.apache.cassandra.db.memtable.Memtable$FlushablePartitionSet","writer":"org.apache.cassandra.io.sstable.SSTableMultiWriter"},"org.apache.cassandra.index.transactions.CleanupTransaction":{"NO_OP":"org.apache.cassandra.index.transactions.CleanupTransaction"},"org.apache.cassandra.db.SerializationHeader$Component":{"stats":"org.apache.cassandra.db.rows.EncodingStats","regularColumns":"java.util.Map","staticColumns":"java.util.Map"},"org.apache.cassandra.db.ReadExecutionController":{"repairedDataInfo":"org.apache.cassandra.db.RepairedDataInfo","command":"org.apache.cassandra.db.ReadCommand"},"org.apache.cassandra.db.partitions.PartitionUpdate":{"metadata":"org.apache.cassandra.schema.TableMetadata","holder":"org.apache.cassandra.db.partitions.AbstractBTreePartition$Holder"},"org.apache.cassandra.schema.ColumnMetadata":{"name":"org.apache.cassandra.cql3.ColumnIdentifier"},"org.apache.cassandra.db.compaction.Scrubber$FixNegativeLocalDeletionTimeIterator":{"iterator":"org.apache.cassandra.db.rows.UnfilteredRowIterator"},"org.apache.cassandra.index.internal.CassandraIndexSearcher":{"expression":"org.apache.cassandra.db.filter.RowFilter$Expression","index":"org.apache.cassandra.index.internal.CassandraIndex","command":"org.apache.cassandra.db.ReadCommand"},"org.apache.cassandra.db.compaction.CompactionTasks":{"tasks":"java.util.Collection"},"org.apache.cassandra.db.commitlog.IntervalSet":{"ranges":"java.util.NavigableMap"},"org.apache.cassandra.utils.btree.BTree$AbstractTransformer":{"update":"org.apache.cassandra.utils.btree.BTree$SimpleTreeIterator","queuedToFinish":"java.lang.Object[][]"},"org.apache.cassandra.utils.streamhist.TombstoneHistogram":{"bin":"org.apache.cassandra.utils.streamhist.StreamingTombstoneHistogramBuilder$DataHolder"},"org.apache.cassandra.db.LivenessInfo":{"UNSHARED_HEAP_SIZE":"long","EMPTY":"org.apache.cassandra.db.LivenessInfo","timestamp":"long"},"org.apache.cassandra.db.rows.BufferCell":{"path":"org.apache.cassandra.db.rows.CellPath","EMPTY_SIZE":"long","localDeletionTime":"int","ttl":"int","value":"java.nio.ByteBuffer","timestamp":"long"},"org.apache.cassandra.db.rows.ComplexColumnData":{"cells":"java.lang.Object[]","EMPTY_SIZE":"long","complexDeletion":"org.apache.cassandra.db.DeletionTime"},"org.apache.cassandra.db.compaction.writers.SplittingSizeTieredCompactionWriter":{"nonExpiredSSTables":"java.util.Set","sstableWriter":"org.apache.cassandra.io.sstable.SSTableRewriter"},"org.apache.cassandra.service.reads.range.SingleRangeResponse":{"resolver":"org.apache.cassandra.service.reads.DataResolver"},"org.apache.cassandra.db.memtable.AbstractAllocatorMemtable":{"allocator":"org.apache.cassandra.utils.memory.MemtableAllocator"},"org.apache.cassandra.db.filter.ColumnFilter$WildCardColumnFilter":{"fetchedAndQueried":"org.apache.cassandra.db.RegularAndStaticColumns"},"org.apache.cassandra.db.filter.RowFilter":{"expressions":"java.util.List"},"org.apache.cassandra.db.compaction.CompactionManager$CleanupStrategy$Full":{"nowInSec":"int"},"org.apache.cassandra.db.partitions.PurgeFunction":{"purger":"org.apache.cassandra.db.DeletionPurger"},"org.apache.cassandra.db.compaction.CompactionIterator$AbortableUnfilteredPartitionTransformation":{"abortableIter":"org.apache.cassandra.db.compaction.CompactionIterator$AbortableUnfilteredRowTransformation"},"org.apache.cassandra.io.sstable.format.big.BigTableScanner$EmptySSTableScanner":{"sstable":"org.apache.cassandra.io.sstable.format.SSTableReader"},"org.apache.cassandra.db.EmptyIterators$EmptyBaseRowIterator":{"partitionKey":"org.apache.cassandra.db.DecoratedKey","staticRow":"org.apache.cassandra.db.rows.Row","columns":"org.apache.cassandra.db.RegularAndStaticColumns"},"org.apache.cassandra.service.reads.repair.RowIteratorMergeListener":{"currentRows":"org.apache.cassandra.db.rows.Row$Builder[]","partitionLevelDeletion":"org.apache.cassandra.db.DeletionTime"},"org.apache.cassandra.db.compaction.CompactionIterator$Purger":{"currentKey":"org.apache.cassandra.db.DecoratedKey"},"org.apache.cassandra.db.memtable.SkipListMemtable":{"partitions":"java.util.concurrent.ConcurrentNavigableMap","allocator":"org.apache.cassandra.utils.memory.MemtableAllocator"},"org.apache.cassandra.db.virtual.AbstractVirtualTable$AbstractDataSet":{"partitions":"java.util.NavigableMap"},"org.apache.cassandra.db.SinglePartitionReadCommand$Group":{"queries":"java.util.List"},"org.apache.cassandra.db.rows.ColumnData$Reconciler":{"postReconcile":"org.apache.cassandra.db.rows.ColumnData$PostReconciliationFunction"},"org.apache.cassandra.db.lifecycle.View":{"liveMemtables":"java.util.List"},"org.apache.cassandra.db.partitions.AbstractBTreePartition":{"partitionKey":"org.apache.cassandra.db.DecoratedKey","EMPTY":"org.apache.cassandra.db.partitions.AbstractBTreePartition$Holder"},"org.apache.cassandra.index.internal.composites.CompositesSearcher":{"index":"org.apache.cassandra.index.internal.CassandraIndex"},"org.apache.cassandra.db.compaction.Scrubber$RowMergingSSTableIterator":{"nextToOffer":"org.apache.cassandra.db.rows.Unfiltered","wrapped":"org.apache.cassandra.db.rows.UnfilteredRowIterator"},"org.apache.cassandra.db.EmptyIterators$EmptyUnfilteredRowIterator":{"partitionLevelDeletion":"org.apache.cassandra.db.DeletionTime"},"org.apache.cassandra.cache.CounterCacheKey":{"partitionKey":"byte[]","cellName":"byte[]"},"org.apache.cassandra.db.memtable.AbstractMemtable$ColumnsCollector":{"extra":"java.util.concurrent.ConcurrentSkipListSet","predefined":"java.util.HashMap"},"org.apache.cassandra.db.partitions.AbstractBTreePartition$AbstractIterator":{"selection":"org.apache.cassandra.db.filter.ColumnFilter"},"org.apache.cassandra.db.rows.AbstractUnfilteredRowIterator":{"partitionKey":"org.apache.cassandra.db.DecoratedKey","stats":"org.apache.cassandra.db.rows.EncodingStats","staticRow":"org.apache.cassandra.db.rows.Row","columns":"org.apache.cassandra.db.RegularAndStaticColumns","partitionLevelDeletion":"org.apache.cassandra.db.DeletionTime"},"org.apache.cassandra.streaming.StreamEvent$SessionCompleteEvent":{"transferredRangesPerKeyspace":"java.util.Map"},"org.apache.cassandra.utils.BloomCalculations$BloomSpecification":{"bucketsPerElement":"int","K":"int"},"org.apache.cassandra.db.compaction.AbstractCompactionStrategy$ScannerList":{"scanners":"java.util.List"},"org.apache.cassandra.db.compaction.Scrubber":{"currentIndexKey":"java.nio.ByteBuffer","cfs":"org.apache.cassandra.db.ColumnFamilyStore","sstable":"org.apache.cassandra.io.sstable.format.SSTableReader","expectedBloomFilterSize":"long","outOfOrder":"java.util.SortedSet","scrubInfo":"org.apache.cassandra.db.compaction.Scrubber$ScrubInfo"},"org.apache.cassandra.utils.BloomFilter":{"hashCount":"int","bitset":"org.apache.cassandra.utils.obs.IBitSet"},"org.apache.cassandra.db.Keyspace":{"columnFamilyStores":"java.util.concurrent.ConcurrentMap"},"org.apache.cassandra.db.compaction.CompactionStrategyHolder":{"strategies":"java.util.List"},"org.apache.cassandra.io.sstable.format.SSTableReaderBuilder":{"summary":"org.apache.cassandra.io.sstable.IndexSummary","bf":"org.apache.cassandra.utils.IFilter","last":"org.apache.cassandra.db.DecoratedKey","first":"org.apache.cassandra.db.DecoratedKey"},"org.apache.cassandra.db.view.TableViews$DeletionTracker":{"partitionDeletion":"org.apache.cassandra.db.DeletionTime","deletion":"org.apache.cassandra.db.DeletionTime"},"org.apache.cassandra.db.PartitionRangeReadCommand":{"dataRange":"org.apache.cassandra.db.DataRange"},"org.apache.cassandra.db.AbstractBufferClusteringPrefix":{"TOP":"org.apache.cassandra.db.ClusteringBound","values":"java.lang.Object[]","BOTTOM":"org.apache.cassandra.db.ClusteringBound"},"org.apache.cassandra.db.partitions.SingletonUnfilteredPartitionIterator":{"iter":"org.apache.cassandra.db.rows.UnfilteredRowIterator"},"org.apache.cassandra.db.BufferDecoratedKey":{"key":"java.nio.ByteBuffer"},"org.apache.cassandra.utils.ByteArrayUtil":{"EMPTY_BYTE_ARRAY":"byte[]"},"org.apache.cassandra.db.NativeClustering":{"EMPTY_SIZE":"long"},"org.apache.cassandra.db.rows.WithOnlyQueriedData":{"filter":"org.apache.cassandra.db.filter.ColumnFilter"},"org.apache.cassandra.db.compaction.CompactionIterator$AbortableUnfilteredRowTransformation":{"iter":"org.apache.cassandra.db.compaction.CompactionIterator"},"org.apache.cassandra.db.transform.BaseIterator":{"input":"org.apache.cassandra.utils.CloseableIterator"},"org.apache.cassandra.db.partitions.AtomicBTreePartition$RowUpdater":{"indexer":"org.apache.cassandra.index.transactions.UpdateTransaction"},"org.apache.cassandra.db.partitions.PartitionUpdate$CounterMark":{"column":"org.apache.cassandra.schema.ColumnMetadata","row":"org.apache.cassandra.db.rows.Row"},"org.apache.cassandra.io.sstable.metadata.ValidationMetadata":{"partitioner":"java.lang.String","bloomFilterFPChance":"double"},"org.apache.cassandra.db.commitlog.CommitLogReader":{"buffer":"byte[]"},"org.apache.cassandra.db.rows.Row$Merger":{"dataBuffer":"java.util.List","clustering":"org.apache.cassandra.db.Clustering","rows":"org.apache.cassandra.db.rows.Row[]","columnDataIterators":"java.util.List"},"org.apache.cassandra.index.internal.keys.KeysSearcher":{"index":"org.apache.cassandra.index.internal.CassandraIndex"},"org.apache.cassandra.db.filter.DataLimits":{"NONE":"org.apache.cassandra.db.filter.DataLimits"},"org.apache.cassandra.utils.ObjectSizes":{"DIRECT_BUFFER_HEAP_SIZE":"long","EMPTY_BYTE_ARRAY_SIZE":"long","EMPTY_HEAP_BUFFER_SIZE":"long"},"org.apache.cassandra.db.transform.UnfilteredPartitions":{"input":"org.apache.cassandra.utils.CloseableIterator"},"org.apache.cassandra.db.rows.DeserializationHelper":{"columnsToFetch":"org.apache.cassandra.db.filter.ColumnFilter"},"org.apache.cassandra.service.pager.AggregationQueryPager$GroupByPartitionIterator$GroupByRowIterator":{"rowIterator":"org.apache.cassandra.db.rows.RowIterator"},"org.apache.cassandra.db.rows.LazilyInitializedUnfilteredRowIterator":{"iterator":"org.apache.cassandra.db.rows.UnfilteredRowIterator","partitionKey":"org.apache.cassandra.db.DecoratedKey"},"org.apache.cassandra.utils.MergeIterator":{"iterators":"java.util.List","reducer":"org.apache.cassandra.utils.MergeIterator$Reducer"},"org.apache.cassandra.utils.memory.HeapPool":{"ENSURE_NOOP":"org.apache.cassandra.utils.memory.EnsureOnHeap"},"org.apache.cassandra.utils.MerkleTrees":{"merkleTrees":"java.util.Map"},"org.apache.cassandra.utils.streamhist.StreamingTombstoneHistogramBuilder$DataHolder":{"data":"long[]"},"org.apache.cassandra.db.rows.WrappingUnfilteredRowIterator":{"wrapped":"org.apache.cassandra.db.rows.UnfilteredRowIterator"},"org.apache.cassandra.db.transform.BasePartitions":{"input":"org.apache.cassandra.utils.CloseableIterator"},"org.apache.cassandra.db.EmptyIterators$EmptyPartitionIterator":{"instance":"org.apache.cassandra.db.EmptyIterators$EmptyPartitionIterator"},"org.apache.cassandra.db.columniterator.AbstractSSTableIterator$Reader":{"deserializer":"org.apache.cassandra.db.UnfilteredDeserializer","openMarker":"org.apache.cassandra.db.DeletionTime"},"org.apache.cassandra.db.rows.ColumnData":{"noOp":"org.apache.cassandra.db.rows.ColumnData$PostReconciliationFunction","column":"org.apache.cassandra.schema.ColumnMetadata"},"org.apache.cassandra.db.ArrayClusteringBoundOrBoundary":{"values":"java.lang.Object[]"},"org.apache.cassandra.db.compaction.CompactionController":{"compacting":"java.lang.Iterable"},"org.apache.cassandra.db.memtable.SkipListMemtable$MemtableUnfilteredPartitionIterator":{"dataRange":"org.apache.cassandra.db.DataRange","columnFilter":"org.apache.cassandra.db.filter.ColumnFilter","iter":"java.util.Iterator"},"org.apache.cassandra.db.ClusteringPrefix$Kind":{"CLUSTERING":"org.apache.cassandra.db.ClusteringPrefix$Kind","EXCL_START_BOUND":"org.apache.cassandra.db.ClusteringPrefix$Kind","STATIC_CLUSTERING":"org.apache.cassandra.db.ClusteringPrefix$Kind","EXCL_END_BOUND":"org.apache.cassandra.db.ClusteringPrefix$Kind","INCL_END_BOUND":"org.apache.cassandra.db.ClusteringPrefix$Kind","$VALUES":"org.apache.cassandra.db.ClusteringPrefix$Kind[]","INCL_START_BOUND":"org.apache.cassandra.db.ClusteringPrefix$Kind"},"org.apache.cassandra.dht.AbstractBounds":{"left":"org.apache.cassandra.dht.RingPosition","right":"org.apache.cassandra.dht.RingPosition"},"org.apache.cassandra.index.transactions.UpdateTransaction":{"NO_OP":"org.apache.cassandra.index.transactions.UpdateTransaction"},"org.apache.cassandra.db.compaction.Scrubber$OrderCheckerIterator":{"iterator":"org.apache.cassandra.db.rows.UnfilteredRowIterator","rowsOutOfOrder":"org.apache.cassandra.db.partitions.Partition"},"org.apache.cassandra.db.SerializationHeader":{"stats":"org.apache.cassandra.db.rows.EncodingStats","columns":"org.apache.cassandra.db.RegularAndStaticColumns"},"org.apache.cassandra.db.AbstractCompactionController":{"cfs":"org.apache.cassandra.db.ColumnFamilyStore"},"org.apache.cassandra.io.sstable.SSTableIdentityIterator":{"iterator":"org.apache.cassandra.io.sstable.SSTableSimpleIterator","sstable":"org.apache.cassandra.io.sstable.format.SSTableReader","staticRow":"org.apache.cassandra.db.rows.Row","partitionLevelDeletion":"org.apache.cassandra.db.DeletionTime","key":"org.apache.cassandra.db.DecoratedKey"},"org.apache.cassandra.utils.BulkIterator$FromArray":{"from":"java.lang.Object[]"},"org.apache.cassandra.db.commitlog.CommitLogReplayer":{"commitLogReader":"org.apache.cassandra.db.commitlog.CommitLogReader"},"org.apache.cassandra.io.sstable.SSTableRewriter":{"writer":"org.apache.cassandra.io.sstable.format.SSTableWriter"},"org.apache.cassandra.db.AbstractReadQuery":{"metadata":"org.apache.cassandra.schema.TableMetadata","columnFilter":"org.apache.cassandra.db.filter.ColumnFilter","nowInSec":"int","limits":"org.apache.cassandra.db.filter.DataLimits"},"org.apache.cassandra.service.pager.AbstractQueryPager$RowPager":{"counter":"org.apache.cassandra.db.filter.DataLimits$Counter"},"org.apache.cassandra.db.DeletionPurger":{"PURGE_ALL":"org.apache.cassandra.db.DeletionPurger"},"org.apache.cassandra.index.SecondaryIndexManager":{"baseCfs":"org.apache.cassandra.db.ColumnFamilyStore","indexes":"java.util.Map"},"org.apache.cassandra.utils.MergeIterator$ManyToOne":{"reducer":"org.apache.cassandra.utils.MergeIterator$Reducer","heap":"org.apache.cassandra.utils.MergeIterator$Candidate[]"},"org.apache.cassandra.utils.ByteBufferUtil":{"EMPTY_BYTE_BUFFER":"java.nio.ByteBuffer"},"org.apache.cassandra.db.DataRange":{"clusteringIndexFilter":"org.apache.cassandra.db.filter.ClusteringIndexFilter"},"org.apache.cassandra.db.rows.UnfilteredRowIteratorSerializer":{"serializer":"org.apache.cassandra.db.rows.UnfilteredRowIteratorSerializer"},"org.apache.cassandra.hints.Hint":{"creationTime":"long","gcgs":"int"},"org.apache.cassandra.db.Slices":{"ALL":"org.apache.cassandra.db.Slices","NONE":"org.apache.cassandra.db.Slices"},"org.apache.cassandra.db.Columns":{"columns":"java.lang.Object[]","NONE":"org.apache.cassandra.db.Columns"},"org.apache.cassandra.db.partitions.AbstractBTreePartition$Holder":{"deletionInfo":"org.apache.cassandra.db.DeletionInfo","stats":"org.apache.cassandra.db.rows.EncodingStats","staticRow":"org.apache.cassandra.db.rows.Row","columns":"org.apache.cassandra.db.RegularAndStaticColumns","tree":"java.lang.Object[]"},"org.apache.cassandra.db.compaction.ActiveCompactions":{"compactions":"java.util.Set"},"org.apache.cassandra.utils.BloomCalculations":{"optKPerBuckets":"int[]"},"org.apache.cassandra.io.sstable.IndexSummaryBuilder$ReadableBoundary":{"entriesLength":"long","lastKey":"org.apache.cassandra.db.DecoratedKey","summaryCount":"int"},"org.apache.cassandra.service.reads.DigestResolver":{"dataResponse":"org.apache.cassandra.net.Message"},"org.apache.cassandra.db.rows.UnfilteredRowIterators$MergeListener":{"NOOP":"org.apache.cassandra.db.rows.UnfilteredRowIterators$MergeListener"},"org.apache.cassandra.locator.AbstractReplicaCollection$ReplicaMap":{"list":"org.apache.cassandra.locator.AbstractReplicaCollection$ReplicaList"},"org.apache.cassandra.utils.TimeUUID":{"uuidTimestamp":"long","lsb":"long"},"org.apache.cassandra.io.sstable.IndexSummary":{"entries":"org.apache.cassandra.io.util.Memory","minIndexInterval":"int","entriesLength":"long","samplingLevel":"int","sizeAtFullSampling":"int","offsetCount":"int"},"org.apache.cassandra.db.compaction.Verifier":{"verifyInfo":"org.apache.cassandra.db.compaction.Verifier$VerifyInfo"},"org.apache.cassandra.index.SecondaryIndexManager$IndexGCTransaction":{"nowInSec":"int","rows":"org.apache.cassandra.db.rows.Row[]"},"org.apache.cassandra.utils.BulkIterator$Adapter":{"adapt":"java.util.Iterator"},"org.apache.cassandra.db.columniterator.SSTableIterator$ForwardReader":{"deserializer":"org.apache.cassandra.db.UnfilteredDeserializer"},"org.apache.cassandra.db.RegularAndStaticColumns":{"regulars":"org.apache.cassandra.db.Columns","NONE":"org.apache.cassandra.db.RegularAndStaticColumns","statics":"org.apache.cassandra.db.Columns"},"org.apache.cassandra.db.commitlog.CommitLogPosition":{"segmentId":"long","position":"int"},"org.apache.cassandra.db.rows.UnfilteredRowIteratorWithLowerBound":{"filter":"org.apache.cassandra.db.filter.ClusteringIndexFilter","selectedColumns":"org.apache.cassandra.db.filter.ColumnFilter","sstable":"org.apache.cassandra.io.sstable.format.SSTableReader","lowerBound":"org.apache.cassandra.db.ClusteringBound"},"org.apache.cassandra.serializers.BooleanSerializer":{"TRUE":"java.nio.ByteBuffer","FALSE":"java.nio.ByteBuffer"},"org.apache.cassandra.service.reads.ShortReadPartitionsProtection":{"singleResultCounter":"org.apache.cassandra.db.filter.DataLimits$Counter"},"org.apache.cassandra.service.pager.AbstractQueryPager$UnfilteredPager":{"counter":"org.apache.cassandra.db.filter.DataLimits$Counter"},"org.apache.cassandra.db.ColumnFamilyStore$ViewFragment":{"memtables":"java.lang.Iterable","sstables":"java.util.List"},"org.apache.cassandra.service.reads.DataResolver$ResolveContext":{"mergedResultCounter":"org.apache.cassandra.db.filter.DataLimits$Counter"},"org.apache.cassandra.db.columniterator.SSTableReversedIterator$ReverseReader":{"iterator":"java.util.Iterator","deserializer":"org.apache.cassandra.db.UnfilteredDeserializer","openMarker":"org.apache.cassandra.db.DeletionTime","buffer":"org.apache.cassandra.db.columniterator.SSTableReversedIterator$ReusablePartitionData"},"org.apache.cassandra.db.filter.ColumnSubselection":{"column":"org.apache.cassandra.schema.ColumnMetadata"},"org.apache.cassandra.index.SecondaryIndexManager$CleanupGCTransaction":{"row":"org.apache.cassandra.db.rows.Row","nowInSec":"int"},"org.apache.cassandra.db.ReadCommand$InputCollector":{"unrepairedIters":"java.util.List"},"org.apache.cassandra.utils.MergeIterator$Candidate":{"item":"java.lang.Object","iter":"java.util.Iterator","lowerBound":"java.lang.Object"},"org.apache.cassandra.dht.Murmur3Partitioner":{"MINIMUM":"org.apache.cassandra.dht.Murmur3Partitioner$LongToken"},"org.apache.cassandra.db.filter.ColumnFilter":{"NONE":"org.apache.cassandra.db.filter.ColumnFilter"},"org.apache.cassandra.db.columniterator.SSTableReversedIterator$ReverseIndexedReader":{"slice":"org.apache.cassandra.db.Slice"},"org.apache.cassandra.db.transform.UnfilteredRows":{"input":"org.apache.cassandra.utils.CloseableIterator","regularAndStaticColumns":"org.apache.cassandra.db.RegularAndStaticColumns","partitionLevelDeletion":"org.apache.cassandra.db.DeletionTime"},"org.apache.cassandra.db.view.TableViews":{"views":"java.util.List"},"org.apache.cassandra.io.sstable.IndexInfo":{"lastName":"org.apache.cassandra.db.ClusteringPrefix","firstName":"org.apache.cassandra.db.ClusteringPrefix","endOpenMarker":"org.apache.cassandra.db.DeletionTime","offset":"long","width":"long"},"org.apache.cassandra.db.partitions.AtomicBTreePartition":{"ref":"org.apache.cassandra.db.partitions.AbstractBTreePartition$Holder","allocator":"org.apache.cassandra.utils.memory.MemtableAllocator","EMPTY":"org.apache.cassandra.db.partitions.AbstractBTreePartition$Holder"},"org.apache.cassandra.io.sstable.format.big.BigTableScanner$KeyScanningIterator":{"nextEntry":"org.apache.cassandra.db.RowIndexEntry","currentEntry":"org.apache.cassandra.db.RowIndexEntry"},"org.apache.cassandra.io.sstable.metadata.MetadataType":{"COMPACTION":"org.apache.cassandra.io.sstable.metadata.MetadataType","STATS":"org.apache.cassandra.io.sstable.metadata.MetadataType","VALIDATION":"org.apache.cassandra.io.sstable.metadata.MetadataType","HEADER":"org.apache.cassandra.io.sstable.metadata.MetadataType"},"org.apache.cassandra.repair.Validator":{"nowInSec":"int"},"org.apache.cassandra.db.LivenessInfo$ExpiringLivenessInfo":{"UNSHARED_HEAP_SIZE":"long","ttl":"int","localExpirationTime":"int"},"org.apache.cassandra.db.marshal.ByteArrayObjectFactory":{"EMPTY_CLUSTERING":"org.apache.cassandra.db.Clustering","TOP_BOUND":"org.apache.cassandra.db.ArrayClusteringBound","BOTTOM_BOUND":"org.apache.cassandra.db.ArrayClusteringBound"},"org.apache.cassandra.db.AbstractOnHeapClusteringPrefix":{"TOP":"org.apache.cassandra.db.ClusteringBound","kind":"org.apache.cassandra.db.ClusteringPrefix$Kind","values":"java.lang.Object[]","BOTTOM":"org.apache.cassandra.db.ClusteringBound"},"org.apache.cassandra.db.compaction.writers.MajorLeveledCompactionWriter":{"sstableWriter":"org.apache.cassandra.io.sstable.SSTableRewriter"},"org.apache.cassandra.utils.btree.UpdateFunction":{"noOp":"org.apache.cassandra.utils.btree.UpdateFunction$Simple"},"org.apache.cassandra.db.streaming.CassandraStreamReceiver":{"cfs":"org.apache.cassandra.db.ColumnFamilyStore","sstables":"java.util.Collection"},"org.apache.cassandra.utils.MergeIterator$OneToOne":{"reducer":"org.apache.cassandra.utils.MergeIterator$Reducer","source":"java.util.Iterator"},"org.apache.cassandra.db.ColumnFamilyStore":{"metadata":"org.apache.cassandra.schema.TableMetadataRef","repairManager":"org.apache.cassandra.repair.TableRepairManager","indexManager":"org.apache.cassandra.index.SecondaryIndexManager"},"org.apache.cassandra.schema.TableMetadataRef":{"metadata":"org.apache.cassandra.schema.TableMetadata"},"org.apache.cassandra.db.rows.AbstractRangeTombstoneMarker":{"bound":"org.apache.cassandra.db.ClusteringBoundOrBoundary"},"org.apache.cassandra.db.memtable.AbstractMemtable":{"columnsCollector":"org.apache.cassandra.db.memtable.AbstractMemtable$ColumnsCollector"},"org.apache.cassandra.schema.TableMetadata":{"regularAndStaticColumns":"org.apache.cassandra.db.RegularAndStaticColumns"},"org.apache.cassandra.db.virtual.VirtualKeyspaceRegistry":{"instance":"org.apache.cassandra.db.virtual.VirtualKeyspaceRegistry","virtualTables":"java.util.Map"},"org.apache.cassandra.db.compaction.writers.CompactionAwareWriter":{"nonExpiredSSTables":"java.util.Set","sstableWriter":"org.apache.cassandra.io.sstable.SSTableRewriter"},"org.apache.cassandra.db.compaction.AbstractCompactionStrategy":{"cfs":"org.apache.cassandra.db.ColumnFamilyStore"},"org.apache.cassandra.service.pager.AbstractQueryPager":{"query":"org.apache.cassandra.db.ReadQuery"},"org.apache.cassandra.db.compaction.writers.MaxSSTableSizeWriter":{"nonExpiredSSTables":"java.util.Set","sstableWriter":"org.apache.cassandra.io.sstable.SSTableRewriter"},"org.apache.cassandra.service.pager.MultiPartitionPager":{"pagers":"org.apache.cassandra.service.pager.SinglePartitionPager[]"},"org.apache.cassandra.cache.AutoSavingCache$Writer":{"keyIterator":"java.util.Iterator"},"org.apache.cassandra.cache.KeyCacheKey":{"key":"byte[]","desc":"org.apache.cassandra.io.sstable.Descriptor"},"org.apache.cassandra.io.sstable.SimpleSSTableMultiWriter":{"writer":"org.apache.cassandra.io.sstable.format.SSTableWriter"},"org.apache.cassandra.io.sstable.SSTable":{"metadata":"org.apache.cassandra.schema.TableMetadataRef"},"org.apache.cassandra.locator.AbstractReplicaCollection":{"list":"org.apache.cassandra.locator.AbstractReplicaCollection$ReplicaList"},"org.apache.cassandra.service.pager.PartitionRangeQueryPager":{"query":"org.apache.cassandra.db.ReadQuery"},"org.apache.cassandra.db.partitions.CachedBTreePartition":{"cachedLiveRows":"int","createdAtInSec":"int","rowsWithNonExpiringCells":"int"},"org.apache.cassandra.db.PartitionPosition$Kind":{"MIN_BOUND":"org.apache.cassandra.db.PartitionPosition$Kind","MAX_BOUND":"org.apache.cassandra.db.PartitionPosition$Kind","ROW_KEY":"org.apache.cassandra.db.PartitionPosition$Kind"},"org.apache.cassandra.dht.ComparableObjectToken":{"token":"java.lang.Comparable"},"org.apache.cassandra.db.SinglePartitionReadQuery$Group":{"queries":"java.util.List","limits":"org.apache.cassandra.db.filter.DataLimits"},"org.apache.cassandra.utils.streamhist.StreamingTombstoneHistogramBuilder$Spool":{"values":"int[]","points":"int[]"},"org.apache.cassandra.utils.btree.BTree$SimpleTreeKeysIterator":{"nodes":"java.lang.Object[][]","leaf":"java.lang.Object[]"},"org.apache.cassandra.db.filter.RowFilter$Expression":{"value":"java.nio.ByteBuffer"},"org.apache.cassandra.db.rows.EncodingStats$Collector":{"minDeletionTime":"int","minTTL":"int","minTimestamp":"long"},"org.apache.cassandra.db.AbstractArrayClusteringPrefix":{"values":"java.lang.Object[]"},"org.apache.cassandra.db.rows.ArrayCell":{"path":"org.apache.cassandra.db.rows.CellPath","EMPTY_SIZE":"long","localDeletionTime":"int","ttl":"int","value":"byte[]","timestamp":"long"},"org.apache.cassandra.db.marshal.ByteBufferObjectFactory":{"EMPTY_CLUSTERING":"org.apache.cassandra.db.Clustering","TOP_BOUND":"org.apache.cassandra.db.BufferClusteringBound","BOTTOM_BOUND":"org.apache.cassandra.db.BufferClusteringBound"},"org.apache.cassandra.service.reads.repair.AbstractReadRepair":{"digestRepair":"org.apache.cassandra.service.reads.repair.AbstractReadRepair$DigestRepair"},"org.apache.cassandra.db.Clustering":{"STATIC_CLUSTERING":"org.apache.cassandra.db.Clustering","EMPTY":"org.apache.cassandra.db.Clustering"},"org.apache.cassandra.db.MutableDeletionInfo":{"partitionDeletion":"org.apache.cassandra.db.DeletionTime"},"org.apache.cassandra.io.sstable.format.big.BigTableWriter$IndexWriter":{"bf":"org.apache.cassandra.utils.IFilter","indexFile":"org.apache.cassandra.io.util.SequentialWriter"},"org.apache.cassandra.db.RowIndexEntry":{"position":"long"},"org.apache.cassandra.db.compaction.CompactionIterator$GarbageSkippingUnfilteredRowIterator":{"tombSource":"org.apache.cassandra.db.rows.UnfilteredRowIterator","staticRow":"org.apache.cassandra.db.rows.Row","partitionLevelDeletion":"org.apache.cassandra.db.DeletionTime"},"org.apache.cassandra.service.pager.MultiPartitionPager$PagersIterator":{"executionController":"org.apache.cassandra.db.ReadExecutionController"},"org.apache.cassandra.db.repair.CassandraValidationIterator":{"scanners":"org.apache.cassandra.db.compaction.AbstractCompactionStrategy$ScannerList","ci":"org.apache.cassandra.db.compaction.CompactionIterator"},"org.apache.cassandra.db.rows.RangeTombstoneBoundaryMarker":{"endDeletion":"org.apache.cassandra.db.DeletionTime","bound":"org.apache.cassandra.db.ClusteringBoundOrBoundary","startDeletion":"org.apache.cassandra.db.DeletionTime"},"org.apache.cassandra.service.reads.range.RangeCommandIterator":{"counter":"org.apache.cassandra.db.filter.DataLimits$Counter","command":"org.apache.cassandra.db.PartitionRangeReadCommand"},"org.apache.cassandra.io.sstable.SSTableSimpleIterator":{"metadata":"org.apache.cassandra.schema.TableMetadata"},"org.apache.cassandra.utils.btree.BTree":{"EMPTY_LEAF":"java.lang.Object[]","DENSE_SIZE_MAPS":"int[][]","MAX_KEYS":"int","BRANCH_SHIFT":"int"},"org.apache.cassandra.service.reads.ReadCallback":{"resolver":"org.apache.cassandra.service.reads.ResponseResolver"},"org.apache.cassandra.db.DeletionTime":{"EMPTY_SIZE":"long","localDeletionTime":"int","markedForDeleteAt":"long","LIVE":"org.apache.cassandra.db.DeletionTime"},"org.apache.cassandra.db.ColumnIndex":{"indexOffsets":"int[]","columnIndexCount":"int","indexSamplesSerializedSize":"int","indexSamples":"java.util.List","startPosition":"long","previousRowStart":"long","helper":"org.apache.cassandra.db.rows.SerializationHelper","headerLength":"long","reusableBuffer":"org.apache.cassandra.io.util.DataOutputBuffer","lastClustering":"org.apache.cassandra.db.ClusteringPrefix","firstClustering":"org.apache.cassandra.db.ClusteringPrefix","initialPosition":"long","openMarker":"org.apache.cassandra.db.DeletionTime","buffer":"org.apache.cassandra.io.util.DataOutputBuffer","writer":"org.apache.cassandra.io.util.SequentialWriter"},"org.apache.cassandra.db.ArrayClustering":{"EMPTY_SIZE":"long"},"org.apache.cassandra.db.rows.EncodingStats":{"minTTL":"int","TIMESTAMP_EPOCH":"long","minLocalDeletionTime":"int","DELETION_TIME_EPOCH":"int","NO_STATS":"org.apache.cassandra.db.rows.EncodingStats","minTimestamp":"long"},"org.apache.cassandra.utils.obs.OffHeapBitSet":{"bytes":"org.apache.cassandra.io.util.Memory"},"org.apache.cassandra.db.columniterator.SSTableReversedIterator":{"columns":"org.apache.cassandra.db.filter.ColumnFilter"},"org.apache.cassandra.dht.Murmur3Partitioner$LongToken":{"token":"long"},"org.apache.cassandra.io.sstable.format.SSTableWriter":{"metadataCollector":"org.apache.cassandra.io.sstable.metadata.MetadataCollector","header":"org.apache.cassandra.db.SerializationHeader"},"org.apache.cassandra.utils.btree.FullBTreeSearchIterator":{"cur":"org.apache.cassandra.utils.btree.NodeCursor","upperBound":"int","index":"int","lowerBound":"int"}}
+{
+    "org.apache.cassandra.schema.DroppedColumn": {
+        "column": "org.apache.cassandra.schema.ColumnMetadata"
+    },
+    "org.apache.cassandra.io.sstable.format.big.BigTableWriter$StatsCollector": {
+        "collector": "org.apache.cassandra.io.sstable.metadata.MetadataCollector"
+    },
+    "org.apache.cassandra.db.rows.Rows": {
+        "EMPTY_STATIC_ROW": "org.apache.cassandra.db.rows.Row"
+    },
+    "org.apache.cassandra.db.compaction.CompactionManager$CleanupStrategy": {
+        "nowInSec": "int"
+    },
+    "org.apache.cassandra.index.SecondaryIndexManager$WriteTimeTransaction": {
+        "indexers": "org.apache.cassandra.index.Index$Indexer[]"
+    },
+    "org.apache.cassandra.db.BufferClusteringBoundOrBoundary": {
+        "TOP": "org.apache.cassandra.db.ClusteringBound",
+        "values": "java.lang.Object[]",
+        "BOTTOM": "org.apache.cassandra.db.ClusteringBound"
+    },
+    "org.apache.cassandra.io.sstable.format.RangeAwareSSTableWriter": {
+        "currentWriter": "org.apache.cassandra.io.sstable.SSTableMultiWriter",
+        "estimatedKeys": "long",
+        "header": "org.apache.cassandra.db.SerializationHeader"
+    },
+    "org.apache.cassandra.index.internal.IndexEntry": {
+        "indexedEntryClustering": "org.apache.cassandra.db.Clustering",
+        "indexedKey": "java.nio.ByteBuffer"
+    },
+    "org.apache.cassandra.db.Slice": {
+        "ALL": "org.apache.cassandra.db.Slice",
+        "start": "org.apache.cassandra.db.ClusteringBound",
+        "end": "org.apache.cassandra.db.ClusteringBound"
+    },
+    "org.apache.cassandra.schema.Types": {
+        "types": "java.util.Map"
+    },
+    "org.apache.cassandra.db.SinglePartitionReadCommand": {
+        "partitionKey": "org.apache.cassandra.db.DecoratedKey",
+        "clusteringIndexFilter": "org.apache.cassandra.db.filter.ClusteringIndexFilter"
+    },
+    "org.apache.cassandra.io.sstable.format.SSTableReaderBuilder$ForRead": {
+        "summary": "org.apache.cassandra.io.sstable.IndexSummary",
+        "bf": "org.apache.cassandra.utils.IFilter",
+        "last": "org.apache.cassandra.db.DecoratedKey",
+        "first": "org.apache.cassandra.db.DecoratedKey"
+    },
+    "org.apache.cassandra.db.rows.NativeCell": {
+        "EMPTY_SIZE": "long"
+    },
+    "org.apache.cassandra.db.DataRange$Paging": {
+        "lastReturned": "org.apache.cassandra.db.Clustering",
+        "clusteringIndexFilter": "org.apache.cassandra.db.filter.ClusteringIndexFilter"
+    },
+    "org.apache.cassandra.db.rows.Row$Deletion": {
+        "EMPTY_SIZE": "long",
+        "time": "org.apache.cassandra.db.DeletionTime",
+        "LIVE": "org.apache.cassandra.db.rows.Row$Deletion"
+    },
+    "org.apache.cassandra.dht.Token$KeyBound": {
+        "token": "org.apache.cassandra.dht.Token"
+    },
+    "org.apache.cassandra.utils.memory.NativeAllocator": {
+        "cloneToHeap": "org.apache.cassandra.utils.memory.EnsureOnHeap$CloneToHeap"
+    },
+    "org.apache.cassandra.db.filter.ColumnFilter$SelectionColumnFilter": {
+        "queried": "org.apache.cassandra.db.RegularAndStaticColumns",
+        "fetched": "org.apache.cassandra.db.RegularAndStaticColumns"
+    },
+    "org.apache.cassandra.batchlog.BatchlogManager$ReplayingBatch": {
+        "writtenAt": "long"
+    },
+    "org.apache.cassandra.io.sstable.format.big.BigTableScanner": {
+        "iterator": "java.util.Iterator",
+        "sstable": "org.apache.cassandra.io.sstable.format.SSTableReader",
+        "dataRange": "org.apache.cassandra.db.DataRange",
+        "columns": "org.apache.cassandra.db.filter.ColumnFilter"
+    },
+    "org.apache.cassandra.db.rows.CellPath$SingleItemCellPath": {
+        "EMPTY_SIZE": "long",
+        "value": "java.nio.ByteBuffer"
+    },
+    "org.apache.cassandra.utils.btree.TreeCursor": {
+        "cur": "org.apache.cassandra.utils.btree.NodeCursor"
+    },
+    "org.apache.cassandra.service.pager.SinglePartitionPager": {
+        "query": "org.apache.cassandra.db.ReadQuery"
+    },
+    "org.apache.cassandra.db.compaction.CompactionIterator": {
+        "scanners": "java.util.List",
+        "compacted": "org.apache.cassandra.db.partitions.UnfilteredPartitionIterator",
+        "nowInSec": "int"
+    },
+    "org.apache.cassandra.db.RowIndexEntry$IndexedEntry": {
+        "indexedPartSize": "int",
+        "offsets": "int[]",
+        "headerLength": "long",
+        "columnsIndex": "org.apache.cassandra.io.sstable.IndexInfo[]",
+        "deletionTime": "org.apache.cassandra.db.DeletionTime",
+        "position": "long"
+    },
+    "org.apache.cassandra.db.compaction.CompactionManager": {
+        "instance": "org.apache.cassandra.db.compaction.CompactionManager",
+        "active": "org.apache.cassandra.db.compaction.ActiveCompactions"
+    },
+    "org.apache.cassandra.db.columniterator.SSTableIterator$ForwardIndexedReader": {
+        "deserializer": "org.apache.cassandra.db.UnfilteredDeserializer"
+    },
+    "org.apache.cassandra.db.RepairedDataInfo": {
+        "purger": "org.apache.cassandra.db.RepairedDataInfo$RepairedDataPurger",
+        "NO_OP_REPAIRED_DATA_INFO": "org.apache.cassandra.db.RepairedDataInfo",
+        "repairedCounter": "org.apache.cassandra.db.filter.DataLimits$Counter"
+    },
+    "org.apache.cassandra.db.ClusteringPrefix$Deserializer": {
+        "nextKind": "org.apache.cassandra.db.ClusteringPrefix$Kind",
+        "nextValues": "byte[][]"
+    },
+    "org.apache.cassandra.db.compaction.writers.DefaultCompactionWriter": {
+        "nonExpiredSSTables": "java.util.Set",
+        "sstableWriter": "org.apache.cassandra.io.sstable.SSTableRewriter"
+    },
+    "org.apache.cassandra.db.rows.BTreeRow": {
+        "primaryKeyLivenessInfo": "org.apache.cassandra.db.LivenessInfo",
+        "deletion": "org.apache.cassandra.db.rows.Row$Deletion",
+        "EMPTY_SIZE": "long",
+        "clustering": "org.apache.cassandra.db.Clustering",
+        "btree": "java.lang.Object[]"
+    },
+    "org.apache.cassandra.service.pager.AbstractQueryPager$Pager": {
+        "lastRow": "org.apache.cassandra.db.rows.Row",
+        "counter": "org.apache.cassandra.db.filter.DataLimits$Counter"
+    },
+    "org.apache.cassandra.dht.RandomPartitioner": {
+        "MINIMUM": "org.apache.cassandra.dht.RandomPartitioner$BigIntegerToken"
+    },
+    "org.apache.cassandra.db.rows.Row$Merger$ColumnDataReducer": {
+        "cellReducer": "org.apache.cassandra.db.rows.Row$Merger$CellReducer",
+        "complexCells": "java.util.List"
+    },
+    "org.apache.cassandra.db.Slices$ArrayBackedSlices": {
+        "slices": "org.apache.cassandra.db.Slice[]"
+    },
+    "org.apache.cassandra.utils.btree.BTree$Updater": {
+        "insert": "org.apache.cassandra.utils.btree.BTree$SimpleTreeKeysIterator",
+        "updateF": "org.apache.cassandra.utils.btree.UpdateFunction"
+    },
+    "org.apache.cassandra.db.rows.UnfilteredRowIteratorSerializer$Header": {
+        "partitionDeletion": "org.apache.cassandra.db.DeletionTime",
+        "staticRow": "org.apache.cassandra.db.rows.Row",
+        "sHeader": "org.apache.cassandra.db.SerializationHeader",
+        "key": "org.apache.cassandra.db.DecoratedKey"
+    },
+    "org.apache.cassandra.utils.btree.BTree$SimpleTreeStack": {
+        "nodes": "java.lang.Object[][]"
+    },
+    "org.apache.cassandra.db.partitions.ImmutableBTreePartition": {
+        "holder": "org.apache.cassandra.db.partitions.AbstractBTreePartition$Holder"
+    },
+    "org.apache.cassandra.db.transform.BaseRows": {
+        "input": "org.apache.cassandra.utils.CloseableIterator",
+        "staticRow": "org.apache.cassandra.db.rows.Row"
+    },
+    "org.apache.cassandra.io.sstable.Descriptor": {
+        "id": "org.apache.cassandra.io.sstable.SSTableId"
+    },
+    "org.apache.cassandra.db.BufferClusteringBound": {
+        "TOP": "org.apache.cassandra.db.ClusteringBound",
+        "BOTTOM": "org.apache.cassandra.db.ClusteringBound"
+    },
+    "org.apache.cassandra.db.virtual.SimpleDataSet$SimplePartition": {
+        "key": "org.apache.cassandra.db.DecoratedKey"
+    },
+    "org.apache.cassandra.dht.LocalPartitioner$LocalToken": {
+        "token": "java.lang.Comparable"
+    },
+    "org.apache.cassandra.io.sstable.format.big.BigTableWriter": {
+        "metadataCollector": "org.apache.cassandra.io.sstable.metadata.MetadataCollector",
+        "columnIndexWriter": "org.apache.cassandra.db.ColumnIndex",
+        "lastWrittenKey": "org.apache.cassandra.db.DecoratedKey",
+        "header": "org.apache.cassandra.db.SerializationHeader",
+        "iwriter": "org.apache.cassandra.io.sstable.format.big.BigTableWriter$IndexWriter",
+        "dataFile": "org.apache.cassandra.io.util.SequentialWriter"
+    },
+    "org.apache.cassandra.db.rows.RangeTombstoneBoundMarker": {
+        "deletion": "org.apache.cassandra.db.DeletionTime"
+    },
+    "org.apache.cassandra.utils.BiMultiValMap": {
+        "forwardMap": "java.util.Map"
+    },
+    "org.apache.cassandra.db.transform.Stack$MoreContentsHolder": {
+        "moreContents": "org.apache.cassandra.db.transform.MoreContents"
+    },
+    "org.apache.cassandra.dht.AbstractBounds$Type": {
+        "BOUNDS": "org.apache.cassandra.dht.AbstractBounds$Type",
+        "RANGE": "org.apache.cassandra.dht.AbstractBounds$Type"
+    },
+    "org.apache.cassandra.db.RowIndexEntry$ShallowIndexedEntry": {
+        "indexedPartSize": "int",
+        "indexFilePosition": "long",
+        "fieldsSerializedSize": "int",
+        "headerLength": "long",
+        "deletionTime": "org.apache.cassandra.db.DeletionTime",
+        "position": "long",
+        "columnsIndexCount": "int"
+    },
+    "org.apache.cassandra.db.filter.ClusteringIndexSliceFilter": {
+        "slices": "org.apache.cassandra.db.Slices"
+    },
+    "org.apache.cassandra.index.internal.CassandraIndex": {
+        "baseCfs": "org.apache.cassandra.db.ColumnFamilyStore",
+        "indexedColumn": "org.apache.cassandra.schema.ColumnMetadata",
+        "indexCfs": "org.apache.cassandra.db.ColumnFamilyStore"
+    },
+    "org.apache.cassandra.db.partitions.UnfilteredPartitionIterators": {
+        "serializer": "org.apache.cassandra.db.partitions.UnfilteredPartitionIterators$Serializer"
+    },
+    "org.apache.cassandra.locator.AbstractReplicaCollection$ReplicaList": {
+        "size": "int",
+        "contents": "org.apache.cassandra.locator.Replica[]"
+    },
+    "org.apache.cassandra.db.rows.SerializationHelper": {
+        "header": "org.apache.cassandra.db.SerializationHeader"
+    },
+    "org.apache.cassandra.db.SinglePartitionReadCommand$VirtualTableGroup": {
+        "queries": "java.util.List"
+    },
+    "org.apache.cassandra.io.sstable.SequenceBasedSSTableId": {
+        "generation": "int"
+    },
+    "org.apache.cassandra.db.streaming.CassandraStreamReader$StreamDeserializer": {
+        "iterator": "org.apache.cassandra.io.sstable.SSTableSimpleIterator",
+        "metadata": "org.apache.cassandra.schema.TableMetadata",
+        "staticRow": "org.apache.cassandra.db.rows.Row",
+        "header": "org.apache.cassandra.db.SerializationHeader",
+        "partitionLevelDeletion": "org.apache.cassandra.db.DeletionTime",
+        "key": "org.apache.cassandra.db.DecoratedKey"
+    },
+    "org.apache.cassandra.io.sstable.format.SSTableReader": {
+        "bf": "org.apache.cassandra.utils.IFilter",
+        "indexSummary": "org.apache.cassandra.io.sstable.IndexSummary",
+        "header": "org.apache.cassandra.db.SerializationHeader",
+        "sstableMetadata": "org.apache.cassandra.io.sstable.metadata.StatsMetadata"
+    },
+    "org.apache.cassandra.hints.HintsBuffer$Allocation": {
+        "totalSize": "int"
+    },
+    "org.apache.cassandra.db.BufferClustering": {
+        "EMPTY_SIZE": "long"
+    },
+    "org.apache.cassandra.db.columniterator.SSTableReversedIterator$ReusablePartitionData": {
+        "built": "org.apache.cassandra.db.partitions.ImmutableBTreePartition"
+    },
+    "org.apache.cassandra.db.DecoratedKey": {
+        "token": "org.apache.cassandra.dht.Token"
+    },
+    "org.apache.cassandra.db.ArrayClusteringBoundary": {
+        "values": "java.lang.Object[]"
+    },
+    "org.apache.cassandra.service.reads.AbstractReadExecutor": {
+        "result": "org.apache.cassandra.db.partitions.PartitionIterator",
+        "readRepair": "org.apache.cassandra.service.reads.repair.ReadRepair",
+        "digestResolver": "org.apache.cassandra.service.reads.DigestResolver"
+    },
+    "org.apache.cassandra.db.rows.UnfilteredRowIterators$UnfilteredRowMergeIterator$MergeReducer": {
+        "listener": "org.apache.cassandra.db.rows.UnfilteredRowIterators$MergeListener",
+        "rowMerger": "org.apache.cassandra.db.rows.Row$Merger"
+    },
+    "org.apache.cassandra.io.sstable.ReducingKeyIterator": {
+        "iters": "java.util.ArrayList",
+        "mi": "org.apache.cassandra.utils.IMergeIterator"
+    },
+    "org.apache.cassandra.db.commitlog.CommitLogSegmentReader": {
+        "handler": "org.apache.cassandra.db.commitlog.CommitLogReadHandler"
+    },
+    "org.apache.cassandra.db.UnfilteredDeserializer": {
+        "clusteringDeserializer": "org.apache.cassandra.db.ClusteringPrefix$Deserializer",
+        "header": "org.apache.cassandra.db.SerializationHeader"
+    },
+    "org.apache.cassandra.db.rows.RowAndDeletionMergeIterator": {
+        "selection": "org.apache.cassandra.db.filter.ColumnFilter"
+    },
+    "org.apache.cassandra.service.StorageProxy$LocalReadRunnable": {
+        "command": "org.apache.cassandra.db.ReadCommand"
+    },
+    "org.apache.cassandra.cache.RowCacheKey": {
+        "key": "byte[]"
+    },
+    "org.apache.cassandra.service.reads.repair.AbstractReadRepair$DigestRepair": {
+        "dataResolver": "org.apache.cassandra.service.reads.DataResolver"
+    },
+    "org.apache.cassandra.io.util.Memory": {
+        "size": "long",
+        "NO_BYTE_BUFFERS": "java.nio.ByteBuffer[]"
+    },
+    "org.apache.cassandra.db.StorageHook": {
+        "instance": "org.apache.cassandra.db.StorageHook"
+    },
+    "org.apache.cassandra.db.transform.RTBoundCloser$RowsTransformation": {
+        "partition": "org.apache.cassandra.db.rows.UnfilteredRowIterator"
+    },
+    "org.apache.cassandra.io.sstable.metadata.StatsMetadata": {
+        "minTTL": "int",
+        "maxTimestamp": "long",
+        "maxTTL": "int",
+        "pendingRepair": "org.apache.cassandra.utils.TimeUUID",
+        "totalColumnsSet": "long",
+        "repairedAt": "long",
+        "totalRows": "long",
+        "maxLocalDeletionTime": "int",
+        "compressionRatio": "double",
+        "encodingStats": "org.apache.cassandra.db.rows.EncodingStats",
+        "commitLogIntervals": "org.apache.cassandra.db.commitlog.IntervalSet",
+        "estimatedTombstoneDropTime": "org.apache.cassandra.utils.streamhist.TombstoneHistogram",
+        "hasLegacyCounterShards": "boolean",
+        "maxClusteringValues": "java.util.List",
+        "minLocalDeletionTime": "int",
+        "isTransient": "boolean",
+        "sstableLevel": "int",
+        "minClusteringValues": "java.util.List",
+        "minTimestamp": "long"
+    },
+    "org.apache.cassandra.db.rows.ThrottledUnfilteredIterator": {
+        "overflowed": "java.util.Iterator"
+    },
+    "org.apache.cassandra.db.columniterator.AbstractSSTableIterator": {
+        "slices": "org.apache.cassandra.db.Slices",
+        "sstable": "org.apache.cassandra.io.sstable.format.SSTableReader",
+        "reader": "org.apache.cassandra.db.columniterator.AbstractSSTableIterator$Reader",
+        "staticRow": "org.apache.cassandra.db.rows.Row",
+        "columns": "org.apache.cassandra.db.filter.ColumnFilter",
+        "partitionLevelDeletion": "org.apache.cassandra.db.DeletionTime",
+        "key": "org.apache.cassandra.db.DecoratedKey"
+    },
+    "org.apache.cassandra.db.transform.StoppingTransformation": {
+        "partitions": "org.apache.cassandra.db.transform.BaseIterator",
+        "rows": "org.apache.cassandra.db.transform.BaseIterator"
+    },
+    "org.apache.cassandra.db.BufferClusteringBoundary": {
+        "values": "java.lang.Object[]"
+    },
+    "org.apache.cassandra.db.memtable.Flushing$FlushRunnable": {
+        "toFlush": "org.apache.cassandra.db.memtable.Memtable$FlushablePartitionSet",
+        "writer": "org.apache.cassandra.io.sstable.SSTableMultiWriter"
+    },
+    "org.apache.cassandra.index.transactions.CleanupTransaction": {
+        "NO_OP": "org.apache.cassandra.index.transactions.CleanupTransaction"
+    },
+    "org.apache.cassandra.db.SerializationHeader$Component": {
+        "stats": "org.apache.cassandra.db.rows.EncodingStats",
+        "regularColumns": "java.util.Map",
+        "staticColumns": "java.util.Map"
+    },
+    "org.apache.cassandra.db.ReadExecutionController": {
+        "repairedDataInfo": "org.apache.cassandra.db.RepairedDataInfo",
+        "command": "org.apache.cassandra.db.ReadCommand"
+    },
+    "org.apache.cassandra.db.partitions.PartitionUpdate": {
+        "metadata": "org.apache.cassandra.schema.TableMetadata",
+        "holder": "org.apache.cassandra.db.partitions.AbstractBTreePartition$Holder"
+    },
+    "org.apache.cassandra.schema.ColumnMetadata": {
+        "name": "org.apache.cassandra.cql3.ColumnIdentifier"
+    },
+    "org.apache.cassandra.db.compaction.Scrubber$FixNegativeLocalDeletionTimeIterator": {
+        "iterator": "org.apache.cassandra.db.rows.UnfilteredRowIterator"
+    },
+    "org.apache.cassandra.index.internal.CassandraIndexSearcher": {
+        "expression": "org.apache.cassandra.db.filter.RowFilter$Expression",
+        "index": "org.apache.cassandra.index.internal.CassandraIndex",
+        "command": "org.apache.cassandra.db.ReadCommand"
+    },
+    "org.apache.cassandra.db.compaction.CompactionTasks": {
+        "tasks": "java.util.Collection"
+    },
+    "org.apache.cassandra.db.commitlog.IntervalSet": {
+        "ranges": "java.util.NavigableMap"
+    },
+    "org.apache.cassandra.utils.btree.BTree$AbstractTransformer": {
+        "update": "org.apache.cassandra.utils.btree.BTree$SimpleTreeIterator",
+        "queuedToFinish": "java.lang.Object[][]"
+    },
+    "org.apache.cassandra.utils.streamhist.TombstoneHistogram": {
+        "bin": "org.apache.cassandra.utils.streamhist.StreamingTombstoneHistogramBuilder$DataHolder"
+    },
+    "org.apache.cassandra.db.LivenessInfo": {
+        "UNSHARED_HEAP_SIZE": "long",
+        "EMPTY": "org.apache.cassandra.db.LivenessInfo",
+        "timestamp": "long"
+    },
+    "org.apache.cassandra.db.rows.BufferCell": {
+        "path": "org.apache.cassandra.db.rows.CellPath",
+        "EMPTY_SIZE": "long",
+        "localDeletionTime": "int",
+        "ttl": "int",
+        "value": "java.nio.ByteBuffer",
+        "timestamp": "long"
+    },
+    "org.apache.cassandra.db.rows.ComplexColumnData": {
+        "cells": "java.lang.Object[]",
+        "EMPTY_SIZE": "long",
+        "complexDeletion": "org.apache.cassandra.db.DeletionTime"
+    },
+    "org.apache.cassandra.db.compaction.writers.SplittingSizeTieredCompactionWriter": {
+        "nonExpiredSSTables": "java.util.Set",
+        "sstableWriter": "org.apache.cassandra.io.sstable.SSTableRewriter"
+    },
+    "org.apache.cassandra.service.reads.range.SingleRangeResponse": {
+        "resolver": "org.apache.cassandra.service.reads.DataResolver"
+    },
+    "org.apache.cassandra.db.memtable.AbstractAllocatorMemtable": {
+        "allocator": "org.apache.cassandra.utils.memory.MemtableAllocator"
+    },
+    "org.apache.cassandra.db.filter.ColumnFilter$WildCardColumnFilter": {
+        "fetchedAndQueried": "org.apache.cassandra.db.RegularAndStaticColumns"
+    },
+    "org.apache.cassandra.db.filter.RowFilter": {
+        "expressions": "java.util.List"
+    },
+    "org.apache.cassandra.db.compaction.CompactionManager$CleanupStrategy$Full": {
+        "nowInSec": "int"
+    },
+    "org.apache.cassandra.io.sstable.format.big.BigTableScanner$EmptySSTableScanner": {
+        "sstable": "org.apache.cassandra.io.sstable.format.SSTableReader"
+    },
+    "org.apache.cassandra.db.EmptyIterators$EmptyBaseRowIterator": {
+        "partitionKey": "org.apache.cassandra.db.DecoratedKey",
+        "staticRow": "org.apache.cassandra.db.rows.Row",
+        "columns": "org.apache.cassandra.db.RegularAndStaticColumns"
+    },
+    "org.apache.cassandra.service.reads.repair.RowIteratorMergeListener": {
+        "currentRows": "org.apache.cassandra.db.rows.Row$Builder[]",
+        "partitionLevelDeletion": "org.apache.cassandra.db.DeletionTime"
+    },
+    "org.apache.cassandra.db.memtable.SkipListMemtable": {
+        "partitions": "java.util.concurrent.ConcurrentNavigableMap",
+        "allocator": "org.apache.cassandra.utils.memory.MemtableAllocator"
+    },
+    "org.apache.cassandra.db.virtual.AbstractVirtualTable$AbstractDataSet": {
+        "partitions": "java.util.NavigableMap"
+    },
+    "org.apache.cassandra.db.SinglePartitionReadCommand$Group": {
+        "queries": "java.util.List"
+    },
+    "org.apache.cassandra.db.rows.ColumnData$Reconciler": {
+        "postReconcile": "org.apache.cassandra.db.rows.ColumnData$PostReconciliationFunction"
+    },
+    "org.apache.cassandra.db.lifecycle.View": {
+        "liveMemtables": "java.util.List"
+    },
+    "org.apache.cassandra.db.partitions.AbstractBTreePartition": {
+        "partitionKey": "org.apache.cassandra.db.DecoratedKey",
+        "EMPTY": "org.apache.cassandra.db.partitions.AbstractBTreePartition$Holder"
+    },
+    "org.apache.cassandra.index.internal.composites.CompositesSearcher": {
+        "index": "org.apache.cassandra.index.internal.CassandraIndex"
+    },
+    "org.apache.cassandra.db.compaction.Scrubber$RowMergingSSTableIterator": {
+        "nextToOffer": "org.apache.cassandra.db.rows.Unfiltered",
+        "wrapped": "org.apache.cassandra.db.rows.UnfilteredRowIterator"
+    },
+    "org.apache.cassandra.db.EmptyIterators$EmptyUnfilteredRowIterator": {
+        "partitionLevelDeletion": "org.apache.cassandra.db.DeletionTime"
+    },
+    "org.apache.cassandra.cache.CounterCacheKey": {
+        "partitionKey": "byte[]",
+        "cellName": "byte[]"
+    },
+    "org.apache.cassandra.db.memtable.AbstractMemtable$ColumnsCollector": {
+        "extra": "java.util.concurrent.ConcurrentSkipListSet",
+        "predefined": "java.util.HashMap"
+    },
+    "org.apache.cassandra.db.partitions.AbstractBTreePartition$AbstractIterator": {
+        "selection": "org.apache.cassandra.db.filter.ColumnFilter"
+    },
+    "org.apache.cassandra.db.rows.AbstractUnfilteredRowIterator": {
+        "partitionKey": "org.apache.cassandra.db.DecoratedKey",
+        "stats": "org.apache.cassandra.db.rows.EncodingStats",
+        "staticRow": "org.apache.cassandra.db.rows.Row",
+        "columns": "org.apache.cassandra.db.RegularAndStaticColumns",
+        "partitionLevelDeletion": "org.apache.cassandra.db.DeletionTime"
+    },
+    "org.apache.cassandra.utils.BloomCalculations$BloomSpecification": {
+        "bucketsPerElement": "int",
+        "K": "int"
+    },
+    "org.apache.cassandra.db.compaction.AbstractCompactionStrategy$ScannerList": {
+        "scanners": "java.util.List"
+    },
+    "org.apache.cassandra.db.compaction.Scrubber": {
+        "currentIndexKey": "java.nio.ByteBuffer",
+        "cfs": "org.apache.cassandra.db.ColumnFamilyStore",
+        "sstable": "org.apache.cassandra.io.sstable.format.SSTableReader",
+        "expectedBloomFilterSize": "long",
+        "outOfOrder": "java.util.SortedSet",
+        "scrubInfo": "org.apache.cassandra.db.compaction.Scrubber$ScrubInfo"
+    },
+    "org.apache.cassandra.utils.BloomFilter": {
+        "hashCount": "int",
+        "bitset": "org.apache.cassandra.utils.obs.IBitSet"
+    },
+    "org.apache.cassandra.db.Keyspace": {
+        "columnFamilyStores": "java.util.concurrent.ConcurrentMap"
+    },
+    "org.apache.cassandra.db.compaction.CompactionStrategyHolder": {
+        "strategies": "java.util.List"
+    },
+    "org.apache.cassandra.io.sstable.format.SSTableReaderBuilder": {
+        "summary": "org.apache.cassandra.io.sstable.IndexSummary",
+        "bf": "org.apache.cassandra.utils.IFilter",
+        "last": "org.apache.cassandra.db.DecoratedKey",
+        "first": "org.apache.cassandra.db.DecoratedKey"
+    },
+    "org.apache.cassandra.db.view.TableViews$DeletionTracker": {
+        "partitionDeletion": "org.apache.cassandra.db.DeletionTime",
+        "deletion": "org.apache.cassandra.db.DeletionTime"
+    },
+    "org.apache.cassandra.db.PartitionRangeReadCommand": {
+        "dataRange": "org.apache.cassandra.db.DataRange"
+    },
+    "org.apache.cassandra.db.AbstractBufferClusteringPrefix": {
+        "TOP": "org.apache.cassandra.db.ClusteringBound",
+        "values": "java.lang.Object[]",
+        "BOTTOM": "org.apache.cassandra.db.ClusteringBound"
+    },
+    "org.apache.cassandra.db.partitions.SingletonUnfilteredPartitionIterator": {
+        "iter": "org.apache.cassandra.db.rows.UnfilteredRowIterator"
+    },
+    "org.apache.cassandra.db.BufferDecoratedKey": {
+        "key": "java.nio.ByteBuffer"
+    },
+    "org.apache.cassandra.utils.ByteArrayUtil": {
+        "EMPTY_BYTE_ARRAY": "byte[]"
+    },
+    "org.apache.cassandra.db.NativeClustering": {
+        "EMPTY_SIZE": "long"
+    },
+    "org.apache.cassandra.db.rows.WithOnlyQueriedData": {
+        "filter": "org.apache.cassandra.db.filter.ColumnFilter"
+    },
+    "org.apache.cassandra.db.compaction.CompactionIterator$AbortableUnfilteredRowTransformation": {
+        "iter": "org.apache.cassandra.db.compaction.CompactionIterator"
+    },
+    "org.apache.cassandra.db.transform.BaseIterator": {
+        "input": "org.apache.cassandra.utils.CloseableIterator"
+    },
+    "org.apache.cassandra.db.partitions.AtomicBTreePartition$RowUpdater": {
+        "indexer": "org.apache.cassandra.index.transactions.UpdateTransaction"
+    },
+    "org.apache.cassandra.db.partitions.PartitionUpdate$CounterMark": {
+        "column": "org.apache.cassandra.schema.ColumnMetadata",
+        "row": "org.apache.cassandra.db.rows.Row"
+    },
+    "org.apache.cassandra.io.sstable.metadata.ValidationMetadata": {
+        "partitioner": "java.lang.String",
+        "bloomFilterFPChance": "double"
+    },
+    "org.apache.cassandra.db.commitlog.CommitLogReader": {
+        "buffer": "byte[]"
+    },
+    "org.apache.cassandra.db.rows.Row$Merger": {
+        "dataBuffer": "java.util.List",
+        "clustering": "org.apache.cassandra.db.Clustering",
+        "rows": "org.apache.cassandra.db.rows.Row[]",
+        "columnDataIterators": "java.util.List"
+    },
+    "org.apache.cassandra.index.internal.keys.KeysSearcher": {
+        "index": "org.apache.cassandra.index.internal.CassandraIndex"
+    },
+    "org.apache.cassandra.db.filter.DataLimits": {
+        "NONE": "org.apache.cassandra.db.filter.DataLimits"
+    },
+    "org.apache.cassandra.utils.ObjectSizes": {
+        "DIRECT_BUFFER_HEAP_SIZE": "long",
+        "EMPTY_BYTE_ARRAY_SIZE": "long",
+        "EMPTY_HEAP_BUFFER_SIZE": "long"
+    },
+    "org.apache.cassandra.db.transform.UnfilteredPartitions": {
+        "input": "org.apache.cassandra.utils.CloseableIterator"
+    },
+    "org.apache.cassandra.db.rows.DeserializationHelper": {
+        "columnsToFetch": "org.apache.cassandra.db.filter.ColumnFilter"
+    },
+    "org.apache.cassandra.service.pager.AggregationQueryPager$GroupByPartitionIterator$GroupByRowIterator": {
+        "rowIterator": "org.apache.cassandra.db.rows.RowIterator"
+    },
+    "org.apache.cassandra.db.rows.LazilyInitializedUnfilteredRowIterator": {
+        "iterator": "org.apache.cassandra.db.rows.UnfilteredRowIterator",
+        "partitionKey": "org.apache.cassandra.db.DecoratedKey"
+    },
+    "org.apache.cassandra.utils.MergeIterator": {
+        "iterators": "java.util.List",
+        "reducer": "org.apache.cassandra.utils.MergeIterator$Reducer"
+    },
+    "org.apache.cassandra.utils.memory.HeapPool": {
+        "ENSURE_NOOP": "org.apache.cassandra.utils.memory.EnsureOnHeap"
+    },
+    "org.apache.cassandra.utils.MerkleTrees": {
+        "merkleTrees": "java.util.Map"
+    },
+    "org.apache.cassandra.utils.streamhist.StreamingTombstoneHistogramBuilder$DataHolder": {
+        "data": "long[]"
+    },
+    "org.apache.cassandra.db.rows.WrappingUnfilteredRowIterator": {
+        "wrapped": "org.apache.cassandra.db.rows.UnfilteredRowIterator"
+    },
+    "org.apache.cassandra.db.transform.BasePartitions": {
+        "input": "org.apache.cassandra.utils.CloseableIterator"
+    },
+    "org.apache.cassandra.db.EmptyIterators$EmptyPartitionIterator": {
+        "instance": "org.apache.cassandra.db.EmptyIterators$EmptyPartitionIterator"
+    },
+    "org.apache.cassandra.db.columniterator.AbstractSSTableIterator$Reader": {
+        "deserializer": "org.apache.cassandra.db.UnfilteredDeserializer",
+        "openMarker": "org.apache.cassandra.db.DeletionTime"
+    },
+    "org.apache.cassandra.db.rows.ColumnData": {
+        "noOp": "org.apache.cassandra.db.rows.ColumnData$PostReconciliationFunction",
+        "column": "org.apache.cassandra.schema.ColumnMetadata"
+    },
+    "org.apache.cassandra.db.ArrayClusteringBoundOrBoundary": {
+        "values": "java.lang.Object[]"
+    },
+    "org.apache.cassandra.db.compaction.CompactionController": {
+        "compacting": "java.lang.Iterable"
+    },
+    "org.apache.cassandra.db.memtable.SkipListMemtable$MemtableUnfilteredPartitionIterator": {
+        "dataRange": "org.apache.cassandra.db.DataRange",
+        "columnFilter": "org.apache.cassandra.db.filter.ColumnFilter",
+        "iter": "java.util.Iterator"
+    },
+    "org.apache.cassandra.db.ClusteringPrefix$Kind": {
+        "CLUSTERING": "org.apache.cassandra.db.ClusteringPrefix$Kind",
+        "EXCL_START_BOUND": "org.apache.cassandra.db.ClusteringPrefix$Kind",
+        "STATIC_CLUSTERING": "org.apache.cassandra.db.ClusteringPrefix$Kind",
+        "EXCL_END_BOUND": "org.apache.cassandra.db.ClusteringPrefix$Kind",
+        "INCL_END_BOUND": "org.apache.cassandra.db.ClusteringPrefix$Kind",
+        "$VALUES": "org.apache.cassandra.db.ClusteringPrefix$Kind[]",
+        "INCL_START_BOUND": "org.apache.cassandra.db.ClusteringPrefix$Kind"
+    },
+    "org.apache.cassandra.dht.AbstractBounds": {
+        "left": "org.apache.cassandra.dht.RingPosition",
+        "right": "org.apache.cassandra.dht.RingPosition"
+    },
+    "org.apache.cassandra.index.transactions.UpdateTransaction": {
+        "NO_OP": "org.apache.cassandra.index.transactions.UpdateTransaction"
+    },
+    "org.apache.cassandra.db.compaction.Scrubber$OrderCheckerIterator": {
+        "iterator": "org.apache.cassandra.db.rows.UnfilteredRowIterator",
+        "rowsOutOfOrder": "org.apache.cassandra.db.partitions.Partition"
+    },
+    "org.apache.cassandra.db.SerializationHeader": {
+        "stats": "org.apache.cassandra.db.rows.EncodingStats",
+        "columns": "org.apache.cassandra.db.RegularAndStaticColumns"
+    },
+    "org.apache.cassandra.db.AbstractCompactionController": {
+        "cfs": "org.apache.cassandra.db.ColumnFamilyStore"
+    },
+    "org.apache.cassandra.io.sstable.SSTableIdentityIterator": {
+        "iterator": "org.apache.cassandra.io.sstable.SSTableSimpleIterator",
+        "sstable": "org.apache.cassandra.io.sstable.format.SSTableReader",
+        "staticRow": "org.apache.cassandra.db.rows.Row",
+        "partitionLevelDeletion": "org.apache.cassandra.db.DeletionTime",
+        "key": "org.apache.cassandra.db.DecoratedKey"
+    },
+    "org.apache.cassandra.utils.BulkIterator$FromArray": {
+        "from": "java.lang.Object[]"
+    },
+    "org.apache.cassandra.db.commitlog.CommitLogReplayer": {
+        "commitLogReader": "org.apache.cassandra.db.commitlog.CommitLogReader"
+    },
+    "org.apache.cassandra.io.sstable.SSTableRewriter": {
+        "writer": "org.apache.cassandra.io.sstable.format.SSTableWriter"
+    },
+    "org.apache.cassandra.db.AbstractReadQuery": {
+        "metadata": "org.apache.cassandra.schema.TableMetadata",
+        "columnFilter": "org.apache.cassandra.db.filter.ColumnFilter",
+        "nowInSec": "int",
+        "limits": "org.apache.cassandra.db.filter.DataLimits"
+    },
+    "org.apache.cassandra.service.pager.AbstractQueryPager$RowPager": {
+        "counter": "org.apache.cassandra.db.filter.DataLimits$Counter"
+    },
+    "org.apache.cassandra.db.DeletionPurger": {
+        "PURGE_ALL": "org.apache.cassandra.db.DeletionPurger"
+    },
+    "org.apache.cassandra.index.SecondaryIndexManager": {
+        "baseCfs": "org.apache.cassandra.db.ColumnFamilyStore",
+        "indexes": "java.util.Map"
+    },
+    "org.apache.cassandra.utils.MergeIterator$ManyToOne": {
+        "reducer": "org.apache.cassandra.utils.MergeIterator$Reducer",
+        "heap": "org.apache.cassandra.utils.MergeIterator$Candidate[]"
+    },
+    "org.apache.cassandra.utils.ByteBufferUtil": {
+        "EMPTY_BYTE_BUFFER": "java.nio.ByteBuffer"
+    },
+    "org.apache.cassandra.db.DataRange": {
+        "clusteringIndexFilter": "org.apache.cassandra.db.filter.ClusteringIndexFilter"
+    },
+    "org.apache.cassandra.db.rows.UnfilteredRowIteratorSerializer": {
+        "serializer": "org.apache.cassandra.db.rows.UnfilteredRowIteratorSerializer"
+    },
+    "org.apache.cassandra.hints.Hint": {
+        "creationTime": "long",
+        "gcgs": "int"
+    },
+    "org.apache.cassandra.db.Slices": {
+        "ALL": "org.apache.cassandra.db.Slices",
+        "NONE": "org.apache.cassandra.db.Slices"
+    },
+    "org.apache.cassandra.db.Columns": {
+        "columns": "java.lang.Object[]",
+        "NONE": "org.apache.cassandra.db.Columns"
+    },
+    "org.apache.cassandra.db.partitions.AbstractBTreePartition$Holder": {
+        "deletionInfo": "org.apache.cassandra.db.DeletionInfo",
+        "stats": "org.apache.cassandra.db.rows.EncodingStats",
+        "staticRow": "org.apache.cassandra.db.rows.Row",
+        "columns": "org.apache.cassandra.db.RegularAndStaticColumns",
+        "tree": "java.lang.Object[]"
+    },
+    "org.apache.cassandra.db.compaction.ActiveCompactions": {
+        "compactions": "java.util.Set"
+    },
+    "org.apache.cassandra.io.sstable.IndexSummaryBuilder$ReadableBoundary": {
+        "entriesLength": "long",
+        "lastKey": "org.apache.cassandra.db.DecoratedKey",
+        "summaryCount": "int"
+    },
+    "org.apache.cassandra.db.rows.UnfilteredRowIterators$MergeListener": {
+        "NOOP": "org.apache.cassandra.db.rows.UnfilteredRowIterators$MergeListener"
+    },
+    "org.apache.cassandra.locator.AbstractReplicaCollection$ReplicaMap": {
+        "list": "org.apache.cassandra.locator.AbstractReplicaCollection$ReplicaList"
+    },
+    "org.apache.cassandra.utils.TimeUUID": {
+        "uuidTimestamp": "long",
+        "lsb": "long"
+    },
+    "org.apache.cassandra.io.sstable.IndexSummary": {
+        "entries": "org.apache.cassandra.io.util.Memory",
+        "minIndexInterval": "int",
+        "entriesLength": "long",
+        "samplingLevel": "int",
+        "sizeAtFullSampling": "int",
+        "offsetCount": "int"
+    },
+    "org.apache.cassandra.db.compaction.Verifier": {
+        "verifyInfo": "org.apache.cassandra.db.compaction.Verifier$VerifyInfo"
+    },
+    "org.apache.cassandra.index.SecondaryIndexManager$IndexGCTransaction": {
+        "nowInSec": "int",
+        "rows": "org.apache.cassandra.db.rows.Row[]"
+    },
+    "org.apache.cassandra.utils.BulkIterator$Adapter": {
+        "adapt": "java.util.Iterator"
+    },
+    "org.apache.cassandra.db.columniterator.SSTableIterator$ForwardReader": {
+        "deserializer": "org.apache.cassandra.db.UnfilteredDeserializer"
+    },
+    "org.apache.cassandra.db.RegularAndStaticColumns": {
+        "regulars": "org.apache.cassandra.db.Columns",
+        "NONE": "org.apache.cassandra.db.RegularAndStaticColumns",
+        "statics": "org.apache.cassandra.db.Columns"
+    },
+    "org.apache.cassandra.db.commitlog.CommitLogPosition": {
+        "segmentId": "long",
+        "position": "int"
+    },
+    "org.apache.cassandra.db.rows.UnfilteredRowIteratorWithLowerBound": {
+        "filter": "org.apache.cassandra.db.filter.ClusteringIndexFilter",
+        "selectedColumns": "org.apache.cassandra.db.filter.ColumnFilter",
+        "sstable": "org.apache.cassandra.io.sstable.format.SSTableReader",
+        "lowerBound": "org.apache.cassandra.db.ClusteringBound"
+    },
+    "org.apache.cassandra.serializers.BooleanSerializer": {
+        "TRUE": "java.nio.ByteBuffer",
+        "FALSE": "java.nio.ByteBuffer"
+    },
+    "org.apache.cassandra.service.reads.ShortReadPartitionsProtection": {
+        "singleResultCounter": "org.apache.cassandra.db.filter.DataLimits$Counter"
+    },
+    "org.apache.cassandra.service.pager.AbstractQueryPager$UnfilteredPager": {
+        "counter": "org.apache.cassandra.db.filter.DataLimits$Counter"
+    },
+    "org.apache.cassandra.db.ColumnFamilyStore$ViewFragment": {
+        "memtables": "java.lang.Iterable",
+        "sstables": "java.util.List"
+    },
+    "org.apache.cassandra.service.reads.DataResolver$ResolveContext": {
+        "mergedResultCounter": "org.apache.cassandra.db.filter.DataLimits$Counter"
+    },
+    "org.apache.cassandra.db.columniterator.SSTableReversedIterator$ReverseReader": {
+        "iterator": "java.util.Iterator",
+        "deserializer": "org.apache.cassandra.db.UnfilteredDeserializer",
+        "openMarker": "org.apache.cassandra.db.DeletionTime",
+        "buffer": "org.apache.cassandra.db.columniterator.SSTableReversedIterator$ReusablePartitionData"
+    },
+    "org.apache.cassandra.db.filter.ColumnSubselection": {
+        "column": "org.apache.cassandra.schema.ColumnMetadata"
+    },
+    "org.apache.cassandra.index.SecondaryIndexManager$CleanupGCTransaction": {
+        "row": "org.apache.cassandra.db.rows.Row",
+        "nowInSec": "int"
+    },
+    "org.apache.cassandra.db.ReadCommand$InputCollector": {
+        "unrepairedIters": "java.util.List"
+    },
+    "org.apache.cassandra.utils.MergeIterator$Candidate": {
+        "item": "java.lang.Object",
+        "iter": "java.util.Iterator",
+        "lowerBound": "java.lang.Object"
+    },
+    "org.apache.cassandra.dht.Murmur3Partitioner": {
+        "MINIMUM": "org.apache.cassandra.dht.Murmur3Partitioner$LongToken"
+    },
+    "org.apache.cassandra.db.filter.ColumnFilter": {
+        "NONE": "org.apache.cassandra.db.filter.ColumnFilter"
+    },
+    "org.apache.cassandra.db.columniterator.SSTableReversedIterator$ReverseIndexedReader": {
+        "slice": "org.apache.cassandra.db.Slice"
+    },
+    "org.apache.cassandra.db.transform.UnfilteredRows": {
+        "input": "org.apache.cassandra.utils.CloseableIterator",
+        "regularAndStaticColumns": "org.apache.cassandra.db.RegularAndStaticColumns",
+        "partitionLevelDeletion": "org.apache.cassandra.db.DeletionTime"
+    },
+    "org.apache.cassandra.db.view.TableViews": {
+        "views": "java.util.List"
+    },
+    "org.apache.cassandra.io.sstable.IndexInfo": {
+        "lastName": "org.apache.cassandra.db.ClusteringPrefix",
+        "firstName": "org.apache.cassandra.db.ClusteringPrefix",
+        "endOpenMarker": "org.apache.cassandra.db.DeletionTime",
+        "offset": "long",
+        "width": "long"
+    },
+    "org.apache.cassandra.db.partitions.AtomicBTreePartition": {
+        "ref": "org.apache.cassandra.db.partitions.AbstractBTreePartition$Holder",
+        "allocator": "org.apache.cassandra.utils.memory.MemtableAllocator",
+        "EMPTY": "org.apache.cassandra.db.partitions.AbstractBTreePartition$Holder"
+    },
+    "org.apache.cassandra.io.sstable.format.big.BigTableScanner$KeyScanningIterator": {
+        "nextEntry": "org.apache.cassandra.db.RowIndexEntry",
+        "currentEntry": "org.apache.cassandra.db.RowIndexEntry"
+    },
+    "org.apache.cassandra.io.sstable.metadata.MetadataType": {
+        "COMPACTION": "org.apache.cassandra.io.sstable.metadata.MetadataType",
+        "STATS": "org.apache.cassandra.io.sstable.metadata.MetadataType",
+        "VALIDATION": "org.apache.cassandra.io.sstable.metadata.MetadataType",
+        "HEADER": "org.apache.cassandra.io.sstable.metadata.MetadataType"
+    },
+    "org.apache.cassandra.repair.Validator": {
+        "nowInSec": "int"
+    },
+    "org.apache.cassandra.db.LivenessInfo$ExpiringLivenessInfo": {
+        "UNSHARED_HEAP_SIZE": "long",
+        "ttl": "int",
+        "localExpirationTime": "int"
+    },
+    "org.apache.cassandra.db.marshal.ByteArrayObjectFactory": {
+        "EMPTY_CLUSTERING": "org.apache.cassandra.db.Clustering",
+        "TOP_BOUND": "org.apache.cassandra.db.ArrayClusteringBound",
+        "BOTTOM_BOUND": "org.apache.cassandra.db.ArrayClusteringBound"
+    },
+    "org.apache.cassandra.db.AbstractOnHeapClusteringPrefix": {
+        "TOP": "org.apache.cassandra.db.ClusteringBound",
+        "kind": "org.apache.cassandra.db.ClusteringPrefix$Kind",
+        "values": "java.lang.Object[]",
+        "BOTTOM": "org.apache.cassandra.db.ClusteringBound"
+    },
+    "org.apache.cassandra.db.compaction.writers.MajorLeveledCompactionWriter": {
+        "sstableWriter": "org.apache.cassandra.io.sstable.SSTableRewriter"
+    },
+    "org.apache.cassandra.utils.btree.UpdateFunction": {
+        "noOp": "org.apache.cassandra.utils.btree.UpdateFunction$Simple"
+    },
+    "org.apache.cassandra.db.streaming.CassandraStreamReceiver": {
+        "cfs": "org.apache.cassandra.db.ColumnFamilyStore",
+        "sstables": "java.util.Collection"
+    },
+    "org.apache.cassandra.utils.MergeIterator$OneToOne": {
+        "reducer": "org.apache.cassandra.utils.MergeIterator$Reducer",
+        "source": "java.util.Iterator"
+    },
+    "org.apache.cassandra.db.ColumnFamilyStore": {
+        "metadata": "org.apache.cassandra.schema.TableMetadataRef",
+        "repairManager": "org.apache.cassandra.repair.TableRepairManager",
+        "indexManager": "org.apache.cassandra.index.SecondaryIndexManager"
+    },
+    "org.apache.cassandra.schema.TableMetadataRef": {
+        "metadata": "org.apache.cassandra.schema.TableMetadata"
+    },
+    "org.apache.cassandra.db.rows.AbstractRangeTombstoneMarker": {
+        "bound": "org.apache.cassandra.db.ClusteringBoundOrBoundary"
+    },
+    "org.apache.cassandra.db.memtable.AbstractMemtable": {
+        "columnsCollector": "org.apache.cassandra.db.memtable.AbstractMemtable$ColumnsCollector"
+    },
+    "org.apache.cassandra.schema.TableMetadata": {
+        "regularAndStaticColumns": "org.apache.cassandra.db.RegularAndStaticColumns"
+    },
+    "org.apache.cassandra.db.virtual.VirtualKeyspaceRegistry": {
+        "instance": "org.apache.cassandra.db.virtual.VirtualKeyspaceRegistry",
+        "virtualTables": "java.util.Map"
+    },
+    "org.apache.cassandra.db.compaction.writers.CompactionAwareWriter": {
+        "nonExpiredSSTables": "java.util.Set",
+        "sstableWriter": "org.apache.cassandra.io.sstable.SSTableRewriter"
+    },
+    "org.apache.cassandra.db.compaction.AbstractCompactionStrategy": {
+        "cfs": "org.apache.cassandra.db.ColumnFamilyStore"
+    },
+    "org.apache.cassandra.service.pager.AbstractQueryPager": {
+        "query": "org.apache.cassandra.db.ReadQuery"
+    },
+    "org.apache.cassandra.db.compaction.writers.MaxSSTableSizeWriter": {
+        "nonExpiredSSTables": "java.util.Set",
+        "sstableWriter": "org.apache.cassandra.io.sstable.SSTableRewriter"
+    },
+    "org.apache.cassandra.service.pager.MultiPartitionPager": {
+        "pagers": "org.apache.cassandra.service.pager.SinglePartitionPager[]"
+    },
+    "org.apache.cassandra.cache.AutoSavingCache$Writer": {
+        "keyIterator": "java.util.Iterator"
+    },
+    "org.apache.cassandra.cache.KeyCacheKey": {
+        "key": "byte[]",
+        "desc": "org.apache.cassandra.io.sstable.Descriptor"
+    },
+    "org.apache.cassandra.io.sstable.SimpleSSTableMultiWriter": {
+        "writer": "org.apache.cassandra.io.sstable.format.SSTableWriter"
+    },
+    "org.apache.cassandra.io.sstable.SSTable": {
+        "metadata": "org.apache.cassandra.schema.TableMetadataRef"
+    },
+    "org.apache.cassandra.locator.AbstractReplicaCollection": {
+        "list": "org.apache.cassandra.locator.AbstractReplicaCollection$ReplicaList"
+    },
+    "org.apache.cassandra.service.pager.PartitionRangeQueryPager": {
+        "query": "org.apache.cassandra.db.ReadQuery"
+    },
+    "org.apache.cassandra.db.partitions.CachedBTreePartition": {
+        "cachedLiveRows": "int",
+        "createdAtInSec": "int",
+        "rowsWithNonExpiringCells": "int"
+    },
+    "org.apache.cassandra.db.PartitionPosition$Kind": {
+        "MIN_BOUND": "org.apache.cassandra.db.PartitionPosition$Kind",
+        "MAX_BOUND": "org.apache.cassandra.db.PartitionPosition$Kind",
+        "ROW_KEY": "org.apache.cassandra.db.PartitionPosition$Kind"
+    },
+    "org.apache.cassandra.utils.btree.BTree$SimpleTreeKeysIterator": {
+        "nodes": "java.lang.Object[][]",
+        "leaf": "java.lang.Object[]"
+    },
+    "org.apache.cassandra.db.filter.RowFilter$Expression": {
+        "value": "java.nio.ByteBuffer"
+    },
+    "org.apache.cassandra.db.rows.EncodingStats$Collector": {
+        "minDeletionTime": "int",
+        "minTTL": "int",
+        "minTimestamp": "long"
+    },
+    "org.apache.cassandra.db.AbstractArrayClusteringPrefix": {
+        "values": "java.lang.Object[]"
+    },
+    "org.apache.cassandra.db.rows.ArrayCell": {
+        "path": "org.apache.cassandra.db.rows.CellPath",
+        "EMPTY_SIZE": "long",
+        "localDeletionTime": "int",
+        "ttl": "int",
+        "value": "byte[]",
+        "timestamp": "long"
+    },
+    "org.apache.cassandra.db.marshal.ByteBufferObjectFactory": {
+        "EMPTY_CLUSTERING": "org.apache.cassandra.db.Clustering",
+        "TOP_BOUND": "org.apache.cassandra.db.BufferClusteringBound",
+        "BOTTOM_BOUND": "org.apache.cassandra.db.BufferClusteringBound"
+    },
+    "org.apache.cassandra.service.reads.repair.AbstractReadRepair": {
+        "digestRepair": "org.apache.cassandra.service.reads.repair.AbstractReadRepair$DigestRepair"
+    },
+    "org.apache.cassandra.db.Clustering": {
+        "STATIC_CLUSTERING": "org.apache.cassandra.db.Clustering",
+        "EMPTY": "org.apache.cassandra.db.Clustering"
+    },
+    "org.apache.cassandra.db.MutableDeletionInfo": {
+        "partitionDeletion": "org.apache.cassandra.db.DeletionTime"
+    },
+    "org.apache.cassandra.io.sstable.format.big.BigTableWriter$IndexWriter": {
+        "bf": "org.apache.cassandra.utils.IFilter",
+        "indexFile": "org.apache.cassandra.io.util.SequentialWriter"
+    },
+    "org.apache.cassandra.db.RowIndexEntry": {
+        "position": "long"
+    },
+    "org.apache.cassandra.db.compaction.CompactionIterator$GarbageSkippingUnfilteredRowIterator": {
+        "tombSource": "org.apache.cassandra.db.rows.UnfilteredRowIterator",
+        "staticRow": "org.apache.cassandra.db.rows.Row",
+        "partitionLevelDeletion": "org.apache.cassandra.db.DeletionTime"
+    },
+    "org.apache.cassandra.service.pager.MultiPartitionPager$PagersIterator": {
+        "executionController": "org.apache.cassandra.db.ReadExecutionController"
+    },
+    "org.apache.cassandra.db.repair.CassandraValidationIterator": {
+        "scanners": "org.apache.cassandra.db.compaction.AbstractCompactionStrategy$ScannerList",
+        "ci": "org.apache.cassandra.db.compaction.CompactionIterator"
+    },
+    "org.apache.cassandra.db.rows.RangeTombstoneBoundaryMarker": {
+        "endDeletion": "org.apache.cassandra.db.DeletionTime",
+        "bound": "org.apache.cassandra.db.ClusteringBoundOrBoundary",
+        "startDeletion": "org.apache.cassandra.db.DeletionTime"
+    },
+    "org.apache.cassandra.service.reads.range.RangeCommandIterator": {
+        "counter": "org.apache.cassandra.db.filter.DataLimits$Counter",
+        "command": "org.apache.cassandra.db.PartitionRangeReadCommand"
+    },
+    "org.apache.cassandra.io.sstable.SSTableSimpleIterator": {
+        "metadata": "org.apache.cassandra.schema.TableMetadata"
+    },
+    "org.apache.cassandra.utils.btree.BTree": {
+        "EMPTY_LEAF": "java.lang.Object[]",
+        "DENSE_SIZE_MAPS": "int[][]",
+        "MAX_KEYS": "int",
+        "BRANCH_SHIFT": "int"
+    },
+    "org.apache.cassandra.service.reads.ReadCallback": {
+        "resolver": "org.apache.cassandra.service.reads.ResponseResolver"
+    },
+    "org.apache.cassandra.db.DeletionTime": {
+        "EMPTY_SIZE": "long",
+        "localDeletionTime": "int",
+        "markedForDeleteAt": "long",
+        "LIVE": "org.apache.cassandra.db.DeletionTime"
+    },
+    "org.apache.cassandra.db.ColumnIndex": {
+        "indexOffsets": "int[]",
+        "columnIndexCount": "int",
+        "indexSamplesSerializedSize": "int",
+        "indexSamples": "java.util.List",
+        "startPosition": "long",
+        "previousRowStart": "long",
+        "helper": "org.apache.cassandra.db.rows.SerializationHelper",
+        "headerLength": "long",
+        "reusableBuffer": "org.apache.cassandra.io.util.DataOutputBuffer",
+        "lastClustering": "org.apache.cassandra.db.ClusteringPrefix",
+        "firstClustering": "org.apache.cassandra.db.ClusteringPrefix",
+        "initialPosition": "long",
+        "openMarker": "org.apache.cassandra.db.DeletionTime",
+        "buffer": "org.apache.cassandra.io.util.DataOutputBuffer",
+        "writer": "org.apache.cassandra.io.util.SequentialWriter"
+    },
+    "org.apache.cassandra.db.ArrayClustering": {
+        "EMPTY_SIZE": "long"
+    },
+    "org.apache.cassandra.db.rows.EncodingStats": {
+        "minTTL": "int",
+        "TIMESTAMP_EPOCH": "long",
+        "minLocalDeletionTime": "int",
+        "DELETION_TIME_EPOCH": "int",
+        "NO_STATS": "org.apache.cassandra.db.rows.EncodingStats",
+        "minTimestamp": "long"
+    },
+    "org.apache.cassandra.utils.obs.OffHeapBitSet": {
+        "bytes": "org.apache.cassandra.io.util.Memory"
+    },
+    "org.apache.cassandra.db.columniterator.SSTableReversedIterator": {
+        "columns": "org.apache.cassandra.db.filter.ColumnFilter"
+    },
+    "org.apache.cassandra.dht.Murmur3Partitioner$LongToken": {
+        "token": "long"
+    },
+    "org.apache.cassandra.io.sstable.format.SSTableWriter": {
+        "metadataCollector": "org.apache.cassandra.io.sstable.metadata.MetadataCollector",
+        "header": "org.apache.cassandra.db.SerializationHeader"
+    },
+    "org.apache.cassandra.utils.btree.FullBTreeSearchIterator": {
+        "cur": "org.apache.cassandra.utils.btree.NodeCursor",
+        "upperBound": "int",
+        "index": "int",
+        "lowerBound": "int"
+    }
+}
