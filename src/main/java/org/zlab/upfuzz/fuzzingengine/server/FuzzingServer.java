@@ -1364,6 +1364,13 @@ public class FuzzingServer {
                                         + feedbackPacket.testPacketID);
                         newModFC = true;
                     }
+                    if (Config.getConf().staticVD && oriFormatCoverageStatus
+                            .isMultiInvBroken()) {
+                        logger.info(
+                                "Multi-inv Broken for test "
+                                        + feedbackPacket.testPacketID);
+                        newModFC = true;
+                    }
                     if (Config.getConf().prioritizeIsSerialized
                             && oriFormatCoverageStatus.isNewIsSerialize()) {
                         logger.info("New isSerialized coverage for test "
