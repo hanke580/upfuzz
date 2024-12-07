@@ -45,5 +45,6 @@
   "eval_HBASE22503": false,
   "debug": false,
   "useFixedCommand": false,
+  "enable_LIST_SNAPSHOTS": false,
   "startUpClusterForDebugging": false
 }
