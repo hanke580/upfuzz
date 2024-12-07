@@ -148,6 +148,28 @@
         "indexesByColumn": "java.util.concurrent.ConcurrentNavigableMap",
         "rowLevelIndexMap": "java.util.concurrent.ConcurrentMap"
     },
+    "org.apache.cassandra.db.filter.NamesQueryFilter": {
+        "columns": "java.util.SortedSet",
+        "countCQL3Rows": "boolean"
+    },
+    "org.apache.cassandra.streaming.StreamRequest": {
+        "keyspace": "java.lang.String",
+        "ranges": "java.util.Collection",
+        "repairedAt": "long",
+        "columnFamilies": "java.util.Collection"
+    },
+    "org.apache.cassandra.db.PagedRangeCommand": {
+        "keyRange": "org.apache.cassandra.dht.AbstractBounds",
+        "predicate": "org.apache.cassandra.db.filter.IDiskAtomFilter",
+        "keyspace": "java.lang.String",
+        "columnFamily": "java.lang.String",
+        "stop": "org.apache.cassandra.db.composites.Composite",
+        "limit": "int",
+        "start": "org.apache.cassandra.db.composites.Composite",
+        "countCQL3Rows": "boolean",
+        "rowFilter": "java.util.List",
+        "timestamp": "long"
+    },
     "org.apache.cassandra.config.KSMetaData": {
         "cfMetaData": "java.util.Map",
         "durableWrites": "boolean",
@@ -221,6 +243,11 @@
         "sizeAtFullSampling": "int",
         "offsetCount": "int"
     },
+    "org.apache.cassandra.repair.RepairJobDesc": {
+        "keyspace": "java.lang.String",
+        "columnFamily": "java.lang.String",
+        "range": "org.apache.cassandra.dht.Range"
+    },
     "org.apache.cassandra.db.RowPosition$Kind": {
         "MIN_BOUND": "org.apache.cassandra.db.RowPosition$Kind",
         "MAX_BOUND": "org.apache.cassandra.db.RowPosition$Kind",
@@ -243,6 +270,10 @@
         "indexCfs": "org.apache.cassandra.db.ColumnFamilyStore",
         "columnDef": "org.apache.cassandra.config.ColumnDefinition",
         "columnDefs": "java.util.Set"
+    },
+    "org.apache.cassandra.service.RowDigestResolver": {
+        "replies": "org.apache.cassandra.utils.concurrent.Accumulator",
+        "key": "org.apache.cassandra.db.DecoratedKey"
     },
     "org.apache.cassandra.db.DeletionInfo": {
         "ranges": "org.apache.cassandra.db.RangeTombstoneList",
@@ -425,6 +456,13 @@
     },
     "org.apache.cassandra.cache.AutoSavingCache$Writer": {
         "keyIterator": "java.util.Iterator"
+    },
+    "org.apache.cassandra.db.filter.SliceQueryFilter": {
+        "slices": "org.apache.cassandra.db.filter.ColumnSlice[]",
+        "compositesToGroup": "int",
+        "count": "int",
+        "reversed": "boolean",
+        "columnCounter": "org.apache.cassandra.db.filter.ColumnCounter"
     },
     "org.apache.cassandra.cache.KeyCacheKey": {
         "key": "byte[]",
@@ -851,6 +889,30 @@
     "org.apache.cassandra.utils.ExpiringMap": {
         "cache": "java.util.concurrent.ConcurrentMap"
     },
+    "org.apache.cassandra.repair.LocalSyncTask": {
+        "r2": "org.apache.cassandra.repair.TreeResponse",
+        "state": "org.apache.cassandra.tracing.TraceState",
+        "r1": "org.apache.cassandra.repair.TreeResponse"
+    },
+    "org.apache.cassandra.streaming.StreamResultFuture": {
+        "eventListeners": "java.util.Collection",
+        "coordinator": "org.apache.cassandra.streaming.StreamCoordinator"
+    },
+    "org.apache.cassandra.streaming.StreamSession": {
+        "streamResult": "org.apache.cassandra.streaming.StreamResultFuture",
+        "receivers": "java.util.Map",
+        "transfers": "java.util.concurrent.ConcurrentHashMap"
+    },
+    "org.apache.cassandra.streaming.StreamReceiveTask": {
+        "session": "org.apache.cassandra.streaming.StreamSession",
+        "sstables": "java.util.Collection"
+    },
+    "org.apache.cassandra.streaming.StreamReceiveTask$OnCompletionRunnable": {
+        "task": "org.apache.cassandra.streaming.StreamReceiveTask"
+    },
+    "org.apache.cassandra.utils.DefaultInteger": {
+        "currentValue": "int"
+    },
     "org.apache.cassandra.db.compaction.CompactionManager$BackgroundCompactionCandidate": {
         "cfs": "org.apache.cassandra.db.ColumnFamilyStore"
     },
@@ -911,6 +973,10 @@
         "sortedTokens": "java.util.ArrayList",
         "leavingEndpoints": "java.util.Set"
     },
+    "org.apache.cassandra.locator.NetworkTopologyStrategy": {
+        "datacenters": "java.util.Map",
+        "configOptions": "java.util.Map"
+    },
     "org.apache.cassandra.cache.InstrumentingCache": {
         "map": "org.apache.cassandra.cache.ICache"
     },
@@ -926,8 +992,27 @@
     "org.apache.cassandra.streaming.StreamCoordinator$HostStreamingData": {
         "streamSessions": "java.util.Map"
     },
+    "org.apache.cassandra.transport.messages.RegisterMessage": {
+        "eventTypes": "java.util.List"
+    },
+    "org.apache.cassandra.transport.messages.SupportedMessage": {
+        "supported": "java.util.Map"
+    },
+    "org.apache.cassandra.transport.messages.CredentialsMessage": {
+        "credentials": "java.util.Map"
+    },
+    "org.apache.cassandra.transport.messages.StartupMessage": {
+        "options": "java.util.Map"
+    },
     "org.apache.cassandra.transport.messages.BatchMessage": {
         "values": "java.util.List",
+        "options": "org.apache.cassandra.cql3.QueryOptions"
+    },
+    "org.apache.cassandra.transport.messages.ResultMessage$Prepared": {
+        "resultMetadata": "org.apache.cassandra.cql3.ResultSet$ResultMetadata",
+        "metadata": "org.apache.cassandra.cql3.ResultSet$PreparedMetadata"
+    },
+    "org.apache.cassandra.transport.messages.QueryMessage": {
         "options": "org.apache.cassandra.cql3.QueryOptions"
     },
     "org.apache.cassandra.transport.messages.ResultMessage$Rows": {
@@ -972,6 +1057,14 @@
     "org.apache.cassandra.notifications.SSTableListChangedNotification": {
         "removed": "java.util.Collection",
         "added": "java.util.Collection"
+    },
+    "org.apache.cassandra.utils.progress.ProgressEventNotifierSupport": {
+        "listeners": "java.util.List"
+    },
+    "org.apache.cassandra.locator.DynamicEndpointSnitch": {
+        "scores": "java.util.HashMap",
+        "subsnitch": "org.apache.cassandra.locator.IEndpointSnitch",
+        "samples": "java.util.concurrent.ConcurrentHashMap"
     },
     "org.apache.cassandra.service.DatacenterSyncWriteResponseHandler": {
         "responses": "java.util.Map"
@@ -1086,6 +1179,11 @@
     "org.apache.cassandra.db.compaction.LeveledManifest$CompactionCandidate": {
         "sstables": "java.util.Collection"
     },
+    "org.apache.cassandra.metrics.RestorableMeter": {
+        "NANOS_PER_SECOND": "double",
+        "m15Rate": "org.apache.cassandra.metrics.RestorableMeter$RestorableEWMA",
+        "m120Rate": "org.apache.cassandra.metrics.RestorableMeter$RestorableEWMA"
+    },
     "org.apache.cassandra.metrics.RestorableMeter$RestorableEWMA": {
         "rate": "double"
     },
@@ -1112,6 +1210,9 @@
         "baseCfs": "org.apache.cassandra.db.ColumnFamilyStore",
         "columnDefs": "java.util.Set",
         "keyComparator": "org.apache.cassandra.db.marshal.AbstractType"
+    },
+    "org.apache.cassandra.io.sstable.Downsampling": {
+        "samplePatternCache": "java.util.Map"
     },
     "org.apache.cassandra.auth.RoleOptions": {
         "options": "java.util.Map"
@@ -1286,6 +1387,11 @@
     "org.apache.cassandra.notifications.SSTableAddedNotification": {
         "added": "org.apache.cassandra.io.sstable.format.SSTableReader"
     },
+    "org.apache.cassandra.auth.PermissionDetails": {
+        "resource": "org.apache.cassandra.auth.IResource",
+        "grantee": "java.lang.String",
+        "permission": "org.apache.cassandra.auth.Permission"
+    },
     "org.apache.cassandra.metrics.HintedHandoffMetrics$DifferencingCounter": {
         "reported": "long"
     },
@@ -1369,6 +1475,9 @@
     },
     "org.apache.cassandra.io.sstable.Component": {
         "TOC": "org.apache.cassandra.io.sstable.Component"
+    },
+    "org.apache.cassandra.config.Config": {
+        "cluster_name": "java.lang.String"
     },
     "org.apache.cassandra.service.StartupChecks": {
         "preFlightChecks": "java.util.List"
