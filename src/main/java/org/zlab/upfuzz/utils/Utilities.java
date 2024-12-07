@@ -4,6 +4,7 @@ import static java.lang.String.format;
 
 import java.io.*;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 import org.zlab.upfuzz.Command;
@@ -1280,6 +1281,23 @@ public class Utilities {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static Map<String, Set<String>> loadStringMapFromFile(
+            Path filePath) {
+        // Read the map from the JSON file
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            Map<String, Set<String>> mapFromFile = objectMapper.readValue(
+                    filePath.toFile(),
+                    new TypeReference<Map<String, Set<String>>>() {
+                    });
+            return mapFromFile;
+        } catch (IOException e) {
+            System.err.println(
+                    "Exception happen when loading output from " + filePath);
+            throw new RuntimeException(e);
+        }
     }
 
     public static Map<String, Map<String, String>> computeMF(
