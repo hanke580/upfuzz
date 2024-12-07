@@ -1364,8 +1364,10 @@ public class FuzzingServer {
                                         + feedbackPacket.testPacketID);
                         newModFC = true;
                     }
-                    if (Config.getConf().staticVD && oriFormatCoverageStatus
-                            .isMultiInvBroken()) {
+                    if (Config.getConf().staticVD
+                            && Config.getConf().prioritizeMultiInv
+                            && oriFormatCoverageStatus
+                                    .isMultiInvBroken()) {
                         logger.info(
                                 "Multi-inv Broken for test "
                                         + feedbackPacket.testPacketID);

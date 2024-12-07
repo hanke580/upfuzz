@@ -217,6 +217,8 @@ public class Config {
 
         // Only one of the following can be true
         public boolean staticVD = false; // A superSet of isSerialized
+        // Add multi-inv also to VD corpus
+        public boolean prioritizeMultiInv = false;
         public boolean prioritizeIsSerialized = false; // For ablation
                                                        // experiments
 
