@@ -187,6 +187,10 @@ public class HBaseExecutor extends Executor {
 
                 if (str1.compareTo(str2) != 0) {
                     // Handle FP
+                    if (str1.contains("ERROR:")
+                            && str2.contains("ERROR:")) {
+                        continue;
+                    }
                     if (str1.contains("NoSuchColumnFamilyException:") &&
                             str2.contains("NoSuchColumnFamilyException:")) {
                         continue;
