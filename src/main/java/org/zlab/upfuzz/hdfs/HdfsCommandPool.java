@@ -12,6 +12,11 @@ public class HdfsCommandPool extends CommandPool {
 
     @Override
     public void registerReadCommands() {
+        if (Config.getConf().eval_HDFS16984) {
+            readCommandClassList.add(
+                    new AbstractMap.SimpleImmutableEntry<>(Ls.class, 2));
+            return;
+        }
         // dfs read
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(Cat.class, 2));

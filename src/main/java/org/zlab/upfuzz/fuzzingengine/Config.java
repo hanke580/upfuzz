@@ -310,6 +310,7 @@ public class Config {
         public boolean support_count_e_opt = false; // > 2
         public boolean support_du_v_opt = false; // > 2
 
+        public boolean eval_HDFS16984 = false;
         // Disable this to avoid triggering HDFS-17174
         public boolean enable_checksum = true; // du can be tested for version >
                                                // 2

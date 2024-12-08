@@ -47,5 +47,6 @@
   "support_checksum_v_opt": false,
   "useFixedCommand": false,
   "maskTimestamp": false,
+  "eval_HDFS16984": true,
   "startUpClusterForDebugging": false
 }
