@@ -22,7 +22,6 @@
   "testingMode": 0,
   "useFormatCoverage": true,
   "staticVD": true,
-  "versionDeltaApproach": 1,
   "BC_CorpusNonVersionDelta": 0.2,
   "FC_CorpusNonVersionDelta": 0.2,
   "FC_MOD_CorpusNonVersionDelta": 0.6,
