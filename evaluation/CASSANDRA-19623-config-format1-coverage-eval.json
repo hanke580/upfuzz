@@ -23,7 +23,6 @@
   "useFormatCoverage": true,
   "staticVD": true,
   "addTestToBothFCandVD": true,
-  "versionDeltaApproach": 1,
   "BC_CorpusNonVersionDelta": 0.2,
   "FC_CorpusNonVersionDelta": 0.8,
   "FC_MOD_CorpusNonVersionDelta": 0,
