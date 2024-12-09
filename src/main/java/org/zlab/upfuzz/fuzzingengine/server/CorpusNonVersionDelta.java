@@ -67,15 +67,19 @@ public class CorpusNonVersionDelta extends Corpus {
                 Corpus.saveSeedQueueOnDisk(seed, queueNameFCMOD,
                         diskSeedIdFCMOD);
             }
-        } else if (newOriFC) {
-            cycleQueues[0].addSeed(seed);
+        }
+        if (!newNonMatchableFC || Config.getConf().addTestToBothFCandVD) {
+            if (newOriFC) {
+                cycleQueues[0].addSeed(seed);
 
-            if (Config.getConf().saveCorpusToDisk) {
-                while (queuePathFC
-                        .resolve("seed_" + diskSeedIdFC).toFile().exists()) {
-                    diskSeedIdFC++;
+                if (Config.getConf().saveCorpusToDisk) {
+                    while (queuePathFC
+                            .resolve("seed_" + diskSeedIdFC).toFile()
+                            .exists()) {
+                        diskSeedIdFC++;
+                    }
+                    Corpus.saveSeedQueueOnDisk(seed, queueNameFC, diskSeedIdFC);
                 }
-                Corpus.saveSeedQueueOnDisk(seed, queueNameFC, diskSeedIdFC);
             }
         }
         if (newOriBC || newBCAfterUpgrade) {

@@ -215,6 +215,9 @@ public class Config {
         // If disabled, we also won't collect format coverage
         public boolean useFormatCoverage = false;
 
+        // Coverage evaluation
+        public boolean addTestToBothFCandVD = false;
+
         // Only one of the following can be true
         public boolean staticVD = false; // A superSet of isSerialized
         // Add multi-inv also to VD corpus
