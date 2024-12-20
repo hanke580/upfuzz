@@ -114,8 +114,12 @@ public class FuzzingServer {
     private ObjectGraphCoverage oriObjCoverage;
     // Execute a test in new version
     private ObjectGraphCoverage upObjCoverage;
+
     private static final Path formatCoverageLogPath = Paths
             .get("format_coverage.log");
+
+    private int newFormatCount = 0;
+    private int nonMatchableNewFormatCount = 0;
 
     // ------------------- Version Delta -------------------
     // Matchable Format (formats that exist in both versions)
@@ -124,7 +128,7 @@ public class FuzzingServer {
     // Ablation: <IsSerialized>
     Set<String> changedClasses;
 
-    // 2-group version delta
+    // 2-group version delta (deprecated)
     public BlockingQueue<StackedTestPacket> stackedTestPacketsQueueVersionDelta;
     public InterestingTestsCorpus testBatchCorpus;
 
@@ -1353,6 +1357,8 @@ public class FuzzingServer {
                         logger.info("New format coverage for test "
                                 + feedbackPacket.testPacketID);
                         newOriFC = true;
+                        newFormatCount += oriFormatCoverageStatus
+                                .getNewFormatCount();
                     }
                     // New format relevant to modification
                     assert !(Config.getConf().staticVD
@@ -1363,6 +1369,8 @@ public class FuzzingServer {
                                 "New modification related format coverage for test "
                                         + feedbackPacket.testPacketID);
                         newModFC = true;
+                        nonMatchableNewFormatCount += oriFormatCoverageStatus
+                                .getNonMatchableNewFormatCount();
                     }
                     if (Config.getConf().staticVD
                             && Config.getConf().prioritizeMultiInv
@@ -2238,6 +2246,21 @@ public class FuzzingServer {
                 "skipped upgrade : " + skippedUpgradeNum,
                 "");
 
+        if (Config.getConf().useFormatCoverage) {
+            if (Config.getConf().staticVD) {
+                System.out.format("|%30s|%30s|%30s|%30s|\n",
+                        "broken inv : " + newFormatCount,
+                        "broken vd-inv : " + nonMatchableNewFormatCount,
+                        "",
+                        "");
+            } else {
+                System.out.format("|%30s|%30s|%30s|%30s|\n",
+                        "broken inv : " + newFormatCount,
+                        "",
+                        "",
+                        "");
+            }
+        }
         if (Config.getConf().testSingleVersion) {
             System.out.format("|%30s|%30s|\n",
                     "run time : " + timeElapsed + "s",
