@@ -2246,21 +2246,6 @@ public class FuzzingServer {
                 "skipped upgrade : " + skippedUpgradeNum,
                 "");
 
-        if (Config.getConf().useFormatCoverage) {
-            if (Config.getConf().staticVD) {
-                System.out.format("|%30s|%30s|%30s|%30s|\n",
-                        "broken inv : " + newFormatCount,
-                        "broken vd-inv : " + nonMatchableNewFormatCount,
-                        "",
-                        "");
-            } else {
-                System.out.format("|%30s|%30s|%30s|%30s|\n",
-                        "broken inv : " + newFormatCount,
-                        "",
-                        "",
-                        "");
-            }
-        }
         if (Config.getConf().testSingleVersion) {
             System.out.format("|%30s|%30s|\n",
                     "run time : " + timeElapsed + "s",
@@ -2278,6 +2263,21 @@ public class FuzzingServer {
         }
         // Print queue info...
         corpus.printInfo();
+        if (Config.getConf().useFormatCoverage) {
+            if (Config.getConf().staticVD) {
+                System.out.format("|%30s|%30s|%30s|%30s|\n",
+                        "format num : " + newFormatCount,
+                        "vd-format num : " + nonMatchableNewFormatCount,
+                        "",
+                        "");
+            } else {
+                System.out.format("|%30s|%30s|%30s|%30s|\n",
+                        "format num : " + newFormatCount,
+                        "",
+                        "",
+                        "");
+            }
+        }
         if (Config.getConf().useVersionDelta
                 && Config.getConf().versionDeltaApproach == 2) {
             testBatchCorpus.printInfo();
@@ -2294,11 +2294,6 @@ public class FuzzingServer {
                             + oriCoveredBranchesAfterDowngrade + "/"
                             + oriProbeNumAfterDowngrade);
         }
-
-        if (Config.getConf().debug)
-            System.out.format("|%30s|%30s|\n",
-                    "testID2Seed size : " + testID2Seed.size(),
-                    "stackedTestPackets size : " + stackedTestPackets.size());
 
         System.out.println(
                 "------------------------------------------------------------"
