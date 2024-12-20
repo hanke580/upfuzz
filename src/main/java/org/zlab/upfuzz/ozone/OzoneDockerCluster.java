@@ -32,11 +32,9 @@ public class OzoneDockerCluster extends DockerCluster {
     };
 
     OzoneDockerCluster(OzoneExecutor executor, String version,
-            int nodeNum, boolean collectFormatCoverage,
-            Set<String> targetSystemStates, Path configPath,
+            int nodeNum, boolean collectFormatCoverage, Path configPath,
             int direction) {
-        super(executor, version, nodeNum, collectFormatCoverage,
-                targetSystemStates, direction);
+        super(executor, version, nodeNum, collectFormatCoverage, direction);
 
         this.dockers = new OzoneDocker[nodeNum];
         this.omNodeIP = DockerCluster.getKthIP(hostIP, 0); // 2 means the
@@ -209,10 +207,5 @@ public class OzoneDockerCluster extends DockerCluster {
         formatMap.put("networkName", networkName);
         StringSubstitutor sub = new StringSubstitutor(formatMap);
         this.composeYaml = sub.replace(template);
-    }
-
-    @Override
-    public Path getDataPath() {
-        return Paths.get(workdir.toString(), "persistent");
     }
 }

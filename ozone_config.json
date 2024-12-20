@@ -1,6 +1,6 @@
 {
-  "originalVersion" : "ozone-1.3.0",
-  "upgradedVersion" : "ozone-1.4.1",
+  "originalVersion" : "ozone-1.2.1",
+  "upgradedVersion" : "ozone-1.3.0",
   "system" : "ozone",
   "serverPort" : "6499",
   "clientPort" : "6500",

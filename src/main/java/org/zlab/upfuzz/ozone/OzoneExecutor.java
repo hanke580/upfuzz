@@ -37,17 +37,16 @@ public class OzoneExecutor extends Executor {
         // TODO: FIXME multiple init here for HBase
         dockerCluster = new OzoneDockerCluster(this,
                 Config.getConf().originalVersion,
-                nodeNum, collectFormatCoverage, null, configPath, direction);
+                nodeNum, collectFormatCoverage, configPath, direction);
     }
 
     public OzoneExecutor(int nodeNum, boolean collectFormatCoverage,
-            Set<String> targetSystemStates, Path configPath, int direction) {
+            Path configPath, int direction) {
         super("ozone", nodeNum);
 
         timestamp = System.currentTimeMillis();
 
         this.collectFormatCoverage = collectFormatCoverage;
-        this.targetSystemStates = targetSystemStates;
         this.configPath = configPath;
         this.direction = direction;
 
@@ -71,12 +70,12 @@ public class OzoneExecutor extends Executor {
         if (direction == 0) {
             dockerCluster = new OzoneDockerCluster(this,
                     Config.getConf().originalVersion,
-                    nodeNum, collectFormatCoverage, null, configPath,
+                    nodeNum, collectFormatCoverage, configPath,
                     direction);
         } else {
             dockerCluster = new OzoneDockerCluster(this,
                     Config.getConf().upgradedVersion,
-                    nodeNum, collectFormatCoverage, null, configPath,
+                    nodeNum, collectFormatCoverage, configPath,
                     direction);
         }
 

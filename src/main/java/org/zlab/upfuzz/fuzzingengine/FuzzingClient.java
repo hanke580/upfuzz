@@ -244,13 +244,12 @@ public class FuzzingClient {
             }
 
             return hbaseExecutors;
-        } else if (system.equals("ozone")) {
+        case "ozone":
             OzoneExecutor[] ozoneExecutors = new OzoneExecutor[2];
 
             for (int i = 0; i < ozoneExecutors.length; i++) {
                 ozoneExecutors[i] = new OzoneExecutor(nodeNum,
                         collectFormatCoverage,
-                        targetSystemStates,
                         configPath, i);
             }
 
@@ -277,7 +276,7 @@ public class FuzzingClient {
                     configPath, 0);
         case "ozone":
             return new OzoneExecutor(nodeNum, collectFormatCoverage,
-                    configPath, 0)
+                    configPath, 0);
         }
         throw new RuntimeException(String.format(
                 "System %s is not supported yet, supported system: cassandra, hdfs, hbase",
@@ -1778,8 +1777,8 @@ public class FuzzingClient {
             if (system.equals("hdfs")) {
                 executor = initExecutor(4, false, configPath);
             } else if (system.equals("ozone")) {
-                executor = initExecutor(4, false, null, configPath);
-            }  else if (system.equals("hbase")) {
+                executor = initExecutor(4, false, configPath);
+            } else if (system.equals("hbase")) {
                 executor = initExecutor(3, false, configPath);
             } else {
                 executor = initExecutor(1, false, configPath);

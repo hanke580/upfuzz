@@ -10,8 +10,8 @@ else
 fi
 
 # Change it to the target systems
-ORG_VERSION=ozone-1.3.0
-UPG_VERSION=ozone-1.4.1
+ORI_VERSION=ozone-1.2.1
+UP_VERSION=ozone-1.3.0
 
 # Create necessary directories
 mkdir -p /var/log/ozone
@@ -29,16 +29,16 @@ if [[ ! -f "/var/log/.setup_conf" ]]; then
     fi
 
     echo "Setting up Apache Ozone configurations"
-    for VERSION in ${ORG_VERSION} ${UPG_VERSION}; do
+    for VERSION in ${ORI_VERSION} ${UP_VERSION}; do
         mkdir /etc/${VERSION}
         cp -r /ozone/${VERSION}/etc /etc/${VERSION}/
         cp /ozone-config/* /etc/${VERSION}/etc/hadoop/
 
         CONFIG="/etc/${VERSION}/etc/hadoop/"
-        if [[ $VERSION == "${ORG_VERSION}" ]]; then
+        if [[ $VERSION == "${ORI_VERSION}" ]]; then
             cp /test_config/oriconfig/* ${CONFIG}/
         fi
-        if [[ $VERSION == "${UPG_VERSION}" ]]; then
+        if [[ $VERSION == "${UP_VERSION}" ]]; then
             cp /test_config/upconfig/* ${CONFIG}/
         fi
 
@@ -93,11 +93,11 @@ if [[ "$IP" == "$OZONE_OM" ]]; then
     splitArr=(${OZONE_HOME//\// })
     CUR_VERSION=${splitArr[1]}
     echo "cur version = $CUR_VERSION"
-    echo "org version = $ORG_VERSION"
-    echo "up  version = $UPG_VERSION"
+    echo "org version = $ORI_VERSION"
+    echo "up  version = $UP_VERSION"
 
     $OZONE_HOME/bin/ozone --daemon start om
-    # if [[ $CUR_VERSION == $ORG_VERSION ]]; then
+    # if [[ $CUR_VERSION == $ORI_VERSION ]]; then
     #     echo "Start up old version $OZONE_HOME"
     #     $OZONE_HOME/bin/ozone --daemon start om
     # else

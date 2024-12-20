@@ -57,7 +57,6 @@ public class OzoneDocker extends Docker {
         serviceName = "DC3N" + index; // Remember update the service name
 
         collectFormatCoverage = dockerCluster.collectFormatCoverage;
-        targetSystemStates = dockerCluster.targetSystemStates;
         configPath = dockerCluster.configpath;
         if (Config.getConf().testSingleVersion)
             containerName = "ozone-" + originalVersion + "_" + executorID + "_N"
@@ -393,22 +392,11 @@ public class OzoneDocker extends Docker {
     }
 
     @Override
-    public Map<String, String> readSystemState() {
-        return null;
-    }
-
-    @Override
     public LogInfo grepLogInfo(Set<String> blackListErrorLog) {
         LogInfo logInfo = new LogInfo();
         Path filePath = Paths.get("/var/log/ozone/*.log");
 
         constructLogInfo(logInfo, filePath, blackListErrorLog);
         return logInfo;
-    }
-
-    @Override
-    public Path getDataPath() {
-        return Paths.get(workdir.toString(),
-                "/persistent/node_" + index + "/nndata");
     }
 }
