@@ -13,7 +13,7 @@ server_prefix=$3
 
 for n in $(seq $start $end); do
     server="${server_prefix}${n}"
-		ssh $server "mkdir -p ~/project/tmp && cd ~/project/tmp && grep -A 3 'run time :' ~/project/upfuzz/server.log > output"
+		ssh $server "mkdir -p ~/project/tmp && cd ~/project/tmp && grep -A 5 'run time :' ~/project/upfuzz/server.log > output"
 		
 done
 
