@@ -13,7 +13,7 @@ import java.util.Set;
 public class VDTest {
 
     public static void diff1(Map<String, Set<String>> modifiedFields1,
-            Map<String, Set<String>> modifiedFields2) {
+            Map<String, Set<String>> modifiedFields2, boolean print) {
         // print fields that only exist in modifiedFields1
 
         // Diff between modifiedFields and modifiedFormatFields
@@ -25,14 +25,17 @@ public class VDTest {
             Set<String> fields = entry.getValue();
             if (!modifiedFields2.containsKey(className)) {
                 // print all
-                for (String field : fields) {
-                    System.out.println(className + "." + field);
+                if (print) {
+                    for (String field : fields) {
+                        System.out.println(className + "." + field);
+                    }
                 }
                 continue;
             }
             for (String field : fields) {
                 if (!modifiedFields2.get(className).contains(field)) {
-                    System.out.println(className + "." + field);
+                    if (print)
+                        System.out.println(className + "." + field);
                 }
             }
         }
@@ -40,7 +43,8 @@ public class VDTest {
 
     public static Map<String, Set<String>> diff2(
             Map<String, Map<String, String>> classInfo1,
-            Map<String, Map<String, String>> matchableClassInfo) {
+            Map<String, Map<String, String>> matchableClassInfo,
+            boolean print) {
         // print all non-matchable references
         Map<String, Set<String>> modifiedFormatFields = new HashMap<>();
         for (Map.Entry<String, Map<String, String>> entry : classInfo1
@@ -53,7 +57,8 @@ public class VDTest {
                                 .containsKey(fieldName)) {
                     continue;
                 }
-                System.out.println(className + "." + fieldName);
+                if (print)
+                    System.out.println(className + "." + fieldName);
                 modifiedFormatFields.computeIfAbsent(className,
                         k -> new java.util.HashSet<>()).add(fieldName);
             }
@@ -88,13 +93,30 @@ public class VDTest {
         Map<String, Map<String, String>> matchableClassInfo = Utilities
                 .computeMF(oriClassInfo, upClassInfo);
 
-        // print all non-matchable references
-        Map<String, Set<String>> modifiedFormatFields = diff2(oriClassInfo,
-                matchableClassInfo);
-        // Load modified fields...
-        // Map<String, Set<String>> modifiedFields = Utilities
-        // .loadStringMapFromFile(
-        // configInfoFolder.resolve("modifiedFields.json"));
-        // diff1(modifiedFormatFields, modifiedFields);
+        // print all matchable references
+        boolean printMatchable = false;
+        if (printMatchable) {
+            System.out.println("Matchable References:");
+            for (Map.Entry<String, Map<String, String>> entry : matchableClassInfo
+                    .entrySet()) {
+                String className = entry.getKey();
+                Map<String, String> fields = entry.getValue();
+                for (Map.Entry<String, String> fieldEntry : fields.entrySet()) {
+                    System.out.println(className + "." + fieldEntry.getKey());
+                }
+            }
+        }
+
+        boolean printNonMatchable = true;
+        if (printNonMatchable) {
+            // print all non-matchable references
+            Map<String, Set<String>> modifiedFormatFields = diff2(oriClassInfo,
+                    matchableClassInfo, false);
+            // Load modified fields...
+            Map<String, Set<String>> modifiedFields = Utilities
+                    .loadStringMapFromFile(
+                            configInfoFolder.resolve("modifiedFields.json"));
+            diff1(modifiedFormatFields, modifiedFields, false);
+        }
     }
 }
