@@ -98,7 +98,6 @@ public class VDTest {
     public static Map<String, Set<String>> diff2(
             Map<String, Map<String, String>> classInfo1,
             Map<String, Map<String, String>> matchableClassInfo) {
-        // print all non-matchable references
         Map<String, Set<String>> modifiedFormatFields = new HashMap<>();
         for (Map.Entry<String, Map<String, String>> entry : classInfo1
                 .entrySet()) {
@@ -213,6 +212,8 @@ public class VDTest {
                 .loadMapFromFile(
                         oriFormatInfoFolder.resolve(
                                 Config.getConf().baseClassInfoFileName));
+        // count
+        System.out.println("Original: " + count(oriClassInfo));
 
         Map<String, Map<String, String>> matchableClassInfo = Utilities
                 .computeMFUsingModifiedFields(
@@ -226,16 +227,12 @@ public class VDTest {
         Map<String, Set<String>> nonMatchableClassInfo = diff2(oriClassInfo,
                 matchableClassInfo);
         // count nonMatchableClassInfo size
-        System.out.println("Non-Matchable: " + nonMatchableClassInfo.size());
-        // print it
+        int nonMatchableCount = 0;
         for (Map.Entry<String, Set<String>> entry : nonMatchableClassInfo
                 .entrySet()) {
-            String className = entry.getKey();
-            Set<String> fields = entry.getValue();
-            for (String field : fields) {
-                System.out.println(className + "." + field);
-            }
+            nonMatchableCount += entry.getValue().size();
         }
+        System.out.println("Non-Matchable: " + nonMatchableCount);
 
         Set<String> changedClasses = Utilities
                 .computeChangedClassesUsingModifiedFields(
@@ -341,17 +338,12 @@ public class VDTest {
         // matchableClassInfo
         Map<String, Set<String>> nonMatchableClassInfo = diff2(oriClassInfo,
                 matchableClassInfo);
-        // count nonMatchableClassInfo size
-        System.out.println("Non-Matchable: " + nonMatchableClassInfo.size());
-        // print it
+        int nonMatchableCount = 0;
         for (Map.Entry<String, Set<String>> entry : nonMatchableClassInfo
                 .entrySet()) {
-            String className = entry.getKey();
-            Set<String> fields = entry.getValue();
-            for (String field : fields) {
-                System.out.println(className + "." + field);
-            }
+            nonMatchableCount += entry.getValue().size();
         }
+        System.out.println("Non-Matchable: " + nonMatchableCount);
 
         Set<String> changedClasses = Utilities.computeChangedClasses(
                 Objects.requireNonNull(Utilities
