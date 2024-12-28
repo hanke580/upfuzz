@@ -1426,4 +1426,21 @@ public class Utilities {
             logger.debug(entry.getKey() + ": " + entry.getValue());
         }
     }
+
+    public static Map<String, Map<Integer, Set<SerializationInfo.MergePointInfo>>> loadDumpPoints(
+            Path filePath) {
+        // Read the map from the JSON file
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            Map<String, Map<Integer, Set<SerializationInfo.MergePointInfo>>> mapFromFile = objectMapper
+                    .readValue(filePath.toFile(),
+                            new TypeReference<Map<String, Map<Integer, Set<SerializationInfo.MergePointInfo>>>>() {
+                            });
+            return mapFromFile;
+        } catch (IOException e) {
+            System.err.println(
+                    "Exception happen when loading output from " + filePath);
+            throw new RuntimeException(e);
+        }
+    }
 }

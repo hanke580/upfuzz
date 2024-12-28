@@ -3,6 +3,7 @@ package org.zlab.upfuzz.fuzzingengine.server;
 import org.junit.jupiter.api.Test;
 import org.zlab.ocov.Utils;
 import org.zlab.upfuzz.fuzzingengine.Config;
+import org.zlab.upfuzz.utils.SerializationInfo;
 import org.zlab.upfuzz.utils.Utilities;
 
 import java.nio.file.Path;
@@ -33,6 +34,19 @@ public class VDTest {
         for (Map.Entry<String, Map<String, String>> entry : matchableClassInfo
                 .entrySet()) {
             count += entry.getValue().size();
+        }
+        return count;
+    }
+
+    public static int countMergePoints(
+            Map<String, Map<Integer, Set<SerializationInfo.MergePointInfo>>> objectMergePoints) {
+        int count = 0;
+        for (Map<Integer, Set<SerializationInfo.MergePointInfo>> mergePoints : objectMergePoints
+                .values()) {
+            for (Set<SerializationInfo.MergePointInfo> mergePointInfos : mergePoints
+                    .values()) {
+                count += mergePointInfos.size();
+            }
         }
         return count;
     }
@@ -212,6 +226,60 @@ public class VDTest {
                         modifiedFields);
         // count changedClasses size
         System.out.println("Changed: " + changedClasses.size());
+
+        // Identify merge points where objects are unmodified
+        Path mergePointsFilePath = Paths.get(
+                "/Users/kehan/project/vasco/system-sut-global/cassandra/apache-cassandra-2.2.19/mergePoints_alg1.json");
+        Map<String, Map<Integer, Set<SerializationInfo.MergePointInfo>>> mergePoints = Utilities
+                .loadDumpPoints(mergePointsFilePath);
+
+        // count
+        System.out.println("Merge Points: " + countMergePoints(mergePoints));
+
+        // extract: unchanged merge points
+        Map<String, Map<Integer, Set<SerializationInfo.MergePointInfo>>> unchangedMergePoints = new HashMap<>();
+        // Iterate merge points, print the one that's not in changedClasses
+        for (Map.Entry<String, Map<Integer, Set<SerializationInfo.MergePointInfo>>> entry : mergePoints
+                .entrySet()) {
+            String className = entry.getKey();
+            Map<Integer, Set<SerializationInfo.MergePointInfo>> mergePointsInfo = entry
+                    .getValue();
+            for (Map.Entry<Integer, Set<SerializationInfo.MergePointInfo>> mergePointEntry : mergePointsInfo
+                    .entrySet()) {
+                int lineNum = mergePointEntry.getKey();
+                Set<SerializationInfo.MergePointInfo> mergePointInfos = mergePointEntry
+                        .getValue();
+                for (SerializationInfo.MergePointInfo mergePointInfo : mergePointInfos) {
+                    if (!changedClasses
+                            .contains(mergePointInfo.objectClassName)) {
+                        unchangedMergePoints
+                                .computeIfAbsent(className,
+                                        k -> new HashMap<>())
+                                .put(lineNum, mergePointInfos);
+                    }
+                }
+            }
+        }
+        // count
+        System.out.println("Unchanged Merge Points: "
+                + countMergePoints(unchangedMergePoints));
+        // print it
+        for (Map.Entry<String, Map<Integer, Set<SerializationInfo.MergePointInfo>>> entry : unchangedMergePoints
+                .entrySet()) {
+            String className = entry.getKey();
+            Map<Integer, Set<SerializationInfo.MergePointInfo>> mergePointsInfo = entry
+                    .getValue();
+            for (Map.Entry<Integer, Set<SerializationInfo.MergePointInfo>> mergePointEntry : mergePointsInfo
+                    .entrySet()) {
+                int lineNum = mergePointEntry.getKey();
+                Set<SerializationInfo.MergePointInfo> mergePointInfos = mergePointEntry
+                        .getValue();
+                for (SerializationInfo.MergePointInfo mergePointInfo : mergePointInfos) {
+                    System.out.println(className + ":" + lineNum + " "
+                            + mergePointInfo.objectClassName);
+                }
+            }
+        }
     }
 
     // @Test
