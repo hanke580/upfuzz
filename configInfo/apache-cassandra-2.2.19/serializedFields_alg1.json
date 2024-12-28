@@ -48,9 +48,6 @@
     "org.apache.cassandra.utils.BloomCalculations$BloomSpecification": {
         "K": "int"
     },
-    "org.apache.cassandra.utils.BloomFilter": {
-        "hashCount": "int"
-    },
     "org.apache.cassandra.db.ColumnFamily": {
         "metadata": "org.apache.cassandra.config.CFMetaData"
     },
@@ -95,11 +92,6 @@
     "org.apache.cassandra.db.compaction.writers.DefaultCompactionWriter": {
         "sstableWriter": "org.apache.cassandra.io.sstable.SSTableRewriter",
         "estimatedTotalKeys": "long"
-    },
-    "org.apache.cassandra.db.ReadCommand": {
-        "commandType": "org.apache.cassandra.db.ReadCommand$Type",
-        "isDigestQuery": "boolean",
-        "timestamp": "long"
     },
     "org.apache.cassandra.db.RangeSliceCommand": {
         "keyRange": "org.apache.cassandra.dht.AbstractBounds",
@@ -265,21 +257,6 @@
         "TRUE": "java.nio.ByteBuffer",
         "FALSE": "java.nio.ByteBuffer",
         "instance": "org.apache.cassandra.serializers.BooleanSerializer"
-    },
-    "org.apache.cassandra.io.sstable.format.SSTableReader": {
-        "metadata": "org.apache.cassandra.config.CFMetaData",
-        "last": "org.apache.cassandra.db.DecoratedKey",
-        "indexSummary": "org.apache.cassandra.io.sstable.IndexSummary",
-        "first": "org.apache.cassandra.db.DecoratedKey",
-        "dfile": "org.apache.cassandra.io.util.SegmentedFile",
-        "sstableMetadata": "org.apache.cassandra.io.sstable.metadata.StatsMetadata",
-        "bloomFilterTracker": "org.apache.cassandra.io.sstable.BloomFilterTracker",
-        "ifile": "org.apache.cassandra.io.util.SegmentedFile",
-        "selfRef": "org.apache.cassandra.utils.concurrent.Ref",
-        "descriptor": "org.apache.cassandra.io.sstable.Descriptor",
-        "readMeter": "org.apache.cassandra.metrics.RestorableMeter",
-        "components": "java.util.Set",
-        "tidy": "org.apache.cassandra.io.sstable.format.SSTableReader$InstanceTidier"
     },
     "org.apache.cassandra.streaming.StreamReader": {
         "estimatedKeys": "long",
@@ -559,16 +536,6 @@
         "rowMarkerNoPrefix": "org.apache.cassandra.db.composites.CellName",
         "clusteringType": "org.apache.cassandra.db.composites.CompoundCType"
     },
-    "org.apache.cassandra.tracing.TraceKeyspace": {
-        "Events": "org.apache.cassandra.config.CFMetaData",
-        "Sessions": "org.apache.cassandra.config.CFMetaData"
-    },
-    "org.apache.cassandra.tracing.TraceState": {
-        "traceType": "org.apache.cassandra.tracing.Tracing$TraceType",
-        "listeners": "java.util.List",
-        "sessionIdBytes": "java.nio.ByteBuffer",
-        "ttl": "int"
-    },
     "org.apache.cassandra.db.index.composites.CompositesIndex": {
         "baseCfs": "org.apache.cassandra.db.ColumnFamilyStore",
         "indexComparator": "org.apache.cassandra.db.composites.CellNameType",
@@ -629,13 +596,6 @@
     },
     "org.apache.cassandra.cache.CachingOptions$RowCache": {
         "rowsToCache": "int"
-    },
-    "org.apache.cassandra.cache.CachingOptions": {
-        "rowCache": "org.apache.cassandra.cache.CachingOptions$RowCache",
-        "ALL": "org.apache.cassandra.cache.CachingOptions",
-        "ROWS_ONLY": "org.apache.cassandra.cache.CachingOptions",
-        "NONE": "org.apache.cassandra.cache.CachingOptions",
-        "KEYS_ONLY": "org.apache.cassandra.cache.CachingOptions"
     },
     "org.apache.cassandra.db.filter.ExtendedFilter": {
         "cfs": "org.apache.cassandra.db.ColumnFamilyStore",
@@ -819,10 +779,6 @@
     "org.apache.cassandra.db.compaction.WrappingCompactionStrategy": {
         "repaired": "org.apache.cassandra.db.compaction.AbstractCompactionStrategy",
         "unrepaired": "org.apache.cassandra.db.compaction.AbstractCompactionStrategy"
-    },
-    "org.apache.cassandra.io.sstable.BloomFilterTracker": {
-        "lastTruePositiveCount": "long",
-        "lastFalsePositiveCount": "long"
     },
     "org.apache.cassandra.io.util.CompressedSegmentedFile": {
         "metadata": "org.apache.cassandra.io.compress.CompressionMetadata"
@@ -1102,9 +1058,6 @@
     "org.apache.cassandra.db.compaction.writers.CompactionAwareWriter": {
         "sstableWriter": "org.apache.cassandra.io.sstable.SSTableRewriter"
     },
-    "org.apache.cassandra.io.sstable.format.SSTableWriter$TransactionalProxy": {
-        "finalReader": "org.apache.cassandra.io.sstable.format.SSTableReader"
-    },
     "org.apache.cassandra.io.sstable.format.SSTableWriter": {
         "txnProxy": "org.apache.cassandra.io.sstable.format.SSTableWriter$TransactionalProxy"
     },
@@ -1132,15 +1085,6 @@
     },
     "org.apache.cassandra.db.commitlog.CommitLogSegment": {
         "cfClean": "java.util.concurrent.ConcurrentHashMap"
-    },
-    "org.apache.cassandra.db.lifecycle.LifecycleTransaction$State": {
-        "obsolete": "java.util.Set",
-        "update": "java.util.Set"
-    },
-    "org.apache.cassandra.db.lifecycle.LifecycleTransaction": {
-        "logged": "org.apache.cassandra.db.lifecycle.LifecycleTransaction$State",
-        "tracker": "org.apache.cassandra.db.lifecycle.Tracker",
-        "originals": "java.util.Set"
     },
     "org.apache.cassandra.db.compaction.LazilyCompactedRow": {
         "rows": "java.util.List"
@@ -1180,18 +1124,8 @@
     "org.apache.cassandra.db.AbstractRangeCommand": {
         "rowFilter": "java.util.List"
     },
-    "org.apache.cassandra.utils.memory.HeapPool$Allocator$Reclaimer": {
-        "delayed": "java.util.List"
-    },
     "org.apache.cassandra.metrics.LatencyMetrics": {
         "parents": "java.util.List"
-    },
-    "org.apache.cassandra.service.StorageProxy": {
-        "writeMetrics": "org.apache.cassandra.metrics.ClientRequestMetrics",
-        "rangeMetrics": "org.apache.cassandra.metrics.ClientRequestMetrics",
-        "casWriteMetrics": "org.apache.cassandra.metrics.CASClientRequestMetrics",
-        "readMetrics": "org.apache.cassandra.metrics.ClientRequestMetrics",
-        "casReadMetrics": "org.apache.cassandra.metrics.CASClientRequestMetrics"
     },
     "org.apache.cassandra.db.composites.AbstractCellNameType$SparseRowIterator": {
         "cells": "java.util.Iterator"
@@ -1283,9 +1217,6 @@
     "org.apache.cassandra.utils.ExpiringMap$CacheableObject": {
         "value": "java.lang.Object"
     },
-    "org.apache.cassandra.notifications.SSTableAddedNotification": {
-        "added": "org.apache.cassandra.io.sstable.format.SSTableReader"
-    },
     "org.apache.cassandra.metrics.HintedHandoffMetrics$DifferencingCounter": {
         "reported": "long"
     },
@@ -1369,9 +1300,6 @@
     },
     "org.apache.cassandra.io.sstable.Component": {
         "TOC": "org.apache.cassandra.io.sstable.Component"
-    },
-    "org.apache.cassandra.service.StartupChecks": {
-        "preFlightChecks": "java.util.List"
     },
     "org.apache.cassandra.service.CassandraDaemon": {
         "startupChecks": "org.apache.cassandra.service.StartupChecks",

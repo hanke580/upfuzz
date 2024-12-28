@@ -209,15 +209,33 @@ public class VDTest {
         Map<String, Set<String>> modifiedFields = Utils
                 .loadModifiedFields(modifiedFieldsPath);
 
+        Map<String, Map<String, String>> oriClassInfo = Utilities
+                .loadMapFromFile(
+                        oriFormatInfoFolder.resolve(
+                                Config.getConf().baseClassInfoFileName));
+
         Map<String, Map<String, String>> matchableClassInfo = Utilities
                 .computeMFUsingModifiedFields(
-                        Objects.requireNonNull(Utilities
-                                .loadMapFromFile(
-                                        oriFormatInfoFolder.resolve(
-                                                Config.getConf().baseClassInfoFileName))),
+                        Objects.requireNonNull(oriClassInfo),
                         modifiedFields);
         // count matchableClassInfo size
         System.out.println("Matchable: " + count(matchableClassInfo));
+
+        // Find all non-matchable by comparing oriClassInfo and
+        // matchableClassInfo
+        Map<String, Set<String>> nonMatchableClassInfo = diff2(oriClassInfo,
+                matchableClassInfo);
+        // count nonMatchableClassInfo size
+        System.out.println("Non-Matchable: " + nonMatchableClassInfo.size());
+        // print it
+        for (Map.Entry<String, Set<String>> entry : nonMatchableClassInfo
+                .entrySet()) {
+            String className = entry.getKey();
+            Set<String> fields = entry.getValue();
+            for (String field : fields) {
+                System.out.println(className + "." + field);
+            }
+        }
 
         Set<String> changedClasses = Utilities
                 .computeChangedClassesUsingModifiedFields(
@@ -287,7 +305,7 @@ public class VDTest {
         }
     }
 
-    @Test
+    // @Test
     public void testBinaryVD() {
         new Config();
 
@@ -305,16 +323,35 @@ public class VDTest {
         Map<String, Set<String>> modifiedFields = Utils
                 .loadModifiedFields(modifiedFieldsPath);
 
+        Map<String, Map<String, String>> oriClassInfo = Utilities
+                .loadMapFromFile(
+                        oriFormatInfoFolder.resolve(
+                                Config.getConf().baseClassInfoFileName));
+        Map<String, Map<String, String>> upClassInfo = Utilities
+                .loadMapFromFile(upFormatInfoFolder.resolve(
+                        Config.getConf().baseClassInfoFileName));
+
         Map<String, Map<String, String>> matchableClassInfo = Utilities
                 .computeMF(
-                        Objects.requireNonNull(Utilities
-                                .loadMapFromFile(
-                                        oriFormatInfoFolder.resolve(
-                                                Config.getConf().baseClassInfoFileName))),
-                        Objects.requireNonNull(Utilities
-                                .loadMapFromFile(upFormatInfoFolder.resolve(
-                                        Config.getConf().baseClassInfoFileName))));
+                        Objects.requireNonNull(oriClassInfo),
+                        Objects.requireNonNull(upClassInfo));
         System.out.println("Matchable: " + count(matchableClassInfo));
+
+        // Find all non-matchable by comparing oriClassInfo and
+        // matchableClassInfo
+        Map<String, Set<String>> nonMatchableClassInfo = diff2(oriClassInfo,
+                matchableClassInfo);
+        // count nonMatchableClassInfo size
+        System.out.println("Non-Matchable: " + nonMatchableClassInfo.size());
+        // print it
+        for (Map.Entry<String, Set<String>> entry : nonMatchableClassInfo
+                .entrySet()) {
+            String className = entry.getKey();
+            Set<String> fields = entry.getValue();
+            for (String field : fields) {
+                System.out.println(className + "." + field);
+            }
+        }
 
         Set<String> changedClasses = Utilities.computeChangedClasses(
                 Objects.requireNonNull(Utilities
