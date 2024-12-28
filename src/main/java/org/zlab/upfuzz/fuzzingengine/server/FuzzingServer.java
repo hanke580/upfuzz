@@ -270,9 +270,12 @@ public class FuzzingServer {
 
     private void setStaticVD(Path oriFormatInfoFolder,
             Path upFormatInfoFolder) {
+        Path upgradeFormatInfoFolder = Paths.get("configInfo")
+                .resolve(Config.getConf().originalVersion + "_"
+                        + Config.getConf().upgradedVersion);
+        assert upgradeFormatInfoFolder.toFile().exists();
         if (Config.getConf().srcVD) {
-            assert configDirPath != null;
-            Path modifiedFieldsPath = configDirPath
+            Path modifiedFieldsPath = upgradeFormatInfoFolder
                     .resolve(Config.getConf().modifiedFieldsFileName);
             Map<String, Set<String>> modifiedFields = Utils
                     .loadModifiedFields(modifiedFieldsPath);

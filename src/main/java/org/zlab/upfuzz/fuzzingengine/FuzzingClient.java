@@ -72,9 +72,6 @@ public class FuzzingClient {
                 // only init format coverage at this stage
                 Path oriFormatInfoFolder = Paths.get("configInfo")
                         .resolve(Config.getConf().originalVersion);
-                Path upgradeFormatInfoFolder = Paths.get("configInfo")
-                        .resolve(Config.getConf().originalVersion + "_"
-                                + Config.getConf().upgradedVersion);
                 oriObjCoverage = new ObjectGraphCoverage(
                         oriFormatInfoFolder.resolve(
                                 Config.getConf().baseClassInfoFileName),

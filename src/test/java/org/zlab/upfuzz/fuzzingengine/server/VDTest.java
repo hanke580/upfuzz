@@ -129,7 +129,7 @@ public class VDTest {
                 .resolve(originalVersion);
         Path upFormatInfoFolder = Paths.get("configInfo")
                 .resolve(upgradedVersion);
-        Path configDirPath = Paths.get("configInfo")
+        Path upgradeFormatInfoFolder = Paths.get("configInfo")
                 .resolve(originalVersion + "_" + upgradedVersion);
 
         Map<String, Map<String, String>> oriClassInfo = Utilities
@@ -140,6 +140,8 @@ public class VDTest {
                 .loadMapFromFile(
                         upFormatInfoFolder.resolve(
                                 Config.getConf().baseClassInfoFileName));
+        assert oriClassInfo != null;
+        assert upClassInfo != null;
 
         // Replace all $ with .
         oriClassInfo = replaceDollarWithDot(oriClassInfo);
@@ -179,7 +181,7 @@ public class VDTest {
         // Diff between static analysis and direct comparison
         Map<String, Set<String>> modifiedFields = Utilities
                 .loadStringMapFromFile(
-                        configDirPath.resolve("modifiedFields.json"));
+                        upgradeFormatInfoFolder.resolve("modifiedFields.json"));
         Map<String, Set<String>> diffFields = diff1(modifiedFormatFields,
                 modifiedFields);
         if (printDiff) {
@@ -189,7 +191,7 @@ public class VDTest {
         }
     }
 
-    // @Test
+    @Test
     public void testSrcVD() {
         new Config();
 
@@ -200,9 +202,9 @@ public class VDTest {
                 .resolve(originalVersion);
         Path upFormatInfoFolder = Paths.get("configInfo")
                 .resolve(upgradedVersion);
-        Path configDirPath = Paths.get("configInfo")
+        Path upgradeFormatInfoFolder = Paths.get("configInfo")
                 .resolve(originalVersion + "_" + upgradedVersion);
-        Path modifiedFieldsPath = configDirPath
+        Path modifiedFieldsPath = upgradeFormatInfoFolder
                 .resolve(Config.getConf().modifiedFieldsFileName);
         Map<String, Set<String>> modifiedFields = Utils
                 .loadModifiedFields(modifiedFieldsPath);
@@ -263,26 +265,29 @@ public class VDTest {
         // count
         System.out.println("Unchanged Merge Points: "
                 + countMergePoints(unchangedMergePoints));
-        // print it
-        for (Map.Entry<String, Map<Integer, Set<SerializationInfo.MergePointInfo>>> entry : unchangedMergePoints
-                .entrySet()) {
-            String className = entry.getKey();
-            Map<Integer, Set<SerializationInfo.MergePointInfo>> mergePointsInfo = entry
-                    .getValue();
-            for (Map.Entry<Integer, Set<SerializationInfo.MergePointInfo>> mergePointEntry : mergePointsInfo
+        boolean printUnchangedMergePoints = false;
+        if (printUnchangedMergePoints) {
+            // print it
+            for (Map.Entry<String, Map<Integer, Set<SerializationInfo.MergePointInfo>>> entry : unchangedMergePoints
                     .entrySet()) {
-                int lineNum = mergePointEntry.getKey();
-                Set<SerializationInfo.MergePointInfo> mergePointInfos = mergePointEntry
+                String className = entry.getKey();
+                Map<Integer, Set<SerializationInfo.MergePointInfo>> mergePointsInfo = entry
                         .getValue();
-                for (SerializationInfo.MergePointInfo mergePointInfo : mergePointInfos) {
-                    System.out.println(className + ":" + lineNum + " "
-                            + mergePointInfo.objectClassName);
+                for (Map.Entry<Integer, Set<SerializationInfo.MergePointInfo>> mergePointEntry : mergePointsInfo
+                        .entrySet()) {
+                    int lineNum = mergePointEntry.getKey();
+                    Set<SerializationInfo.MergePointInfo> mergePointInfos = mergePointEntry
+                            .getValue();
+                    for (SerializationInfo.MergePointInfo mergePointInfo : mergePointInfos) {
+                        System.out.println(className + ":" + lineNum + " "
+                                + mergePointInfo.objectClassName);
+                    }
                 }
             }
         }
     }
 
-    // @Test
+    @Test
     public void testBinaryVD() {
         new Config();
 
@@ -293,9 +298,9 @@ public class VDTest {
                 .resolve(originalVersion);
         Path upFormatInfoFolder = Paths.get("configInfo")
                 .resolve(upgradedVersion);
-        Path configDirPath = Paths.get("configInfo")
+        Path upgradeFormatInfoFolder = Paths.get("configInfo")
                 .resolve(originalVersion + "_" + upgradedVersion);
-        Path modifiedFieldsPath = configDirPath
+        Path modifiedFieldsPath = upgradeFormatInfoFolder
                 .resolve(Config.getConf().modifiedFieldsFileName);
         Map<String, Set<String>> modifiedFields = Utils
                 .loadModifiedFields(modifiedFieldsPath);
