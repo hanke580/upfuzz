@@ -1359,6 +1359,64 @@ public class Utilities {
         return changedClasses;
     }
 
+    public static Map<String, Map<String, String>> computeMFUsingModifiedFields(
+            Map<String, Map<String, String>> oriClassInfo,
+            Map<String, Set<String>> modifiedFields) {
+        assert oriClassInfo != null && modifiedFields != null;
+        // Extract all field declaration that's not in modifiedFields
+        Map<String, Map<String, String>> mf = new HashMap<>();
+        for (String className : oriClassInfo.keySet()) {
+            // replace $ with . in className
+            String classNameReplaced = className.replace("$", ".");
+            if (modifiedFields.containsKey(classNameReplaced)) {
+                Map<String, String> oriFieldInfo = oriClassInfo.get(className);
+                Set<String> modFieldInfo = modifiedFields
+                        .get(classNameReplaced);
+
+                // Find all fields that only exist in oriFieldInfo
+                Map<String, String> commonFieldInfo = new HashMap<>();
+                for (String fieldName : oriFieldInfo.keySet()) {
+                    if (!modFieldInfo.contains(fieldName)) {
+                        commonFieldInfo.put(fieldName,
+                                oriFieldInfo.get(fieldName));
+                    }
+                }
+                if (!commonFieldInfo.isEmpty()) {
+                    mf.put(className, commonFieldInfo);
+                }
+            } else {
+                // This means it's not modified at all
+                mf.put(className, oriClassInfo.get(className));
+            }
+        }
+        return mf;
+    }
+
+    public static Set<String> computeChangedClassesUsingModifiedFields(
+            Map<String, Map<String, String>> oriClassInfo,
+            Map<String, Set<String>> modifiedFields) {
+        assert oriClassInfo != null && modifiedFields != null;
+        Set<String> changedClasses = new HashSet<>();
+        for (String className : oriClassInfo.keySet()) {
+            // replace $ with . in className
+            String classNameReplaced = className.replace("$", ".");
+            if (modifiedFields.containsKey(classNameReplaced)) {
+                Map<String, String> oriFieldInfo = oriClassInfo.get(className);
+                Set<String> modFieldInfo = modifiedFields
+                        .get(classNameReplaced);
+                // Check whether there's an intersection
+                for (String fieldName : oriFieldInfo.keySet()) {
+                    if (modFieldInfo.contains(fieldName)) {
+                        // An intersection => the class is changed
+                        changedClasses.add(className);
+                        break;
+                    }
+                }
+            }
+        }
+        return changedClasses;
+    }
+
     public static void printMF(
             Map<String, Map<String, String>> matchableClassInfo) {
         // print matchableClassInfo

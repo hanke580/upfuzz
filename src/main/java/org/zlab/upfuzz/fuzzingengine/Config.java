@@ -220,6 +220,11 @@ public class Config {
 
         // Only one of the following can be true
         public boolean staticVD = false; // A superSet of isSerialized
+
+        // true: use source code comparison to extract modified formats
+        // false: binary analysis for both versions and then do comparison
+        public boolean srcVD = true;
+
         // Add multi-inv also to VD corpus
         public boolean prioritizeMultiInv = false;
         public boolean prioritizeIsSerialized = false; // For ablation
@@ -243,6 +248,7 @@ public class Config {
         public String comparableClassesFileName = "comparableClasses.json";
         public String branch2CollectionFileName = "branch2Collection.json";
         public String specialDumpIdsFileName = "modifiedDumpIds.json";
+        public String modifiedFieldsFileName = "modifiedFields.json";
 
         // ---------------Version Delta-----------------
         public boolean useVersionDelta = false; // Dynamic VD

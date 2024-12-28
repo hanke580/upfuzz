@@ -1,6 +1,7 @@
 package org.zlab.upfuzz.fuzzingengine.server;
 
 import org.junit.jupiter.api.Test;
+import org.zlab.ocov.Utils;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.utils.Utilities;
 
@@ -8,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public class VDTest {
@@ -21,6 +23,16 @@ public class VDTest {
                 System.out.println(className + "." + field);
                 count++;
             }
+        }
+        return count;
+    }
+
+    public static int count(
+            Map<String, Map<String, String>> matchableClassInfo) {
+        int count = 0;
+        for (Map.Entry<String, Map<String, String>> entry : matchableClassInfo
+                .entrySet()) {
+            count += entry.getValue().size();
         }
         return count;
     }
@@ -103,7 +115,7 @@ public class VDTest {
                 .resolve(originalVersion);
         Path upFormatInfoFolder = Paths.get("configInfo")
                 .resolve(upgradedVersion);
-        Path configInfoFolder = Paths.get("configInfo")
+        Path configDirPath = Paths.get("configInfo")
                 .resolve(originalVersion + "_" + upgradedVersion);
 
         Map<String, Map<String, String>> oriClassInfo = Utilities
@@ -153,7 +165,7 @@ public class VDTest {
         // Diff between static analysis and direct comparison
         Map<String, Set<String>> modifiedFields = Utilities
                 .loadStringMapFromFile(
-                        configInfoFolder.resolve("modifiedFields.json"));
+                        configDirPath.resolve("modifiedFields.json"));
         Map<String, Set<String>> diffFields = diff1(modifiedFormatFields,
                 modifiedFields);
         if (printDiff) {
@@ -161,7 +173,84 @@ public class VDTest {
             int count = print(diffFields);
             System.out.println("Total: " + count);
         }
+    }
 
-        //
+    // @Test
+    public void testSrcVD() {
+        new Config();
+
+        String originalVersion = "apache-cassandra-2.2.19";
+        String upgradedVersion = "apache-cassandra-3.0.30";
+
+        Path oriFormatInfoFolder = Paths.get("configInfo")
+                .resolve(originalVersion);
+        Path upFormatInfoFolder = Paths.get("configInfo")
+                .resolve(upgradedVersion);
+        Path configDirPath = Paths.get("configInfo")
+                .resolve(originalVersion + "_" + upgradedVersion);
+        Path modifiedFieldsPath = configDirPath
+                .resolve(Config.getConf().modifiedFieldsFileName);
+        Map<String, Set<String>> modifiedFields = Utils
+                .loadModifiedFields(modifiedFieldsPath);
+
+        Map<String, Map<String, String>> matchableClassInfo = Utilities
+                .computeMFUsingModifiedFields(
+                        Objects.requireNonNull(Utilities
+                                .loadMapFromFile(
+                                        oriFormatInfoFolder.resolve(
+                                                Config.getConf().baseClassInfoFileName))),
+                        modifiedFields);
+        // count matchableClassInfo size
+        System.out.println("Matchable: " + count(matchableClassInfo));
+
+        Set<String> changedClasses = Utilities
+                .computeChangedClassesUsingModifiedFields(
+                        Objects.requireNonNull(Utilities
+                                .loadMapFromFile(
+                                        oriFormatInfoFolder.resolve(
+                                                Config.getConf().baseClassInfoFileName))),
+                        modifiedFields);
+        // count changedClasses size
+        System.out.println("Changed: " + changedClasses.size());
+    }
+
+    // @Test
+    public void testBinaryVD() {
+        new Config();
+
+        String originalVersion = "apache-cassandra-2.2.19";
+        String upgradedVersion = "apache-cassandra-3.0.30";
+
+        Path oriFormatInfoFolder = Paths.get("configInfo")
+                .resolve(originalVersion);
+        Path upFormatInfoFolder = Paths.get("configInfo")
+                .resolve(upgradedVersion);
+        Path configDirPath = Paths.get("configInfo")
+                .resolve(originalVersion + "_" + upgradedVersion);
+        Path modifiedFieldsPath = configDirPath
+                .resolve(Config.getConf().modifiedFieldsFileName);
+        Map<String, Set<String>> modifiedFields = Utils
+                .loadModifiedFields(modifiedFieldsPath);
+
+        Map<String, Map<String, String>> matchableClassInfo = Utilities
+                .computeMF(
+                        Objects.requireNonNull(Utilities
+                                .loadMapFromFile(
+                                        oriFormatInfoFolder.resolve(
+                                                Config.getConf().baseClassInfoFileName))),
+                        Objects.requireNonNull(Utilities
+                                .loadMapFromFile(upFormatInfoFolder.resolve(
+                                        Config.getConf().baseClassInfoFileName))));
+        System.out.println("Matchable: " + count(matchableClassInfo));
+
+        Set<String> changedClasses = Utilities.computeChangedClasses(
+                Objects.requireNonNull(Utilities
+                        .loadMapFromFile(
+                                oriFormatInfoFolder.resolve(
+                                        Config.getConf().baseClassInfoFileName))),
+                Objects.requireNonNull(Utilities
+                        .loadMapFromFile(upFormatInfoFolder.resolve(
+                                Config.getConf().baseClassInfoFileName))));
+        System.out.println("Changed: " + changedClasses.size());
     }
 }

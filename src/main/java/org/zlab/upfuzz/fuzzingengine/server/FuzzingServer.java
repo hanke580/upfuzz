@@ -19,6 +19,7 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionDataStore;
+import org.zlab.ocov.Utils;
 import org.zlab.ocov.tracker.FormatCoverageStatus;
 import org.zlab.ocov.tracker.ObjectGraphCoverage;
 import org.zlab.ocov.tracker.Runtime;
@@ -178,6 +179,19 @@ public class FuzzingServer {
     List<Integer> nonInterestingTpIds = new ArrayList<>();
 
     public FuzzingServer() {
+        if (Config.getConf().testSingleVersion) {
+            configDirPath = Paths.get(
+                    Config.getConf().configDir,
+                    Config.getConf().originalVersion);
+        } else {
+            configDirPath = Paths.get(
+                    Config.getConf().configDir, Config.getConf().originalVersion
+                            + "_" + Config.getConf().upgradedVersion);
+        }
+
+        startTime = TimeUnit.SECONDS.convert(System.nanoTime(),
+                TimeUnit.NANOSECONDS);
+
         if (Config.getConf().useVersionDelta) {
             corpus = new CorpusVersionDeltaFiveQueueWithBoundary();
         } else {
@@ -232,28 +246,8 @@ public class FuzzingServer {
                         ^ Config.getConf().prioritizeIsSerialized
                         : "Only one of staticVD and prioritizeIsSerialized can be true";
 
-                if (Config.getConf().staticVD) {
-                    matchableClassInfo = Utilities.computeMF(
-                            Objects.requireNonNull(Utilities
-                                    .loadMapFromFile(
-                                            oriFormatInfoFolder.resolve(
-                                                    Config.getConf().baseClassInfoFileName))),
-                            Objects.requireNonNull(Utilities
-                                    .loadMapFromFile(upFormatInfoFolder.resolve(
-                                            Config.getConf().baseClassInfoFileName))));
-                    oriObjCoverage.setMatchableClassInfo(matchableClassInfo);
-                    changedClasses = Utilities.computeChangedClasses(
-                            Objects.requireNonNull(Utilities
-                                    .loadMapFromFile(
-                                            oriFormatInfoFolder.resolve(
-                                                    Config.getConf().baseClassInfoFileName))),
-                            Objects.requireNonNull(Utilities
-                                    .loadMapFromFile(upFormatInfoFolder.resolve(
-                                            Config.getConf().baseClassInfoFileName))));
-                    // logger.debug("<isSerialized> Changed classes: " +
-                    // changedClasses);
-                    oriObjCoverage.setChangedClasses(changedClasses);
-                }
+                if (Config.getConf().staticVD)
+                    setStaticVD(oriFormatInfoFolder, upFormatInfoFolder);
 
                 if (Config.getConf().useVersionDelta) {
                     upObjCoverage = new ObjectGraphCoverage(
@@ -272,20 +266,54 @@ public class FuzzingServer {
             }
             Runtime.initWriter(formatCoverageLogPath);
         }
+    }
 
-        if (Config.getConf().testSingleVersion) {
-            configDirPath = Paths.get(
-                    Config.getConf().configDir,
-                    Config.getConf().originalVersion);
+    private void setStaticVD(Path oriFormatInfoFolder,
+            Path upFormatInfoFolder) {
+        if (Config.getConf().srcVD) {
+            assert configDirPath != null;
+            Path modifiedFieldsPath = configDirPath
+                    .resolve(Config.getConf().modifiedFieldsFileName);
+            Map<String, Set<String>> modifiedFields = Utils
+                    .loadModifiedFields(modifiedFieldsPath);
+            matchableClassInfo = Utilities.computeMFUsingModifiedFields(
+                    Objects.requireNonNull(Utilities
+                            .loadMapFromFile(
+                                    oriFormatInfoFolder.resolve(
+                                            Config.getConf().baseClassInfoFileName))),
+                    modifiedFields);
+            oriObjCoverage.setMatchableClassInfo(matchableClassInfo);
+            changedClasses = Utilities.computeChangedClassesUsingModifiedFields(
+                    Objects.requireNonNull(Utilities
+                            .loadMapFromFile(
+                                    oriFormatInfoFolder.resolve(
+                                            Config.getConf().baseClassInfoFileName))),
+                    modifiedFields);
+            // logger.debug("<isSerialized> Changed classes: " +
+            // changedClasses);
+            oriObjCoverage.setChangedClasses(changedClasses);
         } else {
-            configDirPath = Paths.get(
-                    Config.getConf().configDir, Config.getConf().originalVersion
-                            + "_" + Config.getConf().upgradedVersion);
+            matchableClassInfo = Utilities.computeMF(
+                    Objects.requireNonNull(Utilities
+                            .loadMapFromFile(
+                                    oriFormatInfoFolder.resolve(
+                                            Config.getConf().baseClassInfoFileName))),
+                    Objects.requireNonNull(Utilities
+                            .loadMapFromFile(upFormatInfoFolder.resolve(
+                                    Config.getConf().baseClassInfoFileName))));
+            oriObjCoverage.setMatchableClassInfo(matchableClassInfo);
+            changedClasses = Utilities.computeChangedClasses(
+                    Objects.requireNonNull(Utilities
+                            .loadMapFromFile(
+                                    oriFormatInfoFolder.resolve(
+                                            Config.getConf().baseClassInfoFileName))),
+                    Objects.requireNonNull(Utilities
+                            .loadMapFromFile(upFormatInfoFolder.resolve(
+                                    Config.getConf().baseClassInfoFileName))));
+            // logger.debug("<isSerialized> Changed classes: " +
+            // changedClasses);
+            oriObjCoverage.setChangedClasses(changedClasses);
         }
-
-        startTime = TimeUnit.SECONDS.convert(System.nanoTime(),
-                TimeUnit.NANOSECONDS);
-
     }
 
     private void init() {
