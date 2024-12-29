@@ -190,7 +190,7 @@ public class VDTest {
         }
     }
 
-    // @Test
+    @Test
     public void testSrcVD() {
         new Config();
 
@@ -233,6 +233,19 @@ public class VDTest {
             nonMatchableCount += entry.getValue().size();
         }
         System.out.println("Non-Matchable: " + nonMatchableCount);
+
+        // Print non-matchable
+        boolean printNonMatchable = false;
+        if (printNonMatchable) {
+            for (Map.Entry<String, Set<String>> entry : nonMatchableClassInfo
+                    .entrySet()) {
+                String className = entry.getKey();
+                Set<String> fields = entry.getValue();
+                for (String field : fields) {
+                    System.out.println(className + ":" + field);
+                }
+            }
+        }
 
         Set<String> changedClasses = Utilities
                 .computeChangedClassesUsingModifiedFields(
