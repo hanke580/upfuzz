@@ -241,10 +241,6 @@ public class FuzzingServer {
                     || Config.getConf().useVersionDelta) {
                 Path upFormatInfoFolder = Paths.get("configInfo")
                         .resolve(Config.getConf().upgradedVersion);
-                if (!upFormatInfoFolder.toFile().exists()) {
-                    throw new RuntimeException(
-                            "upFormatInfoFolder is not specified in config");
-                }
 
                 assert Config.getConf().staticVD
                         ^ Config.getConf().prioritizeIsSerialized
@@ -254,6 +250,10 @@ public class FuzzingServer {
                     setStaticVD(oriFormatInfoFolder, upFormatInfoFolder);
 
                 if (Config.getConf().useVersionDelta) {
+                    if (!upFormatInfoFolder.toFile().exists()) {
+                        throw new RuntimeException(
+                                "upFormatInfoFolder is not specified in config");
+                    }
                     upObjCoverage = new ObjectGraphCoverage(
                             upFormatInfoFolder.resolve(
                                     Config.getConf().baseClassInfoFileName),
@@ -300,6 +300,10 @@ public class FuzzingServer {
             // changedClasses);
             oriObjCoverage.setChangedClasses(changedClasses);
         } else {
+            if (!upFormatInfoFolder.toFile().exists()) {
+                throw new RuntimeException(
+                        "upFormatInfoFolder is not specified in config");
+            }
             matchableClassInfo = Utilities.computeMF(
                     Objects.requireNonNull(Utilities
                             .loadMapFromFile(
