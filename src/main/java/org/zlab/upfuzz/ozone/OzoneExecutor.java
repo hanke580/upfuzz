@@ -1,12 +1,8 @@
 package org.zlab.upfuzz.ozone;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.LogManager;
@@ -15,7 +11,6 @@ import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.AgentServerSocket;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
-import org.zlab.upfuzz.docker.IDocker;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
 import org.zlab.upfuzz.ozone.OzoneShellDaemon.OzonePacket;
 import org.zlab.upfuzz.utils.Pair;
@@ -148,9 +143,8 @@ public class OzoneExecutor extends Executor {
         if (command.getCommand().isEmpty())
             return ret;
         try {
-            // Cannot perform test plan
             // We shouldn't crash nn
-            int nodeIndex = 0; // NN
+            int nodeIndex = 0; // StorageContainerManagerStarter
 
             assert dockerCluster.dockerStates[nodeIndex].alive;
             ozoneShell = ((OzoneDocker) dockerCluster
