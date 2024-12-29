@@ -1,11 +1,8 @@
 package org.zlab.upfuzz.ozone;
 
 import java.util.AbstractMap;
-import java.util.LinkedList;
-import java.util.List;
 
 import org.zlab.upfuzz.CommandPool;
-import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.ozone.key.*;
 import org.zlab.upfuzz.ozone.bucket.*;
 import org.zlab.upfuzz.ozone.fs.*;
