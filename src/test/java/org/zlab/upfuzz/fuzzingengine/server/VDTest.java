@@ -194,8 +194,8 @@ public class VDTest {
     public void testSrcVD() {
         new Config();
 
-        String originalVersion = "apache-cassandra-2.2.19";
-        String upgradedVersion = "apache-cassandra-3.0.30";
+        String originalVersion = "apache-cassandra-3.0.30";
+        String upgradedVersion = "apache-cassandra-3.11.17";
 
         Path oriFormatInfoFolder = Paths.get("configInfo")
                 .resolve(originalVersion);
