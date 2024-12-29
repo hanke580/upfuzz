@@ -190,7 +190,7 @@ public class VDTest {
         }
     }
 
-    @Test
+    // @Test
     public void testSrcVD() {
         new Config();
 
@@ -257,46 +257,22 @@ public class VDTest {
         // count changedClasses size
         System.out.println("Changed: " + changedClasses.size());
 
-        // Identify merge points where objects are unmodified
-        Path mergePointsFilePath = Paths.get(
-                "/Users/kehan/project/vasco/system-sut-global/cassandra/apache-cassandra-2.2.19/mergePoints_alg1.json");
-        Map<String, Map<Integer, Set<SerializationInfo.MergePointInfo>>> mergePoints = Utilities
-                .loadDumpPoints(mergePointsFilePath);
+        boolean measureMergePoint = false;
+        if (measureMergePoint) {
+            // Identify merge points where objects are unmodified
+            Path mergePointsFilePath = Paths.get(
+                    "/Users/kehan/project/vasco/system-sut-global/cassandra/apache-cassandra-2.2.19/mergePoints_alg1.json");
+            Map<String, Map<Integer, Set<SerializationInfo.MergePointInfo>>> mergePoints = Utilities
+                    .loadDumpPoints(mergePointsFilePath);
 
-        // count
-        System.out.println("Merge Points: " + countMergePoints(mergePoints));
+            // count
+            System.out
+                    .println("Merge Points: " + countMergePoints(mergePoints));
 
-        // extract: unchanged merge points
-        Map<String, Map<Integer, Set<SerializationInfo.MergePointInfo>>> unchangedMergePoints = new HashMap<>();
-        // Iterate merge points, print the one that's not in changedClasses
-        for (Map.Entry<String, Map<Integer, Set<SerializationInfo.MergePointInfo>>> entry : mergePoints
-                .entrySet()) {
-            String className = entry.getKey();
-            Map<Integer, Set<SerializationInfo.MergePointInfo>> mergePointsInfo = entry
-                    .getValue();
-            for (Map.Entry<Integer, Set<SerializationInfo.MergePointInfo>> mergePointEntry : mergePointsInfo
-                    .entrySet()) {
-                int lineNum = mergePointEntry.getKey();
-                Set<SerializationInfo.MergePointInfo> mergePointInfos = mergePointEntry
-                        .getValue();
-                for (SerializationInfo.MergePointInfo mergePointInfo : mergePointInfos) {
-                    if (!changedClasses
-                            .contains(mergePointInfo.objectClassName)) {
-                        unchangedMergePoints
-                                .computeIfAbsent(className,
-                                        k -> new HashMap<>())
-                                .put(lineNum, mergePointInfos);
-                    }
-                }
-            }
-        }
-        // count
-        System.out.println("Unchanged Merge Points: "
-                + countMergePoints(unchangedMergePoints));
-        boolean printUnchangedMergePoints = false;
-        if (printUnchangedMergePoints) {
-            // print it
-            for (Map.Entry<String, Map<Integer, Set<SerializationInfo.MergePointInfo>>> entry : unchangedMergePoints
+            // extract: unchanged merge points
+            Map<String, Map<Integer, Set<SerializationInfo.MergePointInfo>>> unchangedMergePoints = new HashMap<>();
+            // Iterate merge points, print the one that's not in changedClasses
+            for (Map.Entry<String, Map<Integer, Set<SerializationInfo.MergePointInfo>>> entry : mergePoints
                     .entrySet()) {
                 String className = entry.getKey();
                 Map<Integer, Set<SerializationInfo.MergePointInfo>> mergePointsInfo = entry
@@ -307,8 +283,36 @@ public class VDTest {
                     Set<SerializationInfo.MergePointInfo> mergePointInfos = mergePointEntry
                             .getValue();
                     for (SerializationInfo.MergePointInfo mergePointInfo : mergePointInfos) {
-                        System.out.println(className + ":" + lineNum + " "
-                                + mergePointInfo.objectClassName);
+                        if (!changedClasses
+                                .contains(mergePointInfo.objectClassName)) {
+                            unchangedMergePoints
+                                    .computeIfAbsent(className,
+                                            k -> new HashMap<>())
+                                    .put(lineNum, mergePointInfos);
+                        }
+                    }
+                }
+            }
+            // count
+            System.out.println("Unchanged Merge Points: "
+                    + countMergePoints(unchangedMergePoints));
+            boolean printUnchangedMergePoints = false;
+            if (printUnchangedMergePoints) {
+                // print it
+                for (Map.Entry<String, Map<Integer, Set<SerializationInfo.MergePointInfo>>> entry : unchangedMergePoints
+                        .entrySet()) {
+                    String className = entry.getKey();
+                    Map<Integer, Set<SerializationInfo.MergePointInfo>> mergePointsInfo = entry
+                            .getValue();
+                    for (Map.Entry<Integer, Set<SerializationInfo.MergePointInfo>> mergePointEntry : mergePointsInfo
+                            .entrySet()) {
+                        int lineNum = mergePointEntry.getKey();
+                        Set<SerializationInfo.MergePointInfo> mergePointInfos = mergePointEntry
+                                .getValue();
+                        for (SerializationInfo.MergePointInfo mergePointInfo : mergePointInfos) {
+                            System.out.println(className + ":" + lineNum + " "
+                                    + mergePointInfo.objectClassName);
+                        }
                     }
                 }
             }
