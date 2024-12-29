@@ -236,6 +236,50 @@ bin/start_clients.sh 1 hbase_config.json
 bin/hbase_cl.sh
 ```
 
+## Minimal Set up for Ozone (Try upfuzz quickly!)
+
+```bash
+git clone git@github.com:zlab-purdue/upfuzz.git
+cd upfuzz
+export UPFUZZ_DIR=$PWD
+export ORI_VERSION=1.2.1
+export UP_VERSION=1.3.0
+
+mkdir -p $UPFUZZ_DIR/prebuild/ozone
+cd $UPFUZZ_DIR/prebuild/ozone
+wget https://archive.apache.org/dist/ozone/$ORI_VERSION/ozone-$ORI_VERSION.tar.gz ; tar -xzvf ozone-$ORI_VERSION.tar.gz
+wget https://archive.apache.org/dist/ozone/$UP_VERSION/ozone-$UP_VERSION.tar.gz ; tar -xzvf ozone-$UP_VERSION.tar.gz
+
+# Daemon
+cp $UPFUZZ_DIR/src/main/resources/ozone/compile-src/OzoneFsShellDaemon.java $UPFUZZ_DIR/prebuild/ozone/ozone-"$ORI_VERSION"/OzoneFsShellDaemon.java
+cp $UPFUZZ_DIR/src/main/resources/ozone/compile-src/OzoneFsShellDaemon_2.java $UPFUZZ_DIR/prebuild/ozone/ozone-"$UP_VERSION"/OzoneFsShellDaemon.java
+
+cd $UPFUZZ_DIR/prebuild/ozone/ozone-"$ORI_VERSION"
+sed -i '/^\s*fs)/i\    fsShellDaemon)\n      OZONE_CLASSNAME=org.apache.hadoop.ozone.OzoneFsShellDaemon\n      OZONE_RUN_ARTIFACT_NAME="ozone-tools"\n    ;;' bin/ozone
+/usr/lib/jvm/java-8-openjdk-amd64/bin/javac -d . -cp "share/ozone/lib/*" OzoneFsShellDaemon.java
+
+cd $UPFUZZ_DIR/prebuild/ozone/ozone-"$UP_VERSION"
+sed -i '/^\s*fs)/i\    fsShellDaemon)\n      OZONE_CLASSNAME=org.apache.hadoop.ozone.OzoneFsShellDaemon\n      OZONE_CLIENT_OPTS="-Dhadoop.log.file=ozone-shell.log -Dlog4j.configuration=file:${ozone_shell_log4j} ${OZONE_CLIENT_OPTS}"\n      OZONE_RUN_ARTIFACT_NAME="ozone-tools"\n    ;;' bin/ozone
+/usr/lib/jvm/java-8-openjdk-amd64/bin/javac -d . -cp "share/ozone/lib/*" OzoneFsShellDaemon.java
+
+cd $UPFUZZ_DIR/src/main/resources/ozone/compile-src/
+sed -i "s/ORI_VERSION=ozone-.*$/ORI_VERSION=ozone-$ORI_VERSION/" ozone-clusternode.sh
+sed -i "s/UP_VERSION=ozone-.*$/UP_VERSION=ozone-$UP_VERSION/" ozone-clusternode.sh
+docker build . -t upfuzz_ozone:ozone-"$ORI_VERSION"_ozone-"$UP_VERSION"
+
+cd $UPFUZZ_DIR
+./gradlew copyDependencies
+./gradlew :spotlessApply build
+
+# Create session + Test run
+tmux new-session -d -s 0 \; split-window -v \;
+tmux send-keys -t 0:0.0 C-m 'bin/start_server.sh ozone_config.json' C-m \;
+tmux send-keys -t 0:0.1 C-m 'sleep 2; bin/start_clients.sh 1 ozone_config.json' C-m
+
+# stop testing
+bin/ozone_cl.sh $ORI_VERSION $UP_VERSION
+```
+
 ## Version Delta Testing
 
 Latest implementation only applies to one-group set up.
@@ -372,50 +416,6 @@ bin/start_clients.sh 1 hbase_config.json
 
 # stop testing
 bin/hbase_cl.sh
-```
-
-## Minimal Set up for Ozone (Try upfuzz quickly!)
-
-```bash
-git clone git@github.com:zlab-purdue/upfuzz.git
-cd upfuzz
-export UPFUZZ_DIR=$PWD
-export ORI_VERSION=1.2.1
-export UP_VERSION=1.3.0
-
-mkdir -p $UPFUZZ_DIR/prebuild/ozone
-cd $UPFUZZ_DIR/prebuild/ozone
-wget https://archive.apache.org/dist/ozone/$ORI_VERSION/ozone-$ORI_VERSION.tar.gz ; tar -xzvf ozone-$ORI_VERSION.tar.gz
-wget https://archive.apache.org/dist/ozone/$UP_VERSION/ozone-$UP_VERSION.tar.gz ; tar -xzvf ozone-$UP_VERSION.tar.gz
-
-# Daemon
-cp $UPFUZZ_DIR/src/main/resources/ozone/compile-src/OzoneFsShellDaemon.java $UPFUZZ_DIR/prebuild/ozone/ozone-"$ORI_VERSION"/OzoneFsShellDaemon.java
-cp $UPFUZZ_DIR/src/main/resources/ozone/compile-src/OzoneFsShellDaemon_2.java $UPFUZZ_DIR/prebuild/ozone/ozone-"$UP_VERSION"/OzoneFsShellDaemon.java
-
-cd $UPFUZZ_DIR/prebuild/ozone/ozone-"$ORI_VERSION"
-sed -i '/^\s*fs)/i\    fsShellDaemon)\n      OZONE_CLASSNAME=org.apache.hadoop.ozone.OzoneFsShellDaemon\n      OZONE_RUN_ARTIFACT_NAME="ozone-tools"\n    ;;' bin/ozone
-/usr/lib/jvm/java-8-openjdk-amd64/bin/javac -d . -cp "share/ozone/lib/*" OzoneFsShellDaemon.java
-
-cd $UPFUZZ_DIR/prebuild/ozone/ozone-"$UP_VERSION"
-sed -i '/^\s*fs)/i\    fsShellDaemon)\n      OZONE_CLASSNAME=org.apache.hadoop.ozone.OzoneFsShellDaemon\n      OZONE_CLIENT_OPTS="-Dhadoop.log.file=ozone-shell.log -Dlog4j.configuration=file:${ozone_shell_log4j} ${OZONE_CLIENT_OPTS}"\n      OZONE_RUN_ARTIFACT_NAME="ozone-tools"\n    ;;' bin/ozone
-/usr/lib/jvm/java-8-openjdk-amd64/bin/javac -d . -cp "share/ozone/lib/*" OzoneFsShellDaemon.java
-
-cd $UPFUZZ_DIR/src/main/resources/ozone/compile-src/
-sed -i "s/ORI_VERSION=ozone-.*$/ORI_VERSION=ozone-$ORI_VERSION/" ozone-clusternode.sh
-sed -i "s/UP_VERSION=ozone-.*$/UP_VERSION=ozone-$UP_VERSION/" ozone-clusternode.sh
-docker build . -t upfuzz_ozone:ozone-"$ORI_VERSION"_ozone-"$UP_VERSION"
-
-cd $UPFUZZ_DIR
-./gradlew copyDependencies
-./gradlew :spotlessApply build
-
-# Create session + Test run
-tmux new-session -d -s 0 \; split-window -v \;
-tmux send-keys -t 0:0.0 C-m 'bin/start_server.sh ozone_config.json' C-m \;
-tmux send-keys -t 0:0.1 C-m 'sleep 2; bin/start_clients.sh 1 ozone_config.json' C-m
-
-# stop testing
-bin/ozone_cl.sh $ORI_VERSION $UP_VERSION
 ```
 
 ## Usage
