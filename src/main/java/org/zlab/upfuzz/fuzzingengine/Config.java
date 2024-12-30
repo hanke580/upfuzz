@@ -224,6 +224,7 @@ public class Config {
         // true: use source code comparison to extract modified formats
         // false: binary analysis for both versions and then do comparison
         public boolean srcVD = true;
+        public boolean srcVDClassnameMustMatch = true;
 
         // Add multi-inv also to VD corpus
         public boolean prioritizeMultiInv = false;
@@ -249,6 +250,7 @@ public class Config {
         public String branch2CollectionFileName = "branch2Collection.json";
         public String specialDumpIdsFileName = "modifiedDumpIds.json";
         public String modifiedFieldsFileName = "modifiedFields.json";
+        public String modifiedFieldsClassnameMustMatchFileName = "modifiedFields_classname_must_match.json";
 
         // ---------------Version Delta-----------------
         public boolean useVersionDelta = false; // Dynamic VD

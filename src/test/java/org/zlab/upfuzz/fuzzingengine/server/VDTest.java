@@ -194,8 +194,8 @@ public class VDTest {
     public void testSrcVD() {
         new Config();
 
-        String originalVersion = "apache-cassandra-3.0.30";
-        String upgradedVersion = "apache-cassandra-3.11.17";
+        String originalVersion = "apache-cassandra-2.2.19";
+        String upgradedVersion = "apache-cassandra-3.0.30";
 
         Path oriFormatInfoFolder = Paths.get("configInfo")
                 .resolve(originalVersion);
@@ -203,8 +203,17 @@ public class VDTest {
                 .resolve(upgradedVersion);
         Path upgradeFormatInfoFolder = Paths.get("configInfo")
                 .resolve(originalVersion + "_" + upgradedVersion);
+
+        boolean onlyTypeChange = true;
+        // String fileName = onlyTypeChange ?
+        // "modifiedFields_only_type_change.json":
+        // Config.getConf().modifiedFieldsFileName;
+        String fileName = onlyTypeChange
+                ? "modifiedFields_classname_must_match.json"
+                : Config.getConf().modifiedFieldsFileName;
+
         Path modifiedFieldsPath = upgradeFormatInfoFolder
-                .resolve(Config.getConf().modifiedFieldsFileName);
+                .resolve(fileName);
         Map<String, Set<String>> modifiedFields = Utils
                 .loadModifiedFields(modifiedFieldsPath);
 

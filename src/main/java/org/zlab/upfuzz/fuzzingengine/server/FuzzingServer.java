@@ -279,8 +279,11 @@ public class FuzzingServer {
                         + Config.getConf().upgradedVersion);
         assert upgradeFormatInfoFolder.toFile().exists();
         if (Config.getConf().srcVD) {
+            String modFileName = Config.getConf().srcVDClassnameMustMatch
+                    ? Config.getConf().modifiedFieldsClassnameMustMatchFileName
+                    : Config.getConf().modifiedFieldsFileName;
             Path modifiedFieldsPath = upgradeFormatInfoFolder
-                    .resolve(Config.getConf().modifiedFieldsFileName);
+                    .resolve(modFileName);
             Map<String, Set<String>> modifiedFields = Utils
                     .loadModifiedFields(modifiedFieldsPath);
             matchableClassInfo = Utilities.computeMFUsingModifiedFields(

@@ -287,10 +287,6 @@
         "deletionInfo": "org.apache.cassandra.db.DeletionInfo",
         "tree": "java.lang.Object[]"
     },
-    "org.apache.cassandra.service.ReadCallback": {
-        "resolver": "org.apache.cassandra.service.IResponseResolver",
-        "endpoints": "java.util.List"
-    },
     "org.apache.cassandra.utils.MerkleTree$Inner": {
         "hash": "byte[]"
     },
@@ -488,9 +484,6 @@
         "value": "java.nio.ByteBuffer",
         "timestamp": "long"
     },
-    "org.apache.cassandra.db.composites.SimpleSparseCellNameType": {
-        "internedNames": "java.util.Map"
-    },
     "org.apache.cassandra.db.SuperColumns$SCIterator": {
         "subColumnsIterator": "java.util.Iterator",
         "type": "org.apache.cassandra.db.composites.CellNameType",
@@ -576,16 +569,6 @@
         "targetReplicas": "java.util.List",
         "command": "org.apache.cassandra.db.ReadCommand"
     },
-    "org.apache.cassandra.service.pager.Pageable$ReadCommands": {
-        "commands": "java.util.List"
-    },
-    "org.apache.cassandra.service.pager.NamesQueryPager": {
-        "command": "org.apache.cassandra.db.SliceByNamesReadCommand"
-    },
-    "org.apache.cassandra.db.filter.QueryFilter": {
-        "filter": "org.apache.cassandra.db.filter.IDiskAtomFilter",
-        "key": "org.apache.cassandra.db.DecoratedKey"
-    },
     "org.apache.cassandra.db.CollationController": {
         "filter": "org.apache.cassandra.db.filter.QueryFilter",
         "cfs": "org.apache.cassandra.db.ColumnFamilyStore"
@@ -635,10 +618,6 @@
         "Columns": "org.apache.cassandra.config.CFMetaData",
         "Functions": "org.apache.cassandra.config.CFMetaData",
         "Triggers": "org.apache.cassandra.config.CFMetaData"
-    },
-    "org.apache.cassandra.config.TriggerDefinition": {
-        "classOption": "java.lang.String",
-        "name": "java.lang.String"
     },
     "org.apache.cassandra.config.CFMetaData$SpeculativeRetry": {
         "type": "org.apache.cassandra.config.CFMetaData$SpeculativeRetry$RetryType"
@@ -713,9 +692,6 @@
     "org.apache.cassandra.service.pager.RangeNamesQueryPager": {
         "command": "org.apache.cassandra.db.RangeSliceCommand"
     },
-    "org.apache.cassandra.service.pager.SliceQueryPager": {
-        "command": "org.apache.cassandra.db.SliceFromReadCommand"
-    },
     "org.apache.cassandra.service.pager.AbstractQueryPager": {
         "remaining": "int"
     },
@@ -736,12 +712,6 @@
     "org.apache.cassandra.io.sstable.IndexHelper$IndexInfo$Serializer": {
         "type": "org.apache.cassandra.db.composites.CType"
     },
-    "org.apache.cassandra.db.composites.AbstractCellNameType": {
-        "cellSerializer": "org.apache.cassandra.io.ISerializer",
-        "namesQueryFilterSerializer": "org.apache.cassandra.io.IVersionedSerializer",
-        "diskAtomFilterSerializer": "org.apache.cassandra.io.IVersionedSerializer",
-        "columnSerializer": "org.apache.cassandra.db.ColumnSerializer"
-    },
     "org.apache.cassandra.db.ColumnSerializer": {
         "type": "org.apache.cassandra.db.composites.CellNameType"
     },
@@ -753,13 +723,6 @@
     },
     "org.apache.cassandra.db.DeletionInfo$Serializer": {
         "rtlSerializer": "org.apache.cassandra.db.RangeTombstoneList$Serializer"
-    },
-    "org.apache.cassandra.service.AsyncRepairCallback": {
-        "repairResolver": "org.apache.cassandra.service.RowDataResolver"
-    },
-    "org.apache.cassandra.thrift.CassandraServer$ThriftCASRequest": {
-        "expected": "org.apache.cassandra.db.ColumnFamily",
-        "updates": "org.apache.cassandra.db.ColumnFamily"
     },
     "org.apache.cassandra.io.util.SegmentedFile": {
         "onDiskLength": "long",
@@ -795,10 +758,6 @@
     },
     "org.apache.cassandra.db.compaction.LeveledCompactionTask": {
         "maxSSTableBytes": "long"
-    },
-    "org.apache.cassandra.service.StorageProxy$LocalRangeSliceRunnable": {
-        "handler": "org.apache.cassandra.service.ReadCallback",
-        "command": "org.apache.cassandra.db.AbstractRangeCommand"
     },
     "org.apache.cassandra.service.StorageProxy$LocalReadRunnable": {
         "handler": "org.apache.cassandra.service.ReadCallback",
@@ -851,9 +810,6 @@
     },
     "org.apache.cassandra.db.marshal.BytesType": {
         "instance": "org.apache.cassandra.db.marshal.BytesType"
-    },
-    "org.apache.cassandra.db.HintedHandOffManager": {
-        "hintStore": "org.apache.cassandra.db.ColumnFamilyStore"
     },
     "org.apache.cassandra.db.lifecycle.Tracker": {
         "subscribers": "java.util.Collection"
@@ -944,13 +900,6 @@
     },
     "org.apache.cassandra.service.FileCacheService$CacheBucket": {
         "queue": "java.util.concurrent.ConcurrentLinkedQueue"
-    },
-    "org.apache.cassandra.metrics.ColumnFamilyMetrics": {
-        "all": "java.util.Set",
-        "rangeLatency": "org.apache.cassandra.metrics.LatencyMetrics",
-        "allColumnFamilyMetrics": "java.util.concurrent.ConcurrentMap",
-        "writeLatency": "org.apache.cassandra.metrics.LatencyMetrics",
-        "readLatency": "org.apache.cassandra.metrics.LatencyMetrics"
     },
     "org.apache.cassandra.db.Directories": {
         "dataPaths": "java.io.File[]"
@@ -1202,9 +1151,6 @@
     "org.apache.cassandra.db.marshal.UTF8Type": {
         "instance": "org.apache.cassandra.db.marshal.UTF8Type"
     },
-    "org.apache.cassandra.db.marshal.TypeParser": {
-        "cache": "java.util.Map"
-    },
     "org.apache.cassandra.db.index.composites.CompositesSearcher": {
         "indexManager": "org.apache.cassandra.db.index.SecondaryIndexManager"
     },
@@ -1260,9 +1206,6 @@
     },
     "org.apache.cassandra.io.sstable.format.big.SSTableSliceIterator": {
         "reader": "org.apache.cassandra.db.columniterator.OnDiskAtomIterator"
-    },
-    "org.apache.cassandra.service.MigrationTask": {
-        "endpoint": "java.net.InetAddress"
     },
     "org.apache.cassandra.repair.SnapshotTask": {
         "endpoint": "java.net.InetAddress"
