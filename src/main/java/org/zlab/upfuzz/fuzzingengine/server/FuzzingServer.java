@@ -286,12 +286,17 @@ public class FuzzingServer {
                     .resolve(modFileName);
             Map<String, Set<String>> modifiedFields = Utils
                     .loadModifiedFields(modifiedFieldsPath);
+            Map<String, Map<String, String>> oriClassInfo = Utilities
+                    .loadMapFromFile(
+                            oriFormatInfoFolder.resolve(
+                                    Config.getConf().baseClassInfoFileName));
             matchableClassInfo = Utilities.computeMFUsingModifiedFields(
-                    Objects.requireNonNull(Utilities
-                            .loadMapFromFile(
-                                    oriFormatInfoFolder.resolve(
-                                            Config.getConf().baseClassInfoFileName))),
+                    Objects.requireNonNull(oriClassInfo),
                     modifiedFields);
+            logger.debug("[srcVD] Matchable class info count: "
+                    + Utilities.count(matchableClassInfo));
+            logger.debug("[srcVD] ori class info count: "
+                    + Utilities.count(oriClassInfo));
             oriObjCoverage.setMatchableClassInfo(matchableClassInfo);
             changedClasses = Utilities.computeChangedClassesUsingModifiedFields(
                     Objects.requireNonNull(Utilities

@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import static org.zlab.upfuzz.utils.Utilities.*;
+
 public class VDTest {
 
     public static int print(Map<String, Set<String>> classInfo) {
@@ -26,49 +28,6 @@ public class VDTest {
             }
         }
         return count;
-    }
-
-    public static int count(
-            Map<String, Map<String, String>> matchableClassInfo) {
-        int count = 0;
-        for (Map.Entry<String, Map<String, String>> entry : matchableClassInfo
-                .entrySet()) {
-            count += entry.getValue().size();
-        }
-        return count;
-    }
-
-    public static int countMergePoints(
-            Map<String, Map<Integer, Set<SerializationInfo.MergePointInfo>>> objectMergePoints) {
-        int count = 0;
-        for (Map<Integer, Set<SerializationInfo.MergePointInfo>> mergePoints : objectMergePoints
-                .values()) {
-            for (Set<SerializationInfo.MergePointInfo> mergePointInfos : mergePoints
-                    .values()) {
-                count += mergePointInfos.size();
-            }
-        }
-        return count;
-    }
-
-    public static Map<String, Map<String, String>> replaceDollarWithDot(
-            Map<String, Map<String, String>> classInfo) {
-        // Class => {fieldname, fieldtype}, only replace $ for classname
-        Map<String, Map<String, String>> newClassInfo = new HashMap<>();
-        for (Map.Entry<String, Map<String, String>> entry : classInfo
-                .entrySet()) {
-            String className = entry.getKey();
-            // deep copy fields
-            Map<String, String> fields = new HashMap<>();
-            for (Map.Entry<String, String> fieldEntry : entry.getValue()
-                    .entrySet()) {
-                String fieldName = fieldEntry.getKey();
-                String fieldType = fieldEntry.getValue();
-                fields.put(fieldName, fieldType);
-            }
-            newClassInfo.put(className.replace("$", "."), fields);
-        }
-        return newClassInfo;
     }
 
     public static Map<String, Set<String>> diff1(
@@ -190,7 +149,7 @@ public class VDTest {
         }
     }
 
-    // @Test
+    @Test
     public void testSrcVD() {
         new Config();
 
