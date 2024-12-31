@@ -163,13 +163,11 @@ public class VDTest {
         Path upgradeFormatInfoFolder = Paths.get("configInfo")
                 .resolve(originalVersion + "_" + upgradedVersion);
 
-        boolean onlyTypeChange = true;
-        // String fileName = onlyTypeChange ?
-        // "modifiedFields_only_type_change.json":
-        // Config.getConf().modifiedFieldsFileName;
-        String fileName = onlyTypeChange
-                ? "modifiedFields_classname_must_match.json"
-                : Config.getConf().modifiedFieldsFileName;
+        String fileName = Config
+                .getConf().modifiedFieldsClassnameOnlyTypeChangeFileName;
+        // String fileName =
+        // Config.getConf().modifiedFieldsClassnameMustMatchFileName;
+        // String fileName = Config.getConf().modifiedFieldsFileName;
 
         Path modifiedFieldsPath = upgradeFormatInfoFolder
                 .resolve(fileName);

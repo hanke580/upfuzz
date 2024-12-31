@@ -13,8 +13,8 @@ server_prefix=$3
 
 for n in $(seq $start $end); do
     server="${server_prefix}${n}"
-		ssh $server "cd ~/project/upfuzz && ls ."
-		
+		ssh $server "cd ~/project/upfuzz && grep \"new combinations\" format_coverage.log | wc -l "
+
 done
 
 echo "Done."

@@ -279,11 +279,8 @@ public class FuzzingServer {
                         + Config.getConf().upgradedVersion);
         assert upgradeFormatInfoFolder.toFile().exists();
         if (Config.getConf().srcVD) {
-            String modFileName = Config.getConf().srcVDClassnameMustMatch
-                    ? Config.getConf().modifiedFieldsClassnameMustMatchFileName
-                    : Config.getConf().modifiedFieldsFileName;
-            Path modifiedFieldsPath = upgradeFormatInfoFolder
-                    .resolve(modFileName);
+            Path modifiedFieldsPath = getModifiedFieldsPath(
+                    upgradeFormatInfoFolder);
             Map<String, Set<String>> modifiedFields = Utils
                     .loadModifiedFields(modifiedFieldsPath);
             Map<String, Map<String, String>> oriClassInfo = Utilities
@@ -333,6 +330,28 @@ public class FuzzingServer {
             // changedClasses);
             oriObjCoverage.setChangedClasses(changedClasses);
         }
+    }
+
+    private static Path getModifiedFieldsPath(Path upgradeFormatInfoFolder) {
+        String modFileName;
+        switch (Config.getConf().vdType) {
+        case all:
+            modFileName = Config.getConf().modifiedFieldsFileName;
+            break;
+        case classNameMatch:
+            modFileName = Config
+                    .getConf().modifiedFieldsClassnameMustMatchFileName;
+            break;
+        case typeChange:
+            modFileName = Config
+                    .getConf().modifiedFieldsClassnameOnlyTypeChangeFileName;
+            break;
+        default:
+            throw new RuntimeException("Unsupported vdType");
+        }
+        Path modifiedFieldsPath = upgradeFormatInfoFolder
+                .resolve(modFileName);
+        return modifiedFieldsPath;
     }
 
     private void init() {
