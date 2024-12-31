@@ -37,11 +37,13 @@ public class CorpusNonVersionDelta extends Corpus {
                 Config.getConf().FC_MOD_CorpusNonVersionDelta,
                 Config.getConf().BoundaryChange_CorpusNonVersionDelta });
         // sum of probabilities should be 1
-        if (Config.getConf().FC_CorpusNonVersionDelta
+        double sum = Config.getConf().FC_CorpusNonVersionDelta
                 + Config.getConf().FC_MOD_CorpusNonVersionDelta
                 + Config.getConf().BC_CorpusNonVersionDelta
-                + Config.getConf().BoundaryChange_CorpusNonVersionDelta != 1)
-            throw new RuntimeException("Sum of probabilities should be 1");
+                + Config.getConf().BoundaryChange_CorpusNonVersionDelta;
+        if (Math.abs(sum - 1.0) > 1e-9) // Allow a small error margin (epsilon)
+            throw new RuntimeException(
+                    "Sum of probabilities should be approximately 1");
         assert Config.getConf().useFormatCoverage;
     }
 
