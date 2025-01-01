@@ -125,6 +125,7 @@ public class FuzzingServer {
 
     private int newFormatCount = 0;
     private int nonMatchableNewFormatCount = 0;
+    private int nonMatchableMultiInvCount = 0;
 
     // ------------------- Version Delta -------------------
     // Matchable Format (formats that exist in both versions)
@@ -1435,14 +1436,19 @@ public class FuzzingServer {
                     // New format relevant to modification
                     assert !(Config.getConf().staticVD
                             && Config.getConf().prioritizeIsSerialized);
-                    if (Config.getConf().staticVD && oriFormatCoverageStatus
-                            .isNonMatchableNewFormat()) {
-                        logger.info(
-                                "New modification related format coverage for test "
-                                        + feedbackPacket.testPacketID);
-                        newModFC = true;
-                        nonMatchableNewFormatCount += oriFormatCoverageStatus
-                                .getNonMatchableNewFormatCount();
+                    if (Config.getConf().staticVD) {
+                        if (oriFormatCoverageStatus.isNonMatchableNewFormat()) {
+                            logger.info(
+                                    "New modification related format coverage for test "
+                                            + feedbackPacket.testPacketID);
+                            newModFC = true;
+                            nonMatchableNewFormatCount += oriFormatCoverageStatus
+                                    .getNonMatchableNewFormatCount();
+                        }
+                        if (oriFormatCoverageStatus.isNonMatchableMultiInv()) {
+                            nonMatchableMultiInvCount += oriFormatCoverageStatus
+                                    .getNonMatchableMultiInvCount();
+                        }
                     }
                     if (Config.getConf().staticVD
                             && Config.getConf().prioritizeMultiInv
@@ -2340,7 +2346,7 @@ public class FuzzingServer {
                 System.out.format("|%30s|%30s|%30s|%30s|\n",
                         "format num : " + newFormatCount,
                         "vd-format num : " + nonMatchableNewFormatCount,
-                        "",
+                        "vd-multi-inv num : " + nonMatchableMultiInvCount,
                         "");
             } else {
                 System.out.format("|%30s|%30s|%30s|%30s|\n",
