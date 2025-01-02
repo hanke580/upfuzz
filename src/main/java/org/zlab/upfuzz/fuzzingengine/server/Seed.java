@@ -81,6 +81,12 @@ public class Seed implements Serializable, Comparable<Seed> {
                     commandPool.readCommandClassList, null, stateClass,
                     originalCommandSequence.state, true);
             postProcessValidationCommands(validationCommandSequence);
+
+            if (Config.getConf().debug) {
+                System.out.println("Original Command Sequence:");
+                Utilities.printCommandSequence(originalCommandSequence);
+            }
+
             return new Seed(originalCommandSequence, validationCommandSequence,
                     configIdx, testID, 0);
         } catch (Exception e) {

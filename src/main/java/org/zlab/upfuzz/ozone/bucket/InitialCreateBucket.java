@@ -4,10 +4,7 @@ import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.ozone.OzoneState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
-import org.zlab.upfuzz.utils.STRINGType;
 import org.zlab.upfuzz.ozone.Sh;
-import org.zlab.upfuzz.ozone.OzoneParameterType.OzoneVolumeType;
-import org.zlab.upfuzz.ozone.OzoneParameterType.OzoneBucketType;
 
 public class InitialCreateBucket extends Sh {
 
