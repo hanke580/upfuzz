@@ -1486,4 +1486,14 @@ public class Utilities {
         }
         return newClassInfo;
     }
+
+    // concate variable length of strings with " "
+    public static String concat(String... strings) {
+        StringBuilder sb = new StringBuilder();
+        for (String s : strings) {
+            sb.append(s);
+            sb.append(" ");
+        }
+        return sb.toString();
+    }
 }

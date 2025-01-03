@@ -15,7 +15,8 @@ public abstract class BucketQuery extends Sh {
         params.add(volumeNameParam);
 
         // choose a bucket
-        Parameter bucketNameParam = chooseBucket(state, this, volumeNameParam.toString());
+        Parameter bucketNameParam = chooseBucket(state, this,
+                volumeNameParam.toString());
         params.add(bucketNameParam);
     }
 

@@ -104,6 +104,15 @@ public class OzoneState extends State {
         return Utilities.strings2Parameters(layout.get(volumeName).keySet());
     }
 
+    public Set<Parameter> getKeys(String volumeName, String bucketName) {
+        if (!layout.containsKey(volumeName))
+            return new HashSet<>();
+        if (!layout.get(volumeName).containsKey(bucketName))
+            return new HashSet<>();
+        return Utilities
+                .strings2Parameters(layout.get(volumeName).get(bucketName));
+    }
+
     public void randomize(double ratio) {
         dfs.randomize(ratio);
         lfs.randomize(ratio);

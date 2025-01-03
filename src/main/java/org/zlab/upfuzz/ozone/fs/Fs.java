@@ -5,6 +5,8 @@ import org.zlab.upfuzz.ozone.OzoneCommand;
 
 public abstract class Fs extends OzoneCommand {
 
+    String subdir = "";
+
     public Fs(String subdir) {
         super(subdir);
     }
@@ -24,5 +26,18 @@ public abstract class Fs extends OzoneCommand {
     @Override
     public String toString() {
         return constructCommandString();
+    }
+
+    public String constructCommandStringWithDirSeparation(String type) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(type).append(" ");
+        int i = 0;
+        while (i < params.size() - 1) {
+            if (!params.get(i).toString().isEmpty())
+                sb.append(params.get(i)).append(" ");
+            i++;
+        }
+        // sb.append(subdir).append(params.get(i));
+        return sb.toString();
     }
 }

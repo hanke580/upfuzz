@@ -14,10 +14,11 @@ public class CreateBucket extends Sh {
         params.add(volumeNameParam);
 
         // TODO: add a predicate there must exists an volume
-        ParameterType.ConcreteType bucketNameType =
-                new ParameterType.NotInCollectionType(
-                        new ParameterType.NotEmpty(new STRINGType(20, 3)),
-                        (s, c) -> ((OzoneState) s).getBuckets(volumeNameParam.toString()), null);
+        ParameterType.ConcreteType bucketNameType = new ParameterType.NotInCollectionType(
+                new ParameterType.NotEmpty(new STRINGType(20, 3)),
+                (s, c) -> ((OzoneState) s)
+                        .getBuckets(volumeNameParam.toString()),
+                null);
         Parameter bucketNameParam = bucketNameType
                 .generateRandomParameter(state, this);
         this.params.add(bucketNameParam);

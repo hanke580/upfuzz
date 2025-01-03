@@ -1,13 +1,16 @@
-package org.zlab.upfuzz.ozone.sh.bucket;
+package org.zlab.upfuzz.ozone.sh.key;
 
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.ozone.OzoneState;
 import org.zlab.upfuzz.ozone.Sh;
+import org.zlab.upfuzz.utils.Utilities;
 
-public class DeleteBucket extends Sh {
+public abstract class KeyQuery extends Sh {
 
-    public DeleteBucket(OzoneState state) {
+    String command;
+
+    public KeyQuery(OzoneState state) {
         // choose a volume
         Parameter volumeNameParam = chooseVolume(state, this);
         params.add(volumeNameParam);
@@ -16,19 +19,24 @@ public class DeleteBucket extends Sh {
         Parameter bucketNameParam = chooseBucket(state, this,
                 volumeNameParam.toString());
         params.add(bucketNameParam);
+
+        // choose a key
+        Parameter keyNameParam = chooseKey(state, this,
+                volumeNameParam.toString(), bucketNameParam.toString());
+        params.add(keyNameParam);
     }
 
     @Override
     public void updateState(State state) {
-        String volumeName = params.get(0).toString();
-        String bucketName = params.get(1).toString();
-        ((OzoneState) state).deleteBucket(volumeName, bucketName);
     }
 
     @Override
     public String constructCommandString() {
+        assert command != null;
         String volumeName = params.get(0).toString();
         String bucketName = params.get(1).toString();
-        return "sh bucket delete " + " " + volumeName + "/" + bucketName;
+        String keyName = params.get(2).toString();
+        String path = volumeName + "/" + bucketName + "/" + keyName;
+        return Utilities.concat("sh key", command, path);
     }
 }
