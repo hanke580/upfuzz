@@ -357,6 +357,10 @@ public class Config {
 
         public boolean eval_HBASE22503 = false;
 
+        // == ozone ==
+        public boolean testFSCommands = false;
+        public boolean testSHCommands = true;
+
         // == unit test ==
         public boolean eval_UnitTest = false;
 

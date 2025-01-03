@@ -16,8 +16,6 @@ import org.zlab.upfuzz.hdfs.HdfsState;
 import org.zlab.upfuzz.hdfs.dfs.SpecialMkdir;
 import org.zlab.upfuzz.ozone.OzoneState;
 import org.zlab.upfuzz.ozone.fs.InitialMkdir;
-import org.zlab.upfuzz.ozone.fs.InitialLs;
-import org.zlab.upfuzz.ozone.fs.Mkdir;
 import org.zlab.upfuzz.ozone.bucket.InitialCreateBucket;
 import org.zlab.upfuzz.utils.INTType;
 import org.zlab.upfuzz.utils.STRINGType;
@@ -370,16 +368,10 @@ public class CommandSequence implements Serializable {
                     commands.add(new SpecialMkdir((HdfsState) state));
                 } else if (Config.getConf().system.equals("ozone")) {
                     if (!isRead) {
-                        // Command initialCreateVolumeCmd = new
-                        // InitialCreateVolume(
-                        // (OzoneState) state);
-                        // Parameter volumeName = initialCreateVolumeCmd.params
-                        // .get(initialCreateVolumeCmd.params.size() - 1);
                         Command initialCreateBucketCmd = new InitialCreateBucket(
                                 (OzoneState) state);
                         // commands.add(initialCreateVolumeCmd);
                         commands.add(initialCreateBucketCmd);
-                        commands.add(new InitialLs((OzoneState) state));
                         commands.add(new InitialMkdir((OzoneState) state));
                     }
                 }
