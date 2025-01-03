@@ -24,8 +24,7 @@ public class DeleteKey extends Sh {
 
     @Override
     public void updateState(State state) {
-        ((OzoneState) state).oos.removeKey(params.get(1).toString());
-        return;
+        // ((OzoneState) state).oos.removeKey(params.get(1).toString());
     }
 
     @Override

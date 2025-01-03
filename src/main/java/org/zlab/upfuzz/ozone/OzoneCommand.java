@@ -1,34 +1,29 @@
 package org.zlab.upfuzz.ozone;
 
 import org.zlab.upfuzz.Command;
+import org.zlab.upfuzz.Parameter;
+import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
+import org.zlab.upfuzz.cassandra.CassandraState;
 import org.zlab.upfuzz.fuzzingengine.Config;
+import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
+import org.zlab.upfuzz.utils.Utilities;
 
 import java.util.LinkedList;
 import java.util.List;
 
 public abstract class OzoneCommand extends Command {
-    public String subdir;
-    public String bucket;
-    public String volume;
 
     public OzoneCommand(String subdir) {
-        this.subdir = subdir;
         initStorageTypeOptions();
     }
 
-    public OzoneCommand(String subdir, String bucket, String volume) {
-        this.subdir = subdir;
-        this.bucket = bucket;
-        this.volume = volume;
+    public OzoneCommand() {
         initStorageTypeOptions();
     }
 
     @Override
     public void separate(State state) {
-        subdir = ((OzoneState) state).subdir;
-        bucket = ((OzoneState) state).bucket;
-        bucket = ((OzoneState) state).volume;
     }
 
     public List<String> storageTypeOptions = new LinkedList<>();
@@ -44,16 +39,27 @@ public abstract class OzoneCommand extends Command {
             storageTypeOptions.add("PROVIDED");
     }
 
-    public String constructCommandStringWithDirSeparation(String type) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(type).append(" ");
-        int i = 0;
-        while (i < params.size() - 1) {
-            if (!params.get(i).toString().isEmpty())
-                sb.append(params.get(i)).append(" ");
-            i++;
-        }
-        sb.append(subdir).append(params.get(i));
-        return sb.toString();
+    /**
+     * This helper function will randomly pick an existing volume and return its
+     * tablename as parameter.
+     */
+    public static Parameter chooseVolume(OzoneState state, Command command) {
+        ParameterType.ConcreteType keyspaceNameType = new ParameterType.InCollectionType(
+                CONSTANTSTRINGType.instance,
+                (s, c) -> state.getVolumes(),
+                null);
+        return keyspaceNameType.generateRandomParameter(state, command);
+    }
+
+    /**
+     * This helper function will randomly pick an existing volume and return its
+     * tablename as parameter.
+     */
+    public static Parameter chooseBucket(OzoneState state, Command command, String volumeName) {
+        ParameterType.ConcreteType keyspaceNameType = new ParameterType.InCollectionType(
+                CONSTANTSTRINGType.instance,
+                (s, c) -> state.getBuckets(volumeName),
+                null);
+        return keyspaceNameType.generateRandomParameter(state, command);
     }
 }

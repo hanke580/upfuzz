@@ -23,6 +23,9 @@ public class OzoneObjectStorage implements Serializable {
     Map<String, ObjNode> inodeMap = new HashMap<String, ObjNode>();
 
     // --------Simple FS--------
+    // volume -> bucket -> key
+    public Map<String, Map<String, Set<String>>> layout = new HashMap<>();
+
     public Set<String> buckets = new HashSet<>();
     public Set<String> volumes = new HashSet<>();
     public Set<String> keys = new HashSet<>();

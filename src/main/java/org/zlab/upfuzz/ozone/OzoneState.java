@@ -2,6 +2,7 @@ package org.zlab.upfuzz.ozone;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
+import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.hdfs.MockFS.HadoopFileSystem;
 import org.zlab.upfuzz.hdfs.MockFS.INode;
@@ -9,6 +10,12 @@ import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.MockFS.LocalFileSystem;
 import org.zlab.upfuzz.ozone.MockObjectStorage.OzoneObjectStorage;
 import org.zlab.upfuzz.ozone.MockObjectStorage.ObjNode;
+import org.zlab.upfuzz.utils.Utilities;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class OzoneState extends State {
 
@@ -17,7 +24,10 @@ public class OzoneState extends State {
     public String bucket;
     public String key;
     public HadoopFileSystem dfs;
-    public OzoneObjectStorage oos;
+    // public OzoneObjectStorage oos;
+
+    // layout: volume -> bucket -> key
+    public Map<String, Map<String, Set<String>>> layout = new HashMap<>();
 
     // reuse local fs
     public static LocalFileSystem lfs;
@@ -41,12 +51,57 @@ public class OzoneState extends State {
         bucket = RandomStringUtils.randomAlphabetic(4, 9);
         // subdir = "";
         dfs = new HadoopFileSystem();
-        oos = new OzoneObjectStorage();
         dfs.randomize(0.6);
         // A small chance to use the new fs state
         if (RandomUtils.nextDouble(0, 1) < Config.getConf().new_fs_state_prob) {
             newLocalFSState();
         }
+    }
+
+    public void addVolume(String volumeName) {
+        if (!layout.containsKey(volumeName)) {
+            layout.put(volumeName, new HashMap<>());
+        }
+    }
+
+    public void deleteVolume(String volumeName) {
+        layout.remove(volumeName);
+    }
+
+    public void addBucket(String volumeName, String bucketName) {
+        // volume must exist!
+        assert layout.containsKey(volumeName);
+        if (!layout.get(volumeName).containsKey(bucketName))
+            layout.get(volumeName).put(bucketName, new HashSet<>());
+        // otherwise, do nothing
+    }
+
+    public void deleteBucket(String volumeName, String bucketName) {
+        assert layout.containsKey(volumeName);
+        layout.get(volumeName).remove(bucketName);
+    }
+
+    public void addKey(String volumeName, String bucketName, String keyName) {
+        assert layout.containsKey(volumeName);
+        assert layout.get(volumeName).containsKey(bucketName);
+        layout.get(volumeName).get(bucketName).add(keyName);
+    }
+
+    public void deleteKey(String volumeName, String bucketName,
+            String keyName) {
+        assert layout.containsKey(volumeName);
+        assert layout.get(volumeName).containsKey(bucketName);
+        layout.get(volumeName).get(bucketName).remove(keyName);
+    }
+
+    public Set<Parameter> getVolumes() {
+        return Utilities.strings2Parameters(layout.keySet());
+    }
+
+    public Set<Parameter> getBuckets(String volumeName) {
+        if (!layout.containsKey(volumeName))
+            return new HashSet<>();
+        return Utilities.strings2Parameters(layout.get(volumeName).keySet());
     }
 
     public void randomize(double ratio) {
@@ -57,8 +112,9 @@ public class OzoneState extends State {
     @Override
     public void clearState() {
         dfs = new HadoopFileSystem();
-        oos = new OzoneObjectStorage();
         // lfs remain the same
+        // clear layout
+        layout.clear();
     }
 
     public INode getRandomHadoopPath() {
@@ -79,17 +135,5 @@ public class OzoneState extends State {
         } else {
             return "";
         }
-    }
-
-    public ObjNode getRandomVolume() {
-        return oos.getRandomVolume();
-    }
-
-    public ObjNode getRandomBucket() {
-        return oos.getRandomBucket();
-    }
-
-    public ObjNode getRandomKey() {
-        return oos.getRandomKey();
     }
 }

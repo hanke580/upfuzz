@@ -5,8 +5,6 @@ import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.ozone.OzoneState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.ozone.Sh;
-import org.zlab.upfuzz.ozone.OzoneState;
-import org.zlab.upfuzz.ozone.OzoneParameterType.OzoneKeyType;
 
 public class KeyGetAcl extends Sh {
 
@@ -24,7 +22,6 @@ public class KeyGetAcl extends Sh {
 
     @Override
     public void updateState(State state) {
-        return;
     }
 
     @Override

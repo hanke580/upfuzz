@@ -1,7 +1,6 @@
 package org.zlab.upfuzz.ozone.fs;
 
 import org.zlab.upfuzz.Parameter;
-import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.ozone.OzoneParameterType.OzoneFilePathType;
 import org.zlab.upfuzz.ozone.OzoneParameterType.RandomLocalPathType;

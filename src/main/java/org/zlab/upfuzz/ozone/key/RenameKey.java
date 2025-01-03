@@ -5,7 +5,6 @@ import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.ozone.OzoneState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.ozone.Sh;
-import org.zlab.upfuzz.ozone.OzoneState;
 import org.zlab.upfuzz.ozone.OzoneParameterType.OzoneKeyType;
 import org.zlab.upfuzz.utils.STRINGType;
 
@@ -35,7 +34,7 @@ public class RenameKey extends Sh {
                 currentKeyPath.lastIndexOf("/"));
         String p = bucketPath + "/"
                 + (params.get(2).toString()).toString();
-        ((OzoneState) state).oos.renameKey(currentKeyPath, bucketPath);
+        // ((OzoneState) state).oos.renameKey(currentKeyPath, bucketPath);
     }
 
     @Override

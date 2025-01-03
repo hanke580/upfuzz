@@ -1,16 +1,10 @@
 package org.zlab.upfuzz.ozone;
 
 import org.zlab.upfuzz.Parameter;
-import org.zlab.upfuzz.ozone.OzoneCommand;
 
 public abstract class Sh extends OzoneCommand {
 
-    public Sh(String subdir) {
-        super(subdir);
-    }
-
-    public Sh(String subdir, String bucket, String volume) {
-        super(subdir, bucket, volume);
+    public Sh() {
     }
 
     @Override

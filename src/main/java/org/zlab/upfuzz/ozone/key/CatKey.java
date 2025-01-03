@@ -5,13 +5,11 @@ import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.ozone.OzoneState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.ozone.Sh;
-import org.zlab.upfuzz.ozone.OzoneState;
-import org.zlab.upfuzz.ozone.OzoneParameterType.OzoneKeyType;
 
 public class CatKey extends Sh {
 
     public CatKey(OzoneState state) {
-        super(state.key);
+        super();
 
         Parameter keyCatCmd = new CONSTANTSTRINGType("cat")
                 .generateRandomParameter(null, null);
@@ -24,7 +22,6 @@ public class CatKey extends Sh {
 
     @Override
     public void updateState(State state) {
-        return;
     }
 
     @Override
@@ -32,5 +29,4 @@ public class CatKey extends Sh {
         String p = (params.get(1).toString()).toString();
         return "sh key" + " " + params.get(0) + " " + p;
     }
-
 }

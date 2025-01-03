@@ -40,9 +40,8 @@ public class PutKey extends Sh {
         if (!(params.get(3).toString()).toString().equals("")) {
             String p1 = (params.get(1).toString()).toString() + "/"
                     + (params.get(2).toString()).toString();
-            ((OzoneState) state).oos.createKey(p1);
+            // ((OzoneState) state).oos.createKey(p1);
         }
-        return;
     }
 
     @Override

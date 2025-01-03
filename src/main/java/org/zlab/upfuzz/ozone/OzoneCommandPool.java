@@ -7,6 +7,11 @@ import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.ozone.key.*;
 import org.zlab.upfuzz.ozone.bucket.*;
 import org.zlab.upfuzz.ozone.fs.*;
+import org.zlab.upfuzz.ozone.sh.bucket.*;
+import org.zlab.upfuzz.ozone.sh.volume.CreateVolume;
+import org.zlab.upfuzz.ozone.sh.volume.DeleteVolume;
+import org.zlab.upfuzz.ozone.sh.volume.VolumeGetAcl;
+import org.zlab.upfuzz.ozone.sh.volume.VolumeInfo;
 import org.zlab.upfuzz.ozone.volume.*;
 
 public class OzoneCommandPool extends CommandPool {

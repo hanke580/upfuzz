@@ -35,7 +35,7 @@ public class CpKey extends Sh {
                 currentKeyPath.lastIndexOf("/"));
         String p = bucketPath + "/"
                 + (params.get(2).toString()).toString();
-        ((OzoneState) state).oos.createKey(p);
+        // ((OzoneState) state).oos.createKey(p);
     }
 
     @Override
