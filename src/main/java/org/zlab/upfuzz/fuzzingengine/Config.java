@@ -224,7 +224,7 @@ public class Config {
         // true: use source code comparison to extract modified formats
         // false: binary analysis for both versions and then do comparison
         public boolean srcVD = true;
-        public VDType vdType = VDType.classNameMatch;
+        public VDType vdType = VDType.all;
 
         public enum VDType {
             all, classNameMatch, typeChange
