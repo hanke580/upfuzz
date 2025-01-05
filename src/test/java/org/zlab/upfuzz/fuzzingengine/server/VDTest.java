@@ -153,8 +153,10 @@ public class VDTest {
     public void testSrcVD() {
         new Config();
 
-        String originalVersion = "apache-cassandra-2.2.19";
-        String upgradedVersion = "apache-cassandra-3.0.30";
+        // String originalVersion = "apache-cassandra-2.2.19";
+        // String upgradedVersion = "apache-cassandra-3.0.30";
+        String originalVersion = "hadoop-2.10.2";
+        String upgradedVersion = "hadoop-3.3.6";
 
         Path oriFormatInfoFolder = Paths.get("configInfo")
                 .resolve(originalVersion);
@@ -164,7 +166,7 @@ public class VDTest {
                 .resolve(originalVersion + "_" + upgradedVersion);
 
         String fileName = Config
-                .getConf().modifiedFieldsClassnameOnlyTypeChangeFileName;
+                .getConf().modifiedFieldsFileName;
         // String fileName =
         // Config.getConf().modifiedFieldsClassnameMustMatchFileName;
         // String fileName = Config.getConf().modifiedFieldsFileName;
