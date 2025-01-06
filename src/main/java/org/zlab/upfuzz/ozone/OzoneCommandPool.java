@@ -32,36 +32,42 @@ public class OzoneCommandPool extends CommandPool {
                     new AbstractMap.SimpleImmutableEntry<>(Count.class,
                             readCommandRate));
         }
-        readCommandClassList
-                .add(new AbstractMap.SimpleImmutableEntry<>(VolumeInfo.class,
-                        readCommandRate));
-        readCommandClassList
-                .add(new AbstractMap.SimpleImmutableEntry<>(KeyLs.class,
-                        readCommandRate));
-        readCommandClassList
-                .add(new AbstractMap.SimpleImmutableEntry<>(VolumeGetAcl.class,
-                        readCommandRate));
-        readCommandClassList
-                .add(new AbstractMap.SimpleImmutableEntry<>(BucketLs.class,
-                        readCommandRate));
-        readCommandClassList
-                .add(new AbstractMap.SimpleImmutableEntry<>(BucketInfo.class,
-                        readCommandRate));
-        readCommandClassList
-                .add(new AbstractMap.SimpleImmutableEntry<>(BucketGetAcl.class,
-                        readCommandRate));
-        readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(CatKey.class,
-                        readCommandRate));
-        readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(KeyInfo.class,
-                        readCommandRate));
-        readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(KeyGetAcl.class,
-                        readCommandRate));
-        readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(Ls.class,
-                        readCommandRate));
+        if (Config.getConf().testSHCommands) {
+            readCommandClassList
+                    .add(new AbstractMap.SimpleImmutableEntry<>(
+                            VolumeInfo.class,
+                            readCommandRate));
+            readCommandClassList
+                    .add(new AbstractMap.SimpleImmutableEntry<>(KeyLs.class,
+                            readCommandRate));
+            readCommandClassList
+                    .add(new AbstractMap.SimpleImmutableEntry<>(
+                            VolumeGetAcl.class,
+                            readCommandRate));
+            readCommandClassList
+                    .add(new AbstractMap.SimpleImmutableEntry<>(BucketLs.class,
+                            readCommandRate));
+            readCommandClassList
+                    .add(new AbstractMap.SimpleImmutableEntry<>(
+                            BucketInfo.class,
+                            readCommandRate));
+            readCommandClassList
+                    .add(new AbstractMap.SimpleImmutableEntry<>(
+                            BucketGetAcl.class,
+                            readCommandRate));
+            readCommandClassList.add(
+                    new AbstractMap.SimpleImmutableEntry<>(CatKey.class,
+                            readCommandRate));
+            readCommandClassList.add(
+                    new AbstractMap.SimpleImmutableEntry<>(KeyInfo.class,
+                            readCommandRate));
+            readCommandClassList.add(
+                    new AbstractMap.SimpleImmutableEntry<>(KeyGetAcl.class,
+                            readCommandRate));
+            readCommandClassList.add(
+                    new AbstractMap.SimpleImmutableEntry<>(Ls.class,
+                            readCommandRate));
+        }
     }
 
     @Override
