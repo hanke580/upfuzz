@@ -15,7 +15,7 @@ public class CreateBucket extends Sh {
 
         // TODO: add a predicate there must exists an volume
         ParameterType.ConcreteType bucketNameType = new ParameterType.NotInCollectionType(
-                new ParameterType.NotEmpty(new STRINGType(20, 3)),
+                new ParameterType.NotEmpty(new STRINGType(20, 3, true)),
                 (s, c) -> ((OzoneState) s)
                         .getBuckets(volumeNameParam.toString()),
                 null);

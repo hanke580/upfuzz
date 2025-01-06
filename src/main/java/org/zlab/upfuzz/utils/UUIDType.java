@@ -10,7 +10,7 @@ public class UUIDType extends ParameterType.ConcreteType {
 
     public static final UUIDType instance = new UUIDType();
 
-    static public String generateUUID() {
+    public static String generateUUID() {
         String uuid = UUID.randomUUID().toString().replace("-", "");
         return "uuid" + uuid;
     }

@@ -358,6 +358,9 @@ public class Config {
         public boolean eval_HBASE22503 = false;
 
         // == ozone ==
+        // Add a special first command... (will be deprecated)
+        public boolean ozoneAppendSpecialCommand = false;
+
         public boolean testFSCommands = false;
         public boolean testSHCommands = true;
 

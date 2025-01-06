@@ -16,6 +16,8 @@ public class STRINGType extends ParameterType.BasicConcreteType {
 
     public int MAX_LEN = 1024; // FIXME: what's a appropriate value?
     public int MIN_LEN = 1;
+    // lower case
+    public boolean onlyLowerCase = false;
 
     public static final Set<String> stringPool = new HashSet<>();
     public static final String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -34,6 +36,19 @@ public class STRINGType extends ParameterType.BasicConcreteType {
         assert MIN_LEN > 0;
         assert MAX_LEN > 1;
         assert MAX_LEN >= MIN_LEN;
+    }
+
+    public STRINGType(int MAX_LEN, int MIN_LEN, boolean onlyLowerCase) {
+        this.MIN_LEN = MIN_LEN;
+        this.MAX_LEN = MAX_LEN;
+        this.onlyLowerCase = onlyLowerCase;
+        assert MIN_LEN > 0;
+        assert MAX_LEN > 1;
+        assert MAX_LEN >= MIN_LEN;
+    }
+
+    public STRINGType(boolean onlyLowerCase) {
+        this.onlyLowerCase = onlyLowerCase;
     }
 
     public STRINGType() {
@@ -55,7 +70,11 @@ public class STRINGType extends ParameterType.BasicConcreteType {
             char randomChar = alphabet.charAt(index);
             sb.append(randomChar);
         }
-        return sb.toString();
+        String ret = sb.toString();
+        if (onlyLowerCase) {
+            ret = ret.toLowerCase();
+        }
+        return ret;
     }
 
     public String generateRandomString() {
@@ -69,7 +88,11 @@ public class STRINGType extends ParameterType.BasicConcreteType {
             char randomChar = alphabet.charAt(index);
             sb.append(randomChar);
         }
-        return sb.toString();
+        String ret = sb.toString();
+        if (onlyLowerCase) {
+            ret = ret.toLowerCase();
+        }
+        return ret;
     }
 
     public static boolean contains(String[] strArray, String str) {
@@ -89,6 +112,8 @@ public class STRINGType extends ParameterType.BasicConcreteType {
         }
         assert init instanceof String;
         String initValue = (String) init;
+        if (onlyLowerCase)
+            initValue = initValue.toLowerCase();
         return new Parameter(this, initValue);
     }
 
@@ -119,9 +144,10 @@ public class STRINGType extends ParameterType.BasicConcreteType {
                 }
                 for (int i = 0; i < 3; i++) {
                     int idx = rand.nextInt(stringPoolList.size());
-                    ret = new Parameter(this,
-                            stringPoolList.get(idx));
-
+                    String str = stringPoolList.get(idx);
+                    if (onlyLowerCase)
+                        str = str.toLowerCase();
+                    ret = new Parameter(this, str);
                     if (isValid(s, c, ret)) {
                         return ret;
                     }
@@ -157,6 +183,9 @@ public class STRINGType extends ParameterType.BasicConcreteType {
                                            // Cassandra
             return false;
         if (((String) p.value).length() > MAX_LEN)
+            return false;
+        if (onlyLowerCase
+                && !((String) p.value).equals(((String) p.value).toLowerCase()))
             return false;
         return true;
     }
@@ -235,6 +264,9 @@ public class STRINGType extends ParameterType.BasicConcreteType {
         default:
             throw new IllegalStateException("Unexpected value: " + choice);
         }
+
+        if (onlyLowerCase)
+            mutatedString = mutatedString.toLowerCase();
 
         Parameter tmp = new Parameter(this, mutatedString);
         if (isValid(s, c, tmp)) {

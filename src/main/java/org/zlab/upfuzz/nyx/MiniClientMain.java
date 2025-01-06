@@ -968,6 +968,10 @@ public class MiniClientMain {
 
     public static void runOzoneWriteCommands(TestPacket tp, Executor executor,
             List<String> ozoneDefaultFSs) {
+        if (!Config.getConf().ozoneAppendSpecialCommand) {
+            executor.executeCommands(tp.originalCommandSequenceList);
+            return;
+        }
         List<String> originalCommandSequenceListCombined = tp.originalCommandSequenceList;
         List<String> initCommands = new ArrayList<>();
         String initBucketCommand = originalCommandSequenceListCombined
@@ -990,10 +994,8 @@ public class MiniClientMain {
             String fsPath = "o3fs://" + bucketNameParam + "."
                     + volumeNameParam;
 
-            /**
-             * To make sure that interferences are avoided: 
-             * each set of write commands work on different defaultFS
-            **/
+            // Make sure that interferences are avoided:
+            // Each set of write commands work on different defaultFS
             ((OzoneExecutor) executor).setDefaultFs(fsPath, 0);
             ozoneDefaultFSs.add(fsPath);
 
