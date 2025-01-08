@@ -12,8 +12,7 @@ public class RandomLocalPathType extends ConcreteType {
 
     @Override
     public Parameter generateRandomParameter(State s, Command c, Object init) {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override

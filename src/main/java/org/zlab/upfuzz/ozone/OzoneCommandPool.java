@@ -104,24 +104,27 @@ public class OzoneCommandPool extends CommandPool {
         if (Config.getConf().testSHCommands) {
             commandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
-                            CreateVolume.class, 3));
+                            CreateVolume.class, writeCommandRate));
             commandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
                             DeleteVolume.class, deleteLargeDataRate));
             commandClassList.add(
-                    new AbstractMap.SimpleImmutableEntry<>(PutKey.class, 5));
+                    new AbstractMap.SimpleImmutableEntry<>(PutKey.class,
+                            writeCommandRate));
             commandClassList.add(
-                    new AbstractMap.SimpleImmutableEntry<>(
-                            CreateBucket.class, 3));
+                    new AbstractMap.SimpleImmutableEntry<>(CreateBucket.class,
+                            writeCommandRate));
+            commandClassList.add(new AbstractMap.SimpleImmutableEntry<>(
+                    DeleteBucket.class, deleteLargeDataRate));
             commandClassList.add(
-                    new AbstractMap.SimpleImmutableEntry<>(
-                            DeleteBucket.class, 3));
+                    new AbstractMap.SimpleImmutableEntry<>(CpKey.class,
+                            writeCommandRate));
             commandClassList.add(
-                    new AbstractMap.SimpleImmutableEntry<>(CpKey.class, 3));
+                    new AbstractMap.SimpleImmutableEntry<>(RenameKey.class,
+                            writeCommandRate));
             commandClassList.add(
-                    new AbstractMap.SimpleImmutableEntry<>(RenameKey.class, 2));
-            commandClassList.add(
-                    new AbstractMap.SimpleImmutableEntry<>(DeleteKey.class, 3));
+                    new AbstractMap.SimpleImmutableEntry<>(DeleteKey.class,
+                            writeCommandRate));
         }
     }
 
@@ -130,10 +133,10 @@ public class OzoneCommandPool extends CommandPool {
         if (Config.getConf().testSHCommands) {
             createCommandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
-                            CreateVolume.class, 1));
+                            CreateVolume.class, createCommandRate));
             createCommandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
-                            CreateBucket.class, 1));
+                            CreateBucket.class, createCommandRate));
         }
         if (Config.getConf().testFSCommands) {
             createCommandClassList.add(
