@@ -1001,14 +1001,18 @@ public class MiniClientMain {
 
             executor.executeCommands(laterWriteCommands);
         } catch (Exception e) {
-            executor.executeCommands(originalCommandSequenceListCombined);
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
     public static List<String> runOzoneReadCommandsAfterUpgrade(
             int testPacketIdx, TestPacket tp,
             Executor executor, List<String> ozoneDefaultFSs) {
+        if (!Config.getConf().ozoneAppendSpecialCommand) {
+            List<String> upResult = executor
+                    .executeCommands(tp.validationCommandSequenceList);
+            return upResult;
+        }
         try {
             // Have to use the same defaultFS as the corresponding set of write
             // commands
@@ -1019,10 +1023,7 @@ public class MiniClientMain {
                     .executeCommands(tp.validationCommandSequenceList);
             return upResult;
         } catch (Exception e) {
-            e.printStackTrace();
-            List<String> upResult = executor
-                    .executeCommands(tp.validationCommandSequenceList);
-            return upResult;
+            throw new RuntimeException(e);
         }
     }
 
