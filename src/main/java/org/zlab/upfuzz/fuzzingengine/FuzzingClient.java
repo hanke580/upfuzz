@@ -28,7 +28,6 @@ import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 import org.zlab.upfuzz.nyx.LibnyxInterface;
 
-import static org.zlab.upfuzz.fuzzingengine.server.FuzzingServer.readState;
 import static org.zlab.upfuzz.nyx.MiniClientMain.runTheTests;
 import static org.zlab.upfuzz.nyx.MiniClientMain.setTestType;
 

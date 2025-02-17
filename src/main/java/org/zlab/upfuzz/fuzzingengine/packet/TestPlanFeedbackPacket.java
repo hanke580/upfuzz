@@ -1,12 +1,11 @@
 package org.zlab.upfuzz.fuzzingengine.packet;
 
-import com.google.gson.Gson;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.zlab.net.tracker.Trace;
 import org.zlab.upfuzz.fuzzingengine.FeedBack;
 
 import java.io.DataInputStream;
-import java.io.IOException;
 import java.io.Serializable;
 
 public class TestPlanFeedbackPacket extends Packet implements Serializable {
@@ -30,6 +29,8 @@ public class TestPlanFeedbackPacket extends Packet implements Serializable {
 
     // For test plan, we only collect the new version coverage
     public FeedBack[] feedBacks;
+
+    public Trace[] traces;
 
     // TODO: We might want to compare the state between
     // (1) Rolling upgrade and (2) Full-stop upgrade
