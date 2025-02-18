@@ -1327,7 +1327,19 @@ public class FuzzingServer {
                         testID2TestPlan
                                 .get(testPlanFeedbackPacket.testPacketID));
             }
+        }
 
+        if (Config.getConf().useTrace) {
+            if (testPlanFeedbackPacket.trace != null) {
+                // Debug
+                logger.info(
+                        "trace len: " + testPlanFeedbackPacket.trace.length);
+                for (int i = 0; i < testPlanFeedbackPacket.trace.length; i++)
+                    logger.info("trace[" + i + "] len = "
+                            + testPlanFeedbackPacket.trace[i].size());
+            } else {
+                logger.error("trace is null");
+            }
         }
 
         Path failureDir;
