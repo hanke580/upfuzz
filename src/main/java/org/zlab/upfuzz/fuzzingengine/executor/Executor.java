@@ -8,15 +8,14 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionDataStore;
+import org.zlab.net.tracker.Trace;
 import org.zlab.ocov.tracker.ObjectGraphCoverage;
-import org.zlab.upfuzz.*;
 import org.zlab.upfuzz.docker.DockerCluster;
 import org.zlab.upfuzz.docker.DockerMeta;
 import org.zlab.upfuzz.fuzzingengine.AgentServerHandler;
 import org.zlab.upfuzz.fuzzingengine.AgentServerSocket;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.LogInfo;
-import org.zlab.upfuzz.fuzzingengine.server.Seed;
 import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
@@ -28,7 +27,6 @@ import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.PrepareUpgrade;
 import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.UpgradeOp;
 import org.zlab.upfuzz.hdfs.HdfsDockerCluster;
 import org.zlab.upfuzz.utils.Pair;
-import org.zlab.upfuzz.utils.Utilities;
 
 public abstract class Executor implements IExecutor {
     protected static final Logger logger = LogManager.getLogger(Executor.class);
@@ -45,8 +43,11 @@ public abstract class Executor implements IExecutor {
     public String testPlanExecutionLog = "";
     public int direction;
 
-    // Test plan coverage collection
+    // Test plan coverage
     public ExecutionDataStore[] oriCoverage;
+
+    // Test plan trace
+    public Trace[] trace;
 
     public DockerCluster dockerCluster;
 
@@ -79,6 +80,8 @@ public abstract class Executor implements IExecutor {
         this.systemID = systemID;
         this.nodeNum = nodeNum;
         this.oriCoverage = new ExecutionDataStore[nodeNum];
+        if (Config.getConf().useTrace)
+            this.trace = new Trace[nodeNum];
     }
 
     public void teardown() {
@@ -118,6 +121,14 @@ public abstract class Executor implements IExecutor {
 
     public void clearFormatCoverage() {
         dockerCluster.clearFormatCoverage();
+    }
+
+    public Trace[] collectTrace() {
+        return dockerCluster.collectTrace();
+    }
+
+    public Trace collectTrace(int nodeIdx) {
+        return dockerCluster.collectTrace(nodeIdx);
     }
 
     public boolean fullStopUpgrade() {
@@ -239,6 +250,8 @@ public abstract class Executor implements IExecutor {
                 int nodeIdx = upgradeOp.nodeIndex;
                 oriCoverage[nodeIdx] = collectSingleNodeCoverage(nodeIdx,
                         "original");
+                if (Config.getConf().useTrace)
+                    trace[nodeIdx].merge(collectTrace(nodeIdx));
 
                 if (Config.getConf().debug) {
                     testPlanExecutionLog += "(Upgrade) Single node coverage collection in "

@@ -285,6 +285,11 @@ public class Config {
 
         public double DROP_TEST_PROB_G2 = 0.1;
 
+        // -----------Network Trace Coverage-------------
+
+        // If true: collect the trace
+        public boolean useTrace = false;
+
         /**
          * ---------------Version Specific-----------------
          * To avoid FPs

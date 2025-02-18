@@ -1381,15 +1381,11 @@ public class FuzzingClient {
                     "[Fuzzing Client] completed first log checking in %d ms",
                     System.currentTimeMillis() - curTime2));
         }
-        // execute test plan (rolling upgrade + fault)
 
-        if (Config.getConf().debug) {
-            logger.info("[Fuzzing Client] Call to run the tests");
-        }
         boolean status = executor.execute(testPlanPacket.getTestPlan());
-        if (Config.getConf().debug) {
+
+        if (Config.getConf().debug)
             logger.info("[Fuzzing Client] completed the testing");
-        }
 
         if (Config.getConf().startUpClusterForDebugging) {
             logger.info("[Debugging Mode] Start up the cluster only");

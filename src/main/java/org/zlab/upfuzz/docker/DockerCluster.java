@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.RandomUtils;
+import org.zlab.net.tracker.Trace;
 import org.zlab.ocov.tracker.ObjectGraphCoverage;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.LogInfo;
@@ -301,6 +302,46 @@ public abstract class DockerCluster implements IDockerCluster {
                         + e);
             }
         }
+    }
+
+    public Trace[] collectTrace() {
+        assert dockers.length > 0;
+        Trace[] traces = new Trace[dockers.length];
+        for (int i = 0; i < dockers.length; i++) {
+            try {
+                traces[i] = dockers[i].collectTrace();
+            } catch (Exception e) {
+                logger.error("Exception occur when collecting" +
+                        " trace of docker  " + i
+                        + ", executorID = " + executorID
+                        + ", exception = "
+                        + e);
+                for (StackTraceElement ste : e.getStackTrace()) {
+                    logger.error(ste.toString());
+                }
+                // throw new RuntimeException(e);
+            }
+        }
+        return traces;
+    }
+
+    public Trace collectTrace(int nodeIndex) {
+        assert dockers.length > 0;
+        Trace trace = null;
+        try {
+            trace = dockers[nodeIndex].collectTrace();
+        } catch (Exception e) {
+            logger.error("Exception occur when collecting" +
+                    " trace of docker  " + nodeIndex
+                    + ", executorID = " + executorID
+                    + ", exception = "
+                    + e);
+            for (StackTraceElement ste : e.getStackTrace()) {
+                logger.error(ste.toString());
+            }
+            // throw new RuntimeException(e);
+        }
+        return trace;
     }
 
     @Override

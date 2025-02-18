@@ -1,10 +1,9 @@
 package org.zlab.upfuzz.docker;
 
+import org.zlab.net.tracker.Trace;
 import org.zlab.ocov.tracker.ObjectGraphCoverage;
 import org.zlab.upfuzz.fuzzingengine.LogInfo;
 
-import java.nio.file.Path;
-import java.util.Map;
 import java.util.Set;
 
 public interface IDocker {
@@ -27,6 +26,8 @@ public interface IDocker {
     void downgrade() throws Exception;
 
     ObjectGraphCoverage getFormatCoverage() throws Exception;
+
+    Trace collectTrace() throws Exception;
 
     void clearFormatCoverage() throws Exception;
 
