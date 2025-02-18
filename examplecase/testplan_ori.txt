@@ -24,6 +24,8 @@
 [Command] Execute {USE uuidc96506a5aae64cfa8e047b07e092fe38;}
 [Command] Execute {DROP KEYSPACE  uuidd70f6d1e98244ff9a915560bc7998ad5;}
 [Command] Execute {ALTER KEYSPACE uuidc96506a5aae64cfa8e047b07e092fe38 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 2 };}
+
+[Fault] RestartFailure: Node[1]
 [Command] Execute {ALTER TABLE uuidbcc9bea98f3c461eaa7f365bb02a5a60.L RENAME SaPOGZkHgPZd TO SaPOGZkHgPZd;}
 [FinalizeUpgrade] Finalize Upgrade Process
 
