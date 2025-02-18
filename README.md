@@ -518,7 +518,7 @@ python3 proc_failure.py cassandra
 python3 proc_failure.py read
 ```
 
-### Add cassandra log config for 3.0.x/2.2.x (3.0.15/2.2.8)
+### Add cassandra log config for 2.2.x, 3.0.x (3.0.15)
 Old version cassandra cannot use env var to adjust log dir, so we add a few scripts to save log separately.
 ```bash
 if [ -z "$CASSANDRA_LOG_DIR" ]; then
