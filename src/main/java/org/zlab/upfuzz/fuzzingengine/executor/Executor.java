@@ -262,8 +262,7 @@ public abstract class Executor implements IExecutor {
                 int nodeIdx = upgradeOp.nodeIndex;
                 oriCoverage[nodeIdx] = collectSingleNodeCoverage(nodeIdx,
                         "original");
-                if (Config.getConf().useTrace)
-                    trace[nodeIdx].merge(collectTrace(nodeIdx));
+                updateTrace(nodeIdx);
 
                 if (Config.getConf().debug) {
                     testPlanExecutionLog += "(Upgrade) Single node coverage collection in "
@@ -506,6 +505,8 @@ public abstract class Executor implements IExecutor {
         } else if (fault instanceof NodeFailure) {
             // Crash a node
             NodeFailure nodeFailure = (NodeFailure) fault;
+            // Update trace
+            updateTrace(nodeFailure.nodeIndex);
             return dockerCluster.stopContainer(nodeFailure.nodeIndex);
         } else if (fault instanceof IsolateFailure) {
             // Isolate a single node from the rest nodes
@@ -519,6 +520,8 @@ public abstract class Executor implements IExecutor {
         } else if (fault instanceof RestartFailure) {
             // Crash a node
             RestartFailure nodeFailure = (RestartFailure) fault;
+            // Update trace
+            updateTrace(nodeFailure.nodeIndex);
             return dockerCluster.restartContainer(nodeFailure.nodeIndex);
 
         }
@@ -642,5 +645,12 @@ public abstract class Executor implements IExecutor {
 
     public Map<Integer, LogInfo> grepLogInfo() {
         return dockerCluster.grepLogInfo();
+    }
+
+    // handle trace
+    public void updateTrace(int nodeIdx) {
+        if (!Config.getConf().useTrace)
+            return;
+        trace[nodeIdx].merge(collectTrace(nodeIdx));
     }
 }
