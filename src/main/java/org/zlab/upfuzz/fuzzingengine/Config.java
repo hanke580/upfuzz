@@ -153,6 +153,7 @@ public class Config {
 
         public int rebuildConnectionSecs = 5;
 
+        // Inject a unidirectional link failure
         public boolean eval_CASSANDRA15727 = false;
 
         // ------------Configuration Testing-------------
