@@ -307,6 +307,7 @@ public abstract class DockerCluster implements IDockerCluster {
     public Trace[] collectTrace() {
         assert dockers.length > 0;
         Trace[] traces = new Trace[dockers.length];
+        logger.info("[HKLOG] collecting network traces");
         for (int i = 0; i < dockers.length; i++) {
             try {
                 traces[i] = dockers[i].collectTrace();
@@ -328,6 +329,7 @@ public abstract class DockerCluster implements IDockerCluster {
     public Trace collectTrace(int nodeIndex) {
         assert dockers.length > 0;
         Trace trace = null;
+        logger.info("[HKLOG] collecting network traces for node " + nodeIndex);
         try {
             trace = dockers[nodeIndex].collectTrace();
         } catch (Exception e) {

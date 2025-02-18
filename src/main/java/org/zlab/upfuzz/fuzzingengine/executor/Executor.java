@@ -124,7 +124,15 @@ public abstract class Executor implements IExecutor {
     }
 
     public Trace[] collectTrace() {
-        return dockerCluster.collectTrace();
+        Trace[] tmpTrace = dockerCluster.collectTrace();
+        assert tmpTrace != null;
+        assert tmpTrace.length == nodeNum;
+        for (int i = 0; i < nodeNum; i++) {
+            if (tmpTrace[i] == null)
+                continue;
+            trace[i].merge(tmpTrace[i]);
+        }
+        return tmpTrace;
     }
 
     public Trace collectTrace(int nodeIdx) {

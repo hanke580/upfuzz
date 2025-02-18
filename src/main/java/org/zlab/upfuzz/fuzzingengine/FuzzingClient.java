@@ -1469,10 +1469,6 @@ public class FuzzingClient {
                     List<String> testPlanReadResults = executor
                             .executeCommands(
                                     testPlanPacket.testPlan.validationCommands);
-                    // logger.debug("[HKLOG] full-stop results = \n"
-                    // + testPlanPacket.testPlan.validationReadResultsOracle);
-                    // logger.debug("[HKLOG] rolling upgrade results = \n"
-                    // + testPlanReadResults);
                     compareRes = executor
                             .checkResultConsistency(
                                     testPlanPacket.testPlan.validationReadResultsOracle,
@@ -1495,6 +1491,12 @@ public class FuzzingClient {
                         for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
                             testPlanFeedbackPacket.feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
                         }
+                    }
+                    if (Config.getConf().useTrace) {
+                        // FIXME: (1) for all restart/crash, we need to record
+                        // trace (2) it does not consider
+                        // upgrade for multiple times
+                        testPlanFeedbackPacket.trace = executor.trace;
                     }
                 } catch (Exception e) {
                     // Cannot collect code coverage in the upgraded version

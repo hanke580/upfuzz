@@ -30,7 +30,7 @@ public class TestPlanFeedbackPacket extends Packet implements Serializable {
     // For test plan, we only collect the new version coverage
     public FeedBack[] feedBacks;
 
-    public Trace[] traces;
+    public Trace[] trace;
 
     // TODO: We might want to compare the state between
     // (1) Rolling upgrade and (2) Full-stop upgrade
