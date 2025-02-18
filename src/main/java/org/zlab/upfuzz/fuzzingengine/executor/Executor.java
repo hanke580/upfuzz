@@ -80,8 +80,12 @@ public abstract class Executor implements IExecutor {
         this.systemID = systemID;
         this.nodeNum = nodeNum;
         this.oriCoverage = new ExecutionDataStore[nodeNum];
-        if (Config.getConf().useTrace)
+        if (Config.getConf().useTrace) {
             this.trace = new Trace[nodeNum];
+            for (int i = 0; i < nodeNum; i++) {
+                trace[i] = new Trace();
+            }
+        }
     }
 
     public void teardown() {
