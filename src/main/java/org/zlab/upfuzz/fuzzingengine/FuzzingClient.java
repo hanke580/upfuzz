@@ -210,58 +210,40 @@ public class FuzzingClient {
 
     public static Executor[] initExecutors(int nodeNum,
             boolean collectFormatCoverage,
-            Path configPath, int executorNum) {
+            Path configPath, int executorNum, int[] directions) {
+        assert directions.length == executorNum;
+
         String system = Config.getConf().system;
-
-        if (Config.getConf().useVersionDelta
-                && Config.getConf().versionDeltaApproach == 2)
-            assert executorNum == 2; // Backward compatible check
-
-        switch (system) {
-        case "cassandra":
-            CassandraExecutor[] cassandraExecutors = new CassandraExecutor[executorNum];
-
-            for (int i = 0; i < cassandraExecutors.length; i++) {
-                cassandraExecutors[i] = new CassandraExecutor(nodeNum,
+        Executor[] executors = new Executor[executorNum];
+        for (int i = 0; i < executors.length; i++) {
+            switch (system) {
+            case "cassandra":
+                executors[i] = new CassandraExecutor(nodeNum,
                         collectFormatCoverage,
-                        configPath, i);
-            }
-
-            return cassandraExecutors;
-        case "hdfs":
-            HdfsExecutor[] hdfsExecutors = new HdfsExecutor[executorNum];
-
-            for (int i = 0; i < hdfsExecutors.length; i++) {
-                hdfsExecutors[i] = new HdfsExecutor(nodeNum,
+                        configPath, directions[i]);
+                break;
+            case "hdfs":
+                executors[i] = new HdfsExecutor(nodeNum,
                         collectFormatCoverage,
-                        configPath, i);
-            }
-
-            return hdfsExecutors;
-        case "hbase":
-            HBaseExecutor[] hbaseExecutors = new HBaseExecutor[executorNum];
-
-            for (int i = 0; i < hbaseExecutors.length; i++) {
-                hbaseExecutors[i] = new HBaseExecutor(nodeNum,
+                        configPath, directions[i]);
+                break;
+            case "hbase":
+                executors[i] = new HBaseExecutor(nodeNum,
                         collectFormatCoverage,
-                        configPath, i);
-            }
-
-            return hbaseExecutors;
-        case "ozone":
-            OzoneExecutor[] ozoneExecutors = new OzoneExecutor[executorNum];
-
-            for (int i = 0; i < ozoneExecutors.length; i++) {
-                ozoneExecutors[i] = new OzoneExecutor(nodeNum,
+                        configPath, directions[i]);
+                break;
+            case "ozone":
+                executors[i] = new OzoneExecutor(nodeNum,
                         collectFormatCoverage,
-                        configPath, i);
+                        configPath, directions[i]);
+                break;
+            default:
+                throw new RuntimeException(String.format(
+                        "System %s is not supported yet, supported system: cassandra, hdfs, hbase",
+                        Config.getConf().system));
             }
-
-            return ozoneExecutors;
         }
-        throw new RuntimeException(String.format(
-                "System %s is not supported yet, supported system: cassandra, hdfs, hbase",
-                Config.getConf().system));
+        return executors;
     }
 
     public static Executor initExecutor(int nodeNum,
@@ -885,9 +867,10 @@ public class FuzzingClient {
             }
         }
 
+        int[] directions = { 0, 1 };
         Executor[] executors = initExecutors(
                 stackedTestPacket.nodeNum, Config.getConf().useFormatCoverage,
-                configPath, 2);
+                configPath, 2, directions);
 
         // Submitting two Callable tasks
         // direction 0 means original --> upgraded
@@ -977,9 +960,10 @@ public class FuzzingClient {
         if (group == 1 && Config.getConf().useFormatCoverage) {
             collectFormatCoverage = true;
         }
+        int[] directions = { 0, 1 };
         Executor[] executors = initExecutors(
                 stackedTestPacket.nodeNum, collectFormatCoverage,
-                configPath, 2);
+                configPath, 2, directions);
 
         String threadIdGroup = "group" + group + "_"
                 + String.valueOf(Thread.currentThread().getId());
@@ -1052,10 +1036,11 @@ public class FuzzingClient {
             logger.info("[Fuzzing Client] Call to initialize executor");
         }
 
+        int[] directions = { 0, 1 };
         Executor[] executors = initExecutors(
                 stackedTestPacket.nodeNum,
                 group == 1 && Config.getConf().useFormatCoverage,
-                configPath, 2);
+                configPath, 2, directions);
 
         String threadIdGroup = "group" + group + "_"
                 + String.valueOf(Thread.currentThread().getId());
@@ -1363,10 +1348,11 @@ public class FuzzingClient {
         }
 
         ExecutorService executorService = Executors.newFixedThreadPool(3);
+        int[] directions = { 0, 0, 1 };
         Executor[] executors = initExecutors(
                 Config.getConf().nodeNum,
                 Config.getConf().useFormatCoverage,
-                configPath, 3);
+                configPath, 3, directions);
 
         // TODO: separate testPlanPacket
         TestPlanPacket testPlanPacket1 = testPlanPacket;
