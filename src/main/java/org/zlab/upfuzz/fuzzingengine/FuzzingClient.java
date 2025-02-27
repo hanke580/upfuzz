@@ -208,13 +208,18 @@ public class FuzzingClient {
         clientThread.join();
     }
 
-    public static Executor[] initExecutorVersionDelta(int nodeNum,
+    public static Executor[] initExecutors(int nodeNum,
             boolean collectFormatCoverage,
-            Path configPath) {
+            Path configPath, int executorNum) {
         String system = Config.getConf().system;
+
+        if (Config.getConf().useVersionDelta
+                && Config.getConf().versionDeltaApproach == 2)
+            assert executorNum == 2; // Backward compatible check
+
         switch (system) {
         case "cassandra":
-            CassandraExecutor[] cassandraExecutors = new CassandraExecutor[2];
+            CassandraExecutor[] cassandraExecutors = new CassandraExecutor[executorNum];
 
             for (int i = 0; i < cassandraExecutors.length; i++) {
                 cassandraExecutors[i] = new CassandraExecutor(nodeNum,
@@ -224,7 +229,7 @@ public class FuzzingClient {
 
             return cassandraExecutors;
         case "hdfs":
-            HdfsExecutor[] hdfsExecutors = new HdfsExecutor[2];
+            HdfsExecutor[] hdfsExecutors = new HdfsExecutor[executorNum];
 
             for (int i = 0; i < hdfsExecutors.length; i++) {
                 hdfsExecutors[i] = new HdfsExecutor(nodeNum,
@@ -234,7 +239,7 @@ public class FuzzingClient {
 
             return hdfsExecutors;
         case "hbase":
-            HBaseExecutor[] hbaseExecutors = new HBaseExecutor[2];
+            HBaseExecutor[] hbaseExecutors = new HBaseExecutor[executorNum];
 
             for (int i = 0; i < hbaseExecutors.length; i++) {
                 hbaseExecutors[i] = new HBaseExecutor(nodeNum,
@@ -244,7 +249,7 @@ public class FuzzingClient {
 
             return hbaseExecutors;
         case "ozone":
-            OzoneExecutor[] ozoneExecutors = new OzoneExecutor[2];
+            OzoneExecutor[] ozoneExecutors = new OzoneExecutor[executorNum];
 
             for (int i = 0; i < ozoneExecutors.length; i++) {
                 ozoneExecutors[i] = new OzoneExecutor(nodeNum,
@@ -344,6 +349,10 @@ public class FuzzingClient {
             TestPlanPacket testPlanPacket) {
         if (Config.getConf().nyxMode) {
             return executeTestPlanPacketNyx(testPlanPacket);
+        }
+
+        if (Config.getConf().differentialExecution) {
+            return executeTestPlanPacketDifferential(testPlanPacket);
         } else {
             return executeTestPlanPacketRegular(testPlanPacket);
         }
@@ -876,9 +885,9 @@ public class FuzzingClient {
             }
         }
 
-        Executor[] executors = initExecutorVersionDelta(
+        Executor[] executors = initExecutors(
                 stackedTestPacket.nodeNum, Config.getConf().useFormatCoverage,
-                configPath);
+                configPath, 2);
 
         // Submitting two Callable tasks
         // direction 0 means original --> upgraded
@@ -968,9 +977,9 @@ public class FuzzingClient {
         if (group == 1 && Config.getConf().useFormatCoverage) {
             collectFormatCoverage = true;
         }
-        Executor[] executors = initExecutorVersionDelta(
+        Executor[] executors = initExecutors(
                 stackedTestPacket.nodeNum, collectFormatCoverage,
-                configPath);
+                configPath, 2);
 
         String threadIdGroup = "group" + group + "_"
                 + String.valueOf(Thread.currentThread().getId());
@@ -987,9 +996,6 @@ public class FuzzingClient {
                 .submit(new VersionDeltaStackedTestThread(executors[0], 0,
                         stackedTestPacketUp, isDowngradeSupported, group));
 
-        // Retrieve results for operation 1
-        // StackedFeedbackPacket stackedFeedbackPacketUp = null;
-        // StackedFeedbackPacket stackedFeedbackPacketDown = null;
         try {
             StackedFeedbackPacket stackedFeedbackPacketUp = futureStackedFeedbackPacketUp
                     .get();
@@ -1046,10 +1052,10 @@ public class FuzzingClient {
             logger.info("[Fuzzing Client] Call to initialize executor");
         }
 
-        Executor[] executors = initExecutorVersionDelta(
+        Executor[] executors = initExecutors(
                 stackedTestPacket.nodeNum,
                 group == 1 && Config.getConf().useFormatCoverage,
-                configPath);
+                configPath, 2);
 
         String threadIdGroup = "group" + group + "_"
                 + String.valueOf(Thread.currentThread().getId());
@@ -1332,6 +1338,74 @@ public class FuzzingClient {
                             + " milliseconds");
         }
         return testPlanFeedbackPacket;
+    }
+
+    public TestPlanFeedbackPacket executeTestPlanPacketDifferential(
+            TestPlanPacket testPlanPacket) {
+        logger.info("[Fuzzing Client] executeTestPlanPacketDifferential");
+        if (Config.getConf().debug) {
+            logger.debug("test plan: \n");
+            logger.debug(testPlanPacket.testPlan);
+        }
+
+        Path configPath = Paths.get(configDirPath.toString(),
+                testPlanPacket.configFileName);
+        logger.info("[HKLOG] configPath = " + configPath);
+
+        // config verification
+        if (Config.getConf().verifyConfig) {
+            boolean validConfig = verifyConfig(configPath);
+            if (!validConfig) {
+                logger.error(
+                        "problem with configuration! system cannot start up");
+                return null;
+            }
+        }
+
+        ExecutorService executorService = Executors.newFixedThreadPool(3);
+        Executor[] executors = initExecutors(
+                Config.getConf().nodeNum,
+                Config.getConf().useFormatCoverage,
+                configPath, 3);
+
+        // TODO: separate testPlanPacket
+        TestPlanPacket testPlanPacket1 = testPlanPacket;
+        TestPlanPacket testPlanPacket2 = testPlanPacket;
+        TestPlanPacket testPlanPacket3 = testPlanPacket;
+
+        Future<TestPlanFeedbackPacket> futureOnlyOld = executorService
+                .submit(new RegularTestPlanThread(executors[0],
+                        testPlanPacket1));
+        Future<TestPlanFeedbackPacket> futureRolling = executorService
+                .submit(new RegularTestPlanThread(executors[1],
+                        testPlanPacket2));
+        Future<TestPlanFeedbackPacket> futureNew = executorService
+                .submit(new RegularTestPlanThread(executors[2],
+                        testPlanPacket3));
+
+        // Collect results...
+        try {
+            TestPlanFeedbackPacket testPlanFeedbackPacket1 = futureOnlyOld
+                    .get();
+            TestPlanFeedbackPacket testPlanFeedbackPacket2 = futureRolling
+                    .get();
+            TestPlanFeedbackPacket testPlanFeedbackPacket3 = futureNew
+                    .get();
+
+            // TODO: fix this check: make it more reasonable...
+            if (testPlanFeedbackPacket1 == null ||
+                    testPlanFeedbackPacket2 == null ||
+                    testPlanFeedbackPacket3 == null) {
+                executorService.shutdown();
+                return null;
+            }
+            // TODO: return 3 packets...
+            return testPlanFeedbackPacket2;
+        } catch (Exception e) {
+            logger.info("[HKLOG] Caught Exception!!! " + e);
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public TestPlanFeedbackPacket executeTestPlanPacketRegular(
@@ -1800,7 +1874,8 @@ public class FuzzingClient {
         }
     }
 
-    private String genTestPlanFailureReport(int failEventIdx, String executorID,
+    public static String genTestPlanFailureReport(int failEventIdx,
+            String executorID,
             String configFileName, String testPlanPacket) {
         return "[Test plan execution failed at event" + failEventIdx + "]\n" +
                 "executionId = " + executorID + "\n" +
@@ -1818,7 +1893,7 @@ public class FuzzingClient {
                 singleTestPacket + "\n";
     }
 
-    private String genTestPlanInconsistencyReport(String executorID,
+    public static String genTestPlanInconsistencyReport(String executorID,
             String configFileName, String inconsistencyRecord,
             String singleTestPacket) {
         return "[Results inconsistency between full-stop and rolling upgrade]\n"
@@ -1843,7 +1918,7 @@ public class FuzzingClient {
                 "ConfigIdx = " + configFileName + "\n";
     }
 
-    private String genOriCoverageCollFailureReport(String executorID,
+    public static String genOriCoverageCollFailureReport(String executorID,
             String configFileName, String singleTestPacket) {
         return "[Original Coverage Collect Failed]\n" +
                 "executionId = " + executorID + "\n" +
@@ -1851,7 +1926,7 @@ public class FuzzingClient {
                 singleTestPacket + "\n";
     }
 
-    private String genUpCoverageCollFailureReport(String executorID,
+    public static String genUpCoverageCollFailureReport(String executorID,
             String configFileName, String singleTestPacket) {
         return "[Upgrade Coverage Collect Failed]\n" +
                 "executionId = " + executorID + "\n" +
@@ -1893,12 +1968,13 @@ public class FuzzingClient {
         return sb.toString();
     }
 
-    private String recordTestPlanPacket(TestPlanPacket testPlanPacket) {
+    public static String recordTestPlanPacket(TestPlanPacket testPlanPacket) {
         return String.format("nodeNum = %d\n", testPlanPacket.getNodeNum()) +
                 testPlanPacket.getTestPlan().toString();
     }
 
-    private String recordMixedTestPacket(MixedTestPacket mixedTestPacket) {
+    public static String recordMixedTestPacket(
+            MixedTestPacket mixedTestPacket) {
         return recordTestPlanPacket(mixedTestPacket.testPlanPacket) +
                 "\n" +
                 recordStackedTestPacket(mixedTestPacket.stackedTestPacket);

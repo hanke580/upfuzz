@@ -291,6 +291,8 @@ public class Config {
         // If true: collect the trace
         public boolean useTrace = false;
 
+        public boolean differentialExecution = false;
+
         /**
          * ---------------Version Specific-----------------
          * To avoid FPs
