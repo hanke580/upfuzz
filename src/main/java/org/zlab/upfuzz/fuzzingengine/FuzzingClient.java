@@ -1388,8 +1388,9 @@ public class FuzzingClient {
             logger.debug("[HKLOG] trace diff: all three packets are collected");
             return testPlanFeedbackPacket2;
         } catch (Exception e) {
-            logger.info("[HKLOG] Caught Exception!!! " + e);
-            e.printStackTrace();
+            logger.error("[HKLOG] Exception when collecting 3 diff " + e);
+            for (StackTraceElement ste : e.getStackTrace())
+                logger.error(ste.toString());
             return null;
         }
     }
