@@ -1373,6 +1373,12 @@ public class FuzzingServer {
     }
 
     public synchronized void updateStatus(
+            TestPlanDiffFeedbackPacket testPlanDiffFeedbackPacket) {
+        // TODO: compute diff...
+        logger.info("TestPlanDiffFeedbackPacket received");
+    }
+
+    public synchronized void updateStatus(
             StackedFeedbackPacket stackedFeedbackPacket) {
 
         if (stackedFeedbackPacket.upgradeSkipped) {

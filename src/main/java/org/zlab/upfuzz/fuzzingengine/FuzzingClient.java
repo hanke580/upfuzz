@@ -329,7 +329,7 @@ public class FuzzingClient {
         }
     }
 
-    public TestPlanFeedbackPacket executeTestPlanPacket(
+    public Packet executeTestPlanPacket(
             TestPlanPacket testPlanPacket) {
         if (Config.getConf().nyxMode)
             return executeTestPlanPacketNyx(testPlanPacket);
@@ -1325,7 +1325,7 @@ public class FuzzingClient {
         return testPlanFeedbackPacket;
     }
 
-    public TestPlanFeedbackPacket executeTestPlanPacketDifferential(
+    public TestPlanDiffFeedbackPacket executeTestPlanPacketDifferential(
             TestPlanPacket testPlanPacket) {
         logger.info("[Fuzzing Client] executeTestPlanPacketDifferential");
         if (Config.getConf().debug) {
@@ -1376,8 +1376,7 @@ public class FuzzingClient {
                     .get();
             TestPlanFeedbackPacket testPlanFeedbackPacket3 = futureNew
                     .get();
-
-            // TODO: fix this check: make it more reasonable...
+            // TODO: fix this check, make it more reasonable...
             if (testPlanFeedbackPacket1 == null ||
                     testPlanFeedbackPacket2 == null ||
                     testPlanFeedbackPacket3 == null) {
@@ -1386,7 +1385,14 @@ public class FuzzingClient {
             }
             // TODO: return 3 packets...
             logger.debug("[HKLOG] trace diff: all three packets are collected");
-            return testPlanFeedbackPacket2;
+            TestPlanFeedbackPacket[] testPlanFeedbackPackets = new TestPlanFeedbackPacket[3];
+            testPlanFeedbackPackets[0] = testPlanFeedbackPacket1;
+            testPlanFeedbackPackets[1] = testPlanFeedbackPacket2;
+            testPlanFeedbackPackets[2] = testPlanFeedbackPacket3;
+            return new TestPlanDiffFeedbackPacket(
+                    testPlanPacket.systemID,
+                    testPlanPacket.testPacketID,
+                    testPlanFeedbackPackets);
         } catch (Exception e) {
             logger.error("[HKLOG] Exception when collecting 3 diff " + e);
             for (StackTraceElement ste : e.getStackTrace())

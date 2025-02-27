@@ -221,6 +221,10 @@ public class FuzzingServerHandler implements Runnable {
             TestPlanFeedbackPacket testPlanFeedbackPacket = TestPlanFeedbackPacket
                     .read(in);
             fuzzingServer.updateStatus(testPlanFeedbackPacket);
+        } else if (intType == PacketType.TestPlanDiffFeedbackPacket.value) {
+            TestPlanDiffFeedbackPacket testPlanDiffFeedbackPacket = TestPlanDiffFeedbackPacket
+                    .read(in);
+            fuzzingServer.updateStatus(testPlanDiffFeedbackPacket);
         } else if (intType == PacketType.MixedFeedbackPacket.value) {
             MixedFeedbackPacket mixedFeedbackPacket = MixedFeedbackPacket
                     .read(in);

@@ -91,17 +91,18 @@ public abstract class Packet {
         // -1 is reserved as a null packet
         RegisterPacket(0), StackedTestPacket(1), StackedFeedbackPacket(
                 2), FeedbackPacket(3), TestPlanPacket(
-                        4), TestPlanFeedbackPacket(5), MixedTestPacket(
-                                6), MixedFeedbackPacket(
+                        4), TestPlanFeedbackPacket(
+                                5), MixedTestPacket(6), MixedFeedbackPacket(
                                         7), VersionDeltaFeedbackPacket(
                                                 10), VersionDeltaFeedbackPacketApproach1(
                                                         11), VersionDeltaFeedbackPacketApproach2(
-                                                                12);
+                                                                12), TestPlanDiffFeedbackPacket(
+                                                                        13);
 
-        public int value;
+        public final int value;
 
-        private PacketType(int Value) {
-            this.value = Value;
+        PacketType(int value) {
+            this.value = value;
         }
     }
 
