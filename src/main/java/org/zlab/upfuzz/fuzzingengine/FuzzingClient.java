@@ -1,10 +1,6 @@
 package org.zlab.upfuzz.fuzzingengine;
 
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -13,14 +9,20 @@ import java.util.concurrent.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.ocov.tracker.ObjectGraphCoverage;
+import org.zlab.upfuzz.Command;
 import org.zlab.upfuzz.cassandra.CassandraExecutor;
 import org.zlab.upfuzz.fuzzingengine.packet.*;
 import org.zlab.upfuzz.fuzzingengine.packet.Packet.PacketType;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
+import org.zlab.upfuzz.fuzzingengine.testplan.TestPlan;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.Event;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.fault.RestartFailure;
+import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.UpgradeOp;
 import org.zlab.upfuzz.hdfs.HdfsExecutor;
 import org.zlab.upfuzz.hbase.HBaseExecutor;
 import org.zlab.upfuzz.ozone.OzoneExecutor;
@@ -329,15 +331,13 @@ public class FuzzingClient {
 
     public TestPlanFeedbackPacket executeTestPlanPacket(
             TestPlanPacket testPlanPacket) {
-        if (Config.getConf().nyxMode) {
+        if (Config.getConf().nyxMode)
             return executeTestPlanPacketNyx(testPlanPacket);
-        }
 
-        if (Config.getConf().differentialExecution) {
+        if (Config.getConf().differentialExecution)
             return executeTestPlanPacketDifferential(testPlanPacket);
-        } else {
+        else
             return executeTestPlanPacketRegular(testPlanPacket);
-        }
     }
 
     private Path previousConfigPath = null;
@@ -1100,7 +1100,7 @@ public class FuzzingClient {
         logger.info("[Fuzzing Client] Invoked executeTestPlanPacket");
         if (Config.getConf().debug) {
             logger.debug("test plan: \n");
-            logger.debug(testPlanPacket.testPlan);
+            logger.debug(testPlanPacket.getTestPlan());
         }
 
         Path configPath = Paths.get(configDirPath.toString(),
@@ -1330,7 +1330,7 @@ public class FuzzingClient {
         logger.info("[Fuzzing Client] executeTestPlanPacketDifferential");
         if (Config.getConf().debug) {
             logger.debug("test plan: \n");
-            logger.debug(testPlanPacket.testPlan);
+            logger.debug(testPlanPacket.getTestPlan());
         }
 
         Path configPath = Paths.get(configDirPath.toString(),
@@ -1354,20 +1354,19 @@ public class FuzzingClient {
                 Config.getConf().useFormatCoverage,
                 configPath, 3, directions);
 
-        // TODO: separate testPlanPacket
-        TestPlanPacket testPlanPacket1 = testPlanPacket;
-        TestPlanPacket testPlanPacket2 = testPlanPacket;
-        TestPlanPacket testPlanPacket3 = testPlanPacket;
+        // For only old exec or only new exec
+        TestPlanPacket testPlanPacketWithoutUpgrade = replaceUpgradeEventWithRestart(
+                testPlanPacket);
 
         Future<TestPlanFeedbackPacket> futureOnlyOld = executorService
                 .submit(new RegularTestPlanThread(executors[0],
-                        testPlanPacket1));
+                        testPlanPacketWithoutUpgrade));
         Future<TestPlanFeedbackPacket> futureRolling = executorService
                 .submit(new RegularTestPlanThread(executors[1],
-                        testPlanPacket2));
+                        testPlanPacket));
         Future<TestPlanFeedbackPacket> futureNew = executorService
                 .submit(new RegularTestPlanThread(executors[2],
-                        testPlanPacket3));
+                        testPlanPacketWithoutUpgrade));
 
         // Collect results...
         try {
@@ -1386,6 +1385,7 @@ public class FuzzingClient {
                 return null;
             }
             // TODO: return 3 packets...
+            logger.debug("[HKLOG] trace diff: all three packets are collected");
             return testPlanFeedbackPacket2;
         } catch (Exception e) {
             logger.info("[HKLOG] Caught Exception!!! " + e);
@@ -1400,7 +1400,7 @@ public class FuzzingClient {
         logger.info("[Fuzzing Client] Invoked executeTestPlanPacket");
         if (Config.getConf().debug) {
             logger.debug("test plan: \n");
-            logger.debug(testPlanPacket.testPlan);
+            logger.debug(testPlanPacket.getTestPlan());
         }
 
         String testPlanPacketStr = recordTestPlanPacket(testPlanPacket);
@@ -1421,6 +1421,7 @@ public class FuzzingClient {
             }
         }
 
+        // TODO: Deprecate this, use RegularTestPlanThread
         // start up cluster
         executor = initExecutor(testPlanPacket.getNodeNum(),
                 Config.getConf().useFormatCoverage,
@@ -1523,15 +1524,17 @@ public class FuzzingClient {
             } else {
                 Pair<Boolean, String> compareRes;
                 // read comparison between full-stop and rolling
-                if (!testPlanPacket.testPlan.validationReadResultsOracle
+                if (!testPlanPacket.getTestPlan().validationReadResultsOracle
                         .isEmpty()) {
 
                     List<String> testPlanReadResults = executor
                             .executeCommands(
-                                    testPlanPacket.testPlan.validationCommands);
+                                    testPlanPacket
+                                            .getTestPlan().validationCommands);
                     compareRes = executor
                             .checkResultConsistency(
-                                    testPlanPacket.testPlan.validationReadResultsOracle,
+                                    testPlanPacket
+                                            .getTestPlan().validationReadResultsOracle,
                                     testPlanReadResults, false);
                     if (!compareRes.left) {
                         testPlanFeedbackPacket.isInconsistent = true;
@@ -1717,14 +1720,16 @@ public class FuzzingClient {
         } else {
             Pair<Boolean, String> compareRes;
             // read comparison between full-stop and rolling
-            if (!testPlanPacket.testPlan.validationReadResultsOracle
+            if (!testPlanPacket.getTestPlan().validationReadResultsOracle
                     .isEmpty()) {
                 List<String> testPlanReadResults = executor
                         .executeCommands(
-                                testPlanPacket.testPlan.validationCommands);
+                                testPlanPacket
+                                        .getTestPlan().validationCommands);
                 compareRes = executor
                         .checkResultConsistency(
-                                testPlanPacket.testPlan.validationReadResultsOracle,
+                                testPlanPacket
+                                        .getTestPlan().validationReadResultsOracle,
                                 testPlanReadResults, false);
 
                 if (!compareRes.left) {
@@ -2055,5 +2060,28 @@ public class FuzzingClient {
         } else {
             return executor.grepLogInfo();
         }
+    }
+
+    public static TestPlanPacket replaceUpgradeEventWithRestart(
+            TestPlanPacket testPlanPacket) {
+        // Copy to create a new TestPlanPacket (not modifying the original one)
+        TestPlanPacket updatedTestPlanPacket = SerializationUtils
+                .clone(testPlanPacket);
+
+        // Update events are enough
+
+        List<Event> updatedEvents = new LinkedList<>();
+        for (Event event : updatedTestPlanPacket.getTestPlan().events) {
+            if (event instanceof UpgradeOp) {
+                // Replace UpgradeOp with RestartOp
+                RestartFailure restartOp = new RestartFailure(
+                        ((UpgradeOp) event).nodeIndex);
+                updatedEvents.add(restartOp);
+            } else {
+                updatedEvents.add(event);
+            }
+        }
+        updatedTestPlanPacket.getTestPlan().events = updatedEvents;
+        return updatedTestPlanPacket;
     }
 }

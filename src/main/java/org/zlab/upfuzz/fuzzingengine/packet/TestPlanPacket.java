@@ -23,8 +23,6 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.io.Serializable;
 
 public class TestPlanPacket extends Packet implements Serializable {
@@ -33,8 +31,7 @@ public class TestPlanPacket extends Packet implements Serializable {
     public String systemID;
     public int testPacketID;
     public String configFileName;
-    public TestPlan testPlan;
-    public int testDirection;
+    private final TestPlan testPlan;
 
     static RuntimeTypeAdapterFactory<Event> runtimeTypeAdapterFactory;
     static Type listType;

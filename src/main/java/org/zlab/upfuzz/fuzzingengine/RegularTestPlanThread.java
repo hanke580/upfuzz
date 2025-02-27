@@ -269,15 +269,17 @@ class RegularTestPlanThread implements Callable<TestPlanFeedbackPacket> {
             } else {
                 Pair<Boolean, String> compareRes;
                 // read comparison between full-stop and rolling
-                if (!testPlanPacket.testPlan.validationReadResultsOracle
+                if (!testPlanPacket.getTestPlan().validationReadResultsOracle
                         .isEmpty()) {
 
                     List<String> testPlanReadResults = executor
                             .executeCommands(
-                                    testPlanPacket.testPlan.validationCommands);
+                                    testPlanPacket
+                                            .getTestPlan().validationCommands);
                     compareRes = executor
                             .checkResultConsistency(
-                                    testPlanPacket.testPlan.validationReadResultsOracle,
+                                    testPlanPacket
+                                            .getTestPlan().validationReadResultsOracle,
                                     testPlanReadResults, false);
                     if (!compareRes.left) {
                         testPlanFeedbackPacket.isInconsistent = true;

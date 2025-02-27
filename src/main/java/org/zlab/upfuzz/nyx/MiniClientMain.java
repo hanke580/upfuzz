@@ -185,8 +185,7 @@ public class MiniClientMain {
                     executor = FuzzingClient.initExecutor(
                             defaultTestPlanPacket.getNodeNum(),
                             Config.getConf().useFormatCoverage,
-                            defaultConfigPath,
-                            defaultTestPlanPacket.testDirection);
+                            defaultConfigPath);
                 }
                 executorStartUpReport = startUpExecutor(executor, testType);
             }
@@ -1139,15 +1138,17 @@ public class MiniClientMain {
             } else {
                 Pair<Boolean, String> compareRes;
                 // read comparison between full-stop and rolling
-                if (!testPlanPacket.testPlan.validationReadResultsOracle
+                if (!testPlanPacket.getTestPlan().validationReadResultsOracle
                         .isEmpty()) {
 
                     List<String> testPlanReadResults = executor
                             .executeCommands(
-                                    testPlanPacket.testPlan.validationCommands);
+                                    testPlanPacket
+                                            .getTestPlan().validationCommands);
                     compareRes = executor
                             .checkResultConsistency(
-                                    testPlanPacket.testPlan.validationReadResultsOracle,
+                                    testPlanPacket
+                                            .getTestPlan().validationReadResultsOracle,
                                     testPlanReadResults, false);
                     if (!compareRes.left) {
                         testPlanFeedbackPacket.isInconsistent = true;

@@ -17,7 +17,7 @@ public class TestPlan implements Serializable {
     static Logger logger = LogManager.getLogger(TestPlan.class);
 
     public int nodeNum;
-    private final List<Event> events;
+    public List<Event> events;
 
     // ----read results comparison----
     public List<String> validationCommands;
@@ -36,7 +36,6 @@ public class TestPlan implements Serializable {
         this.validationReadResultsOracle = validationReadResultsOracle;
     }
 
-    // Oracle
     public List<Event> getEvents() {
         return events;
     }
@@ -152,5 +151,4 @@ public class TestPlan implements Serializable {
         }
         return idxes;
     }
-
 }
