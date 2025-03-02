@@ -17,7 +17,7 @@ public class TestPlanDiffFeedbackPacket extends Packet implements Serializable {
     public TestPlanDiffFeedbackPacket(String systemID,
             int testPacketID,
             TestPlanFeedbackPacket[] testPlanFeedbackPackets) {
-        this.type = PacketType.TestPlanFeedbackPacket;
+        this.type = PacketType.TestPlanDiffFeedbackPacket;
 
         this.systemID = systemID;
         this.testPacketID = testPacketID;
