@@ -127,20 +127,22 @@ public abstract class Executor implements IExecutor {
         dockerCluster.clearFormatCoverage();
     }
 
-    public Trace[] collectTrace() {
-        Trace[] tmpTrace = dockerCluster.collectTrace();
-        assert tmpTrace != null;
-        assert tmpTrace.length == nodeNum;
-        for (int i = 0; i < nodeNum; i++) {
-            if (tmpTrace[i] == null)
-                continue;
-            trace[i].merge(tmpTrace[i]);
-        }
-        return tmpTrace;
-    }
-
     public Trace collectTrace(int nodeIdx) {
         return dockerCluster.collectTrace(nodeIdx);
+    }
+
+    public void updateTrace(int nodeIdx) {
+        if (!Config.getConf().useTrace)
+            return;
+        trace[nodeIdx].merge(collectTrace(nodeIdx));
+    }
+
+    public void updateTrace() {
+        if (!Config.getConf().useTrace)
+            return;
+        for (int i = 0; i < nodeNum; i++) {
+            trace[i].merge(collectTrace(i));
+        }
     }
 
     public boolean fullStopUpgrade() {
@@ -647,10 +649,4 @@ public abstract class Executor implements IExecutor {
         return dockerCluster.grepLogInfo();
     }
 
-    // handle trace
-    public void updateTrace(int nodeIdx) {
-        if (!Config.getConf().useTrace)
-            return;
-        trace[nodeIdx].merge(collectTrace(nodeIdx));
-    }
 }

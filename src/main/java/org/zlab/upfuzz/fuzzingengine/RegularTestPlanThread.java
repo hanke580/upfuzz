@@ -235,6 +235,12 @@ class RegularTestPlanThread implements Callable<TestPlanFeedbackPacket> {
                 testPlanPacket.testPacketID, testPlanFeedBacks);
         testPlanFeedbackPacket.fullSequence = testPlanPacketStr;
 
+        // Collect network traces
+        if (Config.getConf().useTrace) {
+            executor.updateTrace();
+            testPlanFeedbackPacket.trace = executor.trace;
+        }
+
         if (!status) {
             testPlanFeedbackPacket.isEventFailed = true;
 
@@ -299,12 +305,6 @@ class RegularTestPlanThread implements Callable<TestPlanFeedbackPacket> {
                         for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
                             testPlanFeedbackPacket.feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
                         }
-                    }
-                    if (Config.getConf().useTrace) {
-                        // FIXME: (1) for all restart/crash, we need to record
-                        // trace (2) it does not consider
-                        // upgrade for multiple times
-                        testPlanFeedbackPacket.trace = executor.trace;
                     }
                 } catch (Exception e) {
                     // Cannot collect code coverage in the upgraded version
