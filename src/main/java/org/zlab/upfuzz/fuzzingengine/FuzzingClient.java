@@ -1368,7 +1368,6 @@ public class FuzzingClient {
                 .submit(new RegularTestPlanThread(executors[2],
                         testPlanPacketWithoutUpgrade));
 
-        // Collect results...
         try {
             TestPlanFeedbackPacket testPlanFeedbackPacket1 = futureOnlyOld
                     .get();
@@ -1404,16 +1403,12 @@ public class FuzzingClient {
     public TestPlanFeedbackPacket executeTestPlanPacketRegular(
             TestPlanPacket testPlanPacket) {
 
-        logger.info("[Fuzzing Client] Invoked executeTestPlanPacket");
+        logger.info("[Fuzzing Client] executeTestPlanPacketRegular");
         if (Config.getConf().debug) {
             logger.debug("test plan: \n");
             logger.debug(testPlanPacket.getTestPlan());
         }
 
-        String testPlanPacketStr = recordTestPlanPacket(testPlanPacket);
-        int nodeNum = testPlanPacket.getNodeNum();
-
-        // read states
         Path configPath = Paths.get(configDirPath.toString(),
                 testPlanPacket.configFileName);
         logger.info("[HKLOG] configPath = " + configPath);
@@ -1428,195 +1423,26 @@ public class FuzzingClient {
             }
         }
 
-        // TODO: Deprecate this, use RegularTestPlanThread
-        // start up cluster
-        executor = initExecutor(testPlanPacket.getNodeNum(),
+        ExecutorService executorService = Executors.newFixedThreadPool(1);
+        int[] directions = { 0 };
+        Executor[] executors = initExecutors(
+                Config.getConf().nodeNum,
                 Config.getConf().useFormatCoverage,
-                configPath);
-        boolean startUpStatus = startUpExecutor();
-        if (!startUpStatus)
+                configPath, 1, directions);
+
+        Future<TestPlanFeedbackPacket> futureRolling = executorService
+                .submit(new RegularTestPlanThread(executors[1],
+                        testPlanPacket));
+
+        TestPlanFeedbackPacket testPlanFeedbackPacket;
+        try {
+            testPlanFeedbackPacket = futureRolling
+                    .get();
+        } catch (Exception e) {
+            logger.error("[HKLOG] Exception when collecting 3 diff " + e);
+            for (StackTraceElement ste : e.getStackTrace())
+                logger.error(ste.toString());
             return null;
-
-        // LOG checking1
-        long curTime2 = System.currentTimeMillis();
-        Map<Integer, LogInfo> logInfoBeforeUpgrade = null;
-        if (Config.getConf().enableLogCheck) {
-            logger.info("[HKLOG] error log checking");
-            logInfoBeforeUpgrade = executor.grepLogInfo();
-        }
-        if (Config.getConf().debug) {
-            logger.info(String.format(
-                    "[Fuzzing Client] completed first log checking in %d ms",
-                    System.currentTimeMillis() - curTime2));
-        }
-
-        boolean status = executor.execute(testPlanPacket.getTestPlan());
-
-        if (Config.getConf().debug)
-            logger.info("[Fuzzing Client] completed the testing");
-
-        if (Config.getConf().startUpClusterForDebugging) {
-            logger.info("[Debugging Mode] Start up the cluster only");
-            Utilities.sleepAndExit(36000);
-        }
-
-        FeedBack[] testPlanFeedBacks = new FeedBack[nodeNum];
-
-        long curTime = System.currentTimeMillis();
-        if (status && Config.getConf().fullStopUpgradeWithFaults) {
-            // collect old version coverage
-            ExecutionDataStore[] oriCoverages = executor
-                    .collectCoverageSeparate("original");
-            for (int i = 0; i < nodeNum; i++) {
-                testPlanFeedBacks[i] = new FeedBack();
-                if (oriCoverages != null)
-                    testPlanFeedBacks[i].originalCodeCoverage = oriCoverages[i];
-            }
-            // upgrade
-            status = executor.fullStopUpgrade();
-            if (!status)
-                // update event id
-                executor.eventIdx = -1; // this means full-stop upgrade failed
-        } else {
-            // It contains the new version coverage!
-            // collect test plan coverage
-            for (int i = 0; i < nodeNum; i++) {
-                testPlanFeedBacks[i] = new FeedBack();
-                if (executor.oriCoverage[i] != null)
-                    testPlanFeedBacks[i].originalCodeCoverage = executor.oriCoverage[i];
-            }
-        }
-        if (Config.getConf().debug) {
-            logger.info(String.format(
-                    "[Fuzzing Client] completed collecting code coverages in %d ms",
-                    System.currentTimeMillis() - curTime));
-        }
-
-        TestPlanFeedbackPacket testPlanFeedbackPacket = new TestPlanFeedbackPacket(
-                testPlanPacket.systemID, testPlanPacket.configFileName,
-                testPlanPacket.testPacketID, testPlanFeedBacks);
-        testPlanFeedbackPacket.fullSequence = testPlanPacketStr;
-
-        if (!status) {
-            testPlanFeedbackPacket.isEventFailed = true;
-
-            testPlanFeedbackPacket.eventFailedReport = genTestPlanFailureReport(
-                    executor.eventIdx, executor.executorID,
-                    testPlanPacket.configFileName,
-                    testPlanPacketStr);
-            testPlanFeedbackPacket.isInconsistent = false;
-            testPlanFeedbackPacket.inconsistencyReport = "";
-        } else {
-            // Test single version
-            if (Config.getConf().testSingleVersion) {
-                try {
-                    ExecutionDataStore[] oriCoverages = executor
-                            .collectCoverageSeparate("original");
-                    if (oriCoverages != null) {
-                        for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
-                            testPlanFeedbackPacket.feedBacks[nodeIdx].originalCodeCoverage = oriCoverages[nodeIdx];
-                        }
-                    }
-                } catch (Exception e) {
-                    // Cannot collect code coverage in the upgraded version
-                    testPlanFeedbackPacket.isEventFailed = true;
-                    testPlanFeedbackPacket.eventFailedReport = genOriCoverageCollFailureReport(
-                            executor.executorID, testPlanPacket.configFileName,
-                            recordTestPlanPacket(testPlanPacket)) + "Exception:"
-                            + e;
-                    tearDownExecutor();
-                    return testPlanFeedbackPacket;
-                }
-
-            } else {
-                Pair<Boolean, String> compareRes;
-                // read comparison between full-stop and rolling
-                if (!testPlanPacket.getTestPlan().validationReadResultsOracle
-                        .isEmpty()) {
-
-                    List<String> testPlanReadResults = executor
-                            .executeCommands(
-                                    testPlanPacket
-                                            .getTestPlan().validationCommands);
-                    compareRes = executor
-                            .checkResultConsistency(
-                                    testPlanPacket
-                                            .getTestPlan().validationReadResultsOracle,
-                                    testPlanReadResults, false);
-                    if (!compareRes.left) {
-                        testPlanFeedbackPacket.isInconsistent = true;
-                        testPlanFeedbackPacket.inconsistencyReport = genTestPlanInconsistencyReport(
-                                executor.executorID,
-                                testPlanPacket.configFileName,
-                                compareRes.right, testPlanPacketStr);
-                    }
-                } else {
-                    logger.debug("validationReadResultsOracle is empty!");
-                }
-
-                try {
-                    ExecutionDataStore[] upCoverages = executor
-                            .collectCoverageSeparate("upgraded");
-                    if (upCoverages != null) {
-                        for (int nodeIdx = 0; nodeIdx < nodeNum; nodeIdx++) {
-                            testPlanFeedbackPacket.feedBacks[nodeIdx].upgradedCodeCoverage = upCoverages[nodeIdx];
-                        }
-                    }
-                    if (Config.getConf().useTrace) {
-                        // FIXME: (1) for all restart/crash, we need to record
-                        // trace (2) it does not consider
-                        // upgrade for multiple times
-                        testPlanFeedbackPacket.trace = executor.trace;
-                    }
-                } catch (Exception e) {
-                    // Cannot collect code coverage in the upgraded version
-                    testPlanFeedbackPacket.isEventFailed = true;
-                    testPlanFeedbackPacket.eventFailedReport = genUpCoverageCollFailureReport(
-                            executor.executorID, testPlanPacket.configFileName,
-                            recordTestPlanPacket(testPlanPacket)) + "Exception:"
-                            + e;
-                    tearDownExecutor();
-                    return testPlanFeedbackPacket;
-                }
-            }
-        }
-
-        // LOG checking2
-        curTime = System.currentTimeMillis();
-        if (Config.getConf().enableLogCheck) {
-            if (Config.getConf().testSingleVersion) {
-                logger.info("[HKLOG] error log checking");
-                Map<Integer, LogInfo> logInfo = extractErrorLog(executor,
-                        logInfoBeforeUpgrade);
-                if (hasERRORLOG(logInfo)) {
-                    testPlanFeedbackPacket.hasERRORLog = true;
-                    testPlanFeedbackPacket.errorLogReport = genErrorLogReport(
-                            executor.executorID, testPlanPacket.configFileName,
-                            logInfo);
-                }
-            } else {
-                logger.info("[HKLOG] error log checking");
-                assert logInfoBeforeUpgrade != null;
-                Map<Integer, LogInfo> logInfo = extractErrorLog(executor,
-                        logInfoBeforeUpgrade);
-                if (hasERRORLOG(logInfo)) {
-                    testPlanFeedbackPacket.hasERRORLog = true;
-                    testPlanFeedbackPacket.errorLogReport = genErrorLogReport(
-                            executor.executorID, testPlanPacket.configFileName,
-                            logInfo);
-                }
-            }
-        }
-        if (Config.getConf().debug) {
-            logger.info(String.format(
-                    "[Fuzzing Client] completed second log checking in %d ms",
-                    System.currentTimeMillis() - curTime));
-
-            logger.info("[Fuzzing Client] Call to teardown executor");
-        }
-        tearDownExecutor();
-        if (Config.getConf().debug) {
-            logger.info("[Fuzzing Client] Executor torn down");
         }
         return testPlanFeedbackPacket;
     }
