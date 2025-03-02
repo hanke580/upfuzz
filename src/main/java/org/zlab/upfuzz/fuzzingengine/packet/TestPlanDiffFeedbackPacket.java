@@ -12,7 +12,7 @@ public class TestPlanDiffFeedbackPacket extends Packet implements Serializable {
     public String systemID;
     public int testPacketID;
 
-    TestPlanFeedbackPacket[] testPlanFeedbackPackets;
+    public TestPlanFeedbackPacket[] testPlanFeedbackPackets;
 
     public TestPlanDiffFeedbackPacket(String systemID,
             int testPacketID,

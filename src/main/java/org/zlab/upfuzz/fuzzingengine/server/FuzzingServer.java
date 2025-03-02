@@ -1372,10 +1372,34 @@ public class FuzzingServer {
         System.out.println();
     }
 
+    static Map<Integer, String> testPlanID2Setup = new HashMap<>();
+    static {
+        testPlanID2Setup.put(0, "Only Old");
+        testPlanID2Setup.put(1, "Rolling");
+        testPlanID2Setup.put(2, "Only New");
+    }
+
     public synchronized void updateStatus(
             TestPlanDiffFeedbackPacket testPlanDiffFeedbackPacket) {
         // TODO: compute diff...
         logger.info("TestPlanDiffFeedbackPacket received");
+
+        TestPlanFeedbackPacket[] testPlanFeedbackPackets = testPlanDiffFeedbackPacket.testPlanFeedbackPackets;
+
+        for (int i = 0; i < testPlanFeedbackPackets.length; i++) {
+            TestPlanFeedbackPacket testPlanFeedbackPacket = testPlanFeedbackPackets[i];
+            // print traces
+            logger.info("TestPlanFeedbackPacket " + i + ", type = "
+                    + testPlanID2Setup.get(i) + ": trace:");
+            if (testPlanFeedbackPacket.trace != null) {
+                for (int j = 0; j < testPlanFeedbackPacket.trace.length; j++) {
+                    logger.info("trace[" + j + "] len = "
+                            + testPlanFeedbackPacket.trace[j].size());
+                }
+            } else {
+                logger.error("trace is null");
+            }
+        }
     }
 
     public synchronized void updateStatus(
