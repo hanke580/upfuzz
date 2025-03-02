@@ -1431,12 +1431,10 @@ public class FuzzingClient {
                 configPath, 1, directions);
 
         Future<TestPlanFeedbackPacket> futureRolling = executorService
-                .submit(new RegularTestPlanThread(executors[1],
+                .submit(new RegularTestPlanThread(executors[0],
                         testPlanPacket));
-
-        TestPlanFeedbackPacket testPlanFeedbackPacket;
         try {
-            testPlanFeedbackPacket = futureRolling
+            return futureRolling
                     .get();
         } catch (Exception e) {
             logger.error("[HKLOG] Exception when collecting 3 diff " + e);
@@ -1444,7 +1442,6 @@ public class FuzzingClient {
                 logger.error(ste.toString());
             return null;
         }
-        return testPlanFeedbackPacket;
     }
 
     public MixedFeedbackPacket executeMixedTestPacket(
