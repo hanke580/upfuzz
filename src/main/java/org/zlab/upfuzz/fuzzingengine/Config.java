@@ -293,6 +293,9 @@ public class Config {
 
         public boolean differentialExecution = false;
 
+        public boolean useEditDistance = false;
+        public boolean useJaccardSimilarity = true;
+
         /**
          * ---------------Version Specific-----------------
          * To avoid FPs

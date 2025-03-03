@@ -19,8 +19,9 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionDataStore;
-import org.zlab.net.tracker.DiffComputeEditDistance;
 import org.zlab.net.tracker.Trace;
+import org.zlab.net.tracker.diff.DiffComputeEditDistance;
+import org.zlab.net.tracker.diff.DiffComputeJaccardSimilarity;
 import org.zlab.ocov.Utils;
 import org.zlab.ocov.tracker.FormatCoverageStatus;
 import org.zlab.ocov.tracker.ObjectGraphCoverage;
@@ -1417,13 +1418,23 @@ public class FuzzingServer {
         }
 
         // Compute diff
-        int[] diff = DiffComputeEditDistance.compute(serializedTraces[0],
-                serializedTraces[1], serializedTraces[2]);
-        assert diff.length == 2
-                : "Diff length should be 2: (1) RU and Old and (2) RU and New";
+        if (Config.getConf().useEditDistance) {
+            int[] diff = DiffComputeEditDistance.compute(serializedTraces[0],
+                    serializedTraces[1], serializedTraces[2]);
+            assert diff.length == 2
+                    : "Diff length should be 2: (1) RU and Old and (2) RU and New";
+            logger.info("Diff[0] = " + diff[0] + ", Diff[1] = " + diff[1]);
+        }
 
-        // Print diff
-        logger.info("Diff[0] = " + diff[0] + ", Diff[1] = " + diff[1]);
+        if (Config.getConf().useJaccardSimilarity) {
+            double[] diff = DiffComputeJaccardSimilarity.compute(
+                    serializedTraces[0], serializedTraces[1],
+                    serializedTraces[2]);
+            assert diff.length == 2
+                    : "Diff length should be 2: (1) RU and Old and (2) RU and New";
+            logger.info("Jaccard Similarity[0] = " + diff[0]
+                    + ", Jaccard Similarity[1] = " + diff[1]);
+        }
     }
 
     public synchronized void updateStatus(
