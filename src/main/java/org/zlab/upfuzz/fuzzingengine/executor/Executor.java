@@ -134,14 +134,14 @@ public abstract class Executor implements IExecutor {
     public void updateTrace(int nodeIdx) {
         if (!Config.getConf().useTrace)
             return;
-        trace[nodeIdx].merge(collectTrace(nodeIdx));
+        trace[nodeIdx].append(collectTrace(nodeIdx));
     }
 
     public void updateTrace() {
         if (!Config.getConf().useTrace)
             return;
         for (int i = 0; i < nodeNum; i++) {
-            trace[i].merge(collectTrace(i));
+            trace[i].append(collectTrace(i));
         }
     }
 

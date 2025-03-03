@@ -19,6 +19,8 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionDataStore;
+import org.zlab.net.tracker.DiffComputeEditDistance;
+import org.zlab.net.tracker.Trace;
 import org.zlab.ocov.Utils;
 import org.zlab.ocov.tracker.FormatCoverageStatus;
 import org.zlab.ocov.tracker.ObjectGraphCoverage;
@@ -1386,9 +1388,28 @@ public class FuzzingServer {
 
         TestPlanFeedbackPacket[] testPlanFeedbackPackets = testPlanDiffFeedbackPacket.testPlanFeedbackPackets;
 
+        if (testPlanFeedbackPackets.length != 3) {
+            throw new RuntimeException(
+                    "TestPlanDiffFeedbackPacket length is not 3: there should be (1) Old (2) RU and (3) New");
+        }
+
+        // Serialize
+        // each
+        // trace
+        // for
+        // all
+        // nodes
+        Trace[] serializedTraces = new Trace[testPlanFeedbackPackets.length];
+
         for (int i = 0; i < testPlanFeedbackPackets.length; i++) {
             TestPlanFeedbackPacket testPlanFeedbackPacket = testPlanFeedbackPackets[i];
-            // print traces
+
+            assert testPlanFeedbackPacket.trace != null;
+            Trace serializedTrace = Trace
+                    .mergeBasedOnTimestamp(testPlanFeedbackPacket.trace);
+            serializedTraces[i] = serializedTrace;
+
+            // debug
             logger.info("TestPlanFeedbackPacket " + i + ", type = "
                     + testPlanID2Setup.get(i) + ": trace:");
             if (testPlanFeedbackPacket.trace != null) {
@@ -1400,6 +1421,15 @@ public class FuzzingServer {
                 logger.error("trace is null");
             }
         }
+
+        // Compute diff
+        int[] diff = DiffComputeEditDistance.compute(serializedTraces[0],
+                serializedTraces[1], serializedTraces[2]);
+        assert diff.length == 2
+                : "Diff length should be 2: (1) RU and Old and (2) RU and New";
+
+        // Print diff
+        logger.info("Diff[0] = " + diff[0] + ", Diff[1] = " + diff[1]);
     }
 
     public synchronized void updateStatus(
