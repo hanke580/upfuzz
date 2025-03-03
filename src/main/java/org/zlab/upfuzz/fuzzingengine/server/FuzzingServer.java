@@ -1393,12 +1393,6 @@ public class FuzzingServer {
                     "TestPlanDiffFeedbackPacket length is not 3: there should be (1) Old (2) RU and (3) New");
         }
 
-        // Serialize
-        // each
-        // trace
-        // for
-        // all
-        // nodes
         Trace[] serializedTraces = new Trace[testPlanFeedbackPackets.length];
 
         for (int i = 0; i < testPlanFeedbackPackets.length; i++) {
