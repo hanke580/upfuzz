@@ -127,7 +127,8 @@ public class OzoneDocker extends Docker {
                 "OZONE_SHELL_DAEMON_PORT=\"" + ozoneDaemonPort + "\"",
                 "PYTHON=python3",
                 "ENABLE_FORMAT_COVERAGE=" + (Config.getConf().useFormatCoverage
-                        && collectFormatCoverage)
+                        && collectFormatCoverage),
+                "ENABLE_NET_COVERAGE=" + Config.getConf().useTrace
         };
         setEnvironment();
 
@@ -269,6 +270,7 @@ public class OzoneDocker extends Docker {
                 "OZONE_SHELL_DAEMON_PORT=\"" + ozoneDaemonPort + "\"",
                 "PYTHON=python3",
                 "ENABLE_FORMAT_COVERAGE=false",
+                "ENABLE_NET_COVERAGE=" + Config.getConf().useTrace,
                 "JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/\n"
         };
         setEnvironment();
@@ -361,6 +363,7 @@ public class OzoneDocker extends Docker {
                 "OZONE_SHELL_DAEMON_PORT=\"" + ozoneDaemonPort + "\"",
                 "PYTHON=python3",
                 "ENABLE_FORMAT_COVERAGE=false",
+                "ENABLE_NET_COVERAGE=" + Config.getConf().useTrace,
                 "JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/\n"
         };
         setEnvironment();

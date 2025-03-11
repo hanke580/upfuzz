@@ -167,7 +167,8 @@ public class HBaseDocker extends Docker {
                 "CUR_STATUS=ORI",
                 "PYTHON=" + pythonVersion,
                 "ENABLE_FORMAT_COVERAGE=" + (Config.getConf().useFormatCoverage
-                        && collectFormatCoverage)
+                        && collectFormatCoverage),
+                "ENABLE_NET_COVERAGE=" + Config.getConf().useTrace
         };
 
         setEnvironment();
@@ -260,7 +261,8 @@ public class HBaseDocker extends Docker {
                 "HBASE_SHELL_DAEMON_PORT=\"" + HBaseDaemonPort + "\"",
                 "CUR_STATUS=UP",
                 "PYTHON=" + pythonVersion,
-                "ENABLE_FORMAT_COVERAGE=false" };
+                "ENABLE_FORMAT_COVERAGE=false",
+                "ENABLE_NET_COVERAGE=" + Config.getConf().useTrace };
         setEnvironment();
     }
 

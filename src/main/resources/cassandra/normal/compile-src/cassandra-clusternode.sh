@@ -32,6 +32,13 @@ if [[ ! -f "/tmp/.setup_conf" ]]; then
         cp "$CASSANDRA_HOME/modifiedFields.json" /tmp/ || true
     fi
 
+    # ENABLE_NET_COVERAGE
+    if [ "$ENABLE_NET_COVERAGE" = "true" ]; then
+        # Copy the file to /tmp
+        echo "Enable net coverage"
+        cp "$CASSANDRA_HOME/modifiedFields.json" /tmp/ || true
+    fi
+
     echo "copy and format configurations"
     for VERSION in ${ORI_VERSION} ${UP_VERSION}; do
         mkdir /etc/${VERSION}

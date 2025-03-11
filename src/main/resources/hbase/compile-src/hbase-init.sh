@@ -12,6 +12,13 @@ if [ "$ENABLE_FORMAT_COVERAGE" = "true" ]; then
     cp "$HBASE_HOME/modifiedFields.json" /tmp/ || true
 fi
 
+# ENABLE_NET_COVERAGE
+if [ "$ENABLE_NET_COVERAGE" = "true" ]; then
+    # Copy the file to /tmp
+    echo "Enable net coverage"
+    cp "$CASSANDRA_HOME/modifiedFields.json" /tmp/ || true
+fi
+
 if [[ -z $(grep -F "master" "/etc/hosts") ]];
 then
         if [ -e "/etc/tmp_hosts" ]; then

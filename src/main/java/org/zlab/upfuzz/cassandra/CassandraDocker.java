@@ -134,27 +134,18 @@ public class CassandraDocker extends Docker {
             e.printStackTrace();
         }
 
-        if (useFormatCoverage) {
-            env = new String[] {
-                    "CASSANDRA_HOME=\"" + cassandraHome + "\"",
-                    "CASSANDRA_CONF=\"" + cassandraConf + "\"", javaToolOpts,
-                    "CQLSH_DAEMON_PORT=\"" + cqlshDaemonPort + "\"",
-                    "PYTHON=" + pythonVersion,
-                    "JAVA_HOME=" + jdkPath,
-                    "PATH=$JAVA_HOME/bin:$PATH",
-                    "ENABLE_FORMAT_COVERAGE=true"
-            };
-        } else {
-            env = new String[] {
-                    "CASSANDRA_HOME=\"" + cassandraHome + "\"",
-                    "CASSANDRA_CONF=\"" + cassandraConf + "\"", javaToolOpts,
-                    "CQLSH_DAEMON_PORT=\"" + cqlshDaemonPort + "\"",
-                    "PYTHON=" + pythonVersion,
-                    "JAVA_HOME=" + jdkPath,
-                    "PATH=$JAVA_HOME/bin:$PATH",
-                    "ENABLE_FORMAT_COVERAGE=false"
-            };
-        }
+        env = new String[] {
+                "CASSANDRA_HOME=\"" + cassandraHome + "\"",
+                "CASSANDRA_CONF=\"" + cassandraConf + "\"", javaToolOpts,
+                "CQLSH_DAEMON_PORT=\"" + cqlshDaemonPort + "\"",
+                "PYTHON=" + pythonVersion,
+                "JAVA_HOME=" + jdkPath,
+                "PATH=$JAVA_HOME/bin:$PATH",
+                "ENABLE_FORMAT_COVERAGE=" + (Config.getConf().useFormatCoverage
+                        && collectFormatCoverage),
+                "ENABLE_NET_COVERAGE=" + Config.getConf().useTrace
+        };
+
         setEnvironment();
     }
 

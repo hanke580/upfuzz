@@ -26,6 +26,13 @@ if [[ ! -f "/var/log/.setup_conf" ]]; then
         cp "$HADOOP_HOME/modifiedFields.json" /tmp/ || true
     fi
 
+    # ENABLE_NET_COVERAGE
+    if [ "$ENABLE_NET_COVERAGE" = "true" ]; then
+        # Copy the file to /tmp
+        echo "Enable net coverage"
+        cp "$CASSANDRA_HOME/modifiedFields.json" /tmp/ || true
+    fi
+
     echo "copy hadoop dir and format configurations"
     for VERSION in ${ORG_VERSION} ${UPG_VERSION}; do
         mkdir /etc/${VERSION}

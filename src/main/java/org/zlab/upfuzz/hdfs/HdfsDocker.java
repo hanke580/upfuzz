@@ -138,7 +138,8 @@ public class HdfsDocker extends Docker {
                 "HDFS_SHELL_DAEMON_PORT=\"" + hdfsDaemonPort + "\"",
                 "PYTHON=python3",
                 "ENABLE_FORMAT_COVERAGE=" + (Config.getConf().useFormatCoverage
-                        && collectFormatCoverage)
+                        && collectFormatCoverage),
+                "ENABLE_NET_COVERAGE=" + Config.getConf().useTrace
         };
         setEnvironment();
 
@@ -197,7 +198,8 @@ public class HdfsDocker extends Docker {
                 "HADOOP_CONF_DIR=" + hdfsConf, javaToolOpts,
                 "HDFS_SHELL_DAEMON_PORT=\"" + hdfsDaemonPort + "\"",
                 "PYTHON=python3",
-                "ENABLE_FORMAT_COVERAGE=false"
+                "ENABLE_FORMAT_COVERAGE=false",
+                "ENABLE_NET_COVERAGE=" + Config.getConf().useTrace
         };
         setEnvironment();
     }
@@ -259,7 +261,8 @@ public class HdfsDocker extends Docker {
                 "HADOOP_CONF_DIR=" + hdfsConf, javaToolOpts,
                 "HDFS_SHELL_DAEMON_PORT=\"" + hdfsDaemonPort + "\"",
                 "PYTHON=python3",
-                "ENABLE_FORMAT_COVERAGE=false" };
+                "ENABLE_FORMAT_COVERAGE=false",
+                "ENABLE_NET_COVERAGE=" + Config.getConf().useTrace };
         setEnvironment();
         String restartCommand = "/usr/bin/supervisorctl restart upfuzz_hdfs:";
         // Seems the env doesn't really matter...
