@@ -20,6 +20,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.zlab.net.tracker.Trace;
+import org.zlab.net.tracker.TraceEntry;
 import org.zlab.net.tracker.diff.DiffComputeEditDistance;
 import org.zlab.net.tracker.diff.DiffComputeJaccardSimilarity;
 import org.zlab.ocov.Utils;
@@ -1411,6 +1412,22 @@ public class FuzzingServer {
                 for (int j = 0; j < testPlanFeedbackPacket.trace.length; j++) {
                     logger.info("trace[" + j + "] len = "
                             + testPlanFeedbackPacket.trace[j].size());
+
+                    // Check changed message
+                    List<TraceEntry> entries = testPlanFeedbackPacket.trace[j]
+                            .getTraceEntries();
+                    boolean hasChangedMessage = false;
+                    for (TraceEntry traceEntry : entries) {
+                        if (traceEntry.changedMessage) {
+                            hasChangedMessage = true;
+                            break;
+                        }
+                    }
+                    if (hasChangedMessage) {
+                        logger.info("Trace contains changed message");
+                    } else {
+                        logger.info("Trace does not contain changed message");
+                    }
                 }
             } else {
                 logger.error("trace is null");
