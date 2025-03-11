@@ -1,0 +1,6 @@
+{
+    "org.apache.cassandra.db.Mutation": [
+        "key",
+        "modifications"
+    ]
+}
