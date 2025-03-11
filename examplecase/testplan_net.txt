@@ -1,0 +1,5 @@
+[Command] Execute {CREATE KEYSPACE  uuidd70f6d1e98244ff9a915560bc7998ad5 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 2 };}
+[UpgradeOp] Upgrade Node[0]
+[Command] Execute {USE uuidc96506a5aae64cfa8e047b07e092fe38;}
+[FinalizeUpgrade] Finalize Upgrade Process
+
