@@ -1,0 +1,7 @@
+[Command] Execute {CONSISTENCY ALL;}
+[Command] Execute {CREATE TABLE distributed_test_keyspace.tbl (   k int,    c int,    s1 int static,    s2 set<int> static,    v1 int,    v2 set<int>,    PRIMARY KEY (k, c));}
+[Command] Execute {INSERT INTO distributed_test_keyspace.tbl (k, c, s1, s2, v1, v2) VALUES (1, 1, 2, {1, 2, 3, 4, 5}, 3, {6, 7, 8, 9, 10});}
+[Command] Execute {INSERT INTO distributed_test_keyspace.tbl (k, c, s1, s2, v1, v2) VALUES (1, 2, 3, {2, 3, 4, 5, 6}, 4, {7, 8, 9, 10, 11});}
+[Command] Execute {SELECT k, c FROM distributed_test_keyspace.tbl WHERE k = 1;}
+[Command] Execute {SELECT k, c FROM distributed_test_keyspace.tbl WHERE k = 1 AND c = 2;}
+[UpgradeOp] Upgrade Node[0]
