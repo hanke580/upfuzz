@@ -21,7 +21,7 @@
   "testSingleVersion": false,
   "testingMode": 3,
   "useTrace": false,
-  "differentialExecution": true,
+  "differentialExecution": false,
   "BC_CorpusNonVersionDelta": 1,
   "FC_CorpusNonVersionDelta": 0,
   "FC_MOD_CorpusNonVersionDelta": 0,
