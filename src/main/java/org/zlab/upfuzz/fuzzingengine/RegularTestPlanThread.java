@@ -188,12 +188,19 @@ class RegularTestPlanThread implements Callable<TestPlanFeedbackPacket> {
                     System.currentTimeMillis() - curTime2));
         }
 
-        if (Config.getConf().startUpClusterForDebugging) {
-            logger.info("[Debugging Mode] Start up the cluster only");
+        if (Config.getConf().keepClusterBeforeExecutingTestplan) {
+            logger.info(
+                    "[Debugging Mode] Start up the cluster only, before executing the test plan");
             Utilities.sleepAndExit(36000);
         }
 
         boolean status = executor.execute(testPlanPacket.getTestPlan());
+
+        if (Config.getConf().keepClusterAfterExecutingTestplan) {
+            logger.info(
+                    "[Debugging Mode] Start up the cluster only, after executing the test plan");
+            Utilities.sleepAndExit(36000);
+        }
 
         if (Config.getConf().debug)
             logger.info("[Fuzzing Client] completed the testing");

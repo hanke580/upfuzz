@@ -199,6 +199,10 @@ public class Config {
 
         // Debug option
         public boolean startUpClusterForDebugging = false;
+
+        public boolean keepClusterBeforeExecutingTestplan = false;
+        public boolean keepClusterAfterExecutingTestplan = false;
+
         public boolean useExampleTestPlan = false;
         public boolean debug = false;
 
