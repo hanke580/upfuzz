@@ -1,0 +1,19 @@
+{
+    "org.apache.cassandra.net.MessagingService": [
+        "sendOneWay",
+        "sendRR",
+        "handleMessage"
+    ],
+    "org.apache.cassandra.gms.GossipDigestSyn.GossipDigestSynSerializer": [
+        "serialize",
+        "deserialize"
+    ],
+    "org.apache.cassandra.gms.GossipDigestAckSerializer": [
+        "serialize",
+        "deserialize"
+    ],
+    "org.apache.cassandra.gms.GossipDigestAck2.GossipDigestAck2Serializer": [
+        "serialize",
+        "deserialize"
+    ]
+}
