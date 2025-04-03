@@ -15,6 +15,7 @@
   "saveCorpusToDisk": true,
   "testSingleVersion": false,
   "testingMode": 0,
+  "testDowngrade": false,
   "useFormatCoverage": false,
   "useVersionDelta": false,
   "versionDeltaApproach": 2,

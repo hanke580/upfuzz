@@ -1483,19 +1483,22 @@ public class FuzzingServer {
             finishedTestID++;
         }
 
-        logger.debug(
-                "[hklog] check downgrade failure: isDowngradeProcessFailed = "
-                        + stackedFeedbackPacket.isDowngradeProcessFailed);
-        if (stackedFeedbackPacket.isDowngradeProcessFailed) {
-            if (failureDir == null) {
-                failureDir = createFailureDir(
-                        stackedFeedbackPacket.configFileName);
-                saveFullSequence(failureDir,
-                        stackedFeedbackPacket.fullSequence);
+        if (Config.getConf().testDowngrade) {
+            logger.debug(
+                    "[hklog] check downgrade failure: isDowngradeProcessFailed = "
+                            + stackedFeedbackPacket.isDowngradeProcessFailed);
+            if (stackedFeedbackPacket.isDowngradeProcessFailed) {
+                if (failureDir == null) {
+                    failureDir = createFailureDir(
+                            stackedFeedbackPacket.configFileName);
+                    saveFullSequence(failureDir,
+                            stackedFeedbackPacket.fullSequence);
+                }
+                saveFullStopCrashReport(failureDir,
+                        stackedFeedbackPacket.downgradeFailureReport,
+                        startTestID,
+                        endTestID, false);
             }
-            saveFullStopCrashReport(failureDir,
-                    stackedFeedbackPacket.downgradeFailureReport, startTestID,
-                    endTestID, false);
         }
 
         FuzzingServerHandler.printClientNum();
