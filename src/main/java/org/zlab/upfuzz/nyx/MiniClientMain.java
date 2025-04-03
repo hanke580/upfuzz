@@ -936,6 +936,19 @@ public class MiniClientMain {
                     feedbackPacket.validationReadResults = testID2upResults
                             .get(tp.testPacketID);
                 }
+
+                // Downgrade
+                if (Config.getConf().testDowngrade) {
+                    logger.debug("[hklog] test downgrade");
+                    boolean downgradeStatus = executor.downgrade();
+                    if (!downgradeStatus) {
+                        stackedFeedbackPacket.isDowngradeProcessFailed = true;
+                        stackedFeedbackPacket.downgradeFailureReport = FuzzingClient
+                                .genDowngradeFailureReport(
+                                        executor.executorID,
+                                        stackedTestPacket.configFileName);
+                    }
+                }
             }
         }
 
