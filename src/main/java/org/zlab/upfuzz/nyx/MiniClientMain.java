@@ -961,7 +961,8 @@ public class MiniClientMain {
                                 logInfo);
             }
         }
-        ozoneDefaultFSs.clear();
+        if (Config.getConf().system.equals("ozone"))
+            ozoneDefaultFSs.clear();
         return stackedFeedbackPacket;
     }
 
