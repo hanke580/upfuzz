@@ -31,4 +31,21 @@ public class CommandSequenceTest extends AbstractTest {
         assert p.value instanceof String;
         assert ((String) p.value).equals(((String) p.value).toLowerCase());
     }
+
+    // @Test
+    public void testForNTimes() {
+        Config.getConf().system = "ozone";
+        Seed seed = generateSeed(commandPool, OzoneState.class, -1);
+
+        System.out.println("debug = " + Config.getConf().debug);
+
+        int N = 10;
+        assert seed != null;
+        printSeed(seed);
+        for (int i = 0; i < 10; i++) {
+            boolean status = seed.mutate(commandPool, OzoneState.class);
+            System.out.println("mutate status = " + status);
+            printSeed(seed);
+        }
+    }
 }

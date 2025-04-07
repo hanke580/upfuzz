@@ -46,7 +46,7 @@ public abstract class OzoneCommand extends Command {
     public static Parameter chooseVolume(OzoneState state, Command command) {
         ParameterType.ConcreteType keyspaceNameType = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
-                (s, c) -> state.getVolumes(),
+                (s, c) -> ((OzoneState) s).getVolumes(),
                 null);
         return keyspaceNameType.generateRandomParameter(state, command);
     }
