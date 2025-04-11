@@ -2469,11 +2469,6 @@ public class FuzzingServer {
         // Print queue info...
         corpus.printInfo();
 
-        if (Config.getConf().staticVD && finishedTestID
-                % Config.getConf().staticVDMeasureInterval == 0)
-            oriObjCoverage.measureCoverageOfModifiedReferences(
-                    modifiedSerializedFields, true);
-
         if (Config.getConf().useFormatCoverage) {
             if (Config.getConf().staticVD) {
                 System.out.format("|%30s|%30s|%30s|%30s|\n",
@@ -2520,15 +2515,16 @@ public class FuzzingServer {
                         + "-----------------------------------------------------------------");
         System.out.println();
 
-        if (Config.getConf().debug) {
-            logger.info("[HKLOG] insignificant inconsistencies in: "
-                    + insignificantInconsistenciesIn.toString());
-            logger.info("[HKLOG: Seed tracker] Mutated Seed IDs: "
-                    + mutatedSeedIds.toString());
-            logger.info("[HKLOG] buffer details: ");
-            testBatchCorpus.printCache();
+        if (Config.getConf().staticVD && finishedTestID
+                % Config.getConf().staticVDMeasureInterval == 0) {
+            long start = System.nanoTime();
+            oriObjCoverage.measureCoverageOfModifiedReferences(
+                    modifiedSerializedFields, true);
+            long end = System.nanoTime();
+            long duration = end - start;
+            System.out.println("Time taken to measure coverage: "
+                    + duration / 1_000_000 + " ms");
         }
-        System.out.println();
     }
 
     public static List<Event> interleaveFaultAndUpgradeOp(
