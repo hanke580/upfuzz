@@ -2513,18 +2513,12 @@ public class FuzzingServer {
         System.out.println(
                 "------------------------------------------------------------"
                         + "-----------------------------------------------------------------");
-        System.out.println();
-
         if (Config.getConf().staticVD && finishedTestID
                 % Config.getConf().staticVDMeasureInterval == 0) {
-            long start = System.nanoTime();
             oriObjCoverage.measureCoverageOfModifiedReferences(
                     modifiedSerializedFields, true);
-            long end = System.nanoTime();
-            long duration = end - start;
-            System.out.println("Time taken to measure coverage: "
-                    + duration / 1_000_000 + " ms");
         }
+        System.out.println();
     }
 
     public static List<Event> interleaveFaultAndUpgradeOp(
