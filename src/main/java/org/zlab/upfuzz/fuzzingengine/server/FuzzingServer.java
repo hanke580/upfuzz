@@ -133,6 +133,8 @@ public class FuzzingServer {
 
     // ------------------- Version Delta -------------------
     // Matchable Format (formats that exist in both versions)
+    Map<String, Set<String>> modifiedFields;
+    Map<String, Set<String>> modifiedSerializedFields;
     Map<String, Map<String, String>> matchableClassInfo;
 
     // Ablation: <IsSerialized>
@@ -286,12 +288,24 @@ public class FuzzingServer {
         if (Config.getConf().srcVD) {
             Path modifiedFieldsPath = getModifiedFieldsPath(
                     upgradeFormatInfoFolder);
-            Map<String, Set<String>> modifiedFields = Utils
+            this.modifiedFields = Utils
                     .loadModifiedFields(modifiedFieldsPath);
             Map<String, Map<String, String>> oriClassInfo = Utilities
                     .loadMapFromFile(
                             oriFormatInfoFolder.resolve(
                                     Config.getConf().baseClassInfoFileName));
+
+            Map<String, Set<String>> oriClassInfoWithoutType = new HashMap<>();
+            for (Map.Entry<String, Map<String, String>> entry : oriClassInfo
+                    .entrySet()) {
+                String className = entry.getKey();
+                Map<String, String> fields = entry.getValue();
+                Set<String> fieldNames = new HashSet<>(fields.keySet());
+                oriClassInfoWithoutType.put(className, fieldNames);
+            }
+            this.modifiedSerializedFields = Utils.intersect(
+                    modifiedFields, oriClassInfoWithoutType);
+
             matchableClassInfo = Utilities.computeMFUsingModifiedFields(
                     Objects.requireNonNull(oriClassInfo),
                     modifiedFields);
@@ -2454,6 +2468,12 @@ public class FuzzingServer {
         }
         // Print queue info...
         corpus.printInfo();
+
+        if (Config.getConf().staticVD && finishedTestID
+                % Config.getConf().staticVDMeasureInterval == 0)
+            oriObjCoverage.measureCoverageOfModifiedReferences(
+                    modifiedSerializedFields, true);
+
         if (Config.getConf().useFormatCoverage) {
             if (Config.getConf().staticVD) {
                 System.out.format("|%30s|%30s|%30s|%30s|\n",
