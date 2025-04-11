@@ -14,10 +14,6 @@ import java.util.List;
 
 public abstract class OzoneCommand extends Command {
 
-    public OzoneCommand(String subdir) {
-        initStorageTypeOptions();
-    }
-
     public OzoneCommand() {
         initStorageTypeOptions();
     }

@@ -5,7 +5,6 @@ import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.ozone.OzoneParameterType.OzoneFilePathType;
-import org.zlab.upfuzz.ozone.OzoneParameterType.RandomLocalPathType;
 import org.zlab.upfuzz.ozone.OzoneState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 

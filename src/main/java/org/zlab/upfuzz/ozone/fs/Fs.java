@@ -5,10 +5,10 @@ import org.zlab.upfuzz.ozone.OzoneCommand;
 
 public abstract class Fs extends OzoneCommand {
 
-    String subdir = "";
+    String subdir;
 
     public Fs(String subdir) {
-        super(subdir);
+        this.subdir = subdir;
     }
 
     @Override
@@ -37,7 +37,7 @@ public abstract class Fs extends OzoneCommand {
                 sb.append(params.get(i)).append(" ");
             i++;
         }
-        // sb.append(subdir).append(params.get(i));
+        sb.append(subdir).append(params.get(i));
         return sb.toString();
     }
 }
