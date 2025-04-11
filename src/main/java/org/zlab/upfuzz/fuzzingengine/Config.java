@@ -291,7 +291,7 @@ public class Config {
         public double DROP_TEST_PROB_G2 = 0.1;
 
         // Measure coverage of occurred references...
-        public int staticVDMeasureInterval = 1;
+        public int staticVDMeasureInterval = 100;
 
         // -----------Network Trace Coverage-------------
 
