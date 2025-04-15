@@ -74,7 +74,7 @@ public class Count extends Fs {
                 sb.append(params.get(i)).append(" ");
             i++;
         }
-        sb.append(params.get(i));
+        sb.append(subdir).append(params.get(i));
         return sb.toString();
     }
 
