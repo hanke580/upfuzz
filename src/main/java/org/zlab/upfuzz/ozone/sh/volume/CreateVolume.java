@@ -13,7 +13,7 @@ public class CreateVolume extends Sh {
 
         ParameterType.ConcreteType volumeNameType = new ParameterType.LessLikelyMutateType(
                 new ParameterType.NotInCollectionType(
-                        new ParameterType.NotEmpty(new STRINGType(10)),
+                        new ParameterType.NotEmpty(new STRINGType(10, 1, true)),
                         (s, c) -> ((OzoneState) s).getVolumes(), null),
                 0.1);
         Parameter volumeName = volumeNameType

@@ -15,7 +15,7 @@ public class CreateBucket extends Sh {
         params.add(volumeNameParam);
 
         ParameterType.ConcreteType bucketNameType = new ParameterType.NotInCollectionType(
-                new ParameterType.NotEmpty(new STRINGType(20, 3, true)),
+                new ParameterType.NotEmpty(new STRINGType(10, 1, true)),
                 (s, c) -> ((OzoneState) s)
                         .getBuckets(volumeNameParam.toString()),
                 null);

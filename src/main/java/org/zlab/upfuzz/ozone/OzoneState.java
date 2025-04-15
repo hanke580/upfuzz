@@ -46,7 +46,8 @@ public class OzoneState extends State {
 
     public OzoneState() {
         subdir = "/" + RandomStringUtils.randomAlphabetic(8, 8 + 1);
-        volumePrefix = RandomStringUtils.randomAlphabetic(8, 8 + 1) + "_";
+        volumePrefix = RandomStringUtils.randomAlphabetic(8, 8 + 1)
+                .toLowerCase() + "_";
 
         // Seems not in use
         volume = RandomStringUtils.randomAlphabetic(8, 8 + 1);
