@@ -47,5 +47,6 @@
   "enable_du": false,
   "support_StorageType_NVDIMM": false,
   "support_checksum_v_opt": false,
+  "useFixedCommand": false,
   "startUpClusterForDebugging": false
 }
