@@ -18,10 +18,6 @@ public abstract class OzoneCommand extends Command {
         initStorageTypeOptions();
     }
 
-    @Override
-    public void separate(State state) {
-    }
-
     public List<String> storageTypeOptions = new LinkedList<>();
 
     public void initStorageTypeOptions() {

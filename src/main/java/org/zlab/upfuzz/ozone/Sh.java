@@ -1,10 +1,16 @@
 package org.zlab.upfuzz.ozone;
 
 import org.zlab.upfuzz.Parameter;
+import org.zlab.upfuzz.State;
 
 public abstract class Sh extends OzoneCommand {
 
     public Sh() {
+    }
+
+    @Override
+    public void separate(State state) {
+        // TODO: implement separation for SH
     }
 
     @Override

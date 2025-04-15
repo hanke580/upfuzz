@@ -1,7 +1,9 @@
 package org.zlab.upfuzz.ozone.fs;
 
 import org.zlab.upfuzz.Parameter;
+import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.ozone.OzoneCommand;
+import org.zlab.upfuzz.ozone.OzoneState;
 
 public abstract class Fs extends OzoneCommand {
 
@@ -9,6 +11,11 @@ public abstract class Fs extends OzoneCommand {
 
     public Fs(String subdir) {
         this.subdir = subdir;
+    }
+
+    @Override
+    public void separate(State state) {
+        subdir = ((OzoneState) state).subdir;
     }
 
     @Override
