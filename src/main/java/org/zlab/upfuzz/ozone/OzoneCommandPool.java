@@ -13,7 +13,6 @@ import org.zlab.upfuzz.ozone.sh.volume.VolumeGetAcl;
 import org.zlab.upfuzz.ozone.sh.volume.VolumeInfo;
 
 public class OzoneCommandPool extends CommandPool {
-    public static int basicCommandRate = 1;
     public static int createCommandRate = 5;
     public static int writeCommandRate = 5;
     public static int readCommandRate = 5;
@@ -81,7 +80,7 @@ public class OzoneCommandPool extends CommandPool {
                     new AbstractMap.SimpleImmutableEntry<>(CreateSnapshot.class,
                             2));
             commandClassList.add(
-                    new AbstractMap.SimpleImmutableEntry<>(Expunge.class, 5));
+                    new AbstractMap.SimpleImmutableEntry<>(Expunge.class, 2));
             commandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(Put.class, 5));
             commandClassList.add(
@@ -95,7 +94,7 @@ public class OzoneCommandPool extends CommandPool {
                             RmDir.class, 2));
             commandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
-                            RmFile.class, 3));
+                            RmFile.class, 2));
             commandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(Touchz.class, 3));
             commandClassList.add(
