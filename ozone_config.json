@@ -17,7 +17,7 @@
   "testingMode": 0,
   "useFormatCoverage": false,
   "useVersionDelta": false,
-  "testFSCommands": false,
+  "testFSCommands": true,
   "testSHCommands": true,
   "versionDeltaApproach": 2,
   "BC_CorpusNonVersionDelta": 0.2,
