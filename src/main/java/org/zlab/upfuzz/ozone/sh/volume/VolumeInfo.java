@@ -19,6 +19,6 @@ public class VolumeInfo extends Sh {
     @Override
     public String constructCommandString() {
         String volumeName = volumePrefix + params.get(0).toString();
-        return "sh volume into" + " " + volumeName;
+        return "sh volume info" + " " + volumeName;
     }
 }
