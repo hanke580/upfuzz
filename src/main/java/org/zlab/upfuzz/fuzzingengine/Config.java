@@ -382,6 +382,8 @@ public class Config {
         public boolean testFSCommands = false;
         public boolean testSHCommands = true;
 
+        public boolean enable_BucketInfo = false;
+
         // == unit test ==
         public boolean eval_UnitTest = false;
 

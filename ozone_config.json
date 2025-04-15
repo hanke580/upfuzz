@@ -40,13 +40,7 @@
   "useExampleTestPlan": false,
   "enable_fsimage": true,
   "prepareImageFirst": true,
-  "support_EC": false,
-  "support_StorageType_PROVIDED": false,
-  "support_count_e_opt": false,
-  "support_du_v_opt": false,
-  "enable_du": false,
-  "support_StorageType_NVDIMM": false,
-  "support_checksum_v_opt": false,
+  "enable_BucketInfo": false,
   "useFixedCommand": false,
   "startUpClusterForDebugging": false
 }

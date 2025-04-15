@@ -46,10 +46,12 @@ public class OzoneCommandPool extends CommandPool {
             readCommandClassList
                     .add(new AbstractMap.SimpleImmutableEntry<>(BucketLs.class,
                             readCommandRate));
-            readCommandClassList
-                    .add(new AbstractMap.SimpleImmutableEntry<>(
-                            BucketInfo.class,
-                            readCommandRate));
+            if (Config.getConf().enable_BucketInfo) {
+                readCommandClassList
+                        .add(new AbstractMap.SimpleImmutableEntry<>(
+                                BucketInfo.class,
+                                readCommandRate));
+            }
             readCommandClassList
                     .add(new AbstractMap.SimpleImmutableEntry<>(
                             BucketGetAcl.class,
