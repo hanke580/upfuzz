@@ -5,11 +5,12 @@ import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.ozone.OzoneState;
 import org.zlab.upfuzz.utils.STRINGType;
-import org.zlab.upfuzz.ozone.Sh;
+import org.zlab.upfuzz.ozone.sh.Sh;
 
 public class CreateBucket extends Sh {
-
     public CreateBucket(OzoneState state) {
+        super(state.volumePrefix);
+
         Parameter volumeNameParam = chooseVolume(state, this);
         params.add(volumeNameParam);
 
@@ -32,12 +33,8 @@ public class CreateBucket extends Sh {
 
     @Override
     public String constructCommandString() {
-        String volumeName = params.get(0).toString();
+        String volumeName = volumePrefix + params.get(0).toString();
         String bucketName = params.get(1).toString();
         return "sh bucket create" + " " + (volumeName + "/" + bucketName);
-    }
-
-    @Override
-    public void separate(State state) {
     }
 }

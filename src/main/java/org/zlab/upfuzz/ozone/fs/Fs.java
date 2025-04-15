@@ -6,7 +6,6 @@ import org.zlab.upfuzz.ozone.OzoneCommand;
 import org.zlab.upfuzz.ozone.OzoneState;
 
 public abstract class Fs extends OzoneCommand {
-
     String subdir;
 
     public Fs(String subdir) {

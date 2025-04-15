@@ -1,16 +1,20 @@
-package org.zlab.upfuzz.ozone;
+package org.zlab.upfuzz.ozone.sh;
 
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.State;
+import org.zlab.upfuzz.ozone.OzoneCommand;
+import org.zlab.upfuzz.ozone.OzoneState;
 
 public abstract class Sh extends OzoneCommand {
+    protected String volumePrefix;
 
-    public Sh() {
+    public Sh(String volumePrefix) {
+        this.volumePrefix = volumePrefix;
     }
 
     @Override
     public void separate(State state) {
-        // TODO: implement separation for SH
+        this.volumePrefix = ((OzoneState) state).volumePrefix;
     }
 
     @Override

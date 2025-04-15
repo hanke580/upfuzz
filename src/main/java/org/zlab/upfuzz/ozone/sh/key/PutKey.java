@@ -3,13 +3,14 @@ package org.zlab.upfuzz.ozone.sh.key;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.ozone.OzoneState;
-import org.zlab.upfuzz.ozone.Sh;
+import org.zlab.upfuzz.ozone.sh.Sh;
 import org.zlab.upfuzz.ozone.OzoneParameterType.RandomLocalPathType;
 import org.zlab.upfuzz.utils.STRINGType;
 
 public class PutKey extends Sh {
-
     public PutKey(OzoneState state) {
+        super(state.volumePrefix);
+
         Parameter volumeNameParam = chooseVolume(state, this);
         params.add(volumeNameParam);
 
@@ -36,7 +37,7 @@ public class PutKey extends Sh {
 
     @Override
     public String constructCommandString() {
-        String volumeName = params.get(0).toString();
+        String volumeName = volumePrefix + params.get(0).toString();
         String bucketName = params.get(1).toString();
         String keyName = params.get(2).toString();
         String src = params.get(3).toString();

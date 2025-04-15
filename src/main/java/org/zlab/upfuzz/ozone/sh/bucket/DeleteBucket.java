@@ -3,11 +3,12 @@ package org.zlab.upfuzz.ozone.sh.bucket;
 import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.ozone.OzoneState;
-import org.zlab.upfuzz.ozone.Sh;
+import org.zlab.upfuzz.ozone.sh.Sh;
 
 public class DeleteBucket extends Sh {
-
     public DeleteBucket(OzoneState state) {
+        super(state.volumePrefix);
+
         // choose a volume
         Parameter volumeNameParam = chooseVolume(state, this);
         params.add(volumeNameParam);
@@ -27,7 +28,7 @@ public class DeleteBucket extends Sh {
 
     @Override
     public String constructCommandString() {
-        String volumeName = params.get(0).toString();
+        String volumeName = volumePrefix + params.get(0).toString();
         String bucketName = params.get(1).toString();
         return "sh bucket delete " + " " + volumeName + "/" + bucketName;
     }

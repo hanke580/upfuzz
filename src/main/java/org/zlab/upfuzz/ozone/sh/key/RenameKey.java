@@ -30,7 +30,7 @@ public class RenameKey extends KeyQuery {
 
     @Override
     public String constructCommandString() {
-        String volumeName = params.get(0).toString();
+        String volumeName = volumePrefix + params.get(0).toString();
         String bucketName = params.get(1).toString();
         String oldKeyName = params.get(2).toString();
         String newKeyName = params.get(3).toString();

@@ -7,7 +7,6 @@ import org.zlab.upfuzz.utils.STRINGType;
 import org.zlab.upfuzz.utils.Utilities;
 
 public class CpKey extends KeyQuery {
-
     public CpKey(OzoneState state) {
         super(state);
 

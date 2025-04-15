@@ -8,8 +8,6 @@ import org.zlab.upfuzz.hdfs.MockFS.HadoopFileSystem;
 import org.zlab.upfuzz.hdfs.MockFS.INode;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hdfs.MockFS.LocalFileSystem;
-import org.zlab.upfuzz.ozone.MockObjectStorage.OzoneObjectStorage;
-import org.zlab.upfuzz.ozone.MockObjectStorage.ObjNode;
 import org.zlab.upfuzz.utils.Utilities;
 
 import java.util.HashMap;
@@ -18,8 +16,9 @@ import java.util.Map;
 import java.util.Set;
 
 public class OzoneState extends State {
-
     public String subdir;
+    public String volumePrefix;
+
     public String volume;
     public String bucket;
     public String key;
@@ -47,9 +46,12 @@ public class OzoneState extends State {
 
     public OzoneState() {
         subdir = "/" + RandomStringUtils.randomAlphabetic(8, 8 + 1);
+        volumePrefix = RandomStringUtils.randomAlphabetic(8, 8 + 1) + "_";
+
+        // Seems not in use
         volume = RandomStringUtils.randomAlphabetic(8, 8 + 1);
         bucket = RandomStringUtils.randomAlphabetic(4, 9);
-        // subdir = "";
+
         dfs = new HadoopFileSystem();
         dfs.randomize(0.6);
         // A small chance to use the new fs state
