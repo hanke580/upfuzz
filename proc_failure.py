@@ -25,6 +25,7 @@ inconsistency = "inconsistency"
 CASSANDRA_BLACK_LIST = ["QueryProcessor.java:559 - The statement:"]
 HDFS_BLACK_LIST = ["RECEIVED SIGNAL", "DataXceiver error processing"]
 HBASE_BLACK_LIST = ["zookeeper.ZKWatcher:", "quorum.LearnerHandler", "zookeeper.ClientCnxn", "procedure2.ProcedureExecutor: ThreadGroup java.lang.ThreadGroup"]
+OZONE_BLACK_LIST = []
 
 # subprocess.run(["grep", "-r", "-A", "4", "ERROR", "/Users/hanke/Desktop/Project/upfuzz/system.log"])
 
@@ -79,6 +80,53 @@ def cass_grepUniqueError(black_list):
 # compare 2 more words following the error message
 more_match = 3
 
+ozone_start = 3
+ozone_match = 5
+
+def ozone_grepUniqueError(black_list):
+    proc = subprocess.Popen(["grep", "-hr", "ERROR", failure_dir],stdout=subprocess.PIPE)
+    error_arr = []
+    for line in proc.stdout:
+        #the real code does filtering here
+        line_str = line.decode().rstrip()
+        if "ERROR LOG" in line_str:
+            continue
+        blacklisted = False
+        for blacklist_error in black_list:
+            if blacklist_error in line_str:
+                blacklisted = True
+                break
+        if blacklisted:
+            continue
+
+        arr = line_str.split()
+
+        # Iterate arr to find the first ERROR
+        error_idx = -1
+        for i in range(len(arr)):
+            if arr[i] == "ERROR":
+                error_idx = i
+                break
+        
+        start = max(ozone_start, error_idx)
+        # if ozone_start > error_idx:
+        #     print("error_idx = ", error_idx)
+        #     print("ozone_start = ", ozone_start)
+        if (len(arr) > 3):
+            str = ""
+            end = min(len(arr), start + ozone_match)
+            for i in range(start, end):
+                str += arr[i]
+                if i != len(arr):
+                    str += " "
+            error_arr.append(str.strip())
+        else:
+            error_arr.append(line_str.strip())
+
+    print("err size = ", len(error_arr))
+    unique_errors = set(error_arr)
+    print("unique err size = ", len(unique_errors))
+    return unique_errors
 
 def hadoop_grepUniqueError(black_list):
     proc = subprocess.Popen(["grep", "-hr", "ERROR", failure_dir],stdout=subprocess.PIPE)
@@ -232,6 +280,19 @@ def cass_construct_map(unique_errors):
         error2failure[error_msg].sort(key=cmp_to_key(sort_failureIdx))
     return error2failure
 
+def processOzone():
+    unique_errors = ozone_grepUniqueError(OZONE_BLACK_LIST)
+
+    # print unique errors
+    print("unique errors size = ", len(unique_errors))
+    for error_msg in unique_errors:
+        print("error: ", error_msg)
+
+    error2failure = hadoop_construct_map(unique_errors)
+
+    for error_msg in error2failure:
+        print("error: ", error_msg, "\t size = ", len(error2failure[error_msg]))
+    save_failureinfo(error2failure)
 
 def processHDFS():
     unique_errors = hadoop_grepUniqueError(HDFS_BLACK_LIST)
@@ -334,7 +395,7 @@ if __name__ == "__main__":
         print("usage: python3 proc_failure.py SYSTEM")
         print("usage: python3 proc_failure.py read")
         exit(1)
-    # args = ["hbase"]
+    # args = ["ozone"]
     
     if args[0] == "read":
         read_failureInfo()
@@ -345,6 +406,8 @@ if __name__ == "__main__":
         processHDFS()
     elif args[0] == "hbase":
         processHBase()
+    elif args[0] == "ozone":
+        processOzone()
     else:
         print("unknow input", args[0])
         print("please try hdfs, hbase or cassandra")

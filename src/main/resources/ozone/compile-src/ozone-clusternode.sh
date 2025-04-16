@@ -11,7 +11,7 @@ fi
 
 # Change it to the target systems
 ORI_VERSION=ozone-1.2.1
-UP_VERSION=ozone-1.3.0
+UP_VERSION=ozone-1.4.1
 
 # Create necessary directories
 mkdir -p /var/log/ozone
