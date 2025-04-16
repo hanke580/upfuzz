@@ -35,8 +35,8 @@ public class RenameKey extends KeyQuery {
         String oldKeyName = params.get(2).toString();
         String newKeyName = params.get(3).toString();
 
-        String srcPath = volumeName + "/" + bucketName + "/" + oldKeyName;
-        String dstPath = volumeName + "/" + bucketName + "/" + newKeyName;
-        return Utilities.concat("sh key", command, srcPath, dstPath);
+        String bucketPath = volumeName + "/" + bucketName;
+        return Utilities.concat("sh key", command, bucketPath,
+                oldKeyName, newKeyName);
     }
 }
