@@ -80,9 +80,12 @@ public class OzoneCommandPool extends CommandPool {
                     new AbstractMap.SimpleImmutableEntry<>(Chmod.class, 3));
             commandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(Cp.class, 10));
-            commandClassList.add(
-                    new AbstractMap.SimpleImmutableEntry<>(CreateSnapshot.class,
-                            2));
+            if (Config.getConf().support_createSnapshot) {
+                commandClassList.add(
+                        new AbstractMap.SimpleImmutableEntry<>(
+                                CreateSnapshot.class,
+                                2));
+            }
             commandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(Expunge.class, 2));
             commandClassList.add(

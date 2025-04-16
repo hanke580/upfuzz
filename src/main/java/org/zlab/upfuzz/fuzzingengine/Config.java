@@ -383,6 +383,7 @@ public class Config {
         public boolean testSHCommands = true;
 
         public boolean enable_BucketInfo = false;
+        public boolean support_createSnapshot = false;
 
         // == unit test ==
         public boolean eval_UnitTest = false;
