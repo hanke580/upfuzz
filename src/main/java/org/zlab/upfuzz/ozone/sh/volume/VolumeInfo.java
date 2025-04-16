@@ -12,8 +12,6 @@ public class VolumeInfo extends Sh {
 
     @Override
     public void updateState(State state) {
-        String volumeName = params.get(0).toString();
-        ((OzoneState) state).deleteVolume(volumeName);
     }
 
     @Override
