@@ -11,7 +11,8 @@ public class OzoneFilePathType extends ParameterType.ConcreteType {
 
     @Override
     public Parameter generateRandomParameter(State s, Command c, Object init) {
-        return null;
+        throw new UnsupportedOperationException(
+                "generateRandomParameter with init is not supported");
     }
 
     @Override

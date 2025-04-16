@@ -64,21 +64,18 @@ public class HadoopFileSystem implements Serializable {
 
     // --------Simple FS--------
     public String getRandomFilePath() {
-        // If there is no file in FS, we return NULL
         if (files.isEmpty())
             return null;
-        String[] fileArr = files.toArray(new String[dirs.size()]);
         int idx = new Random().nextInt(files.size());
-        return fileArr[idx];
+        return new ArrayList<>(files).get(idx);
     }
 
     public String getRandomDirPath() {
         // If there is no dir in FS, we return NULL
         if (dirs.isEmpty())
             return null;
-        String[] dirArr = dirs.toArray(new String[dirs.size()]);
         int idx = new Random().nextInt(dirs.size());
-        return dirArr[idx];
+        return new ArrayList<>(dirs).get(idx);
     }
 
     public void createFile(String path) {
