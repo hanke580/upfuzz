@@ -102,7 +102,10 @@ public class OzoneCommandPool extends CommandPool {
             commandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(Touchz.class, 3));
             commandClassList.add(
-                    new AbstractMap.SimpleImmutableEntry<>(Setacl.class, 5));
+                    new AbstractMap.SimpleImmutableEntry<>(Setacl_RM.class, 4));
+            commandClassList.add(
+                    new AbstractMap.SimpleImmutableEntry<>(Setacl_Set.class,
+                            4));
         }
         if (Config.getConf().testSHCommands) {
             commandClassList.add(

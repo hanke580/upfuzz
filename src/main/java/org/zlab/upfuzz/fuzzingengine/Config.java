@@ -379,7 +379,7 @@ public class Config {
         // Add a special first command... (will be deprecated)
         public boolean ozoneAppendSpecialCommand = false;
 
-        public boolean testFSCommands = false;
+        public boolean testFSCommands = true;
         public boolean testSHCommands = true;
 
         public boolean enable_BucketInfo = false;

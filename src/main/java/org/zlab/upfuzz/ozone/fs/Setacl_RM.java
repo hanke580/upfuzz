@@ -10,13 +10,16 @@ import org.zlab.upfuzz.ozone.OzoneParameterType.OzoneDirPathType;
 import org.zlab.upfuzz.ozone.OzoneState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 
-public class Setacl extends Fs {
+// -setfacl [-R] [{-b|-k} {-m|-x <acl_spec>} <path>]
+public class Setacl_RM extends Fs {
 
-    public Setacl(OzoneState state) {
+    public Setacl_RM(OzoneState state) {
         super(state.subdir);
 
         // -setfacl [-R] [{-b|-k} {-m|-x <acl_spec>} <path>]|[--set <acl_spec>
         // <path>]
+
+        // -setfacl [--set <acl_spec> <path>]
 
         // -setacl
         Parameter setaclcmd = new CONSTANTSTRINGType("-setfacl")
@@ -50,7 +53,7 @@ public class Setacl extends Fs {
                         .generateRandomParameter(state, this);
 
         // acl_spec
-        Parameter aclSpec = new CONSTANTSTRINGType("acl")
+        Parameter aclSpec = new CONSTANTSTRINGType("user:alice:rwx")
                 .generateRandomParameter(state, this);
 
         // {-m | -x <acl_spec>}
@@ -58,30 +61,16 @@ public class Setacl extends Fs {
                 .generateRandomParameter(state, this);
 
         // <path>
-        Parameter path1 = new OzoneDirPathType()
+        Parameter path = new OzoneDirPathType()
                 .generateRandomParameter(state, null);
 
         // [{-b|-k} {-m|-x <acl_spec>} <path>]
-        Parameter bkmxaclPath = new ConcatenateType(BandK, mxaclSpec, path1)
-                .generateRandomParameter(state, this);
-
-        // --set <acl_spec> <path>
-        Parameter hyphenSet = new CONSTANTSTRINGType("--set")
-                .generateRandomParameter(state, this);
-        Parameter aclSpec1 = new CONSTANTSTRINGType("acl2")
-                .generateRandomParameter(state, this);
-        Parameter path2 = new OzoneDirPathType()
-                .generateRandomParameter(state, this);
-        Parameter setACLPATH = new ConcatenateType(hyphenSet, aclSpec1, path2)
-                .generateRandomParameter(state, this);
-
-        // [{-b|-k} {-m|-x <acl_spec>} <path>]|[--set <acl_spec> <path>]
-        Parameter fullACLBKMXPATH = new ConcatenateType(bkmxaclPath, setACLPATH)
+        Parameter bkmxaclPath = new ConcatenateType(BandK, mxaclSpec, path)
                 .generateRandomParameter(state, this);
 
         params.add(setaclcmd);
         params.add(hyphenR);
-        params.add(fullACLBKMXPATH);
+        params.add(bkmxaclPath);
     }
 
     @Override
