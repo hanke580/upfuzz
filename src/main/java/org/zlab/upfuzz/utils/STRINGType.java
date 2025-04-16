@@ -18,6 +18,7 @@ public class STRINGType extends ParameterType.BasicConcreteType {
     public int MIN_LEN = 1;
     // lower case
     public boolean onlyLowerCase = false;
+    public boolean useStringPool = true;
 
     public static final Set<String> stringPool = new HashSet<>();
     public static final String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -39,12 +40,14 @@ public class STRINGType extends ParameterType.BasicConcreteType {
     }
 
     public STRINGType(int MAX_LEN, int MIN_LEN, boolean onlyLowerCase) {
-        this.MIN_LEN = MIN_LEN;
-        this.MAX_LEN = MAX_LEN;
+        this(MAX_LEN, MIN_LEN);
         this.onlyLowerCase = onlyLowerCase;
-        assert MIN_LEN > 0;
-        assert MAX_LEN > 1;
-        assert MAX_LEN >= MIN_LEN;
+    }
+
+    public STRINGType(int MAX_LEN, int MIN_LEN, boolean onlyLowerCase,
+            boolean useStringPool) {
+        this(MAX_LEN, MIN_LEN, onlyLowerCase);
+        this.useStringPool = useStringPool;
     }
 
     public STRINGType(boolean onlyLowerCase) {
@@ -131,7 +134,7 @@ public class STRINGType extends ParameterType.BasicConcreteType {
         Parameter ret;
 
         // Count a possibility for fetching from the pool
-        if (!stringPool.isEmpty()) {
+        if (useStringPool && !stringPool.isEmpty()) {
             Random rand = new Random();
             int choice = rand.nextInt(6);
             if (choice <= 2) {
@@ -396,8 +399,10 @@ public class STRINGType extends ParameterType.BasicConcreteType {
 
     @Override
     public boolean addToPool(Object val) {
+        // FIXME: do we only allow alphebetic characters?
         if (val instanceof String && !((String) val).contains(" ")
-                && !((String) val).startsWith("-")) {
+                && !((String) val).startsWith("-")
+                && !((String) val).contains("/")) {
             stringPool.add((String) val);
             return true;
         }
