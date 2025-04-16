@@ -13,6 +13,7 @@ public class CommandSequenceTest extends AbstractTest {
     @Test
     public void test() {
         Config.getConf().system = "ozone";
+        // Config.getConf().STACKED_TESTS_NUM = 5;
         Seed seed = generateSeed(commandPool, OzoneState.class, -1);
         assert seed != null;
         printSeed(seed);
