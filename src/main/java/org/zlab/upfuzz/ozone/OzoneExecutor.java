@@ -212,6 +212,10 @@ public class OzoneExecutor extends Executor {
                 str2 = str2.replaceAll("\\s", "");
 
                 if (str1.compareTo(str2) != 0) {
+                    if (str1.contains("OMException") && str2
+                            .contains("OMException")) {
+                        continue;
+                    }
                     String errorMsg = "Result inconsistency at read id: " + i
                             + "\n";
                     if (compareOldAndNew) {
