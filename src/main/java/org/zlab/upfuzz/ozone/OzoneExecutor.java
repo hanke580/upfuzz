@@ -2,7 +2,9 @@ package org.zlab.upfuzz.ozone;
 
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.LogManager;
@@ -176,6 +178,12 @@ public class OzoneExecutor extends Executor {
         return ret;
     }
 
+    static Set<String> exceptionSet = new HashSet<>();
+    static {
+        exceptionSet.add("BUCKET_NOT_FOUND");
+        exceptionSet.add("OMException");
+    }
+
     public Pair<Boolean, String> checkResultConsistency(List<String> oriResult,
             List<String> upResult, boolean compareOldAndNew) {
         // This could be override by each system to filter some false positive
@@ -212,8 +220,15 @@ public class OzoneExecutor extends Executor {
                 str2 = str2.replaceAll("\\s", "");
 
                 if (str1.compareTo(str2) != 0) {
-                    if (str1.contains("OMException") && str2
-                            .contains("OMException")) {
+                    boolean isSameExceptionInDifferentFormat = false;
+                    for (String exception : exceptionSet) {
+                        if (str1.contains(exception) && str2
+                                .contains(exception)) {
+                            isSameExceptionInDifferentFormat = true;
+                            break;
+                        }
+                    }
+                    if (isSameExceptionInDifferentFormat) {
                         continue;
                     }
                     String errorMsg = "Result inconsistency at read id: " + i
