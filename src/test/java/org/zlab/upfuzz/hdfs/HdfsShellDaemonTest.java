@@ -32,8 +32,8 @@ public class HdfsShellDaemonTest extends TestCase {
 
     // @Test
     public void testDaemon() {
-        String[] cmds = new String[] { "-ls /", "-touchz /yayu_z", "-ls /",
-                "-rm /yayu_z", "-ls /", "-rm /yayu_z" };
+        String[] cmds = new String[] { "-ls /", "-touchz /user_z", "-ls /",
+                "-rm /user_z", "-ls /", "-rm /user_z" };
 
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()

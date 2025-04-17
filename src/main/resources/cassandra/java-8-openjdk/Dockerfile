@@ -1,6 +1,4 @@
 FROM openjdk:8-jdk
-    MAINTAINER Yayu Wang <yayuwang@cs.ubc.ca>
-
 # 1. General setup.
 
 # Use supervisor to run multiple processes, in case the target system requires

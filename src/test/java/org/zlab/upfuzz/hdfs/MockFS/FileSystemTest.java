@@ -10,10 +10,10 @@ public class FileSystemTest extends TestCase {
     protected void setUp() {
     }
 
-    @Test
+    // @Test
     public void testPath() {
         Path p = Paths.get(
-                "/home/yayu/Project/Upgrade-Fuzzing/upfuzz/src/test/java/org/zlab/upfuzz/hdfs/MockFS/FileSystemTest.java");
+                "/PATH/TO/MockFS/FileSystemTest.java");
         while (true) {
             p = p.getParent();
             System.out.println(p);
