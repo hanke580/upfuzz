@@ -56,14 +56,14 @@ cd $UPFUZZ_DIR/nyx_mode/ubuntu
 2. Download our predefined ubuntu image into `$UPFUZZ_DIR/nyx_mode/ubuntu`
 
 ```bash
-# The prebuild image is put inside mufasa server: /home/khan/ubuntu_install, there's clean state one and also a cassandra prebuild one.
+# The prebuild image is put inside mufasa server: /home/user/ubuntu_install, there's clean state one and also a cassandra prebuild one.
 # In mufasa server
 # export TESTING_SERVER=
 # export UPFUZZ_DIR=
-rsync --progress -e ssh /home/khan/ubuntu_install/cassandra_build/ubuntu.img ${TESTING_SERVER}:${UPFUZZ_DIR}/nyx_mode/ubuntu/
+rsync --progress -e ssh /home/USER_NAME/ubuntu_install/cassandra_build/ubuntu.img ${TESTING_SERVER}:${UPFUZZ_DIR}/nyx_mode/ubuntu/
 ```
 > If you do not have the pre-defined image, unfold the following instructions.
-> Image location: mufasa server: /home/khan/ubuntu_install/ubuntu.img
+> Image location: mufasa server: /home/user/ubuntu_install/ubuntu.img
 
 <details>
   <summary>Click to unfold if you do not have a pre-defined image or want to test another version</summary>

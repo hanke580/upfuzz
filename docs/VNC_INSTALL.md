@@ -14,7 +14,7 @@ tightvncserver :1
 # Port Forwarding
 
 ```bash
-ssh khan@mufasa.cs.purdue.edu -L 9901:localhost:5900
+ssh username@mufasa.cs.purdue.edu -L 9901:localhost:5900
 
 # 9901: local host
 # 5900: remote host	
