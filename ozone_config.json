@@ -40,6 +40,8 @@
   "useExampleTestPlan": false,
   "enable_fsimage": true,
   "prepareImageFirst": true,
+  "enable_KeyLs": false,
+  "enable_VolumeInfo": false,
   "enable_BucketInfo": false,
   "useFixedCommand": false,
   "startUpClusterForDebugging": false

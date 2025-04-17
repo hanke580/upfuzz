@@ -32,13 +32,17 @@ public class OzoneCommandPool extends CommandPool {
                             readCommandRate));
         }
         if (Config.getConf().testSHCommands) {
-            readCommandClassList
-                    .add(new AbstractMap.SimpleImmutableEntry<>(
-                            VolumeInfo.class,
-                            readCommandRate));
-            readCommandClassList
-                    .add(new AbstractMap.SimpleImmutableEntry<>(KeyLs.class,
-                            readCommandRate));
+            if (Config.getConf().enable_VolumeInfo) {
+                readCommandClassList
+                        .add(new AbstractMap.SimpleImmutableEntry<>(
+                                VolumeInfo.class,
+                                readCommandRate));
+            }
+            if (Config.getConf().enable_KeyLs) {
+                readCommandClassList
+                        .add(new AbstractMap.SimpleImmutableEntry<>(KeyLs.class,
+                                readCommandRate));
+            }
             readCommandClassList
                     .add(new AbstractMap.SimpleImmutableEntry<>(
                             VolumeGetAcl.class,

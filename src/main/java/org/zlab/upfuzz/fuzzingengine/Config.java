@@ -382,6 +382,9 @@ public class Config {
         public boolean testFSCommands = true;
         public boolean testSHCommands = true;
 
+        public boolean enable_KeyLs = false;
+
+        public boolean enable_VolumeInfo = false;
         public boolean enable_BucketInfo = false;
         public boolean support_createSnapshot = false;
 
