@@ -17,8 +17,7 @@ public abstract class KeyQuery extends Sh {
         params.add(volumeNameParam);
 
         // choose a bucket
-        Parameter bucketNameParam = chooseBucket(state, this,
-                volumeNameParam.toString());
+        Parameter bucketNameParam = chooseBucket(state, this);
         params.add(bucketNameParam);
 
         // choose a key

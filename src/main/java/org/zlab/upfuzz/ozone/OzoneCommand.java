@@ -47,11 +47,10 @@ public abstract class OzoneCommand extends Command {
      * This helper function will randomly pick an existing volume and return its
      * tablename as parameter.
      */
-    public static Parameter chooseBucket(OzoneState state, Command command,
-            String volumeName) {
+    public static Parameter chooseBucket(OzoneState state, Command command) {
         ParameterType.ConcreteType keyspaceNameType = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
-                (s, c) -> state.getBuckets(volumeName),
+                (s, c) -> state.getBuckets(c.params.get(0).toString()),
                 null);
         return keyspaceNameType.generateRandomParameter(state, command);
     }

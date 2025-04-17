@@ -14,8 +14,7 @@ public class PutKey extends Sh {
         Parameter volumeNameParam = chooseVolume(state, this);
         params.add(volumeNameParam);
 
-        Parameter bucketNameParam = chooseBucket(state, this,
-                volumeNameParam.toString());
+        Parameter bucketNameParam = chooseBucket(state, this);
         params.add(bucketNameParam);
 
         Parameter keyNameParam = new STRINGType(10, 1)
