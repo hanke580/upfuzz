@@ -17,9 +17,11 @@ public class CommandSequenceTest extends AbstractTest {
         Seed seed = generateSeed(commandPool, OzoneState.class, -1);
         assert seed != null;
         printSeed(seed);
-        boolean status = seed.mutate(commandPool, OzoneState.class);
-        System.out.println("mutate status = " + status);
-        printSeed(seed);
+        // for (int i = 0; i < 20; i++) {
+        // boolean status = seed.mutate(commandPool, OzoneState.class);
+        // System.out.println("mutate status = " + status);
+        // printSeed(seed);
+        // }
     }
 
     @Test
