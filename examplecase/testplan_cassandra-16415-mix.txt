@@ -6,5 +6,3 @@
 [UpgradeOp] Upgrade Node[0]
 [Command] Execute {CONSISTENCY ALL;}
 [Command] Execute {SELECT v1 FROM distributed_test_keyspace.tbl WHERE k = 1;}
-[Command] Execute {SELECT k, c FROM distributed_test_keyspace.tbl WHERE k = 1;}
-[Command] Execute {SELECT k, c FROM distributed_test_keyspace.tbl WHERE k = 1 AND c = 2;}
