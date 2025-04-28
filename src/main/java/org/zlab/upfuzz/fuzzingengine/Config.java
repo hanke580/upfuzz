@@ -300,6 +300,8 @@ public class Config {
 
         public boolean differentialExecution = false;
 
+        public boolean printTrace = false;
+
         public boolean useEditDistance = false;
         public boolean useJaccardSimilarity = true;
 

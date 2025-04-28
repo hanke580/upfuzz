@@ -1448,6 +1448,13 @@ public class FuzzingServer {
             }
         }
 
+        if (Config.getConf().printTrace) {
+            for (int i = 0; i < serializedTraces.length; i++) {
+                logger.info("Serialized Trace " + i + ":");
+                serializedTraces[i].print();
+            }
+        }
+
         // Compute diff
         if (Config.getConf().useEditDistance) {
             int[] diff = DiffComputeEditDistance.compute(serializedTraces[0],
