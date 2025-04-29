@@ -1393,6 +1393,14 @@ public class FuzzingClient {
                     testPlanPacket.systemID,
                     testPlanPacket.testPacketID,
                     testPlanFeedbackPackets);
+        } catch (ExecutionException e) {
+            Throwable realException = e.getCause(); // get the original cause
+            logger.error("[HKLOG] ExecutionException when collecting 3 diff "
+                    + realException);
+            for (StackTraceElement ste : realException.getStackTrace())
+                logger.error(ste.toString());
+            executorService.shutdown();
+            return null;
         } catch (Exception e) {
             logger.error("[HKLOG] Exception when collecting 3 diff " + e);
             for (StackTraceElement ste : e.getStackTrace())
