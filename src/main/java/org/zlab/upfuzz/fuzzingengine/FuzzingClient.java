@@ -1446,10 +1446,19 @@ public class FuzzingClient {
         try {
             return futureRolling
                     .get();
+        } catch (ExecutionException e) {
+            Throwable realException = e.getCause(); // get the original cause
+            logger.error("[HKLOG] ExecutionException: "
+                    + realException);
+            for (StackTraceElement ste : realException.getStackTrace())
+                logger.error(ste.toString());
+            executorService.shutdown();
+            return null;
         } catch (Exception e) {
-            logger.error("[HKLOG] Exception when collecting 3 diff " + e);
+            logger.error("[HKLOG] Exception when: " + e);
             for (StackTraceElement ste : e.getStackTrace())
                 logger.error(ste.toString());
+            executorService.shutdown();
             return null;
         }
     }
