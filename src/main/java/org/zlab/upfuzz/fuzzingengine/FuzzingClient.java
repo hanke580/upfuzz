@@ -1379,8 +1379,9 @@ public class FuzzingClient {
             if (testPlanFeedbackPacket1 == null ||
                     testPlanFeedbackPacket2 == null ||
                     testPlanFeedbackPacket3 == null) {
-                executorService.shutdown();
-                return null;
+                logger.error("[HKLOG] trace diff: one of the packets is null");
+                throw new RuntimeException(
+                        "One of the packets is null, cannot proceed");
             }
             // TODO: return 3 packets...
             logger.debug("[HKLOG] trace diff: all three packets are collected");
@@ -1396,6 +1397,7 @@ public class FuzzingClient {
             logger.error("[HKLOG] Exception when collecting 3 diff " + e);
             for (StackTraceElement ste : e.getStackTrace())
                 logger.error(ste.toString());
+            executorService.shutdown();
             return null;
         }
     }
