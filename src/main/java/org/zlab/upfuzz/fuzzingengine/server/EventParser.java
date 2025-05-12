@@ -49,6 +49,7 @@ public class EventParser {
             String restStr = eventStr.substring(idx + 1);
             switch (type) {
             case "Command":
+                // TODO: record node id and parse it
                 idx1 = restStr.indexOf("{");
                 String commandStr = restStr.substring(idx1 + 1,
                         restStr.length() - 1);
