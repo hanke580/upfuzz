@@ -63,9 +63,10 @@ import org.zlab.upfuzz.hbase.HBaseState;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
+import static org.zlab.upfuzz.utils.Utilities.rand;
+
 public class FuzzingServer {
     static Logger logger = LogManager.getLogger(FuzzingServer.class);
-    static Random rand = new Random();
 
     // Debug
     public List<String> fixedWriteCommands;
@@ -2538,7 +2539,7 @@ public class FuzzingServer {
         for (Pair<Fault, FaultRecover> faultPair : faultPairs) {
             int pos1 = rand.nextInt(upgradeOpAndFaults.size() + 1);
             upgradeOpAndFaults.add(pos1, faultPair.left);
-            int pos2 = Utilities.randWithRange(rand, pos1 + 1,
+            int pos2 = Utilities.randWithRange(pos1 + 1,
                     upgradeOpAndFaults.size() + 1);
             if (faultPair.left instanceof NodeFailure) {
                 // the recover must be in the front of node upgrade
@@ -2560,7 +2561,7 @@ public class FuzzingServer {
                         upgradeOpAndFaults.remove(nodeUpgradePos);
                         continue;
                     }
-                    pos2 = Utilities.randWithRange(rand, pos1 + 1,
+                    pos2 = Utilities.randWithRange(pos1 + 1,
                             nodeUpgradePos + 1);
                 }
             }
@@ -2672,7 +2673,7 @@ public class FuzzingServer {
             throw new RuntimeException(
                     "no nodes are upgraded, cannot downgrade");
         }
-        int pos2 = Utilities.randWithRange(rand, pos1 + 1, events.size() + 1);
+        int pos2 = Utilities.randWithRange(pos1 + 1, events.size() + 1);
 
         newEvents = events.subList(0, pos2);
         assert newEvents.size() == pos2;

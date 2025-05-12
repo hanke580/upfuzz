@@ -209,8 +209,16 @@ public abstract class Executor implements IExecutor {
         for (eventIdx = 0; eventIdx < testPlan.getEvents().size(); eventIdx++) {
             Event event = testPlan.getEvents().get(eventIdx);
             logger.info(String.format("\nhandle %s\n", event));
-            // String command = String.format("handle %d %s ", eventIdx, event);
 
+            if (eventIdx != 0) {
+                // sleep for the interval
+                try {
+                    Thread.sleep(event.interval);
+                } catch (InterruptedException e) {
+                    logger.error("sleep interrupted");
+                    e.printStackTrace();
+                }
+            }
             long initTime = System.currentTimeMillis();
             if (event instanceof Fault) {
                 if (!handleFault((Fault) event)) {

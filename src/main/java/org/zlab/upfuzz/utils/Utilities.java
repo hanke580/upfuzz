@@ -785,7 +785,7 @@ public class Utilities {
         System.out.println();
     }
 
-    public static int randWithRange(Random rand, int min, int max) {
+    public static int randWithRange(int min, int max) {
         // [min, max)
         return rand.nextInt(max - min) + min;
     }
@@ -885,7 +885,6 @@ public class Utilities {
         }
 
         List<?> list = new ArrayList<>(set);
-        Random rand = new Random();
 
         for (int i = 0; i < numItemsToDelete; i++) {
             int randomIndex = rand.nextInt(list.size());
@@ -899,9 +898,8 @@ public class Utilities {
             return false;
         }
         // numItemsToDelete: [1, set.size()]
-        int numItemsToDelete = randWithRange(rand, 1, set.size() + 1);
+        int numItemsToDelete = randWithRange(1, set.size() + 1);
         List<?> list = new ArrayList<>(set);
-        Random rand = new Random();
 
         for (int i = 0; i < numItemsToDelete; i++) {
             int randomIndex = rand.nextInt(list.size());

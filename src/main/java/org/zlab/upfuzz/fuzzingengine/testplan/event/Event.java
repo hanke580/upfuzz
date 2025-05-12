@@ -2,6 +2,8 @@ package org.zlab.upfuzz.fuzzingengine.testplan.event;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.zlab.upfuzz.fuzzingengine.Config;
+import org.zlab.upfuzz.utils.Utilities;
 
 import java.io.Serializable;
 
@@ -15,9 +17,13 @@ public class Event implements Serializable {
     static Logger logger = LogManager.getLogger(Event.class);
 
     protected String type;
+    public int interval; // ms, execution interval from last event
 
     public Event(String type) {
         this.type = type;
+        // delay is a random number between 10ms and 200ms
+        interval = Utilities.randWithRange(Config.getConf().intervalMin,
+                Config.getConf().intervalMax);
     };
 
 }

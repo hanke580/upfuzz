@@ -127,6 +127,9 @@ public class Config {
         // test plan from it.
         public int testPlanGenerationNum = 20;
 
+        public int intervalMin = 10; // ms
+        public int intervalMax = 200; // ms
+
         // deprecated
         public String targetSystemStateFile = "states.json";
 

@@ -9,12 +9,12 @@ import org.zlab.upfuzz.utils.Utilities;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
+
+import static org.zlab.upfuzz.utils.Utilities.rand;
 
 public abstract class Fault extends Event {
     static Logger logger = LogManager.getLogger(Fault.class);
 
-    public static Random rand = new Random();
     static FaultPool.FaultType[] faultTypes = FaultPool.FaultType.values();
 
     public Fault(String type) {
@@ -51,7 +51,7 @@ public abstract class Fault extends Event {
         case NodeFailure:
             // for hdfs, avoid crash NN
             if (Config.getConf().system.equals("hdfs")) {
-                nodeIndex = Utilities.randWithRange(rand, 1, nodeNum);
+                nodeIndex = Utilities.randWithRange(1, nodeNum);
             } else {
                 nodeIndex = rand.nextInt(nodeNum);
             }

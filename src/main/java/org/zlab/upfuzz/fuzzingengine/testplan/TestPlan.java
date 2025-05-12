@@ -13,6 +13,8 @@ import org.zlab.upfuzz.fuzzingengine.testplan.event.upgradeop.UpgradeOp;
 import org.zlab.upfuzz.utils.Pair;
 import org.zlab.upfuzz.utils.Utilities;
 
+import static org.zlab.upfuzz.utils.Utilities.rand;
+
 public class TestPlan implements Serializable {
     static Logger logger = LogManager.getLogger(TestPlan.class);
 
@@ -70,8 +72,6 @@ public class TestPlan implements Serializable {
         // Some options
         // Inject another fault
 
-        Random rand = new Random();
-
         List<Integer> faultIdxes = getIdxes(events, Fault.class);
         List<Integer> faultRecoverIdxes = getIdxes(events, FaultRecover.class);
         List<Integer> upgradeOpIdxes = getIdxes(events, UpgradeOp.class);
@@ -94,7 +94,7 @@ public class TestPlan implements Serializable {
                 assert faultPair != null;
                 events.add(pos1, faultPair.left);
                 if (faultPair.right != null) {
-                    int pos2 = Utilities.randWithRange(rand, pos1 + 1,
+                    int pos2 = Utilities.randWithRange(pos1 + 1,
                             events.size() + 1);
                     events.add(pos2, faultPair.right);
                 }
@@ -113,7 +113,7 @@ public class TestPlan implements Serializable {
                 int pos1 = rand.nextInt(faultIdxes.size());
                 Fault fault = (Fault) events.get(faultIdxes.get(pos1));
                 FaultRecover faultRecover = fault.generateRecover();
-                int pos2 = Utilities.randWithRange(rand, faultIdxes.get(pos1),
+                int pos2 = Utilities.randWithRange(faultIdxes.get(pos1),
                         events.size() + 1);
                 events.add(pos2, faultRecover);
                 return;
