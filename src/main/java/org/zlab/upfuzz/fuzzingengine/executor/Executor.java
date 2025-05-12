@@ -351,7 +351,28 @@ public abstract class Executor implements IExecutor {
         return status;
     }
 
-    abstract public String execShellCommand(ShellCommand command);
+    public String execShellCommand(ShellCommand command) {
+        String ret = "null cp message";
+        if (command.getCommand().isEmpty())
+            return ret;
+        try {
+            int nodeIndex = command.getNodeIndex();
+
+            // it needs to be alive
+            if (nodeIndex < 0 || nodeIndex >= nodeNum)
+                throw new RuntimeException(
+                        "Node " + nodeIndex + " out of range: " + nodeNum);
+            if (!dockerCluster.dockerStates[nodeIndex].alive)
+                throw new RuntimeException(
+                        "Node " + nodeIndex + " is not alive");
+            return dockerCluster.getDocker(nodeIndex)
+                    .execCommand(command.getCommand());
+        } catch (Exception e) {
+            logger.error(e);
+            ret = "shell daemon execution problem " + e;
+        }
+        return ret;
+    }
 
     public ExecutionDataStore collect(String version) {
         // TODO: Separate the coverage here

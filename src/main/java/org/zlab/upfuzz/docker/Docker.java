@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.concurrent.TimeUnit;
 
 public abstract class Docker extends DockerMeta implements IDocker {
 
@@ -86,5 +87,23 @@ public abstract class Docker extends DockerMeta implements IDocker {
         in.close();
         socket.close();
         return response;
+    }
+
+    @Override
+    public String execCommand(String command) throws Exception {
+        long startTime = System.currentTimeMillis();
+        assert shell != null;
+        String ret = shell.executeCommand(command);
+        long endTime = System.currentTimeMillis();
+
+        long timeElapsed = TimeUnit.SECONDS.convert(
+                endTime - startTime, TimeUnit.MILLISECONDS);
+
+        if (Config.getConf().debug) {
+            logger.debug(String.format(
+                    "Command is sent to node[%d], exec time: %dms",
+                    index, timeElapsed));
+        }
+        return ret;
     }
 }

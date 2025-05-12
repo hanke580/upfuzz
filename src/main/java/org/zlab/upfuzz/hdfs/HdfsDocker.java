@@ -29,8 +29,6 @@ public class HdfsDocker extends Docker {
 
     public String namenodeIP;
 
-    public HDFSShellDaemon hdfsShell;
-
     public HdfsDocker(HdfsDockerCluster dockerCluster, int index) {
         this.index = index;
         this.direction = dockerCluster.direction;
@@ -94,7 +92,7 @@ public class HdfsDocker extends Docker {
     @Override
     public int start() throws Exception {
         // Connect to the HDFS daemon
-        hdfsShell = new HDFSShellDaemon(getNetworkIP(), hdfsDaemonPort,
+        shell = new HDFSShellDaemon(getNetworkIP(), hdfsDaemonPort,
                 executorID, this);
         return 0;
     }
@@ -227,7 +225,7 @@ public class HdfsDocker extends Docker {
         int ret = restart.waitFor();
         String message = Utilities.readProcess(restart);
         logger.debug("upgrade version start: " + ret + "\n" + message);
-        hdfsShell = new HDFSShellDaemon(getNetworkIP(), hdfsDaemonPort,
+        shell = new HDFSShellDaemon(getNetworkIP(), hdfsDaemonPort,
                 executorID, this);
         waitSafeModeInterval();
     }
@@ -272,7 +270,7 @@ public class HdfsDocker extends Docker {
         String message = Utilities.readProcess(restart);
         logger.debug(
                 "downgrade to original version start: " + ret + "\n" + message);
-        hdfsShell = new HDFSShellDaemon(getNetworkIP(), hdfsDaemonPort,
+        shell = new HDFSShellDaemon(getNetworkIP(), hdfsDaemonPort,
                 executorID, this);
         waitSafeModeInterval();
     }

@@ -124,47 +124,6 @@ public class HdfsExecutor extends Executor {
         return true;
     }
 
-    @Override
-    public String execShellCommand(ShellCommand command) {
-        // execute with HDFS
-        String ret = "null cp message";
-        if (command.getCommand().isEmpty())
-            return ret;
-        try {
-            // Cannot perform test plan
-            // We shouldn't crash nn
-            int nodeIndex = 0; // NN
-
-            assert dockerCluster.dockerStates[nodeIndex].alive;
-            hdfsShell = ((HdfsDocker) dockerCluster
-                    .getDocker(nodeIndex)).hdfsShell;
-
-            long startTime = System.currentTimeMillis();
-            HdfsPacket cp = hdfsShell
-                    .execute(command.getCommand());
-            long endTime = System.currentTimeMillis();
-
-            long timeElapsed = TimeUnit.SECONDS.convert(
-                    endTime - startTime, TimeUnit.MILLISECONDS);
-
-            if (Config.getConf().debug) {
-                logger.debug(String.format(
-                        "command = {%s}, result = {%s}, error = {%s}, exitValue = {%d}",
-                        command.getCommand(), cp.message, cp.error,
-                        cp.exitValue));
-            }
-            if (cp != null) {
-                // Also show the error message (normally the error message
-                // should be null)
-                ret = cp.message + cp.error;
-            }
-        } catch (Exception e) {
-            logger.error(e);
-            ret = "shell daemon execution problem " + e;
-        }
-        return ret;
-    }
-
     public Pair<Boolean, String> checkResultConsistency(List<String> oriResult,
             List<String> upResult, boolean compareOldAndNew) {
         // This could be override by each system to filter some false positive

@@ -7,6 +7,7 @@ import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.docker.Docker;
 import org.zlab.upfuzz.fuzzingengine.ClusterStuckException;
 import org.zlab.upfuzz.fuzzingengine.Config;
+import org.zlab.upfuzz.fuzzingengine.ShellDaemon;
 import org.zlab.upfuzz.utils.Utilities;
 
 import java.io.*;
@@ -14,7 +15,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
-public class HBaseShellDaemon {
+public class HBaseShellDaemon extends ShellDaemon {
     static Logger logger = LogManager.getLogger(HBaseShellDaemon.class);
 
     private Socket socket;
@@ -84,6 +85,21 @@ public class HBaseShellDaemon {
             throw new ClusterStuckException(
                     "Command execution timed out.", e);
         }
+    }
+
+    @Override
+    public String executeCommand(String command) throws Exception {
+        HBasePacket cp = execute(command);
+        String ret = "null message";
+        if (cp != null) {
+            ret = cp.message + cp.error;
+        }
+        if (cp != null)
+            logger.debug(String.format(
+                    "command = {%s}, result = {%s}, error = {%s}, exitValue = {%d}",
+                    command, cp.message, cp.error,
+                    cp.exitValue));
+        return ret;
     }
 
     public static class HBasePacket {

@@ -4,15 +4,13 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.zlab.upfuzz.cassandra.CassandraCqlshDaemon.CqlshPacket;
+import org.zlab.upfuzz.docker.DockerCluster;
 import org.zlab.upfuzz.fuzzingengine.AgentServerSocket;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.executor.Executor;
-import org.zlab.upfuzz.fuzzingengine.testplan.event.command.ShellCommand;
 import org.zlab.upfuzz.utils.Pair;
 
 public class CassandraExecutor extends Executor {
-    CassandraCqlshDaemon cqlsh = null;
     static final String jacocoOptions = "=append=false";
     static final String classToIns = Config.getConf().instClassFilePath;
     static final String excludes = "org.apache.cassandra.metrics.*:org.apache.cassandra.net.*:org.apache.cassandra.io.sstable.format.SSTableReader.*:org.apache.cassandra.service.*";
@@ -93,59 +91,17 @@ public class CassandraExecutor extends Executor {
             logger.error("docker cluster start up failed", e);
             return false;
         }
-        cqlsh = ((CassandraDocker) dockerCluster.getDocker(0)).cqlsh;
-        logger.info(
-                "cassandra " + executorID + " started, cqlsh daemon connected");
         return true;
     }
 
-    @Override
-    public String execShellCommand(ShellCommand command) {
-        String ret = "null cp message";
-        if (command.getCommand().isEmpty())
-            return ret;
-        try {
-            // We update the cqlsh each time
-            // (1) Try to find a working cqlsh
-            // (2) When the cqlsh daemon crash, we catch this
-            // exception, log it's test plan, report to the
-            // server, and keep testing
-            int cqlshNodeIndex = 0;
-            for (int i = 0; i < dockerCluster.nodeNum; i++) {
-                if (dockerCluster.dockerStates[i].alive) {
-                    cqlsh = ((CassandraDocker) dockerCluster
-                            .getDocker(i)).cqlsh;
-                    cqlshNodeIndex = i;
-                    break;
-                }
+    public static int findLiveNodeIndex(
+            DockerCluster dockerCluster) {
+        for (int i = 0; i < dockerCluster.nodeNum; i++) {
+            if (dockerCluster.dockerStates[i].alive) {
+                return i;
             }
-            long startTime = System.currentTimeMillis();
-            CqlshPacket cp = cqlsh.execute(command.getCommand());
-            long endTime = System.currentTimeMillis();
-
-            long timeElapsed = endTime - startTime;
-            if (Config.getConf().debug) {
-                logger.debug(String.format(
-                        "Command is sent to node[%d], exec time: %dms",
-                        cqlshNodeIndex, timeElapsed));
-                if (cp != null)
-                    logger.debug(String.format(
-                            "command = {%s}, result = {%s}, error = {%s}, exitValue = {%d}",
-                            command.getCommand(), cp.message, cp.error,
-                            cp.exitValue));
-            }
-
-            if (cp != null) {
-                if (cp.message.isEmpty())
-                    ret = cp.error;
-                else
-                    ret = cp.message;
-            }
-        } catch (Exception e) {
-            logger.error(e);
-            ret = "shell daemon execution problem " + e;
         }
-        return ret;
+        return -1;
     }
 
     public Pair<Boolean, String> checkResultConsistency(List<String> oriResult,

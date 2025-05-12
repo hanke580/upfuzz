@@ -106,45 +106,6 @@ public class HBaseExecutor extends Executor {
         return true;
     }
 
-    @Override
-    public String execShellCommand(ShellCommand command) {
-        // execute with HBase
-        String ret = "null cp message";
-        if (command.getCommand().isEmpty())
-            return ret;
-        try {
-            // Cannot perform test plan
-            // We shouldn't crash nn
-            int nodeIndex = 0; // NN
-
-            assert dockerCluster.dockerStates[nodeIndex].alive;
-            HBaseShell = ((HBaseDocker) dockerCluster
-                    .getDocker(nodeIndex)).HBaseShell;
-
-            long startTime = System.currentTimeMillis();
-            if (Config.getConf().debug) {
-                logger.trace("Execute command " + command.getCommand());
-            }
-            HBasePacket cp = HBaseShell
-                    .execute(command.getCommand());
-            long endTime = System.currentTimeMillis();
-
-            long timeElapsed = TimeUnit.SECONDS.convert(
-                    endTime - startTime, TimeUnit.MILLISECONDS);
-            if (cp != null) {
-                ret = cp.message;
-            }
-        } catch (ClusterStuckException e) {
-            logger.error("ClusterStuckException occurred: " + e.getMessage(),
-                    e);
-            throw e;
-        } catch (Exception e) {
-            logger.error(e);
-            ret = "shell daemon execution problem " + e;
-        }
-        return ret;
-    }
-
     public Pair<Boolean, String> checkResultConsistency(List<String> oriResult,
             List<String> upResult, boolean compareOldAndNew) {
         // This could be override by each system to filter some false positive

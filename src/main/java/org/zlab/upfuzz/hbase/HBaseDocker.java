@@ -32,8 +32,6 @@ public class HBaseDocker extends Docker {
 
     public String seedIP;
 
-    public HBaseShellDaemon HBaseShell;
-
     public HBaseDocker(HBaseDockerCluster dockerCluster, int index) {
         this.index = index;
         this.direction = dockerCluster.direction;
@@ -108,7 +106,7 @@ public class HBaseDocker extends Docker {
 
     @Override
     public int start() throws Exception {
-        HBaseShell = new HBaseShellDaemon(getNetworkIP(), HBaseDaemonPort,
+        shell = new HBaseShellDaemon(getNetworkIP(), HBaseDaemonPort,
                 this.executorID,
                 this);
         return 0;

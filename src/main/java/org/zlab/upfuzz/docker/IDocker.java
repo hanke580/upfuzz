@@ -37,4 +37,6 @@ public interface IDocker {
     LogInfo grepLogInfo(Set<String> blackListErrorLog);
 
     String formatComposeYaml();
+
+    String execCommand(String command) throws Exception;
 }

@@ -10,12 +10,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.docker.Docker;
 import org.zlab.upfuzz.fuzzingengine.Config;
+import org.zlab.upfuzz.fuzzingengine.ShellDaemon;
 import org.zlab.upfuzz.utils.Utilities;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-public class OzoneShellDaemon {
+public class OzoneShellDaemon extends ShellDaemon {
 
     static Logger logger = LogManager.getLogger(OzoneShellDaemon.class);
 
@@ -45,6 +46,21 @@ public class OzoneShellDaemon {
         }
         throw new RuntimeException("[HKLOG] executor ID = " + executorID
                 + "  " + "cannot connect to ozone shell at " + ipAddress);
+    }
+
+    @Override
+    public String executeCommand(String command) throws Exception {
+        OzonePacket cp = execute(command);
+        String ret = "null message";
+        if (cp != null) {
+            ret = cp.message + cp.error;
+        }
+        if (cp != null)
+            logger.debug(String.format(
+                    "command = {%s}, result = {%s}, error = {%s}, exitValue = {%d}",
+                    command, cp.message, cp.error,
+                    cp.exitValue));
+        return ret;
     }
 
     public OzonePacket execute(String cmd)

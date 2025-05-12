@@ -26,8 +26,6 @@ public class CassandraDocker extends Docker {
 
     public String seedIP;
 
-    public CassandraCqlshDaemon cqlsh;
-
     public CassandraDocker(CassandraDockerCluster dockerCluster, int index) {
         this.index = index;
         this.direction = dockerCluster.direction;
@@ -95,7 +93,7 @@ public class CassandraDocker extends Docker {
 
     @Override
     public int start() throws Exception {
-        cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort, this);
+        shell = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort, this);
         return 0;
     }
 
@@ -226,7 +224,7 @@ public class CassandraDocker extends Docker {
         int ret = restart.waitFor();
         String message = Utilities.readProcess(restart);
         logger.debug("upgrade version start: " + ret + "\n" + message);
-        cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort, this);
+        shell = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort, this);
     }
 
     @Override
@@ -305,7 +303,7 @@ public class CassandraDocker extends Docker {
         int ret = restart.waitFor();
         String message = Utilities.readProcess(restart);
         logger.debug("downgrade version start: " + ret + "\n" + message);
-        cqlsh = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort, this);
+        shell = new CassandraCqlshDaemon(getNetworkIP(), cqlshDaemonPort, this);
     }
 
     @Override

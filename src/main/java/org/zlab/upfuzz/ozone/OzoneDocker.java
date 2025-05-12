@@ -31,8 +31,6 @@ public class OzoneDocker extends Docker {
 
     public String omNodeIP;
 
-    public OzoneShellDaemon ozoneShell;
-
     public OzoneDocker(OzoneDockerCluster dockerCluster, int index) {
         this.index = index;
         this.direction = dockerCluster.direction;
@@ -301,7 +299,7 @@ public class OzoneDocker extends Docker {
 
     public void startSCMShell() throws Exception {
         // logger.debug("upgrade version start: " + ret + "\n" + message);
-        ozoneShell = new OzoneShellDaemon(getNetworkIP(), ozoneDaemonPort,
+        shell = new OzoneShellDaemon(getNetworkIP(), ozoneDaemonPort,
                 executorID, this);
     }
 
@@ -315,7 +313,7 @@ public class OzoneDocker extends Docker {
         int ret = restart.waitFor();
         String message = Utilities.readProcess(restart);
         logger.debug("upgrade version start: " + ret + "\n" + message);
-        ozoneShell = new OzoneShellDaemon(getNetworkIP(), ozoneDaemonPort,
+        shell = new OzoneShellDaemon(getNetworkIP(), ozoneDaemonPort,
                 executorID, this);
         // waitSafeModeInterval();
     }
@@ -330,7 +328,7 @@ public class OzoneDocker extends Docker {
     @Override
     public int start() throws Exception {
         // Connect to the Ozone daemon
-        ozoneShell = new OzoneShellDaemon(getNetworkIP(), ozoneDaemonPort,
+        shell = new OzoneShellDaemon(getNetworkIP(), ozoneDaemonPort,
                 executorID, this);
         return 0;
     }
@@ -375,7 +373,7 @@ public class OzoneDocker extends Docker {
         String message = Utilities.readProcess(restart);
         logger.debug(
                 "downgrade to original version start: " + ret + "\n" + message);
-        ozoneShell = new OzoneShellDaemon(getNetworkIP(), ozoneDaemonPort,
+        shell = new OzoneShellDaemon(getNetworkIP(), ozoneDaemonPort,
                 executorID, this);
         waitSafeModeInterval();
     }

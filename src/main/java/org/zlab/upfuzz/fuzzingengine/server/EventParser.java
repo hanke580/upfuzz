@@ -46,27 +46,23 @@ public class EventParser {
             int idx = eventStr.indexOf("]");
             int idx1, idx2;
             String type = eventStr.substring(1, idx);
-            // logger.debug("type = " + type);
             String restStr = eventStr.substring(idx + 1);
             switch (type) {
             case "Command":
                 idx1 = restStr.indexOf("{");
                 String commandStr = restStr.substring(idx1 + 1,
                         restStr.length() - 1);
-//                    logger.debug("command Str = " + commandStr);
                 return new ShellCommand(commandStr);
             case "UpgradeOp":
                 idx1 = restStr.indexOf("[");
                 idx2 = restStr.indexOf("]");
                 int nodeIdx = Integer
                         .parseInt(restStr.substring(idx1 + 1, idx2));
-//                    logger.debug("Upgrade nodeIdx = " + nodeIdx);
                 return new UpgradeOp(nodeIdx);
             case "DowngradeOp":
                 idx1 = restStr.indexOf("[");
                 idx2 = restStr.indexOf("]");
                 nodeIdx = Integer.parseInt(restStr.substring(idx1 + 1, idx2));
-//                    logger.debug("Upgrade nodeIdx = " + nodeIdx);
                 return new DowngradeOp(nodeIdx);
             case "Fault":
                 if (restStr.contains("LinkFailure")) {
@@ -78,8 +74,6 @@ public class EventParser {
                     idx2 = restStr.indexOf("]", idx2 + 1);
                     int nodeIdx2 = Integer
                             .parseInt(restStr.substring(idx1 + 1, idx2));
-//                    logger.info(String.format("LinkFailure: %d and %d",
-//                            nodeIdx1, nodeIdx2));
                     return new LinkFailure(nodeIdx1, nodeIdx2);
                 } else if (restStr.contains("RestartFailure")) {
                     idx1 = restStr.indexOf("[");
@@ -113,8 +107,6 @@ public class EventParser {
                     idx2 = restStr.indexOf("]", idx2 + 1);
                     int nodeIdx2 = Integer
                             .parseInt(restStr.substring(idx1 + 1, idx2));
-//                    logger.info(String.format("LinkFailureRecover: %d and %d",
-//                            nodeIdx1, nodeIdx2));
                     return new LinkFailureRecover(nodeIdx1, nodeIdx2);
                 } else if (restStr.contains("IsolateFailureRecover")) {
                     idx1 = restStr.indexOf("[");

@@ -6,13 +6,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.docker.Docker;
 import org.zlab.upfuzz.fuzzingengine.Config;
+import org.zlab.upfuzz.fuzzingengine.ShellDaemon;
 import org.zlab.upfuzz.utils.Utilities;
 
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
-public class HDFSShellDaemon {
+public class HDFSShellDaemon extends ShellDaemon {
     static Logger logger = LogManager.getLogger(HDFSShellDaemon.class);
 
     private Socket socket;
@@ -104,6 +105,22 @@ public class HDFSShellDaemon {
                                     .toJson(hdfsPacket));
         }
         return hdfsPacket;
+    }
+
+    @Override
+    public String executeCommand(String command) throws Exception {
+        HdfsPacket cp = execute(command);
+        String ret = "null message";
+        if (cp != null) {
+            ret = cp.message + cp.error;
+        }
+        if (cp != null)
+            logger.debug(String.format(
+                    "command = {%s}, result = {%s}, error = {%s}, exitValue = {%d}",
+                    command, cp.message, cp.error,
+                    cp.exitValue));
+        return ret;
+
     }
 
     public static class HdfsPacket {

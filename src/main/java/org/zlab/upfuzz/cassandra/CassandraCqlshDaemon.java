@@ -6,19 +6,17 @@ import com.google.gson.GsonBuilder;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.sql.Time;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.docker.Docker;
+import org.zlab.upfuzz.fuzzingengine.ShellDaemon;
 import org.zlab.upfuzz.utils.Utilities;
 import org.zlab.upfuzz.fuzzingengine.Config;
 
-public class CassandraCqlshDaemon {
+public class CassandraCqlshDaemon extends ShellDaemon {
     static Logger logger = LogManager.getLogger(CassandraCqlshDaemon.class);
     private Socket socket;
     public static String cqlshPython2Script;
@@ -204,6 +202,24 @@ public class CassandraCqlshDaemon {
             e.printStackTrace();
         }
         return false;
+    }
+
+    @Override
+    public String executeCommand(String command) throws Exception {
+        CassandraCqlshDaemon.CqlshPacket cp = execute(command);
+        String ret = "null message";
+        if (cp != null) {
+            if (cp.message.isEmpty())
+                ret = cp.error;
+            else
+                ret = cp.message;
+        }
+        if (cp != null)
+            logger.debug(String.format(
+                    "command = {%s}, result = {%s}, error = {%s}, exitValue = {%d}",
+                    command, cp.message, cp.error,
+                    cp.exitValue));
+        return ret;
     }
 
     public static class CqlshPacket {

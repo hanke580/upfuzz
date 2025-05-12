@@ -11,11 +11,18 @@ import java.util.List;
  * system. Like cqlsh shell, hbase shell.
  */
 public class ShellCommand extends Event {
+    int nodeIndex = 0; // Default node ID
     String command;
 
     public ShellCommand(String command) {
         super("ShellCommand");
         this.command = command;
+    }
+
+    public ShellCommand(String command, int nodeIndex) {
+        super("ShellCommand");
+        this.command = command;
+        this.nodeIndex = nodeIndex;
     }
 
     public static List<Event> seedWriteCmd2Events(Seed seed) {
@@ -25,6 +32,18 @@ public class ShellCommand extends Event {
         for (String command : seed.originalCommandSequence
                 .getCommandStringList()) {
             events.add(new ShellCommand(command));
+        }
+        return events;
+    }
+
+    public static List<Event> seedWriteCmd2Events(Seed seed, int nodeNum) {
+        if (seed == null)
+            return null;
+        List<Event> events = new LinkedList<>();
+        for (String command : seed.originalCommandSequence
+                .getCommandStringList()) {
+            int nodeIndex = (int) (Math.random() * nodeNum);
+            events.add(new ShellCommand(command, nodeIndex));
         }
         return events;
     }
@@ -42,6 +61,10 @@ public class ShellCommand extends Event {
 
     public String getCommand() {
         return command;
+    }
+
+    public int getNodeIndex() {
+        return nodeIndex;
     }
 
     @Override

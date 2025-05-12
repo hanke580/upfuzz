@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.LogInfo;
+import org.zlab.upfuzz.fuzzingengine.ShellDaemon;
 import org.zlab.upfuzz.utils.Utilities;
 
 import java.io.File;
@@ -14,7 +15,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 
 public abstract class DockerMeta {
@@ -33,6 +33,8 @@ public abstract class DockerMeta {
     public enum DockerVersion {
         upgraded, original
     }
+
+    public ShellDaemon shell;
 
     public File workdir;
     public String[] env;
