@@ -1005,7 +1005,8 @@ public class FuzzingServer {
         // Randomly interleave the commands with the upgradeOp&faults
         List<Event> shellCommands = new LinkedList<>();
         if (fullStopSeed.seed != null)
-            shellCommands = ShellCommand.seedWriteCmd2Events(fullStopSeed.seed);
+            shellCommands = ShellCommand.seedWriteCmd2Events(fullStopSeed.seed,
+                    nodeNum);
         else
             logger.error("empty full stop seed");
 
