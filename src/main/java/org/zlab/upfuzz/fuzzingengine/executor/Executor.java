@@ -213,10 +213,17 @@ public abstract class Executor implements IExecutor {
             if (eventIdx != 0) {
                 // sleep for the interval
                 try {
+                    if (Config.getConf().debug)
+                        logger.info(
+                                String.format("command interval = %d ms",
+                                        event.interval));
                     Thread.sleep(event.interval);
                 } catch (InterruptedException e) {
                     logger.error("sleep interrupted");
-                    e.printStackTrace();
+                    for (StackTraceElement stackTraceElement : e
+                            .getStackTrace()) {
+                        logger.error(stackTraceElement);
+                    }
                 }
             }
             long initTime = System.currentTimeMillis();
