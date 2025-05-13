@@ -21,7 +21,7 @@ public abstract class Command implements Serializable {
     public List<Parameter> params;
 
     public int index = -1; // index in test plan (for mutation)
-    public int nodeIdx = -1; // node index in test plan (for mutation)
+    public int nodeIndex = -1; // node index in test plan (for mutation)
 
     public Command() {
         params = new LinkedList<>();

@@ -89,28 +89,10 @@ public class TestPlan implements Serializable {
         // Some options
         // Inject another fault
 
-        // set indexes
-        for (int i = 0; i < events.size(); i++)
-            events.get(i).index = i;
-
         List<Integer> faultIdxes = getIdxes(events, Fault.class);
         List<Integer> faultRecoverIdxes = getIdxes(events, FaultRecover.class);
         List<Integer> upgradeOpIdxes = getIdxes(events, UpgradeOp.class);
         List<Integer> shellCommandIdxes = getIdxes(events, ShellCommand.class);
-
-        // Step1: For shell command: collect the locations and assign it to the
-        // write commands in the seed
-        assert shellCommandIdxes.size() == seed.originalCommandSequence
-                .getSize();
-
-        // Set index
-        for (int i = 0; i < seed.originalCommandSequence.getSize(); i++) {
-            seed.originalCommandSequence.commands.get(i).index = events
-                    .get(shellCommandIdxes.get(i)).index;
-            seed.originalCommandSequence.commands
-                    .get(i).nodeIdx = ((ShellCommand) events
-                            .get(shellCommandIdxes.get(i))).getNodeIndex();
-        }
 
         int mutateType;
 
@@ -162,31 +144,56 @@ public class TestPlan implements Serializable {
             events.remove((int) faultRecoverIdxes.get(pos));
             return true;
         } else if (mutateType == 4) {
-            // Invoke command sequence API
+            if (seed == null)
+                throw new RuntimeException(
+                        "Seed is null, cannot mutate command sequence");
+
+            // Step1: For shell command: collect the locations and assign it to
+            // the
+            // write commands in the seed
+            assert shellCommandIdxes.size() == seed.originalCommandSequence
+                    .getSize();
+
+            // Set index for events
+            for (int i = 0; i < events.size(); i++)
+                events.get(i).index = i;
+            // Set Index for commands
+            for (int i = 0; i < seed.originalCommandSequence.getSize(); i++) {
+                ShellCommand cmdEvent = (ShellCommand) events
+                        .get(shellCommandIdxes.get(i));
+                Command cmd = seed.originalCommandSequence.commands.get(i);
+                cmd.index = cmdEvent.index;
+                cmd.nodeIndex = cmdEvent.getNodeIndex();
+            }
 
             // Clone a new seed
             Seed mutateSeed = SerializationUtils.clone(seed);
+
+            // Mutate it
             int mutationFailCount = 0;
             while (mutationFailCount < Config.getConf().mutationFailLimit) {
-                if (mutateSeed.mutate(commandPool, stateClass)) {
+                if (mutateSeed.mutate(commandPool, stateClass))
                     break;
-                }
                 logger.debug("Mutation failed");
                 mutationFailCount++;
             }
 
-            // Step2: re-interleave the commands and fault/upgrade
+            if (mutationFailCount == Config.getConf().mutationFailLimit) {
+                logger.debug("Mutation failed, skip this mutation");
+                return false;
+            }
+
+            // Re-interleave the commands and fault/upgrade
 
             // Gather the original upgrade/faults
             List<Event> upgradeAndFaults = new LinkedList<>();
-            for (int i = 0; i < events.size(); i++) {
-                if (!(events.get(i) instanceof ShellCommand)) {
-                    upgradeAndFaults.add(events.get(i));
+            for (Event value : events) {
+                if (!(value instanceof ShellCommand)) {
+                    upgradeAndFaults.add(value);
                 }
             }
 
-            // interleave: try to keep the original location
-
+            // Keep the original location
             List<Event> mergedEvents = new LinkedList<>();
 
             int i = 0; // fault/upgrade
@@ -205,7 +212,7 @@ public class TestPlan implements Serializable {
                         mergedEvents.add(upgradeOrFault);
                         i++;
                     } else {
-                        int nodeIndex = command.nodeIdx;
+                        int nodeIndex = command.nodeIndex;
                         assert nodeIndex != -1;
                         mergedEvents.add(new ShellCommand(
                                 command.constructCommandString(), nodeIndex));
@@ -216,7 +223,6 @@ public class TestPlan implements Serializable {
 
                 // Condition 2: New Command
                 int closestUpgradeAndFaultIndex = upgradeAndFaults.get(i).index;
-
                 int closestCommandIndex = -1;
                 int jj = j;
                 while (jj < mutateSeed.originalCommandSequence.getSize()) {
@@ -233,7 +239,7 @@ public class TestPlan implements Serializable {
                 if (closestCommandIndex == -1
                         || closestUpgradeAndFaultIndex < closestCommandIndex) {
                     // Random pick one and continue the iteration
-                    // TODO: decide whether we use skew model
+                    // TODO: decide whether we use skew prob model
                     if (rand.nextBoolean()) {
                         mergedEvents.add(upgradeOrFault);
                         i++;
@@ -245,6 +251,30 @@ public class TestPlan implements Serializable {
                     }
                 }
             }
+
+            // Add rest commands
+            while (j < mutateSeed.originalCommandSequence.getSize()) {
+                Command command = mutateSeed.originalCommandSequence.commands
+                        .get(j);
+                int nodeIndex = command.nodeIndex;
+                if (nodeIndex == -1)
+                    nodeIndex = rand.nextInt(nodeNum);
+                mergedEvents.add(new ShellCommand(
+                        command.constructCommandString(), nodeIndex));
+                j++;
+            }
+
+            // Add the rest of the upgrade/faults
+            while (i < upgradeAndFaults.size()) {
+                Event upgradeOrFault = upgradeAndFaults.get(i);
+                mergedEvents.add(upgradeOrFault);
+                i++;
+            }
+
+            // Step3: replace the events
+            events = mergedEvents;
+
+            // No need to update the index, as it will always be reset
         } else if (mutateType == 5) {
             // Mutate interval
         } else if (mutateType == 7) {
@@ -261,10 +291,10 @@ public class TestPlan implements Serializable {
             Collections.shuffle(upgradeOpIdxes);
             int pos1 = upgradeOpIdxes.get(0);
             int pos2 = upgradeOpIdxes.get(1);
-            int nodeIdx = ((UpgradeOp) events.get(pos1)).nodeIndex;
+            int nodeIndex = ((UpgradeOp) events.get(pos1)).nodeIndex;
             ((UpgradeOp) events.get(pos1)).nodeIndex = ((UpgradeOp) events
                     .get(pos2)).nodeIndex;
-            ((UpgradeOp) events.get(pos2)).nodeIndex = nodeIdx;
+            ((UpgradeOp) events.get(pos2)).nodeIndex = nodeIndex;
         }
         throw new RuntimeException(
                 "mutateType[%d] is out of range");
