@@ -960,7 +960,7 @@ public class FuzzingServer {
                 validationReadResultsOracle);
     }
 
-    public TestPlan generateTestPlan(FullStopSeed fullStopSeed) {
+    public static TestPlan generateTestPlan(FullStopSeed fullStopSeed) {
         // Some systems might have special requirements for
         // upgrade, like HDFS needs to upgrade NN.
         int nodeNum = Config.getConf().nodeNum;
@@ -1024,7 +1024,7 @@ public class FuzzingServer {
                 fullStopSeed.validationReadResults);
     }
 
-    public TestPlan constructExampleTestPlan(FullStopSeed fullStopSeed,
+    public static TestPlan constructExampleTestPlan(FullStopSeed fullStopSeed,
             int nodeNum) {
         // DEBUG USE
         logger.info("use example test plan");
@@ -2609,7 +2609,7 @@ public class FuzzingServer {
         return -1;
     }
 
-    public List<Event> interleaveWithOrder(List<Event> events1,
+    public static List<Event> interleaveWithOrder(List<Event> events1,
             List<Event> events2) {
         // Merge two lists but still maintain the inner order
         // Prefer to execute events2 first. Not uniform distribution
@@ -2659,7 +2659,7 @@ public class FuzzingServer {
      * 3. remove all the upgrade op after it
      * 4. downgrade all nodeidx collected
      */
-    public List<Event> addDowngrade(List<Event> events) {
+    public static List<Event> addDowngrade(List<Event> events) {
         // Add downgrade during the upgrade/when all nodes have been upgraded.
         List<Event> newEvents;
         // find first upgrade op

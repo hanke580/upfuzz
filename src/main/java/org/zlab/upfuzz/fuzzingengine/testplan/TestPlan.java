@@ -77,18 +77,6 @@ public class TestPlan implements Serializable {
 
     public boolean mutate(CommandPool commandPool,
             Class<? extends State> stateClass) {
-        // mutate a test plan
-        // We only mutate the upgradeOp and fault
-        // We still want to keep the entire test sequence
-        // correct right?
-        // How to we keep it right
-        // Some constraints
-        // crash1
-        // shouldn't upgrade node1
-
-        // Some options
-        // Inject another fault
-
         List<Integer> faultIdxes = getIdxes(events, Fault.class);
         List<Integer> faultRecoverIdxes = getIdxes(events, FaultRecover.class);
         List<Integer> upgradeOpIdxes = getIdxes(events, UpgradeOp.class);
@@ -104,6 +92,8 @@ public class TestPlan implements Serializable {
         } else {
             mutateType = rand.nextInt(3);
         }
+
+        logger.debug("[hklog] testplan mutate type: " + mutateType);
         if (mutateType == 0) {
             // Inject a fault
             Pair<Fault, FaultRecover> faultPair = Fault
@@ -308,5 +298,12 @@ public class TestPlan implements Serializable {
                 idxes.add(i);
         }
         return idxes;
+    }
+
+    public void print() {
+        System.out.println("Test Plan:");
+        for (Event event : events) {
+            System.out.println(event);
+        }
     }
 }
