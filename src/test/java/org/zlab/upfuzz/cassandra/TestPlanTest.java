@@ -61,10 +61,17 @@ public class TestPlanTest extends AbstractTest {
         System.out.println();
 
         TestPlan mutateTestPlan = SerializationUtils.clone(testPlan);
-        if (mutateTestPlan.mutate(cassandraCommandPool, CassandraState.class)) {
-            System.out.println("Testplan mutated successfully");
-            mutateTestPlan.print();
-        } else
+
+        if (!mutateTestPlan.mutate(cassandraCommandPool,
+                CassandraState.class)) {
             System.out.println("Testplan mutation failed");
+            return;
+        }
+
+        for (Event event : mutateTestPlan.getEvents())
+            assert event != null;
+
+        System.out.println("Testplan mutated successfully");
+        mutateTestPlan.print();
     }
 }

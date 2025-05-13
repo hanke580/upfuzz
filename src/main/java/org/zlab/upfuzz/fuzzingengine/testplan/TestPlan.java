@@ -93,6 +93,9 @@ public class TestPlan implements Serializable {
             mutateType = rand.nextInt(3);
         }
 
+        // debug
+        // mutateType = 4;
+
         logger.debug("[hklog] testplan mutate type: " + mutateType);
         if (mutateType == 0) {
             // Inject a fault
@@ -122,6 +125,8 @@ public class TestPlan implements Serializable {
             int pos1 = rand.nextInt(faultIdxes.size());
             Fault fault = (Fault) events.get(faultIdxes.get(pos1));
             FaultRecover faultRecover = fault.generateRecover();
+            if (faultRecover == null)
+                return false;
             int pos2 = Utilities.randWithRange(faultIdxes.get(pos1),
                     events.size() + 1);
             events.add(pos2, faultRecover);
@@ -138,12 +143,8 @@ public class TestPlan implements Serializable {
                 throw new RuntimeException(
                         "Seed is null, cannot mutate command sequence");
 
-            // Step1: For shell command: collect the locations and assign it to
-            // the
-            // write commands in the seed
             assert shellCommandIdxes.size() == seed.originalCommandSequence
                     .getSize();
-
             // Set index for events
             for (int i = 0; i < events.size(); i++)
                 events.get(i).index = i;
@@ -239,6 +240,11 @@ public class TestPlan implements Serializable {
                                 command.constructCommandString(), nodeIndex));
                         j++;
                     }
+                } else {
+                    int nodeIndex = rand.nextInt(nodeNum);
+                    mergedEvents.add(new ShellCommand(
+                            command.constructCommandString(), nodeIndex));
+                    j++;
                 }
             }
 
@@ -263,12 +269,16 @@ public class TestPlan implements Serializable {
 
             // Step3: replace the events
             events = mergedEvents;
-
             // No need to update the index, as it will always be reset
+            return true;
         } else if (mutateType == 5) {
             // Mutate interval
+            // not implemention exception
+            throw new RuntimeException(
+                    "Not implemented");
         } else if (mutateType == 7) {
-
+            throw new RuntimeException(
+                    "Not implemented");
         } else if (mutateType == 8) {
             logger.debug("Mutate Upgrade Order");
             // Change the upgrade order
