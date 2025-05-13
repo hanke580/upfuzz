@@ -82,19 +82,7 @@ public class TestPlan implements Serializable {
         List<Integer> upgradeOpIdxes = getIdxes(events, UpgradeOp.class);
         List<Integer> shellCommandIdxes = getIdxes(events, ShellCommand.class);
 
-        int mutateType;
-
-        // TODO: re-interleave the commands and faults
-
-        // Mutate commands while preserving xxx
-        if (Config.getConf().shuffleUpgradeOrder && nodeNum > 1) {
-            mutateType = rand.nextInt(4);
-        } else {
-            mutateType = rand.nextInt(3);
-        }
-
-        // debug
-        // mutateType = 4;
+        int mutateType = rand.nextInt(8);
 
         logger.debug("[hklog] testplan mutate type: " + mutateType);
         if (mutateType == 0) {
@@ -272,18 +260,42 @@ public class TestPlan implements Serializable {
             // No need to update the index, as it will always be reset
             return true;
         } else if (mutateType == 5) {
-            // Mutate interval
-            // not implemention exception
-            throw new RuntimeException(
-                    "Not implemented");
+            // Mutate event execution interval
+            int pos = rand.nextInt(events.size());
+            Event event = events.get(pos);
+            // mutate the time interval
+            int interval = event.interval;
+            // try a few times
+            for (int count = 0; count < 10; count++) {
+                int newInterval = Utilities.randWithRange(
+                        Config.getConf().intervalMin,
+                        Config.getConf().intervalMax);
+                if (newInterval != interval) {
+                    event.interval = newInterval;
+                    return true;
+                }
+            }
+            return false;
+        } else if (mutateType == 6) {
+            // Mutate node idx of a shell command
+            int idx = rand.nextInt(shellCommandIdxes.size());
+            Event event = events.get(shellCommandIdxes.get(idx));
+            assert event instanceof ShellCommand;
+            ShellCommand shellCommand = (ShellCommand) event;
+
+            for (int count = 0; count < 10; count++) {
+                int nodeIndex = rand.nextInt(nodeNum);
+                if (nodeIndex != shellCommand.getNodeIndex()) {
+                    shellCommand.setNodeIndex(nodeIndex);
+                    return true;
+                }
+            }
+            return false;
         } else if (mutateType == 7) {
-            throw new RuntimeException(
-                    "Not implemented");
-        } else if (mutateType == 8) {
             logger.debug("Mutate Upgrade Order");
-            // Change the upgrade order
-            // Find the upgrade operation
-            // swap two of them
+
+            if (!Config.getConf().shuffleUpgradeOrder || nodeNum <= 1)
+                return false;
 
             if (upgradeOpIdxes.size() < 2)
                 return false;
@@ -295,6 +307,8 @@ public class TestPlan implements Serializable {
             ((UpgradeOp) events.get(pos1)).nodeIndex = ((UpgradeOp) events
                     .get(pos2)).nodeIndex;
             ((UpgradeOp) events.get(pos2)).nodeIndex = nodeIndex;
+
+            return true;
         }
         throw new RuntimeException(
                 "mutateType[%d] is out of range");

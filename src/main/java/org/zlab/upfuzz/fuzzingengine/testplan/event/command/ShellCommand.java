@@ -67,6 +67,10 @@ public class ShellCommand extends Event {
         return nodeIndex;
     }
 
+    public void setNodeIndex(int nodeIndex) {
+        this.nodeIndex = nodeIndex;
+    }
+
     @Override
     public String toString() {
         return String.format("[Command] Execute {%s}", command);

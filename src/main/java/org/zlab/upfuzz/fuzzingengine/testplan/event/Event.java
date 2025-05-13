@@ -24,8 +24,12 @@ public class Event implements Serializable {
     public Event(String type) {
         this.type = type;
         // delay is a random number between 10ms and 200ms
-        interval = Utilities.randWithRange(Config.getConf().intervalMin,
+        interval = generateInterval();
+    }
+
+    public static int generateInterval() {
+        return Utilities.randWithRange(Config.getConf().intervalMin,
                 Config.getConf().intervalMax);
-    };
+    }
 
 }
