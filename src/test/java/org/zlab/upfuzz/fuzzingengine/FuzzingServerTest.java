@@ -50,7 +50,7 @@ public class FuzzingServerTest extends AbstractTest {
                 .generateTestPlan(fullStopSeed)) == null)
             ;
         System.out.println(testPlan);
-        testPlan.mutate();
+        testPlan.mutate(commandPool, stateClass);
         System.out.println("\nMutate Test Plan\n");
         System.out.println(testPlan);
     }

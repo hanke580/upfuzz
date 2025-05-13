@@ -895,7 +895,7 @@ public class FuzzingServer {
             int j = 0;
             for (; j < Config.getConf().testPlanMutationRetry; j++) {
                 mutateTestPlan = SerializationUtils.clone(testPlan);
-                mutateTestPlan.mutate();
+                mutateTestPlan.mutate(commandPool, stateClass);
                 if (testPlanVerifier(mutateTestPlan.getEvents(),
                         testPlan.nodeNum)) {
                     break;
@@ -1018,7 +1018,7 @@ public class FuzzingServer {
                 && !Config.getConf().fullStopUpgradeWithFaults)
             events.add(events.size(), new FinalizeUpgrade());
 
-        return new TestPlan(nodeNum, events,
+        return new TestPlan(nodeNum, events, fullStopSeed.seed,
                 fullStopSeed.seed.validationCommandSequence
                         .getCommandStringList(),
                 fullStopSeed.validationReadResults);

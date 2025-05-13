@@ -7,8 +7,6 @@ import java.util.Random;
 import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.zlab.upfuzz.fuzzingengine.Config;
-import org.zlab.upfuzz.ozone.OzoneState;
 
 /**
  * User need to implement two methods constructCommandString() and
@@ -21,6 +19,9 @@ public abstract class Command implements Serializable {
     public static final int RETRY_TIMES = 5;
 
     public List<Parameter> params;
+
+    public int index = -1; // index in test plan (for mutation)
+    public int nodeIdx = -1; // node index in test plan (for mutation)
 
     public Command() {
         params = new LinkedList<>();

@@ -19,6 +19,8 @@ public class Event implements Serializable {
     protected String type;
     public int interval; // ms, execution interval from last event
 
+    public int index; // index of the event in the test plan (for mutation)
+
     public Event(String type) {
         this.type = type;
         // delay is a random number between 10ms and 200ms
