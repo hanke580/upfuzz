@@ -8,13 +8,14 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.Iterator;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.zlab.upfuzz.ozone.MockObjectStorage.ObjNode.ObjType;
+
+import static org.zlab.upfuzz.utils.Utilities.rand;
 
 public class OzoneObjectStorage implements Serializable {
 
@@ -72,7 +73,7 @@ public class OzoneObjectStorage implements Serializable {
         if (keys.isEmpty())
             return null;
         String[] keyArr = keys.toArray(new String[keys.size()]);
-        int idx = new Random().nextInt(keys.size());
+        int idx = rand.nextInt(keys.size());
         return keyArr[idx];
     }
 
@@ -81,7 +82,7 @@ public class OzoneObjectStorage implements Serializable {
         if (buckets.isEmpty())
             return null;
         String[] fileArr = buckets.toArray(new String[buckets.size()]);
-        int idx = new Random().nextInt(buckets.size());
+        int idx = rand.nextInt(buckets.size());
         return fileArr[idx];
     }
 
@@ -90,7 +91,7 @@ public class OzoneObjectStorage implements Serializable {
         if (volumes.isEmpty())
             return null;
         String[] volArr = volumes.toArray(new String[volumes.size()]);
-        int idx = new Random().nextInt(volumes.size());
+        int idx = rand.nextInt(volumes.size());
         return volArr[idx];
     }
 

@@ -34,7 +34,15 @@ import org.zlab.upfuzz.fuzzingengine.packet.TestPacket;
 
 public class Utilities {
     static Logger logger = LogManager.getLogger(Utilities.class);
-    public static Random rand = new Random();
+
+    public static final SplittableRandom rand;
+
+    static {
+        if (Config.getConf().controlRandomness)
+            rand = new SplittableRandom(Config.getConf().seed);
+        else
+            rand = new SplittableRandom();
+    }
 
     public static List<Integer> permutation(int size) {
         List<Integer> indexArray = new ArrayList<>();
@@ -571,14 +579,14 @@ public class Utilities {
         return gitBranch;
     }
 
-    public static boolean oneOf(Random rand, int n) {
+    public static boolean oneOf(SplittableRandom rand, int n) {
         if (n <= 0) {
             throw new RuntimeException("n in oneOf <= 0");
         }
         return rand.nextInt(n) == 0;
     }
 
-    public static boolean nOutOf(Random rand, int x, int y) {
+    public static boolean nOutOf(SplittableRandom rand, int x, int y) {
         // probability x/y
         if (y <= 0 || x < 0) {
             throw new RuntimeException("n in oneOf <= 0");
@@ -693,15 +701,16 @@ public class Utilities {
 
     // biasedRand returns a random int in range [0..n),
     // probability of n-1 is k times higher than probability of 0.
-    public static int biasRand(Random rand, int n, int k) {
+    public static int biasRand(SplittableRandom rand, int n, int k) {
         double nf = (float) n;
         double kf = (float) k;
-        double rf = nf * (kf / 2 + 1) * rand.nextFloat();
+        double rf = nf * (kf / 2 + 1) * rand.nextDouble();
         double bf = (-1 + Math.sqrt(1 + 2 * kf * rf / nf)) * nf / kf;
         return (int) bf;
     }
 
-    public static int generateExponentialRandom(Random rand, double lambda,
+    public static int generateExponentialRandom(SplittableRandom rand,
+            double lambda,
             int lowerBound, int upperBound) {
         double randomExponential = Math.log(1 - rand.nextDouble()) / (-lambda);
         // Scale and shift to fit the range [lowerBound, upperBound]
@@ -811,7 +820,7 @@ public class Utilities {
         return decodedString;
     }
 
-    public static Double randDouble(Random rand, Double rangeMin,
+    public static Double randDouble(SplittableRandom rand, Double rangeMin,
             Double rangeMax) {
         double randomValue = rangeMin
                 + (rangeMax - rangeMin) * rand.nextDouble();

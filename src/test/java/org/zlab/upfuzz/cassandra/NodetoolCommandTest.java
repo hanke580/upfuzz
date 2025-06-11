@@ -8,6 +8,8 @@ import org.zlab.upfuzz.cassandra.nodetool.*;
 import java.math.BigInteger;
 import java.util.Random;
 
+import static org.zlab.upfuzz.utils.Utilities.rand;
+
 public class NodetoolCommandTest extends AbstractTest {
     @Test
     public void testINSERTCommandGeneration() {
@@ -39,7 +41,8 @@ public class NodetoolCommandTest extends AbstractTest {
 
     @Test
     public void test() {
-        BigInteger b = new BigInteger(63, new Random());
+        Random adapter = new Random(rand.nextLong());
+        BigInteger b = new BigInteger(63, adapter);
         System.out.println(b);
     }
 

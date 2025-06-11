@@ -8,8 +8,6 @@ import org.zlab.upfuzz.hbase.HBaseState;
 import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.Utilities;
 
-import java.util.Random;
-
 public class LIST_REGIONS extends HBaseCommand {
     public LIST_REGIONS(HBaseState state) {
         super(state);

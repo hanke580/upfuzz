@@ -5,7 +5,7 @@ import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 
-import java.util.Random;
+import static org.zlab.upfuzz.utils.Utilities.rand;
 
 public class BOOLType extends ParameterType.ConcreteType {
 
@@ -22,7 +22,7 @@ public class BOOLType extends ParameterType.ConcreteType {
 
     @Override
     public Parameter generateRandomParameter(State s, Command c) {
-        return new Parameter(this, new Random().nextBoolean());
+        return new Parameter(this, rand.nextBoolean());
     }
 
     @Override

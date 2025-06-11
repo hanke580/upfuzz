@@ -11,12 +11,12 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 
+import static org.zlab.upfuzz.utils.Utilities.rand;
+
 public class ConfigValGenerator {
 
     private static final Logger logger = LogManager
             .getLogger(ConfigValGenerator.class);
-
-    public static final Random rand = new Random();
 
     public static final double SHRINKRATIO = 0.3; // shrink size by 0.3 *
                                                   // size_default

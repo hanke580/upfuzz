@@ -11,6 +11,8 @@ import org.zlab.upfuzz.State;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import static org.zlab.upfuzz.utils.Utilities.rand;
+
 public class BIGINTType extends ParameterType.BasicConcreteType {
     static Logger logger = LogManager.getLogger(STRINGType.class);
 
@@ -29,7 +31,8 @@ public class BIGINTType extends ParameterType.BasicConcreteType {
     }
 
     public BigInteger generateRandomBigInt() {
-        return new BigInteger(NUM_BITS, new Random());
+        Random adapter = new Random(rand.nextLong());
+        return new BigInteger(NUM_BITS, adapter);
     }
 
     @Override
@@ -47,7 +50,6 @@ public class BIGINTType extends ParameterType.BasicConcreteType {
         Parameter ret;
         // Count a possibility for fetching from the pool
         if (!pool.isEmpty()) {
-            Random rand = new Random();
             int choice = rand.nextInt(5);
             if (choice <= 3) {
                 // 80%: it will pick from the Pool

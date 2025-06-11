@@ -7,9 +7,9 @@ import org.zlab.upfuzz.*;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.utils.*;
 
-public class CassandraTypes {
+import static org.zlab.upfuzz.utils.Utilities.rand;
 
-    private static final Random rand = new Random();
+public class CassandraTypes {
 
     public static Map<ParameterType, String> type2String = new HashMap<>();
     public static Map<ParameterType, String> complexType2String = new HashMap<>();

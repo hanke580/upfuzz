@@ -11,6 +11,8 @@ import org.zlab.upfuzz.cassandra.CassandraCommand;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import static org.zlab.upfuzz.utils.Utilities.rand;
+
 public class STRINGType extends ParameterType.BasicConcreteType {
     static Logger logger = LogManager.getLogger(STRINGType.class);
 
@@ -60,16 +62,16 @@ public class STRINGType extends ParameterType.BasicConcreteType {
     public String generateRandomStringWithMinLen() {
         // Now when calling text, it's impossible to generate empty string!
         StringBuilder sb = new StringBuilder();
-        Random random = new Random();
-        int length = random.nextInt(MAX_LEN) + MIN_LEN;
+
+        int length = rand.nextInt(MAX_LEN) + MIN_LEN;
         for (int i = 0; i < length; i++) {
-            // generate random index number
-            int index = random.nextInt(alphabet.length());
+            // generate rand index number
+            int index = rand.nextInt(alphabet.length());
             char randomChar = alphabet.charAt(index);
             sb.append(randomChar);
         }
         while (sb.toString().length() < MIN_LEN) {
-            int index = random.nextInt(alphabet.length());
+            int index = rand.nextInt(alphabet.length());
             char randomChar = alphabet.charAt(index);
             sb.append(randomChar);
         }
@@ -83,11 +85,11 @@ public class STRINGType extends ParameterType.BasicConcreteType {
     public String generateRandomString() {
         // Now when calling text, it's impossible to generate empty string!
         StringBuilder sb = new StringBuilder();
-        Random random = new Random();
-        int length = random.nextInt(MAX_LEN) + 1;
+
+        int length = rand.nextInt(MAX_LEN) + 1;
         for (int i = 0; i < length; i++) {
-            // generate random index number
-            int index = random.nextInt(alphabet.length());
+            // generate rand index number
+            int index = rand.nextInt(alphabet.length());
             char randomChar = alphabet.charAt(index);
             sb.append(randomChar);
         }
@@ -127,7 +129,7 @@ public class STRINGType extends ParameterType.BasicConcreteType {
         // for (int i = 0; i < 10; i++) {
         // sList.add("T" + String.valueOf(i));
         // }
-        // Random rand = new Random();
+        //
         // int idx = rand.nextInt(sList.size());
         // return new Parameter(this, sList.get(idx));
 
@@ -135,7 +137,7 @@ public class STRINGType extends ParameterType.BasicConcreteType {
 
         // Count a possibility for fetching from the pool
         if (useStringPool && !stringPool.isEmpty()) {
-            Random rand = new Random();
+
             int choice = rand.nextInt(6);
             if (choice <= 2) {
                 // 50%: it will pick from the Pool
@@ -207,7 +209,7 @@ public class STRINGType extends ParameterType.BasicConcreteType {
 
     @Override
     public boolean mutate(State s, Command c, Parameter p) {
-        Random rand = new Random();
+
         // 60% for regenerate, 40% for mutation
         boolean regenerate = rand.nextInt(10) < 6;
         if (regenerate) {
@@ -289,7 +291,6 @@ public class STRINGType extends ParameterType.BasicConcreteType {
 
         String binary = string2binary(str);
 
-        Random rand = new Random();
         int pos = rand.nextInt(binary.length());
 
         StringBuilder sb = new StringBuilder(binary);
@@ -307,7 +308,6 @@ public class STRINGType extends ParameterType.BasicConcreteType {
     private String addBit(String str) {
         String binary = string2binary(str);
 
-        Random rand = new Random();
         int insertPos = rand.nextInt(binary.length());
         boolean insertBit = rand.nextBoolean();
 
@@ -322,7 +322,6 @@ public class STRINGType extends ParameterType.BasicConcreteType {
     private String deleteBit(String str) {
         String binary = string2binary(str);
 
-        Random rand = new Random();
         int deletePos = rand.nextInt(binary.length());
         StringBuilder sb = new StringBuilder(binary);
         assert sb.length() == binary.length();
@@ -338,7 +337,6 @@ public class STRINGType extends ParameterType.BasicConcreteType {
         try {
             StringBuilder sb = new StringBuilder(str);
 
-            Random rand = new Random();
             int insertPos = rand.nextInt(sb.length());
             char insertChar = alphabet.charAt(rand.nextInt(alphabet.length()));
             sb.insert(insertPos, insertChar);
@@ -347,7 +345,7 @@ public class STRINGType extends ParameterType.BasicConcreteType {
         // if str was empty, rand.nextInt(sb.length()); will throw the
         // StringIndex exception
         catch (IllegalArgumentException e) {
-            Random rand = new Random();
+
             return String
                     .valueOf(alphabet.charAt(rand.nextInt(alphabet.length())));
         }
@@ -356,7 +354,6 @@ public class STRINGType extends ParameterType.BasicConcreteType {
     private String deleteByte(String str) {
         StringBuilder sb = new StringBuilder(str);
 
-        Random rand = new Random();
         int delPos = rand.nextInt(sb.length());
         sb.deleteCharAt(delPos);
         return sb.toString();
@@ -366,7 +363,6 @@ public class STRINGType extends ParameterType.BasicConcreteType {
         // Mutate a char
         StringBuilder sb = new StringBuilder(str);
 
-        Random rand = new Random();
         int mutatePos = rand.nextInt(sb.length());
         char mutateChar = alphabet.charAt(rand.nextInt(alphabet.length()));
         sb.setCharAt(mutatePos, mutateChar);
@@ -378,7 +374,6 @@ public class STRINGType extends ParameterType.BasicConcreteType {
 
         StringBuilder sb = new StringBuilder(str);
 
-        Random rand = new Random();
         int mutatePos = rand.nextInt(sb.length() - 1);
         char mutateChar1 = alphabet.charAt(rand.nextInt(alphabet.length()));
         char mutateChar2 = alphabet.charAt(rand.nextInt(alphabet.length()));

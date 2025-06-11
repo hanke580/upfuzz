@@ -9,8 +9,8 @@ import org.zlab.upfuzz.utils.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+
+import static org.zlab.upfuzz.utils.Utilities.rand;
 
 public class GRANT extends HBaseCommand {
     // store the permission options
@@ -31,7 +31,6 @@ public class GRANT extends HBaseCommand {
         Parameter numOptions = new INTType(1, 5).generateRandomParameter(state,
                 this);
 
-        Random rand = new Random();
         for (int i = 0; i < Integer.parseInt(numOptions.toString()); i++) {
             int randomIndex = rand.nextInt(allOptions.size());
             options.append(allOptions.get(randomIndex));

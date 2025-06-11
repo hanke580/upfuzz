@@ -3,10 +3,11 @@ package org.zlab.upfuzz;
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import static org.zlab.upfuzz.utils.Utilities.rand;
 
 /**
  * User need to implement two methods constructCommandString() and
@@ -38,7 +39,6 @@ public abstract class Command implements Serializable {
     public abstract void updateState(State state);
 
     public boolean mutate(State s) throws Exception {
-        Random rand = new Random();
         if (params.size() == 0)
             return false;
         for (int i = 0; i < RETRY_TIMES; i++) {

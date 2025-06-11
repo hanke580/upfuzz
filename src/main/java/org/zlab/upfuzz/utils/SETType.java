@@ -9,10 +9,11 @@ import org.zlab.upfuzz.hbase.Utils;
 
 import java.util.*;
 
+import static org.zlab.upfuzz.utils.Utilities.rand;
+
 public class SETType extends ParameterType.GenericTypeOne {
 
     public static final SETType instance = new SETType();
-    private static final Random rand = new Random();
 
     @Override
     public Parameter generateRandomParameter(State s, Command c,

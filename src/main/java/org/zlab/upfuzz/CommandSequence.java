@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,10 +19,10 @@ import org.zlab.upfuzz.utils.INTType;
 import org.zlab.upfuzz.utils.STRINGType;
 import org.zlab.upfuzz.utils.Utilities;
 
+import static org.zlab.upfuzz.utils.Utilities.rand;
+
 public class CommandSequence implements Serializable {
     static Logger logger = LogManager.getLogger(CommandSequence.class);
-
-    private static final Random rand = new Random();
 
     public final static int RETRY_GENERATE_TIME = 50;
     public final static int RETRY_MUTATE_TIME = 20;

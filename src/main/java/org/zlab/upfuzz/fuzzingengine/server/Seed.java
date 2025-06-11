@@ -10,13 +10,14 @@ import org.zlab.upfuzz.*;
 import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.utils.Utilities;
 
+import static org.zlab.upfuzz.utils.Utilities.rand;
+
 public class Seed implements Serializable, Comparable<Seed> {
     static Logger logger = LogManager.getLogger(Seed.class);
 
     private static final int MAX_STACK_MUTATION = 10;
 
     public int score = 0;
-    public Random rand = new Random();
 
     // Write commands
     public CommandSequence originalCommandSequence;

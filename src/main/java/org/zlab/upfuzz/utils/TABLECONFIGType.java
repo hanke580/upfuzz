@@ -7,9 +7,9 @@ import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hbase.HBaseState;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 import static org.zlab.upfuzz.hbase.HBaseCommand.*;
+import static org.zlab.upfuzz.utils.Utilities.rand;
 
 public class TABLECONFIGType extends ParameterType.ConcreteType {
 
@@ -58,10 +58,9 @@ public class TABLECONFIGType extends ParameterType.ConcreteType {
     public boolean mutate(State s, Command c, Parameter p) {
         // pick a random index
         Parameter numFilters = this.params.get(0).get(1);
-        Random random = new Random();
         // we add 1 because params[0] is [table name, number of filters]; the
         // items from [1] to [params.size() - 1] are filters
-        int mutateIdx = random.nextInt(Integer.parseInt(numFilters.toString()))
+        int mutateIdx = rand.nextInt(Integer.parseInt(numFilters.toString()))
                 + 1;
         this.params.set(mutateIdx, generateSingleOption((HBaseState) s, c));
         return true;

@@ -6,6 +6,8 @@ import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 
+import static org.zlab.upfuzz.utils.Utilities.rand;
+
 public class PAIRType extends ParameterType.GenericTypeTwo {
     public static final PAIRType instance = new PAIRType();
     public static final String signature = "org.zlab.upfuzz.utils.Pair";
@@ -76,7 +78,7 @@ public class PAIRType extends ParameterType.GenericTypeTwo {
         Pair<Parameter, Parameter> value = (Pair<Parameter, Parameter>) p.value;
 
         // 30% mutate 0, 70% mutate 1
-        int mutateIdx = ParameterType.rand.nextInt(10);
+        int mutateIdx = rand.nextInt(10);
         if (mutateIdx < 3) {
             return t1.mutate(s, c, value.left);
         } else {

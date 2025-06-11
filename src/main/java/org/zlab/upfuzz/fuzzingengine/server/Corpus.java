@@ -7,10 +7,10 @@ import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
-import java.util.Random;
+
+import static org.zlab.upfuzz.utils.Utilities.rand;
 
 public abstract class Corpus implements ICorpus {
-    Random rand = new Random();
     double[] cumulativeProbabilities;
     CycleQueue<Seed>[] cycleQueues;
 

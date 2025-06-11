@@ -4,16 +4,14 @@ import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.hbase.HBaseCommand;
 import org.zlab.upfuzz.hbase.HBaseState;
 
-import java.util.Random;
+import static org.zlab.upfuzz.utils.Utilities.rand;
 
 public class LIST extends HBaseCommand {
     private final StringBuilder sb;
-    private final Random rand;
 
     public LIST(HBaseState state) {
         super(state);
         sb = new StringBuilder();
-        rand = new Random();
         generateRegex();
     }
 

@@ -11,6 +11,8 @@ import org.zlab.upfuzz.cassandra.CassandraCommand;
 import org.zlab.upfuzz.utils.INTType;
 import org.zlab.upfuzz.utils.STRINGType;
 
+import static org.zlab.upfuzz.utils.Utilities.rand;
+
 /**
  * How a parameter can be generated is only defined in its type.
  * If you want special rules for a parameter, you need to implement a type class
@@ -18,7 +20,6 @@ import org.zlab.upfuzz.utils.STRINGType;
  */
 public abstract class ParameterType implements Serializable {
     static Logger logger = LogManager.getLogger(Command.class);
-    public static final Random rand = new Random();
 
     public static abstract class ConcreteType extends ParameterType {
         /**
@@ -479,7 +480,6 @@ public abstract class ParameterType implements Serializable {
                 throw new CustomExceptions.EmptyCollectionException(
                         "InCollection Type got empty Collection", null);
             }
-            Random rand = new Random();
 
             List l;
 
@@ -571,7 +571,6 @@ public abstract class ParameterType implements Serializable {
 
             // Pick one parameter from the collection
             Object targetCollection = configuration.operate(s, c);
-            Random rand = new Random();
             List l;
             if (mapFunc == null) {
                 l = (List) (((Collection) targetCollection)
@@ -715,7 +714,6 @@ public abstract class ParameterType implements Serializable {
             List<Object> value = new ArrayList<>();
 
             if (targetSet.size() > 0) {
-                Random rand = new Random();
                 int setSize = rand.nextInt(targetSet.size() + 1); // specified
                                                                   // by user
                 List<Integer> indexArray = new ArrayList<>();
@@ -848,7 +846,6 @@ public abstract class ParameterType implements Serializable {
             List<Object> value = new ArrayList<>();
 
             if (targetSet.size() > 0) {
-                Random rand = new Random();
                 int setSize = rand.nextInt(targetSet.size() + 1); // specified
                                                                   // by user
                 List<Integer> indexArray = new ArrayList<>();
@@ -1184,7 +1181,6 @@ public abstract class ParameterType implements Serializable {
 
         @Override
         public Parameter generateRandomParameter(State s, Command c) {
-            Random rand = new Random();
             isEmpty = rand.nextBoolean();
             return new Parameter(this, t.generateRandomParameter(s, c));
         }
@@ -1394,7 +1390,6 @@ public abstract class ParameterType implements Serializable {
         public boolean mutate(State s, Command c, Parameter p) {
             // TODO: Multiple level mutation
             // Now only regenerate everything
-            Random rand = new Random();
 
             int i = rand.nextInt(1);
             switch (i) {

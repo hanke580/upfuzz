@@ -9,8 +9,6 @@ import org.zlab.upfuzz.utils.CONSTANTSTRINGType;
 import org.zlab.upfuzz.utils.UUIDType;
 import org.zlab.upfuzz.utils.Utilities;
 
-import java.util.Random;
-
 public class CLONE_TABLE_SCHEMA extends HBaseCommand {
     // clone_table_schema '<source_table_name>', '<new_table_name>'
 

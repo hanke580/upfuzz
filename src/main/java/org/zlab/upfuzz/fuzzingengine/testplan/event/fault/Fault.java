@@ -73,7 +73,7 @@ public abstract class Fault extends Event {
         // TODO: Set a certain probability that the fault recover could be null?
         FaultRecover faultRecover = fault.generateRecover();
         if (!Config.getConf().alwaysRecoverFault) {
-            if (rand.nextFloat() < Config.getConf().noRecoverProb) {
+            if (rand.nextDouble() < Config.getConf().noRecoverProb) {
                 faultRecover = null;
             }
         }

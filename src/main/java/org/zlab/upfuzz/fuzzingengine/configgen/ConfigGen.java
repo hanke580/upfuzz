@@ -10,10 +10,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+import static org.zlab.upfuzz.utils.Utilities.rand;
+
 public abstract class ConfigGen {
     static Logger logger = LogManager.getLogger(ConfigGen.class);
 
-    static Random rand = new Random();
     ObjectMapper mapper = new ObjectMapper();
 
     public boolean enable = false;

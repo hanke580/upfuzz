@@ -29,7 +29,6 @@ import org.zlab.upfuzz.utils.Utilities;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
 public class CommandTest extends AbstractTest {
     static Logger logger = LogManager.getLogger(CommandTest.class);

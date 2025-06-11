@@ -9,6 +9,8 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.zlab.upfuzz.hdfs.MockFS.INode.IType;
 
+import static org.zlab.upfuzz.utils.Utilities.rand;
+
 public class HadoopFileSystem implements Serializable {
     static int file_size = 1024;
 
@@ -66,7 +68,7 @@ public class HadoopFileSystem implements Serializable {
     public String getRandomFilePath() {
         if (files.isEmpty())
             return null;
-        int idx = new Random().nextInt(files.size());
+        int idx = rand.nextInt(files.size());
         return new ArrayList<>(files).get(idx);
     }
 
@@ -74,7 +76,7 @@ public class HadoopFileSystem implements Serializable {
         // If there is no dir in FS, we return NULL
         if (dirs.isEmpty())
             return null;
-        int idx = new Random().nextInt(dirs.size());
+        int idx = rand.nextInt(dirs.size());
         return new ArrayList<>(dirs).get(idx);
     }
 
@@ -164,12 +166,12 @@ public class HadoopFileSystem implements Serializable {
             return null;
         // Random pick one from snapshotDir2Filename
         String[] dirArr = snapshotDir2Filename.keySet().toArray(new String[0]);
-        int idx = new Random().nextInt(snapshotDir2Filename.size());
+        int idx = rand.nextInt(snapshotDir2Filename.size());
         String snapshotDir = dirArr[idx];
         // now pick a file
         String[] fileArr = snapshotDir2Filename.get(snapshotDir)
                 .toArray(new String[0]);
-        idx = new Random()
+        idx = rand
                 .nextInt(snapshotDir2Filename.get(snapshotDir).size());
         return Paths.get(snapshotDir, fileArr[idx]).toString();
     }

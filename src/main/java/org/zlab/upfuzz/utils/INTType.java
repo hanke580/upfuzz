@@ -6,6 +6,8 @@ import org.zlab.upfuzz.Parameter;
 import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 
+import static org.zlab.upfuzz.utils.Utilities.rand;
+
 public class INTType extends ParameterType.BasicConcreteType {
     // [min, max)
 
@@ -49,7 +51,6 @@ public class INTType extends ParameterType.BasicConcreteType {
         Integer value;
 
         if (intPool.isEmpty() == false) {
-            Random rand = new Random();
             int choice = rand.nextInt(5);
             if (choice <= 3) {
                 // 80%: it will pick from the Pool
@@ -76,13 +77,13 @@ public class INTType extends ParameterType.BasicConcreteType {
         }
 
         if (max == null && min == null) {
-            value = new Random().nextInt();
+            value = rand.nextInt();
         } else if (max != null && min == null) {
-            value = new Random().nextInt(max);
+            value = rand.nextInt(max);
         } else if (max == null && min != null) {
-            value = new Random().nextInt(Integer.MAX_VALUE) + min;
+            value = rand.nextInt(Integer.MAX_VALUE) + min;
         } else {
-            value = new Random().nextInt(max - min) + min;
+            value = rand.nextInt(max - min) + min;
         }
         intPool.add(value);
         return new Parameter(this, value);

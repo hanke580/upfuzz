@@ -6,7 +6,7 @@ import org.zlab.upfuzz.fuzzingengine.Config;
 import org.zlab.upfuzz.fuzzingengine.server.Seed;
 import org.zlab.upfuzz.utils.Utilities;
 
-import java.util.Random;
+import static org.zlab.upfuzz.utils.Utilities.rand;
 
 public class CommandSequenceTest extends AbstractTest {
 
@@ -31,7 +31,6 @@ public class CommandSequenceTest extends AbstractTest {
         // Config.getConf().MAX_CMD_SEQ_LEN);
         // System.out.println("i = " + i);
 
-        Random rand = new Random();
         double lambda = 0.1; // Rate parameter, adjust for skewness
         int lowerBound = 15;
         int upperBound = 100;

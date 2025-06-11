@@ -44,6 +44,12 @@ public class Config {
         public boolean nyxMode = false;
         public String nyxFuzzSH = null;
 
+        // -------------- Reproducibility --------------
+        // Seed
+        public long seed = 20250101L;
+        // Evaluation
+        public boolean controlRandomness = false;
+
         // Skip Upgrade
         public boolean skipUpgrade = false;
         // Parameters for the exponential distribution

@@ -7,6 +7,8 @@ import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.utils.INTType;
 
+import static org.zlab.upfuzz.utils.Utilities.rand;
+
 public class HBaseTypes {
 
     public static Map<ParameterType, String> type2String = new HashMap<>();
@@ -72,7 +74,7 @@ public class HBaseTypes {
             // Can avoid this transform by storing a separate List
             List<ParameterType> types = new ArrayList<ParameterType>(
                     type2String.keySet());
-            int typeIdx = new Random().nextInt(types.size());
+            int typeIdx = rand.nextInt(types.size());
             return types.get(typeIdx);
         }
 

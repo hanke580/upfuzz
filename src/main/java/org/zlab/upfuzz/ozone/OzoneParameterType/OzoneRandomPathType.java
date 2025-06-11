@@ -6,7 +6,7 @@ import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 import org.zlab.upfuzz.ozone.OzoneState;
 
-import java.util.Random;
+import static org.zlab.upfuzz.utils.Utilities.rand;
 
 public class OzoneRandomPathType extends ParameterType.ConcreteType {
     // Return an existing file or dir
@@ -19,7 +19,7 @@ public class OzoneRandomPathType extends ParameterType.ConcreteType {
     @Override
     public Parameter generateRandomParameter(State s, Command c) {
         OzoneState ozoneState = (OzoneState) s;
-        boolean retFile = new Random().nextBoolean();
+        boolean retFile = rand.nextBoolean();
         String path;
         if (retFile) {
             path = ozoneState.dfs.getRandomFilePath();

@@ -6,7 +6,8 @@ import org.zlab.upfuzz.ParameterType;
 import org.zlab.upfuzz.State;
 
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
+
+import static org.zlab.upfuzz.utils.Utilities.rand;
 
 public class LONGType extends ParameterType.BasicConcreteType {
     // [min, max)
@@ -48,7 +49,6 @@ public class LONGType extends ParameterType.BasicConcreteType {
         Long value;
 
         if (longPool.isEmpty() == false) {
-            Random rand = new Random();
             long choice = rand.nextInt(5);
             if (choice <= 3) {
                 // 80%: it will pick from the Pool
@@ -75,13 +75,13 @@ public class LONGType extends ParameterType.BasicConcreteType {
         }
 
         if (max == null && min == null) {
-            value = new Random().nextLong();
+            value = rand.nextLong();
         } else if (max != null && min == null) {
-            value = ThreadLocalRandom.current().nextLong(max);
+            value = rand.nextLong(max);
         } else if (max == null && min != null) {
-            value = ThreadLocalRandom.current().nextLong(Long.MAX_VALUE) + min;
+            value = rand.nextLong(Long.MAX_VALUE) + min;
         } else {
-            value = ThreadLocalRandom.current().nextLong(max - min) + min;
+            value = rand.nextLong(max - min) + min;
         }
         longPool.add(value);
         return new Parameter(this, value);
