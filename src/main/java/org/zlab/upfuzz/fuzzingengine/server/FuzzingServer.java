@@ -68,7 +68,7 @@ import static org.zlab.upfuzz.utils.Utilities.rand;
 public class FuzzingServer {
     static Logger logger = LogManager.getLogger(FuzzingServer.class);
 
-    int fixedCommandIndex = 0;
+    int fixedTestIndex = 0;
 
     // Target system
     public CommandPool commandPool;
@@ -513,8 +513,8 @@ public class FuzzingServer {
 
             // Debug: use the fixed command
             if (Config.getConf().useFixedCommand) {
-                int suffixIdx = fixedCommandIndex
-                        % Config.getConf().fixedCommandNum;
+                int suffixIdx = fixedTestIndex
+                        % Config.getConf().fixedTestNum;
 
                 logger.info(
                         "[Debug Usage] use fixed command index: " + suffixIdx);
@@ -553,7 +553,7 @@ public class FuzzingServer {
                     tp.originalCommandSequenceList = fixedWriteCommands;
                     tp.validationCommandSequenceList = fixedValidationCommands;
                 }
-                fixedCommandIndex++;
+                fixedTestIndex++;
             }
             return stackedTestPacket;
         } else if (Config.getConf().testingMode == 2) {
