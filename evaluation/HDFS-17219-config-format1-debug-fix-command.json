@@ -46,7 +46,7 @@
   "support_StorageType_NVDIMM": false,
   "support_checksum_v_opt": false,
   "useFixedCommand": true,
-  "fixedTestIndex": 2,
+  "fixedTestNum": 2,
   "maskTimestamp": true,
   "enable_ls_u_option": false,
   "startUpClusterForDebugging": false
