@@ -26,6 +26,7 @@ import org.zlab.upfuzz.fuzzingengine.packet.StackedFeedbackPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.StackedTestPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPacket;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPlanPacket;
+import org.zlab.upfuzz.hdfs.HdfsDockerCluster;
 import org.zlab.upfuzz.fuzzingengine.packet.TestPlanFeedbackPacket;
 import org.zlab.upfuzz.ozone.OzoneExecutor;
 import org.zlab.upfuzz.utils.Pair;
@@ -741,7 +742,8 @@ public class MiniClientMain {
         int executedTestNum = 0;
         boolean breakNewInv = false;
 
-        for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
+        for (int i = 0; i < stackedTestPacket.getTestPacketList().size(); i++) {
+            TestPacket tp = stackedTestPacket.getTestPacketList().get(i);
             executedTestNum++;
             if (Config.getConf().system.equals("ozone")) {
                 runOzoneWriteCommands(tp, executor, ozoneDefaultFSs);
@@ -753,8 +755,8 @@ public class MiniClientMain {
 
             testExecutionLog += executor.getTestPlanExecutionLog();
             FeedBack[] feedBacks = new FeedBack[stackedTestPacket.nodeNum];
-            for (int i = 0; i < stackedTestPacket.nodeNum; i++) {
-                feedBacks[i] = new FeedBack();
+            for (int nodeIdx = 0; nodeIdx < stackedTestPacket.nodeNum; nodeIdx++) {
+                feedBacks[nodeIdx] = new FeedBack();
             }
             ExecutionDataStore[] oriCoverages = executor
                     .collectCoverageSeparate("original");
@@ -771,6 +773,17 @@ public class MiniClientMain {
             List<String> oriResult = executor
                     .executeCommands(tp.validationCommandSequenceList);
             testID2oriResults.put(tp.testPacketID, oriResult);
+
+            // HDFS special: collect format coverage after FSImage is created
+            if (i == stackedTestPacket.getTestPacketList().size() - 1) {
+                if (!Config.getConf().prepareImageFirst
+                        && Config.getConf().enable_fsimage
+                        && Config.getConf().system.equals("hdfs")) {
+                    logger.info("[HKLOG] prepareUpgrade");
+                    ((HdfsDockerCluster) executor.dockerCluster)
+                            .prepareUpgrade(); // it will only be invoked once
+                }
+            }
 
             if (Config.getConf().useFormatCoverage) {
                 Path oriFormatInfoFolder = Paths.get("configInfo")
