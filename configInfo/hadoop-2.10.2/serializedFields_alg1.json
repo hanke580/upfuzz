@@ -814,8 +814,8 @@
     },
     "org.apache.hadoop.hdfs.server.namenode.FsImageProto$INodeSection$INodeDirectory": {
         "modificationTime_": "long",
-        "nsQuota": "long",
-        "dsQuota": "long",
+        "nsQuota_": "long",
+        "dsQuota_": "long",
         "permission_": "long",
         "typeQuotas_": "org.apache.hadoop.hdfs.server.namenode.FsImageProto.INodeSection.QuotaByStorageTypeFeatureProto"
     },
