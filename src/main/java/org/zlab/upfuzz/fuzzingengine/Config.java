@@ -70,6 +70,7 @@ public class Config {
         // ------------ Input Generation ------------
         // Debug use the same command sequence
         public boolean useFixedCommand = false;
+        public int fixedCommandNum = 1;
 
         // Sequence Generation
         public int MIN_CMD_SEQ_LEN = 15;

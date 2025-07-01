@@ -68,9 +68,7 @@ import static org.zlab.upfuzz.utils.Utilities.rand;
 public class FuzzingServer {
     static Logger logger = LogManager.getLogger(FuzzingServer.class);
 
-    // Debug
-    public List<String> fixedWriteCommands;
-    public List<String> fixedValidationCommands;
+    int fixedCommandIndex = 0;
 
     // Target system
     public CommandPool commandPool;
@@ -515,21 +513,47 @@ public class FuzzingServer {
 
             // Debug: use the fixed command
             if (Config.getConf().useFixedCommand) {
-                if (fixedWriteCommands == null
-                        || fixedValidationCommands == null) {
-                    Path commandPath = Paths.get(System.getProperty("user.dir"),
-                            "examplecase");
-                    fixedWriteCommands = readCommands(
-                            commandPath.resolve("commands.txt"));
-                    fixedValidationCommands = readCommands(
-                            commandPath.resolve("validcommands.txt"));
+                int suffixIdx = fixedCommandIndex
+                        % Config.getConf().fixedCommandNum;
+
+                logger.info(
+                        "[Debug Usage] use fixed command index: " + suffixIdx);
+
+                String suffix = String.format("%d", suffixIdx);
+                if (suffixIdx == 0) {
+                    suffix = "";
                 }
+
+                // Must be provided
+                Path commandPath = Paths.get(System.getProperty("user.dir"),
+                        "examplecase");
+                assert commandPath.resolve("commands" + suffix + ".txt")
+                        .toFile().exists()
+                        && commandPath
+                                .resolve("validcommands" + suffix + ".txt")
+                                .toFile().exists()
+                        : "Fixed command file does not exist";
+                List<String> fixedWriteCommands = readCommands(
+                        commandPath.resolve("commands" + suffix + ".txt"));
+                List<String> fixedValidationCommands = readCommands(
+                        commandPath.resolve("validcommands" + suffix + ".txt"));
+
+                assert fixedWriteCommands != null
+                        && fixedValidationCommands != null;
+
+                if (stackedTestPacket.getTestPacketList().size() != 1) {
+                    throw new RuntimeException(
+                            "Fixed command should be used for only one test packet for debug usage");
+                }
+
                 for (TestPacket tp : stackedTestPacket.getTestPacketList()) {
                     logger.info(
-                            "[Debug Usage] use fixed commands from examplecase/commands.txt");
+                            "[Debug Usage] use fixed commands from examplecase/commands"
+                                    + suffix + ".txt");
                     tp.originalCommandSequenceList = fixedWriteCommands;
                     tp.validationCommandSequenceList = fixedValidationCommands;
                 }
+                fixedCommandIndex++;
             }
             return stackedTestPacket;
         } else if (Config.getConf().testingMode == 2) {
