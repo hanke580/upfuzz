@@ -817,12 +817,12 @@
         "nsQuota_": "long",
         "dsQuota_": "long",
         "permission_": "long",
-        "typeQuotas_": "org.apache.hadoop.hdfs.server.namenode.FsImageProto.INodeSection.QuotaByStorageTypeFeatureProto"
+        "typeQuotas_": "org.apache.hadoop.hdfs.server.namenode.FsImageProto$INodeSection$QuotaByStorageTypeFeatureProto"
     },
-    "org.apache.hadoop.hdfs.server.namenode.FsImageProto.INodeSection.QuotaByStorageTypeFeatureProto": {
+    "org.apache.hadoop.hdfs.server.namenode.FsImageProto$INodeSection$QuotaByStorageTypeFeatureProto": {
         "quotas_": "java.util.ArrayList"
     },
-    "org.apache.hadoop.hdfs.server.namenode.FsImageProto.INodeSection.QuotaByStorageTypeEntryProto": {
+    "org.apache.hadoop.hdfs.server.namenode.FsImageProto$INodeSection$QuotaByStorageTypeEntryProto": {
         "storageType_": "org.apache.hadoop.hdfs.protocol.proto.HdfsProtos.StorageTypeProto",
         "quota_": "long"
     },
