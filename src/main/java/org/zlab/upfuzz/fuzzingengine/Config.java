@@ -73,13 +73,17 @@ public class Config {
         // Provide multiple fixed tests and execute them in sequence
         public int fixedTestNum = 1;
 
-        // Sequence Generation
+        // Sequence Generation for write commands
         public int MIN_CMD_SEQ_LEN = 15;
         public int MAX_CMD_SEQ_LEN = 100;
 
         // Sequence Generation for read commands
         public int MIN_READ_CMD_SEQ_LEN = 30;
         public int MAX_READ_CMD_SEQ_LEN = 100;
+
+        // Sequence Generation for read commands (HDFS)
+        public int MIN_HDFS_READ_CMD_SEQ_LEN = 15;
+        public int MAX_HDFS_READ_CMD_SEQ_LEN = 100;
 
         // Expected len = ~20
         // Base for the exponential function
@@ -372,6 +376,8 @@ public class Config {
         public boolean support_checksum_v_opt = false; // > 3.3.x
 
         public boolean maskTimestamp = true;
+
+        public boolean enable_HDFS_READ_CMD_SEQ_LEN = false;
 
         // == hbase ==
         // Wait for process to start up for hbaseDaemonRetryTimes * 5 seconds

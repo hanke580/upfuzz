@@ -342,17 +342,24 @@ public class CommandSequence implements Serializable {
         assert commandClassList != null;
 
         int len;
-        if (isRead)
+        if (isRead) {
+            int minLen = Config.getConf().MIN_CMD_SEQ_LEN;
+            int maxLen = Config.getConf().MAX_READ_CMD_SEQ_LEN;
+            if (Config.getConf().enable_HDFS_READ_CMD_SEQ_LEN
+                    && Config.getConf().system.equals("hdfs")) {
+                minLen = Config.getConf().MIN_HDFS_READ_CMD_SEQ_LEN;
+                maxLen = Config.getConf().MAX_HDFS_READ_CMD_SEQ_LEN;
+            }
             len = Utilities.generateExponentialRandom(rand,
                     Config.getConf().CMD_SEQ_LEN_LAMBDA,
-                    Config.getConf().MIN_READ_CMD_SEQ_LEN,
-                    Config.getConf().MAX_READ_CMD_SEQ_LEN);
-        else
+                    minLen,
+                    maxLen);
+        } else {
             len = Utilities.generateExponentialRandom(rand,
                     Config.getConf().CMD_SEQ_LEN_LAMBDA,
                     Config.getConf().MIN_CMD_SEQ_LEN,
                     Config.getConf().MAX_CMD_SEQ_LEN);
-
+        }
         Constructor<?> constructor = stateClass.getConstructor();
         if (state == null)
             state = (State) constructor.newInstance();
