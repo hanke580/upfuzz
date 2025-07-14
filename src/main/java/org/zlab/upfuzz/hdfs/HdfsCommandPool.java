@@ -14,51 +14,51 @@ public class HdfsCommandPool extends CommandPool {
     public void registerReadCommands() {
         if (Config.getConf().eval_HDFS16984) {
             readCommandClassList.add(
-                    new AbstractMap.SimpleImmutableEntry<>(Ls.class, 2));
+                    new AbstractMap.SimpleImmutableEntry<>(Ls.class, 5));
             return;
         }
         // dfs read
         readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(Cat.class, 2));
+                new AbstractMap.SimpleImmutableEntry<>(Cat.class, 5));
         if (Config.getConf().enable_checksum)
             readCommandClassList.add(
-                    new AbstractMap.SimpleImmutableEntry<>(Checksum.class, 2));
+                    new AbstractMap.SimpleImmutableEntry<>(Checksum.class, 5));
         if (Config.getConf().enable_count)
             readCommandClassList.add(
-                    new AbstractMap.SimpleImmutableEntry<>(Count.class, 2));
+                    new AbstractMap.SimpleImmutableEntry<>(Count.class, 1));
         // Df shows the used size, which might not be the same between versions.
         // readCommandClassList.add(
-        // new AbstractMap.SimpleImmutableEntry<>(Df.class, 2));
+        // new AbstractMap.SimpleImmutableEntry<>(Df.class, 5));
         if (Config.getConf().enable_du)
             readCommandClassList.add(
-                    new AbstractMap.SimpleImmutableEntry<>(Du.class, 2));
+                    new AbstractMap.SimpleImmutableEntry<>(Du.class, 5));
         readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(Ls.class, 2));
+                new AbstractMap.SimpleImmutableEntry<>(Ls.class, 5));
         readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(Getfacl.class, 2));
+                new AbstractMap.SimpleImmutableEntry<>(Getfacl.class, 5));
         readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(Getfattr.class, 2));
+                new AbstractMap.SimpleImmutableEntry<>(Getfattr.class, 5));
         readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(Stat.class, 2));
+                new AbstractMap.SimpleImmutableEntry<>(Stat.class, 5));
         // dfs admin
         readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(ListOpenFiles.class, 2));
+                new AbstractMap.SimpleImmutableEntry<>(ListOpenFiles.class, 5));
         readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(PrintTopology.class, 2));
+                new AbstractMap.SimpleImmutableEntry<>(PrintTopology.class, 5));
         readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(Report.class, 2));
+                new AbstractMap.SimpleImmutableEntry<>(Report.class, 5));
         // ec
         if (Config.getConf().support_EC) {
             readCommandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
-                            GetPolicy.class, 2));
+                            GetPolicy.class, 5));
             readCommandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
                             ListCodecs.class,
-                            2));
+                            5));
             readCommandClassList.add(
                     new AbstractMap.SimpleImmutableEntry<>(
-                            ListPolicies.class, 2));
+                            ListPolicies.class, 5));
         }
     }
 
@@ -128,9 +128,9 @@ public class HdfsCommandPool extends CommandPool {
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(AllowSnapshot.class, 5));
         commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(ClrQuota.class, 5));
+                new AbstractMap.SimpleImmutableEntry<>(ClrQuota.class, 1));
         commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(ClrSpaceQuota.class, 5));
+                new AbstractMap.SimpleImmutableEntry<>(ClrSpaceQuota.class, 1));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(DisallowSnapshot.class,
                         5));
@@ -161,9 +161,9 @@ public class HdfsCommandPool extends CommandPool {
                 new AbstractMap.SimpleImmutableEntry<>(
                         SetBalancerBandwidth.class, 5));
         commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(SetQuota.class, 5));
+                new AbstractMap.SimpleImmutableEntry<>(SetQuota.class, 1));
         commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(SetSpaceQuota.class, 5));
+                new AbstractMap.SimpleImmutableEntry<>(SetSpaceQuota.class, 1));
         // ec
         if (Config.getConf().support_EC) {
             commandClassList.add(
