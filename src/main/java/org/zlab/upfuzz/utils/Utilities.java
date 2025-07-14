@@ -35,14 +35,8 @@ import org.zlab.upfuzz.fuzzingengine.packet.TestPacket;
 public class Utilities {
     static Logger logger = LogManager.getLogger(Utilities.class);
 
-    public static final SplittableRandom rand;
-
-    static {
-        if (Config.getConf().controlRandomness)
-            rand = new SplittableRandom(Config.getConf().seed);
-        else
-            rand = new SplittableRandom();
-    }
+    // TODO: control the seed
+    public static final SplittableRandom rand = new SplittableRandom();
 
     public static List<Integer> permutation(int size) {
         List<Integer> indexArray = new ArrayList<>();
