@@ -830,13 +830,29 @@ public class FuzzingClient {
         }
 
         StackedFeedbackPacket stackedFeedbackPacket = null;
+
+        Callable<StackedFeedbackPacket> task = () -> runTheTests(executor,
+                stackedTestPacket, oriObjCoverage);
+        Future<StackedFeedbackPacket> future = Executors
+                .newSingleThreadExecutor().submit(task);
         try {
-            stackedFeedbackPacket = runTheTests(executor,
-                    stackedTestPacket, oriObjCoverage);
-        } catch (ClusterStuckException e) {
-            logger.error(
-                    "Cluster shows no response within the time limit, drop the test");
-            // TODO: Debug, print all commands
+            stackedFeedbackPacket = future.get(
+                    Config.getConf().testExecutionTimeout, TimeUnit.MINUTES);
+        } catch (TimeoutException e) {
+            stackedFeedbackPacket = new StackedFeedbackPacket(
+                    stackedTestPacket.configFileName,
+                    Utilities.extractTestIDs(stackedTestPacket));
+            stackedFeedbackPacket.testExecutionTimeout = true;
+            logger.error("Test execution timed out after "
+                    + Config.getConf().testExecutionTimeout + " minutes");
+        } catch (Exception e) {
+            logger.error("Test execution failed", e);
+            stackedFeedbackPacket = new StackedFeedbackPacket(
+                    stackedTestPacket.configFileName,
+                    Utilities.extractTestIDs(stackedTestPacket));
+            stackedFeedbackPacket.testExecutionFailedWithOtherException = true;
+            stackedFeedbackPacket.testExecutionFailedWithOtherExceptionReport = e
+                    .getMessage();
         }
         tearDownExecutor();
         return stackedFeedbackPacket;

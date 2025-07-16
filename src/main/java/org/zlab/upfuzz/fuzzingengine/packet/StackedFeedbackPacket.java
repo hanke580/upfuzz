@@ -11,6 +11,11 @@ import org.zlab.upfuzz.fuzzingengine.LogInfo;
 public class StackedFeedbackPacket extends Packet implements Serializable {
     static Logger logger = LogManager.getLogger(StackedFeedbackPacket.class);
 
+    public boolean testExecutionTimeout = false;
+
+    public boolean testExecutionFailedWithOtherException = false;
+    public String testExecutionFailedWithOtherExceptionReport = "";
+
     public final List<FeedbackPacket> fpList;
     public List<List<String>> oriResults;
     public List<LogInfo> logInfos;

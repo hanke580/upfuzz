@@ -44,6 +44,10 @@ public class Config {
         public boolean nyxMode = false;
         public String nyxFuzzSH = null;
 
+        // -------------- Test Execution Timeout --------------
+        // A single test must be finished within this time limit
+        public int testExecutionTimeout = 5; // minutes
+
         // -------------- Reproducibility --------------
         // Seed
         public long seed = 20250101L;
@@ -96,8 +100,6 @@ public class Config {
         public double getSeedFromCorpusRatio = 0.95;
 
         // ---------------- Mutation ---------------
-
-        // Mutation
         // For the first firstMutationSeedLimit seeds added
         // to the corpus, mutate them for relative few times
         public int firstMutationSeedLimit = 5;
