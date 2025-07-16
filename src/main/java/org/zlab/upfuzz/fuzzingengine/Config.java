@@ -48,6 +48,9 @@ public class Config {
         // A single test must be finished within this time limit
         public int testExecutionTimeout = 5; // minutes
 
+        // Testing Purpose
+        public boolean forceTestExecutionTimeout = false;
+
         // -------------- Reproducibility --------------
         // Seed
         public long seed = 20250101L;

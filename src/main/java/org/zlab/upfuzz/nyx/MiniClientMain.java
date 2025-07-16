@@ -770,6 +770,12 @@ public class MiniClientMain {
                     new FeedbackPacket(tp.systemID, stackedTestPacket.nodeNum,
                             tp.testPacketID, feedBacks, null));
 
+            if (Config.getConf().forceTestExecutionTimeout) {
+                // wait for testExecutionTimeout minutes
+                Utilities.sleepAndExit(
+                        (int) (Config.getConf().testExecutionTimeout * 60 * 2));
+            }
+
             List<String> oriResult = executor
                     .executeCommands(tp.validationCommandSequenceList);
             testID2oriResults.put(tp.testPacketID, oriResult);

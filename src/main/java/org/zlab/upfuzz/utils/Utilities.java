@@ -965,6 +965,7 @@ public class Utilities {
         }
     }
 
+    // sleepTime: seconds
     public static void sleepAndExit(int sleepTime) {
         try {
             Thread.sleep(sleepTime * 1000L);
