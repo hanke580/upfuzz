@@ -772,7 +772,7 @@ public class MiniClientMain {
 
             if (Config.getConf().forceTestExecutionTimeout) {
                 // wait for testExecutionTimeout minutes
-                Utilities.sleepAndExit(
+                Utilities.sleep(
                         (int) (Config.getConf().testExecutionTimeout * 60 * 2));
             }
 

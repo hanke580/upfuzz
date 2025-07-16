@@ -966,6 +966,15 @@ public class Utilities {
     }
 
     // sleepTime: seconds
+    public static void sleep(int sleepTime) {
+        try {
+            Thread.sleep(sleepTime * 1000L);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // sleepTime: seconds
     public static void sleepAndExit(int sleepTime) {
         try {
             Thread.sleep(sleepTime * 1000L);
