@@ -25,7 +25,7 @@ public class HdfsCommandPool extends CommandPool {
                     new AbstractMap.SimpleImmutableEntry<>(Checksum.class, 5));
         if (Config.getConf().enable_count)
             readCommandClassList.add(
-                    new AbstractMap.SimpleImmutableEntry<>(Count.class, 1));
+                    new AbstractMap.SimpleImmutableEntry<>(Count.class, 2));
         // Df shows the used size, which might not be the same between versions.
         // readCommandClassList.add(
         // new AbstractMap.SimpleImmutableEntry<>(Df.class, 5));
@@ -128,9 +128,9 @@ public class HdfsCommandPool extends CommandPool {
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(AllowSnapshot.class, 5));
         commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(ClrQuota.class, 1));
+                new AbstractMap.SimpleImmutableEntry<>(ClrQuota.class, 2));
         commandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(ClrSpaceQuota.class, 1));
+                new AbstractMap.SimpleImmutableEntry<>(ClrSpaceQuota.class, 2));
         commandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(DisallowSnapshot.class,
                         5));
