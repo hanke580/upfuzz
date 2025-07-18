@@ -63,10 +63,78 @@ Requirement: java11, docker (Docker version 26.0.0, build a5ee5b1)
 
 ### Single Version Testing
 
+#### 5.0.4
 ```bash
 ssh-keyscan github.com >> ~/.ssh/known_hosts
 git clone git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
+git checkout dev
+
+export UPFUZZ_DIR=$PWD
+export ORI_VERSION=5.0.4
+mkdir -p ${UPFUZZ_DIR}/prebuild/cassandra
+cd ${UPFUZZ_DIR}/prebuild/cassandra
+wget https://archive.apache.org/dist/cassandra/"$ORI_VERSION"/apache-cassandra-"$ORI_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$ORI_VERSION"-bin.tar.gz
+cd ${UPFUZZ_DIR}
+cp src/main/resources/cqlsh_daemon5.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
+cd src/main/resources/cassandra/single-version-testing
+sudo chmod 666 /var/run/docker.sock
+docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"
+cd ${UPFUZZ_DIR}
+./gradlew copyDependencies
+./gradlew :spotlessApply build
+
+sed -i 's/"testSingleVersion": false,/"testSingleVersion": true,/g' cass_config_5.json
+
+# open terminal1: start server
+bin/start_server.sh cass_config_5.json
+# open terminal2: start one client
+bin/start_clients.sh 1 cass_config_5.json
+
+# stop testing
+bin/cass_cl.sh
+```
+
+#### 4.1.4
+
+```bash
+ssh-keyscan github.com >> ~/.ssh/known_hosts
+git clone git@github.com:zlab-purdue/upfuzz.git
+cd upfuzz
+git checkout dev
+
+export UPFUZZ_DIR=$PWD
+export ORI_VERSION=4.1.4
+mkdir -p ${UPFUZZ_DIR}/prebuild/cassandra
+cd ${UPFUZZ_DIR}/prebuild/cassandra
+wget https://archive.apache.org/dist/cassandra/"$ORI_VERSION"/apache-cassandra-"$ORI_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$ORI_VERSION"-bin.tar.gz
+cd ${UPFUZZ_DIR}
+cp src/main/resources/cqlsh_daemon4.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
+cd src/main/resources/cassandra/single-version-testing
+sudo chmod 666 /var/run/docker.sock
+docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"
+cd ${UPFUZZ_DIR}
+./gradlew copyDependencies
+./gradlew :spotlessApply build
+
+sed -i 's/"testSingleVersion": false,/"testSingleVersion": true,/g' cass_config_4.json
+
+# open terminal1: start server
+bin/start_server.sh cass_config_4.json
+# open terminal2: start one client
+bin/start_clients.sh 1 cass_config_4.json
+
+# stop testing
+bin/cass_cl.sh
+```
+
+#### 3.11.17
+
+```bash
+ssh-keyscan github.com >> ~/.ssh/known_hosts
+git clone git@github.com:zlab-purdue/upfuzz.git
+cd upfuzz
+git checkout dev
 
 export UPFUZZ_DIR=$PWD
 export ORI_VERSION=3.11.17
