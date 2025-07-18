@@ -12,8 +12,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.logging.log4j.LogManager;
@@ -2742,19 +2740,5 @@ public class FuzzingServer {
             newEvents.add(new DowngradeOp(nodeIdx));
         }
         return newEvents;
-    }
-
-    public static Set<String> readState(Path filePath)
-            throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        Map<String, List<String>> rawClass2States = mapper
-                .readValue(filePath.toFile(), HashMap.class);
-        Set<String> states = new HashSet<>();
-        for (String className : rawClass2States.keySet()) {
-            for (String fieldName : rawClass2States.get(className)) {
-                states.add(className + "." + fieldName);
-            }
-        }
-        return states;
     }
 }

@@ -1121,16 +1121,6 @@ public class FuzzingClient {
                 testPlanPacket.configFileName);
         logger.info("[HKLOG] configPath = " + configPath);
 
-        // config verification - do we really want this?, maybe just skip config
-        // verification TODO
-        // if (Config.getConf().verifyConfig) {
-        // boolean validConfig = verifyConfig(configPath);
-        // if (!validConfig) {
-        // logger.error(
-        // "problem with configuration! system cannot start up");
-        // return null;
-        // }
-        // }
         // TODO write a compare method
         boolean sameConfigAsLastTime = false;
         if (this.previousConfigPath != null) {

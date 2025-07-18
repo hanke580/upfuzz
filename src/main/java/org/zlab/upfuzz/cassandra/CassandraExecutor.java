@@ -15,6 +15,9 @@ public class CassandraExecutor extends Executor {
     static final String classToIns = Config.getConf().instClassFilePath;
     static final String excludes = "org.apache.cassandra.metrics.*:org.apache.cassandra.net.*:org.apache.cassandra.io.sstable.format.SSTableReader.*:org.apache.cassandra.service.*";
 
+    static final List<String> blackListReadInconsistencyKeyword = Arrays.asList(
+            "SyntaxException", "InvalidRequest", "0 rows");
+
     public CassandraExecutor() {
         super("cassandra", Config.getConf().nodeNum);
         timestamp = System.currentTimeMillis();
@@ -129,22 +132,15 @@ public class CassandraExecutor extends Executor {
                 String up = upResult.get(i);
 
                 if (ori.compareTo(up) != 0) {
-                    // SyntaxException
-                    if (ori.contains("SyntaxException") &&
-                            up.contains("SyntaxException")) {
-                        continue;
+                    boolean isInBlackList = false;
+                    for (String keyword : blackListReadInconsistencyKeyword) {
+                        if (ori.contains(keyword) && up.contains(keyword)) {
+                            isInBlackList = true;
+                            break;
+                        }
                     }
-
-                    // InvalidRequest
-                    if (ori.contains("InvalidRequest") &&
-                            up.contains("InvalidRequest")) {
+                    if (isInBlackList)
                         continue;
-                    }
-
-                    if (ori.contains("0 rows") &&
-                            up.contains("0 rows")) {
-                        continue;
-                    }
 
                     String errorMsg;
                     if (((ori.contains("InvalidRequest")) &&
