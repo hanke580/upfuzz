@@ -6,12 +6,12 @@
 * Coverage-guided fuzz testing
   * Collects branch coverage of the entire cluster
   * Implements a type system for input generation and mutation. (Users only need to implement their command via the given types, and upfuzz can generate/mutate valid command sequence.)
+  * Config Testing (experimental)
 * Oracle
   * Error/Exception in logs
   * Read Inconsistency Comparison: compare read results between restart/upgrade
-* Config Testing
-* Nyx-snapshot to save start up (experimental)
 * Coarse-Grained Fault Injection (experimental)
+* Nyx-snapshot to save start up (experimental)
 
 ## Prerequisite
 ```bash
@@ -467,9 +467,7 @@ git pull
 
 ## Usage
 
-Important config
-
-**testingMode**
+Important config: **testingMode**
 - 0: Execute stacked test packets.
 - 4: Execute stacked test packets and test plan (with fault injection) recursively.
 
@@ -550,22 +548,14 @@ Set up a shared folder (NFS) between servers to share the configuration file.
 
 </details>
 
-### Speed up Cassandra start up process (cautious: side effects for multi-node testing)
+
+
+### Cassandra Details
 
 <details>
   <summary>Click to unfold for details</summary>
 
-Cassandra by default performs ring delay and gossip wait, but we can skip them if we
-only test single node
-```bash
-# Modify bin/cassandra, add the following code
-cassandra_parms="$cassandra_parms -Dcassandra.ring_delay_ms=1 -Dcassandra.skip_wait_for_gossip_to_settle=0"
-```
-</details>
-
-### Modify Cassandra log config for 2.2.x, 3.0.x (3.0.15)
-<details>
-  <summary>Click to unfold for details</summary>
+#### Special handling for Cassandra log for 2.2.x, 3.0.x (3.0.15)
 
 Old version cassandra cannot use env var to adjust log dir, so we add a few scripts to save log separately.
 
@@ -583,12 +573,8 @@ launch_service()
     cassandra_parms="-Dlogback.configurationFile=logback.xml"
     cassandra_parms="$cassandra_parms -Dcassandra.logdir=$CASSANDRA_LOG_DIR"
 ```
-</details>
 
-### Special handling for Cassandra-5.0 to avoid FP
-
-<details>
-  <summary>Click to unfold for details </summary>
+#### Special handling for Cassandra-5.0 to avoid FP
 
 ```bash
 # When testing cassandra-5.0-rc2, we need to modify the cqlshmain.py to avoid FP.
@@ -598,12 +584,25 @@ if baseversion != build_version:
     print("WARNING: cqlsh was built against {}, but this server is {}.  All features may not work!".format(build_version, baseversion))
 ```
 
+### Speed up Cassandra start up process (cautious: side effects for multi-node testing)
+
+Cassandra by default performs ring delay and gossip wait, but we can skip them if we
+only test single node
+```bash
+# Modify bin/cassandra, add the following code
+cassandra_parms="$cassandra_parms -Dcassandra.ring_delay_ms=1 -Dcassandra.skip_wait_for_gossip_to_settle=0"
+```
+
+
 </details>
 
-### Special handling for HBase to avoid FP
 
+
+### HBase Details
 <details>
   <summary>Click to unfold for details </summary>
+
+#### Special handling for HBase to avoid FP
 
 
 Avoid FP: disable `list_snapshots` command in `hbase_config.json` when upgrading across the formats.
@@ -623,7 +622,7 @@ python3 proc_failure.py read
 
 ### Daemon Scripts Selection (Critical for testing different versions)
 
-We implemented different daemon scripts for different versions of the systems. The daemon is used to save the JVM init time for each command. 
+We implemented different daemon scripts for different versions of the systems. The daemon is used to save the JVM init time for each command.
 
 * Without daemon: execute 20 commands leads to 20 JVM init
 * With daemon: execute 20 commands leads to 1 JVM init
