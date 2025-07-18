@@ -13,6 +13,29 @@
 * Coarse-Grained Fault Injection (experimental)
 * Nyx-snapshot to save start up (experimental)
 
+## Testing with a pre-installed Server (TODO)
+<details>
+  <summary>Click to unfold for details</summary>
+
+* You can avoid setting up all the prerequisites by connecting to our image hosted in chameleon cloud
+
+```bash
+ssh upfuzz@192.5.87.94
+# password: 123
+```
+
+* After logging in, you can proceed with the next steps
+* Instead of cloning git repository and switching branch again, you can pull
+```bash
+cd $UPFUZZ_DIR
+git pull
+```
+* You can avoid setting up UPFUZZ_DIR again if you test through this image
+* Start from setting the ORI_VERSION and the UP_VERSION
+
+</details>
+
+
 ## Prerequisite
 ```bash
 # jdk
@@ -441,29 +464,6 @@ bin/hbase_cl.sh
 
 </details>
 
-
-## Testing through UpFuzz image with all dependencies enabled
-
-<details>
-  <summary>Click to unfold for details</summary>
-
-* You can avoid setting up all the prerequisites by connecting to our image hosted in chameleon cloud
-
-```bash
-ssh upfuzz@192.5.87.94
-# password: 123
-```
-
-* After logging in, you can proceed with the next steps
-* Instead of cloning git repository and switching branch again, you can pull
-```bash
-cd $UPFUZZ_DIR
-git pull
-```
-* You can avoid setting up UPFUZZ_DIR again if you test through this image
-* Start from setting the ORI_VERSION and the UP_VERSION
-
-</details>
 
 ## Usage
 
