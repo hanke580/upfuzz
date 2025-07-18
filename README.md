@@ -112,6 +112,8 @@ cd ${UPFUZZ_DIR}
 cp src/main/resources/cqlsh_daemon4.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
 cd src/main/resources/cassandra/single-version-testing
 sudo chmod 666 /var/run/docker.sock
+sed -i "s/ORI_VERSION=apache-cassandra-.*$/ORI_VERSION=apache-cassandra-$ORI_VERSION/" cassandra-clusternode.sh
+sed -i "s/UP_VERSION=apache-cassandra-.*$/UP_VERSION=apache-cassandra-$UP_VERSION/" cassandra-clusternode.sh
 docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"
 cd ${UPFUZZ_DIR}
 ./gradlew copyDependencies
@@ -241,7 +243,7 @@ cd $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$UP_VERSION"/
 sed -i "s/  case \${subcmd} in/&\n    dfsdaemon)\n      HADOOP_CLASSNAME=\"org.apache.hadoop.fs.FsShellDaemon\"\n    ;;/" bin/hdfs
 
 cd $UPFUZZ_DIR/src/main/resources/hdfs/compile-src/
-sed -i "s/ORG_VERSION=hadoop-.*$/ORG_VERSION=hadoop-$ORI_VERSION/" hdfs-clusternode.sh
+sed -i "s/ORI_VERSION=hadoop-.*$/ORI_VERSION=hadoop-$ORI_VERSION/" hdfs-clusternode.sh
 sed -i "s/UPG_VERSION=hadoop-.*$/UPG_VERSION=hadoop-$UP_VERSION/" hdfs-clusternode.sh
 docker build . -t upfuzz_hdfs:hadoop-"$ORI_VERSION"_hadoop-"$UP_VERSION"
 
@@ -472,11 +474,11 @@ cd $UPFUZZ_DIR/prebuild/hdfs/hadoop-"$UP_VERSION"/
 sed -i "s/  case \${subcmd} in/&\n    dfsdaemon)\n      HADOOP_CLASSNAME=\"org.apache.hadoop.fs.FsShellDaemon\"\n    ;;/" bin/hdfs
 
 cd $UPFUZZ_DIR/src/main/resources/hdfs/compile-src/
-sed -i "s/ORG_VERSION=hadoop-.*$/ORG_VERSION=hadoop-$ORI_VERSION/" hdfs-clusternode.sh
+sed -i "s/ORI_VERSION=hadoop-.*$/ORI_VERSION=hadoop-$ORI_VERSION/" hdfs-clusternode.sh
 sed -i "s/UPG_VERSION=hadoop-.*$/UPG_VERSION=hadoop-$UP_VERSION/" hdfs-clusternode.sh
 docker build . -t upfuzz_hdfs:hadoop-"$ORI_VERSION"_hadoop-"$UP_VERSION"
 # replace up and down version
-sed -i "s/ORG_VERSION=hadoop-.*$/ORG_VERSION=hadoop-$UP_VERSION/" hdfs-clusternode.sh
+sed -i "s/ORI_VERSION=hadoop-.*$/ORI_VERSION=hadoop-$UP_VERSION/" hdfs-clusternode.sh
 sed -i "s/UPG_VERSION=hadoop-.*$/UPG_VERSION=hadoop-$ORI_VERSION/" hdfs-clusternode.sh
 docker build . -t upfuzz_hdfs:hadoop-"$UP_VERSION"_hadoop-"$ORI_VERSION"
 

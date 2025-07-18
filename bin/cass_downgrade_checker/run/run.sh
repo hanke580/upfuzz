@@ -35,7 +35,7 @@ update_clusternode_script() {
         clusternode_script="../compile-src/cassandra-clusternode.sh"
 
         # Use sed to replace the versions in the file
-        sed -i "s/^ORG_VERSION=apache-cassandra-[0-9.]\+/ORG_VERSION=apache-cassandra-$cassandra_version_X/" "$clusternode_script"
+        sed -i "s/^ORI_VERSION=apache-cassandra-[0-9.]\+/ORI_VERSION=apache-cassandra-$cassandra_version_X/" "$clusternode_script"
         sed -i "s/^UPG_VERSION=apache-cassandra-[0-9.]\+/UPG_VERSION=apache-cassandra-$cassandra_version_Y/" "$clusternode_script"
 }
 

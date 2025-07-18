@@ -14,7 +14,7 @@ HDFS_DATANODE1=$IP_MASK.4
 HDFS_DATANODE2=$IP_MASK.5
 
 # Change it to the target systems
-ORG_VERSION=hadoop-2.9.2
+ORI_VERSION=hadoop-2.9.2
 UPG_VERSION=hadoop-3.3.0_14509
 
 # create necessary dirs (some version of cassandra cannot create these)
@@ -23,7 +23,7 @@ mkdir -p /var/lib/hdfs
 
 if [[ ! -f "/var/log/.setup_conf" ]]; then
     echo "copy hadoop dir and format configurations"
-    for VERSION in ${ORG_VERSION} ${UPG_VERSION}; do
+    for VERSION in ${ORI_VERSION} ${UPG_VERSION}; do
         mkdir /etc/${VERSION}
         cp -r /hdfs/${VERSION}/etc /etc/${VERSION}/
 
@@ -100,9 +100,9 @@ then
         splitArr=(${HADOOP_HOME//\// })
         CUR_VERSION=${splitArr[1]}
         echo "cur version = $CUR_VERSION"
-        echo "org version = $ORG_VERSION"
+        echo "org version = $ORI_VERSION"
         echo "up  version = $UPG_VERSION"
-        if [[ $CUR_VERSION == $ORG_VERSION ]];
+        if [[ $CUR_VERSION == $ORI_VERSION ]];
         then
                             echo "start up old version $HADOOP_HOME"
                 $HADOOP_HOME/sbin/hadoop-daemon.sh start namenode

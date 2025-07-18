@@ -8,7 +8,7 @@ if [ $# == 1 ]; then
 else SEEDS="$IP"; fi
 
 # Change it to the target systems
-ORG_VERSION=apache-cassandra-3.11.17
+ORI_VERSION=apache-cassandra-3.11.17
 
 # create necessary dirs (some version of cassandra cannot create these)
 mkdir -p /var/log/cassandra
@@ -16,7 +16,7 @@ mkdir -p /var/lib/cassandra
 
 if [[ ! -f "/tmp/.setup_conf" ]]; then
     echo "copy and format configurations"
-    for VERSION in ${ORG_VERSION} ; do
+    for VERSION in ${ORI_VERSION} ; do
         mkdir /etc/${VERSION}
         echo "cp -r \"/cassandra/${VERSION}/conf/*\" \"/etc/${VERSION}\""
         cp -r /cassandra/${VERSION}/conf/* /etc/${VERSION}
@@ -26,7 +26,7 @@ if [[ ! -f "/tmp/.setup_conf" ]]; then
 
         # Replace cassandra.yaml
         rm ${CONFIG}/cassandra.yaml
-        if [[ $VERSION == "${ORG_VERSION}" ]]; then
+        if [[ $VERSION == "${ORI_VERSION}" ]]; then
             cp /test_config/oriconfig/cassandra.yaml ${CONFIG}/cassandra.yaml
         fi
 

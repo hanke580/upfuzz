@@ -8,7 +8,7 @@ if [ $# == 1 ]; then
 else SEEDS="$IP"; fi
 
 # Change it to the target systems
-ORG_VERSION=apache-cassandra-2.2.8
+ORI_VERSION=apache-cassandra-2.2.8
 UPG_VERSION=apache-cassandra-3.0.15
 
 # create necessary dirs (some version of cassandra cannot create these)
@@ -17,7 +17,7 @@ mkdir -p /var/lib/cassandra
 
 if [[ ! -f "/tmp/.setup_conf" ]]; then
     echo "copy and format configurations"
-    for VERSION in ${ORG_VERSION} ${UPG_VERSION}; do
+    for VERSION in ${ORI_VERSION} ${UPG_VERSION}; do
         mkdir /etc/${VERSION}
         echo "cp -r \"/cassandra/${VERSION}/conf/*\" \"/etc/${VERSION}\""
         cp -r /cassandra/${VERSION}/conf/* /etc/${VERSION}

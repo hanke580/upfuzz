@@ -8,7 +8,7 @@ if [ $# == 1 ]; then
 else NAMENODE="$IP"; fi
 
 # Change it to the target systems
-ORG_VERSION=hadoop-2.10.2
+ORI_VERSION=hadoop-2.10.2
 UPG_VERSION=hadoop-3.3.6
 
 # create necessary dirs (some version of cassandra cannot create these)
@@ -34,13 +34,13 @@ if [[ ! -f "/var/log/.setup_conf" ]]; then
     fi
 
     echo "copy hadoop dir and format configurations"
-    for VERSION in ${ORG_VERSION} ${UPG_VERSION}; do
+    for VERSION in ${ORI_VERSION} ${UPG_VERSION}; do
         mkdir /etc/${VERSION}
         cp -r /hdfs/${VERSION}/etc /etc/${VERSION}/
         cp /hadoop-config/* /etc/${VERSION}/etc/hadoop/
 
         CONFIG="/etc/${VERSION}/etc/hadoop/"
-        if [[ $VERSION == "${ORG_VERSION}" ]]; then
+        if [[ $VERSION == "${ORI_VERSION}" ]]; then
             cp /test_config/oriconfig/* ${CONFIG}/
         fi
         if [[ $VERSION == "${UPG_VERSION}" ]]; then
@@ -85,7 +85,7 @@ then
         # source ~/.bashrc
 fi
 
-#HADOOP_HOME=/etc/$ORG_VERSION
+#HADOOP_HOME=/etc/$ORI_VERSION
 #PATH=${PATH}:${HADOOP_HOME}/bin:${HADOOP_HOME}/sbin
 
 echo "Starting HDFS on $IP..."
@@ -102,9 +102,9 @@ then
         splitArr=(${HADOOP_HOME//\// })
         CUR_VERSION=${splitArr[1]}
         echo "cur version = $CUR_VERSION"
-        echo "org version = $ORG_VERSION"
+        echo "org version = $ORI_VERSION"
         echo "up  version = $UPG_VERSION"
-        if [[ $CUR_VERSION == $ORG_VERSION ]];
+        if [[ $CUR_VERSION == $ORI_VERSION ]];
         then
                             echo "start up old version $HADOOP_HOME"
                 $HADOOP_HOME/sbin/hadoop-daemon.sh start namenode

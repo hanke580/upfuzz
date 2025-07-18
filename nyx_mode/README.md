@@ -299,7 +299,7 @@ cd ${UPFUZZ_DIR}
 cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py   # depends on cassandra version
 
 cd ${UPFUZZ_DIR}/src/main/resources/cassandra/single-version-testing
-sed -i "s/ORG_VERSION=apache-cassandra-.*/ORG_VERSION=apache-cassandra-${ORI_VERSION}/" cassandra-clusternode.sh
+sed -i "s/ORI_VERSION=apache-cassandra-.*/ORI_VERSION=apache-cassandra-${ORI_VERSION}/" cassandra-clusternode.sh
 docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"
 
 cd ${UPFUZZ_DIR}
@@ -324,7 +324,7 @@ cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI
 cp src/main/resources/cqlsh_daemon3_4.0.5_4.1.0.py  prebuild/cassandra/apache-cassandra-"$UP_VERSION"/bin/cqlsh_daemon.py
 
 cd ${UPFUZZ_DIR}/src/main/resources/cassandra/normal/compile-src/
-sed -i "s/ORG_VERSION=apache-cassandra-.*/ORG_VERSION=apache-cassandra-${ORI_VERSION}/" cassandra-clusternode.sh
+sed -i "s/ORI_VERSION=apache-cassandra-.*/ORI_VERSION=apache-cassandra-${ORI_VERSION}/" cassandra-clusternode.sh
 sed -i "s/UPG_VERSION=apache-cassandra-.*/UPG_VERSION=apache-cassandra-${UP_VERSION}/" cassandra-clusternode.sh
 docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"_apache-cassandra-"$UP_VERSION"
 
