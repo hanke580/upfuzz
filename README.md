@@ -1,14 +1,11 @@
 # upfuzz
 
-> A tool to detect upgrade bugs of distributed systems
+> A tool for testing distributed systems.
 
 ## Feature
 * Coverage-guided fuzz testing
-  * Collects branch coverage of the cluster to guide the testing
-  process.
-  * Implements a type system for mutation. Users only need to
-      implement their command via the given types, and upfuzz can
-      generate/mutate valid command sequence.
+  * Collects branch coverage of the entire cluster
+  * Implements a type system for input generation and mutation. (Users only need to implement their command via the given types, and upfuzz can generate/mutate valid command sequence.)
 * Oracle
   * Error/Exception in logs
   * Read Inconsistency Comparison: compare read results between restart/upgrade
@@ -39,11 +36,9 @@ sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
 ## Cassandra: Push Button Testing
 Requirement: java11, docker (Docker version 26.0.0, build a5ee5b1)
-> - Not test configurations.
-> - Single Cassandra node upgrade: 3.11.17 => 4.1.4
-> - If using Nyx Mode, please clone the upfuzz repo at first and then follow the guide at `nyx_mode/README.md` before continuing.
+> Config testing is disabled
 
-### Test single version
+### Single Version Testing
 
 ```bash
 ssh-keyscan github.com >> ~/.ssh/known_hosts
@@ -75,7 +70,10 @@ bin/start_clients.sh 1 config.json
 bin/cass_cl.sh
 ```
 
-### Test upgrade process
+### Upgrade Testing
+<details>
+  <summary>Click to unfold for details</summary>
+
 ```bash
 git clone git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
@@ -110,6 +108,8 @@ bin/start_clients.sh 1 config.json
 # stop testing
 bin/cass_cl.sh
 ```
+</details>
+
 
 ## HDFS: Push Button Testing
 <details>
@@ -441,18 +441,12 @@ bin/hbase_cl.sh
 
 </details>
 
-## Usage
 
-Important configurations
-- **testingMode**
-  - 0: Execute stacked test packets.
-  - 4: Execute stacked test packets and test plan (with fault injection) recursively.
+## Testing through UpFuzz image with all dependencies enabled
 
-> Config test is disabled by default.
->
-> If you want to test configuration, checkout **docs/TEST_CONFIG.md**.
+<details>
+  <summary>Click to unfold for details</summary>
 
-### Testing through UpFuzz image with all dependencies enabled
 * You can avoid setting up all the prerequisites by connecting to our image hosted in chameleon cloud
 
 ```bash
@@ -469,7 +463,20 @@ git pull
 * You can avoid setting up UPFUZZ_DIR again if you test through this image
 * Start from setting the ORI_VERSION and the UP_VERSION
 
-### Failure
+</details>
+
+## Usage
+
+Important config
+
+**testingMode**
+- 0: Execute stacked test packets.
+- 4: Execute stacked test packets and test plan (with fault injection) recursively.
+
+> Config test is disabled by default. If you want to test configuration, checkout **docs/TEST_CONFIG.md**.
+
+### Failure Processing (categorization and aggregation)
+
 The failures are stored under the `failure` folder. The number in `fullSequence_TIME.report` denotes the elapsed time to detect the failure. For example, the following failure is detected at 121 seconds.
 ```bash
 node1:upfuzz (main*) $ ls failure/failure_0/
@@ -478,7 +485,7 @@ archive.tar.gz  errorLog  fullSequence_121.report  oriconfig  upconfig
 ### Debug
 
 <details>
-  <summary>Click to unfold if want to debug </summary>
+  <summary>Click to unfold for details</summary>
 
 #### Check container
 If the tool runs into problems, you can enter the container to check the log.
@@ -494,7 +501,7 @@ upfuzz_cassandra:cqlsh           RUNNING   pid 10, uptime 0:01:03
 
 There could be several reasons (1) System starts up but the daemon in container cannot start up (2) The target system cannot start up due to configuration problem or jacoco agent instrumentation problem.
 
-#### OOM
+#### OOM Check
 Check memory usage of fuzzing server
 ```bash
 cat /proc/$(pgrep -f "upfuzz_server")/status | grep Vm
@@ -506,7 +513,7 @@ cat /proc/$(pgrep -f "upfuzz_server")/status | grep Vm
 ### JACOCO
 
 <details>
-  <summary>Click to unfold for coverage collection </summary>
+  <summary>Click to unfold for details</summary>
 
 - If jacoco jar is modified, make sure put the runtime jar into the compile/ so that it can be put into the container.
 - Make sure the old jacoco jars are removed in `dependencies` folder.
@@ -521,9 +528,12 @@ Use `dependencies/org.jacoco.agent-1c01d8328d-runtime.jar` to replace all `org.j
 
 </details>
 
-### Distributed testing mode
+### Test with multiple physical nodes
+
+By default, upfuzz starts up multiple clusters within a single physical node. If you want to further boost the performance, here's how to extend the testing to multiple physical nodes.
+
 <details>
-  <summary>Click to unfold for details </summary>
+  <summary>Click to unfold for details</summary>
 
 FuzzingServer config.json: listening to all IPs
 ```json
@@ -540,10 +550,10 @@ Set up a shared folder (NFS) between servers to share the configuration file.
 
 </details>
 
-### Speed up Cassandra start up process (cautious: could cause side effects for multi-node testing)
+### Speed up Cassandra start up process (cautious: side effects for multi-node testing)
 
 <details>
-  <summary>Click to unfold for details </summary>
+  <summary>Click to unfold for details</summary>
 
 Cassandra by default performs ring delay and gossip wait, but we can skip them if we
 only test single node
@@ -553,19 +563,12 @@ cassandra_parms="$cassandra_parms -Dcassandra.ring_delay_ms=1 -Dcassandra.skip_w
 ```
 </details>
 
-### Process failure reports
-```bash
-# Aggregate the failure logs: python3 proc_failure.py system
-python3 proc_failure.py cassandra
-# Read the failure stat
-python3 proc_failure.py read
-```
-
-### Add cassandra log config for 2.2.x, 3.0.x (3.0.15)
+### Modify Cassandra log config for 2.2.x, 3.0.x (3.0.15)
 <details>
-  <summary>Click to unfold for details </summary>
+  <summary>Click to unfold for details</summary>
 
 Old version cassandra cannot use env var to adjust log dir, so we add a few scripts to save log separately.
+
 ```bash
 if [ -z "$CASSANDRA_LOG_DIR" ]; then
   CASSANDRA_LOG_DIR=$CASSANDRA_HOME/logs
@@ -603,39 +606,44 @@ if baseversion != build_version:
   <summary>Click to unfold for details </summary>
 
 
-
 Avoid FP: disable `list_snapshots` command in `hbase_config.json` when upgrading across the formats.
 * 2.5.9/3.x/4.x: list_snapshots in format2 (with TTL)
 * 2.4.18/2.6.0: list_snapshots in format1 (without TTL)
 
 </details>
 
+### Failure Processing (categorization and aggregation)
+```bash
+# Aggregate the failure logs: python3 proc_failure.py system
+python3 proc_failure.py cassandra
+# Read the failure stat
+python3 proc_failure.py read
+```
 
-## Daemon Scripts Selection
 
-We implemented different daemon scripts for different versions of the systems. The following table summarizes the available daemon scripts and their corresponding versions.
+### Daemon Scripts Selection (Critical for testing different versions)
 
-The daemon as used to save the JVM init time for each command
+We implemented different daemon scripts for different versions of the systems. The daemon is used to save the JVM init time for each command. 
+
 * Without daemon: execute 20 commands leads to 20 JVM init
 * With daemon: execute 20 commands leads to 1 JVM init
 
 <details>
   <summary>Click to unfold for details </summary>
 
-
-### Cassandra daemon
+#### Cassandra daemon
 * [cqlsh_daemon2_1.py](src/main/resources/cqlsh_daemon2_1.py): 2.1
 * [cqlsh_daemon2.py](src/main/resources/cqlsh_daemon2.py): 2.2.8, 3.0.(15|16|17|30), 3.11.16, 4.0.0
 * [cqlsh_daemon3.py](src/main/resources/cqlsh_daemon3.py): N/A
 * [cqlsh_daemon4.py](src/main/resources/cqlsh_daemon4.py): 4.0.5, 4.0.12, 4.1.0, 4.1.4
 * [cqlsh_daemon5.py](src/main/resources/cqlsh_daemon5.py): 5.0-beta
 
-### HDFS daemon
+#### HDFS daemon
 * FsShellDaemon2.java: hadoop-2.10.2
 * FsShellDaemon3.java: (> 3): 3.2.4, 3.3.0
 * FsShellDaemon_trunk.java: (>=3.3.4) hadoop-3.3.6, 3.4.0
 
-### HBase daemon
+#### HBase daemon
 daemon
 * hbase version >= 2.4.0, use hbase_daemon3.py
 * hbase version < 2.4.0, use hbase_daemon2.py
