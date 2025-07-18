@@ -28,16 +28,15 @@ public class ALTER_KEYSPACE extends CassandraCommand {
         super();
 
         assert state instanceof CassandraState;
-        CassandraState cassandraState = (CassandraState) state;
 
         Parameter keyspaceName = chooseKeyspace(state, this, null);
-        params.add(keyspaceName); // [0]
+        params.add(keyspaceName); // 0
 
         ParameterType.ConcreteType replicationFactorType = new INTType(1,
                 4);
         Parameter replicationFactor = replicationFactorType
                 .generateRandomParameter(state, this);
-        this.params.add(replicationFactor); // [1]
+        this.params.add(replicationFactor); // 1
     }
 
     @Override

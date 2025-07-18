@@ -43,7 +43,7 @@ public class CREATE_TABLE extends CassandraCommand {
     public CREATE_TABLE(CassandraState state, Object init0, Object init1,
             Object init2, Object init3, Object init4) {
         Parameter keyspaceName = chooseKeyspace(state, this, init0);
-        params.add(keyspaceName); // [0]
+        params.add(keyspaceName); // 0
 
         ParameterType.ConcreteType tableNameType = new ParameterType.NotInCollectionType(
                 new ParameterType.NotEmpty(new STRINGType(10)),
@@ -54,7 +54,7 @@ public class CREATE_TABLE extends CassandraCommand {
 
         Parameter tableName = tableNameType
                 .generateRandomParameter(state, this, init1);
-        params.add(tableName); // [1]
+        params.add(tableName); // 1
 
         ParameterType.ConcreteType columnsType = // LIST<PAIR<String,TYPEType>>
                 new ParameterType.NotEmpty(ParameterType.ConcreteGenericType
@@ -70,7 +70,7 @@ public class CREATE_TABLE extends CassandraCommand {
                                                 CassandraTypes.TYPEType.instance)));
         Parameter columns = columnsType
                 .generateRandomParameter(state, this, init2);
-        params.add(columns); // [2]
+        params.add(columns); // 2
 
         ParameterType.ConcreteType primaryColumnsType = new ParameterType.NotEmpty(
                 new CassandraTypes.PartitionSubsetType<>(columnsType,
@@ -80,7 +80,7 @@ public class CREATE_TABLE extends CassandraCommand {
 
         Parameter primaryColumns = primaryColumnsType
                 .generateRandomParameter(state, this, init3);
-        params.add(primaryColumns); // [3]
+        params.add(primaryColumns); // 3
 
         ParameterType.ConcreteType IF_NOT_EXISTType = new ParameterType.OptionalType(
                 new CONSTANTSTRINGType("IF NOT EXISTS"), null // TODO: Make
@@ -89,7 +89,7 @@ public class CREATE_TABLE extends CassandraCommand {
         );
         Parameter IF_NOT_EXIST = IF_NOT_EXISTType
                 .generateRandomParameter(state, this, init4);
-        params.add(IF_NOT_EXIST); // [4]
+        params.add(IF_NOT_EXIST); // 4
 
         Parameter speculative_retry = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
@@ -97,12 +97,12 @@ public class CREATE_TABLE extends CassandraCommand {
                         speculative_retryOptions),
                 null).generateRandomParameter(null, null);
 
-        params.add(speculative_retry); // [5]
+        params.add(speculative_retry); // 5
     }
 
     public CREATE_TABLE(CassandraState state) {
         Parameter keyspaceName = chooseKeyspace(state, this, null);
-        params.add(keyspaceName); // [0]
+        params.add(keyspaceName); // 0
 
         ParameterType.ConcreteType tableNameType = new ParameterType.LessLikelyMutateType(
                 new ParameterType.NotInCollectionType(
@@ -118,7 +118,7 @@ public class CREATE_TABLE extends CassandraCommand {
 
         Parameter tableName = tableNameType
                 .generateRandomParameter(state, this);
-        params.add(tableName); // [1]
+        params.add(tableName); // 1
 
         ParameterType.ConcreteType columnsType = // LIST<PAIR<String,TYPEType>>
                 new ParameterType.NotEmpty(ParameterType.ConcreteGenericType
@@ -135,7 +135,7 @@ public class CREATE_TABLE extends CassandraCommand {
 
         Parameter columns = columnsType
                 .generateRandomParameter(state, this);
-        params.add(columns); // [2]
+        params.add(columns); // 2
 
         /**
          * Bool variable check whether the previous columns has any member that's already specified as
@@ -159,7 +159,7 @@ public class CREATE_TABLE extends CassandraCommand {
 
         Parameter primaryColumns = primaryColumnsType
                 .generateRandomParameter(state, this);
-        params.add(primaryColumns); // [3]
+        params.add(primaryColumns); // 3
 
         ParameterType.ConcreteType IF_NOT_EXISTType = new ParameterType.OptionalType(
                 new CONSTANTSTRINGType("IF NOT EXISTS"), null // TODO: Make
@@ -168,7 +168,7 @@ public class CREATE_TABLE extends CassandraCommand {
         );
         Parameter IF_NOT_EXIST = IF_NOT_EXISTType
                 .generateRandomParameter(state, this);
-        params.add(IF_NOT_EXIST); // [4]
+        params.add(IF_NOT_EXIST); // 4
 
         Parameter speculative_retry = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
@@ -176,7 +176,7 @@ public class CREATE_TABLE extends CassandraCommand {
                         speculative_retryOptions),
                 null).generateRandomParameter(null, null);
 
-        params.add(speculative_retry); // [5]
+        params.add(speculative_retry); // 5
 
     }
 

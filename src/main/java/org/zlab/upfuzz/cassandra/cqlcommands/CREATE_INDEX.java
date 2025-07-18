@@ -15,10 +15,10 @@ public class CREATE_INDEX extends CassandraCommand {
     public CREATE_INDEX(CassandraState state) {
 
         Parameter keyspaceName = chooseKeyspace(state, this, null);
-        this.params.add(keyspaceName); // P0
+        this.params.add(keyspaceName); // 0
 
         Parameter TableName = chooseTable(state, this, null);
-        this.params.add(TableName); // P1
+        this.params.add(TableName); // 1
 
         ParameterType.ConcreteType indexNameType = new ParameterType.NotInCollectionType(
                 new ParameterType.NotEmpty(new STRINGType(10)),
@@ -29,7 +29,7 @@ public class CREATE_INDEX extends CassandraCommand {
                 null);
         Parameter indexName = indexNameType.generateRandomParameter(state,
                 this);
-        this.params.add(indexName); // P2
+        this.params.add(indexName); // 2
 
         ParameterType.ConcreteType indexColumnType = new ParameterType.InCollectionType(
                 null,
@@ -39,7 +39,7 @@ public class CREATE_INDEX extends CassandraCommand {
                 null, null);
         Parameter indexColumn = indexColumnType
                 .generateRandomParameter(state, this);
-        this.params.add(indexColumn); // P3
+        this.params.add(indexColumn); // 3
 
         ParameterType.ConcreteType IF_NOT_EXISTType = new ParameterType.OptionalType(
                 new CONSTANTSTRINGType("IF NOT EXISTS"), null // TODO: Make
@@ -48,7 +48,7 @@ public class CREATE_INDEX extends CassandraCommand {
         );
         Parameter IF_NOT_EXIST = IF_NOT_EXISTType
                 .generateRandomParameter(state, this);
-        params.add(IF_NOT_EXIST); // P4
+        params.add(IF_NOT_EXIST); // 4
     }
 
     @Override

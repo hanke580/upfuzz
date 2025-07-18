@@ -23,7 +23,7 @@ public class ALTER_TABLE extends CassandraCommand {
                         CREATE_TABLE.speculative_retryOptions),
                 null).generateRandomParameter(null, null);
 
-        params.add(speculative_retry); // [2]
+        params.add(speculative_retry); // 2
     }
 
     @Override

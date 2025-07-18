@@ -29,10 +29,10 @@ public class INSERT extends CassandraCommand {
             Object init3) {
         Parameter keyspaceName = chooseKeyspace(state, this,
                 init0);
-        this.params.add(keyspaceName); // [0]
+        this.params.add(keyspaceName); // 0
 
         Parameter TableName = chooseTable(state, this, init1);
-        this.params.add(TableName); // [1]
+        this.params.add(TableName); // 1
 
         ParameterType.ConcreteType columnsType = new ParameterType.SuperSetType(
                 new ParameterType.SubsetType(null,
@@ -46,14 +46,14 @@ public class INSERT extends CassandraCommand {
                 null);
         Parameter columns = columnsType
                 .generateRandomParameter(state, this, init2);
-        this.params.add(columns); // [2]
+        this.params.add(columns); // 2
 
         ParameterType.ConcreteType insertValuesType = new ParameterType.Type2ValueType(
                 null, (s, c) -> (Collection) c.params.get(2).getValue(), // columns
                 p -> ((Pair) ((Parameter) p).value).right);
         Parameter insertValues = insertValuesType
                 .generateRandomParameter(state, this, init3);
-        this.params.add(insertValues); // [3]
+        this.params.add(insertValues); // 3
     }
 
     public INSERT(CassandraState state) {

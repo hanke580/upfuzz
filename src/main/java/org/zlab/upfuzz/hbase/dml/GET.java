@@ -40,14 +40,14 @@ public class GET extends HBaseCommand {
         validConstruction = true;
         try {
             Parameter tableName = chooseTable(state, this, null);
-            this.params.add(tableName); // [0] table name
+            this.params.add(tableName); // 0 table name
 
             Parameter rowKey = chooseRowKey(state, this, null);
-            this.params.add(rowKey); // [1] row key
+            this.params.add(rowKey); // 1 row key
 
             Parameter columnFamilyName = chooseOptionalColumnFamily(state,
                     this);
-            this.params.add(columnFamilyName); // [2] column family name
+            this.params.add(columnFamilyName); // 2 column family name
 
             Parameter column;
             // if columnFamily is empty, pick a random column from a table
@@ -81,7 +81,7 @@ public class GET extends HBaseCommand {
                         .generateRandomParameter(state, this);
 
             }
-            this.params.add(column); // [3] column2type
+            this.params.add(column); // 3 column2type
 
             Parameter consistency = new ParameterType.OptionalType(
                     new ParameterType.InCollectionType(
@@ -90,7 +90,7 @@ public class GET extends HBaseCommand {
                                     .strings2Parameters(CONSISTENCYTypes),
                             null),
                     null).generateRandomParameter(state, this);
-            this.params.add(consistency); // [4] consistency
+            this.params.add(consistency); // 4 consistency
 
             // AUTHORIZATIONS
             Parameter authorization = new ParameterType.OptionalType(
@@ -100,7 +100,7 @@ public class GET extends HBaseCommand {
                                     .strings2Parameters(AUTHORIZATION_TYPES),
                             null),
                     null).generateRandomParameter(state, this);
-            this.params.add(authorization); // [5] consistency
+            this.params.add(authorization); // 5 consistency
 
             // TODO: TIMERANGE
 
@@ -115,7 +115,7 @@ public class GET extends HBaseCommand {
             Parameter regionReplicaID = new ParameterType.OptionalType(
                     new INTType(2, 20), null)
                             .generateRandomParameter(state, this);
-            this.params.add(regionReplicaID); // [6] region replica id
+            this.params.add(regionReplicaID); // 6 region replica id
 
             Parameter formatter = new ParameterType.OptionalType(
                     new ParameterType.InCollectionType(
@@ -125,7 +125,7 @@ public class GET extends HBaseCommand {
                                             DEFAULT_FORMATTER_FUNCTIONS),
                             null),
                     null).generateRandomParameter(state, this);
-            this.params.add(formatter); // [7] formatter
+            this.params.add(formatter); // 7 formatter
         } catch (Exception e) {
             validConstruction = false;
         }
@@ -143,7 +143,7 @@ public class GET extends HBaseCommand {
             String qualifier = this.params.get(3).toString();
             String consistency = this.params.get(4).toString();
             String authorization = this.params.get(5).toString();
-//            String filter = this.params.get(6).toString();
+            // String filter = this.params.get(6).toString();
             String regionReplicaID = this.params.get(6).toString();
             String formatter = this.params.get(7).toString();
 
@@ -174,9 +174,9 @@ public class GET extends HBaseCommand {
                         .append("AUTHORIZATIONS => ")
                         .append(authorization);
             }
-//            if (!filter.isEmpty())
-//                s.append((s.length() == 0) ? "" : ", ")
-//                        .append(filter);
+            // if (!filter.isEmpty())
+            // s.append((s.length() == 0) ? "" : ", ")
+            // .append(filter);
             if (!regionReplicaID.isEmpty())
                 s.append((s.length() == 0) ? "" : ", ")
                         .append("REGION_REPLICA_ID => ")

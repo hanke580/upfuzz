@@ -10,10 +10,10 @@ public class TRUNCATE extends CassandraCommand {
     public TRUNCATE(CassandraState state) {
         Parameter keyspaceName = chooseKeyspace(state, this,
                 null);
-        this.params.add(keyspaceName); // [0]
+        this.params.add(keyspaceName); // 0
 
         Parameter TableName = chooseTable(state, this, null);
-        this.params.add(TableName); // [1]
+        this.params.add(TableName); // 1
     }
 
     @Override

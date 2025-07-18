@@ -4,8 +4,6 @@ import java.io.Serializable;
 import java.util.*;
 import org.apache.commons.lang3.SerializationUtils;
 import org.zlab.upfuzz.Parameter;
-import org.zlab.upfuzz.ParameterType;
-import org.zlab.upfuzz.utils.Pair;
 
 public class CassandraTable implements Serializable {
     public String name;

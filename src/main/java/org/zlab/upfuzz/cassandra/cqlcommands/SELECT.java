@@ -33,10 +33,10 @@ public class SELECT extends CassandraCommand {
 
         Parameter keyspaceName = chooseKeyspace(cassandraState, this,
                 init0);
-        this.params.add(keyspaceName); // [0]
+        this.params.add(keyspaceName); // 0
 
         Parameter TableName = chooseTable(cassandraState, this, init1);
-        this.params.add(TableName); // [1]
+        this.params.add(TableName); // 1
 
         ParameterType.ConcreteType selectColumnsType = new ParameterType.SubsetType<>(
                 null,
@@ -47,7 +47,7 @@ public class SELECT extends CassandraCommand {
                         .getValue())).left);
         Parameter selectColumns = selectColumnsType
                 .generateRandomParameter(state, this, init2);
-        this.params.add(selectColumns); // Param2
+        this.params.add(selectColumns); // 2
 
         ParameterType.ConcreteType whereColumnsType = new ParameterType.FrontSubsetType(
                 null,
@@ -57,23 +57,23 @@ public class SELECT extends CassandraCommand {
                 null);
         Parameter whereColumns = whereColumnsType
                 .generateRandomParameter(state, this, init3);
-        this.params.add(whereColumns); // Param 3
+        this.params.add(whereColumns); // 3
 
         ParameterType.ConcreteType whereValuesType = new ParameterType.Type2ValueType(
                 null, (s, c) -> (Collection) c.params.get(3).getValue(),
                 p -> ((Pair<?, ?>) ((Parameter) p).value).right);
         Parameter insertValues = whereValuesType
                 .generateRandomParameter(state, this, init4);
-        this.params.add(insertValues); // Param4
+        this.params.add(insertValues); // 4
     }
 
     public SELECT(State state) {
 
         Parameter keyspaceName = chooseKeyspace(state, this, null);
-        this.params.add(keyspaceName); // Param 0
+        this.params.add(keyspaceName); // 0
 
         Parameter TableName = chooseTable(state, this, null);
-        this.params.add(TableName); // Param 1
+        this.params.add(TableName); // 1
 
         // Subset of primary columns
         ParameterType.ConcreteType selectColumnsType = new ParameterType.SubsetType<>(
@@ -85,7 +85,7 @@ public class SELECT extends CassandraCommand {
                         .getValue())).left);
         Parameter selectColumns = selectColumnsType
                 .generateRandomParameter(state, this);
-        this.params.add(selectColumns); // Param2
+        this.params.add(selectColumns); // 2
 
         ParameterType.ConcreteType whereColumnsType = new ParameterType.FrontSubsetType(
                 null,
@@ -95,28 +95,28 @@ public class SELECT extends CassandraCommand {
                 null);
         Parameter whereColumns = whereColumnsType
                 .generateRandomParameter(state, this);
-        this.params.add(whereColumns); // Param 3
+        this.params.add(whereColumns); // 3
 
         ParameterType.ConcreteType whereValuesType = new ParameterType.Type2ValueType(
                 null, (s, c) -> (Collection) c.params.get(3).getValue(),
                 p -> ((Pair) ((Parameter) p).value).right);
         Parameter insertValues = whereValuesType
                 .generateRandomParameter(state, this);
-        this.params.add(insertValues); // Param4
+        this.params.add(insertValues); // 4
 
         if (Config.getConf().enable_ORDERBY_IN_SELECT) {
             // Whether to use the last columns from where Columns for ORDER BY
             ParameterType.ConcreteType useOrderType = new BOOLType();
             Parameter useOrder = useOrderType.generateRandomParameter(state,
                     this);
-            this.params.add(useOrder); // Param 5
+            this.params.add(useOrder); // 5
 
             // Use ASC or DESC
             // true: ASC, false: DESC
             ParameterType.ConcreteType ascOrdescType = new BOOLType();
             Parameter ascOrdesc = ascOrdescType.generateRandomParameter(state,
                     this);
-            this.params.add(ascOrdesc); // Param 6
+            this.params.add(ascOrdesc); // 6
         }
     }
 

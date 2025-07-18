@@ -13,10 +13,10 @@ public class REBUILD_INDEX extends CassandraCommand {
     public REBUILD_INDEX(CassandraState state) {
 
         Parameter keyspaceName = chooseKeyspace(state, this, null);
-        params.add(keyspaceName); // P0
+        params.add(keyspaceName); // 0
 
         Parameter TableName = chooseTable(state, this, null);
-        params.add(TableName); // P1
+        params.add(TableName); // 1
 
         ParameterType.ConcreteType indexNameType = new ParameterType.InCollectionType(
                 CONSTANTSTRINGType.instance,
@@ -28,7 +28,7 @@ public class REBUILD_INDEX extends CassandraCommand {
 
         Parameter indexName = indexNameType.generateRandomParameter(state,
                 this);
-        params.add(indexName); // P1
+        params.add(indexName); // 2
     }
 
     @Override

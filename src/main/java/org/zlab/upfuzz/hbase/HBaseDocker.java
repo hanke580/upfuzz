@@ -189,7 +189,6 @@ public class HBaseDocker extends Docker {
     public void upgrade() throws Exception {
         prepareUpgradeEnv();
         String restartCommand;
-        String createEmptySnapshotCommand;
         String deleteLogCommand;
 
         String[] versionParts = originalVersion

@@ -14,10 +14,10 @@ public class UPDATE extends CassandraCommand {
 
     public UPDATE(CassandraState state) {
         Parameter keyspaceName = chooseKeyspace(state, this, null);
-        this.params.add(keyspaceName);
+        this.params.add(keyspaceName); // 0
 
         Parameter TableName = chooseTable(state, this, null);
-        this.params.add(TableName);
+        this.params.add(TableName); // 1
 
         ParameterType.ConcreteType columnsType = new ParameterType.SuperSetType(
                 new ParameterType.SubsetType(null,
@@ -31,14 +31,14 @@ public class UPDATE extends CassandraCommand {
                 null);
         Parameter columns = columnsType
                 .generateRandomParameter(state, this);
-        this.params.add(columns);
+        this.params.add(columns); // 2
 
         ParameterType.ConcreteType insertValuesType = new ParameterType.Type2ValueType(
                 null, (s, c) -> (Collection) c.params.get(2).getValue(), // columns
                 p -> ((Pair) ((Parameter) p).value).right);
         Parameter insertValues = insertValuesType
                 .generateRandomParameter(state, this);
-        this.params.add(insertValues);
+        this.params.add(insertValues); // 3
 
         ParameterType.ConcreteType whereColumnsType = new ParameterType.NotEmpty(
                 new ParameterType.FrontSubsetType(null,
@@ -49,14 +49,14 @@ public class UPDATE extends CassandraCommand {
                         null));
         Parameter whereColumns = whereColumnsType
                 .generateRandomParameter(state, this);
-        this.params.add(whereColumns); // Param4
+        this.params.add(whereColumns); // 4
 
         ParameterType.ConcreteType whereValuesType = new ParameterType.Type2ValueType(
                 null, (s, c) -> (Collection) c.params.get(2).getValue(),
                 p -> ((Pair) ((Parameter) p).value).right);
         Parameter whereValues = whereValuesType
                 .generateRandomParameter(state, this);
-        this.params.add(whereValues); // Param5
+        this.params.add(whereValues); // 5
     }
 
     @Override

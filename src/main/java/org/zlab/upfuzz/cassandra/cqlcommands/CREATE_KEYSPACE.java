@@ -20,13 +20,13 @@ public class CREATE_KEYSPACE extends CassandraCommand {
                 (s, c) -> ((CassandraState) s).getKeyspaces(), null);
         Parameter keyspaceName = keyspaceNameType
                 .generateRandomParameter(state, this, init0);
-        this.params.add(keyspaceName); // [0]
+        this.params.add(keyspaceName); // 0
 
         ParameterType.ConcreteType replicationFactorType = new INTType(1,
                 4);
         Parameter replicationFactor = replicationFactorType
                 .generateRandomParameter(state, this, init1);
-        this.params.add(replicationFactor); // [1]
+        this.params.add(replicationFactor); // 1
 
         ParameterType.ConcreteType IF_NOT_EXISTType = new ParameterType.OptionalType(
                 new CONSTANTSTRINGType("IF NOT EXISTS"), null // TODO: Make
@@ -35,7 +35,7 @@ public class CREATE_KEYSPACE extends CassandraCommand {
         );
         Parameter IF_NOT_EXIST = IF_NOT_EXISTType
                 .generateRandomParameter(state, this, init2);
-        params.add(IF_NOT_EXIST); // [2]
+        params.add(IF_NOT_EXIST); // 2
     }
 
     public CREATE_KEYSPACE(State state) {
@@ -48,13 +48,13 @@ public class CREATE_KEYSPACE extends CassandraCommand {
                 0.1);
         Parameter keyspaceName = keyspaceNameType
                 .generateRandomParameter(state, this);
-        this.params.add(keyspaceName); // [0]
+        this.params.add(keyspaceName); // 0
 
         ParameterType.ConcreteType replicationFactorType = new INTType(1,
                 4);
         Parameter replicationFactor = replicationFactorType
                 .generateRandomParameter(state, this);
-        this.params.add(replicationFactor); // [1]
+        this.params.add(replicationFactor); // 1
 
         ParameterType.ConcreteType IF_NOT_EXISTType = new ParameterType.OptionalType(
                 new CONSTANTSTRINGType("IF NOT EXISTS"), null
@@ -62,7 +62,7 @@ public class CREATE_KEYSPACE extends CassandraCommand {
         );
         Parameter IF_NOT_EXIST = IF_NOT_EXISTType
                 .generateRandomParameter(state, this);
-        params.add(IF_NOT_EXIST); // [2]
+        params.add(IF_NOT_EXIST); // 2
     }
 
     @Override
