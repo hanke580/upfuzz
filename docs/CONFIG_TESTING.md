@@ -2,7 +2,7 @@
 
 > You don't to this step if (1) the config info has been generated in `configInfo` folder or (2) not test config.
 
-Static analysis tool [dinv-monitor](https://github.com/zlab-purdue/dinv-monitor) to extract config info used for upfuzz config testing.
+Static analysis tool **dinv-monitor** to extract config info used for upfuzz config testing.
 
 #### Extract ConfigInfo
 

@@ -229,7 +229,7 @@ public class VDTest {
         if (measureMergePoint) {
             // Identify merge points where objects are unmodified
             Path mergePointsFilePath = Paths.get(
-                    "/Users/kehan/project/vasco/system-sut-global/cassandra/apache-cassandra-2.2.19/mergePoints_alg1.json");
+                    "/PATH/TO/mergePoints_alg1.json");
             Map<String, Map<Integer, Set<SerializationInfo.MergePointInfo>>> mergePoints = Utilities
                     .loadDumpPoints(mergePointsFilePath);
 

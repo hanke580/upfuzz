@@ -4,17 +4,17 @@
 
 ## Feature
 * Coverage-guided fuzz testing
-  * upfuzz collects branch coverage of the cluster to guide the testing
+  * Collects branch coverage of the cluster to guide the testing
   process.
-  * upfuzz implements a type system for mutation. Users only need to
+  * Implements a type system for mutation. Users only need to
       implement their command via the given types, and upfuzz can
       generate/mutate valid command sequence.
-* Fault Injection
-* Inconsistency Detector
-    * Compare read results between different versions.
-* Configuration Testing
-* Format Coverage
-* Nyx-snapshot for system start up
+* Oracle
+  * Error/Exception in logs
+  * Read Inconsistency Comparison: compare read results between restart/upgrade
+* Config Testing
+* Nyx-snapshot to save start up (experimental)
+* Coarse-Grained Fault Injection (experimental)
 
 ## Prerequisite
 ```bash
@@ -37,25 +37,7 @@ sudo apt-get update
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
 ```
 
-## Data Format Testing
-> Check out dinv-monitor about how to create an instrumented tarball
-
-1. Use a format instrumented tarball.
-2. Make sure the `configInfo/system-x.x.x` contain `serializedFields_alg1.json` and `topObjects.json` file. (They should be the same as the one under the instrumented system binary).
-3. Enable `useFormatCoverage` in configuration file.
-
-The other steps are the same as the normal testing.
-
-## Note: avoid conflict with other upfuzz users
-If multiple upfuzz users are using the same server, the default port may conflict.
-
-Solution: Set the `serverPort` and `clientPort` in the configuration file to avoid conflict with other users.
-```json
-"serverPort" : "?",
-"clientPort" : "?",
-```
-
-## Minimal Set up for Cassandra (Try upfuzz quickly!)
+## Cassandra: Push Button Testing
 Requirement: java11, docker (Docker version 26.0.0, build a5ee5b1)
 > - Not test configurations.
 > - Single Cassandra node upgrade: 3.11.17 => 4.1.4
@@ -129,7 +111,10 @@ bin/start_clients.sh 1 config.json
 bin/cass_cl.sh
 ```
 
-## Minimal Set up for HDFS (Try upfuzz quickly!)
+## HDFS: Push Button Testing
+<details>
+  <summary>Click to unfold for details</summary>
+
 Requirement: jdk8, jdk11, docker (Docker version 26.0.0)
 > - Not test configurations.
 > - 4 Nodes upgrade (NN, SNN, 2DN) ORI_VERSION => UP_VERSION
@@ -182,7 +167,13 @@ bin/hdfs_cl.sh
 prepareImageFirst
 ```
 
-## Minimal Set up for HBase (Try upfuzz quickly!)
+</details>
+
+## HBase: Push Button Testing
+
+<details>
+  <summary>Click to unfold for details</summary>
+
 
 ```bash
 git clone git@github.com:zlab-purdue/upfuzz.git
@@ -234,7 +225,12 @@ bin/start_clients.sh 1 hbase_config.json
 bin/hbase_cl.sh
 ```
 
-## Minimal Set up for Ozone (Try upfuzz quickly!)
+</details>
+
+## Ozone: Push Button Testing
+
+<details>
+  <summary>Click to unfold for details</summary>
 
 ```bash
 git clone git@github.com:zlab-purdue/upfuzz.git
@@ -278,12 +274,39 @@ tmux send-keys -t 0:0.1 C-m 'sleep 2; bin/start_clients.sh 1 ozone_config.json' 
 bin/ozone_cl.sh $ORI_VERSION $UP_VERSION
 ```
 
-## Version Delta Testing
+</details>
 
-Latest implementation only applies to one-group set up.
-* Set `useVersionDelta` to `true`.
-* Set `versionDeltaApproach` to `1`. (Represents 1 group setup)
+## Data Format Testing (Experimental)
 
+<details>
+  <summary>Click to unfold for details</summary>
+
+> Check out dinv-monitor about how to create an instrumented tarball
+
+1. Use a format instrumented tarball.
+2. Make sure the `configInfo/system-x.x.x` contain `serializedFields_alg1.json` and `topObjects.json` file. (They should be the same as the one under the instrumented system binary).
+3. Enable `useFormatCoverage` in configuration file.
+
+The other steps are the same as the normal testing.
+
+## Note: avoid conflict with other upfuzz users
+If multiple upfuzz users are using the same server, the default port may conflict.
+
+Solution: Set the `serverPort` and `clientPort` in the configuration file to avoid conflict with other users.
+```json
+"serverPort" : "?",
+"clientPort" : "?",
+```
+
+</details>
+
+## Version Delta Testing (Experimental)
+
+<details>
+  <summary>Click to unfold for details</summary>
+
+
+We have 2 type of implementations: static VD and dynamic VD.
 
 ### Cassandra
 ```bash
@@ -416,6 +439,8 @@ bin/start_clients.sh 1 hbase_config.json
 bin/hbase_cl.sh
 ```
 
+</details>
+
 ## Usage
 
 Important configurations
@@ -452,6 +477,9 @@ archive.tar.gz  errorLog  fullSequence_121.report  oriconfig  upconfig
 ```
 ### Debug
 
+<details>
+  <summary>Click to unfold if want to debug </summary>
+
 #### Check container
 If the tool runs into problems, you can enter the container to check the log.
 
@@ -473,7 +501,13 @@ cat /proc/$(pgrep -f "upfuzz_server")/status | grep Vm
 # if it's killed by system, use dmsg to check the reason
 ```
 
+</details>
+
 ### JACOCO
+
+<details>
+  <summary>Click to unfold for coverage collection </summary>
+
 - If jacoco jar is modified, make sure put the runtime jar into the compile/ so that it can be put into the container.
 - Make sure the old jacoco jars are removed in `dependencies` folder.
 - If we want to test with functions with weight, use diffchecker to generate a diff_func.txt and put it in the cassandra folder, like `Cassandra-2.2.8/diff_func.txt`.
@@ -485,7 +519,12 @@ The two jacoco jars are
 
 Use `dependencies/org.jacoco.agent-1c01d8328d-runtime.jar` to replace all `org.jacoco.agent.rt.jar`
 
+</details>
+
 ### Distributed testing mode
+<details>
+  <summary>Click to unfold for details </summary>
+
 FuzzingServer config.json: listening to all IPs
 ```json
 "serverHost" : "0.0.0.0",
@@ -499,7 +538,12 @@ FuzzingClient config.json
 ```
 Set up a shared folder (NFS) between servers to share the configuration file.
 
-### Speed up Cassandra start up
+</details>
+
+### Speed up Cassandra start up process (cautious: could cause side effects for multi-node testing)
+
+<details>
+  <summary>Click to unfold for details </summary>
 
 Cassandra by default performs ring delay and gossip wait, but we can skip them if we
 only test single node
@@ -507,6 +551,7 @@ only test single node
 # Modify bin/cassandra, add the following code
 cassandra_parms="$cassandra_parms -Dcassandra.ring_delay_ms=1 -Dcassandra.skip_wait_for_gossip_to_settle=0"
 ```
+</details>
 
 ### Process failure reports
 ```bash
@@ -517,6 +562,9 @@ python3 proc_failure.py read
 ```
 
 ### Add cassandra log config for 2.2.x, 3.0.x (3.0.15)
+<details>
+  <summary>Click to unfold for details </summary>
+
 Old version cassandra cannot use env var to adjust log dir, so we add a few scripts to save log separately.
 ```bash
 if [ -z "$CASSANDRA_LOG_DIR" ]; then
@@ -532,8 +580,13 @@ launch_service()
     cassandra_parms="-Dlogback.configurationFile=logback.xml"
     cassandra_parms="$cassandra_parms -Dcassandra.logdir=$CASSANDRA_LOG_DIR"
 ```
+</details>
 
-### Cassandra-5.0
+### Special handling for Cassandra-5.0 to avoid FP
+
+<details>
+  <summary>Click to unfold for details </summary>
+
 ```bash
 # When testing cassandra-5.0-rc2, we need to modify the cqlshmain.py to avoid FP.
  vim pylib/cqlshlib/cqlshmain.py
@@ -542,26 +595,32 @@ if baseversion != build_version:
     print("WARNING: cqlsh was built against {}, but this server is {}.  All features may not work!".format(build_version, baseversion))
 ```
 
-### HBase daemon
-daemon
-* hbase version >= 2.4.0, use hbase_daemon3.py
-* hbase version < 2.4.0, use hbase_daemon2.py
+</details>
+
+### Special handling for HBase to avoid FP
+
+<details>
+  <summary>Click to unfold for details </summary>
+
+
 
 Avoid FP: disable `list_snapshots` command in `hbase_config.json` when upgrading across the formats.
 * 2.5.9/3.x/4.x: list_snapshots in format2 (with TTL)
 * 2.4.18/2.6.0: list_snapshots in format1 (without TTL)
 
-2.10.2 Script
-```bash
-/usr/lib/jvm/java-8-openjdk-amd64/bin/javac -d . -cp "share/hadoop/hdfs/*:share/hadoop/common/*:share/hadoop/common/lib/*" FsShellDaemon.java
-sed -i "s/elif \[ \"\$COMMAND\" = \"dfs\" \] ; then/elif [ \"\$COMMAND\" = \"dfsdaemon\" ] ; then\n  CLASS=org.apache.hadoop.fs.FsShellDaemon\n  HADOOP_OPTS=\"\$HADOOP_OPTS \$HADOOP_CLIENT_OPTS\"\n&/" bin/hdfs
-```
+</details>
 
-3.2.4/3.3.6/3.4.0/3.4.1 Script
-```bash
-/usr/lib/jvm/java-8-openjdk-amd64/bin/javac -d . -cp "share/hadoop/hdfs/*:share/hadoop/common/*:share/hadoop/common/lib/*" FsShellDaemon.java
-sed -i "s/  case \${subcmd} in/&\n    dfsdaemon)\n      HADOOP_CLASSNAME=\"org.apache.hadoop.fs.FsShellDaemon\"\n    ;;/" bin/hdfs
-```
+
+## Daemon Scripts Selection
+
+We implemented different daemon scripts for different versions of the systems. The following table summarizes the available daemon scripts and their corresponding versions.
+
+The daemon as used to save the JVM init time for each command
+* Without daemon: execute 20 commands leads to 20 JVM init
+* With daemon: execute 20 commands leads to 1 JVM init
+
+<details>
+  <summary>Click to unfold for details </summary>
 
 
 ### Cassandra daemon
@@ -575,3 +634,22 @@ sed -i "s/  case \${subcmd} in/&\n    dfsdaemon)\n      HADOOP_CLASSNAME=\"org.a
 * FsShellDaemon2.java: hadoop-2.10.2
 * FsShellDaemon3.java: (> 3): 3.2.4, 3.3.0
 * FsShellDaemon_trunk.java: (>=3.3.4) hadoop-3.3.6, 3.4.0
+
+### HBase daemon
+daemon
+* hbase version >= 2.4.0, use hbase_daemon3.py
+* hbase version < 2.4.0, use hbase_daemon2.py
+
+2.10.2 Script
+```bash
+/usr/lib/jvm/java-8-openjdk-amd64/bin/javac -d . -cp "share/hadoop/hdfs/*:share/hadoop/common/*:share/hadoop/common/lib/*" FsShellDaemon.java
+sed -i "s/elif \[ \"\$COMMAND\" = \"dfs\" \] ; then/elif [ \"\$COMMAND\" = \"dfsdaemon\" ] ; then\n  CLASS=org.apache.hadoop.fs.FsShellDaemon\n  HADOOP_OPTS=\"\$HADOOP_OPTS \$HADOOP_CLIENT_OPTS\"\n&/" bin/hdfs
+```
+
+3.2.4/3.3.6/3.4.0/3.4.1 Script
+```bash
+/usr/lib/jvm/java-8-openjdk-amd64/bin/javac -d . -cp "share/hadoop/hdfs/*:share/hadoop/common/*:share/hadoop/common/lib/*" FsShellDaemon.java
+sed -i "s/  case \${subcmd} in/&\n    dfsdaemon)\n      HADOOP_CLASSNAME=\"org.apache.hadoop.fs.FsShellDaemon\"\n    ;;/" bin/hdfs
+```
+
+</details>
