@@ -147,9 +147,6 @@ public class Config {
         public int intervalMin = 10; // ms
         public int intervalMax = 200; // ms
 
-        // deprecated
-        public String targetSystemStateFile = "states.json";
-
         public int STACKED_TESTS_NUM = 1;
         public int STACKED_TESTS_NUM_G2 = 30;
         public long timeInterval = 600; // seconds, record time
