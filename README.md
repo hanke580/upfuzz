@@ -79,6 +79,7 @@ cd ${UPFUZZ_DIR}
 cp src/main/resources/cqlsh_daemon5.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
 cd src/main/resources/cassandra/single-version-testing
 sudo chmod 666 /var/run/docker.sock
+sed -i "s/ORI_VERSION=apache-cassandra-.*$/ORI_VERSION=apache-cassandra-$ORI_VERSION/" cassandra-clusternode.sh
 docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"
 cd ${UPFUZZ_DIR}
 ./gradlew copyDependencies
@@ -86,10 +87,16 @@ cd ${UPFUZZ_DIR}
 
 sed -i 's/"testSingleVersion": false,/"testSingleVersion": true,/g' cass_config_5.json
 
-# open terminal1: start server
-bin/start_server.sh cass_config_5.json
-# open terminal2: start one client
-bin/start_clients.sh 1 cass_config_5.json
+# Create a tmux session called test-cass
+tmux new-session -d -s test-cass \; split-window -v \;
+tmux send-keys -t test-cass:0.0 C-m 'bin/start_server.sh cass_config_4.json > server.log' C-m \;
+tmux send-keys -t test-cass:0.1 C-m 'sleep 2; bin/start_clients.sh 1 cass_config_4.json' C-m
+
+# If you want to start up fuzzing server and client by yourself, open 2 terminals
+# Terminal1: start server
+# bin/start_server.sh cass_config_4.json
+# Terminal2: start one client
+# bin/start_clients.sh 1 cass_config_4.json
 
 # stop testing
 bin/cass_cl.sh
@@ -113,7 +120,6 @@ cp src/main/resources/cqlsh_daemon4.py prebuild/cassandra/apache-cassandra-"$ORI
 cd src/main/resources/cassandra/single-version-testing
 sudo chmod 666 /var/run/docker.sock
 sed -i "s/ORI_VERSION=apache-cassandra-.*$/ORI_VERSION=apache-cassandra-$ORI_VERSION/" cassandra-clusternode.sh
-sed -i "s/UP_VERSION=apache-cassandra-.*$/UP_VERSION=apache-cassandra-$UP_VERSION/" cassandra-clusternode.sh
 docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"
 cd ${UPFUZZ_DIR}
 ./gradlew copyDependencies
@@ -153,6 +159,7 @@ cd ${UPFUZZ_DIR}
 cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
 cd src/main/resources/cassandra/single-version-testing
 sudo chmod 666 /var/run/docker.sock
+sed -i "s/ORI_VERSION=apache-cassandra-.*$/ORI_VERSION=apache-cassandra-$ORI_VERSION/" cassandra-clusternode.sh
 docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"
 cd ${UPFUZZ_DIR}
 ./gradlew copyDependencies
@@ -160,10 +167,16 @@ cd ${UPFUZZ_DIR}
 
 sed -i 's/"testSingleVersion": false,/"testSingleVersion": true,/g' config.json
 
-# open terminal1: start server
-bin/start_server.sh config.json
-# open terminal2: start one client
-bin/start_clients.sh 1 config.json
+# Create a tmux session called test-cass
+tmux new-session -d -s test-cass \; split-window -v \;
+tmux send-keys -t test-cass:0.0 C-m 'bin/start_server.sh cass_config_4.json > server.log' C-m \;
+tmux send-keys -t test-cass:0.1 C-m 'sleep 2; bin/start_clients.sh 1 cass_config_4.json' C-m
+
+# If you want to start up fuzzing server and client by yourself, open 2 terminals
+# Terminal1: start server
+# bin/start_server.sh cass_config_4.json
+# Terminal2: start one client
+# bin/start_clients.sh 1 cass_config_4.json
 
 # stop testing
 bin/cass_cl.sh
