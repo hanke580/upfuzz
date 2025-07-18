@@ -31,7 +31,11 @@ public abstract class DockerMeta {
     }
 
     public enum DockerVersion {
-        upgraded, original
+        original, upgraded
+    }
+
+    public enum ConfigType {
+        oriconfig, upconfig
     }
 
     public ShellDaemon shell;
@@ -160,43 +164,30 @@ public abstract class DockerMeta {
     // FuzzingClient NyxMode configCheck may need to be modifed
     public boolean copyConfig(Path configPath, int direction)
             throws IOException {
-
-        Path oriConfigPath = (direction == 0) ? configPath.resolve("oriconfig")
-                : configPath.resolve("upconfig");
-        Path upConfigPath = (direction == 0) ? configPath.resolve("upconfig")
-                : configPath.resolve("oriconfig");
-
-        assert oriConfigPath.toFile().isDirectory();
-        assert upConfigPath.toFile().isDirectory();
-
-        Path oriConfigPathDocker = Paths.get(workdir.getPath(),
-                "/persistent/config/oriconfig");
-        Path upConfigPathDocker = Paths.get(workdir.getPath(),
-                "/persistent/config/upconfig");
-
-        oriConfigPathDocker.toFile().mkdirs();
-        upConfigPathDocker.toFile().mkdirs();
-
-        if (!oriConfigPath.toFile().exists()
-                || !upConfigPath.toFile().exists()) {
-            throw new RuntimeException("Config path does not exist! ori = "
-                    + oriConfigPath + ", up = " + upConfigPath +
-                    ", please make sure the config file is correctly generated");
-        }
-
-        for (File file : oriConfigPath.toFile().listFiles()) {
-            Files.copy(file.toPath(),
-                    oriConfigPathDocker.resolve(file.getName()),
-                    StandardCopyOption.REPLACE_EXISTING);
-        }
-        if (!Config.getConf().testSingleVersion) {
-            for (File file : upConfigPath.toFile().listFiles()) {
-                Files.copy(file.toPath(),
-                        upConfigPathDocker.resolve(file.getName()),
-                        StandardCopyOption.REPLACE_EXISTING);
-            }
+        if (Config.getConf().testSingleVersion) {
+            setSingleConfig(ConfigType.oriconfig);
+        } else {
+            setSingleConfig(ConfigType.oriconfig);
+            setSingleConfig(ConfigType.upconfig);
         }
         return true;
+    }
+
+    public void setSingleConfig(ConfigType configType) throws IOException {
+        Path concreteConfigPath = configPath.resolve(configType.toString());
+
+        assert concreteConfigPath.toFile().isDirectory();
+
+        Path concreteConfigPathDocker = Paths.get(workdir.getPath(),
+                "/persistent/config/" + configType.toString());
+
+        concreteConfigPathDocker.toFile().mkdirs();
+
+        for (File file : concreteConfigPath.toFile().listFiles()) {
+            Files.copy(file.toPath(),
+                    concreteConfigPathDocker.resolve(file.getName()),
+                    StandardCopyOption.REPLACE_EXISTING);
+        }
     }
 
     public String[] constructGrepCommand(Path filePath, String target,

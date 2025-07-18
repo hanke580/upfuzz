@@ -119,10 +119,16 @@ cd ${UPFUZZ_DIR}
 
 sed -i 's/"testSingleVersion": false,/"testSingleVersion": true,/g' cass_config_4.json
 
-# open terminal1: start server
-bin/start_server.sh cass_config_4.json
-# open terminal2: start one client
-bin/start_clients.sh 1 cass_config_4.json
+# Create a tmux session called test-cass
+tmux new-session -d -s test-cass \; split-window -v \;
+tmux send-keys -t test-cass:0.0 C-m 'bin/start_server.sh cass_config_4.json > server.log' C-m \;
+tmux send-keys -t test-cass:0.1 C-m 'sleep 2; bin/start_clients.sh 1 cass_config_4.json' C-m
+
+# If you want to start up fuzzing server and client by yourself, open 2 terminals
+# Terminal1: start server
+# bin/start_server.sh cass_config_4.json
+# Terminal2: start one client
+# bin/start_clients.sh 1 cass_config_4.json
 
 # stop testing
 bin/cass_cl.sh
