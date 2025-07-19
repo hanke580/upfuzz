@@ -174,9 +174,13 @@ public abstract class Executor implements IExecutor {
 
     public void flush() {
         try {
-            logger.debug("cluster flushing");
+            if (Config.getConf().debug) {
+                logger.debug("cluster flushing");
+            }
             dockerCluster.flush();
-            logger.debug("cluster flushed");
+            if (Config.getConf().debug) {
+                logger.debug("cluster flushed");
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
