@@ -85,24 +85,24 @@ cd ${UPFUZZ_DIR}
 ./gradlew copyDependencies
 ./gradlew :spotlessApply build
 
-sed -i 's/"testSingleVersion": false,/"testSingleVersion": true,/g' cass_config_5.json
+sed -i 's/"testSingleVersion": false,/"testSingleVersion": true,/g' cass5_config.json
 
 # Create a tmux session called test-cass
 tmux new-session -d -s test-cass \; split-window -v \;
-tmux send-keys -t test-cass:0.0 C-m 'bin/start_server.sh cass_config_4.json > server.log' C-m \;
-tmux send-keys -t test-cass:0.1 C-m 'sleep 2; bin/start_clients.sh 1 cass_config_4.json' C-m
+tmux send-keys -t test-cass:0.0 C-m 'bin/start_server.sh cass5_config.json > server.log' C-m \;
+tmux send-keys -t test-cass:0.1 C-m 'sleep 2; bin/start_clients.sh 1 cass5_config.json' C-m
 
 # If you want to start up fuzzing server and client by yourself, open 2 terminals
 # Terminal1: start server
-# bin/start_server.sh cass_config_4.json
+# bin/start_server.sh cass5_config.json
 # Terminal2: start one client
-# bin/start_clients.sh 1 cass_config_4.json
+# bin/start_clients.sh 1 cass5_config.json
 
 # stop testing
 bin/cass_cl.sh
 ```
 
-#### 4.1.4
+#### 4.1.9
 
 ```bash
 ssh-keyscan github.com >> ~/.ssh/known_hosts
@@ -111,7 +111,7 @@ cd upfuzz
 git checkout dev
 
 export UPFUZZ_DIR=$PWD
-export ORI_VERSION=4.1.4
+export ORI_VERSION=4.1.9
 mkdir -p ${UPFUZZ_DIR}/prebuild/cassandra
 cd ${UPFUZZ_DIR}/prebuild/cassandra
 wget https://archive.apache.org/dist/cassandra/"$ORI_VERSION"/apache-cassandra-"$ORI_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$ORI_VERSION"-bin.tar.gz
@@ -125,18 +125,18 @@ cd ${UPFUZZ_DIR}
 ./gradlew copyDependencies
 ./gradlew :spotlessApply build
 
-sed -i 's/"testSingleVersion": false,/"testSingleVersion": true,/g' cass_config_4.json
+sed -i 's/"testSingleVersion": false,/"testSingleVersion": true,/g' cass4_config.json
 
 # Create a tmux session called test-cass
 tmux new-session -d -s test-cass \; split-window -v \;
-tmux send-keys -t test-cass:0.0 C-m 'bin/start_server.sh cass_config_4.json > server.log' C-m \;
-tmux send-keys -t test-cass:0.1 C-m 'sleep 2; bin/start_clients.sh 1 cass_config_4.json' C-m
+tmux send-keys -t test-cass:0.0 C-m 'bin/start_server.sh cass4_config.json > server.log' C-m \;
+tmux send-keys -t test-cass:0.1 C-m 'sleep 2; bin/start_clients.sh 1 cass4_config.json' C-m
 
 # If you want to start up fuzzing server and client by yourself, open 2 terminals
 # Terminal1: start server
-# bin/start_server.sh cass_config_4.json
+# bin/start_server.sh cass4_config.json
 # Terminal2: start one client
-# bin/start_clients.sh 1 cass_config_4.json
+# bin/start_clients.sh 1 cass4_config.json
 
 # stop testing
 bin/cass_cl.sh
@@ -169,14 +169,14 @@ sed -i 's/"testSingleVersion": false,/"testSingleVersion": true,/g' config.json
 
 # Create a tmux session called test-cass
 tmux new-session -d -s test-cass \; split-window -v \;
-tmux send-keys -t test-cass:0.0 C-m 'bin/start_server.sh cass_config_4.json > server.log' C-m \;
-tmux send-keys -t test-cass:0.1 C-m 'sleep 2; bin/start_clients.sh 1 cass_config_4.json' C-m
+tmux send-keys -t test-cass:0.0 C-m 'bin/start_server.sh cass4_config.json > server.log' C-m \;
+tmux send-keys -t test-cass:0.1 C-m 'sleep 2; bin/start_clients.sh 1 cass4_config.json' C-m
 
 # If you want to start up fuzzing server and client by yourself, open 2 terminals
 # Terminal1: start server
-# bin/start_server.sh cass_config_4.json
+# bin/start_server.sh cass4_config.json
 # Terminal2: start one client
-# bin/start_clients.sh 1 cass_config_4.json
+# bin/start_clients.sh 1 cass4_config.json
 
 # stop testing
 bin/cass_cl.sh
