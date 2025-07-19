@@ -88,6 +88,7 @@ cd ${UPFUZZ_DIR}
 sed -i 's/"testSingleVersion": false,/"testSingleVersion": true,/g' cass5_config.json
 
 # Create a tmux session called test-cass
+tmux kill-session -t test-cass
 tmux new-session -d -s test-cass \; split-window -v \;
 tmux send-keys -t test-cass:0.0 C-m 'bin/start_server.sh cass5_config.json > server.log' C-m \;
 tmux send-keys -t test-cass:0.1 C-m 'sleep 2; bin/start_clients.sh 1 cass5_config.json' C-m
@@ -128,6 +129,7 @@ cd ${UPFUZZ_DIR}
 sed -i 's/"testSingleVersion": false,/"testSingleVersion": true,/g' cass4_config.json
 
 # Create a tmux session called test-cass
+tmux kill-session -t test-cass
 tmux new-session -d -s test-cass \; split-window -v \;
 tmux send-keys -t test-cass:0.0 C-m 'bin/start_server.sh cass4_config.json > server.log' C-m \;
 tmux send-keys -t test-cass:0.1 C-m 'sleep 2; bin/start_clients.sh 1 cass4_config.json' C-m
@@ -168,6 +170,7 @@ cd ${UPFUZZ_DIR}
 sed -i 's/"testSingleVersion": false,/"testSingleVersion": true,/g' config.json
 
 # Create a tmux session called test-cass
+tmux kill-session -t test-cass
 tmux new-session -d -s test-cass \; split-window -v \;
 tmux send-keys -t test-cass:0.0 C-m 'bin/start_server.sh cass4_config.json > server.log' C-m \;
 tmux send-keys -t test-cass:0.1 C-m 'sleep 2; bin/start_clients.sh 1 cass4_config.json' C-m
