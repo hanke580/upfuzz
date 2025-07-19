@@ -1,5 +1,5 @@
 {
-  "originalVersion" : "apache-cassandra-4.1.4",
+  "originalVersion" : "apache-cassandra-4.1.9",
   "system" : "cassandra",
   "serverPort" : "6399",
   "clientPort" : "6400",
