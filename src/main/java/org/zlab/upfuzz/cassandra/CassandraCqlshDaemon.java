@@ -54,14 +54,12 @@ public class CassandraCqlshDaemon extends ShellDaemon {
         int SLEEP_INTERVAL = 1;
         int retry = Config.getConf().CASSANDRA_RETRY_TIMEOUT / SLEEP_INTERVAL;
         logger.info("[HKLOG] executor ID = " + docker.executorID + "  "
-                + "Connect to cqlsh:" + ipAddress + "..."
-                + "\t this normally takes"
-                + " 6 seconds for single node or 50s for 3-node cluster node");
+                + "Connect to cqlsh:" + ipAddress + "...");
         Long totalReadTimeFromProcess = 0L;
         Long totalProcExecTime = 0L;
         for (int i = 0; i < retry; ++i) {
             try {
-                if (i % 5 == 0) {
+                if (i % 10 == 0) {
                     logger.debug("[HKLOG] executor ID = " + docker.executorID
                             + "  "
                             + "Connect to cqlsh:" + ipAddress + "..." + i);

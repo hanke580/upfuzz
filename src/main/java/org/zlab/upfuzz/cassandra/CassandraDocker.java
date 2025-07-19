@@ -123,7 +123,9 @@ public class CassandraDocker extends Docker {
             String version = spStrings[spStrings.length - 1];
             int main_version = Integer
                     .parseInt(version.substring(0, 1));
-            logger.debug("[HKLOG] original main version = " + main_version);
+            if (Config.getConf().debug) {
+                logger.debug("[HKLOG] original main version = " + main_version);
+            }
             if (main_version > 3 && !version.equals("4.0.0"))
                 pythonVersion = "python3";
             if (main_version >= 5)
@@ -154,8 +156,11 @@ public class CassandraDocker extends Docker {
     @Override
     public boolean build() throws IOException {
         type = (direction == 0) ? "original" : "upgraded";
-        logger.info("[HKLOG] Cassandra Docker, original Version: "
-                + originalVersion + ", modifiedVersion: " + upgradedVersion);
+        if (Config.getConf().debug) {
+            logger.debug("[HKLOG] Cassandra Docker, original Version: "
+                    + originalVersion + ", modifiedVersion: "
+                    + upgradedVersion);
+        }
         String cassandraHome = "/cassandra/" + originalVersion;
         String cassandraConf = "/etc/" + originalVersion;
         javaToolOpts = "JAVA_TOOL_OPTIONS=\"-javaagent:"

@@ -49,7 +49,7 @@ class FuzzingClientSocket implements Runnable {
             try {
                 intType = in.readInt();
                 Packet.PacketType type = Packet.PacketType.values()[intType];
-                logger.info("Packet val = " + intType + ", type = " + type);
+                logger.debug("Packet val = " + intType + ", type = " + type);
                 Packet feedBackPacket = null;
                 int requestedGroupForVersionDelta = 0;
 
@@ -63,7 +63,9 @@ class FuzzingClientSocket implements Runnable {
                             .read(in);
                     requestedGroupForVersionDelta = stackedTestPacket.clientGroupForVersionDelta;
                     if (!Config.getConf().useVersionDelta) {
-                        logger.info("Regular stacked testing");
+                        if (Config.getConf().debug) {
+                            logger.debug("Regular stacked testing");
+                        }
                         feedBackPacket = fuzzingClient
                                 .executeStackedTestPacket(stackedTestPacket);
                     } else {

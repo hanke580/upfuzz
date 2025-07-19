@@ -87,7 +87,7 @@ public class CassandraExecutor extends Executor {
         }
 
         // May change classToIns according to the system...
-        logger.info("[Old Version] Cassandra Start...");
+        logger.info("Cassandra Start...");
 
         // What should we do if the docker cluster start up throws an exception?
         try {

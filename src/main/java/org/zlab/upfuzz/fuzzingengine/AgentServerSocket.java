@@ -40,7 +40,9 @@ public class AgentServerSocket extends Thread {
             } catch (IOException e) {
                 if (!running) { // Check if the server is supposed to be
                                 // stopping
-                    logger.info("Server is stopping.");
+                    if (Config.getConf().debug) {
+                        logger.debug("Server is stopping.");
+                    }
                     break;
                 }
                 logger.error("Error accepting client connection", e);

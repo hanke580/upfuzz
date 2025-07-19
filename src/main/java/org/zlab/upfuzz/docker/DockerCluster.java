@@ -183,7 +183,9 @@ public abstract class DockerCluster implements IDockerCluster {
                         workdir);
                 ret = buildProcess.waitFor();
                 if (ret == 0) {
-                    logger.info("docker compose up " + workdir);
+                    if (Config.getConf().debug) {
+                        logger.debug("docker compose up " + workdir);
+                    }
                     break;
                 } else {
                     Utilities.exec(

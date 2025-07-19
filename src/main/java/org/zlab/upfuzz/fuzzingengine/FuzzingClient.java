@@ -293,7 +293,9 @@ public class FuzzingClient {
     }
 
     public boolean startUpExecutor() {
-        logger.info("[HKLOG] Fuzzing client: starting up executor");
+        if (Config.getConf().debug) {
+            logger.debug("[HKLOG] Fuzzing client: starting up executor");
+        }
         for (int i = 0; i < CLUSTER_START_RETRY; i++) {
             try {
                 if (executor.startup()) {
@@ -812,8 +814,7 @@ public class FuzzingClient {
             StackedTestPacket stackedTestPacket) {
         Path configPath = Paths.get(configDirPath.toString(),
                 stackedTestPacket.configFileName);
-        logger.info("[HKLOG] configPath = " + configPath);
-
+        logger.debug("[HKLOG] configPath = " + configPath);
         if (Config.getConf().verifyConfig && !verifyConfig(configPath)) {
             logger.error("Configuration problem: System cannot start up");
             return null;

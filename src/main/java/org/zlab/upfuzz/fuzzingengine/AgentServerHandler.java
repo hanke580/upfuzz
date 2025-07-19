@@ -208,7 +208,7 @@ public class AgentServerHandler
 
     public void collect() {
         // FIXME frequently collect null
-        logger.info("handler collect " + sessionId + "...");
+        logger.debug("collect coverage for " + sessionId + "...");
         try {
             writer.visitDumpCommand(true, true);
         } catch (IOException e) {
