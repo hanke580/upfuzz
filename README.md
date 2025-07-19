@@ -77,7 +77,7 @@ cd ${UPFUZZ_DIR}/prebuild/cassandra
 wget https://archive.apache.org/dist/cassandra/"$ORI_VERSION"/apache-cassandra-"$ORI_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$ORI_VERSION"-bin.tar.gz
 cd ${UPFUZZ_DIR}
 cp src/main/resources/cqlsh_daemon5.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
-cd src/main/resources/cassandra/single-version-testing
+cd src/main/resources/cassandra/single-version-testing/compile-src/
 sudo chmod 666 /var/run/docker.sock
 sed -i "s/ORI_VERSION=apache-cassandra-.*$/ORI_VERSION=apache-cassandra-$ORI_VERSION/" cassandra-clusternode.sh
 docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"
@@ -117,7 +117,7 @@ cd ${UPFUZZ_DIR}/prebuild/cassandra
 wget https://archive.apache.org/dist/cassandra/"$ORI_VERSION"/apache-cassandra-"$ORI_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$ORI_VERSION"-bin.tar.gz
 cd ${UPFUZZ_DIR}
 cp src/main/resources/cqlsh_daemon4.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
-cd src/main/resources/cassandra/single-version-testing
+cd src/main/resources/cassandra/single-version-testing/compile-src/
 sudo chmod 666 /var/run/docker.sock
 sed -i "s/ORI_VERSION=apache-cassandra-.*$/ORI_VERSION=apache-cassandra-$ORI_VERSION/" cassandra-clusternode.sh
 docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"
@@ -157,7 +157,7 @@ cd ${UPFUZZ_DIR}/prebuild/cassandra
 wget https://archive.apache.org/dist/cassandra/"$ORI_VERSION"/apache-cassandra-"$ORI_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$ORI_VERSION"-bin.tar.gz
 cd ${UPFUZZ_DIR}
 cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
-cd src/main/resources/cassandra/single-version-testing
+cd src/main/resources/cassandra/single-version-testing/compile-src/
 sudo chmod 666 /var/run/docker.sock
 sed -i "s/ORI_VERSION=apache-cassandra-.*$/ORI_VERSION=apache-cassandra-$ORI_VERSION/" cassandra-clusternode.sh
 docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"
@@ -203,7 +203,7 @@ cd ${UPFUZZ_DIR}
 cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
 cp src/main/resources/cqlsh_daemon4.py  prebuild/cassandra/apache-cassandra-"$UP_VERSION"/bin/cqlsh_daemon.py
 
-cd src/main/resources/cassandra/normal/compile-src/
+cd src/main/resources/cassandra/upgrade-testing/compile-src/
 sed -i "s/ORI_VERSION=apache-cassandra-.*$/ORI_VERSION=apache-cassandra-$ORI_VERSION/" cassandra-clusternode.sh
 sed -i "s/UP_VERSION=apache-cassandra-.*$/UP_VERSION=apache-cassandra-$UP_VERSION/" cassandra-clusternode.sh
 docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"_apache-cassandra-"$UP_VERSION"
@@ -438,7 +438,7 @@ cd ${UPFUZZ_DIR}
 cp src/main/resources/cqlsh_daemon2.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
 cp src/main/resources/cqlsh_daemon4.py  prebuild/cassandra/apache-cassandra-"$UP_VERSION"/bin/cqlsh_daemon.py
 
-cd src/main/resources/cassandra/normal/compile-src/
+cd src/main/resources/cassandra/upgrade-testing/compile-src/
 sed -i "s/ORI_VERSION=apache-cassandra-.*$/ORI_VERSION=apache-cassandra-$ORI_VERSION/" cassandra-clusternode.sh
 sed -i "s/UP_VERSION=apache-cassandra-.*$/UP_VERSION=apache-cassandra-$UP_VERSION/" cassandra-clusternode.sh
 docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"_apache-cassandra-"$UP_VERSION"
