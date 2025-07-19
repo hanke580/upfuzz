@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Use this script when you are the single user
+# This scripts stop the fuzzing server, client and remove the containers created
 # Usage: ./clean.sh [--force]
 #   --force: Skip confirmation and remove containers directly
 
@@ -11,13 +11,13 @@ if [[ "$1" == "--force" ]]; then
 fi
 
 echo "Killing upfuzz processes..."
-pgrep -u $(id -u) -f '.*config\.json$' | xargs kill -9
-pgrep --euid $USER qemu | xargs kill -9 # kill all lurking qemu instances
+pgrep -u $(id -u) -f '.*config\.json$' | xargs -r kill -9
+pgrep --euid $USER qemu | xargs -r kill -9 # kill all lurking qemu instances
 
 echo "Removing upfuzz containers..."
 # Only remove containers created by upfuzz project
-# Look for containers with upfuzz-specific naming patterns based on actual project usage
-UPFUZZ_CONTAINERS=$(docker ps -a --format "table {{.Names}}\t{{.Image}}" | grep -E "(upfuzz_|cassandra-.*_.*_.*_N|hdfs-.*_.*_.*_N|hbase-.*_.*_.*_N|ozone-.*_.*_.*_N)" | awk '{print $1}')
+# Look for containers that have upfuzz_ in either the name or image
+UPFUZZ_CONTAINERS=$(docker ps -a --format "table {{.Names}}\t{{.Image}}" | grep "upfuzz_" | awk '{print $1}')
 
 if [ -n "$UPFUZZ_CONTAINERS" ]; then
     echo "Found upfuzz containers:"
