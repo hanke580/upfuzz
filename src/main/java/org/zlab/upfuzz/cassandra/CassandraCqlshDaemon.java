@@ -203,10 +203,12 @@ public class CassandraCqlshDaemon extends ShellDaemon {
                 ret = cp.message;
         }
         if (cp != null)
-            logger.debug(String.format(
-                    "command = {%s}, result = {%s}, error = {%s}, exitValue = {%d}",
-                    command, cp.message, cp.error,
-                    cp.exitValue));
+            if (Config.getConf().debug) {
+                logger.debug(String.format(
+                        "command = {%s}, result = {%s}, error = {%s}, exitValue = {%d}",
+                        command, cp.message, cp.error,
+                        cp.exitValue));
+            }
         return ret;
     }
 

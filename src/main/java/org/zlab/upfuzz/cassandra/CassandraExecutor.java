@@ -56,17 +56,23 @@ public class CassandraExecutor extends Executor {
             return false;
         }
 
-        logger.info("[HKLOG] executor direction: " + direction);
+        if (Config.getConf().debug) {
+            logger.debug("[HKLOG] executor direction: " + direction);
+        }
         if (direction == 0) {
-            logger.info("[HKLOG] Docker Cluster startup, original version: "
-                    + Config.getConf().originalVersion);
+            if (Config.getConf().debug) {
+                logger.info("[HKLOG] Docker Cluster startup, original version: "
+                        + Config.getConf().originalVersion);
+            }
             dockerCluster = new CassandraDockerCluster(
                     this, Config.getConf().originalVersion,
                     nodeNum, collectFormatCoverage,
                     configPath, direction);
         } else {
-            logger.info("[HKLOG] Docker Cluster startup, upgraded version: "
-                    + Config.getConf().upgradedVersion);
+            if (Config.getConf().debug) {
+                logger.info("[HKLOG] Docker Cluster startup, upgraded version: "
+                        + Config.getConf().upgradedVersion);
+            }
             dockerCluster = new CassandraDockerCluster(
                     this, Config.getConf().upgradedVersion,
                     nodeNum, collectFormatCoverage,

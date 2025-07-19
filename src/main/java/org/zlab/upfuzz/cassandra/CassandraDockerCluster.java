@@ -54,7 +54,12 @@ public class CassandraDockerCluster extends DockerCluster {
 
     public boolean build() throws Exception {
         for (int i = 0; i < dockers.length; ++i) {
-            logger.info(this.originalVersion + " -> " + this.upgradedVersion);
+            if (Config.getConf().testSingleVersion) {
+                logger.info(this.originalVersion);
+            } else {
+                logger.info(
+                        this.originalVersion + " -> " + this.upgradedVersion);
+            }
             dockers[i] = new CassandraDocker(this, i);
             dockers[i].build();
         }

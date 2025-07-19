@@ -22,7 +22,7 @@ public class AgentServerSocket extends Thread {
     public AgentServerSocket(Executor executor) throws IOException {
         this.executor = executor;
         this.server = new ServerSocket(0, 0, InetAddress.getByName("0.0.0.0"));
-        logger.info("Executor: " + executor.executorID
+        logger.debug("Executor: " + executor.executorID
                 + "  Client socket Server start at: " +
                 this.server.getLocalSocketAddress());
         this.fileWriter = new ExecutionDataWriter(
