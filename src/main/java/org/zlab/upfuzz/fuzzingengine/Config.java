@@ -330,7 +330,14 @@ public class Config {
          * Do not modify these default configurations!
          */
         // == cassandra ==
+
+        // Live check1: process should appear in ps -ef after WAIT_INTERVAL
         public boolean cassandraEnableTimeoutCheck = true;
+        public int WAIT_INTERVAL = 15; // seconds
+
+        // Live check2: the connection should be established within
+        // CASSANDRA_RETRY_TIMEOUT
+        public int CASSANDRA_RETRY_TIMEOUT = 180; // seconds
 
         public boolean eval_CASSANDRA13939 = false;
         public boolean enable_ORDERBY_IN_SELECT = true;
