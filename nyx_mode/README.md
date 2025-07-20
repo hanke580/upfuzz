@@ -387,7 +387,7 @@ bin/start_server.sh config.json
 # open terminal2: start one client
 bin/start_clients.sh 1 config.json
 
-# to stop executing test, run `bin/cass_cl.sh $ORI_VERSION`
+# to stop executing test, run `bin/clean.sh $ORI_VERSION`
 ```
 
 **Test Upgrade**
@@ -418,7 +418,7 @@ bin/start_server.sh config.json
 # Terminal2
 bin/start_clients.sh 1 config.json
 
-# to stop executing test, run `bin/cass_cl.sh $ORI_VERSION $UP_VERSION` 
+# to stop executing test, run `bin/clean.sh $ORI_VERSION $UP_VERSION` 
 ```
 
 

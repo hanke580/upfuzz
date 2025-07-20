@@ -73,7 +73,7 @@ public abstract class ConfigGen {
     public void initSingleTesting() {
         initSingleSystemPath();
         initSingleFileGenerator();
-        if (Config.getConf().testConfig) {
+        if (Config.getConf().testSingleVersionConfig) {
             enable = true;
             loadSingleConfigInfo();
             initSingleValGenerator();
@@ -261,7 +261,7 @@ public abstract class ConfigGen {
 
     public int generateSingleVersionConfig() {
         Map<String, String> oriConfigtest = new HashMap<>();
-        if (Config.getConf().testConfig) {
+        if (Config.getConf().testSingleVersionConfig) {
             Map<String, String> filteredConfigTest = filteredConfigTestGen(
                     singleConfigValGenerator, true,
                     Config.getConf().testSingleVersionConfigRatio);
@@ -278,7 +278,7 @@ public abstract class ConfigGen {
                     new LinkedHashMap<>(), new LinkedHashMap<>(),
                     new LinkedHashMap<>(), new LinkedHashMap<>());
         }
-        if (Config.getConf().testConfig)
+        if (Config.getConf().testSingleVersionConfig)
             return configFileGenerator[0].generate(oriConfigtest,
                     oriConfigInfo.config2type);
         else

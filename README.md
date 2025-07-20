@@ -100,7 +100,7 @@ tmux send-keys -t test-cass:0.1 C-m 'sleep 2; bin/start_clients.sh 1 cass5_confi
 # bin/start_clients.sh 1 cass5_config.json
 
 # stop testing
-bin/cass_cl.sh
+bin/clean.sh
 ```
 
 #### 4.1.9
@@ -141,7 +141,7 @@ tmux send-keys -t test-cass:0.1 C-m 'sleep 2; bin/start_clients.sh 1 cass4_confi
 # bin/start_clients.sh 1 cass4_config.json
 
 # stop testing
-bin/cass_cl.sh
+bin/clean.sh
 ```
 
 #### 3.11.17
@@ -182,12 +182,54 @@ tmux send-keys -t test-cass:0.1 C-m 'sleep 2; bin/start_clients.sh 1 cass4_confi
 # bin/start_clients.sh 1 cass4_config.json
 
 # stop testing
-bin/cass_cl.sh
+bin/clean.sh
 ```
 
 ### Upgrade Testing
-<details>
-  <summary>Click to unfold for details</summary>
+
+#### 4.1.9 => 5.0.4
+
+```bash
+git clone git@github.com:zlab-purdue/upfuzz.git
+cd upfuzz
+git checkout dev
+
+export UPFUZZ_DIR=$PWD
+export ORI_VERSION=4.1.9
+export UP_VERSION=5.0.4
+
+mkdir -p "$UPFUZZ_DIR"/prebuild/cassandra
+cd prebuild/cassandra
+wget https://archive.apache.org/dist/cassandra/"$ORI_VERSION"/apache-cassandra-"$ORI_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$ORI_VERSION"-bin.tar.gz
+wget https://archive.apache.org/dist/cassandra/"$UP_VERSION"/apache-cassandra-"$UP_VERSION"-bin.tar.gz ; tar -xzvf apache-cassandra-"$UP_VERSION"-bin.tar.gz
+sed -i 's/num_tokens: 16/num_tokens: 256/' apache-cassandra-"$UP_VERSION"/conf/cassandra.yaml
+
+cd ${UPFUZZ_DIR}
+cp src/main/resources/cqlsh_daemon4.py prebuild/cassandra/apache-cassandra-"$ORI_VERSION"/bin/cqlsh_daemon.py
+cp src/main/resources/cqlsh_daemon5.py  prebuild/cassandra/apache-cassandra-"$UP_VERSION"/bin/cqlsh_daemon.py
+
+cd src/main/resources/cassandra/upgrade-testing/compile-src/
+sed -i "s/ORI_VERSION=apache-cassandra-.*$/ORI_VERSION=apache-cassandra-$ORI_VERSION/" cassandra-clusternode.sh
+sed -i "s/UP_VERSION=apache-cassandra-.*$/UP_VERSION=apache-cassandra-$UP_VERSION/" cassandra-clusternode.sh
+docker build . -t upfuzz_cassandra:apache-cassandra-"$ORI_VERSION"_apache-cassandra-"$UP_VERSION"
+
+cd ${UPFUZZ_DIR}
+./gradlew copyDependencies
+./gradlew :spotlessApply build
+
+# start fuzzing in tmux session test-cass
+tmux kill-session -t test-cass
+tmux new-session -d -s test-cass \; split-window -v \;
+# bin/start_server.sh cass_upgrade_4_to_5_config.json > server.log
+tmux send-keys -t test-cass:0.0 C-m 'bin/start_server.sh cass_upgrade_4_to_5_config.json > server.log' C-m \;
+# bin/start_clients.sh 1 cass_upgrade_4_to_5_config.json
+tmux send-keys -t test-cass:0.1 C-m 'sleep 2; bin/start_clients.sh 1 cass_upgrade_4_to_5_config.json' C-m
+
+# stop testing
+bin/clean.sh
+```
+
+#### 3.11.17 => 4.1.4
 
 ```bash
 git clone git@github.com:zlab-purdue/upfuzz.git
@@ -221,9 +263,8 @@ bin/start_server.sh config.json
 bin/start_clients.sh 1 config.json
 
 # stop testing
-bin/cass_cl.sh
+bin/clean.sh
 ```
-</details>
 
 
 ## HDFS: Push Button Testing
@@ -459,8 +500,8 @@ bin/start_server.sh config.json
 bin/start_clients.sh 1 config.json
 
 # stop testing
-bin/cass_cl.sh 3.11.17 4.1.4
-bin/cass_cl.sh 4.1.4 3.11.17
+bin/clean.sh 3.11.17 4.1.4
+bin/clean.sh 4.1.4 3.11.17
 ```
 
 ### HDFS

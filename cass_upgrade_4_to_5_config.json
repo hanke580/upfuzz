@@ -19,7 +19,7 @@
   "testBoundaryConfig": false,
   "testAddedConfig": false,
   "testDeletedConfig": false,
-  "testCommonConfig": true,
+  "testCommonConfig": false,
   "testRemainConfig": false,
   "debug": false,
   "useExampleTestPlan": false,

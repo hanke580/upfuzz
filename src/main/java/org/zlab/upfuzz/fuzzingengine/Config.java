@@ -178,7 +178,7 @@ public class Config {
         public String configDir = "configtests";
 
         // == single version ==
-        public boolean testConfig = false;
+        public boolean testSingleVersionConfig = false;
         public double testSingleVersionConfigRatio = 0.1;
 
         // == upgrade ==
