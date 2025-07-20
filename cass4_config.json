@@ -12,7 +12,7 @@
   "faultMaxNum": 0,
   "loadInitCorpus": false,
   "saveCorpusToDisk": false,
-  "testSingleVersion": false,
+  "testSingleVersion": true,
   "testingMode": 0,
   "useFormatCoverage": false,
   "useVersionDelta": false,
