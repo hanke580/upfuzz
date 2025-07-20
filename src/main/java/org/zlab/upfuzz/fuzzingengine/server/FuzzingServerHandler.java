@@ -212,7 +212,9 @@ public class FuzzingServerHandler implements Runnable {
 
     private void readFeedbackPacket() throws IOException {
         int intType = in.readInt();
-        logger.info("feedback type = " + intType);
+        if (Config.getConf().debug) {
+            logger.debug("feedback type = " + intType);
+        }
         if (intType == PacketType.StackedFeedbackPacket.value) {
             StackedFeedbackPacket stackedFeedbackPacket = StackedFeedbackPacket
                     .read(in);

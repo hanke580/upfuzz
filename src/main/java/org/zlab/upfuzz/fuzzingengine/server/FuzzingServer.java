@@ -611,7 +611,9 @@ public class FuzzingServer {
     }
 
     public void generateRandomSeed() {
-        logger.debug("[fuzzOne] generate a random seed");
+        if (Config.getConf().debug) {
+            logger.debug("[fuzzOne] generate a random seed");
+        }
         StackedTestPacket stackedTestPacket;
 
         int configIdx = configGen.generateConfig();
@@ -697,9 +699,11 @@ public class FuzzingServer {
         int configIdx;
 
         mutatedSeedIds.add(seed.testID);
-        logger.debug(
-                "[fuzzOne] fuzz a seed from corpus, stackedTestPackets size = "
-                        + stackedTestPackets.size());
+        if (Config.getConf().debug) {
+            logger.debug(
+                    "[fuzzOne] fuzz a seed from corpus, stackedTestPackets size = "
+                            + stackedTestPackets.size());
+        }
 
         // 1.a Fix config, mutate command sequences
         if (seed.configIdx == -1)
@@ -869,8 +873,10 @@ public class FuzzingServer {
         }
         firstMutationSeedNum++;
 
-        logger.debug("[fuzzOne] mutate done, stackedTestPackets size = "
-                + stackedTestPackets.size());
+        if (Config.getConf().debug) {
+            logger.debug("[fuzzOne] mutate done, stackedTestPackets size = "
+                    + stackedTestPackets.size());
+        }
 
         if (stackedTestPackets.isEmpty()) {
             logger.error(
