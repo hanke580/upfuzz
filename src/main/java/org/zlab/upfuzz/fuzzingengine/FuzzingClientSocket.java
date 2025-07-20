@@ -49,7 +49,10 @@ class FuzzingClientSocket implements Runnable {
             try {
                 intType = in.readInt();
                 Packet.PacketType type = Packet.PacketType.values()[intType];
-                logger.debug("Packet val = " + intType + ", type = " + type);
+                if (Config.getConf().debug) {
+                    logger.debug(
+                            "Packet val = " + intType + ", type = " + type);
+                }
                 Packet feedBackPacket = null;
                 int requestedGroupForVersionDelta = 0;
 

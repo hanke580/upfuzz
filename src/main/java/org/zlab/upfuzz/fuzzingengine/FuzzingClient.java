@@ -194,7 +194,9 @@ public class FuzzingClient {
     }
 
     public void start() throws InterruptedException {
-        logger.debug("Starting fuzzing client of group: " + group);
+        if (Config.getConf().debug) {
+            logger.debug("Starting fuzzing client of group: " + group);
+        }
         // Schedule GC here
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
             System.gc();

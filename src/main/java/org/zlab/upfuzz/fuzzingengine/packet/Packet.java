@@ -16,6 +16,7 @@ import org.zlab.ocov.tracker.graph.structure.OutDegreeConstraint;
 import org.zlab.ocov.tracker.graph.structure.StructureConstraint;
 import org.zlab.ocov.tracker.inv.Invariant;
 import org.zlab.ocov.tracker.inv.unary.*;
+import org.zlab.upfuzz.fuzzingengine.Config;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -78,7 +79,9 @@ public abstract class Packet {
         out.writeInt(type.value);
         String packetStr = gson.toJson(this);
         byte[] packetByte = packetStr.getBytes();
-        logger.debug("[Packet] Send packet size: " + packetByte.length);
+        if (Config.getConf().debug) {
+            logger.debug("[Packet] Send packet size: " + packetByte.length);
+        }
         out.writeInt(packetByte.length);
         out.write(packetByte);
     }
