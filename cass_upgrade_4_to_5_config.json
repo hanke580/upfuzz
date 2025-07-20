@@ -1,5 +1,6 @@
 {
   "originalVersion" : "apache-cassandra-4.1.9",
+  "upgradedVersion" : "apache-cassandra-5.0.4",
   "system" : "cassandra",
   "serverPort" : "6399",
   "clientPort" : "6400",
@@ -12,7 +13,7 @@
   "faultMaxNum": 0,
   "loadInitCorpus": false,
   "saveCorpusToDisk": false,
-  "testSingleVersion": true,
+  "testSingleVersion": false,
   "testingMode": 0,
   "verifyConfig": false,
   "testBoundaryConfig": false,

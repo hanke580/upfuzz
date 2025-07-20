@@ -42,7 +42,7 @@ public class Config {
         public String failureDir = null;
 
         public boolean nyxMode = false;
-        public String nyxFuzzSH = null;
+        public String nyxFuzzSH = "nyx_mode/fuzz_no_pt.sh";
 
         // -------------- Test Execution Timeout --------------
         // A single test must be finished within this time limit
