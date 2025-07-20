@@ -120,8 +120,6 @@ ssh -p 2222 nyx@localhost # password: nyx
 ```bash
 # Run this inside Nyx VM
 cd ~
-# ssh-keygen -t ed25519 -C "kehan5800@gmail.com"
-# cat ~/.ssh/id_ed25519.pub
 ssh-keyscan github.com >> ~/.ssh/known_hosts
 git clone git@github.com:zlab-purdue/upfuzz.git
 cd upfuzz
