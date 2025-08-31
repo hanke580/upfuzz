@@ -16,8 +16,6 @@
   "testSingleVersion": false,
   "testingMode": 0,
   "useFormatCoverage": false,
-  "useVersionDelta": false,
-  "versionDeltaApproach": 2,
   "BC_CorpusNonVersionDelta": 0.2,
   "FC_CorpusNonVersionDelta": 0.6,
   "BoundaryChange_CorpusNonVersionDelta": 0.2,
