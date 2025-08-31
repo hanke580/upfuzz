@@ -49,5 +49,5 @@
   "eval_CASSANDRA13939": false,
   "enable_ORDERBY_IN_SELECT": true,
   "eval_14803_filter_forward_read": true,
-  "cassandraEnableTimeoutCheck": false 
+  "cassandraEnableTimeoutCheck": false
 }

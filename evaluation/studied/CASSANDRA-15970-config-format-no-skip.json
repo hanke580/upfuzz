@@ -17,8 +17,6 @@
   "testingMode": 0,
   "useFormatCoverage": true,
   "staticVD": false,
-  "useVersionDelta": false,
-  "versionDeltaApproach": 1,
   "BC_CorpusNonVersionDelta": 0.2,
   "FC_CorpusNonVersionDelta": 0.8,
   "BoundaryChange_CorpusNonVersionDelta": 0,
@@ -44,5 +42,5 @@
   "eval_CASSANDRA13939": false,
   "enable_ORDERBY_IN_SELECT": false,
   "eval_14803_filter_forward_read": false,
-  "cassandraEnableTimeoutCheck": false 
+  "cassandraEnableTimeoutCheck": false
 }

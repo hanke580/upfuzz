@@ -37,5 +37,5 @@
   "drain": false,
   "useFixedCommand": true,
   "enable_ORDERBY_IN_SELECT": false,
-  "cassandraEnableTimeoutCheck": false 
+  "cassandraEnableTimeoutCheck": false
 }

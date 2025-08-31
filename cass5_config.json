@@ -22,5 +22,5 @@
   "drain": false,
   "useFixedCommand": false,
   "enable_ORDERBY_IN_SELECT": false,
-  "cassandraEnableTimeoutCheck": false 
+  "cassandraEnableTimeoutCheck": false
 }
