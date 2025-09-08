@@ -395,6 +395,7 @@ public class Config {
         public boolean enable_IS_DISABLED = true;
         public boolean enable_LIST_SNAPSHOTS = true;
         public boolean enable_LIST_QUOTA_TABLE_SIZES = true;
+        public boolean enable_DESCRIBE_NAMESPACE = true;
 
         public boolean enableQuota = true;
         public int MAX_CF_NUM = 7;

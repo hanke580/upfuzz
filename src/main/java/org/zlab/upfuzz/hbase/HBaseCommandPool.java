@@ -71,9 +71,13 @@ public class HBaseCommandPool extends CommandPool {
         // readCommandClassList.add(
         // new AbstractMap.SimpleImmutableEntry<>(WHOAMI.class, 5));
         // namespace
-        readCommandClassList.add(
-                new AbstractMap.SimpleImmutableEntry<>(DESCRIBE_NAMESPACE.class,
-                        5));
+
+        if (Config.getConf().enable_DESCRIBE_NAMESPACE) {
+            readCommandClassList.add(
+                    new AbstractMap.SimpleImmutableEntry<>(
+                            DESCRIBE_NAMESPACE.class,
+                            5));
+        }
 
         readCommandClassList.add(
                 new AbstractMap.SimpleImmutableEntry<>(

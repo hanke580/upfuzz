@@ -33,6 +33,7 @@
   "enableNyxInGroup2": false,
   "nyxFuzzSH": "nyx_mode/fuzz_no_pt.sh",
   "eval_HBASE22503": true,
+  "enable_DESCRIBE_NAMESPACE": false,
   "debug": false,
   "useFixedCommand": false,
   "enable_LIST_SNAPSHOTS": false,
