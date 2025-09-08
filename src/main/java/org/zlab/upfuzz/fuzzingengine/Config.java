@@ -403,6 +403,7 @@ public class Config {
         public int REGIONSERVER_PORT = 16020;
 
         public boolean eval_HBASE22503 = false;
+        public boolean reproduce_HBASE22503 = false;
 
         // == ozone ==
         // Add a special first command... (will be deprecated)
