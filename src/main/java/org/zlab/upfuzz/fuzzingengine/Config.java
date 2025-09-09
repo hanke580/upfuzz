@@ -58,6 +58,9 @@ public class Config {
         public boolean controlRandomness = false;
 
         // Skip Upgrade
+        public boolean BC_skipUpgrade = false;
+
+        // Skip Upgrade
         public boolean skipUpgrade = false;
         // Parameters for the exponential distribution
         public double skipProbForNewBranchCoverage = 0.2;

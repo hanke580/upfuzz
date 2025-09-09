@@ -221,6 +221,11 @@ public class FuzzingServer {
         curOriCoverageAfterDowngrade = new ExecutionDataStore();
         curUpCoverageAfterUpgrade = new ExecutionDataStore();
 
+        // skip upgrade check
+        if (Config.getConf().BC_skipUpgrade)
+            assert !Config.getConf().useFormatCoverage
+                    : "BC_skipUpgrade should only be enabled when no format coverage";
+
         if (Config.getConf().useFormatCoverage) {
             // FIXME: add isSerialized path
             Path oriFormatInfoFolder = Paths.get("configInfo")
