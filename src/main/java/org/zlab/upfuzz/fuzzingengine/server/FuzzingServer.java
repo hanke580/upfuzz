@@ -224,7 +224,7 @@ public class FuzzingServer {
         // skip upgrade check
 
         assert !(Config.getConf().BC_skipUpgrade
-                && !Config.getConf().useFormatCoverage)
+                && Config.getConf().useFormatCoverage)
                 : "BC_skipUpgrade should only be enabled when no format coverage";
 
         if (Config.getConf().useFormatCoverage) {
