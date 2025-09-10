@@ -222,9 +222,10 @@ public class FuzzingServer {
         curUpCoverageAfterUpgrade = new ExecutionDataStore();
 
         // skip upgrade check
-        if (Config.getConf().BC_skipUpgrade)
-            assert !Config.getConf().useFormatCoverage
-                    : "BC_skipUpgrade should only be enabled when no format coverage";
+
+        assert !(Config.getConf().BC_skipUpgrade
+                && !Config.getConf().useFormatCoverage)
+                : "BC_skipUpgrade should only be enabled when no format coverage";
 
         if (Config.getConf().useFormatCoverage) {
             // FIXME: add isSerialized path
@@ -509,13 +510,18 @@ public class FuzzingServer {
                     && (Config.getConf().versionDeltaApproach == 2)) {
                 stackedTestPacket.clientGroupForVersionDelta = 1;
             }
-            if (Config.getConf().useFormatCoverage
-                    && Config.getConf().skipUpgrade) {
+            if (Config.getConf().skipUpgrade) {
                 assert Config.getConf().STACKED_TESTS_NUM == 1;
-                stackedTestPacket.formatCoverage = SerializationUtils.clone(
-                        oriObjCoverage);
-                stackedTestPacket.branchCoverage = new ExecutionDataStore();
-                stackedTestPacket.branchCoverage.merge(curOriCoverage);
+                if (Config.getConf().useFormatCoverage) {
+                    stackedTestPacket.formatCoverage = SerializationUtils.clone(
+                            oriObjCoverage);
+                    stackedTestPacket.branchCoverage = new ExecutionDataStore();
+                    stackedTestPacket.branchCoverage.merge(curOriCoverage);
+                }
+                if (Config.getConf().BC_skipUpgrade) {
+                    stackedTestPacket.branchCoverage = new ExecutionDataStore();
+                    stackedTestPacket.branchCoverage.merge(curOriCoverage);
+                }
             }
 
             // Debug: use the fixed command
