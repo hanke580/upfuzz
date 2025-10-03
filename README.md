@@ -12,7 +12,7 @@
 * Nyx-snapshot to save start up (experimental)
 
 ## Bugs found by molt
-Molt has found 36 bugs in 3 different systems, which are listed [here](docs/Bugs.md).
+Molt has found 38 bugs in 3 different systems, which are listed [here](docs/Bugs.md).
 
 ## Prerequisite
 ```bash
