@@ -1,6 +1,6 @@
 # Detected New bugs
 
-We list all detected new bugs here
+We list the detected new bugs here
 
 ## Upgrade Bugs
 
