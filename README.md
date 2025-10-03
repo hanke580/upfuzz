@@ -1,10 +1,8 @@
-# Molt
+# Molt: Automated Reliability Testing for Distributed Storage Systems
 
-> A tool for testing distributed systems.
-
-## Feature
+## Molt
 * Coverage-guided fuzz testing
-  * Collects branch coverage of the entire cluster
+  * Collects branch coverage and data format coverage of the entire cluster
   * Implements a type system for input generation and mutation. (Users only need to implement their command via the given types, and upfuzz can generate/mutate valid command sequence.)
   * Config Testing (experimental)
 * Oracle
@@ -12,6 +10,9 @@
   * Read Inconsistency Comparison: compare read results between restart/upgrade
 * Coarse-Grained Fault Injection (experimental)
 * Nyx-snapshot to save start up (experimental)
+
+## Bugs found by molt
+Molt has found 40 bugs in 3 different systems, which are listed [here](docs/Bugs).
 
 ## Prerequisite
 ```bash
